@@ -40,6 +40,8 @@ import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.MediaSessionConstants
 import com.music.vivi.constants.SongSortType
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.Album
+import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
@@ -147,32 +149,12 @@ constructor(
 
                     MusicService.ARTIST ->
                         database.artistsByCreateDateAsc().first().map { artist ->
-                            browsableMediaItem(
-                                "${MusicService.ARTIST}/${artist.id}",
-                                artist.artist.name,
-                                context.resources.getQuantityString(
-                                    R.plurals.n_song,
-                                    artist.songCount,
-                                    artist.songCount
-                                ),
-                                artist.artist.thumbnailUrl?.toUri(),
-                                MediaMetadata.MEDIA_TYPE_ARTIST,
-                                singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
-                            )
+                            artist.toBrowsableMediaItem()
                         }
 
                     MusicService.ALBUM ->
                         database.albumsByCreateDateAsc().first().map { album ->
-                            browsableMediaItem(
-                                "${MusicService.ALBUM}/${album.id}",
-                                album.album.title,
-                                album.artists.joinToString {
-                                    it.name
-                                },
-                                album.album.thumbnailUrl?.toUri(),
-                                MediaMetadata.MEDIA_TYPE_ALBUM,
-                                singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
-                            )
+                            album.toBrowsableMediaItem()
                         }
 
                     MusicService.PLAYLIST -> {
@@ -656,18 +638,7 @@ constructor(
                 val artistId = path.getOrNull(1) ?: return null
                 if (path.size == 2) {
                     database.artist(artistId).first()?.let { artist ->
-                        browsableMediaItem(
-                            "${MusicService.ARTIST}/${artist.id}",
-                            artist.artist.name,
-                            context.resources.getQuantityString(
-                                R.plurals.n_song,
-                                artist.songCount,
-                                artist.songCount
-                            ),
-                            artist.artist.thumbnailUrl?.toUri(),
-                            MediaMetadata.MEDIA_TYPE_ARTIST,
-                            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
-                        )
+                        artist.toBrowsableMediaItem()
                     }
                 } else {
                     val songId = path.lastOrNull() ?: return null
@@ -679,14 +650,7 @@ constructor(
                 val albumId = path.getOrNull(1) ?: return null
                 if (path.size == 2) {
                     database.album(albumId).first()?.let { album ->
-                        browsableMediaItem(
-                            "${MusicService.ALBUM}/${album.id}",
-                            album.album.title,
-                            album.artists.joinToString { it.name },
-                            album.album.thumbnailUrl?.toUri(),
-                            MediaMetadata.MEDIA_TYPE_ALBUM,
-                            singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
-                        )
+                        album.toBrowsableMediaItem()
                     }
                 } else {
                     val songId = path.lastOrNull() ?: return null
@@ -795,6 +759,28 @@ constructor(
         singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_CATEGORY_LIST_ITEM,
     )
 
+    private fun Artist.toBrowsableMediaItem() = browsableMediaItem(
+        "${MusicService.ARTIST}/$id",
+        artist.name,
+        context.resources.getQuantityString(
+            R.plurals.n_song,
+            songCount,
+            songCount
+        ),
+        artist.thumbnailUrl?.toUri(),
+        MediaMetadata.MEDIA_TYPE_ARTIST,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+    )
+
+    private fun Album.toBrowsableMediaItem() = browsableMediaItem(
+        "${MusicService.ALBUM}/$id",
+        album.title,
+        artists.joinToString { it.name },
+        album.thumbnailUrl?.toUri(),
+        MediaMetadata.MEDIA_TYPE_ALBUM,
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
+    )
+
     private fun com.music.vivi.db.entities.Playlist.toBrowsableMediaItem() = browsableMediaItem(
         "${MusicService.PLAYLIST}/$id",
         playlist.name,
@@ -874,7 +860,7 @@ constructor(
                     .setIsPlayable(isPlayable)
                     .setIsBrowsable(isBrowsable)
                     .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                    .setExtras(playableMediaItemExtras())
+                    .setExtras(songMediaItemExtras())
                     .build(),
             ).build()
     }
@@ -890,7 +876,7 @@ constructor(
                 .setIsPlayable(true)
                 .setIsBrowsable(false)
                 .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
-                .setExtras(playableMediaItemExtras())
+                .setExtras(songMediaItemExtras())
                 .build()
         )
         .build()
@@ -917,6 +903,10 @@ constructor(
 
     private fun playableMediaItemExtras() = contentStyleExtras(
         singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_LIST_ITEM,
+    )
+
+    private fun songMediaItemExtras() = contentStyleExtras(
+        singleItemStyle = MediaConstants.EXTRAS_VALUE_CONTENT_STYLE_GRID_ITEM,
     )
 
     private fun contentStyleExtras(
