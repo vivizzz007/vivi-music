@@ -110,6 +110,7 @@ fun AiSettings(
             "claude-3-5-sonnet-latest",
             "claude-3-opus-latest"
         ),
+        //fixed issue with gemni
         "Gemini" to listOf(
             "gemini-2.5-flash-lite",
             "gemini-2.5-flash",
