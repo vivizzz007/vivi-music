@@ -22,6 +22,7 @@ data class SearchSummary(
     val items: List<YTItem>,
 )
 
+
 data class SearchSummaryPage(
     val summaries: List<SearchSummary>,
 ) {
