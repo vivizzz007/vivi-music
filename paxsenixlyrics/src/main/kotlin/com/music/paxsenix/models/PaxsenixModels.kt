@@ -54,3 +54,52 @@ data class LyricsResponse(
     val ttmlContent: String? = null,
     val plain: String? = null
 )
+
+// Apple Music API search response models
+
+@Serializable
+data class AppleMusicSearchResponse(
+    val results: AppleMusicResults,
+    val resources: AppleMusicResources? = null
+)
+
+@Serializable
+data class AppleMusicResults(
+    val songs: AppleMusicSongsResult? = null
+)
+
+@Serializable
+data class AppleMusicSongsResult(
+    val data: List<AppleMusicSongData> = emptyList()
+)
+
+@Serializable
+data class AppleMusicSongData(
+    val id: String,
+    val type: String
+)
+
+@Serializable
+data class AppleMusicResources(
+    val songs: Map<String, AppleMusicSongDetail>? = null
+)
+
+@Serializable
+data class AppleMusicSongDetail(
+    val attributes: AppleMusicSongAttributes
+)
+
+@Serializable
+data class AppleMusicSongAttributes(
+    val name: String,
+    val artistName: String,
+    val albumName: String? = null,
+    val artwork: AppleMusicArtwork? = null,
+    val url: String? = null,
+    val durationInMillis: Long? = null
+)
+
+@Serializable
+data class AppleMusicArtwork(
+    val url: String
+)
