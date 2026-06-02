@@ -161,6 +161,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import android.widget.Toast
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.coroutineScope
 import kotlin.math.roundToInt
 
 @SuppressLint("UnrememberedMutableState")
@@ -186,6 +187,8 @@ fun Queue(
     val clipboardManager = LocalClipboard.current
     val menuState = LocalMenuState.current
     val bottomSheetPageState = LocalBottomSheetPageState.current
+    val coroutineScope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
 
     val isBluetoothConnected by produceState(initialValue = isBluetoothHeadphoneConnected(context)) {
@@ -413,7 +416,13 @@ fun Queue(
                     PlayerQueueButton(
                         icon = R.drawable.shuffle,
                         onClick = {
-                            playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(
+                                    if (shuffleModeEnabledInside) currentWindowIndex else 0,
+                                )
+                            }.invokeOnCompletion {
+                                playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
+                            }
                         },
                         isActive = shuffleModeEnabledInside,
                         enabled = !isListenTogetherGuest,
@@ -698,10 +707,7 @@ fun Queue(
                 queueWindows.sumOf { it.mediaItem.metadata!!.duration }
             }
 
-        val coroutineScope = rememberCoroutineScope()
-
         val headerItems = 1
-        val lazyListState = rememberLazyListState()
         var dragInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) }
 
         val currentPlayingUid = remember(currentWindowIndex, queueWindows) {
@@ -763,7 +769,7 @@ fun Queue(
             }
         }
 
-        LaunchedEffect(mutableQueueWindows) {
+        LaunchedEffect(mutableQueueWindows, currentWindowIndex) {
             if (currentWindowIndex != -1) {
                 lazyListState.scrollToItem(currentWindowIndex)
             }
@@ -899,8 +905,14 @@ fun Queue(
                 ) {
                     ToggleButton(
                         checked = shuffleModeEnabled,
-                        onCheckedChange = {
-                            playerConnection.player.shuffleModeEnabled = it
+                        onCheckedChange = { checked ->
+                            coroutineScope.launch {
+                                lazyListState.animateScrollToItem(
+                                    if (shuffleModeEnabled) currentWindowIndex else 0,
+                                )
+                            }.invokeOnCompletion {
+                                playerConnection.player.shuffleModeEnabled = checked
+                            }
                         },
                         enabled = !isListenTogetherGuest,
                         shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
