@@ -19,7 +19,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
 
@@ -61,6 +61,7 @@ jobs:
           ./gradlew assembleUniversalGmsRelease -Pnightly=true --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Sign APK
+        id: sign_app
         uses: ilharp/sign-android-release@v2.0.0
         with:
           releaseDir: app/build/outputs/apk/universalGms/release/
@@ -72,12 +73,11 @@ jobs:
 
       - name: Prepare Artifact
         run: |
-          OUTPUT_DIR="app/build/outputs/apk/universalGms/release"
-          mkdir -p "$OUTPUT_DIR/out"
-          find "$OUTPUT_DIR" -name "*-signed.apk" -o -name "*-unsigned-signed.apk" | xargs -I{} mv {} "$OUTPUT_DIR/out/vivi-music-gms-nightly.apk"
+          mkdir -p app/build/outputs/apk/universalGms/release/out
+          cp "${{ steps.sign_app.outputs.signedFile }}" app/build/outputs/apk/universalGms/release/out/vivi-music-gms-nightly.apk
 
       - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
           name: vivi-music-gms-nightly
-          path: app/build/outputs/apk/universalGms/release/out/*.apk
+          path: app/build/outputs/apk/universalGms/release/out/vivi-music-gms-nightly.apk
