@@ -65,6 +65,7 @@ import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.mp4.Mp4Extractor
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
@@ -2743,6 +2744,7 @@ class MusicService :
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    context = this@MusicService,
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -2791,7 +2793,7 @@ class MusicService :
                             id = mediaId,
                             itag = format.itag,
                             mimeType = format.mimeType.split(";")[0],
-                            codecs = format.mimeType.split("codecs=")[1].removeSurrounding("\""),
+                            codecs = format.mimeType.split("codecs=").getOrNull(1)?.removeSurrounding("\"") ?: "mp3",
                             bitrate = format.bitrate,
                             sampleRate = format.audioSampleRate,
                             contentLength = format.contentLength ?: 0L,
@@ -2821,7 +2823,11 @@ class MusicService :
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
             ExtractorsFactory {
-                arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
+                arrayOf(
+                    MatroskaExtractor(),        // .webm / Opus
+                    FragmentedMp4Extractor(),   // fragmented .mp4 / AAC (YouTube)
+                    Mp4Extractor(),             // regular .mp4 / AAC (JioSaavn)
+                )
             },
         )
 
@@ -3102,6 +3108,7 @@ class MusicService :
                     videoId = mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    context = this@MusicService,
                 ).getOrNull()
                 playbackData?.streamUrl
             } catch (e: Exception) {

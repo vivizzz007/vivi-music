@@ -71,6 +71,8 @@ constructor(
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
     private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    // Keep a reference to context so we can read DataStore prefs for JioSaavn support
+    private val appContext: Context = context
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -122,6 +124,8 @@ constructor(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    // Pass context so the JioSaavn intercept fires when the toggle is ON
+                    context = appContext,
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -132,10 +136,10 @@ constructor(
                         id = mediaId,
                         itag = format.itag,
                         mimeType = format.mimeType.split(";")[0],
-                        codecs = format.mimeType.split("codecs=")[1].removeSurrounding("\""),
+                        codecs = format.mimeType.split("codecs=").getOrNull(1)?.removeSurrounding("\"") ?: "mp4a.40.2",
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
-                        contentLength = format.contentLength!!,
+                        contentLength = format.contentLength ?: 0L,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
@@ -175,8 +179,13 @@ constructor(
                 }
             }
 
-            val streamUrl = playbackData.streamUrl.let {
-                "${it}&range=0-${format.contentLength ?: 10000000}"
+            // For YouTube streams: append the &range= param so the download cache can
+            // handle progressive HTTP range requests. For JioSaavn streams the CDN
+            // doesn't need it and contentLength is null, so skip it.
+            val streamUrl = if (playbackData.isSaavnStream) {
+                playbackData.streamUrl
+            } else {
+                "${playbackData.streamUrl}&range=0-${format.contentLength ?: 10_000_000}"
             }
 
             songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L

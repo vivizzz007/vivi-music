@@ -26,6 +26,9 @@ import com.music.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.response.PlayerResponse
 import com.music.vivi.constants.AudioQuality
+import com.music.vivi.constants.EnableSaavnStreamingKey
+import com.music.vivi.constants.SaavnAudioQuality
+import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.YTPlayerUtils.MAIN_CLIENT
 import com.music.vivi.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
@@ -36,6 +39,7 @@ import com.music.vivi.utils.sabr.EjsNTransformSolver
 import com.music.vivi.utils.PlaybackLogLevel
 import com.music.vivi.utils.PlaybackLogManager
 import com.music.innertube.models.IpVersion
+import com.music.jiosaavn.SaavnService
 import okhttp3.Dns
 import okhttp3.OkHttpClient
 import timber.log.Timber
@@ -117,6 +121,8 @@ object YTPlayerUtils {
         val format: PlayerResponse.StreamingData.Format,
         val streamUrl: String,
         val streamExpiresInSeconds: Int,
+        /** True when the stream is sourced from JioSaavn (not YouTube). */
+        val isSaavnStream: Boolean = false,
     )
     /**
      * Custom player response intended to use for playback.
@@ -129,7 +135,185 @@ object YTPlayerUtils {
         playlistId: String? = null,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        context: android.content.Context? = null,
     ): Result<PlaybackData> {
+        // ── JioSaavn intercept ───────────────────────────────────────────────
+        // If the user has enabled JioSaavn streaming, try to resolve the stream
+        // URL from JioSaavn first. We fall through to YouTube on ANY failure so
+        // the user always hears audio.
+        if (context != null) {
+            val saavnEnabled = context.dataStore.get(EnableSaavnStreamingKey, false)
+            if (saavnEnabled) {
+                Timber.tag(TAG).d("JioSaavn streaming enabled — trying Saavn for videoId=$videoId")
+                val saavnResult = runCatching {
+                    // Step 1: get title + artist from YouTube metadata (fast, cached)
+                    val meta = playerResponseForMetadata(videoId, playlistId).getOrNull()
+                    val title  = meta?.videoDetails?.title.orEmpty()
+                    val artist = meta?.videoDetails?.author.orEmpty()
+
+                    if (title.isBlank()) return@runCatching null
+
+                    val query = "$title $artist"
+                        .replace("&", " ")
+                        .replace(",", " ")
+                        .replace(Regex("(?i)\\s*-\\s*topic\\b"), "")
+                        .replace(Regex("\\s+"), " ")
+                        .trim()
+                    Timber.tag(TAG).d("Saavn search query: \"$query\" (original: \"$title $artist\")")
+
+                    // Step 2: search JioSaavn
+                    val songs = SaavnService.searchSongs(query).getOrNull()
+                    if (songs.isNullOrEmpty()) {
+                        Timber.tag(TAG).d("Saavn: no results for \"$query\" — falling back to YT")
+                        return@runCatching null
+                    }
+
+                    // Step 3: score every candidate and pick the best one.
+                    //
+                    // Signals (max 100 pts):
+                    //   • Title word overlap  → up to 50 pts  (most reliable signal)
+                    //   • Duration match      → 30 pts (≤5s diff) / 15 pts (≤15s diff)
+                    //   • Artist name overlap → up to 20 pts
+                    //   • Explicit flag       →  +5 pts tiebreaker (prefer unedited original)
+                    //
+                    // A minimum score of 40 is required. If no candidate reaches it we
+                    // fall back to YouTube rather than play a completely wrong song.
+
+                    val ytDuration = meta?.videoDetails?.lengthSeconds?.toLongOrNull() ?: 0L
+
+                    fun normalize(s: String): Set<String> =
+                        s.lowercase()
+                            .replace(Regex("[^a-z0-9\\s]"), " ")
+                            .split(Regex("\\s+"))
+                            .filter { it.length > 1 }        // drop single-char noise words
+                            .toSet()
+
+                    fun wordOverlapScore(a: String, b: String, maxPts: Int): Int {
+                        val setA = normalize(a)
+                        val setB = normalize(b)
+                        if (setA.isEmpty() || setB.isEmpty()) return 0
+                        val common = setA.intersect(setB).size
+                        val ratio  = common.toDouble() / maxOf(setA.size, setB.size)
+                        return (ratio * maxPts).toInt()
+                    }
+
+                    data class ScoredSong(val song: com.music.jiosaavn.SaavnSong, val score: Int)
+
+                    val ytArtist = artist  // already captured above
+
+                    val scored = songs.map { candidate ->
+                        var score = 0
+
+                        // ① Title overlap (50 pts)
+                        score += wordOverlapScore(title, candidate.name, maxPts = 50)
+
+                        // ② Duration match (30 / 15 pts)
+                        val saavnDuration = candidate.duration?.toLong() ?: 0L
+                        if (ytDuration > 0 && saavnDuration > 0) {
+                            val diff = Math.abs(ytDuration - saavnDuration)
+                            score += when {
+                                diff <= 5  -> 30
+                                diff <= 15 -> 15
+                                else       -> 0
+                            }
+                        }
+
+                        // ③ Artist overlap (20 pts)
+                        val saavnArtists = candidate.artists.primary.joinToString(" ") { it.name }
+                        score += wordOverlapScore(ytArtist, saavnArtists, maxPts = 20)
+
+                        // ④ Explicit tiebreaker (+5 pts)
+                        if (candidate.explicitContent) score += 5
+
+                        Timber.tag(TAG).d(
+                            "Saavn candidate: \"${candidate.name}\" " +
+                            "dur=${saavnDuration}s explicit=${candidate.explicitContent} → score=$score"
+                        )
+                        ScoredSong(candidate, score)
+                    }
+
+                    val MIN_CONFIDENCE = 40
+                    val bestSong = scored.maxByOrNull { it.score }
+                        ?.takeIf { it.score >= MIN_CONFIDENCE }
+                        ?.song
+
+                    if (bestSong == null) {
+                        Timber.tag(TAG).d(
+                            "Saavn: best score (${scored.maxByOrNull { it.score }?.score ?: 0}) " +
+                            "below threshold $MIN_CONFIDENCE — falling back to YT"
+                        )
+                        return@runCatching null
+                    }
+
+                    Timber.tag(TAG).i(
+                        "Saavn: matched \"${bestSong.name}\" " +
+                        "(score=${scored.maxByOrNull { it.score }?.score}, " +
+                        "explicit=${bestSong.explicitContent}, id=${bestSong.id})"
+                    )
+
+                    // Step 4: resolve stream URL at requested quality
+                    val qualityKey = context.dataStore.get(SaavnAudioQualityKey, SaavnAudioQuality.QUALITY_320.name)
+                    val quality = runCatching { SaavnAudioQuality.valueOf(qualityKey) }
+                        .getOrDefault(SaavnAudioQuality.QUALITY_320)
+
+                    val streamUrl = SaavnService.getBestStreamUrl(bestSong.id, quality.toApiValue())
+                    if (streamUrl.isNullOrBlank()) {
+                        Timber.tag(TAG).d("Saavn: no stream URL for songId=${bestSong.id} — falling back to YT")
+                        return@runCatching null
+                    }
+
+                    Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) for videoId=$videoId")
+                    // Return a minimal PlaybackData using the Saavn URL.
+                    // Reuse the YouTube metadata already fetched in Step 1 — no second
+                    // network call needed. This keeps audioConfig/videoDetails/playbackTracking
+                    // intact so history and normalization still work properly.
+                    PlaybackData(
+                        audioConfig      = meta?.playerConfig?.audioConfig,
+                        videoDetails     = meta?.videoDetails,
+                        playbackTracking = meta?.playbackTracking,
+                        format           = PlayerResponse.StreamingData.Format(
+                            itag             = 0,
+                            url              = streamUrl,
+                            // JioSaavn delivers AAC-LC audio inside a regular MP4 container
+                            // (e.g. https://aac.saavncdn.com/.../{id}_320.mp4)
+                            mimeType         = "audio/mp4; codecs=\"mp4a.40.2\"",
+                            bitrate          = when (quality) {
+                                SaavnAudioQuality.QUALITY_320 -> 320_000
+                                SaavnAudioQuality.QUALITY_160 -> 160_000
+                                SaavnAudioQuality.QUALITY_96  -> 96_000
+                            },
+                            width            = null,
+                            height           = null,
+                            contentLength    = null,
+                            quality          = quality.toApiValue(),
+                            fps              = null,
+                            qualityLabel     = null,
+                            averageBitrate   = null,
+                            audioQuality     = quality.toApiValue(),
+                            approxDurationMs = null,
+                            audioSampleRate  = null,
+                            audioChannels    = null,
+                            loudnessDb       = null,
+                            lastModified     = null,
+                            signatureCipher  = null,
+                            cipher           = null,
+                            audioTrack       = null,
+                        ),
+                        streamUrl              = streamUrl,
+                        streamExpiresInSeconds = 3600,
+                        isSaavnStream          = true,   // ← mark as Saavn so downloads skip YT range trick
+                    )
+                }.getOrNull()
+
+                if (saavnResult != null) {
+                    return Result.success(saavnResult)
+                }
+                // Any exception or null → fall through to YouTube below
+                Timber.tag(TAG).d("Saavn intercept failed or returned null — falling back to YouTube")
+            }
+        }
+        // ── End JioSaavn intercept ───────────────────────────────────────────
+
         val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
         
         if (firstAttempt.isFailure && YouTube.cookie == null) {

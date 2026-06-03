@@ -101,6 +101,28 @@ enum class AudioQuality {
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
 
+// JioSaavn streaming
+val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
+val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
+
+enum class SaavnAudioQuality {
+    QUALITY_320,
+    QUALITY_160,
+    QUALITY_96;
+
+    fun toApiValue() = when (this) {
+        QUALITY_320 -> "320kbps"
+        QUALITY_160 -> "160kbps"
+        QUALITY_96  -> "96kbps"
+    }
+
+    fun toLabel() = when (this) {
+        QUALITY_320 -> "High (320 kbps)"
+        QUALITY_160 -> "Medium (160 kbps)"
+        QUALITY_96  -> "Low (96 kbps)"
+    }
+}
+
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val PersistentShuffleAcrossQueuesKey = booleanPreferencesKey("persistentShuffleAcrossQueues")
 val RememberShuffleAndRepeatKey = booleanPreferencesKey("rememberShuffleAndRepeat")

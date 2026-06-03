@@ -391,4 +391,9 @@
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop</string>
+
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">Enable JioSaavn Streaming</string>
+    <string name="enable_saavn_streaming_desc">Stream audio from JioSaavn instead of YouTube Music (falls back to YT if not available)</string>
+    <string name="saavn_audio_quality">JioSaavn Audio Quality</string>
 </resources>
