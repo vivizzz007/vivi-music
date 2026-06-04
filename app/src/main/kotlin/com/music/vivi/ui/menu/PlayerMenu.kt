@@ -92,6 +92,7 @@ import com.music.vivi.ui.component.Material3MenuItemData
 import com.music.vivi.ui.component.NewAction
 import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.VolumeSlider
+import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -128,6 +129,7 @@ fun PlayerMenu(
     
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
         .collectAsState(initial = null)
@@ -346,6 +348,36 @@ fun PlayerMenu(
         item {
             Material3MenuGroup(
                 items = buildList {
+                    // ── Single smart Retry button ────────────────────────────
+                    // Always visible. Re-triggers the full resolution chain.
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.retry_stream)) },
+                            description = {
+                                Text(
+                                    text = if (saavnEnabled)
+                                        stringResource(R.string.retry_stream_desc_saavn)
+                                    else
+                                        stringResource(R.string.retry_stream_desc_yt)
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.replay),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                val player = playerConnection.player
+                                player.seekTo(0)
+                                player.prepare()
+                                player.play()
+                                onDismiss()
+                            }
+                        )
+                    )
+
                     if (artists.isNotEmpty()) {
                         add(
                             Material3MenuItemData(
