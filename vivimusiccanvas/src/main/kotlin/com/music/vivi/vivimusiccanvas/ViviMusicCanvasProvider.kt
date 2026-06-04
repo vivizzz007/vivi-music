@@ -27,7 +27,7 @@ data class ViviMusicCanvasItem(
 )
 
 object ViviMusicCanvasProvider {
-    private const val BASE_URL = "https://vivimusicanvas.vercel.app/canvas.json"
+    private const val BASE_URL = "https://vivimusicanvas.mkmdevilmi.workers.dev/canvas.json"
 
     private val json = Json {
         ignoreUnknownKeys = true
