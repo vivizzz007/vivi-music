@@ -153,101 +153,199 @@ object YTPlayerUtils {
 
                     if (title.isBlank()) return@runCatching null
 
-                    val query = "$title $artist"
+                    val queryPrimary = "$title $artist"
                         .replace("&", " ")
                         .replace(",", " ")
                         .replace(Regex("(?i)\\s*-\\s*topic\\b"), "")
                         .replace(Regex("\\s+"), " ")
                         .trim()
-                    Timber.tag(TAG).d("Saavn search query: \"$query\" (original: \"$title $artist\")")
 
-                    // Step 2: search JioSaavn
-                    val songs = SaavnService.searchSongs(query).getOrNull()
-                    if (songs.isNullOrEmpty()) {
-                        Timber.tag(TAG).d("Saavn: no results for \"$query\" — falling back to YT")
-                        return@runCatching null
-                    }
+                    val querySecondary = title
+                        .replace("&", " ")
+                        .replace(",", " ")
+                        .replace(Regex("(?i)\\s*-\\s*topic\\b"), "")
+                        .replace(Regex("\\s+"), " ")
+                        .trim()
 
-                    // Step 3: score every candidate and pick the best one.
-                    //
-                    // Signals (max 100 pts):
-                    //   • Title word overlap  → up to 50 pts  (most reliable signal)
-                    //   • Duration match      → 30 pts (≤5s diff) / 15 pts (≤15s diff)
-                    //   • Artist name overlap → up to 20 pts
-                    //   • Explicit flag       →  +5 pts tiebreaker (prefer unedited original)
-                    //
-                    // A minimum score of 40 is required. If no candidate reaches it we
-                    // fall back to YouTube rather than play a completely wrong song.
+                    val searchQueries = listOfNotNull(
+                        queryPrimary.takeIf { it.isNotBlank() },
+                        querySecondary.takeIf { it.isNotBlank() && it != queryPrimary }
+                    )
 
                     val ytDuration = meta?.videoDetails?.lengthSeconds?.toLongOrNull() ?: 0L
 
-                    fun normalize(s: String): Set<String> =
-                        s.lowercase()
-                            .replace(Regex("[^a-z0-9\\s]"), " ")
-                            .split(Regex("\\s+"))
-                            .filter { it.length > 1 }        // drop single-char noise words
-                            .toSet()
-
-                    fun wordOverlapScore(a: String, b: String, maxPts: Int): Int {
-                        val setA = normalize(a)
-                        val setB = normalize(b)
-                        if (setA.isEmpty() || setB.isEmpty()) return 0
-                        val common = setA.intersect(setB).size
-                        val ratio  = common.toDouble() / maxOf(setA.size, setB.size)
-                        return (ratio * maxPts).toInt()
+                    fun String.normalized(): String {
+                        val ascii = java.text.Normalizer.normalize(this, java.text.Normalizer.Form.NFD)
+                            .replace(Regex("\\p{Mn}+"), "")
+                        return ascii
+                            .lowercase(java.util.Locale.US)
+                            .replace("&", " and ")
+                            .replace(Regex("\\[[^]]*]"), " ")
+                            .replace(Regex("\\([^)]*\\)"), " ")
+                            .replace(Regex("[^a-z0-9]+"), " ")
+                            .trim()
+                            .replace(Regex("\\s+"), " ")
                     }
+
+                    fun String.splitToArtists(): List<String> {
+                        val delimiters = listOf(" & ", " and ", " x ", " X ", " feat. ", " feat ", " ft. ", " ft ", " featuring ", " with ", ",")
+                        var temp = this.lowercase(java.util.Locale.US)
+                        for (delim in delimiters) {
+                            temp = temp.replace(delim, ",")
+                        }
+                        return temp.split(",")
+                            .map { it.trim().normalized() }
+                            .filter { it.isNotBlank() }
+                    }
+
+                    fun significantTokens(s: String): Set<String> {
+                        val stopWords = setOf("a", "an", "and", "feat", "ft", "for", "of", "the", "with")
+                        return s.split(" ")
+                            .map { it.trim() }
+                            .filter { it.length > 1 && it !in stopWords }
+                            .toSet()
+                    }
+
+                    fun String.wordsOverlap(other: String): Int {
+                        val a = split(' ').filter { it.length > 1 }.toSet()
+                        val b = other.split(' ').filter { it.length > 1 }.toSet()
+                        return a.intersect(b).size
+                    }
+
+                    fun hasVersionMismatch(query: String, candidate: String): Boolean {
+                        val tags = listOf("remix", "live", "edit", "acoustic", "instrumental", "karaoke", "remaster", "remastered", "sped up", "slowed")
+                        val queryHas     = tags.any { query.contains(it) }
+                        val candidateHas = tags.any { candidate.contains(it) }
+                        return candidateHas && !queryHas
+                    }
+
+                    val wantedTitle = title.normalized()
+                    val wantedArtists = artist.splitToArtists()
+                    val wantedTitleTokens = significantTokens(wantedTitle)
 
                     data class ScoredSong(val song: com.music.jiosaavn.SaavnSong, val score: Int)
 
-                    val ytArtist = artist  // already captured above
+                    val MIN_SCORE = 260
+                    var bestSong: com.music.jiosaavn.SaavnSong? = null
+                    var bestScore = 0
 
-                    val scored = songs.map { candidate ->
-                        var score = 0
+                    for (q in searchQueries) {
+                        Timber.tag(TAG).d("Saavn: searching with query: \"$q\"")
+                        val songs = SaavnService.searchSongs(q).getOrNull()
+                        if (songs.isNullOrEmpty()) continue
 
-                        // ① Title overlap (50 pts)
-                        score += wordOverlapScore(title, candidate.name, maxPts = 50)
+                        val scored = songs.mapNotNull { candidate ->
+                            val candidateTitle = candidate.name.normalized()
+                            val candidateCombinedTitle = candidateTitle  // no version field in SaavnSong
+                            val candidateArtists = candidate.artists.primary.flatMap { it.name.splitToArtists() }
+                            val candidateArtistStr = candidateArtists.joinToString(" ")
+                            val saavnDuration = candidate.duration?.toLong() ?: 0L
 
-                        // ② Duration match (30 / 15 pts)
-                        val saavnDuration = candidate.duration?.toLong() ?: 0L
-                        if (ytDuration > 0 && saavnDuration > 0) {
-                            val diff = Math.abs(ytDuration - saavnDuration)
-                            score += when {
-                                diff <= 5  -> 30
-                                diff <= 15 -> 15
-                                else       -> 0
+                            // Duration guard: reject if duration difference is too large or suspicious.
+                            // 1. If JioSaavn track is longer than YouTube track by > 15s, reject (covers, fakes, loops).
+                            // 2. If YouTube track is longer than JioSaavn track by > 60s, reject (major version mismatch).
+                            if (ytDuration > 0 && saavnDuration > 0) {
+                                if (saavnDuration > ytDuration + 15) {
+                                    Timber.tag(TAG).d("Saavn candidate rejected (duration mismatch: saavn too long): \"${candidate.name}\" (${saavnDuration}s vs YT ${ytDuration}s)")
+                                    return@mapNotNull null
+                                }
+                                if (ytDuration > saavnDuration + 60) {
+                                    Timber.tag(TAG).d("Saavn candidate rejected (duration mismatch: YT too long): \"${candidate.name}\" (${saavnDuration}s vs YT ${ytDuration}s)")
+                                    return@mapNotNull null
+                                }
                             }
+
+                            if (hasVersionMismatch(wantedTitle, candidateCombinedTitle)) {
+                                Timber.tag(TAG).d("Saavn candidate rejected (version mismatch): \"${candidate.name}\"")
+                                return@mapNotNull null
+                            }
+
+                            var score = 0
+
+                            // Title scoring
+                            if (wantedTitle.isNotBlank()) {
+                                score += when {
+                                    candidateTitle == wantedTitle -> 320
+                                    candidateCombinedTitle.contains(wantedTitle) || wantedTitle.contains(candidateTitle) -> 130
+                                    wantedTitle.wordsOverlap(candidateCombinedTitle) >= 2 -> 60
+                                    else -> -80
+                                }
+                            }
+
+                            // Significant token scoring
+                            if (wantedTitleTokens.isNotEmpty()) {
+                                val candidateTokens = significantTokens(candidateCombinedTitle)
+                                val matched = wantedTitleTokens.count { it in candidateTokens }
+                                score += when {
+                                    matched == wantedTitleTokens.size -> 120
+                                    matched >= (wantedTitleTokens.size.coerceAtLeast(1) - 1) -> 40
+                                    wantedTitleTokens.size <= 2 -> -160
+                                    else -> -60
+                                }
+                            }
+
+                            // Artist scoring (hard reject if zero match)
+                            val exactMatches = if (wantedArtists.isNotEmpty()) wantedArtists.count { it in candidateArtists } else 0
+                            val artistScore = when {
+                                exactMatches > 0 -> 220 + ((exactMatches - 1) * 50)
+                                wantedArtists.any { wanted ->
+                                    candidateArtists.any { candidate ->
+                                        val wClean = wanted.replace(" ", "")
+                                        val cClean = candidate.replace(" ", "")
+                                        cClean.contains(wClean) || wClean.contains(cClean)
+                                    }
+                                } -> 90
+                                candidateArtists.any { c ->
+                                    val cClean = c.replace(" ", "")
+                                    val tClean = wantedTitle.replace(" ", "")
+                                    cClean.length >= 2 && tClean.contains(cClean)
+                                } -> 90
+                                else -> {
+                                    Timber.tag(TAG).d("Saavn candidate rejected (artist mismatch): \"${candidate.name}\" by ${candidate.artists.primary.joinToString { it.name }} vs wanted artists $wantedArtists")
+                                    return@mapNotNull null
+                                }
+                            }
+                            score += artistScore
+
+                            // Duration scoring
+                            if (ytDuration > 0 && saavnDuration > 0) {
+                                val diff = kotlin.math.abs(ytDuration - saavnDuration)
+                                score += when {
+                                    diff <= 2  -> 160
+                                    diff <= 5  -> 100
+                                    diff <= 10 -> 45
+                                    diff >= 30 -> -120
+                                    else       -> 0
+                                }
+                            }
+
+                            // Explicit tiebreaker
+                            if (candidate.explicitContent) score += 5
+
+                            Timber.tag(TAG).d("Saavn candidate: \"${candidate.name}\" dur=${saavnDuration}s → score=$score")
+                            ScoredSong(candidate, score)
                         }
 
-                        // ③ Artist overlap (20 pts)
-                        val saavnArtists = candidate.artists.primary.joinToString(" ") { it.name }
-                        score += wordOverlapScore(ytArtist, saavnArtists, maxPts = 20)
-
-                        // ④ Explicit tiebreaker (+5 pts)
-                        if (candidate.explicitContent) score += 5
-
-                        Timber.tag(TAG).d(
-                            "Saavn candidate: \"${candidate.name}\" " +
-                            "dur=${saavnDuration}s explicit=${candidate.explicitContent} → score=$score"
-                        )
-                        ScoredSong(candidate, score)
+                        val match = scored.maxByOrNull { it.score }
+                        if (match != null && match.score >= MIN_SCORE) {
+                            if (match.score > bestScore) {
+                                bestSong = match.song
+                                bestScore = match.score
+                                if (bestScore >= 500) {
+                                    break
+                                }
+                            }
+                        }
                     }
 
-                    val MIN_CONFIDENCE = 40
-                    val bestSong = scored.maxByOrNull { it.score }
-                        ?.takeIf { it.score >= MIN_CONFIDENCE }
-                        ?.song
-
                     if (bestSong == null) {
-                        Timber.tag(TAG).d(
-                            "Saavn: best score (${scored.maxByOrNull { it.score }?.score ?: 0}) " +
-                            "below threshold $MIN_CONFIDENCE — falling back to YT"
-                        )
+                        Timber.tag(TAG).d("Saavn: no matching candidate found above threshold $MIN_SCORE — falling back to YT")
                         return@runCatching null
                     }
 
                     Timber.tag(TAG).i(
                         "Saavn: matched \"${bestSong.name}\" " +
-                        "(score=${scored.maxByOrNull { it.score }?.score}, " +
+                        "(score=$bestScore, " +
                         "explicit=${bestSong.explicitContent}, id=${bestSong.id})"
                     )
 
