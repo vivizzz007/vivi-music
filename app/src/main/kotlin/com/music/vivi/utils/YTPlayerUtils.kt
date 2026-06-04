@@ -360,6 +360,8 @@ object YTPlayerUtils {
                         return@runCatching null
                     }
 
+                    val contentLength = SaavnService.getContentLength(streamUrl)
+
                     Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) for videoId=$videoId")
                     // Return a minimal PlaybackData using the Saavn URL.
                     // Reuse the YouTube metadata already fetched in Step 1 — no second
@@ -370,7 +372,11 @@ object YTPlayerUtils {
                         videoDetails     = meta?.videoDetails,
                         playbackTracking = meta?.playbackTracking,
                         format           = PlayerResponse.StreamingData.Format(
-                            itag             = 0,
+                            itag             = when (quality) {
+                                SaavnAudioQuality.QUALITY_320 -> 141
+                                SaavnAudioQuality.QUALITY_160 -> 140
+                                SaavnAudioQuality.QUALITY_96  -> 139
+                            },
                             url              = streamUrl,
                             // JioSaavn delivers AAC-LC audio inside a regular MP4 container
                             // (e.g. https://aac.saavncdn.com/.../{id}_320.mp4)
@@ -382,7 +388,7 @@ object YTPlayerUtils {
                             },
                             width            = null,
                             height           = null,
-                            contentLength    = null,
+                            contentLength    = contentLength,
                             quality          = quality.toApiValue(),
                             fps              = null,
                             qualityLabel     = null,

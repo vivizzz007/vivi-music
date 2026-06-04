@@ -19,6 +19,7 @@ import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.parameter
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
@@ -173,4 +174,39 @@ object SaavnService {
                 // 3. Fall back to highest bitrate (last entry tends to be highest)
                 ?: urls.lastOrNull()?.url
         }.getOrNull()
+
+    /**
+     * Retrieve the byte size of a JioSaavn stream URL by issuing an HTTP HEAD request
+     * and reading the [Content-Length] response header.
+     *
+     * This is a lightweight call — no audio data is transferred. The result is used
+     * to populate [contentLength] in the playback [Format] so that the downloader and
+     * player can report accurate file sizes.
+     *
+     * Returns null if the server does not advertise a content length or if the request
+     * fails for any reason (network error, timeout, etc.). Null is always safe because
+     * ExoPlayer will re-determine the size from the actual stream headers when needed.
+     */
+    suspend fun getContentLength(url: String): Long? = runCatching {
+        // Use a dedicated lightweight client for HEAD requests — we don't need JSON
+        // negotiation here and we want a short timeout so it never blocks playback.
+        val headClient = HttpClient(CIO) {
+            install(HttpTimeout) {
+                requestTimeoutMillis = 3_000
+                connectTimeoutMillis = 2_000
+                socketTimeoutMillis  = 3_000
+            }
+            expectSuccess = false
+            followRedirects = true
+        }
+        headClient.use { c ->
+            val response = c.head(url)
+            if (response.status == HttpStatusCode.OK ||
+                response.status == HttpStatusCode.PartialContent) {
+                response.headers[io.ktor.http.HttpHeaders.ContentLength]?.toLongOrNull()
+            } else {
+                null
+            }
+        }
+    }.getOrNull()
 }
