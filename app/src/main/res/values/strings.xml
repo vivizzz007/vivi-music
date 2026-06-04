@@ -396,4 +396,7 @@
     <string name="enable_saavn_streaming">Enable JioSaavn Streaming</string>
     <string name="enable_saavn_streaming_desc">Stream audio from JioSaavn instead of YouTube Music (falls back to YT if not available)</string>
     <string name="saavn_audio_quality">JioSaavn Audio Quality</string>
+    <string name="retry_stream">Retry Stream</string>
+    <string name="retry_stream_desc_saavn">Re-fetch from JioSaavn at 320 kbps</string>
+    <string name="retry_stream_desc_yt">Re-fetch from YouTube Music</string>
 </resources>
