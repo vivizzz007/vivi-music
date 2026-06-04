@@ -1589,7 +1589,7 @@ fun BottomSheetPlayer(
                             } else {
                                 FilledIconButton(
                                     onClick = {
-                                        mediaMetadata?.let { meta ->
+                                        mediaMetadata.let { meta ->
                                             when (download?.state) {
                                                 Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
                                                     DownloadService.sendRemoveDownload(

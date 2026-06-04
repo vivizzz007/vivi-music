@@ -189,13 +189,13 @@ fun ShowMediaInfo(videoId: String) {
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        val viewCount = info?.viewCount?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
+                        val viewCount = info?.viewCount?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
                             label = stringResource(R.string.views),
                             value = stringResource(R.string.song_info_views_count, viewCount),
                             modifier = Modifier.weight(1f)
                         )
-                        val likeCount = info?.like?.toInt()?.let { shortNumberFormatter(it) } ?: "N/A"
+                        val likeCount = info?.like?.let { shortNumberFormatter(it) } ?: "N/A"
                         InfoItem(
                             label = stringResource(R.string.likes),
                             value = stringResource(R.string.song_info_likes_count, likeCount),
@@ -210,7 +210,7 @@ fun ShowMediaInfo(videoId: String) {
                     ) {
                         InfoItem(
                             label = stringResource(R.string.dislikes),
-                            value = info?.dislike?.let { shortNumberFormatter(it.toInt()) } ?: "N/A",
+                            value = info?.dislike?.let { shortNumberFormatter(it) } ?: "N/A",
                             modifier = Modifier.weight(1f)
                         )
                         InfoItem(

@@ -97,7 +97,7 @@ object BotDetectionMitigator {
                 Timber.tag(TAG).i("New visitorData obtained successfully for region ${currentLocale.gl}.")
                 
                 // Persist to DataStore
-                CipherDeobfuscator.appContext?.dataStore?.edit { settings ->
+                CipherDeobfuscator.appContext.dataStore.edit { settings ->
                     settings[VisitorDataKey] = newData
                 }
             }.onFailure { e ->

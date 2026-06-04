@@ -134,7 +134,7 @@ object PlayerJsFetcher {
             return null
         }
 
-        val body = response.body?.string() ?: return null
+        val body = response.body.string()
         val match = PLAYER_HASH_REGEX.find(body)
         return match?.groupValues?.get(1)
     }
@@ -152,6 +152,6 @@ object PlayerJsFetcher {
             return null
         }
 
-        return response.body?.string()
+        return response.body.string()
     }
 }

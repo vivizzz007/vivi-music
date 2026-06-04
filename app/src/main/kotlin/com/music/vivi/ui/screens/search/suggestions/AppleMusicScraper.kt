@@ -31,7 +31,7 @@ object AppleMusicScraper {
             
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return null
-                response.body?.string()
+                response.body.string()
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error executing GET request for $url", e)

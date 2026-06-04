@@ -18,7 +18,7 @@ plugins {
 
 android {
     namespace = "com.music.vivi"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
@@ -213,6 +213,7 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 dependencies {
     implementation(libs.guava)
     implementation(libs.coroutines.guava)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.concurrent.futures)
 
     implementation(libs.activity)
@@ -299,7 +300,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.smoothCorner)
     implementation(libs.lottie.compose)
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 }

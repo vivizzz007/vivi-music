@@ -79,7 +79,7 @@ object DeepLService {
                     .build()
 
                 val response = client.newCall(request).execute()
-                val responseBody = response.body?.string()
+                val responseBody = response.body.string()
 
                 if (!response.isSuccessful) {
                     // Retry on server errors (5xx)
@@ -90,17 +90,12 @@ object DeepLService {
                     }
                     
                     val errorMsg = try {
-                        JSONObject(responseBody ?: "").optString("message") 
+                        JSONObject(responseBody).optString("message").takeIf { it.isNotBlank() }
                             ?: "HTTP ${response.code}: ${response.message}"
                     } catch (e: Exception) {
                         "HTTP ${response.code}: ${response.message}"
                     }
                     return@withContext Result.failure(Exception("Translation failed: $errorMsg"))
-                }
-
-                if (responseBody == null) {
-                    currentAttempt++
-                    continue
                 }
 
                 val jsonResponse = JSONObject(responseBody)

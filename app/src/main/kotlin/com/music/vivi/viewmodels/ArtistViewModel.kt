@@ -113,7 +113,7 @@ class ArtistViewModel @Inject constructor(
                         if (item is com.music.innertube.models.SongItem) {
                             val canvas = ArtistVideoCanvasProvider.getBySongArtist(
                                 song = item.title,
-                                artist = page.artist?.title ?: ""
+                                artist = page.artist.title
                             )
                             if (canvas?.preferredAnimationUrl != null) {
                                 _artistVideoUrl.value = canvas.preferredAnimationUrl

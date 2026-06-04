@@ -24,8 +24,8 @@ import java.util.Locale
 class ViviNotificationProvider(
     private val context: Context,
     notificationIdProvider: DefaultMediaNotificationProvider.NotificationIdProvider,
-    channelId: String,
-    channelNameResourceId: Int,
+    private val channelId: String,
+    private val channelNameResourceId: Int,
 ) : MediaNotification.Provider {
 
     private val defaultProvider = DefaultMediaNotificationProvider(
@@ -148,6 +148,9 @@ class ViviNotificationProvider(
 
     override fun handleCustomCommand(session: MediaSession, action: String, extras: Bundle): Boolean =
         defaultProvider.handleCustomCommand(session, action, extras)
+
+    override fun getNotificationChannelInfo(): MediaNotification.Provider.NotificationChannelInfo =
+        MediaNotification.Provider.NotificationChannelInfo(channelId, context.getString(channelNameResourceId))
 
     private fun setShortCriticalTextSafely(builder: Notification.Builder, text: String) {
         try {

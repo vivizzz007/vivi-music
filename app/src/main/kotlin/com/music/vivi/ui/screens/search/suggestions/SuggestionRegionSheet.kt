@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.vivi.constants.SuggestionRegionSlugToName
+import com.music.vivi.ui.component.rememberHiddenBottomSheetState
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +42,7 @@ fun SuggestionRegionSheet(
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val bottomSheetState = rememberModalBottomSheetState()
+    val bottomSheetState = rememberHiddenBottomSheetState()
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
