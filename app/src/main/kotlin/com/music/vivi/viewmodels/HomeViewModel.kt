@@ -168,6 +168,19 @@ class HomeViewModel @Inject constructor(
             filled.take(targetSize)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val localSpeedDialPlaylistIds: StateFlow<Set<String>> =
+        combine(
+            database.speedDialDao.getAll(),
+            database.playlistsByNameAsc()
+        ) { pinned, playlists ->
+            val localPlaylistIds = playlists.mapTo(mutableSetOf()) { it.id }
+            pinned
+                .asSequence()
+                .filter { it.type == "PLAYLIST" && it.id in localPlaylistIds }
+                .map { it.id }
+                .toSet()
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
+
     suspend fun getRandomItem(): YTItem? {
         try {
             isRandomizing.value = true

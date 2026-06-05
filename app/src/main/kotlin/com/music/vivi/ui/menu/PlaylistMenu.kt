@@ -481,6 +481,7 @@ fun PlaylistMenu(
                                         database.speedDialDao.insert(
                                             SpeedDialItem(
                                                 id = playlist.id,
+                                                secondaryId = playlist.playlist.browseId,
                                                 title = playlist.playlist.name,
                                                 subtitle = null,
                                                 thumbnailUrl = playlist.thumbnails.firstOrNull(),
