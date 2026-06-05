@@ -257,13 +257,8 @@ fun SearchScreen(
                     active = searchActive,
                     onActiveChange = { searchActive = it },
                     placeholder = {
-                        Text(
-                            text = stringResource(
-                                when (searchSource) {
-                                    SearchSource.LOCAL -> R.string.search_library
-                                    SearchSource.ONLINE -> R.string.search_yt_music
-                                }
-                            ),
+                        DynamicSearchPlaceholder(
+                            searchSource = searchSource,
                             style = TextStyle(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 fontSize = 16.sp

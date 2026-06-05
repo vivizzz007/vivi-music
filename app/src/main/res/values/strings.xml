@@ -399,4 +399,14 @@
     <string name="retry_stream">Retry Stream</string>
     <string name="retry_stream_desc_saavn">Re-fetch from JioSaavn at 320 kbps</string>
     <string name="retry_stream_desc_yt">Re-fetch from YouTube Music</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">What\'s on your mind?</string>
+    <string name="search_prompt_todays_pick">What\'s today\'s pick?</string>
+    <string name="search_prompt_trending">Search trending hits…</string>
+    <string name="search_prompt_vibe">Feeling lucky? Search a vibe…</string>
+    <string name="search_prompt_songs_artists">Search for songs, artists, albums…</string>
+    <string name="search_prompt_template_song">Search \"%s\"…</string>
+    <string name="search_prompt_template_song_try">Try searching \"%s\"…</string>
+    <string name="search_prompt_template_artist">Search artist \"%s\"…</string>
 </resources>
