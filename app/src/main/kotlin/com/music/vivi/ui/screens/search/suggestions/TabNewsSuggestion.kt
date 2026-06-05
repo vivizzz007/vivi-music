@@ -384,7 +384,6 @@ fun TopArtistsSection(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TrendingAlbumsSection(
     albums: List<SuggestionAlbum>,

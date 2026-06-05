@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
 import androidx.work.ExistingWorkPolicy
@@ -85,7 +86,6 @@ import com.music.vivi.ui.component.AnimatedActionButton
 import com.music.vivi.ui.component.ExpressiveIconButton
 import com.music.vivi.ui.component.ErrorSnackbar
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -102,6 +102,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.style.TextDecoration
 
 data class ChangelogSection(val title: String, val items: List<String>)
@@ -260,7 +261,7 @@ fun UpdateScreen(navController: NavHostController) {
                     }
                 },
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.largeTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background,
                     scrolledContainerColor = MaterialTheme.colorScheme.background,
                     titleContentColor = MaterialTheme.colorScheme.onBackground
@@ -328,7 +329,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                 }
-                                                context.startActivity(installIntent)
+                                                ContextCompat.startActivity(context, installIntent, null)
                                             }
                                         } else {
                                             val urlToDownload = currentStatus.apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/${currentStatus.version}/vivi.apk"
@@ -467,7 +468,7 @@ fun UpdateScreen(navController: NavHostController) {
                                         val annotatedText = buildAnnotatedString {
                                             append(currentStatus.description.trim())
                                             urls.forEach { (range, url) ->
-                                                addLink(LinkAnnotation.Url(url), range.first, range.last + 1)
+                                                addStringAnnotation("URL", url, range.first, range.last + 1)
                                                 addStyle(
                                                     SpanStyle(
                                                         color = MaterialTheme.colorScheme.primary,
@@ -479,8 +480,13 @@ fun UpdateScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        Text(
+                                        ClickableText(
                                             text = annotatedText,
+                                            onClick = { offset ->
+                                                annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                    ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                }
+                                            },
                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 lineHeight = 20.sp
@@ -491,7 +497,7 @@ fun UpdateScreen(navController: NavHostController) {
                                     if (isDownloading) {
                                         if (downloadProgress > 0f) {
                                             androidx.compose.material3.LinearProgressIndicator(
-                                                progress = { downloadProgress },
+                                                progress = downloadProgress,
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .height(8.dp)

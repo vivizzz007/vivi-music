@@ -839,7 +839,7 @@ private fun WordLevelCanvasLyrics(
                         }
                     }) {
                         if (shouldGlow) {
-                            val sMs = wordItem.startTime * 1000
+                            val sMs = wordItem!!.startTime * 1000
                             val eMs = wordItem.endTime * 1000
                             val dur = eMs - sMs
                             val wordLenText = wordItem.text.length.coerceAtLeast(1)

@@ -130,7 +130,7 @@ Output MUST be a JSON array with EXACTLY $lineCount strings."""
                 
                 if (!response.isSuccessful) {
                     val errorMsg = try {
-                        JSONObject(response.body.string())
+                        JSONObject(response.body?.string() ?: "")
                             .optJSONObject("error")?.optString("message")
                             ?: "HTTP ${response.code}: ${response.message}"
                     } catch (e: Exception) {
@@ -140,7 +140,7 @@ Output MUST be a JSON array with EXACTLY $lineCount strings."""
                     return@flow
                 }
 
-                val reader = BufferedReader(InputStreamReader(response.body.byteStream()))
+                val reader = BufferedReader(InputStreamReader(response.body?.byteStream()))
                 var line: String?
                 val contentBuilder = StringBuilder()
                 var chunkCount = 0

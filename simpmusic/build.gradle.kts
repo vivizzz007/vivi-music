@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.music.simpmusic"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

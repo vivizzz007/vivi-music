@@ -43,7 +43,6 @@ data class DecodedAudio(
  * Resamples audio to the required sample rate for fingerprinting.
  */
 @OptIn(UnstableApi::class)
-@Suppress("DEPRECATION")
 object AudioResampler {
 
     suspend fun resample(

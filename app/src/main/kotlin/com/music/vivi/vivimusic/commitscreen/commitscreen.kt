@@ -57,6 +57,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -129,10 +130,10 @@ fun CommitScreen(
 
                     // GitHub user info (may be null for non-GitHub accounts)
                     val authorLogin = if (!obj.isNull("author")) {
-                        obj.getJSONObject("author").optString("login").takeIf { it.isNotBlank() }
+                        obj.getJSONObject("author").optString("login", null)
                     } else null
                     val authorAvatarUrl = if (!obj.isNull("author")) {
-                        obj.getJSONObject("author").optString("avatar_url").takeIf { it.isNotBlank() }
+                        obj.getJSONObject("author").optString("avatar_url", null)
                     } else null
 
                     list.add(CommitData(sha, message, authorName, authorAvatarUrl, authorLogin, formattedDate, htmlUrl))
@@ -219,7 +220,11 @@ fun CommitScreen(
                             CommitItem(
                                 commit = commit,
                                 onClick = {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(commit.htmlUrl)))
+                                    ContextCompat.startActivity(
+                                        context,
+                                        Intent(Intent.ACTION_VIEW, Uri.parse(commit.htmlUrl)),
+                                        null
+                                    )
                                 }
                             )
                             if (index < commits.lastIndex) {

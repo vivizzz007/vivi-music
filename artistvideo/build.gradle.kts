@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.music.vivi.artistvideo"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26

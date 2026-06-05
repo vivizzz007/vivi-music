@@ -103,7 +103,6 @@ fun OldPlayerMenu(
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
-    val guestListenTogetherManager = listenTogetherManager?.takeIf { isListenTogetherGuest }
 
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
@@ -546,7 +545,7 @@ fun OldPlayerMenu(
                             onClick = { showListenTogetherDialog = true }
                         )
                     )
-                    guestListenTogetherManager?.let { manager ->
+                    if (isListenTogetherGuest) {
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.resync)) },
@@ -558,7 +557,7 @@ fun OldPlayerMenu(
                                     )
                                 },
                                 onClick = {
-                                    manager.requestSync()
+                                    listenTogetherManager?.requestSync()
                                     onDismiss()
                                 }
                             )

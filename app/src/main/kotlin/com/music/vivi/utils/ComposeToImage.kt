@@ -115,7 +115,7 @@ object ComposeToImage {
                             
                             // Dark overlay for readability
                             val overlayPaint = Paint().apply {
-                                color = 0x4D000000 // 30% black overlay
+                                color = 0x4D000000.toInt() // 30% black overlay
                             }
                             canvas.drawRect(blurRect, overlayPaint)
                         }

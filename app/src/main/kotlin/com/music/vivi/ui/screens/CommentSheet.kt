@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,7 +47,6 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.comment.CommentRenderer
 import com.music.innertube.models.comment.CommentThreadRenderer
 import com.music.vivi.R
-import com.music.vivi.ui.component.rememberHiddenBottomSheetState
 import kotlinx.coroutines.launch
 
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -67,7 +67,7 @@ fun CommentSheet(
     onDismiss: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val sheetState = rememberHiddenBottomSheetState(skipPartiallyExpanded = true)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     var comments by remember { mutableStateOf<List<CommentThreadRenderer>>(emptyList()) }
     var nextToken by remember { mutableStateOf<String?>(null) }

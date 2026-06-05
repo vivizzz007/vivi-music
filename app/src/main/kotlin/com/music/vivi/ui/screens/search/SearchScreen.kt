@@ -118,7 +118,6 @@ import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.GridItemSize
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Suppress("DEPRECATION")
 @Composable
 fun SearchScreen(
     navController: NavController,

@@ -380,8 +380,10 @@ fun ArtistScreen(
                                                         .height(45.dp),
                                                     onClick = {
                                                         val watchEndpoint = artistVideoSong?.endpoint
-                                                            ?: radioEndpoint
-                                                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                                                            ?: artistPage?.artist?.radioEndpoint
+                                                        watchEndpoint?.let {
+                                                            playerConnection.playQueue(YouTubeQueue(it))
+                                                        }
                                                     }
                                                 )
                                             }
@@ -461,8 +463,8 @@ fun ArtistScreen(
                                 }
 
                                 if (!showLocal && showArtistDescription && artistPage != null) {
-                                    val description = artistPage.description
-                                    val descriptionRuns = artistPage.descriptionRuns
+                                    val description = artistPage?.description
+                                    val descriptionRuns = artistPage?.descriptionRuns
                                     
                                     if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
                                         Column(
@@ -597,7 +599,11 @@ fun ArtistScreen(
                                                     .weight(1f)
                                                     .height(52.dp)
                                                     .semantics { role = Role.Button },
-                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                shapes = if (artistPage?.artist?.radioEndpoint != null) {
+                                                    ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                } else {
+                                                    ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                                }
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.shuffle),
