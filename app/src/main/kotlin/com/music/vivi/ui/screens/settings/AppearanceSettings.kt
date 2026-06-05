@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.CanvasSource
+import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.CropAlbumArtKey
@@ -253,7 +255,11 @@ fun AppearanceSettings(
     )
     val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
         CanvasThumbnailAnimationKey,
-        defaultValue = false
+        defaultValue = true
+    )
+    val (canvasSource) = rememberEnumPreference(
+        CanvasSourceKey,
+        defaultValue = CanvasSource.AUTO
     )
     val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
         RotatingThumbnailKey,
@@ -1297,25 +1303,21 @@ fun AppearanceSettings(
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.palette),
+                    icon = painterResource(R.drawable.canvas_art),
                     title = { Text(stringResource(R.string.vivimusic_canvas)) },
-                    description = { Text(stringResource(R.string.vivimusic_canvas_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = canvasThumbnailAnimation,
-                            onCheckedChange = onCanvasThumbnailAnimationChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (canvasThumbnailAnimation) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
+                    description = {
+                        val summary = if (!canvasThumbnailAnimation) {
+                            stringResource(R.string.disable)
+                        } else {
+                            when (canvasSource) {
+                                CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
+                                CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
+                                CanvasSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
                             }
-                        )
+                        }
+                        Text(summary)
                     },
-                    onClick = { onCanvasThumbnailAnimationChange(!canvasThumbnailAnimation) }
+                    onClick = { navController.navigate("settings/appearance/canvas") }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),

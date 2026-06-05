@@ -108,8 +108,11 @@ private fun Material3SettingsItemRow(
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon with background
-        item.icon?.let { icon ->
+        // Icon or leading content
+        if (item.leadingContent != null) {
+            item.leadingContent.invoke()
+            Spacer(modifier = Modifier.width(16.dp))
+        } else item.icon?.let { icon ->
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -226,6 +229,7 @@ private fun Material3SettingsItemRow(
  */
 data class Material3SettingsItem(
     val icon: Painter? = null,
+    val leadingContent: (@Composable () -> Unit)? = null,
     val title: @Composable () -> Unit,
     val description: (@Composable () -> Unit)? = null,
     val trailingContent: (@Composable () -> Unit)? = null,

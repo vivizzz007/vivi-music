@@ -233,6 +233,8 @@ import androidx.media3.ui.PlayerView
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.MonochromeApiCanvas
+import com.music.vivi.constants.CanvasSource
+import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
@@ -281,6 +283,7 @@ fun BottomSheetPlayer(
     }
 
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
+    val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
@@ -548,7 +551,7 @@ fun BottomSheetPlayer(
     var canvasArtwork by remember(mediaMetadata?.id) { mutableStateOf<CanvasArtwork?>(null) }
     var canvasFetchInFlight by remember(mediaMetadata?.id) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground) {
+    LaunchedEffect(mediaMetadata?.id, playerBackground, canvasSource) {
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
             canvasArtwork = null
             return@LaunchedEffect
@@ -556,7 +559,7 @@ fun BottomSheetPlayer(
         val item = mediaMetadata ?: return@LaunchedEffect
         
         // Use cached artwork if available
-        CanvasArtworkPlaybackCache.get(item.id)?.let { cached ->
+        CanvasArtworkPlaybackCache.get("${item.id}:${canvasSource.name}")?.let { cached ->
             canvasArtwork = cached
             return@LaunchedEffect
         }
@@ -573,12 +576,33 @@ fun BottomSheetPlayer(
             val s = normalizeCanvasSongTitle(requestedTitle)
             val a = normalizeCanvasArtistName(requestedArtist)
             
-            val fetched = ViviMusicCanvasProvider.getBySongArtist(s, a)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                ?: MonochromeApiCanvas.getBySongArtist(s, a, requestedAlbum)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+            val fetched = when (canvasSource) {
+                CanvasSource.AUTO -> {
+                    val appleMusicCanvas = if (requestedAlbum.isNotBlank()) {
+                        AppleMusicCanvasProvider.getByAlbumArtist(
+                            album = requestedAlbum,
+                            artist = a,
+                            storefront = storefront
+                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    } else null
+
+                    appleMusicCanvas
+                        ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                        ?: MonochromeApiCanvas.getBySongArtist(s, a, requestedAlbum)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                }
+                CanvasSource.APPLE_MUSIC -> {
+                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                }
+                CanvasSource.VIVIMUSIC -> {
+                    ViviMusicCanvasProvider.getBySongArtist(s, a)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                }
+            }
 
             val validated = fetched?.let { artwork ->
                 val resultArtist = artwork.artist
@@ -593,7 +617,7 @@ fun BottomSheetPlayer(
             withContext(Dispatchers.Main) {
                 canvasArtwork = validated
                 if (validated != null) {
-                    CanvasArtworkPlaybackCache.put(item.id, validated)
+                    CanvasArtworkPlaybackCache.put("${item.id}:${canvasSource.name}", validated)
                 }
                 canvasFetchInFlight = false
             }

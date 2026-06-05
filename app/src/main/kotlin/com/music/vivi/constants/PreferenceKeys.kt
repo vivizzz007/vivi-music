@@ -478,6 +478,13 @@ val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
+val CanvasSourceKey = stringPreferencesKey("canvasSource")
+
+enum class CanvasSource {
+    AUTO,
+    APPLE_MUSIC,
+    VIVIMUSIC,
+}
 val SwipeSensitivityKey = floatPreferencesKey("swipeSensitivity")
 
 enum class SearchSource {

@@ -104,7 +104,15 @@
     <string name="crop_album_art">Crop Album Art</string>
     <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
     <string name="vivimusic_canvas">Canvas</string>
-    <string name="vivimusic_canvas_desc">Show animated album covers when available</string>
+    <string name="use_canvas">Use canvas</string>
+    <string name="vivimusic_canvas_desc">Replaces the static album artwork in the player with a looping animated video when one is available for the current song</string>
+    <string name="canvas_source">Canvas source</string>
+    <string name="canvas_source_auto">Auto</string>
+    <string name="canvas_source_auto_desc">Tries Apple Music first, then falls back to ViviMusic and Monochrome. Picks the best match for the current song automatically</string>
+    <string name="canvas_source_apple_music">Apple Music</string>
+    <string name="canvas_source_apple_music_desc">Uses Apple Music&#8217;s animated visuals exclusively. Only shows a canvas if Apple Music has one for the playing song</string>
+    <string name="canvas_source_vivimusic">ViviMusic</string>
+    <string name="canvas_source_vivimusic_desc">Uses the ViviMusic curated canvas library exclusively. Only shows a canvas if one has been added for the playing song</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>

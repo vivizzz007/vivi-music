@@ -98,6 +98,8 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.constants.CanvasSource
+import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.canvas.MonochromeApiCanvas
 import com.music.vivi.canvas.CanvasArtwork
@@ -627,7 +629,7 @@ private fun ThumbnailItem(
     var skipMultiplier by remember { mutableIntStateOf(1) }
     var lastTapTime by remember { mutableLongStateOf(0L) }
 
-    val canvasThumbnailAnimation by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = false)
+    val canvasThumbnailAnimation by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = true)
 
     Box(
         modifier = modifier
@@ -711,6 +713,7 @@ private fun ThumbnailItem(
             }
             
             if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
+                val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
                 var canvasArtwork by remember(item.mediaId) { mutableStateOf<CanvasArtwork?>(null) }
                 var canvasFetchInFlight by remember(item.mediaId) { mutableStateOf(false) }
                 val storefront = remember {
@@ -718,8 +721,9 @@ private fun ThumbnailItem(
                     if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
                 }
 
-                LaunchedEffect(item.mediaId) {
-                    CanvasArtworkPlaybackCache.get(item.mediaId)?.let { cached ->
+                LaunchedEffect(item.mediaId, canvasSource) {
+                    val cacheKey = "${item.mediaId}:${canvasSource.name}"
+                    CanvasArtworkPlaybackCache.get(cacheKey)?.let { cached ->
                         canvasArtwork = cached
                         return@LaunchedEffect
                     }
@@ -740,39 +744,68 @@ private fun ThumbnailItem(
                         
                         println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
                         
-                        linkedSetOf(
+                        val searchTasks = linkedSetOf(
                             songTitle to artistName,
                             songTitleRaw to artistName,
                             songTitle to artistNameRaw,
                             songTitleRaw to artistNameRaw,
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
-                            .firstNotNullOfOrNull { (s, a) ->
-                                // Strategy: If we have an album, prioritize a direct Apple Music album search first
-                                // to avoid song name collisions across different albums.
-                                if (!albumName.isNullOrBlank()) {
-                                    AppleMusicCanvasProvider.getByAlbumArtist(
-                                        album = albumName,
-                                        artist = a,
-                                        storefront = storefront
-                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
-                                }
 
-                                ViviMusicCanvasProvider.getBySongArtist(
-                                    song = s,
-                                    artist = a
-                                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                                    ?: MonochromeApiCanvas.getBySongArtist(
-                                        song = s,
-                                        artist = a,
-                                        album = albumName
-                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                                    ?: AppleMusicCanvasProvider.getBySongArtist(
+                        when (canvasSource) {
+                            CanvasSource.AUTO -> {
+                                searchTasks.firstNotNullOfOrNull { (s, a) ->
+                                    if (!albumName.isNullOrBlank()) {
+                                        AppleMusicCanvasProvider.getByAlbumArtist(
+                                            album = albumName,
+                                            artist = a,
+                                            storefront = storefront
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
+                                    }
+
+                                    AppleMusicCanvasProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
                                         album = albumName,
                                         storefront = storefront
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                        ?: ViviMusicCanvasProvider.getBySongArtist(
+                                            song = s,
+                                            artist = a
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                        ?: MonochromeApiCanvas.getBySongArtist(
+                                            song = s,
+                                            artist = a,
+                                            album = albumName
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                }
                             }
+                            CanvasSource.APPLE_MUSIC -> {
+                                searchTasks.firstNotNullOfOrNull { (s, a) ->
+                                    if (!albumName.isNullOrBlank()) {
+                                        AppleMusicCanvasProvider.getByAlbumArtist(
+                                            album = albumName,
+                                            artist = a,
+                                            storefront = storefront
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
+                                    }
+
+                                    AppleMusicCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        album = albumName,
+                                        storefront = storefront
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                }
+                            }
+                            CanvasSource.VIVIMUSIC -> {
+                                searchTasks.firstNotNullOfOrNull { (s, a) ->
+                                    ViviMusicCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                }
+                            }
+                        }
                     }
                     
                     // Client-side safety check: ensure the fetched canvas matches the requested song
@@ -842,7 +875,7 @@ private fun ThumbnailItem(
                     
                     canvasArtwork = validated
                     if (validated != null) {
-                        CanvasArtworkPlaybackCache.put(item.mediaId, validated)
+                        CanvasArtworkPlaybackCache.put("${item.mediaId}:${canvasSource.name}", validated)
                     }
                     canvasFetchInFlight = false
                 }
