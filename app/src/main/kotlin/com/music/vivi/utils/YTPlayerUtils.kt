@@ -52,6 +52,8 @@ import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
 import java.io.IOException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 object YTPlayerUtils {
     private const val logTag = "YTPlayerUtils"
@@ -147,16 +149,18 @@ object YTPlayerUtils {
             if (saavnEnabled) {
                 Timber.tag(TAG).d("JioSaavn streaming enabled — trying Saavn for videoId=$videoId")
                 val saavnResult = runCatching {
-                    // Step 1a: get proper title + artists from YouTube Music (next API)
-                    // YouTube.next() returns SongItem with real artist names as shown in
-                    // the YouTube Music UI — unlike videoDetails.author which is the
-                    // channel name (e.g. "Harry Styles - Topic", a label, a VEVO channel).
-                    val nextResult = YouTube.next(WatchEndpoint(videoId = videoId)).getOrNull()
-                    val currentSong = nextResult?.items?.getOrNull(nextResult.currentIndex ?: 0)
-                        ?: nextResult?.items?.firstOrNull()
-
-                    // Step 1b: also fetch player metadata for audioConfig/videoDetails/playbackTracking
-                    val meta = playerResponseForMetadata(videoId, playlistId).getOrNull()
+                    // Step 1: fetch YouTube Music next items and player metadata concurrently
+                    val (currentSong, meta) = coroutineScope {
+                        val nextDeferred = async {
+                            val nextResult = YouTube.next(WatchEndpoint(videoId = videoId)).getOrNull()
+                            nextResult?.items?.getOrNull(nextResult.currentIndex ?: 0)
+                                ?: nextResult?.items?.firstOrNull()
+                        }
+                        val metaDeferred = async {
+                            playerResponseForMetadata(videoId, playlistId).getOrNull()
+                        }
+                        nextDeferred.await() to metaDeferred.await()
+                    }
 
                     // Prefer the YouTube Music next() title; fall back to videoDetails title
                     val title = currentSong?.title
@@ -389,13 +393,24 @@ object YTPlayerUtils {
                     val quality = runCatching { SaavnAudioQuality.valueOf(qualityKey) }
                         .getOrDefault(SaavnAudioQuality.QUALITY_320)
 
-                    val streamUrl = SaavnService.getBestStreamUrl(bestSong.id, quality.toApiValue())
+                    // First try to resolve stream URL directly from the search result's downloadUrl list
+                    // to avoid an extra details API call (saves 300ms-800ms).
+                    var streamUrl = SaavnService.selectBestUrl(bestSong.downloadUrl, quality.toApiValue())
+                    if (streamUrl.isNullOrBlank()) {
+                        Timber.tag(TAG).d("Saavn: downloadUrl list empty in search results, fetching via getBestStreamUrl for songId=${bestSong.id}")
+                        streamUrl = SaavnService.getBestStreamUrl(bestSong.id, quality.toApiValue())
+                    } else {
+                        Timber.tag(TAG).d("Saavn: resolved stream URL directly from search results: $streamUrl")
+                    }
+
                     if (streamUrl.isNullOrBlank()) {
                         Timber.tag(TAG).d("Saavn: no stream URL for songId=${bestSong.id} — falling back to YT")
                         return@runCatching null
                     }
 
-                    val contentLength = SaavnService.getContentLength(streamUrl)
+                    // Optimization: Skip synchronous HTTP HEAD request to get content length during playback.
+                    // ExoPlayer parses the content length automatically from HTTP GET response headers on buffer.
+                    val contentLength: Long? = null
 
                     Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) for videoId=$videoId")
                     // Return a minimal PlaybackData using the Saavn URL.

@@ -157,6 +157,26 @@ object SaavnService {
     }
 
     /**
+     * Choose the best stream URL matching [quality] from a list of download URLs.
+     * If the exact quality is not found, it falls back to 320kbps or the highest quality.
+     */
+    fun selectBestUrl(urls: List<SaavnDownloadUrl>, quality: String): String? {
+        val filteredUrls = urls.filter { it.url.isNotBlank() }
+        if (filteredUrls.isEmpty()) return null
+
+        // 1. Try the exact requested quality
+        val exactUrl = filteredUrls.firstOrNull { it.quality.equals(quality, ignoreCase = true) }?.url
+        if (exactUrl != null) return exactUrl
+
+        // 2. Fall back to 320kbps if available
+        val fallback320 = filteredUrls.firstOrNull { it.quality.equals("320kbps", ignoreCase = true) }?.url
+        if (fallback320 != null) return fallback320
+
+        // 3. Fall back to highest bitrate (last entry tends to be highest)
+        return filteredUrls.lastOrNull()?.url
+    }
+
+    /**
      * Fetch the [SaavnSong] detail for a known Saavn song ID and extract the
      * best stream URL matching [quality].
      *
@@ -177,31 +197,7 @@ object SaavnService {
             if (!body.success) return@runCatching null
 
             val urls = body.data.firstOrNull()?.downloadUrl.orEmpty()
-                .filter { it.url.isNotBlank() }
-
-            Log.d(TAG, "getBestStreamUrl: found ${urls.size} download URLs")
-            urls.forEach { 
-                Log.d(TAG, "  - URL quality=${it.quality}, url=${it.url}")
-            }
-
-            if (urls.isEmpty()) return@runCatching null
-
-            // 1. Try the exact requested quality
-            val exactUrl = urls.firstOrNull { it.quality.equals(quality, ignoreCase = true) }?.url
-            if (exactUrl != null) {
-                Log.d(TAG, "getBestStreamUrl: selected exact quality $quality URL: $exactUrl")
-                return@runCatching exactUrl
-            }
-            // 2. Fall back to 320kbps if available
-            val fallback320 = urls.firstOrNull { it.quality.equals("320kbps", ignoreCase = true) }?.url
-            if (fallback320 != null) {
-                Log.d(TAG, "getBestStreamUrl: exact quality $quality not found, falling back to 320kbps URL: $fallback320")
-                return@runCatching fallback320
-            }
-            // 3. Fall back to highest bitrate (last entry tends to be highest)
-            val fallbackLast = urls.lastOrNull()?.url
-            Log.d(TAG, "getBestStreamUrl: falling back to last available URL: $fallbackLast")
-            fallbackLast
+            selectBestUrl(urls, quality)
         }.onFailure {
             Log.e(TAG, "getBestStreamUrl failed for saavnSongId=$saavnSongId", it)
         }.getOrNull()
