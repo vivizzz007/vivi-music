@@ -57,6 +57,12 @@ data class SaavnArtists(
 )
 
 @Serializable
+data class SaavnAlbum(
+    @SerialName("id")   val id:   String? = null,
+    @SerialName("name") val name: String? = null
+)
+
+@Serializable
 data class SaavnSong(
     @SerialName("id")              val id:              String                 = "",
     @SerialName("name")            val name:            String                 = "",
@@ -64,7 +70,8 @@ data class SaavnSong(
     @SerialName("explicitContent") val explicitContent: Boolean                = false,
     @SerialName("artists")         val artists:         SaavnArtists           = SaavnArtists(),
     @SerialName("image")           val image:           List<SaavnImage>       = emptyList(),
-    @SerialName("downloadUrl")     val downloadUrl:     List<SaavnDownloadUrl> = emptyList()
+    @SerialName("downloadUrl")     val downloadUrl:     List<SaavnDownloadUrl> = emptyList(),
+    @SerialName("album")           val album:           SaavnAlbum?            = null
 )
 
 // ─── Search response ─────────────────────────────────────────────────────────
