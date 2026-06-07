@@ -57,7 +57,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachReversed
+import androidx.activity.compose.LocalActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalDatabase
@@ -92,7 +94,7 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun HistoryScreen(
     navController: NavController,
-    viewModel: HistoryViewModel = hiltViewModel(),
+    viewModel: HistoryViewModel = hiltViewModel(LocalActivity.current as ViewModelStoreOwner),
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -135,9 +137,13 @@ fun HistoryScreen(
 
     val historySource by viewModel.historySource.collectAsState()
 
-    val historyPage by viewModel.historyPage.collectAsState()
-    
-    val events by viewModel.events.collectAsState()
+    val filteredRemoteContent by viewModel.filteredRemoteContent.collectAsState()
+    val filteredEvents by viewModel.filteredEvents.collectAsState()
+    val allEvents by viewModel.filteredFlatEvents.collectAsState()
+
+    LaunchedEffect(query.text) {
+        viewModel.searchQuery.value = query.text
+    }
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
@@ -152,43 +158,6 @@ fun HistoryScreen(
             DateAgo.LastWeek -> context.getString(R.string.last_week)
             is DateAgo.Other -> dateAgo.date.format(DateTimeFormatter.ofPattern("yyyy/MM"))
         }
-    }
-
-    val filteredEvents = remember(events, query) {
-        if (query.text.isEmpty()) {
-            events
-        } else {
-            events.mapValues { (_, songs) ->
-                songs.filter { event ->
-                    event.song.song.title.contains(query.text, ignoreCase = true) ||
-                            event.song.artists.any {
-                                it.name.contains(
-                                    query.text,
-                                    ignoreCase = true
-                                )
-                            }
-                }
-            }.filterValues { it.isNotEmpty() }
-        }
-    }
-
-    val filteredRemoteContent = remember(historyPage, query) {
-        if (query.text.isEmpty()) {
-            historyPage?.sections
-        } else {
-            historyPage?.sections?.map { section ->
-                section.copy(
-                    songs = section.songs.filter { song ->
-                        song.title.contains(query.text, ignoreCase = true) ||
-                                song.artists.any { it.name.contains(query.text, ignoreCase = true) }
-                    }
-                )
-            }?.filter { it.songs.isNotEmpty() }
-        }
-    }
-
-    val allEvents = remember(filteredEvents) {
-        filteredEvents.values.flatten()
     }
 
     LaunchedEffect(allEvents) {
@@ -241,15 +210,15 @@ fun HistoryScreen(
                         )
                     }
 
-                    items(
+                    itemsIndexed(
                         items = section.songs,
-                        key = { "${section.title}_${it.id}_${section.songs.indexOf(it)}" }
-                    ) { song ->
+                        key = { index, song -> "${section.title}_${song.id}_$index" }
+                    ) { index, song ->
                         YouTubeListItem(
                             item = song,
                             isActive = song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
-                            shape = listItemShape(section.songs.indexOf(song), section.songs.size),
+                            shape = listItemShape(index, section.songs.size),
                             trailingContent = {
                                 IconButton(
                                     onClick = {
@@ -313,13 +282,15 @@ fun HistoryScreen(
 
                     itemsIndexed(
                         items = dateEvents,
-                        key = { index, event -> "${dateAgo}_${event.event.id}_$index" }
+                        key = { _, event -> event.event.id }
                     ) { index, event ->
-                        val onCheckedChange: (Boolean) -> Unit = {
-                            if (it) {
-                                selection.add(event.event.id)
-                            } else {
-                                selection.remove(event.event.id)
+                        val onCheckedChange: (Boolean) -> Unit = remember(event.event.id) {
+                            { checked ->
+                                if (checked) {
+                                    selection.add(event.event.id)
+                                } else {
+                                    selection.remove(event.event.id)
+                                }
                             }
                         }
 
@@ -328,6 +299,7 @@ fun HistoryScreen(
                             isActive = event.song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
                             showInLibraryIcon = true,
+                            showDownloadIcon = false,
                             shape = listItemShape(index, dateEvents.size),
                             trailingContent = {
                                 if (inSelectMode) {
@@ -401,7 +373,7 @@ fun HistoryScreen(
             lazyListState = lazyListState,
             icon = R.drawable.shuffle,
             onClick = {
-                if (historySource == HistorySource.REMOTE && historyPage != null) {
+                if (historySource == HistorySource.REMOTE && filteredRemoteContent != null) {
                     val songs = filteredRemoteContent?.flatMap { it.songs } ?: emptyList()
                     if (songs.isNotEmpty()) {
                         playerConnection.playQueue(

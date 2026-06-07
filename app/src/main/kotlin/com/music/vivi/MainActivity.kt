@@ -197,6 +197,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
+import com.music.vivi.viewmodels.HistoryViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -505,6 +506,9 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
                 val homeViewModel: HomeViewModel = hiltViewModel()
+                // Pre-warm HistoryViewModel at Activity scope so history data loads
+                // in background immediately — zero lag when user taps the history icon
+                hiltViewModel<HistoryViewModel>()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
