@@ -438,10 +438,8 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.likedSongsByNameAsc().first()
 
-                    // Remove likes from songs not in remote (skip local files)
-                    localSongs.filterNot { it.song.isLocal }
-                        .filterNot { it.id in remoteIds }
-                        .forEach { song ->
+                    // Remove likes from songs not in remote
+                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
                         try {
                             database.update(song.song.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
@@ -506,9 +504,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.songsByNameAsc().first()
 
-                    localSongs.filterNot { it.song.isLocal }
-                        .filterNot { it.id in remoteIds }
-                        .forEach { song ->
+                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
                         try {
                             database.update(song.song.toggleLibrary())
                             delay(DB_OPERATION_DELAY_MS)
@@ -646,9 +642,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsLikedByNameAsc().first()
 
-                    localAlbums.filterNot { it.album.isLocal }
-                        .filterNot { it.id in remoteIds }
-                        .forEach { album ->
+                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
                         try {
                             database.update(album.album.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
@@ -770,9 +764,7 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.artistsBookmarkedByNameAsc().first()
 
-                    localArtists.filterNot { it.artist.isLocal }
-                        .filterNot { it.id in remoteIds }
-                        .forEach { artist ->
+                    localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
                         try {
                             database.update(artist.artist.localToggleLike())
                             delay(DB_OPERATION_DELAY_MS)
