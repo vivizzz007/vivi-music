@@ -187,6 +187,7 @@ object YTPlayerUtils {
                     val albumName = currentSong?.album?.name.orEmpty()
                     val wantedTitleLower = title.lowercase(java.util.Locale.US)
                     val wantedArtistsLower = artistNames.map { it.lowercase(java.util.Locale.US) }
+                    val wantedExplicit = currentSong?.explicit ?: false
 
                     val primaryQuery = if (albumName.isNotBlank()) {
                         "$albumName $title $artist"
@@ -195,12 +196,14 @@ object YTPlayerUtils {
                     }
                     .replace("&", " ")
                     .replace(",", " ")
+                    .replace(Regex("[*$\\u002A]"), " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
                     val fallbackQuery = "$title $artist"
                     .replace("&", " ")
                     .replace(",", " ")
+                    .replace(Regex("[*$\\u002A]"), " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
@@ -208,11 +211,33 @@ object YTPlayerUtils {
                         if (searchQuery.isBlank()) return null
                         Timber.tag(TAG).d("Saavn: searching with query: \"$searchQuery\"")
                         val songs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
-                        return songs.firstOrNull { candidate ->
+                        // Sort candidates so those with explicitContent = true come first.
+                        // This ensures we pick the explicit version when available, preventing
+                        // clean/censored versions (with beep/silence sounds) from being selected.
+                        val sortedSongs = songs.sortedBy { if (it.explicitContent) 0 else 1 }
+                        return sortedSongs.firstOrNull { candidate ->
                             val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US)
                             val candidateArtists = candidate.artists.primary.map { it.name.lowercase(java.util.Locale.US) }
                             
-                            val titleMatches = candidateTitleLower.contains(wantedTitleLower) || wantedTitleLower.contains(candidateTitleLower)
+                            // Helper to build a regex pattern treating censor chars (*, $) as wildcards
+                            fun toFlexibleRegex(s: String): Regex {
+                                val pattern = s.replace(Regex("[*$\\u002A]"), ".+")
+                                return Regex(pattern, RegexOption.IGNORE_CASE)
+                            }
+                            
+                            val titleMatches = try {
+                                val regexCandidate = toFlexibleRegex(candidateTitleLower)
+                                val regexWanted = toFlexibleRegex(wantedTitleLower)
+                                
+                                regexCandidate.containsMatchIn(wantedTitleLower) || 
+                                regexWanted.containsMatchIn(candidateTitleLower) ||
+                                candidateTitleLower.contains(wantedTitleLower) || 
+                                wantedTitleLower.contains(candidateTitleLower)
+                            } catch (e: Exception) {
+                                candidateTitleLower.contains(wantedTitleLower) || 
+                                wantedTitleLower.contains(candidateTitleLower)
+                            }
+
                             val artistMatches = wantedArtistsLower.isEmpty() || wantedArtistsLower.any { wanted ->
                                 candidateArtists.any { candidateArtist ->
                                     candidateArtist.contains(wanted) || wanted.contains(candidateArtist)
