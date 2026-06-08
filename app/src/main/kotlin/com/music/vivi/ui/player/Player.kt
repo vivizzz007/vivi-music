@@ -578,8 +578,10 @@ fun BottomSheetPlayer(
             
             val fetched = when (canvasSource) {
                 CanvasSource.AUTO -> {
+                    // Always search with album + artist + song; skip Apple Music if album is unknown.
                     val appleMusicCanvas = if (requestedAlbum.isNotBlank()) {
-                        AppleMusicCanvasProvider.getByAlbumArtist(
+                        AppleMusicCanvasProvider.getBySongAlbumArtist(
+                            song = s,
                             album = requestedAlbum,
                             artist = a,
                             storefront = storefront
@@ -587,16 +589,21 @@ fun BottomSheetPlayer(
                     } else null
 
                     appleMusicCanvas
-                        ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: ViviMusicCanvasProvider.getBySongArtist(s, a)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: MonochromeApiCanvas.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.APPLE_MUSIC -> {
-                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    // Strict: album + artist + song — returns null when album is blank.
+                    if (requestedAlbum.isNotBlank()) {
+                        AppleMusicCanvasProvider.getBySongAlbumArtist(
+                            song = s,
+                            album = requestedAlbum,
+                            artist = a,
+                            storefront = storefront
+                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    } else null
                 }
                 CanvasSource.VIVIMUSIC -> {
                     ViviMusicCanvasProvider.getBySongArtist(s, a)
