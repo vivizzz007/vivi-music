@@ -259,7 +259,7 @@ fun BottomSheetPlayer(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
-        defaultValue = true
+        defaultValue = false
     )
     val (showAudioQualityBadge) = rememberPreference(
         ShowAudioQualityBadgeKey,
