@@ -108,11 +108,13 @@
     <string name="vivimusic_canvas_desc">Replaces the static album artwork in the player with a looping animated video when one is available for the current song</string>
     <string name="canvas_source">Canvas source</string>
     <string name="canvas_source_auto">Auto</string>
-    <string name="canvas_source_auto_desc">Tries Apple Music first, then falls back to ViviMusic and Monochrome. Picks the best match for the current song automatically</string>
+    <string name="canvas_source_auto_desc">Tries Apple Music first, then falls back to ViviMusic and Tidal. Picks the best match for the current song automatically</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Uses Apple Music&#8217;s animated visuals exclusively. Only shows a canvas if Apple Music has one for the playing song</string>
     <string name="canvas_source_vivimusic">ViviMusic</string>
     <string name="canvas_source_vivimusic_desc">Uses the ViviMusic curated canvas library exclusively. Only shows a canvas if one has been added for the playing song</string>
+    <string name="canvas_source_tidal">Tidal</string>
+    <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a canvas if Tidal has one for the playing song</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>

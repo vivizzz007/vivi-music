@@ -484,6 +484,7 @@ enum class CanvasSource {
     AUTO,
     APPLE_MUSIC,
     VIVIMUSIC,
+    TIDAL,
 }
 val SwipeSensitivityKey = floatPreferencesKey("swipeSensitivity")
 

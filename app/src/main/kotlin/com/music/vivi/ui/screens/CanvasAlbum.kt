@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -56,11 +57,15 @@ fun rememberAlbumCanvas(
                     artist = a,
                     storefront = storefront
                 )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    ?: TidalCanvasProvider.getByAlbumArtist(
+                        album = s,
+                        artist = a
+                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
             }
         }
 
         // Artist and Album validation check (matches Thumbnail.kt logic)
-        val validated = fetched?.let { artwork ->
+        var validated = fetched?.let { artwork ->
             val resultArtist = artwork.artist
             val canvasAlbumName = artwork.albumName
 
@@ -86,6 +91,43 @@ fun rememberAlbumCanvas(
             } else {
                 println("AlbumCanvasValidation: Match FAILED for '${artwork.name}' by '${artwork.artist}'")
                 null
+            }
+        }
+
+        if (validated == null) {
+            val tidalFetched = withContext(Dispatchers.IO) {
+                TidalCanvasProvider.getByAlbumArtist(
+                    album = albumTitle,
+                    artist = artistName
+                )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+            }
+            validated = tidalFetched?.let { artwork ->
+                val resultArtist = artwork.artist
+                val canvasAlbumName = artwork.albumName
+
+                // Check artist list overlaps
+                val artistMatches = if (resultArtist != null && artistName.isNotBlank()) {
+                    val requestedList = splitAndNormalizeArtists(artistName)
+                    val resultList = splitAndNormalizeArtists(resultArtist)
+                    requestedList.any { req -> resultList.any { res -> res.contains(req) || req.contains(res) } }
+                } else true
+
+                // Check album name (raw comparison)
+                val albumMatches = if (canvasAlbumName != null && albumTitle.isNotBlank()) {
+                    canvasAlbumName.trim().equals(albumTitle.trim(), ignoreCase = true)
+                } else false // Enforce strict album matching
+
+                println("AlbumCanvasValidation (Tidal): artistMatches=$artistMatches, albumMatches=$albumMatches")
+                println("  Requested: Album='$albumTitle', Artists='$artistName'")
+                println("  Returned: Album='$canvasAlbumName', Artists='$resultArtist'")
+
+                if (artistMatches && albumMatches) {
+                    println("AlbumCanvasValidation (Tidal): Match SUCCESS for '${artwork.name}'")
+                    artwork
+                } else {
+                    println("AlbumCanvasValidation (Tidal): Match FAILED for '${artwork.name}' by '${artwork.artist}'")
+                    null
+                }
             }
         }
 

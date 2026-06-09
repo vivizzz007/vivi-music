@@ -1313,6 +1313,7 @@ fun AppearanceSettings(
                                 CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
                                 CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
                                 CanvasSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
+                                CanvasSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
                             }
                         }
                         Text(summary)

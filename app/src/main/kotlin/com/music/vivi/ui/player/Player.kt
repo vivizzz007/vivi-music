@@ -232,7 +232,7 @@ import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
-import com.music.vivi.canvas.MonochromeApiCanvas
+import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
@@ -591,7 +591,7 @@ fun BottomSheetPlayer(
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: ViviMusicCanvasProvider.getBySongArtist(s, a)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                        ?: MonochromeApiCanvas.getBySongArtist(s, a, requestedAlbum)
+                        ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.APPLE_MUSIC -> {
@@ -600,6 +600,10 @@ fun BottomSheetPlayer(
                 }
                 CanvasSource.VIVIMUSIC -> {
                     ViviMusicCanvasProvider.getBySongArtist(s, a)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                }
+                CanvasSource.TIDAL -> {
+                    TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
             }

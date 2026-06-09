@@ -101,7 +101,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.canvas.MonochromeApiCanvas
+import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.utils.resize
@@ -761,7 +761,7 @@ private fun ThumbnailItem(
                                             song = s,
                                             artist = a
                                         )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                                        ?: MonochromeApiCanvas.getBySongArtist(
+                                        ?: TidalCanvasProvider.getBySongArtist(
                                             song = s,
                                             artist = a,
                                             album = albumName
@@ -783,6 +783,15 @@ private fun ThumbnailItem(
                                     ViviMusicCanvasProvider.getBySongArtist(
                                         song = s,
                                         artist = a
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                                }
+                            }
+                            CanvasSource.TIDAL -> {
+                                searchTasks.firstNotNullOfOrNull { (s, a) ->
+                                    TidalCanvasProvider.getBySongArtist(
+                                        song = s,
+                                        artist = a,
+                                        album = albumName
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                 }
                             }
