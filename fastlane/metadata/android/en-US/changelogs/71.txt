@@ -7,3 +7,7 @@ fixed search logic
 fixed empty playlist
 added priority lyrics provider selection
 fixed image rendering issue for the video song
+Fixed apple canvas logic
+Improved speed in homescreen
+Added dynamic suggetion in search
+fixed image issue for video
