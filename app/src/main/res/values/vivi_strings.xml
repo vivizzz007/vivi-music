@@ -934,4 +934,7 @@
     <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
     <string name="build_stable">STABLE</string>
     <string name="build_nightly">NIGHTLY</string>
+    <string name="jiosaavn_settings">JioSaavn Settings</string>
+    <string name="jiosaavn_streaming_disabled">Disabled</string>
+    <string name="jiosaavn_beta_info">This is currently in beta, don\'t report things based on JioSaavn. If JioSaavn is enabled and a song isn\'t available in JioSaavn, it will use YouTube Music as the next source. Downloading at 320 kbps is also supported when using JioSaavn.</string>
 </resources>

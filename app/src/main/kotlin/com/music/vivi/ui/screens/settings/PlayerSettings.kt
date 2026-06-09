@@ -187,19 +187,16 @@ fun PlayerSettings(
         HistoryDuration,
         defaultValue = 30f
     )
-    val (saavnEnabled, onSaavnEnabledChange) = rememberPreference(
+    val (saavnEnabled, _) = rememberPreference(
         EnableSaavnStreamingKey,
         defaultValue = false
     )
-    val (saavnQuality, onSaavnQualityChange) = rememberEnumPreference(
+    val (saavnQuality, _) = rememberEnumPreference(
         SaavnAudioQualityKey,
         defaultValue = SaavnAudioQuality.QUALITY_320
     )
 
     var showAudioQualityDialog by remember {
-        mutableStateOf(false)
-    }
-    var showSaavnQualityDialog by remember {
         mutableStateOf(false)
     }
 
@@ -223,19 +220,7 @@ fun PlayerSettings(
         )
     }
 
-    if (showSaavnQualityDialog) {
-        EnumDialog(
-            onDismiss = { showSaavnQualityDialog = false },
-            onSelect = {
-                onSaavnQualityChange(it)
-                showSaavnQualityDialog = false
-            },
-            title = stringResource(R.string.saavn_audio_quality),
-            current = saavnQuality,
-            values = SaavnAudioQuality.values().toList(),
-            valueText = { it.toLabel() }
-        )
-    }
+
 
     Column(
         Modifier
@@ -294,37 +279,21 @@ fun PlayerSettings(
                     },
                     onClick = { showAudioQualityDialog = true }
                 ))
-                // JioSaavn streaming toggle
+                // JioSaavn settings navigation
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
-                    title = { Text(stringResource(R.string.enable_saavn_streaming)) },
-                    description = { Text(stringResource(R.string.enable_saavn_streaming_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = saavnEnabled,
-                            onCheckedChange = onSaavnEnabledChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (saavnEnabled) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
+                    title = { Text(stringResource(R.string.jiosaavn_settings)) },
+                    description = {
+                        Text(
+                            if (saavnEnabled) {
+                                saavnQuality.toLabel()
+                            } else {
+                                stringResource(R.string.jiosaavn_streaming_disabled)
                             }
                         )
                     },
-                    onClick = { onSaavnEnabledChange(!saavnEnabled) }
+                    onClick = { navController.navigate("settings/player/jio") }
                 ))
-                // JioSaavn quality picker — only shown when streaming is enabled
-                if (saavnEnabled) {
-                    add(Material3SettingsItem(
-                        icon = painterResource(R.drawable.graphic_eq),
-                        title = { Text(stringResource(R.string.saavn_audio_quality)) },
-                        description = { Text(saavnQuality.toLabel()) },
-                        onClick = { showSaavnQualityDialog = true }
-                    ))
-                }
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
                     title = { Text(stringResource(R.string.crossfade)) },
