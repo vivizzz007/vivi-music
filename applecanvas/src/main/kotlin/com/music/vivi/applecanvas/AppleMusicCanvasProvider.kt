@@ -203,7 +203,7 @@ object AppleMusicCanvasProvider {
 
                 // Strict artist check: result must contain requested artist or vice versa
                 val artistMatch = resultArtistName.equals(artist, ignoreCase = true)
-                val artistFuzzy = resultArtistName.contains(artist, ignoreCase = true) || artist.contains(resultArtistName, ignoreCase = true)
+                val artistFuzzy = artistMatches(artist, resultArtistName)
                 
                 if (!artistFuzzy) return@mapNotNull null
                 
@@ -422,5 +422,12 @@ object AppleMusicCanvasProvider {
 
     private fun cacheKey(prefix: String, vararg parts: String): String {
         return "$prefix|" + parts.joinToString("|") { it.trim().lowercase(Locale.ROOT) }
+    }
+
+    private fun artistMatches(requested: String, returned: String): Boolean {
+        val delimiters = Regex("(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)", RegexOption.IGNORE_CASE)
+        val requestedList = requested.split(delimiters).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }.filter { it.isNotBlank() }
+        val returnedList = returned.split(delimiters).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }.filter { it.isNotBlank() }
+        return requestedList.any { req -> returnedList.any { res -> res.contains(req) || req.contains(res) } }
     }
 }

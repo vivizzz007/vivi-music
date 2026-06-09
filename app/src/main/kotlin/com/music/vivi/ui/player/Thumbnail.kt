@@ -744,24 +744,13 @@ private fun ThumbnailItem(
                         
                         println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
                         
-                        val searchTasks = linkedSetOf(
-                            songTitle to artistName,
-                            songTitleRaw to artistName,
-                            songTitle to artistNameRaw,
-                            songTitleRaw to artistNameRaw,
+                        val searchTasks = listOf(
+                            songTitleRaw to artistNameRaw
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
 
                         when (canvasSource) {
                             CanvasSource.AUTO -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
-                                    if (!albumName.isNullOrBlank()) {
-                                        AppleMusicCanvasProvider.getByAlbumArtist(
-                                            album = albumName,
-                                            artist = a,
-                                            storefront = storefront
-                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
-                                    }
-
                                     AppleMusicCanvasProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
@@ -781,14 +770,6 @@ private fun ThumbnailItem(
                             }
                             CanvasSource.APPLE_MUSIC -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
-                                    if (!albumName.isNullOrBlank()) {
-                                        AppleMusicCanvasProvider.getByAlbumArtist(
-                                            album = albumName,
-                                            artist = a,
-                                            storefront = storefront
-                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }?.let { return@firstNotNullOfOrNull it }
-                                    }
-
                                     AppleMusicCanvasProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
@@ -817,58 +798,36 @@ private fun ThumbnailItem(
                         val resultArtist = artwork.artist
                         val resultName = artwork.name
                         
-                        // Check artist
+                        // Check artist list overlaps
                         val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
-                            val normalizedResult = normalizeCanvasArtistName(resultArtist)
-                            val normalizedRequested = normalizeCanvasArtistName(requestedArtist)
-                            resultArtist.contains(requestedArtist, ignoreCase = true) || 
-                            requestedArtist.contains(resultArtist, ignoreCase = true) ||
-                            normalizedResult.contains(normalizedRequested, ignoreCase = true) ||
-                            normalizedRequested.contains(normalizedResult, ignoreCase = true)
+                            val requestedList = splitAndNormalizeArtists(requestedArtist)
+                            val resultList = splitAndNormalizeArtists(resultArtist)
+                            requestedList.any { req -> resultList.any { res -> res.contains(req) || req.contains(res) } }
                         } else true
 
-                        // --- Album/Title cross-check ---
-                        // The canvas provider always populates albumName with the album the animation
-                        // belongs to. We require this to match the requested track's album (or song
-                        // title) so we never show an animation for the *wrong* album by the same artist.
+                        // Check song title (raw comparison)
+                        val songMatches = if (resultName != null && requestedTitle.isNotBlank()) {
+                            resultName.trim().equals(requestedTitle.trim(), ignoreCase = true)
+                        } else true
+                        // Check album name (raw comparison)
                         val requestedAlbum = item.mediaMetadata.albumTitle?.toString() ?: ""
                         val canvasAlbumName = artwork.albumName
-                        val canvasSongName = artwork.name
 
-                        val titleMatches = when {
-                            // Case 1: canvas has an album name → must match requested album
-                            canvasAlbumName != null && requestedAlbum.isNotBlank() -> {
-                                val normalizedCanvasAlbum = normalizeCanvasSongTitle(canvasAlbumName)
-                                val normalizedRequestedAlbum = normalizeCanvasSongTitle(requestedAlbum)
-                                canvasAlbumName.contains(requestedAlbum, ignoreCase = true) ||
-                                requestedAlbum.contains(canvasAlbumName, ignoreCase = true) ||
-                                normalizedCanvasAlbum.contains(normalizedRequestedAlbum, ignoreCase = true) ||
-                                normalizedRequestedAlbum.contains(normalizedCanvasAlbum, ignoreCase = true)
-                            }
-                            // Case 2: canvas has only a song name → match against song title or album
-                            canvasSongName != null && requestedTitle.isNotBlank() -> {
-                                val normalizedCanvasSong = normalizeCanvasSongTitle(canvasSongName)
-                                val normalizedRequestedTitle = normalizeCanvasSongTitle(requestedTitle)
-                                val normalizedRequestedAlbum = if (requestedAlbum.isNotBlank()) normalizeCanvasSongTitle(requestedAlbum) else ""
-                                canvasSongName.contains(requestedTitle, ignoreCase = true) ||
-                                requestedTitle.contains(canvasSongName, ignoreCase = true) ||
-                                normalizedCanvasSong.contains(normalizedRequestedTitle, ignoreCase = true) ||
-                                normalizedRequestedTitle.contains(normalizedCanvasSong, ignoreCase = true) ||
-                                (requestedAlbum.isNotBlank() && (
-                                    canvasSongName.contains(requestedAlbum, ignoreCase = true) ||
-                                    requestedAlbum.contains(canvasSongName, ignoreCase = true) ||
-                                    normalizedCanvasSong.contains(normalizedRequestedAlbum, ignoreCase = true) ||
-                                    normalizedRequestedAlbum.contains(normalizedCanvasSong, ignoreCase = true)
-                                ))
-                            }
-                            // Case 3: no name info in canvas at all → allow through
-                            else -> true
-                        }
+                        val albumMatches = if (canvasAlbumName != null && requestedAlbum.isNotBlank()) {
+                            canvasAlbumName.trim().equals(requestedAlbum.trim(), ignoreCase = true)
+                        } else false
+
+                        val titleMatches = songMatches && albumMatches
+
+                        println("CanvasValidation: artistMatches=$artistMatches, songMatches=$songMatches, albumMatches=$albumMatches")
+                        println("  Requested: Title='$requestedTitle', Album='$requestedAlbum', Artists='$requestedArtist'")
+                        println("  Returned: Title='$resultName', Album='$canvasAlbumName', Artists='$resultArtist'")
 
                         if (artistMatches && titleMatches) {
+                            println("CanvasValidation: Match SUCCESS for '${artwork.name}'")
                             artwork
                         } else {
-                            println("CanvasFetch: Validation failed artistMatch=$artistMatches, titleMatches=$titleMatches for '${artwork.name}' by '${artwork.artist}'")
+                            println("CanvasValidation: Match FAILED for '${artwork.name}' by '${artwork.artist}'")
                             null
                         }
                     }
@@ -1016,7 +975,17 @@ internal fun normalizeCanvasArtistName(raw: String): String {
                     RegexOption.IGNORE_CASE,
                 ),
                 limit = 2,
-            ).firstOrNull().orEmpty()
+                ).firstOrNull().orEmpty()
 
     return first.replace(Regex("\\s+"), " ").trim()
+}
+
+internal fun splitAndNormalizeArtists(raw: String): List<String> {
+    return raw.split(
+        Regex(
+            "(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)",
+            RegexOption.IGNORE_CASE,
+        )
+    ).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }
+        .filter { it.isNotBlank() }
 }

@@ -163,7 +163,7 @@ fun AlbumScreen(
 
     val canvasArtwork = rememberAlbumCanvas(
         albumTitle = albumWithSongs?.album?.title,
-        artistName = albumWithSongs?.artists?.firstOrNull()?.name,
+        artistName = albumWithSongs?.artists?.joinToString { it.name }?.takeIf { it.isNotEmpty() },
         firstSongTitle = albumWithSongs?.songs?.firstOrNull()?.song?.title
     )
 
