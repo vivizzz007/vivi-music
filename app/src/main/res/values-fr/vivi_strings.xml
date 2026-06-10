@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="explore">Explorer</string>
+	<string name="tab_explore">Explorer</string>
+    <string name="tab_Suggestions">Suggestions</string>
+    <string name="tab_album">Album</string>
 
     <string name="local_history">Locale</string>
     <string name="remote_history">Distant</string>
@@ -15,8 +18,12 @@
     <string name="album_cover_desc">Pochette d\'album</string>
     <string name="top_music_videos">Meilleurs Clips Musicaux</string>
     <string name="trending">Tendances</string>
+	<string name="trending_billboard">Billboard Hot 100</string>
+    <string name="top_artists">Meilleurs Artistes</string>
+    <string name="page_indicator">%1$d de %2$d</string>
     <string name="top_result">Meilleur Résultat</string>
     <string name="other_results">Autre</string>
+	<string name="parsed_from_link">À partir du lien</string>
     <string name="album_text">Album</string>
 	<string name="by_text">Par </string>
 	<string name="artist">Artiste </string>
@@ -30,7 +37,7 @@
     <string name="liked">Favoris</string>
     <string name="offline">Hors-Ligne</string>
     <string name="my_top">Mon Top</string>
-    <string name="cached_playlist">Mise en Cache</string>
+    <string name="cached_playlist">En Cache</string>
     <string name="uploaded_playlist">Téléchargés</string>
     <string name="filter_uploaded">Téléchargés</string>
     <string name="sync_playlist">Synchroniser la playlist</string>
@@ -96,10 +103,22 @@
     <string name="thumbnail_corner_radius_desc">Modifier le rayon des coins de la miniature de la pochette de l\'album</string>
     <string name="crop_album_art">Recadrer la pochette d\'album</string>
     <string name="crop_album_art_desc">Forcer un format carré en recadrant les miniatures vidéo</string>
-    <string name="vivimusic_canvas">Toile</string>
-    <string name="vivimusic_canvas_desc">Afficher les pochettes d\'album animées lorsqu\'elles sont disponibles</string>
-	<string name="show_album_canvas">Afficher l\'album toile</string>
+    <string name="vivimusic_canvas">Canvas</string>
+	<string name="use_canvas">Utiliser Canvas</string>
+    <string name="vivimusic_canvas_desc">Remplace la pochette d\'album statique dans le lecteur par une vidéo animée en boucle lorsqu\'une telle vidéo est disponible pour le titre en cours</string>
+    <string name="canvas_source">Code source de Canvas</string>
+    <string name="canvas_source_auto">Automatique</string>
+    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Vivi Music et Tidal. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
+    <string name="canvas_source_apple_music">Apple Music</string>
+    <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une image que si Apple Music en propose une pour le titre en cours de lecture.</string>
+    <string name="canvas_source_vivimusic">Vivi Music</string>
+    <string name="canvas_source_vivimusic_desc">Utilise exclusivement la bibliothèque de toiles sélectionnés par Vivi Music. N\'affiche une image que si elle a été ajoutée pour le titre en cours de lecture.</string>
+    <string name="canvas_source_tidal">Tidal</string>
+    <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une image que si Tidal en propose une pour le titre en cours de lecture.</string>
+    <string name="show_album_canvas">Afficher la page d\'accueil de l\'album</string>
     <string name="show_album_canvas_desc">Afficher une toile animée dans l\'album</string>
+    <string name="rotating_thumbnail">Vignette tournante</string>
+    <string name="rotating_thumbnail_desc">Activer un effet d\'animation avec rotation des vignettes</string>
 
     <string name="already_in_playlist">Déjà dans la playlist :</string>
 
@@ -133,6 +152,7 @@
     <string name="follow_theme">Suivre le thème</string>
     <string name="gradient">Dégradé</string>
     <string name="glow_animated">Animation lumineuse</string>
+	<string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">Nouveau design du lecteur</string>
     <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
     <string name="player_background_blur">Flou</string>
