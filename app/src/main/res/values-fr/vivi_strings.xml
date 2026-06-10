@@ -226,6 +226,8 @@
     <string name="configure_supported_links">Configurer les liens pris en charge</string>
     <string name="intent_supported_links_not_found">Impossible de trouver les paramètres des liens pris en charge, veuillez les configurer manuellement.</string>
     <string name="set_first_lyrics_provider">Fournisseur de paroles préféré</string>
+	<string name="lyrics_provider_priority">Priorité au fournisseur de paroles</string>
+    <string name="lyrics_provider_priority_desc">Faites glisser pour choisir l'ordre dans lequel les fournisseurs seront testés</string>
     <string name="config_proxy">Configurer le proxy</string>
     <string name="proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="proxy_password">Mot de passe proxy</string>
@@ -259,6 +261,10 @@
     <string name="clear_song_cache_dialog">  Êtes-vous sûr de vouloir effacer tous les titres mis en cache ?</string>
     <string name="clear_image_cache_dialog">  Êtes-vous sûr de vouloir effacer toutes les images mises en cache ?</string>
     <string name="clear_downloads_dialog">  Êtes-vous sûr de vouloir effacer tous les téléchargements ?</string>
+	<string name="logout_dialog_title">Se déconnecter</string>
+    <string name="logout_dialog_message">Souhaitez-vous conserver toutes les bibliothèques et tout le reste ?</string>
+    <string name="logout_keep_data">Conserver les données</string>
+    <string name="logout_clear_data">Effacer les données</string>
 
     <string name="disable">Désactiver</string>
 
@@ -397,6 +403,7 @@
     <string name="equalizer_desc">Régler l\'égaliseur audio</string>
     <string name="enable_dynamic_icon">Activer l\'icône d\'application dynamique</string>
     <string name="mini_player">Mini-lecteur</string>
+	<string name="miniplayer_background_style">Style d\'arrière-plan du mini-lecteur</string>
     <string name="pure_black_mini_player">Mini-lecteur noir pur</string>
     <string name="mini_player_outline">Contour du mini-lecteur</string>
     <string name="cache_size_warning_title">Attendez !</string>
@@ -483,6 +490,47 @@ est irréversible.
     <string name="import_error_title">Erreur d\'importation</string>
     <string name="error_title">Erreur</string>
     <string name="error_eq_apply_failed">Échec de l\'application du profil d\'égalisation : %1$s</string>
+
+	<!-- ViviEqualizer Strings -->
+    <string name="vivi_equalizer">Vivi Equalizer</string>
+    <string name="vivi_equalizer_desc">Réglage acoustique de qualité professionnelle &amp; Effets</string>
+    <string name="eq_simple">Simple</string>
+    <string name="eq_advanced">Avancé</string>
+    <string name="eq_label_bass">Basse</string>
+    <string name="eq_label_mid">Milieux</string>
+    <string name="eq_label_treble">Aigus</string>
+    <string name="eq_preset_flat">Plat</string>
+    <string name="eq_preset_vivi_signature">Vivi Signature</string>
+    <string name="eq_preset_acoustic">Acoustique</string>
+    <string name="eq_preset_spatial">Scène 3D</string>
+    <string name="eq_preset_bass_boost">Amplification des Basses</string>
+    <string name="eq_preset_pure_clarity">Clarté Absolue</string>
+    <string name="eq_preset_soft_bass">Soft Bass</string>
+    <string name="eq_preset_electronic">Électronique</string>
+    <string name="eq_preset_rock">Rock</string>
+    <string name="eq_preset_pop">Pop</string>
+    <string name="eq_preset_jazz">Jazz</string>
+    <string name="eq_preset_voice">Voix</string>
+    <string name="eq_preset_dolby_open">Dolby Open</string>
+    <string name="eq_preset_dolby_rich">Dolby Rich</string>
+    <string name="eq_preset_dolby_focused">Spécial Dolby</string>
+    <string name="eq_preset_dirac_music">Dirac Music</string>
+    <string name="eq_preset_dirac_movie">Dirac Movie</string>
+    <string name="eq_preset_dirac_game">Dirac Game</string>
+    <string name="eq_enable_title">Vivi Equalizer</string>
+    <string name="eq_enable_summary">Activer le traitement audio professionnel</string>
+    <string name="eq_label_vivi">Vivi Signature</string>
+    <string name="eq_label_dolby">Dolby Atmos</string>
+    <string name="eq_label_dirac">Dirac Audio</string>
+    <string name="eq_reset">Réinitialiser</string>
+    <string name="eq_label_custom">Personnalisé</string>
+    <string name="eq_save">Enregistrer</string>
+    <string name="eq_save_dialog_title">Enregistrer le préréglage</string>
+    <string name="eq_save_name_hint">Nom du préréglage</string>
+    <string name="eq_profile_saved">Préréglage enregistré</string>
+    <string name="eq_manage_presets">Gérer les préréglages</string>
+    <string name="eq_delete_selected">Supprimer</string>
+    <string name="eq_no_custom_presets">Aucun préréglage personnalisé n\'a été trouvé</string>
 
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Dans les Paramètres &gt; Contenu</string>
@@ -816,12 +864,77 @@ est irréversible.
     <string name="version_code">Code de version</string>
     <string name="namespace">Espace de noms</string>
     <string name="telegram_channel">Telegram</string>
+
+	<!-- Onboarding -->
+    <string name="welcome_to">Bienvenue sur</string>
+    <string name="welcome_preparing_subtitle">Nous allons tout préparer pour vous.</string>
+    <string name="get_started">C\'est parti !</string>
+
+    <string name="perm_required">Obligatoire</string>
+    <string name="perm_permissions">Autorisations</string>
+    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de Vivi Music. Veuillez les accorder pour continuer.</string>
+
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_desc">Sachez immédiatement quand votre musique est en cours de lecture et contrôlez-la depuis la barre de notifications.</string>
+
+    <string name="perm_install_title">Installation de l\'application</string>
+    <string name="perm_install_desc">Nécessaire pour télécharger et installer les mises à jour de l\'application en toute simplicité.</string>
+
+    <string name="feat_discover">Découverte</string>
+    <string name="feat_features">Caractéristiques</string>
+    <string name="feat_intro">Découvrez tout ce que Vivi Music a à vous offrir pour votre parcours musical.</string>
+
+    <string name="feat_lyrics_title">Paroles Intelligentes</string>
+    <string name="feat_lyrics_desc">Profitez des paroles synchronisées, mot à mot, de millions de titres.</string>
+
+    <string name="feat_download_title">Lecture hors-ligne</string>
+    <string name="feat_download_desc">Téléchargez vos titres préférés et écoutez-les où vous voulez, quand vous voulez.</string>
+
+    <string name="feat_quality_title">Qualité Premium</string>
+    <string name="feat_quality_desc">Écoutez en streaming et téléchargez.</string>
+
+    <string name="feat_update_title">Mises à jour dynamiques</string>
+    <string name="feat_update_desc">Restez toujours à jour grâce à notre outil de mise à jour intégré.</string>
+
+    <string name="feat_license_title">Licence</string>
+    <string name="feat_license_desc">Licence publique générale v3.0</string>
+    <string name="feat_github_title">GitHub</string>
+    <string name="feat_github_desc">Projet open source</string>
+
     <string name="join_telegram">Rejoignez notre chaîne Telegram</string>
-    <string name="commits_title">Engagements</string>
-    <string name="error_loading_commits">Impossible de charger les engagements car vous ne m\'avez pas payé.</string>
-    <string name="commits">Engagements</string>
-    <string name="view_commit_history">Consultez les modifications récentes sur la branche principale.</string>
-	<string name="suggestions">Suggestions</string>
+    <string name="welcome_update_check">Rester</string>
+    <string name="welcome_update_status">Mise à jour</string>
+    <string name="welcome_update_intro">Pour vous garantir les dernières fonctionnalités et les dernières améliorations en matière de sécurité.</string>
+    <string name="welcome_checking_updates">Recherche de mises à jour…</string>
+    <string name="welcome_up_to_date">Vivi Music est à jour !</string>
+    <string name="welcome_update_available">Une nouvelle version est disponible : %s</string>
+    <string name="welcome_everything_ready">Tout est désormais à jour</string>
+    <string name="commits_title">Commits</string>
+    <string name="error_loading_commits">Impossible de charger les commits car vous ne m\'avez pas payé !</string>
+    <string name="commits">Commits</string>
+    <string name="view_commit_history">Consulter les modifications récentes sur la branche principale</string>
+    <string name="suggestions">Suggestions</string>
     <string name="comments">Commentaires</string>
     <string name="no_comments">Aucun commentaire trouvé</string>
+    <string name="type_message">Écrivez un message…</string>
+    <string name="send">Envoyer</string>
+    <string name="clear_downloaded_updates_auto_info">Il sera supprimé automatiquement au bout d\'un jour.</string>
+    <string name="update_info_badge">Informations &amp; Conseils</string>
+    <string name="update_info_title">Informations sur la mise à jour</string>
+    <string name="manual_delete_hint_title">Nettoyage manuel</string>
+    <string name="manual_delete_hint_desc">Vous pouvez également les supprimer manuellement. La suppression des anciens fichiers APK permettra au programme de mise à jour de fonctionner correctement.</string>
+
+    <!-- Playback Log -->
+    <string name="logs_heading">Journaux</string>
+    <string name="playback_logs">Journaux de lecture</string>
+    <string name="playback_logs_desc">Afficher la résolution des flux en temps réel et les événements liés à la lutte contre les bots</string>
+    <string name="playback_logs_title">Journaux de lecture</string>
+    <string name="no_playback_logs">Aucun événement de lecture n\'a encore été enregistré</string>
+    <string name="show_comment_button">Afficher le bouton « Commentaire »</string>
+    <string name="show_comment_button_description">Afficher un bouton permettant de consulter les commentaires dans la file d\'attente du lecteur</string>
+    <string name="build_stable">STABLE</string>
+    <string name="build_nightly">NIGHTLY</string>
+    <string name="jiosaavn_settings">Paramètres de JioSaavn</string>
+    <string name="jiosaavn_streaming_disabled">Désactivé</string>
+    <string name="jiosaavn_beta_info">Cette fonctionnalité est actuellement en version bêta ; veuillez ne pas signaler de problèmes liés à JioSaavn. Si JioSaavn est activé et qu\’un morceau n\’est pas disponible sur cette plateforme, YouTube Music sera utilisé comme source alternative. Le téléchargement à 320 kbps est également pris en charge lors de l\’utilisation de JioSaavn.</string>
 </resources>
