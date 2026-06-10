@@ -373,36 +373,42 @@ object YTPlayerUtils {
             }
         }
 
-        // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution
-        Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying ${MAIN_CLIENT.clientName} (Main)")
-        var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
-
-        // Fetch authenticated metadata from WEB_REMIX when logged in.
-        // ANDROID_VR has loginSupported=false, so its playbackTracking URL won't update
-        // remote history. WEB_REMIX (authenticated) provides proper playbackTracking.
-        var metadataResponse: PlayerResponse? = null
-        if (isLoggedIn) {
-            Timber.tag(logTag).d("Fetching metadata from METADATA_CLIENT (WEB_REMIX) for authenticated tracking")
-            try {
-                // Only generate PoToken for web client metadata fetch
-                var metaPoToken: PoTokenResult? = null
-                val metaSessionId = YouTube.dataSyncId
-                if (METADATA_CLIENT.useWebPoTokens && metaSessionId != null) {
-                    try {
-                        metaPoToken = poTokenGenerator.getWebClientPoToken(videoId, metaSessionId)
-                    } catch (e: Exception) {
-                        Timber.tag(logTag).e(e, "Metadata PoToken generation failed")
-                    }
-                }
-                metadataResponse = YouTube.player(
-                    videoId, playlistId, METADATA_CLIENT,
-                    signatureTimestamp.timestamp, metaPoToken?.playerRequestPoToken
-                ).getOrNull()
-                Timber.tag(logTag).d("Metadata response obtained: ${metadataResponse?.playabilityStatus?.status}")
-            } catch (e: Exception) {
-                Timber.tag(logTag).e(e, "Failed to fetch metadata from METADATA_CLIENT")
+        // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution and METADATA_CLIENT (WEB_REMIX) for history tracking in parallel
+        var (mainPlayerResponse, metadataResponse) = coroutineScope {
+            val mainDeferred = async {
+                Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
+                PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying ${MAIN_CLIENT.clientName} (Main)")
+                YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
             }
+            val metaDeferred = async {
+                if (isLoggedIn) {
+                    Timber.tag(logTag).d("Fetching metadata from METADATA_CLIENT (WEB_REMIX) for authenticated tracking")
+                    try {
+                        // Only generate PoToken for web client metadata fetch
+                        var metaPoToken: PoTokenResult? = null
+                        val metaSessionId = YouTube.dataSyncId
+                        if (METADATA_CLIENT.useWebPoTokens && metaSessionId != null) {
+                            try {
+                                metaPoToken = poTokenGenerator.getWebClientPoToken(videoId, metaSessionId)
+                            } catch (e: Exception) {
+                                Timber.tag(logTag).e(e, "Metadata PoToken generation failed")
+                            }
+                        }
+                        YouTube.player(
+                            videoId, playlistId, METADATA_CLIENT,
+                            signatureTimestamp.timestamp, metaPoToken?.playerRequestPoToken
+                        ).getOrNull().also { response ->
+                            Timber.tag(logTag).d("Metadata response obtained: ${response?.playabilityStatus?.status}")
+                        }
+                    } catch (e: Exception) {
+                        Timber.tag(logTag).e(e, "Failed to fetch metadata from METADATA_CLIENT")
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+            mainDeferred.await() to metaDeferred.await()
         }
 
         // Debug uploaded track response
