@@ -227,7 +227,7 @@
     <string name="intent_supported_links_not_found">Impossible de trouver les paramètres des liens pris en charge, veuillez les configurer manuellement.</string>
     <string name="set_first_lyrics_provider">Fournisseur de paroles préféré</string>
 	<string name="lyrics_provider_priority">Priorité au fournisseur de paroles</string>
-    <string name="lyrics_provider_priority_desc">Faites glisser pour choisir l'ordre dans lequel les fournisseurs seront testés</string>
+    <string name="lyrics_provider_priority_desc">Faites glisser pour choisir l\'ordre dans lequel les fournisseurs seront testés</string>
     <string name="config_proxy">Configurer le proxy</string>
     <string name="proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="proxy_password">Mot de passe proxy</string>
