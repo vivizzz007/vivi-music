@@ -774,10 +774,8 @@ object YTPlayerUtils {
                 .url(url)
                 .header("User-Agent", YouTubeClient.USER_AGENT_WEB)
 
-            // Add authentication cookie for privately owned tracks
-            YouTube.cookie?.let { cookie ->
-                requestBuilder.addHeader("Cookie", cookie)
-            }
+            // Do NOT add Cookie header — googlevideo.com CDN rejects account cookies with 403.
+            // Stream URLs are already authenticated via signed URL parameters.
 
             val response = httpClient.newCall(requestBuilder.build()).execute()
             val isSuccessful = response.isSuccessful

@@ -654,16 +654,19 @@ class SyncUtils @Inject constructor(
                     remoteAlbums.forEach { album ->
                         try {
                             val dbAlbum = database.album(album.id).firstOrNull()
-                            YouTube.album(album.browseId).onSuccess { albumPage ->
-                                if (dbAlbum == null) {
+                            if (dbAlbum == null) {
+                                // New album — fetch full details and insert
+                                YouTube.album(album.browseId).onSuccess { albumPage ->
                                     database.insert(albumPage)
                                     database.album(album.id).firstOrNull()?.let { newDbAlbum ->
                                         database.update(newDbAlbum.album.localToggleLike())
                                     }
-                                } else if (dbAlbum.album.bookmarkedAt == null) {
-                                    database.update(dbAlbum.album.localToggleLike())
                                 }
+                            } else if (dbAlbum.album.bookmarkedAt == null) {
+                                // Already cached but not liked yet — just mark liked
+                                database.update(dbAlbum.album.localToggleLike())
                             }
+                            // else: already cached and liked — skip network call
                             delay(DB_OPERATION_DELAY_MS)
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to process album: ${album.id}")
@@ -715,16 +718,19 @@ class SyncUtils @Inject constructor(
                     remoteAlbums.forEach { album ->
                         try {
                             val dbAlbum = database.album(album.id).firstOrNull()
-                            YouTube.album(album.browseId).onSuccess { albumPage ->
-                                if (dbAlbum == null) {
+                            if (dbAlbum == null) {
+                                // New uploaded album — fetch full details and insert
+                                YouTube.album(album.browseId).onSuccess { albumPage ->
                                     database.insert(albumPage)
                                     database.album(album.id).firstOrNull()?.let { newDbAlbum ->
                                         database.update(newDbAlbum.album.toggleUploaded())
                                     }
-                                } else if (!dbAlbum.album.isUploaded) {
-                                    database.update(dbAlbum.album.toggleUploaded())
-                                }
-                            }.onFailure { reportException(it) }
+                                }.onFailure { reportException(it) }
+                            } else if (!dbAlbum.album.isUploaded) {
+                                // Already cached but not marked uploaded — just update flag
+                                database.update(dbAlbum.album.toggleUploaded())
+                            }
+                            // else: already cached and marked uploaded — skip network call
                             delay(DB_OPERATION_DELAY_MS)
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to process album: ${album.id}")
@@ -776,13 +782,16 @@ class SyncUtils @Inject constructor(
                     remoteArtists.forEach { artist ->
                         try {
                             val dbArtist = database.artist(artist.id).firstOrNull()
-                            val channelId = artist.channelId ?: if (artist.id.startsWith("UC")) {
-                                try {
-                                    YouTube.getChannelId(artist.id).takeIf { it.isNotEmpty() }
-                                } catch (e: Exception) {
-                                    null
-                                }
-                            } else null
+                            // Use cached channelId first — only call YouTube.getChannelId() for new artists
+                            val channelId = artist.channelId
+                                ?: dbArtist?.artist?.channelId
+                                ?: if (dbArtist == null && artist.id.startsWith("UC")) {
+                                    try {
+                                        YouTube.getChannelId(artist.id).takeIf { it.isNotEmpty() }
+                                    } catch (e: Exception) {
+                                        null
+                                    }
+                                } else null
 
                             database.transaction {
                                 if (dbArtist == null) {
@@ -884,12 +893,16 @@ class SyncUtils @Inject constructor(
                                 )
                                 database.insert(playlistEntity)
                                 Timber.d("syncSavedPlaylists: Created new playlist ${playlist.title} (${playlist.id})")
+                                executeSyncPlaylist(playlist.id, playlistEntity.id)
                             } else {
                                 database.update(playlistEntity, playlist)
                                 Timber.d("syncSavedPlaylists: Updated existing playlist ${playlist.title} (${playlist.id})")
+                                if (playlistEntity.isAutoSync) {
+                                    executeSyncPlaylist(playlist.id, playlistEntity.id)
+                                } else {
+                                    Timber.d("syncSavedPlaylists: Skipping full sync for cached playlist ${playlist.title} (isAutoSync=false)")
+                                }
                             }
-
-                            executeSyncPlaylist(playlist.id, playlistEntity.id)
                             delay(DB_OPERATION_DELAY_MS)
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to sync playlist ${playlist.title}")
