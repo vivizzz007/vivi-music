@@ -1517,7 +1517,7 @@ fun AppearanceSettings(
                     },
                     onClick = { onLyricsGlowEffectChange(!lyricsGlowEffect) }
                 ),
-                if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.lyrics),
                         title = { Text(stringResource(R.string.apple_music_lyrics_blur)) },
@@ -1540,27 +1540,29 @@ fun AppearanceSettings(
                         onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) }
                     )
                 } else null,
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
-                    title = { Text(stringResource(R.string.standard_lyrics_blur)) },
-                    description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = lyricsStandardBlur,
-                            onCheckedChange = onLyricsStandardBlurChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (lyricsStandardBlur) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
-                ),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.standard_lyrics_blur)) },
+                        description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = lyricsStandardBlur,
+                                onCheckedChange = onLyricsStandardBlurChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (lyricsStandardBlur) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
