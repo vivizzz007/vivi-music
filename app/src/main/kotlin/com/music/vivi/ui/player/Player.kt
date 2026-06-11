@@ -889,7 +889,6 @@ fun BottomSheetPlayer(
                     .fillMaxSize()
                     .background(bottomSheetBackgroundColor)
             ) {
-                if (backgroundAlpha > 0f) {
                 when (playerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
                         AnimatedContent(
@@ -1344,7 +1343,6 @@ fun BottomSheetPlayer(
                         // Nothing
                     }
                 }
-                } // end if (backgroundAlpha > 0f)
             }
         },
         onDismiss = {
