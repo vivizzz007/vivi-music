@@ -41,6 +41,10 @@
     <string name="uploaded_playlist">Uploaded</string>
     <string name="filter_uploaded">Uploaded</string>
     <string name="sync_playlist">Sync playlist</string>
+    <string name="syncing_progress">Syncing %1$d of %2$d songs</string>
+    <string name="playlist_uploaded">Playlist uploaded successfully</string>
+    <string name="sync_completed_success">Synced %1$d songs successfully</string>
+    <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
     <string name="elements_selected">%1$d elements selected</string>
     <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
