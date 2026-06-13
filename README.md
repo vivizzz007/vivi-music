@@ -1,5 +1,8 @@
 <div align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/ic_launcher-playstore.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
+  <a href="https://vivimusic.mkmdevilmi.workers.dev/">
+    <img src="assets/banner.png" alt="VIVI Music Banner" style="display: block; margin: 0 auto; max-width: 100%"/>
+  </a>
+  <br>
   <h1>VIVI Music</h1>
   <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
 

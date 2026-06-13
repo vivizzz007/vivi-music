@@ -137,6 +137,7 @@ import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
+import com.music.vivi.constants.EnableSettingsPopupKey
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -722,6 +723,7 @@ class MainActivity : ComponentActivity() {
                 }
                 val snackbarHostState = remember { SnackbarHostState() }
                 var showSettingDialoge by remember { mutableStateOf(false) }
+                val (enableSettingsPopup) = rememberPreference(EnableSettingsPopupKey, defaultValue = false)
 
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
@@ -826,7 +828,13 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 }
                                             }
-                                             IconButton(onClick = { showSettingDialoge = true }) {
+                                             IconButton(onClick = {
+                                                  if (enableSettingsPopup) {
+                                                      showSettingDialoge = true
+                                                  } else {
+                                                      navController.navigate("settings")
+                                                  }
+                                              }) {
                                                 BadgedBox(badge = {}) {
                                                     if (accountImageUrl != null) {
                                                         AsyncImage(

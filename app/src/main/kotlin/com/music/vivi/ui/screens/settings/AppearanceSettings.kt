@@ -67,6 +67,7 @@ import com.music.vivi.constants.DensityScale
 import com.music.vivi.constants.DensityScaleKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableDynamicIconKey
+import com.music.vivi.constants.EnableSettingsPopupKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
@@ -151,6 +152,10 @@ fun AppearanceSettings(
     )
     val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
         ShowAudioQualityBadgeKey,
+        defaultValue = false
+    )
+    val (enableSettingsPopup, onEnableSettingsPopupChange) = rememberPreference(
+        EnableSettingsPopupKey,
         defaultValue = false
     )
     val (selectedThemeColorInt) = rememberPreference(
@@ -1020,6 +1025,29 @@ fun AppearanceSettings(
                         onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) }
                     )
                 )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.settings),
+                        title = { Text(stringResource(R.string.enable_settings_popup)) },
+                        description = { Text(stringResource(R.string.enable_settings_popup_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableSettingsPopup,
+                                onCheckedChange = onEnableSettingsPopupChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (enableSettingsPopup) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onEnableSettingsPopupChange(!enableSettingsPopup) }
+                    )
+                )
                 // Only show dynamic theme option when using the default/dynamic color
                 // When a custom color is selected, dynamic theme is automatically disabled
                 if (!isUsingCustomColor) {
@@ -1517,7 +1545,7 @@ fun AppearanceSettings(
                     },
                     onClick = { onLyricsGlowEffectChange(!lyricsGlowEffect) }
                 ),
-                if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.lyrics),
                         title = { Text(stringResource(R.string.apple_music_lyrics_blur)) },
@@ -1540,27 +1568,29 @@ fun AppearanceSettings(
                         onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) }
                     )
                 } else null,
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
-                    title = { Text(stringResource(R.string.standard_lyrics_blur)) },
-                    description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = lyricsStandardBlur,
-                            onCheckedChange = onLyricsStandardBlurChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (lyricsStandardBlur) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
-                ),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.standard_lyrics_blur)) },
+                        description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = lyricsStandardBlur,
+                                onCheckedChange = onLyricsStandardBlurChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (lyricsStandardBlur) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },

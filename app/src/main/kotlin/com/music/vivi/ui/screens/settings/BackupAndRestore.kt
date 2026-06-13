@@ -168,6 +168,13 @@ fun BackupAndRestore(
                     onClick = {
                         importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"))
                     }
+                ),
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.import_from_spotify)) },
+                    icon = painterResource(R.drawable.spotify),
+                    onClick = {
+                        navController.navigate("settings/spotify")
+                    }
                 )
             )
         )

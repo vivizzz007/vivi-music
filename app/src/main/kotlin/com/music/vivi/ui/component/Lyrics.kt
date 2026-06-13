@@ -88,7 +88,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.asComposeRenderEffect
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -1223,18 +1223,13 @@ fun Lyrics(
                     val bgScale = if (item.isBackground) 0.85f else 1f
 
                     Column(
-                        modifier = itemModifier.graphicsLayer {
-                            this.alpha = if (item.isBackground) alpha * 0.8f else alpha
-                            this.scaleX = scale * bgScale
-                            this.scaleY = scale * bgScale
-                            if (blurRadius > 0f) {
-                                this.renderEffect = android.graphics.RenderEffect.createBlurEffect(
-                                    blurRadius * density.density,
-                                    blurRadius * density.density,
-                                    android.graphics.Shader.TileMode.CLAMP
-                                ).asComposeRenderEffect()
+                        modifier = itemModifier
+                            .graphicsLayer {
+                                this.alpha = if (item.isBackground) alpha * 0.8f else alpha
+                                this.scaleX = scale * bgScale
+                                this.scaleY = scale * bgScale
                             }
-                        },
+                            .blur(blurRadius.dp),
                         horizontalAlignment = agentAlignment
                     ) {
                         // Use time-based active check to sync both main and background lines with same timestamp

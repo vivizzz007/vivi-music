@@ -41,6 +41,10 @@
     <string name="uploaded_playlist">Uploaded</string>
     <string name="filter_uploaded">Uploaded</string>
     <string name="sync_playlist">Sync playlist</string>
+    <string name="syncing_progress">Syncing %1$d of %2$d songs</string>
+    <string name="playlist_uploaded">Playlist uploaded successfully</string>
+    <string name="sync_completed_success">Synced %1$d songs successfully</string>
+    <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
     <string name="elements_selected">%1$d elements selected</string>
     <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
@@ -937,4 +941,38 @@
     <string name="jiosaavn_settings">JioSaavn Settings</string>
     <string name="jiosaavn_streaming_disabled">Disabled</string>
     <string name="jiosaavn_beta_info">This is currently in beta, don\'t report things based on JioSaavn. If JioSaavn is enabled and a song isn\'t available in JioSaavn, it will use YouTube Music as the next source. Downloading at 320 kbps is also supported when using JioSaavn.</string>
+
+    <!-- Spotify Import -->
+    <string name="spotify">Spotify</string>
+    <string name="import_action">Import</string>
+    <string name="enable_spotify_import">Import Spotify</string>
+    <string name="import_from_spotify">Import from Spotify</string>
+    <string name="spotify_connect">Connect with Spotify</string>
+    <string name="spotify_not_connected">Not connected to Spotify</string>
+    <string name="spotify_connected_as">Connected as %s</string>
+    <string name="spotify_account">Spotify Account</string>
+    <string name="spotify_loading_library">Loading Spotify playlists…</string>
+    <string name="spotify_select_sources">Select playlists to import</string>
+    <string name="spotify_no_sources">No playlists found</string>
+    <string name="spotify_available_count">%d playlists available</string>
+    <string name="spotify_import_selected">Import Selected</string>
+    <string name="spotify_selected_count">%d playlists selected</string>
+    <string name="spotify_refresh">Refresh Playlists</string>
+    <string name="spotify_import_desc">Easily import your Spotify playlists and Liked Songs into your library. The app will automatically search YouTube for the best matched tracks and mirror them to local playlists, allowing you to access all your music in one place.</string>
+    <string name="spotify_liked_songs">Liked Songs</string>
+    <string name="spotify_track_count">%d songs</string>
+    <string name="spotify_login_title">Spotify Login</string>
+    <string name="spotify_waiting_for_login">Please log in to your Spotify account in the browser below.</string>
+    <string name="spotify_clear_selection">Clear</string>
+    <string name="spotify_select_all">Select All</string>
+    <string name="spotify_liked_songs_desc">Your Spotify Liked Songs</string>
+    <string name="spotify_import_progress_step">Importing %1$s (%2$d/%3$d)…</string>
+    <string name="spotify_import_complete">Import Complete</string>
+    <string name="spotify_import_finished">Finished importing</string>
+    <string name="spotify_importing_songs_count">Importing %1$d of %2$d songs</string>
+    <string name="spotify_imported_songs_count">Finished importing %1$d of %2$d songs</string>
+    <string name="spotify_import_summary">Imported %1$d playlists: %2$d tracks matched, %3$d tracks failed.</string>
+    <string name="spotify_source_summary">\"%1$s\": %2$d of %3$d tracks matched</string>
+    <string name="spotify_import_in_progress">Importing from Spotify</string>
+    <string name="spotify_login_desc">Connecting to Spotify is completely local. Your session credentials are only saved on your device.</string>
 </resources>
