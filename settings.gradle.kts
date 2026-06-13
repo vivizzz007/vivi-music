@@ -33,6 +33,7 @@ include(":applecanvas")
 include(":vivimusiccanvas")
 include(":paxsenixlyrics")
 include(":jiosaavn")
+include(":spotify")
 
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.

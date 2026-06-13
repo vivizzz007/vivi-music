@@ -284,6 +284,7 @@ dependencies {
     implementation(project(":vivimusiccanvas"))
     implementation(project(":paxsenixlyrics"))
     implementation(project(":jiosaavn"))
+    implementation(project(":spotify"))
 
 
     implementation(libs.ktor.client.core)
