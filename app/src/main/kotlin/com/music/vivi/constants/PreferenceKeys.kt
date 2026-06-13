@@ -56,6 +56,7 @@ val PauseOnMute = booleanPreferencesKey("pauseOnMute")
 val ResumeOnBluetoothConnectKey = booleanPreferencesKey("resumeOnBluetoothConnect")
 val KeepScreenOn = booleanPreferencesKey("keepScreenOn")
 val DeveloperModeKey = booleanPreferencesKey("developerMode")
+val EnableSettingsPopupKey = booleanPreferencesKey("enableSettingsPopup")
 
 enum class SliderStyle {
     DEFAULT,

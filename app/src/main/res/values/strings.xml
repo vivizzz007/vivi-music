@@ -409,4 +409,6 @@
     <string name="search_prompt_template_song">Search \"%s\"…</string>
     <string name="search_prompt_template_song_try">Try searching \"%s\"…</string>
     <string name="search_prompt_template_artist">Search artist \"%s\"…</string>
+    <string name="enable_settings_popup">Enable settings popup</string>
+    <string name="enable_settings_popup_desc">Show quick settings popup when tapping the settings button instead of opening settings directly</string>
 </resources>
