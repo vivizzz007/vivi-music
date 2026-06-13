@@ -15,6 +15,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -43,7 +44,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -137,9 +137,7 @@ import com.valentinilk.shimmer.shimmer
 import com.music.vivi.artistvideo.ArtistVideo
 import com.music.vivi.constants.ShowArtistVideoKey
 import com.music.vivi.constants.ShowArtistBackgroundVideoKey
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -149,6 +147,7 @@ import com.music.vivi.canvas.AppleMusicArtistBackgroundProvider
 @Composable
 fun ArtistScreen(
     navController: NavController,
+    @Suppress("UNUSED_PARAMETER")
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistViewModel = hiltViewModel(),
 ) {
@@ -380,10 +379,8 @@ fun ArtistScreen(
                                                         .height(45.dp),
                                                     onClick = {
                                                         val watchEndpoint = artistVideoSong?.endpoint
-                                                            ?: artistPage?.artist?.radioEndpoint
-                                                        watchEndpoint?.let {
-                                                            playerConnection.playQueue(YouTubeQueue(it))
-                                                        }
+                                                            ?: radioEndpoint
+                                                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
                                                     }
                                                 )
                                             }
@@ -404,13 +401,15 @@ fun ArtistScreen(
                                     )
                                 }
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    modifier = Modifier.padding(bottom = 16.dp)
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 16.dp)
                                 ) {
                                     if (showArtistSubscriberCount) {
-                                        artistPage?.subscriberCountText?.let { subscribers ->
+                                        artistPage?.subscriberCountText?.takeIf { it.isNotBlank() }?.let { subscribers ->
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier
@@ -426,17 +425,19 @@ fun ArtistScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
+                                                    text = "$subscribers ${stringResource(R.string.subscribers)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
                                     }
 
                                     if (showMonthlyListeners) {
-                                        artistPage?.monthlyListenerCount?.let { monthlyListeners ->
+                                        artistPage?.monthlyListenerCount?.takeIf { it.isNotBlank() }?.let { monthlyListeners ->
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 modifier = Modifier
@@ -452,10 +453,12 @@ fun ArtistScreen(
                                                 )
                                                 Spacer(modifier = Modifier.width(6.dp))
                                                 Text(
-                                                    text = "${monthlyListeners.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.monthly_listeners)}",
+                                                    text = "$monthlyListeners ${stringResource(R.string.monthly_listeners)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -463,8 +466,8 @@ fun ArtistScreen(
                                 }
 
                                 if (!showLocal && showArtistDescription && artistPage != null) {
-                                    val description = artistPage?.description
-                                    val descriptionRuns = artistPage?.descriptionRuns
+                                    val description = artistPage.description
+                                    val descriptionRuns = artistPage.descriptionRuns
                                     
                                     if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
                                         Column(
@@ -599,11 +602,7 @@ fun ArtistScreen(
                                                     .weight(1f)
                                                     .height(52.dp)
                                                     .semantics { role = Role.Button },
-                                                shapes = if (artistPage?.artist?.radioEndpoint != null) {
-                                                    ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                                } else {
-                                                    ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                                }
+                                                shapes = ButtonGroupDefaults.connectedTrailingButtonShapes()
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.shuffle),
@@ -994,9 +993,9 @@ fun ArtistScreen(
                         
                         val moreEndpoint = songSection?.moreEndpoint
                         if (moreEndpoint != null) {
-                            coroutineScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+                            coroutineScope.launch(Dispatchers.IO) {
                                 val result = YouTube.artistItems(moreEndpoint).getOrNull()
-                                withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                withContext(Dispatchers.Main) {
                                     if (result != null && result.items.isNotEmpty()) {
                                         val songs = result.items.filterIsInstance<SongItem>().map { it.toMediaItem() }
                                         playerConnection.playQueue(

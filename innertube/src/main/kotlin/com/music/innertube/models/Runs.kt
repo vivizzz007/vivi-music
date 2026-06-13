@@ -13,6 +13,31 @@ data class Run(
     val navigationEndpoint: NavigationEndpoint?,
 )
 
+private const val compactCountSuffixPattern =
+    "KkMmBbTt\\u4e07\\u842c\\u5104\\u4ebf\\u5146\\u5343\\ucc9c\\ub9cc\\uc5b5"
+private val countTextRegex =
+    Regex("""\p{Nd}[\p{Nd}\s,.\uFF0C\uFF0E]*[$compactCountSuffixPattern]*""")
+private val separatedSuffixRegex = Regex("""\s+(?=[$compactCountSuffixPattern]$)""")
+
+internal fun Runs?.extractCountText(): String? {
+    val texts = this?.runs
+        ?.map { it.text.trim() }
+        ?.filter { it.isNotEmpty() }
+        .orEmpty()
+
+    return texts
+        .joinToString(separator = "")
+        .extractCountValue()
+        ?: texts.firstNotNullOfOrNull { it.extractCountValue() }
+}
+
+private fun String.extractCountValue(): String? =
+    countTextRegex.find(this)
+        ?.value
+        ?.trim()
+        ?.replace(separatedSuffixRegex, "")
+        ?.takeIf { value -> value.any { it.isDigit() } }
+
 fun List<Run>.splitBySeparator(): List<List<Run>> {
     val res = mutableListOf<List<Run>>()
     var tmp = mutableListOf<Run>()
