@@ -361,7 +361,7 @@
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
     <string name="discord_integration">Intégration Discord</string>
-    <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\Vivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
+    <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\nVivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
     <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
     <string name="preview">Aperçu</string>
@@ -388,4 +388,11 @@
     <string name="standard_lyrics_blur">Paroles standard floues</string>
     <string name="listen_together_smart_resync">Resynchronisation intelligente du réseau</string>
     <string name="listen_together_smart_resync_desc">Reprendre automatiquement la connexion avec l\'hôte après une perte de connexion</string>
+
+    <string name="create_playlist_or_spotify_hint">Nom de la playlist ou lien de la playlist Spotify</string>
+    <string name="spotify_importing_playlist">Importation depuis Spotify…</string>
+    <string name="spotify_import_result">%1$d pistes importées. %2$d n\'a pas pu correspondre.</string>
+    <string name="spotify_import_failed">Impossible d\'importer cette liste de lecture Spotify.</string>
+    <string name="spotify_import_timeout">L\'importation a pris trop de temps. Vérifiez votre réseau et réessayez.</string>
+    <string name="music">Musique</string>
 </resources>

@@ -109,6 +109,11 @@
     <string name="saved">Saved</string>
     <string name="remove_download">Remove download</string>
     <string name="import_playlist">Import playlist</string>
+    <string name="create_playlist_or_spotify_hint">Playlist name or Spotify playlist link</string>
+    <string name="spotify_importing_playlist">Importing from Spotify…</string>
+    <string name="spotify_import_result">Imported %1$d tracks. %2$d could not be matched.</string>
+    <string name="spotify_import_failed">Could not import this Spotify playlist.</string>
+    <string name="spotify_import_timeout">Import took too long. Check your network and try again.</string>
     <string name="add_to_playlist">Add to playlist</string>
     <string name="start_an_radio">Radio</string>
     <string name="add_to_an_playlist">Add</string>

@@ -279,4 +279,12 @@
     <string name="use_login_for_browse">Използвай вход за разглеждане на съдържание</string>
     <string name="use_login_for_browse_desc">Това може да повлияе какво съдържание виждате и например показва само премиум албуми, ако сте влезли с Премиум профил</string>
     <string name="action_login">Вход</string>
+
+    <string name="create_playlist_or_spotify_hint">Име на плейлиста или връзка към плейлиста в Spotify</string>
+    <string name="spotify_importing_playlist">Импортиране от Spotify…</string>
+    <string name="spotify_import_result">Импортирани са %1$d записа. %2$d не може да бъде намерено съответствие.</string>
+    <string name="spotify_import_failed">Този плейлист от Spotify не можа да се импортира.</string>
+    <string name="spotify_import_timeout">Импортирането отне твърде дълго. Проверете мрежата си и опитайте отново.</string>
+    <string name="music">Музика</string>
+
 </resources>

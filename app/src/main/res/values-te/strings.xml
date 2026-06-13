@@ -279,4 +279,11 @@
     <string name="new_version_available">కొత్త వెర్షన్ అందుబాటులో ఉంది</string>
     <string name="translation_models">అనువాద మోడల్స్</string>
     <string name="clear_translation_models">అనువాద నమూనాలను క్లియర్ చెయ్యండి</string>
+
+    <string name="create_playlist_or_spotify_hint">ప్లేజాబితా పేరు లేదా Spotify ప్లేజాబితా లింక్</string>
+    <string name="spotify_importing_playlist">Spotify నుండి దిగుమతి అవుతోంది…</string>
+    <string name="spotify_import_result">%1$d ట్రాక్‌లు దిగుమతి చేయబడ్డాయి. %2$d సరిపోలలేదు.</string>
+    <string name="spotify_import_failed">ఈ Spotify ప్లేజాబితాను దిగుమతి చేయడం సాధ్యపడలేదు.</string>
+    <string name="spotify_import_timeout">దిగుమతికి చాలా సమయం పట్టింది. మీ నెట్‌వర్క్‌ని తనిఖీ చేసి, మళ్లీ ప్రయత్నించండి.</string>
+    <string name="music">సంగీతం</string>
 </resources>
