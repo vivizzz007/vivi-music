@@ -440,25 +440,41 @@ fun LocalPlaylistScreen(
 
     LaunchedEffect(reorderableState.isAnyItemDragging) {
         if (!reorderableState.isAnyItemDragging) {
-            dragInfo?.let { (from, to) ->
+            dragInfo?.let { (_, to) ->
+                val reorderedMaps = mutableSongs.map { it.map }
+                val movedSetVideoId = reorderedMaps.getOrNull(to)?.setVideoId
+                val successorSetVideoId = reorderedMaps.getOrNull(to + 1)?.setVideoId
+
                 database.transaction {
-                    move(viewModel.playlistId, from, to)
+                    val allMaps = playlistSongMaps(viewModel.playlistId, 0)
+                    val reorderedMapIds = reorderedMaps.mapTo(mutableSetOf()) { it.id }
+                    val reorderedIterator = reorderedMaps.iterator()
+                    val mergedMaps = allMaps.map { map ->
+                        if (map.id in reorderedMapIds && reorderedIterator.hasNext()) {
+                            reorderedIterator.next()
+                        } else {
+                            map
+                        }
+                    }
+
+                    mergedMaps.forEachIndexed { index, map ->
+                        if (map.position != index) {
+                            update(map.copy(position = index))
+                        }
+                    }
+                    viewModel.playlist.value?.playlist?.let {
+                        update(it.copy(lastUpdateTime = LocalDateTime.now()))
+                    }
                 }
 
                 // Sync order with YT Music
-                if (viewModel.playlist.value?.playlist?.browseId != null) {
+                if (viewModel.playlist.value?.playlist?.browseId != null && movedSetVideoId != null) {
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
-                        val successorIndex = if (from > to) to else to + 1
-                        val successorSetVideoId = playlistSongMap.getOrNull(successorIndex)?.setVideoId
-
-                        playlistSongMap.getOrNull(from)?.setVideoId?.let { setVideoId ->
-                            YouTube.moveSongPlaylist(
-                                viewModel.playlist.value?.playlist?.browseId!!,
-                                setVideoId,
-                                successorSetVideoId
-                            )
-                        }
+                        YouTube.moveSongPlaylist(
+                            viewModel.playlist.value?.playlist?.browseId!!,
+                            movedSetVideoId,
+                            successorSetVideoId
+                        )
                     }
                 }
 

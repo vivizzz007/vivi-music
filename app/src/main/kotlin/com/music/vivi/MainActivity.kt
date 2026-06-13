@@ -239,9 +239,12 @@ class MainActivity : ComponentActivity() {
     private var pendingIntent: Intent? = null
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
+    private var isMusicServiceBound = false
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            if (!isMusicServiceBound) return
+
             if (service is MusicBinder) {
                 try {
                     playerConnection = PlayerConnection(this@MainActivity, service, database, lifecycleScope)
@@ -253,6 +256,8 @@ class MainActivity : ComponentActivity() {
                     // Retry after a delay of 500ms
                     lifecycleScope.launch {
                         delay(500)
+                        if (!isMusicServiceBound) return@launch
+
                         try {
                             playerConnection = PlayerConnection(this@MainActivity, service, database, lifecycleScope)
                             listenTogetherManager.setPlayerConnection(playerConnection)
@@ -265,10 +270,7 @@ class MainActivity : ComponentActivity() {
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            // Disconnect Listen Together manager
-            listenTogetherManager.setPlayerConnection(null)
-            playerConnection?.dispose()
-            playerConnection = null
+            clearPlayerConnection()
         }
     }
 
@@ -284,28 +286,48 @@ class MainActivity : ComponentActivity() {
         // On Android 12+, we can't start foreground services from background
         // Use BIND_AUTO_CREATE which will create the service if needed
         // The service will call startForeground() in onCreate() when bound
-        bindService(
-            Intent(this, MusicService::class.java),
-            serviceConnection,
-            BIND_AUTO_CREATE
-        )
+        if (!isMusicServiceBound) {
+            isMusicServiceBound = bindService(
+                Intent(this, MusicService::class.java),
+                serviceConnection,
+                BIND_AUTO_CREATE
+            )
+        }
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        unbindMusicService()
         super.onStop()
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         if (dataStore.get(StopMusicOnTaskClearKey, false) &&
             playerConnection?.isPlaying?.value == true &&
             isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
-            playerConnection = null
         }
+        unbindMusicService()
+        clearPlayerConnection()
+        super.onDestroy()
+    }
+
+    private fun unbindMusicService() {
+        if (!isMusicServiceBound) return
+
+        try {
+            unbindService(serviceConnection)
+        } catch (e: IllegalArgumentException) {
+            Timber.tag("MainActivity").w(e, "MusicService was already unbound")
+        } finally {
+            isMusicServiceBound = false
+        }
+    }
+
+    private fun clearPlayerConnection() {
+        listenTogetherManager.setPlayerConnection(null)
+        playerConnection?.dispose()
+        playerConnection = null
     }
 
     override fun onNewIntent(intent: Intent) {

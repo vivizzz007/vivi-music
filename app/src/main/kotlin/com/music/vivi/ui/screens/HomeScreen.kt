@@ -575,6 +575,7 @@ fun HomeScreen(
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
     val speedDialItems by viewModel.speedDialItems.collectAsState()
+    val localSpeedDialPlaylistIds by viewModel.localSpeedDialPlaylistIds.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
@@ -597,6 +598,14 @@ fun HomeScreen(
 
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    fun navigateToSpeedDialPlaylist(playlist: PlaylistItem) {
+        if (playlist.id in localSpeedDialPlaylistIds) {
+            navController.navigate("local_playlist/${playlist.id}")
+        } else {
+            navController.navigate("online_playlist/${playlist.id}")
+        }
     }
     val url = if (isLoggedIn) accountImageUrl else null
 
@@ -1110,7 +1119,7 @@ fun HomeScreen(
                                                                                             )
                                                                                             is AlbumItem -> navController.navigate("album/${randomItem.id}")
                                                                                             is ArtistItem -> navController.navigate("artist/${randomItem.id}")
-                                                                                            is PlaylistItem -> navController.navigate("online_playlist/${randomItem.id}") //patched directly shows corresponding screens
+                                                                                            is PlaylistItem -> navigateToSpeedDialPlaylist(randomItem)
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1147,7 +1156,7 @@ fun HomeScreen(
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
 
-                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}") //patched navigation to correct screens
+                                                                                        is PlaylistItem -> navigateToSpeedDialPlaylist(item)
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {

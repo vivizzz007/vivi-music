@@ -93,15 +93,18 @@ constructor(
 
     init {
         viewModelScope.launch {
-            // Trigger sync in background if it's a YouTube synced playlist
-            playlist.first { it != null }?.playlist?.browseId?.let { browseId ->
-                syncUtils.syncPlaylist(browseId, playlistId)
+            val playlist = playlist.first { it != null }?.playlist
+            if (playlist?.isAutoSync == true) {
+                playlist.browseId?.let { browseId ->
+                    syncUtils.syncPlaylist(browseId, playlistId)
+                }
             }
         }
 
         viewModelScope.launch {
             val sortedSongs =
-                playlistSongs.first().sortedWith(compareBy({ it.map.position }, { it.map.id }))
+                database.playlistSongs(playlistId).first()
+                    .sortedWith(compareBy({ it.map.position }, { it.map.id }))
             database.transaction {
                 sortedSongs.forEachIndexed { index, playlistSong ->
                     if (playlistSong.map.position != index) {
