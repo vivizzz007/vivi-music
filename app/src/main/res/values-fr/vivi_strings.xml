@@ -41,6 +41,10 @@
     <string name="uploaded_playlist">Téléchargés</string>
     <string name="filter_uploaded">Téléchargés</string>
     <string name="sync_playlist">Synchroniser la playlist</string>
+	<string name="syncing_progress">Synchronisation de %1$d des %2$d titres</string>
+    <string name="playlist_uploaded">Playlist téléchargée avec succès</string>
+    <string name="sync_completed_success">%1$d titres ont été synchronisés avec succès</string>
+    <string name="sync_completed_partial">%1$d titres synchronisés sur %2$d</string>
     <string name="sync_disabled">Synchronisation désactivée</string>
     <string name="elements_selected">%1$d éléments sélectionnés</string>
     <string name="allows_for_sync_witch_youtube">Remarque : cela permet la synchronisation avec YouTube Music. Ce paramètre ne pourra pas être modifié ultérieurement.</string>
@@ -937,4 +941,38 @@ est irréversible.
     <string name="jiosaavn_settings">Paramètres de JioSaavn</string>
     <string name="jiosaavn_streaming_disabled">Désactivé</string>
     <string name="jiosaavn_beta_info">Cette fonctionnalité est actuellement en version bêta ; veuillez ne pas signaler de problèmes liés à JioSaavn. Si JioSaavn est activé et qu\’un morceau n\’est pas disponible sur cette plateforme, YouTube Music sera utilisé comme source alternative. Le téléchargement à 320 kbps est également pris en charge lors de l\’utilisation de JioSaavn.</string>
+
+	<!-- Spotify Import -->
+    <string name="spotify">Spotify</string>
+    <string name="import_action">Importer</string>
+    <string name="enable_spotify_import">Importer depuis Spotify</string>
+    <string name="import_from_spotify">Importer depuis Spotify</string>
+    <string name="spotify_connect">Connectez-vous avec Spotify</string>
+    <string name="spotify_not_connected">Non connecté à Spotify</string>
+    <string name="spotify_connected_as">Connecté en tant que %s</string>
+    <string name="spotify_account">Compte Spotify</string>
+    <string name="spotify_loading_library">Chargement des playlists Spotify…</string>
+    <string name="spotify_select_sources">Sélectionnez les playlists à importer</string>
+    <string name="spotify_no_sources">Aucune playlist trouvée</string>
+    <string name="spotify_available_count">%d playlists disponibles</string>
+    <string name="spotify_import_selected">Importer la sélection</string>
+    <string name="spotify_selected_count">%d playlists sélectionnées</string>
+    <string name="spotify_refresh">Actualiser les playlists</string>
+    <string name="spotify_import_desc">Importez facilement vos playlists Spotify et vos morceaux favoris dans votre bibliothèque. L\'application recherchera automatiquement sur YouTube les titres les plus pertinents et les ajoutera à vos playlists locales, vous permettant ainsi d\'accéder à toute votre musique au même endroit.</string>
+	<string name="spotify_liked_songs">Titres Favoris</string>
+    <string name="spotify_track_count">%d titres</string>
+    <string name="spotify_login_title">Connexion à Spotify</string>
+    <string name="spotify_waiting_for_login">Veuillez vous connecter à votre compte Spotify dans le navigateur ci-dessous.</string>
+    <string name="spotify_clear_selection">Effacer</string>
+    <string name="spotify_select_all">Tout sélectionner</string>
+    <string name="spotify_liked_songs_desc">Vos titres préférés sur Spotify</string>
+    <string name="spotify_import_progress_step">Importation de %1$s (%2$d/%3$d)…</string>
+    <string name="spotify_import_complete">Importation terminée</string>
+    <string name="spotify_import_finished">Importation terminée</string>
+    <string name="spotify_importing_songs_count">Importation de %1$d des %2$d titres</string>
+    <string name="spotify_imported_songs_count">Importation terminée de %1$d des %2$d titres</string>
+    <string name="spotify_import_summary">%1$d playlist importées : %2$d titres correspondants, %3$d titres non trouvés.</string>
+    <string name="spotify_source_summary">« %1$s » : %2$d titres sur %3$d correspondent</string>
+    <string name="spotify_import_in_progress">Importation depuis Spotify</string>
+    <string name="spotify_login_desc">La connexion à Spotify s\'effectue entièrement en local. Vos identifiants de session ne sont enregistrés que sur votre appareil.</string>
 </resources>
