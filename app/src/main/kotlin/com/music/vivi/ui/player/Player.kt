@@ -745,72 +745,6 @@ fun BottomSheetPlayer(
         }
     }
 
-    var showSleepTimerDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var sleepTimerValue by remember {
-        mutableFloatStateOf(30f)
-    }
-    if (showSleepTimerDialog) {
-        AlertDialog(
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = { showSleepTimerDialog = false },
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.bedtime),
-                    contentDescription = null
-                )
-            },
-            title = { Text(stringResource(R.string.sleep_timer)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
-                    },
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showSleepTimerDialog = false },
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.minute,
-                            sleepTimerValue.roundToInt(),
-                            sleepTimerValue.roundToInt()
-                        ),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-
-                    Slider(
-                        value = sleepTimerValue,
-                        onValueChange = { sleepTimerValue = it },
-                        valueRange = 5f..120f,
-                        steps = (120 - 5) / 5 - 1,
-                    )
-
-                    OutlinedIconButton(
-                        onClick = {
-                            showSleepTimerDialog = false
-                            playerConnection.service.sleepTimer.start(-1)
-                        },
-                    ) {
-                        Text(stringResource(R.string.end_of_song))
-                    }
-                }
-            },
-        )
-    }
-
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -2033,14 +1967,10 @@ fun BottomSheetPlayer(
                                 color = TextBackgroundColor.copy(alpha = 0.12f),
                                 shape = RoundedCornerShape(4.dp)
                             )
-                            .clickable {
-                                if (sleepTimerEnabled) {
-                                    showSleepTimerDialog = true
-                                } else {
-                                    mediaMetadata.id.let {
-                                        bottomSheetPageState.show {
-                                            ShowMediaInfo(it)
-                                        }
+                            .clickable(enabled = !sleepTimerEnabled) {
+                                mediaMetadata.id.let {
+                                    bottomSheetPageState.show {
+                                        ShowMediaInfo(it)
                                     }
                                 }
                             }
