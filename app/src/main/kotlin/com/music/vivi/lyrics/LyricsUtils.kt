@@ -574,12 +574,20 @@ object LyricsUtils {
         lines: List<LyricsEntry>,
         position: Long,
     ): Int {
-        for (index in lines.indices) {
-            if (lines[index].time >= position + 300L) {
-                return index - 1
+        val targetPosition = position + 300L
+        var low = 0
+        var high = lines.lastIndex
+
+        while (low <= high) {
+            val mid = (low + high).ushr(1)
+            if (lines[mid].time >= targetPosition) {
+                high = mid - 1
+            } else {
+                low = mid + 1
             }
         }
-        return lines.lastIndex
+
+        return (low - 1).coerceAtMost(lines.lastIndex)
     }
 
     // TODO: Will be useful if we let the user pick the language, useless for now
