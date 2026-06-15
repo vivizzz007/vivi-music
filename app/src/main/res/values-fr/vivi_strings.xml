@@ -972,7 +972,7 @@ est irréversible.
     <string name="spotify_importing_songs_count">Importation de %1$d des %2$d titres</string>
     <string name="spotify_imported_songs_count">Importation terminée de %1$d des %2$d titres</string>
     <string name="spotify_import_summary">%1$d playlist importées : %2$d titres correspondants, %3$d titres non trouvés.</string>
-    <string name="spotify_source_summary">« %1$s » : %2$d titres sur %3$d correspondent</string>
+    <string name="spotify_source_summary">\"%1$s\" : %2$d titres sur %3$d correspondent</string>
     <string name="spotify_import_in_progress">Importation depuis Spotify</string>
     <string name="spotify_login_desc">La connexion à Spotify s\'effectue entièrement en local. Vos identifiants de session ne sont enregistrés que sur votre appareil.</string>
 </resources>
