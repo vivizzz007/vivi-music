@@ -230,10 +230,9 @@ class SpotifyImportViewModel @Inject constructor(
                     val page = spotifyCallWithTokenRetry {
                         Spotify.myPlaylists(limit = limit, offset = offset).getOrThrow()
                     }
-                    if (page.items.isEmpty()) break
                     playlistsList.addAll(page.items)
-                    offset += page.items.size
-                    if (offset >= page.total || page.items.size < limit) break
+                    offset += limit
+                    if (offset >= page.total) break
                 }
 
                 _uiState.update {
@@ -290,10 +289,9 @@ class SpotifyImportViewModel @Inject constructor(
             val page = spotifyCallWithTokenRetry {
                 Spotify.playlistTracks(playlistId, limit = limit, offset = offset).getOrThrow()
             }
-            if (page.items.isEmpty()) break
             tracks.addAll(page.items.mapNotNull { it.track })
-            offset += page.items.size
-            if (offset >= page.total || page.items.size < limit) break
+            offset += limit
+            if (offset >= page.total) break
         }
 
         return@withContext tracks.map { track ->
@@ -317,10 +315,9 @@ class SpotifyImportViewModel @Inject constructor(
             val page = spotifyCallWithTokenRetry {
                 Spotify.likedSongs(limit = limit, offset = offset).getOrThrow()
             }
-            if (page.items.isEmpty()) break
             tracks.addAll(page.items.map { it.track })
-            offset += page.items.size
-            if (offset >= page.total || page.items.size < limit) break
+            offset += limit
+            if (offset >= page.total) break
         }
 
         return@withContext tracks.map { track ->
