@@ -44,7 +44,7 @@ data class SpeedDialItem(
                 shuffleEndpoint = null,
                 radioEndpoint = null
             )
-            "PLAYLIST" -> PlaylistItem(
+            "PLAYLIST", "LOCAL_PLAYLIST" -> PlaylistItem(
                 id = id,
                 title = title,
                 author = subtitle?.let { Artist(name = it, id = null) },

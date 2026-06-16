@@ -575,6 +575,7 @@ fun HomeScreen(
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
     val speedDialItems by viewModel.speedDialItems.collectAsState()
+    val pinnedSpeedDialItems by viewModel.pinnedSpeedDialItems.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
@@ -1110,7 +1111,15 @@ fun HomeScreen(
                                                                                             )
                                                                                             is AlbumItem -> navController.navigate("album/${randomItem.id}")
                                                                                             is ArtistItem -> navController.navigate("artist/${randomItem.id}")
-                                                                                            is PlaylistItem -> navController.navigate("online_playlist/${randomItem.id}") //patched directly shows corresponding screens
+                                                                                            is PlaylistItem -> {
+                                                                                                val rawType = pinnedSpeedDialItems
+                                                                                                    .find { it.id == randomItem.id }?.type
+                                                                                                if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                    navController.navigate("local_playlist/${randomItem.id}")
+                                                                                                } else {
+                                                                                                    navController.navigate("online_playlist/${randomItem.id}")
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1146,8 +1155,15 @@ fun HomeScreen(
                                                                                         )
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-
-                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}") //patched navigation to correct screens
+                                                                                        is PlaylistItem -> {
+                                                                                            val rawType = pinnedSpeedDialItems
+                                                                                                .find { it.id == item.id }?.type
+                                                                                            if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                navController.navigate("local_playlist/${item.id}")
+                                                                                            } else {
+                                                                                                navController.navigate("online_playlist/${item.id}")
+                                                                                            }
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {
