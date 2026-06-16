@@ -759,7 +759,8 @@ private fun ThumbnailItem(
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                         ?: ViviMusicCanvasProvider.getBySongArtist(
                                             song = s,
-                                            artist = a
+                                            artist = a,
+                                            album = albumName ?: ""
                                         )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                         ?: TidalCanvasProvider.getBySongArtist(
                                             song = s,
@@ -782,7 +783,8 @@ private fun ThumbnailItem(
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
                                     ViviMusicCanvasProvider.getBySongArtist(
                                         song = s,
-                                        artist = a
+                                        artist = a,
+                                        album = albumName ?: ""
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                 }
                             }

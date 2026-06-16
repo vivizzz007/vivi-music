@@ -589,7 +589,7 @@ fun BottomSheetPlayer(
                     appleMusicCanvas
                         ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a)
+                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
@@ -599,7 +599,7 @@ fun BottomSheetPlayer(
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.VIVIMUSIC -> {
-                    ViviMusicCanvasProvider.getBySongArtist(s, a)
+                    ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.TIDAL -> {

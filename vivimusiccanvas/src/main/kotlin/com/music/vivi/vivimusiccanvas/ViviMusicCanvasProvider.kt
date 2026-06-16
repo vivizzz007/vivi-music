@@ -23,7 +23,8 @@ data class ViviMusicCanvasManifest(
 data class ViviMusicCanvasItem(
     val song: String,
     val artist: String,
-    val url: String
+    val url: String,
+    val album: String = "",
 )
 
 object ViviMusicCanvasProvider {
@@ -83,21 +84,25 @@ object ViviMusicCanvasProvider {
     suspend fun getBySongArtist(
         song: String,
         artist: String,
+        album: String,
     ): CanvasArtwork? {
         if (song.isBlank() || artist.isBlank()) return null
         
         val manifest = fetchManifest() ?: return null
 
+        // Strict 3-way match: song + artist + album — all three must match
         val target = manifest.items.firstOrNull { item ->
             val matchSong = song.contains(item.song, ignoreCase = true) || item.song.contains(song, ignoreCase = true)
             val matchArtist = artist.contains(item.artist, ignoreCase = true) || item.artist.contains(artist, ignoreCase = true)
-            matchSong && matchArtist
+            val matchAlbum = album.trim().equals(item.album.trim(), ignoreCase = true)
+            matchSong && matchArtist && matchAlbum
         }
 
         if (target != null) {
             return CanvasArtwork(
                 name = target.song,
                 artist = target.artist,
+                albumName = target.album.takeIf { it.isNotBlank() },
                 videoUrl = target.url,
                 animated = target.url
             )
