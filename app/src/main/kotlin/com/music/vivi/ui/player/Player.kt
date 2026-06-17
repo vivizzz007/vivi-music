@@ -600,15 +600,14 @@ fun BottomSheetPlayer(
             }
 
             val validated = fetched?.let { artwork ->
-                val resultArtist = artwork.artist
-                val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
-                    val requestedList = splitAndNormalizeArtists(requestedArtist)
-                    val resultList = splitAndNormalizeArtists(resultArtist)
-                    requestedList.isNotEmpty() && resultList.isNotEmpty() &&
-                    requestedList.all { req -> resultList.any { res -> res == req } }
-                } else true
-                
-                if (artistMatches) artwork else null
+                val artistMatches = artwork.artist?.trim()
+                    ?.equals(requestedArtist.trim(), ignoreCase = true) == true
+                val songMatches = artwork.name?.trim()
+                    ?.equals(requestedTitle.trim(), ignoreCase = true) == true
+                val albumMatches = artwork.albumName?.trim()
+                    ?.equals(requestedAlbum.trim(), ignoreCase = true) == true
+
+                if (artistMatches && songMatches && albumMatches) artwork else null
             }
 
             withContext(Dispatchers.Main) {
