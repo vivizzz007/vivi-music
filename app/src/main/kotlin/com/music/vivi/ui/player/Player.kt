@@ -548,10 +548,11 @@ fun BottomSheetPlayer(
         label = "icBackgroundColor"
     )
 
-    var canvasArtwork by remember(mediaMetadata?.id) { mutableStateOf<CanvasArtwork?>(null) }
-    var canvasFetchInFlight by remember(mediaMetadata?.id) { mutableStateOf(false) }
+    val albumTitle = mediaMetadata?.album?.title
+    var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
+    var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground, canvasSource) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, canvasSource) {
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
             canvasArtwork = null
             return@LaunchedEffect

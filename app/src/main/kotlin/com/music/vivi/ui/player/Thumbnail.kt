@@ -714,14 +714,15 @@ private fun ThumbnailItem(
             
             if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                 val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
-                var canvasArtwork by remember(item.mediaId) { mutableStateOf<CanvasArtwork?>(null) }
-                var canvasFetchInFlight by remember(item.mediaId) { mutableStateOf(false) }
+                val albumTitle = item.mediaMetadata.albumTitle?.toString()
+                var canvasArtwork by remember(item.mediaId, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
+                var canvasFetchInFlight by remember(item.mediaId, albumTitle) { mutableStateOf(false) }
                 val storefront = remember {
                     val country = Locale.getDefault().country
                     if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
                 }
 
-                LaunchedEffect(item.mediaId, canvasSource) {
+                LaunchedEffect(item.mediaId, albumTitle, canvasSource) {
                     val cacheKey = "${item.mediaId}:${canvasSource.name}"
                     CanvasArtworkPlaybackCache.get(cacheKey)?.let { cached ->
                         canvasArtwork = cached
