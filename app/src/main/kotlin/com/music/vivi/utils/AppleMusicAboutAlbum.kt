@@ -21,10 +21,71 @@ object AppleMusicAboutAlbum {
 
     // Public read-only JWT used by the Apple Music web player for unauthenticated catalog reads.
     private const val APPLE_MUSIC_TOKEN =
-        "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IldlYlBsYXlLaWQifQ" +
-        ".eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzc0NDU2MzgyLCJleHAiOjE3ODE3" +
-        "MTM5ODIsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ" +
-        ".4n8qYF4qa18sL1E0G9A3qX35cD8wQ-IJcS9Bh8ZT8JV_yLBtVq46B-9-2ZS3EvWHuw3yK9BYFYAhAdTaDm38vQ"
+        "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6IldlYlBsYXlLaWQifQ" +
+        ".eyJpc3MiOiJBTVBXZWJQbGF5IiwiaWF0IjoxNzgxMDMyODU1LCJleHAiOjE3ODQw" +
+        "NTY4NTUsInJvb3RfaHR0cHNfb3JpZ2luIjpbImFwcGxlLmNvbSJdfQ" +
+        ".fiMFcJWkfSlxKP9NVA0UW9CbItD1Rge0SISuepz203XcpU762OqdCpU9M-YkmtKkjRmaIWtjsfGgqZPrlMonpA"
+
+    private var cachedToken: String? = null
+    private var tokenExpiryMs: Long = 0L
+
+    private suspend fun getOrFetchToken(): String {
+        val now = System.currentTimeMillis()
+        if (cachedToken != null && now < tokenExpiryMs - 60_000) {
+            return cachedToken!!
+        }
+
+        return try {
+            val html = client.get("https://music.apple.com/us/browse") {
+                header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            }.body<String>()
+
+            val scriptRegex = Regex("""/assets/index(?:-legacy)?[~-][a-zA-Z0-9_-]+\.js""")
+            val scripts = scriptRegex.findAll(html).map { it.value }.distinct().toList()
+
+            var fetchedToken: String? = null
+            for (scriptPath in scripts) {
+                val scriptUrl = "https://music.apple.com$scriptPath"
+                val scriptText = client.get(scriptUrl) {
+                    header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                }.body<String>()
+
+                val tokenRegex = Regex("""ey[a-zA-Z0-9_-]+\.ey[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+""")
+                val tokens = tokenRegex.findAll(scriptText).map { it.value }
+                for (token in tokens) {
+                    try {
+                        val body = token.split(".")[1]
+                        val decodedBytes = java.util.Base64.getUrlDecoder().decode(body)
+                        val decoded = String(decodedBytes, Charsets.UTF_8)
+                        if (decoded.contains("iss") && decoded.contains("exp")) {
+                            val expIndex = decoded.indexOf("\"exp\":")
+                            if (expIndex != -1) {
+                                val expValStr = decoded.substring(expIndex + 6).takeWhile { it.isDigit() }
+                                val expSeconds = expValStr.toLongOrNull() ?: 0L
+                                if (expSeconds * 1000 > now) {
+                                    fetchedToken = token
+                                    tokenExpiryMs = expSeconds * 1000
+                                    break
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // ignore decoding issues
+                    }
+                }
+                if (fetchedToken != null) break
+            }
+
+            if (fetchedToken != null) {
+                cachedToken = fetchedToken
+                fetchedToken
+            } else {
+                APPLE_MUSIC_TOKEN
+            }
+        } catch (e: Exception) {
+            APPLE_MUSIC_TOKEN
+        }
+    }
 
     private const val AMP_BASE_URL = "https://amp-api.music.apple.com"
 
@@ -71,7 +132,7 @@ object AppleMusicAboutAlbum {
 
             val searchUrl = "$AMP_BASE_URL/v1/catalog/$storefront/search"
             val searchResponse = client.get(searchUrl) {
-                header("Authorization", "Bearer $APPLE_MUSIC_TOKEN")
+                header("Authorization", "Bearer ${getOrFetchToken()}")
                 header("Origin", "https://music.apple.com")
                 header("Referer", "https://music.apple.com/")
                 parameter("term", query)

@@ -739,8 +739,8 @@ private fun ThumbnailItem(
                         val songTitleRaw = item.mediaMetadata.title?.toString() ?: ""
                         val artistNameRaw = item.mediaMetadata.artist?.toString() ?: ""
                         
-                        val songTitle = normalizeCanvasSongTitle(songTitleRaw)
-                        val artistName = normalizeCanvasArtistName(artistNameRaw)
+                        val songTitle = songTitleRaw
+                        val artistName = artistNameRaw
                         
                         println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
                         
@@ -809,18 +809,19 @@ private fun ThumbnailItem(
                         val resultArtist = artwork.artist
                         val resultName = artwork.name
                         
-                        // Check artist list overlaps
+                        // Check artist name (all requested artists must match exactly, splits multi-artists)
                         val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
                             val requestedList = splitAndNormalizeArtists(requestedArtist)
                             val resultList = splitAndNormalizeArtists(resultArtist)
-                            requestedList.any { req -> resultList.any { res -> res.contains(req) || req.contains(res) } }
+                            requestedList.isNotEmpty() && resultList.isNotEmpty() &&
+                            requestedList.all { req -> resultList.any { res -> res == req } }
                         } else true
 
                         // Check song title (raw comparison)
                         val songMatches = if (resultName != null && requestedTitle.isNotBlank()) {
                             resultName.trim().equals(requestedTitle.trim(), ignoreCase = true)
                         } else true
-                        // Check album name (raw comparison)
+                        // Check album name (raw exact comparison)
                         val requestedAlbum = item.mediaMetadata.albumTitle?.toString() ?: ""
                         val canvasAlbumName = artwork.albumName
 

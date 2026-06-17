@@ -573,21 +573,12 @@ fun BottomSheetPlayer(
             val requestedArtist = item.artists.joinToString { it.name }
             val requestedAlbum = item.album?.title ?: ""
             
-            val s = normalizeCanvasSongTitle(requestedTitle)
-            val a = normalizeCanvasArtistName(requestedArtist)
+            val s = requestedTitle
+            val a = requestedArtist
             
             val fetched = when (canvasSource) {
                 CanvasSource.AUTO -> {
-                    val appleMusicCanvas = if (requestedAlbum.isNotBlank()) {
-                        AppleMusicCanvasProvider.getByAlbumArtist(
-                            album = requestedAlbum,
-                            artist = a,
-                            storefront = storefront
-                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                    } else null
-
-                    appleMusicCanvas
-                        ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
@@ -611,8 +602,10 @@ fun BottomSheetPlayer(
             val validated = fetched?.let { artwork ->
                 val resultArtist = artwork.artist
                 val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
-                    resultArtist.contains(requestedArtist, ignoreCase = true) ||
-                    requestedArtist.contains(resultArtist, ignoreCase = true)
+                    val requestedList = splitAndNormalizeArtists(requestedArtist)
+                    val resultList = splitAndNormalizeArtists(resultArtist)
+                    requestedList.isNotEmpty() && resultList.isNotEmpty() &&
+                    requestedList.all { req -> resultList.any { res -> res == req } }
                 } else true
                 
                 if (artistMatches) artwork else null

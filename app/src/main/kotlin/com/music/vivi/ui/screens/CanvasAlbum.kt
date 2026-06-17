@@ -69,17 +69,18 @@ fun rememberAlbumCanvas(
             val resultArtist = artwork.artist
             val canvasAlbumName = artwork.albumName
 
-            // Check artist list overlaps
+            // Check artist name (all requested artists must match exactly, splits multi-artists)
             val artistMatches = if (resultArtist != null && artistName.isNotBlank()) {
                 val requestedList = splitAndNormalizeArtists(artistName)
                 val resultList = splitAndNormalizeArtists(resultArtist)
-                requestedList.any { req -> resultList.any { res -> res.contains(req) || req.contains(res) } }
+                requestedList.isNotEmpty() && resultList.isNotEmpty() &&
+                requestedList.all { req -> resultList.any { res -> res == req } }
             } else true
 
-            // Check album name (raw comparison)
+            // Check album name (raw exact comparison)
             val albumMatches = if (canvasAlbumName != null && albumTitle.isNotBlank()) {
                 canvasAlbumName.trim().equals(albumTitle.trim(), ignoreCase = true)
-            } else false // Enforce strict album matching
+            } else false
 
             println("AlbumCanvasValidation: artistMatches=$artistMatches, albumMatches=$albumMatches")
             println("  Requested: Album='$albumTitle', Artists='$artistName'")
@@ -105,17 +106,18 @@ fun rememberAlbumCanvas(
                 val resultArtist = artwork.artist
                 val canvasAlbumName = artwork.albumName
 
-                // Check artist list overlaps
+                // Check artist name (all requested artists must match exactly, splits multi-artists)
                 val artistMatches = if (resultArtist != null && artistName.isNotBlank()) {
                     val requestedList = splitAndNormalizeArtists(artistName)
                     val resultList = splitAndNormalizeArtists(resultArtist)
-                    requestedList.any { req -> resultList.any { res -> res.contains(req) || req.contains(res) } }
+                    requestedList.isNotEmpty() && resultList.isNotEmpty() &&
+                    requestedList.all { req -> resultList.any { res -> res == req } }
                 } else true
 
-                // Check album name (raw comparison)
+                // Check album name (raw exact comparison)
                 val albumMatches = if (canvasAlbumName != null && albumTitle.isNotBlank()) {
                     canvasAlbumName.trim().equals(albumTitle.trim(), ignoreCase = true)
-                } else false // Enforce strict album matching
+                } else false
 
                 println("AlbumCanvasValidation (Tidal): artistMatches=$artistMatches, albumMatches=$albumMatches")
                 println("  Requested: Album='$albumTitle', Artists='$artistName'")
