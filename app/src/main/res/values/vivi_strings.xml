@@ -287,6 +287,14 @@
     <string name="past_year">Past year</string>
     <string name="top_length">My Top list length</string>
     <string name="history_duration">History duration</string>
+    <string name="activity_history">Listening Summary</string>
+    <string name="total_listening_time">Total Listening Time</string>
+    <string name="unique_songs">Unique Songs</string>
+    <string name="unique_artists">Unique Artists</string>
+    <string name="unique_albums">Unique Albums</string>
+    <string name="selected_period">Selected Period</string>
+    <string name="hours_minutes_format">%1$dh %2$dm</string>
+
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="numbers">Numbers</string>
