@@ -409,4 +409,6 @@
     <string name="search_prompt_template_song">Rechercher « %s »…</string>
     <string name="search_prompt_template_song_try">Essayez de rechercher « %s »…</string>
     <string name="search_prompt_template_artist">Rechercher l\'artiste « %s »…</string>
+    <string name="enable_settings_popup">Activer la fenêtre contextuelle des paramètres</string>
+    <string name="enable_settings_popup_desc">Afficher la fenêtre contextuelle des réglages rapides lorsque l\'on appuie sur le bouton des réglages, au lieu d\'ouvrir directement les réglages</string>
 </resources>
