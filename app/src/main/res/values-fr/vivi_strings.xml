@@ -287,6 +287,14 @@
     <string name="past_year">Année écoulée</string>
     <string name="top_length">Longueur de ma liste préférée</string>
     <string name="history_duration">Durée de l\'historique</string>
+	<string name="activity_history">Résumé de l\'écoute</string>
+    <string name="total_listening_time">Durée totale d\'écoute</string>
+    <string name="unique_songs">Titres uniques</string>
+    <string name="unique_artists">Artistes uniques</string>
+    <string name="unique_albums">Albums uniques</string>
+    <string name="selected_period">Période sélectionnée</string>
+    <string name="hours_minutes_format">%1$dh %2$dm</string>
+	
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="numbers">Nombres</string>
