@@ -573,10 +573,17 @@ fun BottomSheetPlayer(
             val requestedTitle = item.title
             val requestedArtist = item.artists.joinToString { it.name }
             val requestedAlbum = item.album?.title ?: ""
-            
+
             val s = requestedTitle
             val a = requestedArtist
-            
+
+            android.util.Log.d("CanvasDebug", "=== Canvas Fetch START ===")
+            android.util.Log.d("CanvasDebug", "Source     : $canvasSource")
+            android.util.Log.d("CanvasDebug", "Storefront : $storefront")
+            android.util.Log.d("CanvasDebug", "Title      : '$requestedTitle'")
+            android.util.Log.d("CanvasDebug", "Artist     : '$requestedArtist'")
+            android.util.Log.d("CanvasDebug", "Album      : '$requestedAlbum' (blank=${requestedAlbum.isBlank()})")
+
             val fetched = when (canvasSource) {
                 CanvasSource.AUTO -> {
                     AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
@@ -600,16 +607,41 @@ fun BottomSheetPlayer(
                 }
             }
 
+            android.util.Log.d("CanvasDebug", "Fetched artwork: ${if (fetched == null) "NULL" else "non-null"}")
+            if (fetched != null) {
+                android.util.Log.d("CanvasDebug", "  artwork.name      : '${fetched.name}'")
+                android.util.Log.d("CanvasDebug", "  artwork.artist    : '${fetched.artist}'")
+                android.util.Log.d("CanvasDebug", "  artwork.albumName : '${fetched.albumName}'")
+                android.util.Log.d("CanvasDebug", "  artwork.animUrl   : '${fetched.preferredAnimationUrl}'")
+            }
+
             val validated = fetched?.let { artwork ->
-                val artistMatches = artwork.artist?.trim()
-                    ?.equals(requestedArtist.trim(), ignoreCase = true) == true
+                // Artist: split both sides by comma/ampersand/feat. and check if ANY local artist
+                // matches ANY returned artist — handles multi-artist tracks like
+                // "Metro Boomin, Travis Scott, Young Thug" vs Apple Music returning "Metro Boomin"
+                val localArtists = splitAndNormalizeArtists(requestedArtist)
+                val returnedArtists = splitAndNormalizeArtists(artwork.artist ?: "")
+                val artistMatches = localArtists.isNotEmpty() && returnedArtists.isNotEmpty() &&
+                    (localArtists.any { local -> returnedArtists.any { it.equals(local, ignoreCase = true) } })
+
                 val songMatches = artwork.name?.trim()
                     ?.equals(requestedTitle.trim(), ignoreCase = true) == true
                 val albumMatches = artwork.albumName?.trim()
                     ?.equals(requestedAlbum.trim(), ignoreCase = true) == true
 
+                android.util.Log.d("CanvasDebug", "Validation:")
+                android.util.Log.d("CanvasDebug", "  localArtists   : $localArtists")
+                android.util.Log.d("CanvasDebug", "  returnedArtists: $returnedArtists")
+                android.util.Log.d("CanvasDebug", "  artistMatches  : $artistMatches")
+                android.util.Log.d("CanvasDebug", "  songMatches    : $songMatches  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
+                android.util.Log.d("CanvasDebug", "  albumMatches   : $albumMatches  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
+                android.util.Log.d("CanvasDebug", "  RESULT         : ${artistMatches && songMatches && albumMatches}")
+
                 if (artistMatches && songMatches && albumMatches) artwork else null
             }
+
+            android.util.Log.d("CanvasDebug", "Final validated: ${if (validated == null) "NULL (canvas will NOT show)" else "OK (canvas will show)"}")
+            android.util.Log.d("CanvasDebug", "=== Canvas Fetch END ===")
 
             withContext(Dispatchers.Main) {
                 canvasArtwork = validated
