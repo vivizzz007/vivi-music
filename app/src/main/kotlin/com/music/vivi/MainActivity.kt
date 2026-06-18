@@ -149,6 +149,9 @@ import com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting
 import com.music.vivi.vivimusic.updater.isNewerVersion
 import com.music.vivi.vivimusic.updater.saveUpdateAvailableState
 import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
+import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
+import com.music.vivi.vivimusic.updater.shouldRunNightlyCheck
+import com.music.vivi.vivimusic.updater.markNightlyCheckDone
 import com.music.vivi.vivimusic.UpdateNotificationHelper
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
@@ -377,6 +380,17 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(Unit) {
             if (getAutoUpdateCheckSetting(context)) {
+                val betaEnabled = getBetaUpdatesSetting(context)
+
+                // Beta/nightly path: only run once per day at 9 PM or later.
+                // The run-number comparison ("is there a new commit?") is already
+                // handled inside checkForUpdate — we just gate WHEN it is allowed
+                // to execute so it doesn't fire on every single app launch.
+                if (betaEnabled && !shouldRunNightlyCheck(context)) {
+                    Log.d("UpdateCheck", "Beta check skipped: outside 9 PM window or already ran today")
+                    return@LaunchedEffect
+                }
+
                 // Delay to not block app startup
                 delay(2000L)
                 checkForUpdate(
@@ -385,15 +399,20 @@ class MainActivity : ComponentActivity() {
                         val currentVersion = BuildConfig.VERSION_NAME
                         Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
                         saveUpdateAvailableState(context, isAvailable)
-                        
+
                         if (isAvailable && getUpdateNotificationsSetting(context)) {
                             Log.d("UpdateCheck", "Posting update notification for $latestVersion")
                             UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
                         }
+
+                        // Stamp today so no more nightly checks until tomorrow 9 PM
+                        if (betaEnabled) markNightlyCheckDone(context)
                     },
                     onError = {
                         Log.e("UpdateCheck", "Startup check failed")
                         // Do not clear the state on error, in case of offline launch
+                        // Note: we do NOT stamp markNightlyCheckDone on error so it
+                        // can retry later the same night if the user reopens the app.
                     }
                 )
             }

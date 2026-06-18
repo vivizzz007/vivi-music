@@ -612,6 +612,41 @@ fun saveBetaUpdatesSetting(context: Context, enabled: Boolean) {
     sharedPrefs.edit().putBoolean(KEY_BETA_UPDATES, enabled).apply()
 }
 
+// ──────────────────────────────────────────────────────────────────────────
+// 9 PM daily gate for beta/nightly update checks
+// ──────────────────────────────────────────────────────────────────────────
+const val KEY_LAST_NIGHTLY_CHECK_DAY = "last_nightly_check_day"
+
+/**
+ * Returns true only if BOTH conditions are met:
+ *  1. The current local time is 9:00 PM (21:00) or later.
+ *  2. The nightly update check has NOT already run today.
+ *
+ * This prevents the nightly CI check from firing on every single app launch.
+ * Once it returns true and the check runs, call [markNightlyCheckDone] so
+ * subsequent launches today are silently skipped.
+ */
+fun shouldRunNightlyCheck(context: Context): Boolean {
+    val now = java.time.LocalTime.now()
+    val ninepm = java.time.LocalTime.of(21, 0)
+    if (now.isBefore(ninepm)) return false          // before 9 PM — skip
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val todayEpochDay = java.time.LocalDate.now().toEpochDay()
+    val lastCheckedDay = prefs.getLong(KEY_LAST_NIGHTLY_CHECK_DAY, -1L)
+    return lastCheckedDay != todayEpochDay           // already ran today — skip
+}
+
+/**
+ * Records that the nightly check ran today so [shouldRunNightlyCheck] returns
+ * false for all remaining launches until midnight.
+ */
+fun markNightlyCheckDone(context: Context) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .edit()
+        .putLong(KEY_LAST_NIGHTLY_CHECK_DAY, java.time.LocalDate.now().toEpochDay())
+        .apply()
+}
+
 private fun formatGitHubDate(githubDate: String): String = try {
     val githubFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
     val displayFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")
