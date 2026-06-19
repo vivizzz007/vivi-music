@@ -68,6 +68,8 @@ import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Gavel
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Terminal
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -112,6 +114,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -129,6 +136,19 @@ import com.music.vivi.utils.get
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import androidx.datastore.preferences.core.edit
+import android.app.Activity
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.material.icons.rounded.AccessibilityNew
+import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Info
+import com.music.vivi.constants.AppLanguageKey
+import com.music.vivi.constants.SYSTEM_DEFAULT
+import com.music.vivi.constants.LanguageCodeToName
+import com.music.vivi.ui.component.EnumDialog
+import com.music.vivi.utils.rememberPreference
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.core.net.toUri
+
 
 data class OnboardingPageInfo(
     val content: @Composable (onUpdateScrollState: (Boolean) -> Unit) -> Unit
@@ -141,6 +161,15 @@ class WelcomeActivity : ComponentActivity() {
 
         val isFirstRun = dataStore.get(IsFirstRunKey, true)
         val forceShow = intent.getBooleanExtra("FORCE_SHOW", false)
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            val appLang = dataStore.get(AppLanguageKey, SYSTEM_DEFAULT)
+            val locale = appLang
+                .takeUnless { it == SYSTEM_DEFAULT }
+                ?.let { java.util.Locale.forLanguageTag(it) }
+                ?: java.util.Locale.getDefault()
+            com.music.vivi.utils.setAppLocale(this, locale)
+        }
 
         if (!isFirstRun && !forceShow) {
             finishOnboarding()
@@ -196,6 +225,10 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
     val commonAnimSpec = tween<Float>(durationMillis = 200, easing = FastOutSlowInEasing)
+
+    val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
+    var showAppLanguageDialog by rememberSaveable { mutableStateOf(false) }
+
 
     val topCardShape =
         RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
@@ -283,71 +316,102 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.Start
                 ) {
-                    Spacer(modifier = Modifier.height(80.dp))
-
-                    Text(
-                        text = stringResource(com.music.vivi.R.string.welcome_to),
-                        style = thinHeaderStyle,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = stringResource(com.music.vivi.R.string.app_name),
-                        fontFamily = GoogleSansFlex,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 48.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        lineHeight = 56.sp
-                    )
-                    
-                    val flavorSuffix = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) "Gms Edition" else "Foss Edition"
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 2.dp)
-                    ) {
-                        Text(
-                            text = flavorSuffix,
-                            fontFamily = GoogleSansFlex,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f)
-                        ) {
-                            Text(
-                                text = "v${BuildConfig.VERSION_NAME}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
-                    }
-
                     Spacer(modifier = Modifier.weight(1f))
 
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        RotatingShapeContainer(
-                            modifier = Modifier.size(280.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        Text(
-                            text = stringResource(com.music.vivi.R.string.welcome_preparing_subtitle),
-                            fontFamily = GoogleSansFlex,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                    val welcomeText = buildAnnotatedString {
+                        append(stringResource(id = com.music.vivi.R.string.welcome_to_vivi))
+                        appendInlineContent("inline_icon", "[icon]")
                     }
-                    Spacer(modifier = Modifier.weight(1.2f))
+
+                    val inlineContent = mapOf(
+                        "inline_icon" to InlineTextContent(
+                            Placeholder(
+                                width = 80.sp,
+                                height = 80.sp,
+                                placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+                            )
+                        ) {
+                            Icon(
+                                painter = painterResource(id = com.music.vivi.R.mipmap.ic_launcher_monochrome),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    )
+
+                    Text(
+                        text = welcomeText,
+                        style = thinHeaderStyle.copy(fontSize = 56.sp),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        inlineContent = inlineContent
+                    )
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    AssistChip(
+                        onClick = {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                context.startActivity(
+                                    Intent(
+                                        Settings.ACTION_APP_LOCALE_SETTINGS,
+                                        "package:${context.packageName}".toUri()
+                                    )
+                                )
+                            } else {
+                                showAppLanguageDialog = true
+                            }
+                        },
+                        label = {
+                            Text(
+                                text = LanguageCodeToName.getOrElse(appLanguage) { stringResource(com.music.vivi.R.string.system_default) },
+                                fontFamily = GoogleSansFlex
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(id = com.music.vivi.R.drawable.language),
+                                contentDescription = null,
+                                modifier = Modifier.size(AssistChipDefaults.IconSize)
+                            )
+                        },
+                        shape = CircleShape,
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        border = null
+                    )
+
+                    Spacer(modifier = Modifier.height(2.dp))
+
+                    val flavorSuffix = if (BuildConfig.FLAVOR.contains("gms", ignoreCase = true)) "Gms Edition" else "Foss Edition"
+                    AssistChip(
+                        onClick = {},
+                        label = {
+                            Text(
+                                text = "$flavorSuffix v${BuildConfig.VERSION_NAME}",
+                                fontFamily = GoogleSansFlex
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = rememberVectorPainter(image = Icons.Rounded.Info),
+                                contentDescription = null,
+                                modifier = Modifier.size(AssistChipDefaults.IconSize)
+                            )
+                        },
+                        shape = CircleShape,
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        ),
+                        border = null
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         ),
@@ -734,6 +798,30 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
     val isFirstPage = pagerState.currentPage == 0
     val isLastPage = pagerState.currentPage == pages.size - 1
 
+    if (showAppLanguageDialog) {
+        EnumDialog(
+            onDismiss = { showAppLanguageDialog = false },
+            onSelect = { selectedLang ->
+                scope.launch {
+                    context.dataStore.edit { it[AppLanguageKey] = selectedLang }
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                        val locale = if (selectedLang == SYSTEM_DEFAULT) java.util.Locale.getDefault() else java.util.Locale.forLanguageTag(selectedLang)
+                        com.music.vivi.utils.setAppLocale(context, locale)
+                        (context as? Activity)?.recreate()
+                    }
+                }
+                showAppLanguageDialog = false
+            },
+            title = stringResource(com.music.vivi.R.string.app_language),
+            current = appLanguage,
+            values = (listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList()),
+            valueText = {
+                LanguageCodeToName.getOrElse(it) { stringResource(com.music.vivi.R.string.system_default) }
+            }
+        )
+    }
+
+
     BackHandler(enabled = !isFirstPage) {
         scope.launch {
             pagerState.animateScrollToPage(
@@ -791,7 +879,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 24.dp)
-                    .height(64.dp),
+                    .height(80.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -851,7 +939,8 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         },
                         containerColor = MaterialTheme.colorScheme.primary.copy(alpha = alphaNext),
                         contentColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = alphaNext),
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        showArrowOnly = isFirstPage
                     )
                 }
             }
@@ -1062,7 +1151,8 @@ fun WelcomeExpressiveButton(
     containerColor: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
-    isOutlined: Boolean = false
+    isOutlined: Boolean = false,
+    showArrowOnly: Boolean = false
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -1087,12 +1177,21 @@ fun WelcomeExpressiveButton(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = text,
-                fontWeight = FontWeight.Bold,
-                fontFamily = GoogleSansFlex,
-                fontSize = 18.sp
-            )
+            if (showArrowOnly) {
+                Icon(
+                    imageVector = Icons.Rounded.ArrowForward,
+                    contentDescription = text,
+                    modifier = Modifier.size(32.dp)
+                )
+            } else {
+                Text(
+                    text = text,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = GoogleSansFlex,
+                    fontSize = 18.sp
+                )
+            }
         }
     }
 }
+

@@ -879,6 +879,8 @@
 
     <!-- Onboarding -->
     <string name="welcome_to">Welcome to</string>
+    <string name="welcome_to_vivi">Welcome to Vivi</string>
+    <string name="accessibility">Accessibility</string>
     <string name="welcome_preparing_subtitle">Let\'s get everything ready for you.</string>
     <string name="get_started">Get Started</string>
 
