@@ -7,10 +7,8 @@ package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -71,21 +69,10 @@ fun FontSelectionScreen(
 
     Column(
         Modifier
-            .windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(
-                    WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
-                )
-            )
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        Spacer(
-            Modifier.windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(
-                    WindowInsetsSides.Top
-                )
-            )
-        )
 
         // Typography Preview Card
         Card(
