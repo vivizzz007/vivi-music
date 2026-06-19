@@ -120,6 +120,8 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
 val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
 
+val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
+
 enum class SaavnAudioQuality {
     QUALITY_320,
     QUALITY_160,

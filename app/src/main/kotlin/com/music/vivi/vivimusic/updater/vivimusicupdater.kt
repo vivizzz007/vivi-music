@@ -592,6 +592,18 @@ fun saveUpdateNotificationsSetting(context: Context, enabled: Boolean) {
     sharedPrefs.edit().putBoolean(KEY_UPDATE_NOTIFICATIONS, enabled).apply()
 }
 
+const val KEY_DOWNLOAD_NOTIFICATIONS = "download_notifications"
+
+fun getDownloadNotificationsSetting(context: Context): Boolean {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getBoolean(KEY_DOWNLOAD_NOTIFICATIONS, true)
+}
+
+fun saveDownloadNotificationsSetting(context: Context, enabled: Boolean) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putBoolean(KEY_DOWNLOAD_NOTIFICATIONS, enabled).apply()
+}
+
 fun saveLastCheckedTime(context: Context, timestamp: String) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putString(KEY_LAST_CHECKED_TIME, timestamp).apply()

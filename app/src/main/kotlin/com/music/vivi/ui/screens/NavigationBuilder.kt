@@ -65,6 +65,7 @@ import com.music.vivi.ui.screens.settings.integrations.ListenTogetherSettings
 import com.music.vivi.ui.screens.recognition.RecognitionScreen
 import com.music.vivi.ui.screens.recognition.RecognitionHistoryScreen
 import com.music.vivi.ui.screens.settings.UpdateSettings
+import com.music.vivi.ui.screens.settings.NotificationPermission
 import com.music.vivi.ui.screens.wrapped.WrappedScreen
 import com.music.vivi.vivimusic.updater.UpdateScreen
 import com.music.vivi.utils.rememberEnumPreference
@@ -328,6 +329,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/update") {
        UpdateSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/update/notification_permission") {
+        NotificationPermission(navController, scrollBehavior)
     }
 
     composable("settings/account") {

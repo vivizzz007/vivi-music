@@ -46,9 +46,9 @@
     <string name="app_updates_subtitle">App updates</string>
     <string name="app_update_uptodate">Up to date</string>
     <string name="auto_update_check">Automatic update check</string>
-    <string name="auto_update_check_subtitle">Automatically check for updates when opening the update screen</string>
+    <string name="auto_update_check_subtitle">Automatically check for updates.</string>
     <string name="update_notifications">Update Notifications</string>
-    <string name="update_notifications_subtitle">Show a notification when a new update is found</string>
+    <string name="update_notifications_subtitle">Notify when updates are available.</string>
     <string name="settings_check_updates_title">Check for updates</string>
     <string name="later">Later</string>
 
@@ -80,4 +80,12 @@
     <string name="new_update">New update</string>
     <string name="release_date_v">Released on: %1$s</string>
     <string name="update_size_v">Size: %1$s MB</string>
+
+    <!-- Notification Permission Settings -->
+    <string name="notification_settings">Notification Permission</string>
+    <string name="notification_settings_summary">Configure notification settings.</string>
+    <string name="notification_settings_desc">Configure and manage notifications for app updates, beta releases, and download progress. Disabling notifications will prevent background status updates from appearing.</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="download_notifications">Download Notifications</string>
+    <string name="download_notifications_desc">Show progress when downloading update.</string>
 </resources>

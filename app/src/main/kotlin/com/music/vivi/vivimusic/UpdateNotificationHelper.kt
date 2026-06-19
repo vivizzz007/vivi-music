@@ -13,12 +13,18 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.music.vivi.R
+import com.music.vivi.constants.EnableNotificationsKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
 object UpdateNotificationHelper {
     private const val CHANNEL_ID = "updates"
     private const val NOTIFICATION_ID = 1001
 
     fun showUpdateNotification(context: Context, versionName: String) {
+        val notificationsEnabled = context.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled) return
+
         val nm = context.getSystemService(NotificationManager::class.java)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

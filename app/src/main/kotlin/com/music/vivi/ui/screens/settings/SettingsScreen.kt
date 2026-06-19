@@ -22,6 +22,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -39,6 +44,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.screens.Screens
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.vivimusic.updater.getUpdateAvailableState
+import com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +56,23 @@ fun SettingsScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    val isUpdateAvailable = getUpdateAvailableState(context) && com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting(context)
+
+    val autoUpdateSetting = remember { getAutoUpdateCheckSetting(context) }
+    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context) && autoUpdateSetting) }
+
+    DisposableEffect(context, autoUpdateSetting) {
+        val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "update_available") {
+                isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateSetting
+            }
+        }
+        sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
+        isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateSetting
+        onDispose {
+            sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
 
     Column(
         Modifier
