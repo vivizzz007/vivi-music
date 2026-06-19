@@ -24,6 +24,20 @@ val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
 val MiniPlayerOutlineKey = booleanPreferencesKey("miniPlayerOutline")
+val SelectedFontKey = stringPreferencesKey("selected_font")
+
+enum class AppFont(val value: String) {
+    SYSTEM("system"),
+    GOOGLE_SANS("google_sans"),
+    SANS_FLEX("sans_flex"),
+    OUTFIT("outfit"),
+    PLUS_JAKARTA_SANS("plus_jakarta_sans");
+
+    companion object {
+        fun fromValue(value: String): AppFont = entries.find { it.value == value } ?: SYSTEM
+    }
+}
+
 val DensityScaleKey = floatPreferencesKey("density_scale_factor")
 val CustomDensityScaleKey = floatPreferencesKey("custom_density_scale_value")
 

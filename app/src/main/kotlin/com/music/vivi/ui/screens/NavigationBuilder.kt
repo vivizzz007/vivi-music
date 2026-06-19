@@ -41,6 +41,7 @@ import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.SpotifyScreen
 import com.music.vivi.viewmodels.SpotifyImportViewModel
@@ -343,6 +344,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/appearance/canvas") {
         CanvasSelection(navController, scrollBehavior)
+    }
+
+    composable("settings/appearance/font") {
+        FontSelectionScreen(navController, scrollBehavior)
     }
 
     composable("settings/content") {

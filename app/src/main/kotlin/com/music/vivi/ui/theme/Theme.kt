@@ -26,6 +26,12 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
+import androidx.compose.runtime.getValue
+import com.music.vivi.constants.SelectedFontKey
+import com.music.vivi.constants.AppFont
+import com.music.vivi.utils.rememberPreference
+import androidx.compose.ui.text.font.FontFamily
+
 val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
@@ -36,6 +42,22 @@ fun vivimusicTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
+
+    val brandFont = remember(selectedFontValue) {
+        when (AppFont.fromValue(selectedFontValue)) {
+            AppFont.SYSTEM -> FontFamily.Default
+            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
+            AppFont.SANS_FLEX -> SansFlexFontFamily
+            AppFont.OUTFIT -> OutfitFontFamily
+            AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+        }
+    }
+
+    val typography = remember(brandFont) {
+        getTypography(brandFont = brandFont)
+    }
+
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
     val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
@@ -65,7 +87,7 @@ fun vivimusicTheme(
     // Use standard MaterialTheme instead of MaterialExpressiveTheme
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography, // Use the defined AppTypography
+        typography = typography, // Use the dynamically configured typography
         content = content
     )
 }

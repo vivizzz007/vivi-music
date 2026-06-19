@@ -983,4 +983,19 @@
     <string name="spotify_source_summary">\"%1$s\": %2$d of %3$d tracks matched</string>
     <string name="spotify_import_in_progress">Importing from Spotify</string>
     <string name="spotify_login_desc">Connecting to Spotify is completely local. Your session credentials are only saved on your device.</string>
+
+    <string name="app_font">App Font</string>
+    <string name="font_selection">Font Selection</string>
+    <string name="font_system">System Default</string>
+    <string name="font_google_sans">Google Sans</string>
+    <string name="font_sans_flex">Sans Flex</string>
+    <string name="font_outfit">Outfit</string>
+    <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+    <string name="typography_preview">Typography Preview</string>
+    <string name="preview_text_quote">\"Where words fail, music speaks.\"</string>
+    <string name="font_system_desc">Use the default system typeface.</string>
+    <string name="font_google_sans_desc">Google\'s signature geometric sans-serif.</string>
+    <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
+    <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
+    <string name="font_plus_jakarta_sans_desc">A premium warm geometric sans-serif typeface.</string>
 </resources>

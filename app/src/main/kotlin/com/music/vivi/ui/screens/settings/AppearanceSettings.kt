@@ -87,6 +87,8 @@ import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PureBlackMiniPlayerKey
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SelectedThemeColorKey
+import com.music.vivi.constants.SelectedFontKey
+import com.music.vivi.constants.AppFont
 import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
 import com.music.vivi.constants.ShowLikedPlaylistKey
@@ -141,6 +143,10 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(
         DynamicThemeKey,
         defaultValue = true
+    )
+    val (selectedFontValue) = rememberPreference(
+        SelectedFontKey,
+        defaultValue = AppFont.SYSTEM.value
     )
     val (enableDynamicIcon, onEnableDynamicIconChange) = rememberPreference(
         EnableDynamicIconKey,
@@ -1000,6 +1006,23 @@ fun AppearanceSettings(
                         title = { Text(stringResource(R.string.theme)) },
                         description = { Text(stringResource(R.string.theme_desc)) },
                         onClick = { navController.navigate("settings/appearance/theme") }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.alphabet_cyrillic),
+                        title = { Text(stringResource(R.string.app_font)) },
+                        description = {
+                            val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
+                                AppFont.SYSTEM -> stringResource(R.string.font_system)
+                                AppFont.GOOGLE_SANS -> stringResource(R.string.font_google_sans)
+                                AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
+                                AppFont.OUTFIT -> stringResource(R.string.font_outfit)
+                                AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
+                            }
+                            Text(fontLabel)
+                        },
+                        onClick = { navController.navigate("settings/appearance/font") }
                     )
                 )
                 add(
