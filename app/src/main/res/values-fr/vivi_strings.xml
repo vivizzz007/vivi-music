@@ -983,4 +983,19 @@ est irréversible.
     <string name="spotify_source_summary">\"%1$s\" : %2$d titres sur %3$d correspondent</string>
     <string name="spotify_import_in_progress">Importation depuis Spotify</string>
     <string name="spotify_login_desc">La connexion à Spotify s\'effectue entièrement en local. Vos identifiants de session ne sont enregistrés que sur votre appareil.</string>
+
+	<string name="app_font">Police de l\'application</string>
+    <string name="font_selection">Sélection de la police</string>
+    <string name="font_system">Paramètres par défaut du système</string>
+    <string name="font_google_sans">Google Sans</string>
+    <string name="font_sans_flex">Sans Flex</string>
+    <string name="font_outfit">Tenue</string>
+    <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+    <string name="typography_preview">Aperçu typographique</string>
+    <string name="preview_text_quote">\"Quand les mots manquent, la musique prend le relais.\"</string>
+    <string name="font_system_desc">Utilisez la police par défaut du système.</string>
+    <string name="font_google_sans_desc">La police sans empattement géométrique emblématique de Google.</string>
+    <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
+    <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
+    <string name="font_plus_jakarta_sans_desc">Une police sans empattement géométrique haut de gamme aux lignes chaleureuses.</string>
 </resources>
