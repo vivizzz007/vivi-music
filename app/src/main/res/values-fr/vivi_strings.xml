@@ -879,6 +879,8 @@ est irréversible.
 
 	<!-- Onboarding -->
     <string name="welcome_to">Bienvenue sur</string>
+	<string name="welcome_to_vivi">Bienvenue sur Vivi Music</string>
+    <string name="accessibility">Accessibilité</string>
     <string name="welcome_preparing_subtitle">Nous allons tout préparer pour vous.</string>
     <string name="get_started">C\'est parti !</string>
 
