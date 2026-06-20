@@ -54,9 +54,10 @@ fun vivimusicTheme(
         }
     }
 
-    val typography = remember(brandFont) {
-        getTypography(brandFont = brandFont)
+        val typography = remember(brandFont) {
+        getTypography(brandFont = brandFont, plainFont = brandFont)
     }
+
 
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
     val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
