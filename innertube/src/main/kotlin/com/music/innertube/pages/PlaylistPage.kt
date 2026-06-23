@@ -69,8 +69,8 @@ data class PlaylistPage(
                 ?: renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer
                     ?.text?.runs?.firstOrNull()
-                    ?.navigationEndpoint?.watchEndpoint?.playlistSetVideoId
-                ?: return null,
+                    ?.navigationEndpoint?.watchEndpoint?.playlistSetVideoId,
+                // ^ setVideoId is null for Liked Songs \u2014 that is fine; it's only needed for playlist mutations
                 libraryAddToken = libraryTokens.addToken,
                 libraryRemoveToken = libraryTokens.removeToken
             )
