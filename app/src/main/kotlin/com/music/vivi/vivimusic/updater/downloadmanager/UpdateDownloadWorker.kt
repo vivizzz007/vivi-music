@@ -13,6 +13,12 @@ import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.zip.ZipInputStream
+import com.music.vivi.constants.AutoBackupEnabledKey
+import com.music.vivi.constants.AutoBackupBeforeUpdateKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import com.music.vivi.utils.AutoBackupHelper
+import timber.log.Timber
 
 class UpdateDownloadWorker(private val context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -21,6 +27,17 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
         val apkUrl = inputData.getString("apk_url") ?: return@withContext Result.failure()
         val version = inputData.getString("version") ?: "unknown"
         val fileSize = inputData.getString("file_size") ?: ""
+
+        try {
+            val autoBackupEnabled = context.dataStore[AutoBackupEnabledKey] ?: true
+            val backupBeforeUpdate = context.dataStore[AutoBackupBeforeUpdateKey] ?: true
+            if (autoBackupEnabled && backupBeforeUpdate) {
+                Timber.tag("UpdateDownloadWorker").d("Auto backup enabled. Creating backup before update.")
+                AutoBackupHelper.performBackup(context, "before_update")
+            }
+        } catch (e: Exception) {
+            Timber.tag("UpdateDownloadWorker").e(e, "Failed to perform auto backup before update")
+        }
 
         DownloadNotificationManager.showDownloadStarting(version, fileSize)
 

@@ -122,6 +122,10 @@ val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
 
 val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
 
+val AutoBackupEnabledKey = booleanPreferencesKey("autoBackupEnabled")
+val AutoBackupWeeklyKey = booleanPreferencesKey("autoBackupWeekly")
+val AutoBackupBeforeUpdateKey = booleanPreferencesKey("autoBackupBeforeUpdate")
+
 enum class SaavnAudioQuality {
     QUALITY_320,
     QUALITY_160,

@@ -43,6 +43,7 @@ import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.CanvasSelection
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
+import com.music.vivi.ui.screens.settings.AutoBackupSettings
 import com.music.vivi.ui.screens.settings.SpotifyScreen
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -389,6 +390,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
+    }
+
+    composable("settings/backup_restore/autobackup") {
+        AutoBackupSettings(navController, scrollBehavior)
     }
 
     composable("settings/spotify") {

@@ -411,4 +411,24 @@
     <string name="search_prompt_template_artist">Search artist \"%s\"…</string>
     <string name="enable_settings_popup">Enable settings popup</string>
     <string name="enable_settings_popup_desc">Show quick settings popup when tapping the settings button instead of opening settings directly</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Automatic backup</string>
+    <string name="automatic_backup_desc">Configure automatic backups of your settings and database to prevent data loss.</string>
+    <string name="enable_automatic_backup">Enable Automatic Backup</string>
+    <string name="weekly_backup">Weekly backup</string>
+    <string name="weekly_backup_desc">Automatically backup your data every week in the background.</string>
+    <string name="backup_before_update">Backup before update</string>
+    <string name="backup_before_update_desc">Automatically backup your data before downloading an app update.</string>
+    <string name="stored_backups">Stored backups</string>
+    <string name="no_stored_backups">No automatic backups stored yet.</string>
+    <string name="backup_type_weekly">Weekly Backup</string>
+    <string name="backup_type_before_update">Before Update</string>
+    <string name="delete_backup_confirm">Are you sure you want to delete this backup?</string>
+    <string name="restore_backup_confirm">Are you sure you want to restore this backup? The app will close and restart to apply changes.</string>
+    <string name="backup_deleted">Backup deleted successfully</string>
+    <string name="others">Others</string>
+    <string name="last_backed_up">Last backed up: %s</string>
+    <string name="never_backed_up">Never</string>
+    <string name="autobackup_settings">Auto Backup Settings</string>
 </resources>
