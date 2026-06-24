@@ -188,7 +188,10 @@ fun ArtistScreen(
 
     val transparentAppBar by remember {
         derivedStateOf {
-            lazyListState.firstVisibleItemIndex == 0 && lazyListState.firstVisibleItemScrollOffset < 100
+            // Keep the top bar transparent (no title) until the entire header item
+            // (artist name + Subscribe/Radio/Shuffle buttons) has scrolled off screen.
+            // Only show the artist name in the top bar once the header item is no longer visible.
+            lazyListState.firstVisibleItemIndex == 0
         }
     }
 
