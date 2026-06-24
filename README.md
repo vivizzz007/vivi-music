@@ -267,6 +267,7 @@
         <b>💡 Special Thanks</b>
         <ul>
           <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+          <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – Huge congratulations and thanks for inventing the new playback method! 🎉</li>
         </ul>
       </td>
       <td width="60%" align="left">
