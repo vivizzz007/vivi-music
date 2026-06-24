@@ -270,4 +270,12 @@
     <string name="use_login_for_browse_desc">例えば、Premiumのアカウントでログインした時に、Premium限定のアルバムが表示されるようになります</string>
     <string name="use_login_for_browse">表示されるコンテンツをアカウントと結び付ける</string>
     <string name="action_login">ログイン</string>
+
+    <string name="create_playlist_or_spotify_hint">プレイリスト名または Spotify プレイリストのリンク</string>
+    <string name="spotify_importing_playlist">Spotify からインポート中…</string>
+    <string name="spotify_import_result">%1$d トラックをインポートしました。 %2$d は一致しませんでした。</string>
+    <string name="spotify_import_failed">この Spotify プレイリストをインポートできませんでした。</string>
+    <string name="spotify_import_timeout">インポートに時間がかかりすぎました。ネットワークを確認して、もう一度試してください。</string>
+    <string name="music">音楽</string>
+
 </resources>

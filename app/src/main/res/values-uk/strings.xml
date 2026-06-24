@@ -297,4 +297,11 @@
     <string name="use_login_for_browse_desc">Це може вплинути на те, який вміст ви бачите, і, наприклад, показує лише платні альбоми, якщо ви ввійшли в обліковий запис Premium</string>
     <string name="use_login_for_browse">Використовуйте логін для перегляду вмісту</string>
     <string name="action_login">Увійти</string>
+
+    <string name="create_playlist_or_spotify_hint">Назва списку відтворення або посилання на список відтворення Spotify</string>
+    <string name="spotify_importing_playlist">Імпортування зі Spotify…</string>
+    <string name="spotify_import_result">Імпортовано %1$d треків. Не вдалося знайти %2$d.</string>
+    <string name="spotify_import_failed">Не вдалося імпортувати цей список відтворення Spotify.</string>
+    <string name="spotify_import_timeout">Імпорт тривав занадто довго. Перевірте мережу та повторіть спробу.</string>
+    <string name="music">музика</string>
 </resources>
