@@ -379,6 +379,8 @@ class MusicService :
     private var retryJob: Job? = null
     private var retryCount = 0
     private var silenceSkipJob: Job? = null
+    /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
+    private var prefetchJob: Job? = null
 
     // URL cache for stream URLs - class-level so it can be invalidated on errors
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
@@ -1940,9 +1942,62 @@ class MusicService :
             }
         }
 
+        // Pre-resolve the next track's stream URL so the transition feels instant
+        prefetchNextTrack()
+
         // Save state when media item changes
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
+        }
+    }
+
+    /**
+     * Look-ahead stream prefetcher.
+     *
+     * Resolves the next queued track's signed CDN stream URL in the background and stores it
+     * in [songUrlCache].  When ExoPlayer later transitions to that track, [createDataSourceFactory]
+     * reads the cached URL instantly — eliminating the 500 ms–2 s network round-trip that would
+     * otherwise cause an audible gap between songs.
+     *
+     * Only the **immediate next** track is prefetched to keep bandwidth usage minimal.  The job is
+     * cancelled and restarted on every track change, so stale URLs from shuffle/queue edits are
+     * automatically discarded.
+     *
+     * Note: this only resolves a small InnerTube JSON response (~10–30 KB).  No audio bytes are
+     * downloaded here — that is handled by ExoPlayer's own CacheDataSource pipeline.
+     */
+    private fun prefetchNextTrack() {
+        // Cancel any in-flight prefetch from the previous song
+        prefetchJob?.cancel()
+
+        val nextIndex = player.nextMediaItemIndex
+        if (nextIndex == C.INDEX_UNSET) return  // no next track (end of queue / repeat-one)
+
+        val nextMediaId = player.getMediaItemAt(nextIndex).mediaId
+
+        // Nothing to do — URL is already cached and hasn't expired
+        val cachedEntry = songUrlCache[nextMediaId]
+        if (cachedEntry != null && cachedEntry.second > System.currentTimeMillis()) return
+
+        prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
+            Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
+            val result = runCatching {
+                YTPlayerUtils.playerResponseForPlayback(
+                    videoId = nextMediaId,
+                    audioQuality = audioQuality,
+                    connectivityManager = connectivityManager,
+                    context = this@MusicService,
+                )
+            }
+            result.getOrNull()?.getOrNull()?.let { playbackData ->
+                // Only write to cache if the job wasn't cancelled while we were resolving
+                if (isActive) {
+                    songUrlCache[nextMediaId] =
+                        playbackData.streamUrl to
+                            System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                    Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
+                }
+            } ?: Timber.tag(TAG).d("[Prefetch] Could not resolve stream URL for $nextMediaId — will resolve on demand")
         }
     }
 
