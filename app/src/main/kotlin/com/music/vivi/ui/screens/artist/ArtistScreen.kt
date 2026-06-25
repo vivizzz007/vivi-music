@@ -219,7 +219,9 @@ fun ArtistScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .aspectRatio(1.1f),
+                                .height(with(density) {
+                                    (LocalResources.current.displayMetrics.heightPixels * 0.40f).toDp()
+                                }),
                         ) {
                             Spacer(
                                 modifier = Modifier
@@ -308,10 +310,12 @@ fun ArtistScreen(
                     Box {
                         // Artist Image with offset
                         if (thumbnail != null || backgroundVideoUrl != null) {
+                            val screenHeight = LocalResources.current.displayMetrics.heightPixels
+                            val headerHeight = with(density) { (screenHeight * 0.40f).toDp() }
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(1f)
+                                    .height(headerHeight)
                                     .offset {
                                         IntOffset(x = 0, y = headerOffset)
                                     }
@@ -348,14 +352,11 @@ fun ArtistScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(
-                                    top = if (thumbnail != null) {
-                                        // Position content at the bottom part of the image
-                                        // Using screen width to calculate aspect ratio height minus overlap
-                                        LocalResources.current.displayMetrics.widthPixels.let { screenWidth ->
-                                            with(density) {
-                                                ((screenWidth / 1.2f) - 144).toDp()
-                                            }
-                                        }
+                                    top = if (thumbnail != null || backgroundVideoUrl != null) {
+                                        // Push content down to sit at the bottom edge of the video header
+                                        // headerHeight (40% screen height) minus overlap for text/controls
+                                        val screenHeight = LocalResources.current.displayMetrics.heightPixels
+                                        with(density) { (screenHeight * 0.40f - 160f).toDp() }
                                     } else {
                                         16.dp
                                     }
