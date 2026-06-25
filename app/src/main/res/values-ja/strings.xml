@@ -21,10 +21,10 @@
     <string name="account">アカウント</string>
     <string name="quick_picks">おすすめ</string>
     <string name="quick_picks_empty">何曲か再生するとおすすめを生成します</string>
-    <string name="forgotten_favorites">忘れられているお気に入り</string>
-    <string name="keep_listening">続きを聴く</string>
+    <string name="forgotten_favorites">最近聞いていないお気に入り</string>
+    <string name="keep_listening">もう一度聴く</string>
     <string name="your_youtube_playlists">あなたのYouTubeの再生リスト</string>
-    <string name="similar_to">これに似ている</string>
+    <string name="similar_to">似ているかも</string>
     <string name="new_release_albums">新作アルバム</string>
 
     <!-- History -->
