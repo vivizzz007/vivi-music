@@ -30,6 +30,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,7 @@ fun ExpandableText(
     runs: List<LinkSegment>? = null,
     modifier: Modifier = Modifier,
     collapsedMaxLines: Int = 3,
+    textAlign: TextAlign = TextAlign.Start,
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
     var hasOverflow by rememberSaveable { mutableStateOf(false) }
@@ -74,12 +76,17 @@ fun ExpandableText(
     }
 
     Column(
-        modifier = modifier.animateContentSize()
+        modifier = modifier.animateContentSize(),
+        horizontalAlignment = when (textAlign) {
+            TextAlign.Center -> Alignment.CenterHorizontally
+            TextAlign.End, TextAlign.Right -> Alignment.End
+            else -> Alignment.Start
+        }
     ) {
         @Suppress("DEPRECATION")
         ClickableText(
             text = annotatedText,
-            style = MaterialTheme.typography.bodyMedium.copy(color = bodyColor),
+            style = MaterialTheme.typography.bodyMedium.copy(color = bodyColor, textAlign = textAlign),
             maxLines = if (isExpanded) Int.MAX_VALUE else collapsedMaxLines,
             overflow = TextOverflow.Ellipsis,
             onTextLayout = { textLayoutResult ->
