@@ -272,17 +272,17 @@ object YouTube {
             response.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
             response.header?.musicImmersiveHeaderRenderer?.description?.runs?.let { yield(it) }
             response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
-            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
             
             // Check musicResponsiveHeaderRenderer in contents
             response.contents?.twoColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
                 tab?.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
-                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                    content.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
             response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
                 tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
-                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                    content.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
         }.firstOrNull()?.let(::mapRuns)
@@ -587,6 +587,31 @@ object YouTube {
         val shuffleEndpoint = header.buttons.lastOrNull()?.menuRenderer?.items?.firstOrNull()
             ?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
 
+        val sectionListContents = response.contents?.twoColumnBrowseResultsRenderer
+            ?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents
+
+        // Also check secondary contents (right column - song list area)
+        val secondarySectionListContents = response.contents?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents?.sectionListRenderer?.contents
+
+        // Debug: log what each source returns
+        val descFromShelf = sectionListContents?.firstNotNullOfOrNull {
+            it.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { run -> run.text }
+        }
+        val descFromSecondaryShelf = secondarySectionListContents?.firstNotNullOfOrNull {
+            it.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { run -> run.text }
+        }
+        val descFromHeader = header?.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
+        val descFromEditable = base?.musicEditablePlaylistDetailHeaderRenderer
+            ?.header?.musicDetailHeaderRenderer
+            ?.description?.runs?.joinToString("") { it.text }
+        val descFromTopLevel = response.header?.musicDetailHeaderRenderer
+            ?.description?.runs?.joinToString("") { it.text }
+        val descFromMicroformat = response.microformat?.microformatDataRenderer?.description
+
+        val description: String? = descFromShelf ?: descFromSecondaryShelf ?: descFromHeader ?: descFromEditable ?: descFromTopLevel ?: descFromMicroformat
+
+
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
@@ -604,7 +629,8 @@ object YouTube {
                 radioEndpoint = header.buttons.getOrNull(2)?.menuRenderer?.items?.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
-                isEditable = editable
+                isEditable = editable,
+                description = description,
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {

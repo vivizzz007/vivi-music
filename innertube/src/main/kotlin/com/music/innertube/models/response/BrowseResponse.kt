@@ -149,6 +149,7 @@ data class BrowseResponse(
         @Serializable
         data class MicroformatDataRenderer(
             val urlCanonical: String?,
+            val description: String? = null,
         )
     }
 }

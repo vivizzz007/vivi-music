@@ -142,6 +142,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.core.net.toUri
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.ExpandableText
 import com.music.vivi.ui.component.OnlineBlur
 import com.music.vivi.constants.AppBarHeight
 import androidx.compose.ui.platform.LocalDensity
@@ -806,60 +807,65 @@ private fun OnlinePlaylistHeader(
 
             Spacer(Modifier.height(24.dp))
 
-            // Explicit Label — only shown when playlist contains explicit songs
-            if (hasExplicitContent) {
+            // Explicit and Metadata Badges Row
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+            ) {
+                if (hasExplicitContent) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.explicit),
+                                contentDescription = "Explicit",
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.explicit),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    Spacer(Modifier.width(8.dp))
+                }
+
+                val totalDuration = songs.sumOf { it.duration ?: 0 }
                 Surface(
                     shape = RoundedCornerShape(6.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.explicit),
-                            contentDescription = "Explicit",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.explicit),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
-                }
-                Spacer(Modifier.height(16.dp))
-            }
-
-
-            // Metadata Badge
-            val totalDuration = songs.sumOf { it.duration ?: 0 }
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                modifier = Modifier.padding(horizontal = 32.dp)
-            ) {
-                Text(
-                    text = buildString {
-                        append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
-                        if (totalDuration > 0) {
-                            append(" • ")
-                            val hours = totalDuration / 3600
-                            val minutes = (totalDuration % 3600) / 60
-                            if (hours > 0) {
-                                append("${hours}h ${minutes}m")
-                            } else {
-                                append("${minutes}m")
+                    Text(
+                        text = buildString {
+                            append(pluralStringResource(R.plurals.n_song, songs.size, songs.size))
+                            if (totalDuration > 0) {
+                                append(" • ")
+                                val hours = totalDuration / 3600
+                                val minutes = (totalDuration % 3600) / 60
+                                if (hours > 0) {
+                                    append("${hours}h ${minutes}m")
+                                } else {
+                                    append("${minutes}m")
+                                }
                             }
-                        }
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
-                )
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
+                }
             }
 
             // Author Name
@@ -872,6 +878,22 @@ private fun OnlinePlaylistHeader(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 32.dp)
                 )
+            }
+
+            // Description
+            val description = playlist.description
+            if (!description.isNullOrBlank()) {
+                Spacer(Modifier.height(12.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                ) {
+                    ExpandableText(
+                        text = description,
+                        collapsedMaxLines = 3
+                    )
+                }
             }
 
             Spacer(Modifier.height(16.dp))
