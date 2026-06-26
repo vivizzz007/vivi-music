@@ -121,6 +121,9 @@ val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
 val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
 
 val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
+val NewReleaseNotificationsKey = booleanPreferencesKey("newReleaseNotifications")
+val TasteBasedReleaseNotificationsKey = booleanPreferencesKey("tasteBasedReleaseNotifications")
+
 
 val AutoBackupEnabledKey = booleanPreferencesKey("autoBackupEnabled")
 val AutoBackupWeeklyKey = booleanPreferencesKey("autoBackupWeekly")

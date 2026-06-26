@@ -431,4 +431,11 @@
     <string name="last_backed_up">Last backed up: %s</string>
     <string name="never_backed_up">Never</string>
     <string name="autobackup_settings">Auto Backup Settings</string>
+    <string name="new_release_notifications">New release alerts</string>
+    <string name="new_release_notifications_subtitle">Notify when bookmarked artists release new songs or albums (beta)</string>
+    <string name="new_release_channel_name">New Releases</string>
+    <string name="new_release_channel_desc">Notifications for new releases from your bookmarked artists</string>
+    <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
+    <string name="taste_based_release_notifications">Taste-based release alerts</string>
+    <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
 </resources>

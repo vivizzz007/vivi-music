@@ -27,6 +27,7 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
 import com.music.lastfm.LastFM
 import com.music.vivi.constants.*
+import com.music.vivi.vivimusic.release.NewReleaseCheckWorker
 import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
@@ -227,6 +228,32 @@ class App : Application(), SingletonImageLoader.Factory {
                 .distinctUntilChanged()
                 .collect { ipVersion ->
                     YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+                }
+        }
+
+        // One-time migration: clear stale "seen releases" baseline from the buggy first run
+        // so the worker re-snapshots all artists correctly on next launch.
+        val migrationPrefs = getSharedPreferences("app_migrations", Context.MODE_PRIVATE)
+        val NEW_RELEASE_MIGRATION_V1 = "new_release_seen_reset_v1"
+        if (!migrationPrefs.getBoolean(NEW_RELEASE_MIGRATION_V1, false)) {
+            NewReleaseCheckWorker.clearSeenReleases(this)
+            migrationPrefs.edit().putBoolean(NEW_RELEASE_MIGRATION_V1, true).apply()
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map {
+                    val bookmarkedEnabled = it[NewReleaseNotificationsKey] ?: true
+                    val tasteBasedEnabled = it[TasteBasedReleaseNotificationsKey] ?: false
+                    bookmarkedEnabled || tasteBasedEnabled
+                }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    if (enabled) {
+                        NewReleaseCheckWorker.schedule(this@App)
+                    } else {
+                        NewReleaseCheckWorker.cancel(this@App)
+                    }
                 }
         }
     }
