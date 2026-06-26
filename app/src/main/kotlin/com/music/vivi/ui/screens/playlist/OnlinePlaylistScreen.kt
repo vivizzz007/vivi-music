@@ -857,11 +857,11 @@ private fun OnlinePlaylistHeader(
                     ExpandableText(
                         text = description,
                         collapsedMaxLines = 3,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-
         }
     }
 }

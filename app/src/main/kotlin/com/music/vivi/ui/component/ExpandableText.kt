@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -86,6 +87,7 @@ fun ExpandableText(
         @Suppress("DEPRECATION")
         ClickableText(
             text = annotatedText,
+            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.bodyMedium.copy(color = bodyColor, textAlign = textAlign),
             maxLines = if (isExpanded) Int.MAX_VALUE else collapsedMaxLines,
             overflow = TextOverflow.Ellipsis,
