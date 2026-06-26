@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="explore">Explorer</string>
+	<string name="tab_explore">Explorer</string>
+    <string name="tab_Suggestions">Suggestions</string>
+    <string name="tab_album">Album</string>
 
     <string name="local_history">Locale</string>
     <string name="remote_history">Distant</string>
@@ -15,8 +18,12 @@
     <string name="album_cover_desc">Pochette d\'album</string>
     <string name="top_music_videos">Meilleurs Clips Musicaux</string>
     <string name="trending">Tendances</string>
+	<string name="trending_billboard">Billboard Hot 100</string>
+    <string name="top_artists">Meilleurs Artistes</string>
+    <string name="page_indicator">%1$d de %2$d</string>
     <string name="top_result">Meilleur Résultat</string>
     <string name="other_results">Autre</string>
+	<string name="parsed_from_link">À partir du lien</string>
     <string name="album_text">Album</string>
 	<string name="by_text">Par </string>
 	<string name="artist">Artiste </string>
@@ -30,10 +37,14 @@
     <string name="liked">Favoris</string>
     <string name="offline">Hors-Ligne</string>
     <string name="my_top">Mon Top</string>
-    <string name="cached_playlist">Mise en Cache</string>
+    <string name="cached_playlist">En Cache</string>
     <string name="uploaded_playlist">Téléchargés</string>
     <string name="filter_uploaded">Téléchargés</string>
     <string name="sync_playlist">Synchroniser la playlist</string>
+	<string name="syncing_progress">Synchronisation de %1$d des %2$d titres</string>
+    <string name="playlist_uploaded">Playlist téléchargée avec succès</string>
+    <string name="sync_completed_success">%1$d titres ont été synchronisés avec succès</string>
+    <string name="sync_completed_partial">%1$d titres synchronisés sur %2$d</string>
     <string name="sync_disabled">Synchronisation désactivée</string>
     <string name="elements_selected">%1$d éléments sélectionnés</string>
     <string name="allows_for_sync_witch_youtube">Remarque : cela permet la synchronisation avec YouTube Music. Ce paramètre ne pourra pas être modifié ultérieurement.</string>
@@ -96,10 +107,22 @@
     <string name="thumbnail_corner_radius_desc">Modifier le rayon des coins de la miniature de la pochette de l\'album</string>
     <string name="crop_album_art">Recadrer la pochette d\'album</string>
     <string name="crop_album_art_desc">Forcer un format carré en recadrant les miniatures vidéo</string>
-    <string name="vivimusic_canvas">Toile</string>
-    <string name="vivimusic_canvas_desc">Afficher les pochettes d\'album animées lorsqu\'elles sont disponibles</string>
-	<string name="show_album_canvas">Afficher l\'album toile</string>
+    <string name="vivimusic_canvas">Canvas</string>
+	<string name="use_canvas">Utiliser Canvas</string>
+    <string name="vivimusic_canvas_desc">Remplace la pochette d\'album statique dans le lecteur par une vidéo animée en boucle lorsqu\'une telle vidéo est disponible pour le titre en cours</string>
+    <string name="canvas_source">Code source de Canvas</string>
+    <string name="canvas_source_auto">Automatique</string>
+    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Vivi Music et Tidal. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
+    <string name="canvas_source_apple_music">Apple Music</string>
+    <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une image que si Apple Music en propose une pour le titre en cours de lecture.</string>
+    <string name="canvas_source_vivimusic">Vivi Music</string>
+    <string name="canvas_source_vivimusic_desc">Utilise exclusivement la bibliothèque de toiles sélectionnés par Vivi Music. N\'affiche une image que si elle a été ajoutée pour le titre en cours de lecture.</string>
+    <string name="canvas_source_tidal">Tidal</string>
+    <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une image que si Tidal en propose une pour le titre en cours de lecture.</string>
+    <string name="show_album_canvas">Afficher la page d\'accueil de l\'album</string>
     <string name="show_album_canvas_desc">Afficher une toile animée dans l\'album</string>
+    <string name="rotating_thumbnail">Vignette tournante</string>
+    <string name="rotating_thumbnail_desc">Activer un effet d\'animation avec rotation des vignettes</string>
 
     <string name="already_in_playlist">Déjà dans la playlist :</string>
 
@@ -133,6 +156,7 @@
     <string name="follow_theme">Suivre le thème</string>
     <string name="gradient">Dégradé</string>
     <string name="glow_animated">Animation lumineuse</string>
+	<string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">Nouveau design du lecteur</string>
     <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
     <string name="player_background_blur">Flou</string>
@@ -206,6 +230,8 @@
     <string name="configure_supported_links">Configurer les liens pris en charge</string>
     <string name="intent_supported_links_not_found">Impossible de trouver les paramètres des liens pris en charge, veuillez les configurer manuellement.</string>
     <string name="set_first_lyrics_provider">Fournisseur de paroles préféré</string>
+	<string name="lyrics_provider_priority">Priorité au fournisseur de paroles</string>
+    <string name="lyrics_provider_priority_desc">Faites glisser pour choisir l\'ordre dans lequel les fournisseurs seront testés</string>
     <string name="config_proxy">Configurer le proxy</string>
     <string name="proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="proxy_password">Mot de passe proxy</string>
@@ -239,6 +265,10 @@
     <string name="clear_song_cache_dialog">  Êtes-vous sûr de vouloir effacer tous les titres mis en cache ?</string>
     <string name="clear_image_cache_dialog">  Êtes-vous sûr de vouloir effacer toutes les images mises en cache ?</string>
     <string name="clear_downloads_dialog">  Êtes-vous sûr de vouloir effacer tous les téléchargements ?</string>
+	<string name="logout_dialog_title">Se déconnecter</string>
+    <string name="logout_dialog_message">Souhaitez-vous conserver toutes les bibliothèques et tout le reste ?</string>
+    <string name="logout_keep_data">Conserver les données</string>
+    <string name="logout_clear_data">Effacer les données</string>
 
     <string name="disable">Désactiver</string>
 
@@ -257,6 +287,14 @@
     <string name="past_year">Année écoulée</string>
     <string name="top_length">Longueur de ma liste préférée</string>
     <string name="history_duration">Durée de l\'historique</string>
+	<string name="activity_history">Résumé de l\'écoute</string>
+    <string name="total_listening_time">Durée totale d\'écoute</string>
+    <string name="unique_songs">Titres uniques</string>
+    <string name="unique_artists">Artistes uniques</string>
+    <string name="unique_albums">Albums uniques</string>
+    <string name="selected_period">Période sélectionnée</string>
+    <string name="hours_minutes_format">%1$dh %2$dm</string>
+	
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="numbers">Nombres</string>
@@ -377,6 +415,7 @@
     <string name="equalizer_desc">Régler l\'égaliseur audio</string>
     <string name="enable_dynamic_icon">Activer l\'icône d\'application dynamique</string>
     <string name="mini_player">Mini-lecteur</string>
+	<string name="miniplayer_background_style">Style d\'arrière-plan du mini-lecteur</string>
     <string name="pure_black_mini_player">Mini-lecteur noir pur</string>
     <string name="mini_player_outline">Contour du mini-lecteur</string>
     <string name="cache_size_warning_title">Attendez !</string>
@@ -463,6 +502,47 @@ est irréversible.
     <string name="import_error_title">Erreur d\'importation</string>
     <string name="error_title">Erreur</string>
     <string name="error_eq_apply_failed">Échec de l\'application du profil d\'égalisation : %1$s</string>
+
+	<!-- ViviEqualizer Strings -->
+    <string name="vivi_equalizer">Vivi Equalizer</string>
+    <string name="vivi_equalizer_desc">Réglage acoustique de qualité professionnelle &amp; Effets</string>
+    <string name="eq_simple">Simple</string>
+    <string name="eq_advanced">Avancé</string>
+    <string name="eq_label_bass">Basse</string>
+    <string name="eq_label_mid">Milieux</string>
+    <string name="eq_label_treble">Aigus</string>
+    <string name="eq_preset_flat">Plat</string>
+    <string name="eq_preset_vivi_signature">Vivi Signature</string>
+    <string name="eq_preset_acoustic">Acoustique</string>
+    <string name="eq_preset_spatial">Scène 3D</string>
+    <string name="eq_preset_bass_boost">Amplification des Basses</string>
+    <string name="eq_preset_pure_clarity">Clarté Absolue</string>
+    <string name="eq_preset_soft_bass">Soft Bass</string>
+    <string name="eq_preset_electronic">Électronique</string>
+    <string name="eq_preset_rock">Rock</string>
+    <string name="eq_preset_pop">Pop</string>
+    <string name="eq_preset_jazz">Jazz</string>
+    <string name="eq_preset_voice">Voix</string>
+    <string name="eq_preset_dolby_open">Dolby Open</string>
+    <string name="eq_preset_dolby_rich">Dolby Rich</string>
+    <string name="eq_preset_dolby_focused">Spécial Dolby</string>
+    <string name="eq_preset_dirac_music">Dirac Music</string>
+    <string name="eq_preset_dirac_movie">Dirac Movie</string>
+    <string name="eq_preset_dirac_game">Dirac Game</string>
+    <string name="eq_enable_title">Vivi Equalizer</string>
+    <string name="eq_enable_summary">Activer le traitement audio professionnel</string>
+    <string name="eq_label_vivi">Vivi Signature</string>
+    <string name="eq_label_dolby">Dolby Atmos</string>
+    <string name="eq_label_dirac">Dirac Audio</string>
+    <string name="eq_reset">Réinitialiser</string>
+    <string name="eq_label_custom">Personnalisé</string>
+    <string name="eq_save">Enregistrer</string>
+    <string name="eq_save_dialog_title">Enregistrer le préréglage</string>
+    <string name="eq_save_name_hint">Nom du préréglage</string>
+    <string name="eq_profile_saved">Préréglage enregistré</string>
+    <string name="eq_manage_presets">Gérer les préréglages</string>
+    <string name="eq_delete_selected">Supprimer</string>
+    <string name="eq_no_custom_presets">Aucun préréglage personnalisé n\'a été trouvé</string>
 
     <!-- Hardcoded strings -->
     <string name="found_in_settings_content">Dans les Paramètres &gt; Contenu</string>
@@ -796,12 +876,128 @@ est irréversible.
     <string name="version_code">Code de version</string>
     <string name="namespace">Espace de noms</string>
     <string name="telegram_channel">Telegram</string>
+
+	<!-- Onboarding -->
+    <string name="welcome_to">Bienvenue sur</string>
+	<string name="welcome_to_vivi">Bienvenue sur Vivi Music</string>
+    <string name="accessibility">Accessibilité</string>
+    <string name="welcome_preparing_subtitle">Nous allons tout préparer pour vous.</string>
+    <string name="get_started">C\'est parti !</string>
+
+    <string name="perm_required">Obligatoire</string>
+    <string name="perm_permissions">Autorisations</string>
+    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de Vivi Music. Veuillez les accorder pour continuer.</string>
+
+    <string name="perm_notif_title">Notifications</string>
+    <string name="perm_notif_desc">Sachez immédiatement quand votre musique est en cours de lecture et contrôlez-la depuis la barre de notifications.</string>
+
+    <string name="perm_install_title">Installation de l\'application</string>
+    <string name="perm_install_desc">Nécessaire pour télécharger et installer les mises à jour de l\'application en toute simplicité.</string>
+
+    <string name="feat_discover">Découverte</string>
+    <string name="feat_features">Caractéristiques</string>
+    <string name="feat_intro">Découvrez tout ce que Vivi Music a à vous offrir pour votre parcours musical.</string>
+
+    <string name="feat_lyrics_title">Paroles Intelligentes</string>
+    <string name="feat_lyrics_desc">Profitez des paroles synchronisées, mot à mot, de millions de titres.</string>
+
+    <string name="feat_download_title">Lecture hors-ligne</string>
+    <string name="feat_download_desc">Téléchargez vos titres préférés et écoutez-les où vous voulez, quand vous voulez.</string>
+
+    <string name="feat_quality_title">Qualité Premium</string>
+    <string name="feat_quality_desc">Écoutez en streaming et téléchargez.</string>
+
+    <string name="feat_update_title">Mises à jour dynamiques</string>
+    <string name="feat_update_desc">Restez toujours à jour grâce à notre outil de mise à jour intégré.</string>
+
+    <string name="feat_license_title">Licence</string>
+    <string name="feat_license_desc">Licence publique générale v3.0</string>
+    <string name="feat_github_title">GitHub</string>
+    <string name="feat_github_desc">Projet open source</string>
+
     <string name="join_telegram">Rejoignez notre chaîne Telegram</string>
-    <string name="commits_title">Engagements</string>
-    <string name="error_loading_commits">Impossible de charger les engagements car vous ne m\'avez pas payé.</string>
-    <string name="commits">Engagements</string>
-    <string name="view_commit_history">Consultez les modifications récentes sur la branche principale.</string>
-	<string name="suggestions">Suggestions</string>
+    <string name="welcome_update_check">Rester</string>
+    <string name="welcome_update_status">Mise à jour</string>
+    <string name="welcome_update_intro">Pour vous garantir les dernières fonctionnalités et les dernières améliorations en matière de sécurité.</string>
+    <string name="welcome_checking_updates">Recherche de mises à jour…</string>
+    <string name="welcome_up_to_date">Vivi Music est à jour !</string>
+    <string name="welcome_update_available">Une nouvelle version est disponible : %s</string>
+    <string name="welcome_everything_ready">Tout est désormais à jour</string>
+    <string name="commits_title">Commits</string>
+    <string name="error_loading_commits">Impossible de charger les commits car vous ne m\'avez pas payé !</string>
+    <string name="commits">Commits</string>
+    <string name="view_commit_history">Consulter les modifications récentes sur la branche principale</string>
+    <string name="suggestions">Suggestions</string>
     <string name="comments">Commentaires</string>
     <string name="no_comments">Aucun commentaire trouvé</string>
+    <string name="type_message">Écrivez un message…</string>
+    <string name="send">Envoyer</string>
+    <string name="clear_downloaded_updates_auto_info">Il sera supprimé automatiquement au bout d\'un jour.</string>
+    <string name="update_info_badge">Informations &amp; Conseils</string>
+    <string name="update_info_title">Informations sur la mise à jour</string>
+    <string name="manual_delete_hint_title">Nettoyage manuel</string>
+    <string name="manual_delete_hint_desc">Vous pouvez également les supprimer manuellement. La suppression des anciens fichiers APK permettra au programme de mise à jour de fonctionner correctement.</string>
+
+    <!-- Playback Log -->
+    <string name="logs_heading">Journaux</string>
+    <string name="playback_logs">Journaux de lecture</string>
+    <string name="playback_logs_desc">Afficher la résolution des flux en temps réel et les événements liés à la lutte contre les bots</string>
+    <string name="playback_logs_title">Journaux de lecture</string>
+    <string name="no_playback_logs">Aucun événement de lecture n\'a encore été enregistré</string>
+    <string name="show_comment_button">Afficher le bouton « Commentaire »</string>
+    <string name="show_comment_button_description">Afficher un bouton permettant de consulter les commentaires dans la file d\'attente du lecteur</string>
+    <string name="build_stable">STABLE</string>
+    <string name="build_nightly">NIGHTLY</string>
+    <string name="jiosaavn_settings">Paramètres de JioSaavn</string>
+    <string name="jiosaavn_streaming_disabled">Désactivé</string>
+    <string name="jiosaavn_beta_info">Cette fonctionnalité est actuellement en version bêta ; veuillez ne pas signaler de problèmes liés à JioSaavn. Si JioSaavn est activé et qu\’un morceau n\’est pas disponible sur cette plateforme, YouTube Music sera utilisé comme source alternative. Le téléchargement à 320 kbps est également pris en charge lors de l\’utilisation de JioSaavn.</string>
+
+	<!-- Spotify Import -->
+    <string name="spotify">Spotify</string>
+    <string name="import_action">Importer</string>
+    <string name="enable_spotify_import">Importer depuis Spotify</string>
+    <string name="import_from_spotify">Importer depuis Spotify</string>
+    <string name="spotify_connect">Connectez-vous avec Spotify</string>
+    <string name="spotify_not_connected">Non connecté à Spotify</string>
+    <string name="spotify_connected_as">Connecté en tant que %s</string>
+    <string name="spotify_account">Compte Spotify</string>
+    <string name="spotify_loading_library">Chargement des playlists Spotify…</string>
+    <string name="spotify_select_sources">Sélectionnez les playlists à importer</string>
+    <string name="spotify_no_sources">Aucune playlist trouvée</string>
+    <string name="spotify_available_count">%d playlists disponibles</string>
+    <string name="spotify_import_selected">Importer la sélection</string>
+    <string name="spotify_selected_count">%d playlists sélectionnées</string>
+    <string name="spotify_refresh">Actualiser les playlists</string>
+    <string name="spotify_import_desc">Importez facilement vos playlists Spotify et vos morceaux favoris dans votre bibliothèque. L\'application recherchera automatiquement sur YouTube les titres les plus pertinents et les ajoutera à vos playlists locales, vous permettant ainsi d\'accéder à toute votre musique au même endroit.</string>
+	<string name="spotify_liked_songs">Titres Favoris</string>
+    <string name="spotify_track_count">%d titres</string>
+    <string name="spotify_login_title">Connexion à Spotify</string>
+    <string name="spotify_waiting_for_login">Veuillez vous connecter à votre compte Spotify dans le navigateur ci-dessous.</string>
+    <string name="spotify_clear_selection">Effacer</string>
+    <string name="spotify_select_all">Tout sélectionner</string>
+    <string name="spotify_liked_songs_desc">Vos titres préférés sur Spotify</string>
+    <string name="spotify_import_progress_step">Importation de %1$s (%2$d/%3$d)…</string>
+    <string name="spotify_import_complete">Importation terminée</string>
+    <string name="spotify_import_finished">Importation terminée</string>
+    <string name="spotify_importing_songs_count">Importation de %1$d des %2$d titres</string>
+    <string name="spotify_imported_songs_count">Importation terminée de %1$d des %2$d titres</string>
+    <string name="spotify_import_summary">%1$d playlist importées : %2$d titres correspondants, %3$d titres non trouvés.</string>
+    <string name="spotify_source_summary">\"%1$s\" : %2$d titres sur %3$d correspondent</string>
+    <string name="spotify_import_in_progress">Importation depuis Spotify</string>
+    <string name="spotify_login_desc">La connexion à Spotify s\'effectue entièrement en local. Vos identifiants de session ne sont enregistrés que sur votre appareil.</string>
+
+	<string name="app_font">Police de l\'application</string>
+    <string name="font_selection">Sélection de la police</string>
+    <string name="font_system">Paramètres par défaut du système</string>
+    <string name="font_google_sans">Google Sans</string>
+    <string name="font_sans_flex">Sans Flex</string>
+    <string name="font_outfit">Tenue</string>
+    <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+    <string name="typography_preview">Aperçu typographique</string>
+    <string name="preview_text_quote">\"Quand les mots manquent, la musique prend le relais.\"</string>
+    <string name="font_system_desc">Utilisez la police par défaut du système.</string>
+    <string name="font_google_sans_desc">La police sans empattement géométrique emblématique de Google.</string>
+    <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
+    <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
+    <string name="font_plus_jakarta_sans_desc">Une police sans empattement géométrique haut de gamme aux lignes chaleureuses.</string>
 </resources>
