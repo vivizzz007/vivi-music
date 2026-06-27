@@ -146,7 +146,7 @@
     <string name="edit_lyrics">歌詞を編集</string>
     <string name="search_lyrics">歌詞を検索</string>
     <string name="lyrics_swipe_to_change_song">スワイプして曲を変更</string>
-    <string name="lyrics_swipe_to_change_song_desc">フルスクリーン歌詞のアーティスト名と曲名部分を左右にスワイプして曲を変更します</string>
+    <string name="lyrics_swipe_to_change_song_desc">フルスクリーン歌詞画面で下部のミニプレーヤーを左右にスワイプすると曲が切り替わります</string>
     <string name="lyrics_thumbnail_play_pause">サムネイルに再生/一時停止を表示</string>
     <string name="lyrics_thumbnail_play_pause_desc">フルスクリーン歌詞の曲のサムネイルに再生/一時停止ボタンをオーバーレイ表示します</string>
 
