@@ -431,4 +431,11 @@
     <string name="last_backed_up">Dernière sauvegarde : %s</string>
     <string name="never_backed_up">Jamais</string>
     <string name="autobackup_settings">Paramètres de sauvegarde automatique</string>
+    <string name="new_release_notifications">Alertes de nouvelles sorties</string>
+    <string name="new_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous avez ajoutés à vos favoris sortent de nouveaux titres ou de nouveaux albums (version bêta)</string>
+    <string name="new_release_channel_name">Nouveautés</string>
+    <string name="new_release_channel_desc">Notifications concernant les nouvelles sorties de vos artistes favoris</string>
+    <string name="new_release_notifications_info">Sur certains appareils (Samsung, Xiaomi, etc.), l\'optimisation de la batterie peut retarder ou bloquer les notifications en arrière-plan. Pour vous assurer de recevoir vos alertes en temps voulu, configurez Vivi Music sur « Utilisation de la batterie sans restriction » dans les paramètres de votre appareil.</string>
+    <string name="taste_based_release_notifications">Alertes de sortie basées sur les goûts</string>
+    <string name="taste_based_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous écoutez régulièrement sortent de nouveaux titres ou de nouveaux albums</string>
 </resources>
