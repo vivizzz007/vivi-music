@@ -118,7 +118,7 @@
     <string name="remove_from_queue">キューから削除</string>
     <string name="search_online">オンラインで検索</string>
     <string name="action_sync">同期</string>
-    <string name="advanced">高度</string>
+    <string name="advanced">高度な設定</string>
     <string name="tempo_and_pitch">速度とピッチ</string>
 
     <!-- Sort menu -->
