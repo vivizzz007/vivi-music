@@ -12,10 +12,7 @@ import timber.log.Timber
  *
  * - **Google CDN** (`googleusercontent.com`, `ggpht.com`): rewrites the
  *   dimension query parameters to request the exact size from the CDN.
- * - **YouTube (`i.ytimg.com`)**: reconstructs the URL at a safe quality level
- *   (`hqdefault.jpg` or `mqdefault.jpg`). Higher qualities like `sddefault` and
- *   `maxresdefault` are intentionally avoided — they don't exist for many
- *   YouTube Music tracks and would cause 404 → blank image. Any remaining 404s
+ * - **YouTube (`i.ytimg.com`)**: scales the thumbnail quality suffix based on requested size.
  * - **Everything else**: returned unchanged.
  */
 fun String.resize(
@@ -54,69 +51,26 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?): String {
     }
 }
 
-/**
- * Reconstructs an `i.ytimg.com` thumbnail URL using the **WebP** format for
- * faster loading (~30% smaller than JPEG at the same visual quality).
- *
- * YouTube serves WebP thumbnails via the `vi_webp/` path. If WebP isn't
- *
- * Quality tiers:
- * - width ≥ 800 → `maxresdefault.webp` (1280×720) — player
- * - width ≥ 320 → `hqdefault.webp`    (480×360) — list items
- * - smaller     → `mqdefault.webp`    (320×180)
- */
 private fun String.resizeYtimg(width: Int?, height: Int?): String {
     val w = width ?: height!!
+    val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1) ?: return this
 
-    val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1)
-        ?: run {
-            Timber.w("[Thumbnail] Could not extract video ID from ytimg URL: %s", this)
-            return this
+    return when {
+        w >= 800 -> {
+            // Player artwork: Request HD maxresdefault if it exists, otherwise fall back to hqdefault
+            if (this.contains("maxresdefault") || this.contains("sddefault")) {
+                "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
+            } else {
+                "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+            }
         }
-
-    // Identify the original quality tier from the current URL to prevent upscaling beyond it.
-    // The original URL contains the maximum quality available on YouTube's servers.
-    val originalTier = when {
-        this.contains("maxresdefault") -> "maxresdefault"
-        this.contains("sddefault")     -> "sddefault"
-        this.contains("hqdefault")     -> "hqdefault"
-        this.contains("mqdefault")     -> "mqdefault"
-        else                           -> "default"
-    }
-
-    val tierRanks = mapOf(
-        "maxresdefault" to 4,
-        "sddefault"     to 3,
-        "hqdefault"     to 2,
-        "mqdefault"     to 1,
-        "default"       to 0
-    )
-
-    // Determine target quality tier based on requested width
-    val requestedTier = when {
-        w >= 800 -> "maxresdefault"
-        w >= 640 -> "sddefault"
-        w >= 320 -> "hqdefault"
-        w >= 120 -> "mqdefault"
-        else     -> "default"
-    }
-
-    val originalRank = tierRanks[originalTier] ?: 0
-    val requestedRank = tierRanks[requestedTier] ?: 0
-    val targetRank = minOf(originalRank, requestedRank)
-
-    val targetTier = when (targetRank) {
-        4 -> "maxresdefault"
-        3 -> "sddefault"
-        2 -> "hqdefault"
-        1 -> "mqdefault"
-        else -> "default"
-    }
-
-    // For default quality, use JPEG. For higher qualities, use WebP for faster loading.
-    return if (targetTier == "default") {
-        "https://i.ytimg.com/vi/$videoId/default.jpg"
-    } else {
-        "https://i.ytimg.com/vi_webp/$videoId/$targetTier.webp"
+        w >= 320 -> {
+            // List items (like 544px): hqdefault is guaranteed to exist and is sharp
+            "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+        }
+        else -> {
+            // Small thumbnails: mqdefault is guaranteed to exist and loads fast
+            "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+        }
     }
 }
