@@ -714,10 +714,11 @@ suspend fun checkForUpdate(
 
             var isNightlyUpdate = false
             var nightlyRunObject: JSONObject? = null
+            val nightlyChangelog = mutableListOf<String>()
 
             if (betaEnabled) {
                 try {
-                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=1")
+                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
                     val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
                     val nightlyData = JSONObject(nightlyJson)
                     val runs = nightlyData.optJSONArray("workflow_runs")
@@ -749,6 +750,25 @@ suspend fun checkForUpdate(
                         if (isNewer) {
                             isNightlyUpdate = true
                             nightlyRunObject = firstRun
+
+                            // Collect commits from runs that are newer than the currently installed nightly run
+                            for (i in 0 until runs.length()) {
+                                val run = runs.getJSONObject(i)
+                                val rNum = run.optInt("run_number", -1)
+                                val shouldInclude = if (lastInstalledRun != -1) {
+                                    rNum > lastInstalledRun
+                                } else {
+                                    i < 15
+                                }
+                                if (shouldInclude) {
+                                    val headCommit = run.optJSONObject("head_commit")
+                                    val commitMessage = headCommit?.optString("message")
+                                    if (!commitMessage.isNullOrBlank()) {
+                                        val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                                        nightlyChangelog.add("r$rNum: $subjectLine")
+                                    }
+                                }
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -762,13 +782,13 @@ suspend fun checkForUpdate(
                 val displayTag = "nightly-r$runNumber"
                 
                 val changelogList = mutableListOf<ChangelogSection>()
-                val headCommit = nightlyRunObject.optJSONObject("head_commit")
-                val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
-                // Only use the subject line (first line) of the commit message.
-                // Git commit bodies (lines after the blank separator) are implementation
-                // details and should not appear as separate changelog bullet points.
-                val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
-                changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(subjectLine)))
+                if (nightlyChangelog.isEmpty()) {
+                    val headCommit = nightlyRunObject.optJSONObject("head_commit")
+                    val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
+                    val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                    nightlyChangelog.add("r$runNumber: $subjectLine")
+                }
+                changelogList.add(ChangelogSection(context.getString(R.string.changelog), nightlyChangelog))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
                 val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
