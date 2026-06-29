@@ -806,6 +806,7 @@ fun HomeScreen(
     val homeSections = remember(
         randomizeHomeOrder,
         randomSeed,
+        selectedChip,
         speedDialItems,
         quickPicks,
         dailyDiscover,
@@ -818,17 +819,20 @@ fun HomeScreen(
         explorePage?.moodAndGenres
     ) {
         val list = mutableListOf<HomeSection>()
+        val chipActive = selectedChip != null
 
-        if (speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
-        if (quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
-        if (communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
-        if (dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
-        if (keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
-        if (accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
-        if (forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
+        if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
+        if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+        if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
+        if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
+        if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
+        if (!chipActive && accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
+        if (!chipActive && forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
 
-        similarRecommendations?.indices?.forEach { i ->
-            list.add(HomeSection.SimilarRecommendation(i))
+        if (!chipActive) {
+            similarRecommendations?.indices?.forEach { i ->
+                list.add(HomeSection.SimilarRecommendation(i))
+            }
         }
 
         homePage?.sections?.indices?.forEach { i ->
