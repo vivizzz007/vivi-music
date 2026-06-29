@@ -34,6 +34,14 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Inject JioSaavn Code
+        env:
+          JIOSAAVN_CODE: ${{ secrets.JIOSAAVN_CODE }}
+        run: |
+          if [ -n "$JIOSAAVN_CODE" ]; then
+            echo "$JIOSAAVN_CODE" | base64 --decode > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
+          fi
+
       - name: Generate debug.keystore
         run: |
           mkdir -p ~/.android

@@ -182,7 +182,9 @@ object YTPlayerUtils {
 
                     if (title.isBlank()) return@runCatching null
 
-                    Timber.tag(TAG).d("Saavn: resolved title=\"$title\" artists=$artistNames for videoId=$videoId")
+                    val expectedDuration = meta?.videoDetails?.lengthSeconds?.toIntOrNull()
+
+                    Timber.tag(TAG).d("Saavn: resolved title=\"$title\" artists=$artistNames duration=$expectedDuration s for videoId=$videoId")
 
                     val albumName = currentSong?.album?.name.orEmpty()
                     val wantedTitleLower = title.lowercase(java.util.Locale.US)
@@ -218,14 +220,17 @@ object YTPlayerUtils {
                                     candidateArtist.contains(wanted) || wanted.contains(candidateArtist)
                                 }
                             }
-                            
-                            val isMatch = titleMatches && artistMatches
-                            if (isMatch) {
-                                Timber.tag(TAG).d("Saavn: candidate matched: \"${candidate.name}\" on album \"${candidate.album?.name}\" by ${candidate.artists.primary.joinToString { it.name }}")
+                            val durationMatches = if (expectedDuration != null && candidate.duration != null) {
+                                java.lang.Math.abs(expectedDuration - candidate.duration!!) <= 12
                             } else {
-                                Timber.tag(TAG).d("Saavn: candidate rejected (name/artist mismatch): \"${candidate.name}\" on album \"${candidate.album?.name}\" by ${candidate.artists.primary.joinToString { it.name }}")
+                                true
                             }
-                            isMatch
+
+                            if (titleMatches && artistMatches && !durationMatches) {
+                                Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" matches title/artist but duration differs too much (YT: $expectedDuration s, Saavn: ${candidate.duration} s)")
+                            }
+
+                            titleMatches && artistMatches && durationMatches
                         }
                     }
 
@@ -262,11 +267,10 @@ object YTPlayerUtils {
                         return@runCatching null
                     }
 
-                    // Optimization: Skip synchronous HTTP HEAD request to get content length during playback.
-                    // ExoPlayer parses the content length automatically from HTTP GET response headers on buffer.
-                    val contentLength: Long? = null
+                    // Resolve the actual content length using a lightweight Range query
+                    val contentLength = SaavnService.getContentLength(streamUrl)
 
-                    Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) for videoId=$videoId")
+                    Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) resolved contentLength=$contentLength for videoId=$videoId")
                     // Return a minimal PlaybackData using the Saavn URL.
                     // Reuse the YouTube metadata already fetched in Step 1 — no second
                     // network call needed. This keeps audioConfig/videoDetails/playbackTracking

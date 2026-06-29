@@ -1996,6 +1996,27 @@ class MusicService :
                         playbackData.streamUrl to
                             System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
+
+                    playbackData.format?.let { format ->
+                        val loudnessDb = playbackData.audioConfig?.loudnessDb
+                        val perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb
+                        database.query {
+                            upsert(
+                                FormatEntity(
+                                    id = nextMediaId,
+                                    itag = format.itag,
+                                    mimeType = format.mimeType.split(";")[0],
+                                    codecs = format.mimeType.split("codecs=").getOrNull(1)?.removeSurrounding("\"") ?: "mp3",
+                                    bitrate = format.bitrate,
+                                    sampleRate = format.audioSampleRate,
+                                    contentLength = format.contentLength ?: 0L,
+                                    loudnessDb = loudnessDb,
+                                    perceptualLoudnessDb = perceptualLoudnessDb,
+                                    playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                                )
+                            )
+                        }
+                    }
                 }
             } ?: Timber.tag(TAG).d("[Prefetch] Could not resolve stream URL for $nextMediaId — will resolve on demand")
         }
