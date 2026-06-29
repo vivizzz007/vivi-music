@@ -36,8 +36,13 @@ jobs:
         env:
           JIOSAAVN_CODE: ${{ secrets.JIOSAAVN_CODE }}
         run: |
-          if [ -n "$JIOSAAVN_CODE" ]; then
-            echo "$JIOSAAVN_CODE" | base64 --decode > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
+          if [ -z "$JIOSAAVN_CODE" ]; then
+            echo "Warning: JIOSAAVN_CODE secret is empty!"
+          else
+            echo "$JIOSAAVN_CODE" > b64.txt
+            base64 -d b64.txt > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
+            rm b64.txt
+            echo "JioSaavn injected successfully. File line count: $(wc -l < jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt)"
           fi
 
       - name: Generate debug.keystore if not exists
