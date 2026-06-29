@@ -209,7 +209,8 @@ object YTPlayerUtils {
                     suspend fun findMatch(searchQuery: String): com.music.jiosaavn.SaavnSong? {
                         if (searchQuery.isBlank()) return null
                         Timber.tag(TAG).d("Saavn: searching with query: \"$searchQuery\"")
-                        val songs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
+                        val rawSongs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
+                        val songs = rawSongs.sortedByDescending { it.explicitContent }
                         return songs.firstOrNull { candidate ->
                             val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US)
                             val candidateArtists = candidate.artists.primary.map { it.name.lowercase(java.util.Locale.US) }
