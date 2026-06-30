@@ -172,10 +172,7 @@ object YTPlayerUtils {
                         currentSong.artists.map { it.name }
                     } else {
                         listOf(
-                            meta?.videoDetails?.author.orEmpty()
-                                .replace(Regex("(?i)\\s*-\\s*topic\\b"), "")
-                                .replace(Regex("(?i)\\s*VEVO\\b"), "")
-                                .trim()
+                            meta?.videoDetails?.author.orEmpty().trim()
                         ).filter { it.isNotBlank() }
                     }
                     val artist = artistNames.joinToString(", ")
@@ -195,14 +192,10 @@ object YTPlayerUtils {
                     } else {
                         "$title $artist"
                     }
-                    .replace("&", " ")
-                    .replace(",", " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
                     val fallbackQuery = "$title $artist"
-                    .replace("&", " ")
-                    .replace(",", " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
