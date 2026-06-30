@@ -28,17 +28,46 @@ import kotlin.properties.ReadOnlyProperty
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key]
+    if (ViviPrefCache.isInitialized()) {
+        ViviPrefCache.get(key)
+    } else {
+        runBlocking(Dispatchers.IO) {
+            try {
+                kotlinx.coroutines.withTimeoutOrNull(1500) {
+                    data.first()[key]
+                }
+            } catch (e: Exception) {
+                null
+            }
+        }
     }
 
 fun <T> DataStore<Preferences>.get(
     key: Preferences.Key<T>,
     defaultValue: T,
 ): T =
-    runBlocking(Dispatchers.IO) {
-        data.first()[key] ?: defaultValue
+    if (ViviPrefCache.isInitialized()) {
+        ViviPrefCache.get(key) ?: defaultValue
+    } else {
+        runBlocking(Dispatchers.IO) {
+            try {
+                kotlinx.coroutines.withTimeoutOrNull(1500) {
+                    data.first()[key]
+                } ?: defaultValue
+            } catch (e: Exception) {
+                defaultValue
+            }
+        }
     }
+
+suspend fun <T> DataStore<Preferences>.getAsync(key: Preferences.Key<T>): T? =
+    ViviPrefCache.get(key) ?: data.first()[key]
+
+suspend fun <T> DataStore<Preferences>.getAsync(
+    key: Preferences.Key<T>,
+    defaultValue: T,
+): T =
+    ViviPrefCache.get(key) ?: data.first()[key] ?: defaultValue
 
 fun <T> preference(
     context: Context,
