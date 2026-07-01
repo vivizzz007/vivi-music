@@ -2430,6 +2430,28 @@ class MusicService :
     }
 
     /**
+     * Stops the player, clears all caches for the current song on the IO thread,
+     * then restarts playback — ensuring no stale cache data causes parse errors.
+     * Safe to call from the main thread (UI).
+     */
+    fun retryCurrentStream() {
+        val mediaId = player.currentMediaItem?.mediaId ?: return
+
+        // Stop player before touching the cache so ExoPlayer isn't mid-read
+        player.stop()
+
+        // Clear all caches synchronously on IO — must finish before prepare()
+        runBlocking(Dispatchers.IO) {
+            performAggressiveCacheClear(mediaId)
+        }
+
+        // Now safe to restart — ExoPlayer will fetch a fresh stream
+        player.seekTo(0)
+        player.prepare()
+        player.play()
+    }
+
+    /**
      * Checks if a song has exceeded the retry limit.
      */
     private fun hasExceededRetryLimit(mediaId: String): Boolean {

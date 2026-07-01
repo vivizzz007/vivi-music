@@ -454,10 +454,7 @@ fun OldPlayerMenu(
                                 )
                             },
                             onClick = {
-                                val player = playerConnection.player
-                                player.seekTo(0)
-                                player.prepare()
-                                player.play()
+                                playerConnection.service.retryCurrentStream()
                                 onDismiss()
                             }
                         )
