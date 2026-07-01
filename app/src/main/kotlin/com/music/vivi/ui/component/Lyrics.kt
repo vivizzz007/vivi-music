@@ -657,14 +657,13 @@ fun Lyrics(
         }
     }
 
-    suspend fun performSmoothPageScroll(targetIndex: Int, duration: Int = 1500) {
-        if (isAnimating) return // Prevent multiple animations
+    suspend fun performSmoothPageScroll(targetIndex: Int, duration: Int = 700) {
         isAnimating = true
         try {
             val lookUpIndex = if (isLyricsProviderShown) targetIndex + 1 else targetIndex
             val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == lookUpIndex }
             if (itemInfo != null) {
-                // Item is visible, animate directly to center without sudden jumps
+                // Item is visible — animate directly to center with smooth deceleration
                 val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
                 val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
                 val itemCenter = itemInfo.offset + itemInfo.size / 2
@@ -672,11 +671,11 @@ fun Lyrics(
                 if (kotlin.math.abs(offset) > 10) {
                     lazyListState.animateScrollBy(
                         value = offset.toFloat(),
-                        animationSpec = tween(durationMillis = duration)
+                        animationSpec = tween(durationMillis = duration, easing = FastOutSlowInEasing)
                     )
                 }
             } else {
-                // Item is not visible, scroll to it first without animation, then it will be handled in next cycle
+                // Item not visible — jump to it so next cycle can animate from a visible position
                 lazyListState.scrollToItem(targetIndex)
             }
         } finally {
@@ -705,7 +704,7 @@ fun Lyrics(
                 if (currentLineIndex != previousLineIndex) {
                     // Calculate which line should be at the top to center the active group
                     val centerTargetIndex = currentLineIndex
-                    performSmoothPageScroll(centerTargetIndex, 1500) // Auto scroll duration
+                    performSmoothPageScroll(centerTargetIndex, 700) // Apple Music-like smooth flow
                 }
             }
         }
@@ -918,7 +917,7 @@ fun Lyrics(
                     key = { index, item -> "$index-${item.time}" } // Add stable key
                 ) { index, item ->
                     val isSelected = selectedIndices.contains(index)
-                    if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1 && item.words?.isNotEmpty() == true) {
+                    if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                         val currentLineTime = if (displayedCurrentLineIndex >= 0 && displayedCurrentLineIndex < lines.size) {
                             lines[displayedCurrentLineIndex].time
                         } else -1L
