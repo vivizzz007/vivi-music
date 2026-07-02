@@ -112,7 +112,7 @@
     <string name="vivimusic_canvas_desc">Remplace la pochette d\'album statique dans le lecteur par une vidéo animée en boucle lorsqu\'une telle vidéo est disponible pour le titre en cours</string>
     <string name="canvas_source">Code source de Canvas</string>
     <string name="canvas_source_auto">Automatique</string>
-    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Vivi Music et Tidal. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
+    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Tidal et Vivi Music. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une image que si Apple Music en propose une pour le titre en cours de lecture.</string>
     <string name="canvas_source_vivimusic">Vivi Music</string>
