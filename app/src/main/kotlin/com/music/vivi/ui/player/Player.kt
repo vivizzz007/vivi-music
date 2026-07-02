@@ -238,8 +238,6 @@ import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
-import com.music.vivi.ui.player.normalizeCanvasArtistName
-import com.music.vivi.ui.player.normalizeCanvasSongTitle
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -587,11 +585,11 @@ fun BottomSheetPlayer(
             val fetched = when (canvasSource) {
                 CanvasSource.AUTO -> {
                     AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
                         ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
+                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
                 }
                 CanvasSource.APPLE_MUSIC -> {
                     AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
@@ -616,28 +614,17 @@ fun BottomSheetPlayer(
             }
 
             val validated = fetched?.let { artwork ->
-                // Artist: split both sides by comma/ampersand/feat. and check if ANY local artist
-                // matches ANY returned artist — handles multi-artist tracks like
-                // "Metro Boomin, Travis Scott, Young Thug" vs Apple Music returning "Metro Boomin"
-                val localArtists = splitAndNormalizeArtists(requestedArtist)
-                val returnedArtists = splitAndNormalizeArtists(artwork.artist ?: "")
-                val artistMatches = localArtists.isNotEmpty() && returnedArtists.isNotEmpty() &&
-                    (localArtists.any { local -> returnedArtists.any { it.equals(local, ignoreCase = true) } })
-
-                val songMatches = artwork.name?.trim()
-                    ?.equals(requestedTitle.trim(), ignoreCase = true) == true
-                val albumMatches = artwork.albumName?.trim()
-                    ?.equals(requestedAlbum.trim(), ignoreCase = true) == true
+                // For AUTO mode validation is already done per-provider inside takeIf.
+                // For single-source modes this block acts as the safety net.
+                val passes = validateCanvasMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
 
                 android.util.Log.d("CanvasDebug", "Validation:")
-                android.util.Log.d("CanvasDebug", "  localArtists   : $localArtists")
-                android.util.Log.d("CanvasDebug", "  returnedArtists: $returnedArtists")
-                android.util.Log.d("CanvasDebug", "  artistMatches  : $artistMatches")
-                android.util.Log.d("CanvasDebug", "  songMatches    : $songMatches  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
-                android.util.Log.d("CanvasDebug", "  albumMatches   : $albumMatches  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
-                android.util.Log.d("CanvasDebug", "  RESULT         : ${artistMatches && songMatches && albumMatches}")
+                android.util.Log.d("CanvasDebug", "  artistMatches  : ${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}  ('${artwork.artist?.trim()}' vs '${requestedArtist.trim()}')")
+                android.util.Log.d("CanvasDebug", "  songMatches    : ${artwork.name.orEmpty().trim().equals(requestedTitle.trim(), ignoreCase = true)}  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
+                android.util.Log.d("CanvasDebug", "  albumMatches   : ${artwork.albumName.orEmpty().trim().equals(requestedAlbum.trim(), ignoreCase = true)}  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
+                android.util.Log.d("CanvasDebug", "  RESULT         : $passes")
 
-                if (artistMatches && songMatches && albumMatches) artwork else null
+                if (passes) artwork else null
             }
 
             android.util.Log.d("CanvasDebug", "Final validated: ${if (validated == null) "NULL (canvas will NOT show)" else "OK (canvas will show)"}")
