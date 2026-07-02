@@ -72,6 +72,7 @@
     <string name="from_your_library">From your library</string>
 
     <!-- Album screen -->
+    <string name="album_label">Album</string>
     <string name="other_versions">Other versions</string>
     <string name="album_description_placeholder">This is a placeholder description for the album. Enjoy listening to the tracks below!</string>
 
