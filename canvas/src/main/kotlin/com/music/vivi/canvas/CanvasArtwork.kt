@@ -13,6 +13,7 @@ data class CanvasArtwork(
     val static: String? = null,
     val animated: String? = null,
     val videoUrl: String? = null,
+    val animatedTall: String? = null,
 ) {
     val preferredAnimationUrl: String?
         get() = animated ?: videoUrl

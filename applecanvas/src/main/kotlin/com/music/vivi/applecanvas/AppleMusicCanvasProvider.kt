@@ -371,7 +371,8 @@ object AppleMusicCanvasProvider {
                 // 2. Check for immediate motion in search result
                 val ev = attributes["editorialVideo"]?.jsonObject
                 if (ev != null) {
-                    val hlsUrl = extractEditorialVideoUrl(ev)
+                    val hlsUrl = extractEditorialVideoUrl(ev, preferTall = false)
+                    val tallHlsUrl = extractEditorialVideoUrl(ev, preferTall = true)
                     if (!hlsUrl.isNullOrBlank()) {
                         val name = attributes["name"]?.jsonPrimitive?.contentOrNull
                         val collName = attributes["collectionName"]?.jsonPrimitive?.contentOrNull
@@ -379,7 +380,14 @@ object AppleMusicCanvasProvider {
                         // If this is an album result, use album name as both name and albumName
                         val resolvedAlbumName = if (type == "songs") collName else name
                         AppleCanvasLogger.d("Found direct editorialVideo for $name (ID: $targetAlbumId)")
-                        return@runCatching CanvasArtwork(name, resultArtistName, targetAlbumId, albumName = resolvedAlbumName, animated = hlsUrl)
+                        return@runCatching CanvasArtwork(
+                            name = name,
+                            artist = resultArtistName,
+                            albumId = targetAlbumId,
+                            albumName = resolvedAlbumName,
+                            animated = hlsUrl,
+                            animatedTall = tallHlsUrl
+                        )
                     }
                 }
 
@@ -456,10 +464,18 @@ object AppleMusicCanvasProvider {
             // Strategy 1: editorialVideo
             val ev = attributes?.get("editorialVideo")?.jsonObject
             if (ev != null) {
-                val url = extractEditorialVideoUrl(ev)
+                val url = extractEditorialVideoUrl(ev, preferTall = false)
+                val tallUrl = extractEditorialVideoUrl(ev, preferTall = true)
                 if (!url.isNullOrBlank()) {
                     AppleCanvasLogger.d("found editorialVideo for $finalTitle (album: $albumName, id: $albumId)")
-                    return@runCatching CanvasArtwork(finalTitle, finalArtist, albumId, albumName = albumName, animated = url)
+                    return@runCatching CanvasArtwork(
+                        name = finalTitle,
+                        artist = finalArtist,
+                        albumId = albumId,
+                        albumName = albumName,
+                        animated = url,
+                        animatedTall = tallUrl
+                    )
                 }
             }
 
@@ -471,13 +487,23 @@ object AppleMusicCanvasProvider {
         }.getOrNull()
     }
 
-    private fun extractEditorialVideoUrl(ev: JsonObject): String? {
-        val assets = listOf(
-            ev["motionDetailRaw"]?.jsonObject,
-            ev["motionDetailSquare"]?.jsonObject,
-            ev["motionDetailTall"]?.jsonObject,
-            ev["motionDetailStatic"]?.jsonObject // Fallback
-        ).filterNotNull()
+    private fun extractEditorialVideoUrl(ev: JsonObject, preferTall: Boolean = false): String? {
+        val order = if (preferTall) {
+            listOf(
+                ev["motionDetailTall"]?.jsonObject,
+                ev["motionDetailRaw"]?.jsonObject,
+                ev["motionDetailSquare"]?.jsonObject,
+                ev["motionDetailStatic"]?.jsonObject
+            )
+        } else {
+            listOf(
+                ev["motionDetailSquare"]?.jsonObject,
+                ev["motionDetailRaw"]?.jsonObject,
+                ev["motionDetailTall"]?.jsonObject,
+                ev["motionDetailStatic"]?.jsonObject
+            )
+        }
+        val assets = order.filterNotNull()
         
         for (asset in assets) {
             // Try different possible keys for the video URL
