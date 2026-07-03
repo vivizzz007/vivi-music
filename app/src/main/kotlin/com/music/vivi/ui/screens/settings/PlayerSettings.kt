@@ -294,6 +294,13 @@ fun PlayerSettings(
                     },
                     onClick = { navController.navigate("settings/player/jio") }
                 ))
+                // YouTube Extractor Settings
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.domino_mask),
+                    title = { Text(stringResource(R.string.youtube_decryption_settings)) },
+                    description = { Text(stringResource(R.string.youtube_decryption_desc)) },
+                    onClick = { navController.navigate("settings/player/cipher") }
+                ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
                     title = { Text(stringResource(R.string.crossfade)) },

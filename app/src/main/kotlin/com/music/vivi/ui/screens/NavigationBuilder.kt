@@ -52,6 +52,7 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.JioSettings
+import com.music.vivi.ui.screens.settings.CipherSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
@@ -374,6 +375,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/player/jio") {
         JioSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/player/cipher") {
+        CipherSettings(navController, scrollBehavior)
     }
 
     composable("settings/storage") {

@@ -120,6 +120,13 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
 val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
 
+// Cipher Deobfuscation settings
+val EnableAutoCipherFetchKey = booleanPreferencesKey("enableAutoCipherFetch")
+val CipherLastUpdatedKey = longPreferencesKey("cipher_last_updated")
+val CipherManualUpdate1Key = longPreferencesKey("cipher_manual_update_1")
+val CipherManualUpdate2Key = longPreferencesKey("cipher_manual_update_2")
+val CipherManualUpdate3Key = longPreferencesKey("cipher_manual_update_3")
+
 val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
 val NewReleaseNotificationsKey = booleanPreferencesKey("newReleaseNotifications")
 val TasteBasedReleaseNotificationsKey = booleanPreferencesKey("tasteBasedReleaseNotifications")

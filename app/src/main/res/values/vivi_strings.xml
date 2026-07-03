@@ -1000,4 +1000,25 @@
     <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
     <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
     <string name="font_plus_jakarta_sans_desc">A premium warm geometric sans-serif typeface.</string>
+
+    <!-- YouTube Decryption / Cipher Settings -->
+    <string name="youtube_decryption_settings">Vivi-Extractor</string>
+    <string name="youtube_decryption_desc">Configure extractor settings</string>
+    <string name="youtube_decryption_support">Vivi-Extractor</string>
+    <string name="youtube_decryption_support_desc">Automatically extracts YouTube playback configurations. Locked to Active.</string>
+    <string name="auto_cipher_fetching">Automatic Updates</string>
+    <string name="auto_cipher_fetching_desc">Fetch new extractor mappings in the background when issues are detected.</string>
+    <string name="force_update_cipher">Force Update Configurations</string>
+    <string name="force_update_cipher_desc">Download the latest extractor override mappings. Limited to 3 updates per day.</string>
+    <string name="cipher_update_success">Extractor mappings updated! Loaded %d players.</string>
+    <string name="cipher_update_failed">Failed to update extractor mappings: %s</string>
+    <string name="cipher_updating">Updating extractor configurations…</string>
+    <string name="youtube_decryption_info">Extractor mappings are fetched dynamically from your self-hosted node. The countdown at the top displays the time remaining until the next automatic synchronization check. If manual updates are requested more than 3 times, they are blocked for 1 day.</string>
+    <string name="last_updated">Last updated</string>
+    <string name="last_updated_never">Never</string>
+    <string name="next_sync_countdown">Next Sync Countdown</string>
+    <string name="hours_label">Hours</string>
+    <string name="minutes_label">Minutes</string>
+    <string name="seconds_label">Seconds</string>
+    <string name="cipher_rate_limited">Manual update rate limit reached. Please wait before updating again.</string>
 </resources>
