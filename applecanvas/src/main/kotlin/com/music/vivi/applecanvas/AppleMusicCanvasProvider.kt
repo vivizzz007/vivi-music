@@ -1,6 +1,7 @@
 package com.music.vivi.applecanvas
 
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.normalizeForComparison
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -280,8 +281,10 @@ object AppleMusicCanvasProvider {
                 if (artistMatch) score += 10
                 
                 // Name matching (Song or Album title)
-                val nameMatch = resultName.equals(term, ignoreCase = true)
-                val nameFuzzy = resultName.contains(term, ignoreCase = true) || term.contains(resultName, ignoreCase = true)
+                val normTerm = term.normalizeForComparison()
+                val normResultName = resultName.normalizeForComparison()
+                val nameMatch = normResultName == normTerm
+                val nameFuzzy = normResultName.contains(normTerm) || normTerm.contains(normResultName)
                 
                 if (nameMatch) {
                     score += 15
@@ -303,8 +306,10 @@ object AppleMusicCanvasProvider {
 
                 // Album matching - very strong signal
                 if (!album.isNullOrBlank() && resultCollectionName.isNotBlank()) {
-                    val albumMatch = resultCollectionName.equals(album, ignoreCase = true)
-                    val albumFuzzy = resultCollectionName.contains(album, ignoreCase = true) || album.contains(resultCollectionName, ignoreCase = true)
+                    val normAlbum = album.normalizeForComparison()
+                    val normCollection = resultCollectionName.normalizeForComparison()
+                    val albumMatch = normCollection == normAlbum
+                    val albumFuzzy = normCollection.contains(normAlbum) || normAlbum.contains(normCollection)
                     
                     if (albumMatch) score += 20
                     else if (albumFuzzy) score += 10
@@ -494,8 +499,8 @@ object AppleMusicCanvasProvider {
 
     private fun artistMatches(requested: String, returned: String): Boolean {
         val delimiters = Regex("(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)", RegexOption.IGNORE_CASE)
-        val requestedList = requested.split(delimiters).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }.filter { it.isNotBlank() }
-        val returnedList = returned.split(delimiters).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }.filter { it.isNotBlank() }
+        val requestedList = requested.split(delimiters).map { it.normalizeForComparison() }.filter { it.isNotBlank() }
+        val returnedList = returned.split(delimiters).map { it.normalizeForComparison() }.filter { it.isNotBlank() }
         if (requestedList.isEmpty() || returnedList.isEmpty()) return false
         return requestedList.all { req -> returnedList.any { res -> res == req } }
     }

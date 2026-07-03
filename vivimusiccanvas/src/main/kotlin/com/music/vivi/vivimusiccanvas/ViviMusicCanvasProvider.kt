@@ -1,6 +1,7 @@
 package com.music.vivi.vivimusiccanvas
 
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.normalizeForComparison
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -92,9 +93,11 @@ object ViviMusicCanvasProvider {
 
         // Strict 3-way match: song + artist + album — all three must match
         val target = manifest.items.firstOrNull { item ->
-            val matchSong = song.contains(item.song, ignoreCase = true) || item.song.contains(song, ignoreCase = true)
-            val matchArtist = artist.contains(item.artist, ignoreCase = true) || item.artist.contains(artist, ignoreCase = true)
-            val matchAlbum = album.trim().equals(item.album.trim(), ignoreCase = true)
+            val matchSong = song.normalizeForComparison().contains(item.song.normalizeForComparison()) ||
+                    item.song.normalizeForComparison().contains(song.normalizeForComparison())
+            val matchArtist = artist.normalizeForComparison().contains(item.artist.normalizeForComparison()) ||
+                    item.artist.normalizeForComparison().contains(artist.normalizeForComparison())
+            val matchAlbum = album.normalizeForComparison() == item.album.normalizeForComparison()
             matchSong && matchArtist && matchAlbum
         }
 

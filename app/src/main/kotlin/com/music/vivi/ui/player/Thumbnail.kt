@@ -103,6 +103,7 @@ import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.normalizeForComparison
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberPreference
@@ -949,11 +950,11 @@ internal fun validateCanvasMatch(
     } else true
 
     val songMatches = if (name != null && requestedTitle.isNotBlank()) {
-        name.trim().equals(requestedTitle.trim(), ignoreCase = true)
+        name.normalizeForComparison() == requestedTitle.normalizeForComparison()
     } else true
 
     val albumMatches = if (albumName != null && requestedAlbum.isNotBlank()) {
-        albumName.trim().equals(requestedAlbum.trim(), ignoreCase = true)
+        albumName.normalizeForComparison() == requestedAlbum.normalizeForComparison()
     } else false
 
     return artistMatches && songMatches && albumMatches
@@ -965,7 +966,7 @@ internal fun splitAndNormalizeArtists(raw: String): List<String> {
             "(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)",
             RegexOption.IGNORE_CASE,
         )
-    ).map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }
+    ).map { it.normalizeForComparison() }
         .filter { it.isNotBlank() }
 }
 

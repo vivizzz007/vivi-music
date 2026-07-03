@@ -175,7 +175,7 @@ object TidalCanvasProvider {
 
                 // Validate track title if searching tracks (strict exact match)
                 if (songValidation != null && resultTitle != null) {
-                    if (!resultTitle.trim().equals(songValidation.trim(), ignoreCase = true)) {
+                    if (resultTitle.normalizeForComparison() != songValidation.normalizeForComparison()) {
                         println("TidalCanvas: [$index] SKIP - song title mismatch: '$resultTitle' != '$songValidation'")
                         continue
                     }
@@ -183,7 +183,7 @@ object TidalCanvasProvider {
 
                 // Validate album title if searching albums (strict exact match)
                 if (albumValidation != null && resultTitle != null) {
-                    if (!resultTitle.trim().equals(albumValidation.trim(), ignoreCase = true)) {
+                    if (resultTitle.normalizeForComparison() != albumValidation.normalizeForComparison()) {
                         println("TidalCanvas: [$index] SKIP - album title mismatch: '$resultTitle' != '$albumValidation'")
                         continue
                     }
@@ -193,10 +193,10 @@ object TidalCanvasProvider {
                 if (artistValidation != null && combinedArtistStr.isNotBlank()) {
                     val splitDelimiters = Regex("(?:\\s*,\\s*|\\s*&\\s*|\\s+×\\s+|\\s+x\\s+|\\bfeat\\.?\\b|\\bft\\.?\\b|\\bfeaturing\\b|\\bwith\\b)", RegexOption.IGNORE_CASE)
                     val requestedList = artistValidation.split(splitDelimiters)
-                        .map { it.replace(Regex("\\s+"), " ").trim().lowercase(Locale.ROOT) }
+                        .map { it.normalizeForComparison() }
                         .filter { it.isNotBlank() }
                     // For Tidal, artists are already separate objects, so use allArtistNames directly
-                    val returnedList = allArtistNames.map { it.trim().lowercase(Locale.ROOT) }
+                    val returnedList = allArtistNames.map { it.normalizeForComparison() }
                     val artistMatches = requestedList.isNotEmpty() && returnedList.isNotEmpty() &&
                         requestedList.all { req -> returnedList.any { res -> res == req } }
                     println("TidalCanvas: [$index] artistValidation: requestedList=$requestedList, returnedList=$returnedList, matches=$artistMatches")
