@@ -139,8 +139,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -312,14 +310,6 @@ fun BottomSheetPlayer(
                 }
             }
 
-            if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-                insetsController.hide(WindowInsetsCompat.Type.statusBars())
-            } else {
-                insetsController.show(WindowInsetsCompat.Type.statusBars())
-                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-            }
-
             if (keepScreenOn && state.isExpanded)
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             else
@@ -329,8 +319,6 @@ fun BottomSheetPlayer(
         onDispose {
             if (window != null) {
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
-                insetsController.show(WindowInsetsCompat.Type.statusBars())
-                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
                 insetsController.isAppearanceLightStatusBars = !useDarkTheme
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
