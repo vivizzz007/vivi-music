@@ -1000,4 +1000,25 @@ est irréversible.
     <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
     <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
     <string name="font_plus_jakarta_sans_desc">Une police sans empattement géométrique haut de gamme aux lignes chaleureuses.</string>
+
+	<!-- YouTube Decryption / Cipher Settings -->
+    <string name="youtube_decryption_settings">Vivi Extracteur</string>
+    <string name="youtube_decryption_desc">Configurer les paramètres de l\'extracteur</string>
+    <string name="youtube_decryption_support">Vivi Extracteur</string>
+    <string name="youtube_decryption_support_desc">Extrait automatiquement les paramètres de lecture YouTube. Verrouillé sur « Actif ».</string>
+    <string name="auto_cipher_fetching">Mises à jour automatiques</string>
+    <string name="auto_cipher_fetching_desc">Récupérer les nouveaux mappages d\'extracteurs en arrière-plan lorsque des problèmes sont détectés.</string>
+    <string name="force_update_cipher">Forcer la mise à jour des configurations</string>
+    <string name="force_update_cipher_desc">Téléchargez les derniers mappages de remplacement de l\'extracteur. Limité à 3 mises à jour par jour.</string>
+    <string name="cipher_update_success">Mappages de l\'extracteur mis à jour ! %d lecteurs chargés.</string>
+    <string name="cipher_update_failed">Échec de la mise à jour des mappages de l\'extracteur : %s</string>
+    <string name="cipher_updating">Mise à jour des configurations des extracteurs…</string>
+    <string name="youtube_decryption_info">Les mappages des extracteurs sont récupérés de manière dynamique depuis votre nœud auto-hébergé. Le compte à rebours en haut de la page indique le temps restant avant la prochaine vérification automatique de synchronisation. Si des mises à jour manuelles sont demandées plus de 3 fois, elles sont bloquées pendant 1 jour.</string>
+    <string name="last_updated">Dernière mise à jour</string>
+    <string name="last_updated_never">Jamais</string>
+    <string name="next_sync_countdown">Compte à rebours jusqu\'à la prochaine synchronisation</string>
+    <string name="hours_label">Heures</string>
+    <string name="minutes_label">Minutes</string>
+    <string name="seconds_label">Secondes</string>
+    <string name="cipher_rate_limited">La limite de fréquence des mises à jour manuelles a été atteinte. Veuillez patienter avant de tenter une nouvelle mise à jour.</string>
 </resources>
