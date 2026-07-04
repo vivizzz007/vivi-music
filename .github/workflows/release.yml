@@ -1,0 +1,272 @@
+name: Production Release Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/build.gradle.kts'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check_and_release:
+    name: Check Version & Publish Release
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set Up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Setup FFTW for Android
+        uses: ./.github/actions/setup-fftw
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Extract Version Info
+        id: version_info
+        run: |
+          VERSION_CODE=$(grep "versionCode =" app/build.gradle.kts | tr -d ' ' | cut -d= -f2)
+          VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          echo "Extracted Version Code: $VERSION_CODE"
+          echo "Extracted Version Name: $VERSION_NAME"
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Check If Release Already Exists
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
+          if gh release view "v$VERSION_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release v$VERSION_NAME already exists. Skipping release steps."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release v$VERSION_NAME does not exist. Proceeding with release."
+          fi
+
+      - name: Inject JioSaavn Code
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          JIOSAAVN_CODE: ${{ secrets.JIOSAAVN_CODE }}
+        run: |
+          if [ -z "$JIOSAAVN_CODE" ]; then
+            echo "Warning: JIOSAAVN_CODE secret is empty!"
+          else
+            echo "$JIOSAAVN_CODE" > b64.txt
+            base64 -d b64.txt > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
+            rm b64.txt
+          fi
+
+      - name: Inject Musixmatch Code
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          MUSIXMATCH_CODE: ${{ secrets.MUSIXMATCH_CODE }}
+        run: |
+          if [ -z "$MUSIXMATCH_CODE" ]; then
+            echo "Warning: MUSIXMATCH_CODE secret is empty!"
+          else
+            echo "$MUSIXMATCH_CODE" > b64_mm.txt
+            base64 -d b64_mm.txt > musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt
+            rm b64_mm.txt
+          fi
+
+      - name: Generate debug.keystore
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build GMS Release APK
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: ./gradlew assembleUniversalGmsRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
+
+      - name: Build FOSS Release APK
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: ./gradlew assembleUniversalFossRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
+
+      - name: Sign GMS APK
+        if: steps.check_release.outputs.exists == 'false'
+        id: sign_gms
+        uses: ilharp/sign-android-release@v2.0.0
+        with:
+          releaseDir: app/build/outputs/apk/universalGms/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Sign FOSS APK
+        if: steps.check_release.outputs.exists == 'false'
+        id: sign_foss
+        uses: ilharp/sign-android-release@v2.0.0
+        with:
+          releaseDir: app/build/outputs/apk/universalFoss/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Prepare Release Assets
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          mkdir -p release_assets
+          cp "${{ steps.sign_gms.outputs.signedFile }}" release_assets/vivi.apk
+          cp "${{ steps.sign_foss.outputs.signedFile }}" release_assets/izzydroid-universal-foss-release.apk
+
+      - name: Generate changelog.json
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          VERSION_CODE: ${{ steps.version_info.outputs.version_code }}
+          VERSION_NAME: ${{ steps.version_info.outputs.version_name }}
+        shell: python
+        run: |
+          import os, json
+          version_code = os.environ.get('VERSION_CODE')
+          version_name = os.environ.get('VERSION_NAME')
+          changelog_file = f"fastlane/metadata/android/en-US/changelogs/{version_code}.txt"
+          
+          features = []
+          fixes = []
+          description = None
+          image_url = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/assets/banner.png"
+          for ext in ["png", "jpg"]:
+              found = False
+              for prefix in ["v", ""]:
+                  potential_file = f"NEW-UI/update/{prefix}{version_name}.{ext}"
+                  if os.path.exists(potential_file):
+                      image_url = f"https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/{prefix}{version_name}.{ext}"
+                      found = True
+                      break
+              if found:
+                  break
+          
+          if os.path.exists(changelog_file):
+              with open(changelog_file, 'r', encoding='utf-8') as f:
+                  for line in f:
+                      line_str = line.strip()
+                      if not line_str:
+                          continue
+                      if line_str.lower().startswith("description::"):
+                          description = line_str[len("description::"):].strip()
+                      elif line_str.lower().startswith("image::"):
+                          image_url = line_str[len("image::"):].strip()
+                      else:
+                          clean_line = line_str.lstrip("*-• ").strip()
+                          if "fix" in clean_line.lower() or "resolve" in clean_line.lower():
+                              fixes.append(clean_line)
+                          else:
+                              features.append(clean_line)
+          else:
+              features.append("Bug fixes and performance improvements.")
+              
+          if not description:
+              summary_items = []
+              for feat in features[:3]:
+                  val = feat
+                  for prefix in ["added new ", "added a ", "added ", "updated new ", "updated ", "new "]:
+                      if val.lower().startswith(prefix):
+                          val = val[len(prefix):]
+                          break
+                  if val:
+                      val = val[0].lower() + val[1:]
+                  summary_items.append(val)
+              
+              if summary_items:
+                  desc_text = "brings " + ", ".join(summary_items)
+                  if len(features) > 3:
+                      desc_text += ", and other improvements."
+                  else:
+                      desc_text += "."
+                  if fixes:
+                      desc_text += " It also includes several bug fixes."
+                  description = f"VIVI MUSIC v{version_name} {desc_text}"
+              else:
+                  description = f"VIVI MUSIC v{version_name} brings new updates, features, and bug fixes."
+                  
+          changelog_sections = []
+          if features:
+              changelog_sections.append({
+                  "title": "What's New",
+                  "items": features
+              })
+          if fixes:
+              changelog_sections.append({
+                  "title": "Fixes & Improvements",
+                  "items": fixes
+              })
+              
+          changelog_sections.append({
+              "title": "Support",
+              "items": [
+                  "Support development on Ko-fi: https://ko-fi.com/vividhpashokan",
+                  "Support via UPI: vividhpashokan@axl",
+                  "Support via PayPal: https://www.paypal.me/vividhpashokan"
+              ]
+          })
+              
+          data = {
+              "version": version_name,
+              "description": description,
+              "image": image_url,
+              "changelog": changelog_sections
+          }
+          
+          with open("release_assets/changelog.json", "w", encoding="utf-8") as f:
+              json.dump(data, f, indent=2)
+
+      - name: Create GitHub Release & Upload Assets
+        if: steps.check_release.outputs.exists == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION_CODE="${{ steps.version_info.outputs.version_code }}"
+          VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
+          NOTES_FILE="fastlane/metadata/android/en-US/changelogs/${VERSION_CODE}.txt"
+          
+          if [ -f "$NOTES_FILE" ]; then
+            cat "$NOTES_FILE" > release_notes.txt
+          else
+            echo "Release v$VERSION_NAME" > release_notes.txt
+          fi
+          echo -e "\n\n☕ Support development on Ko-fi: https://ko-fi.com/vividhpashokan\n💸 Support via UPI: vividhpashokan@axl\n💳 Support via PayPal: https://www.paypal.me/vividhpashokan" >> release_notes.txt
+          
+          gh release create "v$VERSION_NAME" release_assets/* \
+            --title "Vivi Music v$VERSION_NAME" \
+            --notes-file release_notes.txt \
+            --target main
