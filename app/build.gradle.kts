@@ -285,6 +285,8 @@ dependencies {
     implementation(project(":paxsenixlyrics"))
     implementation(project(":jiosaavn"))
     implementation(project(":spotify"))
+    implementation(project(":musixmatch"))
+
 
 
     implementation(libs.ktor.client.core)

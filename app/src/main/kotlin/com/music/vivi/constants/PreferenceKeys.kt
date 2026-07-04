@@ -86,7 +86,9 @@ val SuggestionRegionKey = stringPreferencesKey("suggestionRegion")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
+val EnableMusixmatchKey = booleanPreferencesKey("enableMusixmatch")
 val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
+
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
@@ -427,6 +429,7 @@ enum class PreferredLyricsProvider {
     LRCLIB,
     KUGOU,
     BETTER_LYRICS,
+    MUSIXMATCH,
     SIMPMUSIC,
     YOULYPLUS,
     PAXSENIX,

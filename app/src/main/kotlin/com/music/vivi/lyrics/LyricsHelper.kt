@@ -18,14 +18,20 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LyricsHelper
 @Inject
 constructor(
@@ -47,7 +53,7 @@ constructor(
 
         // Migration path: place the old preferred provider first in the default order
         val preferredEnum = preferences[PreferredLyricsProviderKey]
-            .toEnum(PreferredLyricsProvider.YOULYPLUS)
+            .toEnum(PreferredLyricsProvider.MUSIXMATCH)
         val preferredName = LyricsProviderRegistry.getProviderNameForEnum(preferredEnum)
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         val migratedOrder = listOf(preferredName) + defaultOrder.filter { it != preferredName }
@@ -58,6 +64,10 @@ constructor(
 
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
     private var currentLyricsJob: Job? = null
+
+    private val helperScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val activeFetches = mutableMapOf<String, Deferred<LyricsWithProvider>>()
+    private val fetchesMutex = Mutex()
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         currentLyricsJob?.cancel()
@@ -81,36 +91,44 @@ constructor(
             return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
 
-        val providers = resolveLyricsProviders()
-        val scope = CoroutineScope(SupervisorJob())
-        val deferred = scope.async {
-            for (provider in providers) {
-                if (provider.isEnabled(context)) {
-                    try {
-                        val result = provider.getLyrics(
-                            mediaMetadata.id,
-                            mediaMetadata.title,
-                            mediaMetadata.artists.joinToString { it.name },
-                            mediaMetadata.duration,
-                            mediaMetadata.album?.title,
-                        )
-                        result.onSuccess { lyrics ->
-                            return@async LyricsWithProvider(lyrics, provider.name)
-                        }.onFailure {
-                            reportException(it)
+        val cacheKey = mediaMetadata.id
+        val deferred = fetchesMutex.withLock {
+            activeFetches.getOrPut(cacheKey) {
+                helperScope.async {
+                    val providers = resolveLyricsProviders()
+                    for (provider in providers) {
+                        if (provider.isEnabled(context)) {
+                            try {
+                                val result = provider.getLyrics(
+                                    mediaMetadata.id,
+                                    mediaMetadata.title,
+                                    mediaMetadata.artists.joinToString { it.name },
+                                    mediaMetadata.duration,
+                                    mediaMetadata.album?.title,
+                                )
+                                result.onSuccess { lyrics ->
+                                    return@async LyricsWithProvider(lyrics, provider.name)
+                                }.onFailure {
+                                    reportException(it)
+                                }
+                            } catch (e: Exception) {
+                                // Catch network-related exceptions like UnresolvedAddressException
+                                reportException(e)
+                            }
                         }
-                    } catch (e: Exception) {
-                        // Catch network-related exceptions like UnresolvedAddressException
-                        reportException(e)
                     }
+                    LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
                 }
             }
-            return@async LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
 
-        val result = deferred.await()
-        scope.cancel()
-        return result
+        return try {
+            deferred.await()
+        } finally {
+            fetchesMutex.withLock {
+                activeFetches.remove(cacheKey)
+            }
+        }
     }
 
     suspend fun getAllLyrics(

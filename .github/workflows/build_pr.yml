@@ -45,6 +45,20 @@ jobs:
             echo "JioSaavn injected successfully. File line count: $(wc -l < jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt)"
           fi
 
+      - name: Inject Musixmatch Code
+        env:
+          MUSIXMATCH_CODE: ${{ secrets.MUSIXMATCH_CODE }}
+        run: |
+          if [ -z "$MUSIXMATCH_CODE" ]; then
+            echo "Warning: MUSIXMATCH_CODE secret is empty!"
+          else
+            echo "$MUSIXMATCH_CODE" > b64_mm.txt
+            base64 -d b64_mm.txt > musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt
+            rm b64_mm.txt
+            echo "Musixmatch injected successfully. File line count: $(wc -l < musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt)"
+          fi
+
+
       - name: Generate debug.keystore if not exists
         run: |
           mkdir -p ~/.android
