@@ -344,22 +344,16 @@ fun ViviMusicLyricsLine(
             }
         } else {
             // ── SENTENCE-LEVEL fallback ───────────────────────────────────────
-            // No word timestamps → sweep the whole sentence at once, Apple-style.
-            val lineRelTime = (effectivePlaybackPosition - entry.time).coerceAtLeast(0L)
+            // No word timestamps → highlight the whole sentence at once, Apple-style.
+            val targetSentenceAlpha = if (isActive || lingeredIsActive.value) 1f else 0.45f
 
-            val rawSentenceProgress = when {
-                !isSynced || !isActive -> if (isActive) 1f else 0f
-                lineRelTime >= activeDuration -> 1f
-                else -> lineRelTime.toFloat() / activeDuration.toFloat()
-            }
-
-            val sentenceProgress by animateFloatAsState(
-                targetValue = rawSentenceProgress,
+            val sentenceAlpha by animateFloatAsState(
+                targetValue = targetSentenceAlpha,
                 animationSpec = tween(
                     durationMillis = 300,
                     easing = FastOutSlowInEasing
                 ),
-                label = "sentenceProgress"
+                label = "sentenceAlpha"
             )
 
             val finalFontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.Bold
@@ -367,21 +361,19 @@ fun ViviMusicLyricsLine(
             Text(
                 text = entry.text,
                 fontSize = textSize.sp,
+                color = textColor.copy(alpha = sentenceAlpha),
                 style = TextStyle(
-                    brush = Brush.horizontalGradient(
-                        0.0f to textColor,
-                        (sentenceProgress - 0.08f).coerceAtLeast(0f) to textColor,
-                        (sentenceProgress + 0.08f).coerceAtMost(1f) to textColor.copy(alpha = 0.45f),
-                        1.0f to textColor.copy(alpha = 0.45f)
-                    ),
                     fontWeight = finalFontWeight,
                     lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                     textAlign = agentTextAlign,
-                    shadow = androidx.compose.ui.graphics.Shadow(
-                        color = textColor.copy(alpha = 0.5f * sentenceProgress),
-                        offset = Offset.Zero,
-                        blurRadius = (10f * sentenceProgress).coerceAtLeast(0.1f)
-                    )
+                    shadow = if (sentenceAlpha > 0.45f) {
+                        val factor = (sentenceAlpha - 0.45f) / 0.55f
+                        androidx.compose.ui.graphics.Shadow(
+                            color = textColor.copy(alpha = 0.5f * factor),
+                            offset = Offset.Zero,
+                            blurRadius = (10f * factor).coerceAtLeast(0.1f)
+                        )
+                    } else null
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
