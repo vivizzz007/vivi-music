@@ -56,6 +56,9 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 import kotlinx.coroutines.launch
 
+private const val SPOTIFY_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 14; SM-S921U; Build/UP1A.231005.007) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpotifyScreen(
@@ -359,6 +362,7 @@ fun SpotifyScreen(
     }
 }
 
+@android.annotation.SuppressLint("ClickableViewAccessibility")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SpotifyLoginSheet(
@@ -418,6 +422,22 @@ private fun SpotifyLoginSheet(
                         settings.setSupportZoom(true)
                         settings.builtInZoomControls = true
                         settings.displayZoomControls = false
+                        settings.userAgentString = SPOTIFY_USER_AGENT
+
+                        setOnTouchListener { v, event ->
+                            when (event.action) {
+                                android.view.MotionEvent.ACTION_DOWN,
+                                android.view.MotionEvent.ACTION_MOVE -> {
+                                    v.parent.requestDisallowInterceptTouchEvent(true)
+                                }
+                                android.view.MotionEvent.ACTION_UP,
+                                android.view.MotionEvent.ACTION_CANCEL -> {
+                                    v.parent.requestDisallowInterceptTouchEvent(false)
+                                }
+                            }
+                            false
+                        }
+
                         webViewClient = object : WebViewClient() {
                             private fun captureCookies(url: String?): Boolean {
                                 if (captured) return true
