@@ -34,33 +34,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Inject JioSaavn Code
-        env:
-          JIOSAAVN_CODE: ${{ secrets.JIOSAAVN_CODE }}
-        run: |
-          if [ -z "$JIOSAAVN_CODE" ]; then
-            echo "Warning: JIOSAAVN_CODE secret is empty!"
-          else
-            echo "$JIOSAAVN_CODE" > b64.txt
-            base64 -d b64.txt > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
-            rm b64.txt
-            echo "JioSaavn injected successfully. File line count: $(wc -l < jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt)"
-          fi
-
-      - name: Inject Musixmatch Code
-        env:
-          MUSIXMATCH_CODE: ${{ secrets.MUSIXMATCH_CODE }}
-        run: |
-          if [ -z "$MUSIXMATCH_CODE" ]; then
-            echo "Warning: MUSIXMATCH_CODE secret is empty!"
-          else
-            echo "$MUSIXMATCH_CODE" > b64_mm.txt
-            base64 -d b64_mm.txt > musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt
-            rm b64_mm.txt
-            echo "Musixmatch injected successfully. File line count: $(wc -l < musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt)"
-          fi
-
-
       - name: Generate debug.keystore
         run: |
           mkdir -p ~/.android

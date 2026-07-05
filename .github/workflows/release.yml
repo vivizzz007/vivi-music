@@ -63,33 +63,6 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "Release v$VERSION_NAME does not exist. Proceeding with release."
           fi
-
-      - name: Inject JioSaavn Code
-        if: steps.check_release.outputs.exists == 'false'
-        env:
-          JIOSAAVN_CODE: ${{ secrets.JIOSAAVN_CODE }}
-        run: |
-          if [ -z "$JIOSAAVN_CODE" ]; then
-            echo "Warning: JIOSAAVN_CODE secret is empty!"
-          else
-            echo "$JIOSAAVN_CODE" > b64.txt
-            base64 -d b64.txt > jiosaavn/src/main/kotlin/com/music/jiosaavn/SaavnService.kt
-            rm b64.txt
-          fi
-
-      - name: Inject Musixmatch Code
-        if: steps.check_release.outputs.exists == 'false'
-        env:
-          MUSIXMATCH_CODE: ${{ secrets.MUSIXMATCH_CODE }}
-        run: |
-          if [ -z "$MUSIXMATCH_CODE" ]; then
-            echo "Warning: MUSIXMATCH_CODE secret is empty!"
-          else
-            echo "$MUSIXMATCH_CODE" > b64_mm.txt
-            base64 -d b64_mm.txt > musixmatch/src/main/kotlin/com/music/musixmatch/Musixmatch.kt
-            rm b64_mm.txt
-          fi
-
       - name: Generate debug.keystore
         if: steps.check_release.outputs.exists == 'false'
         run: |
