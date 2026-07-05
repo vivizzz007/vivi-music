@@ -285,7 +285,7 @@ dependencies {
     implementation(project(":paxsenixlyrics"))
     implementation(project(":jiosaavn"))
     implementation(project(":spotify"))
-    implementation(project(":musixmatch"))
+    implementation("com.github.vivizzz007:VIVI-LYRICS:v1.0.2")
 
 
 

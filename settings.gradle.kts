@@ -42,7 +42,6 @@ include(":vivimusiccanvas")
 include(":paxsenixlyrics")
 include(":jiosaavn")
 include(":spotify")
-include(":musixmatch")
 
 
 
