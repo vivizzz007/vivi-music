@@ -360,24 +360,16 @@ object YouTube {
 
     suspend fun albumSongs(playlistId: String, album: AlbumItem? = null): Result<List<SongItem>> = runCatching {
         var response = innerTube.browse(WEB_REMIX, "VL$playlistId").body<BrowseResponse>()
-        val shelf = response.contents?.twoColumnBrowseResultsRenderer
+        val songs = response.contents?.twoColumnBrowseResultsRenderer
             ?.secondaryContents?.sectionListRenderer
             ?.contents?.firstOrNull()
-        
-        val shelfContents = shelf?.musicPlaylistShelfRenderer?.contents
-            ?: shelf?.musicShelfRenderer?.contents
-            ?: emptyList()
-            
-        val songs = shelfContents.getItems()
-            .mapNotNull {
+            ?.musicPlaylistShelfRenderer?.contents?.getItems()
+            ?.mapNotNull {
                 AlbumPage.getSong(it, album)
-            }
+            }!!
             .toMutableList()
-            
-        var continuation = shelfContents.getContinuation()
-            ?: shelf?.musicPlaylistShelfRenderer?.continuations?.getContinuation()
-            ?: shelf?.musicShelfRenderer?.continuations?.getContinuation()
-            
+        var continuation = response.contents.twoColumnBrowseResultsRenderer.secondaryContents.sectionListRenderer
+            .contents.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation()
         val seenContinuations = mutableSetOf<String>()
         var requestCount = 0
         val maxRequests = 50 // Prevent excessive API calls
@@ -394,16 +386,10 @@ object YouTube {
                 client = WEB_REMIX,
                 continuation = continuation,
             ).body<BrowseResponse>()
-            
-            val continuationItems = response.continuationContents?.musicPlaylistShelfContinuation?.contents
-                ?: response.onResponseReceivedActions?.firstOrNull()?.appendContinuationItemsAction?.continuationItems
-                
-            songs += continuationItems?.getItems()?.mapNotNull {
+            songs += response.onResponseReceivedActions?.firstOrNull()?.appendContinuationItemsAction?.continuationItems?.getItems()?.mapNotNull {
                 AlbumPage.getSong(it, album)
             }.orEmpty()
-            
             continuation = response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
-                ?: continuationItems?.getContinuation()
         }
         songs
     }
