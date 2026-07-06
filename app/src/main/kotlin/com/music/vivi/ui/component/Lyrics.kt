@@ -552,6 +552,11 @@ fun Lyrics(
         }
     }
     val textColor = expressiveAccent
+    val providerTextColor = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        Color.White
+    }
 
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
@@ -1319,7 +1324,7 @@ fun Lyrics(
                         Text(
                             text = "Lyrics from ${lyricsEntity?.provider}",
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (isInitialLayout) 0f else 0.6f),
+                            color = providerTextColor.copy(alpha = if (isInitialLayout) 0f else 0.6f),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .offset { IntOffset(0, (animatedProviderBase + userManualOffset).roundToInt()) }
@@ -1435,7 +1440,7 @@ fun Lyrics(
                     Text(
                         text = "Lyrics from ${lyricsEntity?.provider}",
                         fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        color = providerTextColor.copy(alpha = 0.6f),
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier
                             .fillMaxWidth()
