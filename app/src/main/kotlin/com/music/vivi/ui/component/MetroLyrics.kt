@@ -90,6 +90,24 @@ private fun String.containsRtl(): Boolean {
     return false
 }
 
+private fun String.containsComplexScript(): Boolean {
+    for (c in this) {
+        val code = c.toInt()
+        if (code in 0x0900..0x0FFF || // Devanagari, Bengali, Gurmukhi, Gujarati, Oriya, Tamil, Telugu, Kannada, Malayalam, Sinhala, Thai, Lao, Tibetan
+            code in 0x1000..0x109F || // Myanmar
+            code in 0x1780..0x17FF || // Khmer
+            code in 0x0600..0x06FF || // Arabic
+            code in 0x0750..0x077F || // Arabic Supplement
+            code in 0x08A0..0x08FF || // Arabic Extended-A
+            code in 0xFB50..0xFDFF || // Arabic Presentation Forms-A
+            code in 0xFE70..0xFEFF    // Arabic Presentation Forms-B
+        ) {
+            return true
+        }
+    }
+    return false
+}
+
 private fun String.toGraphemeClusters(): List<String> {
     if (isEmpty()) return emptyList()
     val result = mutableListOf<String>()
@@ -508,6 +526,7 @@ private fun WordLevelCanvasLyrics(
         }
         
         val isRtlText = remember(mainText) { mainText.containsRtl() }
+        val isComplexScript = remember(mainText) { mainText.containsComplexScript() }
         
         Canvas(modifier = Modifier
             .fillMaxWidth()
@@ -565,6 +584,66 @@ private fun WordLevelCanvasLyrics(
                             } else if (isWordActive && sungFactor > 0f) {
                                 clipRect(left = left, top = top, right = right, bottom = bottom) {
                                     drawText(layoutResult, color = expressiveAccent.copy(alpha = focusedAlpha + (1f - focusedAlpha) * sungFactor))
+                                }
+                            }
+                        }
+                    }
+                    return@Canvas
+                }
+
+                if (isComplexScript) {
+                    val (wordIdxMap, _, _) = charToWordData
+                    val wordFactors = effectiveWords.map { word ->
+                        val wStartMs = (word.startTime * 1000).toLong()
+                        val wEndMs = (word.endTime * 1000).toLong()
+                        val isWordSung = smoothPosition > wEndMs
+                        val isWordActive = smoothPosition in wStartMs..wEndMs
+                        val sungFactor = if (isWordSung) 1f 
+                                        else if (isWordActive) ((smoothPosition - wStartMs).toFloat() / (wEndMs - wStartMs).coerceAtLeast(1)).coerceIn(0f, 1f)
+                                        else 0f
+                        Triple(sungFactor, isWordSung, isWordActive)
+                    }
+
+                    drawText(layoutResult, color = lineColor.copy(alpha = focusedAlpha))
+
+                    effectiveWords.indices.forEach { wIdx ->
+                        val (sungFactor, isWordSung, isWordActive) = wordFactors[wIdx]
+                        
+                        var left = Float.MAX_VALUE
+                        var right = Float.MIN_VALUE
+                        var top = Float.MAX_VALUE
+                        var bottom = Float.MIN_VALUE
+                        var found = false
+
+                        for (i in 0 until clusterCount) {
+                            if (wordIdxMap[i] == wIdx) {
+                                val charOffset = clusterCharOffsets[i]
+                                val bounds = layoutResult.getBoundingBox(charOffset)
+                                left = minOf(left, bounds.left)
+                                right = maxOf(right, bounds.right)
+                                top = minOf(top, bounds.top)
+                                bottom = maxOf(bottom, bounds.bottom)
+                                found = true
+                            }
+                        }
+
+                        if (found) {
+                            if (isWordSung) {
+                                clipRect(left = left, top = top, right = right, bottom = bottom) {
+                                    drawText(layoutResult, color = expressiveAccent)
+                                }
+                            } else if (isWordActive && sungFactor > 0f) {
+                                val wordWidth = right - left
+                                val sweepX = left + wordWidth * sungFactor
+                                if (sweepX > left) {
+                                    clipRect(left = left, top = top, right = sweepX, bottom = bottom) {
+                                        drawText(layoutResult, color = expressiveAccent)
+                                    }
+                                }
+                                if (sweepX < right) {
+                                    clipRect(left = sweepX, top = top, right = right, bottom = bottom) {
+                                        drawText(layoutResult, color = lineColor.copy(alpha = focusedAlpha))
+                                    }
                                 }
                             }
                         }
