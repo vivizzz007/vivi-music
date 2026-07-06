@@ -203,19 +203,39 @@ object YTPlayerUtils {
                         if (searchQuery.isBlank()) return null
                         Timber.tag(TAG).d("Saavn: searching with query: \"$searchQuery\"")
                         val rawSongs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
-                        val songs = rawSongs.sortedByDescending { it.explicitContent }
+                        val wantedExplicit = currentSong?.explicit ?: false
+                        val wantedAlbumLower = albumName.lowercase(java.util.Locale.US)
+                        val songs = rawSongs.sortedWith(
+                            compareByDescending<com.music.jiosaavn.SaavnSong> { candidate ->
+                                val candidateAlbumName = candidate.album?.name
+                                if (wantedAlbumLower.isNotBlank() && candidateAlbumName != null) {
+                                    candidateAlbumName.lowercase(java.util.Locale.US) == wantedAlbumLower
+                                } else {
+                                    false
+                                }
+                            }.thenByDescending { candidate ->
+                                candidate.explicitContent == wantedExplicit
+                            }
+                        )
                         return songs.firstOrNull { candidate ->
                             val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US)
                             val candidateArtists = candidate.artists.primary.map { it.name.lowercase(java.util.Locale.US) }
                             
-                            val titleMatches = candidateTitleLower.contains(wantedTitleLower) || wantedTitleLower.contains(candidateTitleLower)
-                            val artistMatches = wantedArtistsLower.isEmpty() || wantedArtistsLower.any { wanted ->
-                                candidateArtists.any { candidateArtist ->
-                                    candidateArtist.contains(wanted) || wanted.contains(candidateArtist)
-                                }
+                            // Strict exact matching checks
+                            val titleMatches = candidateTitleLower == wantedTitleLower
+                            
+                            val artistMatches = candidateArtists.sorted() == wantedArtistsLower.sorted()
+                            
+                            val candidateAlbumName = candidate.album?.name
+                            val albumMatches = if (wantedAlbumLower.isNotBlank()) {
+                                candidateAlbumName?.lowercase(java.util.Locale.US) == wantedAlbumLower
+                            } else {
+                                true
                             }
-                            val durationMatches = if (expectedDuration != null && candidate.duration != null) {
-                                java.lang.Math.abs(expectedDuration - candidate.duration!!) <= 12
+
+                            val candDuration = candidate.duration
+                            val durationMatches = if (expectedDuration != null && candDuration != null) {
+                                java.lang.Math.abs(expectedDuration - candDuration) <= 12
                             } else {
                                 true
                             }
@@ -224,7 +244,7 @@ object YTPlayerUtils {
                                 Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" matches title/artist but duration differs too much (YT: $expectedDuration s, Saavn: ${candidate.duration} s)")
                             }
 
-                            titleMatches && artistMatches && durationMatches
+                            titleMatches && artistMatches && albumMatches && durationMatches
                         }
                     }
 
