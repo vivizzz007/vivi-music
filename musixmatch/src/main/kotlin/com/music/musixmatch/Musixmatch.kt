@@ -1,10 +1,10 @@
 /**
- * vivimusic Project (C) 2026
- * Licensed under GPL-3.0 | See git history for contributors
+ * VIVI-LYRICS (C) 2026
  *
- * If you copy, adapt, or distribute this code, you must attribute the original source:
- * https://github.com/vivizzz007/vivi-music
- * and adhere to the terms of the GPL-3.0 license.
+ * PROPRIETARY LICENSE:
+ * This file is source-available for viewing. Copying, modification,
+ * redistribution, or reuse in other applications is strictly prohibited.
+ * Licensed exclusively for use in the official vivimusic application.
  */
 
 package com.music.musixmatch

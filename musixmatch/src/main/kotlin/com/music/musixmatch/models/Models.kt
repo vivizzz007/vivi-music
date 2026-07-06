@@ -1,6 +1,10 @@
 /**
- * vivimusic Project (C) 2026
- * Licensed under GPL-3.0 | See git history for contributors
+ * VIVI-LYRICS (C) 2026
+ *
+ * PROPRIETARY LICENSE:
+ * This file is source-available for viewing. Copying, modification,
+ * redistribution, or reuse in other applications is strictly prohibited.
+ * Licensed exclusively for use in the official vivimusic application.
  */
 
 package com.music.musixmatch.models
