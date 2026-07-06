@@ -67,6 +67,7 @@ import com.music.vivi.constants.DensityScale
 import com.music.vivi.constants.DensityScaleKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableDynamicIconKey
+import com.music.vivi.constants.EnableSettingsPopupKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
@@ -151,6 +152,10 @@ fun AppearanceSettings(
     )
     val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
         ShowAudioQualityBadgeKey,
+        defaultValue = false
+    )
+    val (enableSettingsPopup, onEnableSettingsPopupChange) = rememberPreference(
+        EnableSettingsPopupKey,
         defaultValue = false
     )
     val (selectedThemeColorInt) = rememberPreference(
@@ -596,6 +601,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                 }
             }
         )
@@ -618,6 +624,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                     else -> ""
                 }
             }
@@ -1020,6 +1027,29 @@ fun AppearanceSettings(
                         onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) }
                     )
                 )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.settings),
+                        title = { Text(stringResource(R.string.enable_settings_popup)) },
+                        description = { Text(stringResource(R.string.enable_settings_popup_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableSettingsPopup,
+                                onCheckedChange = onEnableSettingsPopupChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (enableSettingsPopup) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onEnableSettingsPopupChange(!enableSettingsPopup) }
+                    )
+                )
                 // Only show dynamic theme option when using the default/dynamic color
                 // When a custom color is selected, dynamic theme is automatically disabled
                 if (!isUsingCustomColor) {
@@ -1115,6 +1145,7 @@ fun AppearanceSettings(
                                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                                     else -> stringResource(R.string.follow_theme)
                                 }
                             )
@@ -1192,7 +1223,8 @@ fun AppearanceSettings(
                                 PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                 PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                                 PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
-                            }
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
+                }
                         )
                     },
                     onClick = { showPlayerBackgroundDialog = true }
@@ -1303,8 +1335,14 @@ fun AppearanceSettings(
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.canvas_art),
-                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
+                        icon = painterResource(R.drawable.image),
+                        title = { Text(stringResource(R.string.liquid_glass)) },
+                        description = { Text(stringResource(R.string.liquid_glass_settings)) },
+                        onClick = { navController.navigate("settings/appearance/liquidglass") }
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.canvas_art),
+                        title = { Text(stringResource(R.string.vivimusic_canvas)) },
                     description = {
                         val summary = if (!canvasThumbnailAnimation) {
                             stringResource(R.string.disable)
@@ -1948,3 +1986,5 @@ enum class PlayerTextAlignment {
     SIDED,
     CENTER,
 }
+
+

@@ -41,6 +41,7 @@ import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.GlassEffectSettings
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
@@ -342,6 +343,10 @@ fun NavGraphBuilder.navigationBuilder(
         CanvasSelection(navController, scrollBehavior)
     }
 
+    composable("settings/appearance/liquidglass") {
+        GlassEffectSettings(navController, scrollBehavior)
+    }
+
     composable("settings/content") {
         ContentSettings(navController, scrollBehavior)
     }
@@ -377,6 +382,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
     }
+
+
+
 
     composable("settings/integrations") {
         IntegrationScreen(navController, scrollBehavior)
@@ -432,3 +440,4 @@ fun NavGraphBuilder.navigationBuilder(
         CommitScreen(navController, scrollBehavior)
     }
 }
+
