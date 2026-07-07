@@ -118,7 +118,7 @@ class NewReleaseCheckWorker(
                                         id = item.id,
                                         title = item.title,
                                         type = "Song",
-                                        deepLinkUrl = "vivimusic://watch?v=${item.id}",
+                                        deepLinkUrl = "https://music.youtube.com/watch?v=${item.id}",
                                         thumbnailUrl = item.thumbnail
                                     )
                                 )
@@ -129,7 +129,7 @@ class NewReleaseCheckWorker(
                                         id = item.browseId,
                                         title = item.title,
                                         type = "Album",
-                                        deepLinkUrl = "vivimusic://browse/${item.browseId}",
+                                        deepLinkUrl = "https://music.youtube.com/browse/${item.browseId}",
                                         thumbnailUrl = item.thumbnail
                                     )
                                 )
