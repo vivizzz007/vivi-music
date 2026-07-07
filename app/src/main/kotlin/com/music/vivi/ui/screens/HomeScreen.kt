@@ -575,6 +575,7 @@ fun HomeScreen(
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
     val speedDialItems by viewModel.speedDialItems.collectAsState()
+    val pinnedSpeedDialItems by viewModel.pinnedSpeedDialItems.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
@@ -805,6 +806,7 @@ fun HomeScreen(
     val homeSections = remember(
         randomizeHomeOrder,
         randomSeed,
+        selectedChip,
         speedDialItems,
         quickPicks,
         dailyDiscover,
@@ -817,17 +819,20 @@ fun HomeScreen(
         explorePage?.moodAndGenres
     ) {
         val list = mutableListOf<HomeSection>()
+        val chipActive = selectedChip != null
 
-        if (speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
-        if (quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
-        if (communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
-        if (dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
-        if (keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
-        if (accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
-        if (forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
+        if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
+        if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+        if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
+        if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
+        if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
+        if (!chipActive && accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
+        if (!chipActive && forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
 
-        similarRecommendations?.indices?.forEach { i ->
-            list.add(HomeSection.SimilarRecommendation(i))
+        if (!chipActive) {
+            similarRecommendations?.indices?.forEach { i ->
+                list.add(HomeSection.SimilarRecommendation(i))
+            }
         }
 
         homePage?.sections?.indices?.forEach { i ->
@@ -1110,7 +1115,15 @@ fun HomeScreen(
                                                                                             )
                                                                                             is AlbumItem -> navController.navigate("album/${randomItem.id}")
                                                                                             is ArtistItem -> navController.navigate("artist/${randomItem.id}")
-                                                                                            is PlaylistItem -> navController.navigate("online_playlist/${randomItem.id}") //patched directly shows corresponding screens
+                                                                                            is PlaylistItem -> {
+                                                                                                val rawType = pinnedSpeedDialItems
+                                                                                                    .find { it.id == randomItem.id }?.type
+                                                                                                if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                    navController.navigate("local_playlist/${randomItem.id}")
+                                                                                                } else {
+                                                                                                    navController.navigate("online_playlist/${randomItem.id}")
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1146,8 +1159,15 @@ fun HomeScreen(
                                                                                         )
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-
-                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}") //patched navigation to correct screens
+                                                                                        is PlaylistItem -> {
+                                                                                            val rawType = pinnedSpeedDialItems
+                                                                                                .find { it.id == item.id }?.type
+                                                                                            if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                navController.navigate("local_playlist/${item.id}")
+                                                                                            } else {
+                                                                                                navController.navigate("online_playlist/${item.id}")
+                                                                                            }
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {

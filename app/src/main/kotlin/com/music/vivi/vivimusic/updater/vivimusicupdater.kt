@@ -592,6 +592,18 @@ fun saveUpdateNotificationsSetting(context: Context, enabled: Boolean) {
     sharedPrefs.edit().putBoolean(KEY_UPDATE_NOTIFICATIONS, enabled).apply()
 }
 
+const val KEY_DOWNLOAD_NOTIFICATIONS = "download_notifications"
+
+fun getDownloadNotificationsSetting(context: Context): Boolean {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getBoolean(KEY_DOWNLOAD_NOTIFICATIONS, true)
+}
+
+fun saveDownloadNotificationsSetting(context: Context, enabled: Boolean) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putBoolean(KEY_DOWNLOAD_NOTIFICATIONS, enabled).apply()
+}
+
 fun saveLastCheckedTime(context: Context, timestamp: String) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putString(KEY_LAST_CHECKED_TIME, timestamp).apply()
@@ -610,6 +622,41 @@ fun getBetaUpdatesSetting(context: Context): Boolean {
 fun saveBetaUpdatesSetting(context: Context, enabled: Boolean) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putBoolean(KEY_BETA_UPDATES, enabled).apply()
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// 9 PM daily gate for beta/nightly update checks
+// ──────────────────────────────────────────────────────────────────────────
+const val KEY_LAST_NIGHTLY_CHECK_DAY = "last_nightly_check_day"
+
+/**
+ * Returns true only if BOTH conditions are met:
+ *  1. The current local time is 9:00 PM (21:00) or later.
+ *  2. The nightly update check has NOT already run today.
+ *
+ * This prevents the nightly CI check from firing on every single app launch.
+ * Once it returns true and the check runs, call [markNightlyCheckDone] so
+ * subsequent launches today are silently skipped.
+ */
+fun shouldRunNightlyCheck(context: Context): Boolean {
+    val now = java.time.LocalTime.now()
+    val ninepm = java.time.LocalTime.of(21, 0)
+    if (now.isBefore(ninepm)) return false          // before 9 PM — skip
+    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val todayEpochDay = java.time.LocalDate.now().toEpochDay()
+    val lastCheckedDay = prefs.getLong(KEY_LAST_NIGHTLY_CHECK_DAY, -1L)
+    return lastCheckedDay != todayEpochDay           // already ran today — skip
+}
+
+/**
+ * Records that the nightly check ran today so [shouldRunNightlyCheck] returns
+ * false for all remaining launches until midnight.
+ */
+fun markNightlyCheckDone(context: Context) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        .edit()
+        .putLong(KEY_LAST_NIGHTLY_CHECK_DAY, java.time.LocalDate.now().toEpochDay())
+        .apply()
 }
 
 private fun formatGitHubDate(githubDate: String): String = try {
@@ -667,10 +714,11 @@ suspend fun checkForUpdate(
 
             var isNightlyUpdate = false
             var nightlyRunObject: JSONObject? = null
+            val nightlyChangelog = mutableListOf<String>()
 
             if (betaEnabled) {
                 try {
-                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=1")
+                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
                     val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
                     val nightlyData = JSONObject(nightlyJson)
                     val runs = nightlyData.optJSONArray("workflow_runs")
@@ -702,6 +750,25 @@ suspend fun checkForUpdate(
                         if (isNewer) {
                             isNightlyUpdate = true
                             nightlyRunObject = firstRun
+
+                            // Collect commits from runs that are newer than the currently installed nightly run
+                            for (i in 0 until runs.length()) {
+                                val run = runs.getJSONObject(i)
+                                val rNum = run.optInt("run_number", -1)
+                                val shouldInclude = if (lastInstalledRun != -1) {
+                                    rNum > lastInstalledRun
+                                } else {
+                                    i < 15
+                                }
+                                if (shouldInclude) {
+                                    val headCommit = run.optJSONObject("head_commit")
+                                    val commitMessage = headCommit?.optString("message")
+                                    if (!commitMessage.isNullOrBlank()) {
+                                        val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                                        nightlyChangelog.add("r$rNum: $subjectLine")
+                                    }
+                                }
+                            }
                         }
                     }
                 } catch (e: Exception) {
@@ -715,13 +782,13 @@ suspend fun checkForUpdate(
                 val displayTag = "nightly-r$runNumber"
                 
                 val changelogList = mutableListOf<ChangelogSection>()
-                val headCommit = nightlyRunObject.optJSONObject("head_commit")
-                val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
-                // Only use the subject line (first line) of the commit message.
-                // Git commit bodies (lines after the blank separator) are implementation
-                // details and should not appear as separate changelog bullet points.
-                val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
-                changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(subjectLine)))
+                if (nightlyChangelog.isEmpty()) {
+                    val headCommit = nightlyRunObject.optJSONObject("head_commit")
+                    val commitMessage = headCommit?.optString("message") ?: "New features and bug fixes"
+                    val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                    nightlyChangelog.add("r$runNumber: $subjectLine")
+                }
+                changelogList.add(ChangelogSection(context.getString(R.string.changelog), nightlyChangelog))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
                 val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"

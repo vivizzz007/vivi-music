@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,8 +41,6 @@ import com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting
 import com.music.vivi.vivimusic.updater.saveAutoUpdateCheckSetting
 import com.music.vivi.vivimusic.updater.getUpdateAvailableState
 import com.music.vivi.vivimusic.updater.saveUpdateAvailableState
-import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
-import com.music.vivi.vivimusic.updater.saveUpdateNotificationsSetting
 import android.widget.Toast
 import androidx.compose.ui.res.pluralStringResource
 import com.music.vivi.vivimusic.updater.getDownloadedApkCount
@@ -70,11 +69,25 @@ fun UpdateSettings(
 ) {
     val context = LocalContext.current
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
-    var updateNotificationsEnabled by remember { mutableStateOf(getUpdateNotificationsSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
-    val isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context) && autoUpdateEnabled) }
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
+
+    DisposableEffect(context, autoUpdateEnabled) {
+        val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "update_available") {
+                isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+            }
+        }
+        sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
+        // Sync initial state
+        isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+        onDispose {
+            sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
 
     LaunchedEffect(Unit) {
         autoClearOldApks(context)
@@ -164,34 +177,6 @@ fun UpdateSettings(
                 ),
 
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.notification),
-                    title = { Text(stringResource(R.string.update_notifications)) },
-                    description = { Text(stringResource(R.string.update_notifications_subtitle)) },
-                    trailingContent = {
-                        Switch(
-                            checked = updateNotificationsEnabled,
-                            onCheckedChange = { enabled ->
-                                updateNotificationsEnabled = enabled
-                                saveUpdateNotificationsSetting(context, enabled)
-                            },
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (updateNotificationsEnabled) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = {
-                        updateNotificationsEnabled = !updateNotificationsEnabled
-                        saveUpdateNotificationsSetting(context, updateNotificationsEnabled)
-                    }
-                ),
-
-                Material3SettingsItem(
                     icon = painterResource(R.drawable.biotech),
                     title = { Text(stringResource(R.string.beta_updates)) },
                     description = { Text(stringResource(R.string.beta_updates_subtitle)) },
@@ -216,6 +201,15 @@ fun UpdateSettings(
                     onClick = {
                         betaUpdatesEnabled = !betaUpdatesEnabled
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
+                    }
+                ),
+
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.notification),
+                    title = { Text(stringResource(R.string.notification_settings)) },
+                    description = { Text(stringResource(R.string.notification_settings_summary)) },
+                    onClick = {
+                        navController.navigate("settings/update/notification_permission")
                     }
                 ),
 

@@ -41,3 +41,9 @@ fun List<Run>.oddElements() =
     filterIndexed { index, _ ->
         index % 2 == 0
     }
+
+private val VIEW_COUNT_REGEX = Regex("""^[\d,.]+[KMB]?\s*(view|play)s?$""", RegexOption.IGNORE_CASE)
+
+/** Returns the first run text that looks like a view/play count (e.g. "12M views", "1.2B plays"). */
+fun List<List<Run>>.findViewCountText(): String? =
+    flatten().map { it.text.trim() }.firstOrNull { it.matches(VIEW_COUNT_REGEX) }

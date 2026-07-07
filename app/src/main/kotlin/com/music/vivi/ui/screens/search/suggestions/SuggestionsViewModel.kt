@@ -118,27 +118,40 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    /**
+     * Returns true if the YT Music artist [ytArtistName] matches the Apple Music
+     * [appleMusicArtist] string. Checks both directions so compound/featured-artist
+     * strings (e.g. "Taylor Swift feat. Ed Sheeran") are handled correctly —
+     * no words are stripped or removed from either side.
+     */
+    private fun artistMatches(ytArtistName: String, appleMusicArtist: String): Boolean {
+        val ytNorm = ytArtistName.trim().lowercase()
+        val apNorm = appleMusicArtist.trim().lowercase()
+        // Check both directions — no stripping, no word removal
+        return apNorm.contains(ytNorm) || ytNorm.contains(apNorm)
+    }
+
     fun playTrack(track: SuggestionTrack, playerConnection: PlayerConnection?) {
         viewModelScope.launch(Dispatchers.IO) {
             val query = "${track.title} ${track.artist}"
             YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { searchResult ->
                 val songs = searchResult.items.filterIsInstance<SongItem>()
-                
-                // 1. Try to find an exact title match with at least one matching artist
+
+                // 1. Exact title + at least one matching artist
                 val bestMatch = songs.firstOrNull { s ->
                     s.title.equals(track.title, ignoreCase = true) &&
-                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
-                } ?: 
-                // 2. Try to find a title that contains our target title and matches artist
+                    s.artists.any { a -> artistMatches(a.name, track.artist) }
+                } ?:
+                // 2. Title contains our target title + matching artist
                 songs.firstOrNull { s ->
                     s.title.contains(track.title, ignoreCase = true) &&
-                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
+                    s.artists.any { a -> artistMatches(a.name, track.artist) }
                 } ?:
-                // 3. Just find the first one that matches the artist
+                // 3. Any result where at least one artist matches
                 songs.firstOrNull { s ->
-                    s.artists.any { a -> track.artist.contains(a.name, ignoreCase = true) }
+                    s.artists.any { a -> artistMatches(a.name, track.artist) }
                 } ?:
-                // 4. Fallback to first song result
+                // 4. Fallback — first song in results (last resort)
                 songs.firstOrNull()
 
                 if (bestMatch != null) {
@@ -187,17 +200,17 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                 .onSuccess { searchResult ->
                     val songs = searchResult.items.filterIsInstance<SongItem>()
 
-                    // Use the same multi-step matching as playTrack for reliability
+                    // Use the same improved multi-step matching as playTrack
                     val bestMatch = songs.firstOrNull { s ->
                         s.title.equals(video.title, ignoreCase = true) &&
-                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                        s.artists.any { a -> artistMatches(a.name, video.artist) }
                     } ?:
                     songs.firstOrNull { s ->
                         s.title.contains(video.title, ignoreCase = true) &&
-                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                        s.artists.any { a -> artistMatches(a.name, video.artist) }
                     } ?:
                     songs.firstOrNull { s ->
-                        s.artists.any { a -> video.artist.contains(a.name, ignoreCase = true) }
+                        s.artists.any { a -> artistMatches(a.name, video.artist) }
                     } ?:
                     songs.firstOrNull()
 

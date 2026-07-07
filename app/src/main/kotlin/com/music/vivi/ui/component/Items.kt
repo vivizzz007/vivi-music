@@ -1014,9 +1014,9 @@ fun YouTubeListItem(
         ListItem(
             title = item.title,
             subtitle = when (item) {
-                is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
-                is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
-                is ArtistItem -> null
+                is SongItem -> joinByBullet(item.artists.joinToString { it.name }, item.album?.name, item.viewCountText, makeTimeString(item.duration?.times(1000L)))
+                is AlbumItem -> joinByBullet(stringResource(R.string.album_label), item.artists?.joinToString { it.name }, item.year?.toString())
+                is ArtistItem -> item.subtext
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
             },
             badges = badges,
@@ -1096,9 +1096,9 @@ fun YouTubeGridItem(
     },
     subtitle = {
         val subtitle = when (item) {
-            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
-            is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
-            is ArtistItem -> null
+            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, item.album?.name, item.viewCountText, makeTimeString(item.duration?.times(1000L)))
+            is AlbumItem -> joinByBullet(stringResource(R.string.album_label), item.artists?.joinToString { it.name }, item.year?.toString())
+            is ArtistItem -> item.subtext
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         }
         if (subtitle != null) {

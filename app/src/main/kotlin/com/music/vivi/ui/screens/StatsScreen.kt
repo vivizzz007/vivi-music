@@ -26,7 +26,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -83,6 +86,14 @@ fun StatsScreen(
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
     val firstEvent by viewModel.firstEvent.collectAsState()
     val currentDate = LocalDateTime.now()
+
+    val totalPlayTime by viewModel.totalPlayTime.collectAsState()
+    val allTimePlayTime by viewModel.allTimePlayTime.collectAsState()
+    val uniqueSongsCount by viewModel.uniqueSongsCount.collectAsState()
+    val uniqueArtistsCount by viewModel.uniqueArtistsCount.collectAsState()
+    val uniqueAlbumsCount by viewModel.uniqueAlbumsCount.collectAsState()
+
+    var showHistorySheet by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
@@ -423,6 +434,14 @@ fun StatsScreen(
             },
             actions = {
                 IconButton(
+                    onClick = { showHistorySheet = true }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.history),
+                        contentDescription = null,
+                    )
+                }
+                IconButton(
                     onClick = { navController.navigate("wrapped") }
                 ) {
                     Icon(
@@ -432,6 +451,35 @@ fun StatsScreen(
                 }
             }
         )
+
+        if (showHistorySheet) {
+            val currentPeriodLabel = when (selectedOption) {
+                OptionStats.WEEKS -> weeklyDates.getOrNull(indexChips)?.second.orEmpty()
+                OptionStats.MONTHS -> monthlyDates.getOrNull(indexChips)?.second.orEmpty()
+                OptionStats.YEARS -> yearlyDates.getOrNull(indexChips)?.second.orEmpty()
+                OptionStats.CONTINUOUS -> {
+                    when (indexChips) {
+                        StatPeriod.WEEK_1.ordinal -> pluralStringResource(R.plurals.n_week, 1, 1)
+                        StatPeriod.MONTH_1.ordinal -> pluralStringResource(R.plurals.n_month, 1, 1)
+                        StatPeriod.MONTH_3.ordinal -> pluralStringResource(R.plurals.n_month, 3, 3)
+                        StatPeriod.MONTH_6.ordinal -> pluralStringResource(R.plurals.n_month, 6, 6)
+                        StatPeriod.YEAR_1.ordinal -> pluralStringResource(R.plurals.n_year, 1, 1)
+                        StatPeriod.ALL.ordinal -> stringResource(R.string.filter_all)
+                        else -> ""
+                    }
+                }
+            }
+
+            ActivityHistoryBottomSheet(
+                onDismiss = { showHistorySheet = false },
+                totalPlayTimeMs = totalPlayTime,
+                allTimePlayTimeMs = allTimePlayTime,
+                uniqueSongs = uniqueSongsCount,
+                uniqueArtists = uniqueArtistsCount,
+                uniqueAlbums = uniqueAlbumsCount,
+                periodLabel = currentPeriodLabel
+            )
+        }
     }
 }
 

@@ -1,6 +1,7 @@
 package com.music.vivi.vivimusiccanvas
 
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.canvas.normalizeForComparison
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -23,7 +24,8 @@ data class ViviMusicCanvasManifest(
 data class ViviMusicCanvasItem(
     val song: String,
     val artist: String,
-    val url: String
+    val url: String,
+    val album: String = "",
 )
 
 object ViviMusicCanvasProvider {
@@ -83,21 +85,27 @@ object ViviMusicCanvasProvider {
     suspend fun getBySongArtist(
         song: String,
         artist: String,
+        album: String,
     ): CanvasArtwork? {
         if (song.isBlank() || artist.isBlank()) return null
         
         val manifest = fetchManifest() ?: return null
 
+        // Strict 3-way match: song + artist + album — all three must match
         val target = manifest.items.firstOrNull { item ->
-            val matchSong = song.contains(item.song, ignoreCase = true) || item.song.contains(song, ignoreCase = true)
-            val matchArtist = artist.contains(item.artist, ignoreCase = true) || item.artist.contains(artist, ignoreCase = true)
-            matchSong && matchArtist
+            val matchSong = song.normalizeForComparison().contains(item.song.normalizeForComparison()) ||
+                    item.song.normalizeForComparison().contains(song.normalizeForComparison())
+            val matchArtist = artist.normalizeForComparison().contains(item.artist.normalizeForComparison()) ||
+                    item.artist.normalizeForComparison().contains(artist.normalizeForComparison())
+            val matchAlbum = album.normalizeForComparison() == item.album.normalizeForComparison()
+            matchSong && matchArtist && matchAlbum
         }
 
         if (target != null) {
             return CanvasArtwork(
                 name = target.song,
                 artist = target.artist,
+                albumName = target.album.takeIf { it.isNotBlank() },
                 videoUrl = target.url,
                 animated = target.url
             )

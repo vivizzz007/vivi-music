@@ -168,6 +168,10 @@ class HomeViewModel @Inject constructor(
             filled.take(targetSize)
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val pinnedSpeedDialItems: StateFlow<List<SpeedDialItem>> =
+        database.speedDialDao.getAll()
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     suspend fun getRandomItem(): YTItem? {
         try {
             isRandomizing.value = true

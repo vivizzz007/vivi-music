@@ -42,12 +42,18 @@ import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.CanvasSelection
 import com.music.vivi.ui.screens.settings.GlassEffectSettings
+import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
+import com.music.vivi.ui.screens.settings.AutoBackupSettings
+import com.music.vivi.ui.screens.settings.SpotifyScreen
+import com.music.vivi.viewmodels.SpotifyImportViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.JioSettings
+import com.music.vivi.ui.screens.settings.CipherSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
@@ -62,6 +68,7 @@ import com.music.vivi.ui.screens.settings.integrations.ListenTogetherSettings
 import com.music.vivi.ui.screens.recognition.RecognitionScreen
 import com.music.vivi.ui.screens.recognition.RecognitionHistoryScreen
 import com.music.vivi.ui.screens.settings.UpdateSettings
+import com.music.vivi.ui.screens.settings.NotificationPermission
 import com.music.vivi.ui.screens.wrapped.WrappedScreen
 import com.music.vivi.vivimusic.updater.UpdateScreen
 import com.music.vivi.utils.rememberEnumPreference
@@ -327,6 +334,10 @@ fun NavGraphBuilder.navigationBuilder(
        UpdateSettings(navController, scrollBehavior)
     }
 
+    composable("settings/update/notification_permission") {
+        NotificationPermission(navController, scrollBehavior)
+    }
+
     composable("settings/account") {
         AccountSettingsScreen(navController, scrollBehavior)
     }
@@ -345,6 +356,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/appearance/liquidglass") {
         GlassEffectSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/appearance/font") {
+        FontSelectionScreen(navController, scrollBehavior)
     }
 
     composable("settings/content") {
@@ -367,6 +382,10 @@ fun NavGraphBuilder.navigationBuilder(
         JioSettings(navController, scrollBehavior)
     }
 
+    composable("settings/player/cipher") {
+        CipherSettings(navController, scrollBehavior)
+    }
+
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
     }
@@ -383,6 +402,13 @@ fun NavGraphBuilder.navigationBuilder(
         BackupAndRestore(navController, scrollBehavior)
     }
 
+    composable("settings/backup_restore/autobackup") {
+        AutoBackupSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/spotify") {
+        SpotifyScreen(navController, scrollBehavior)
+    }
 
 
 

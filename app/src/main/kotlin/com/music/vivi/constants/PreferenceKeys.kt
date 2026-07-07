@@ -24,6 +24,20 @@ val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
 val MiniPlayerOutlineKey = booleanPreferencesKey("miniPlayerOutline")
+val SelectedFontKey = stringPreferencesKey("selected_font")
+
+enum class AppFont(val value: String) {
+    SYSTEM("system"),
+    GOOGLE_SANS("google_sans"),
+    SANS_FLEX("sans_flex"),
+    OUTFIT("outfit"),
+    PLUS_JAKARTA_SANS("plus_jakarta_sans");
+
+    companion object {
+        fun fromValue(value: String): AppFont = entries.find { it.value == value } ?: SYSTEM
+    }
+}
+
 val DensityScaleKey = floatPreferencesKey("density_scale_factor")
 val CustomDensityScaleKey = floatPreferencesKey("custom_density_scale_value")
 
@@ -72,7 +86,9 @@ val SuggestionRegionKey = stringPreferencesKey("suggestionRegion")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
+val EnableMusixmatchKey = booleanPreferencesKey("enableMusixmatch")
 val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
+
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
@@ -105,6 +121,22 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 // JioSaavn streaming
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
 val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
+
+// Cipher Deobfuscation settings
+val EnableAutoCipherFetchKey = booleanPreferencesKey("enableAutoCipherFetch")
+val CipherLastUpdatedKey = longPreferencesKey("cipher_last_updated")
+val CipherManualUpdate1Key = longPreferencesKey("cipher_manual_update_1")
+val CipherManualUpdate2Key = longPreferencesKey("cipher_manual_update_2")
+val CipherManualUpdate3Key = longPreferencesKey("cipher_manual_update_3")
+
+val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
+val NewReleaseNotificationsKey = booleanPreferencesKey("newReleaseNotifications")
+val TasteBasedReleaseNotificationsKey = booleanPreferencesKey("tasteBasedReleaseNotifications")
+
+
+val AutoBackupEnabledKey = booleanPreferencesKey("autoBackupEnabled")
+val AutoBackupWeeklyKey = booleanPreferencesKey("autoBackupWeekly")
+val AutoBackupBeforeUpdateKey = booleanPreferencesKey("autoBackupBeforeUpdate")
 
 enum class SaavnAudioQuality {
     QUALITY_320,
@@ -397,6 +429,7 @@ enum class PreferredLyricsProvider {
     LRCLIB,
     KUGOU,
     BETTER_LYRICS,
+    MUSIXMATCH,
     SIMPMUSIC,
     YOULYPLUS,
     PAXSENIX,

@@ -172,17 +172,16 @@ object YTPlayerUtils {
                         currentSong.artists.map { it.name }
                     } else {
                         listOf(
-                            meta?.videoDetails?.author.orEmpty()
-                                .replace(Regex("(?i)\\s*-\\s*topic\\b"), "")
-                                .replace(Regex("(?i)\\s*VEVO\\b"), "")
-                                .trim()
+                            meta?.videoDetails?.author.orEmpty().trim()
                         ).filter { it.isNotBlank() }
                     }
                     val artist = artistNames.joinToString(", ")
 
                     if (title.isBlank()) return@runCatching null
 
-                    Timber.tag(TAG).d("Saavn: resolved title=\"$title\" artists=$artistNames for videoId=$videoId")
+                    val expectedDuration = meta?.videoDetails?.lengthSeconds?.toIntOrNull()
+
+                    Timber.tag(TAG).d("Saavn: resolved title=\"$title\" artists=$artistNames duration=$expectedDuration s for videoId=$videoId")
 
                     val albumName = currentSong?.album?.name.orEmpty()
                     val wantedTitleLower = title.lowercase(java.util.Locale.US)
@@ -193,39 +192,59 @@ object YTPlayerUtils {
                     } else {
                         "$title $artist"
                     }
-                    .replace("&", " ")
-                    .replace(",", " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
                     val fallbackQuery = "$title $artist"
-                    .replace("&", " ")
-                    .replace(",", " ")
                     .replace(Regex("\\s+"), " ")
                     .trim()
 
                     suspend fun findMatch(searchQuery: String): com.music.jiosaavn.SaavnSong? {
                         if (searchQuery.isBlank()) return null
                         Timber.tag(TAG).d("Saavn: searching with query: \"$searchQuery\"")
-                        val songs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
+                        val rawSongs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
+                        val wantedExplicit = currentSong?.explicit ?: false
+                        val wantedAlbumLower = albumName.lowercase(java.util.Locale.US)
+                        val songs = rawSongs.sortedWith(
+                            compareByDescending<com.music.jiosaavn.SaavnSong> { candidate ->
+                                val candidateAlbumName = candidate.album?.name
+                                if (wantedAlbumLower.isNotBlank() && candidateAlbumName != null) {
+                                    candidateAlbumName.lowercase(java.util.Locale.US) == wantedAlbumLower
+                                } else {
+                                    false
+                                }
+                            }.thenByDescending { candidate ->
+                                candidate.explicitContent == wantedExplicit
+                            }
+                        )
                         return songs.firstOrNull { candidate ->
                             val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US)
                             val candidateArtists = candidate.artists.primary.map { it.name.lowercase(java.util.Locale.US) }
                             
-                            val titleMatches = candidateTitleLower.contains(wantedTitleLower) || wantedTitleLower.contains(candidateTitleLower)
-                            val artistMatches = wantedArtistsLower.isEmpty() || wantedArtistsLower.any { wanted ->
-                                candidateArtists.any { candidateArtist ->
-                                    candidateArtist.contains(wanted) || wanted.contains(candidateArtist)
-                                }
-                            }
+                            // Strict exact matching checks
+                            val titleMatches = candidateTitleLower == wantedTitleLower
                             
-                            val isMatch = titleMatches && artistMatches
-                            if (isMatch) {
-                                Timber.tag(TAG).d("Saavn: candidate matched: \"${candidate.name}\" on album \"${candidate.album?.name}\" by ${candidate.artists.primary.joinToString { it.name }}")
+                            val artistMatches = candidateArtists.sorted() == wantedArtistsLower.sorted()
+                            
+                            val candidateAlbumName = candidate.album?.name
+                            val albumMatches = if (wantedAlbumLower.isNotBlank()) {
+                                candidateAlbumName?.lowercase(java.util.Locale.US) == wantedAlbumLower
                             } else {
-                                Timber.tag(TAG).d("Saavn: candidate rejected (name/artist mismatch): \"${candidate.name}\" on album \"${candidate.album?.name}\" by ${candidate.artists.primary.joinToString { it.name }}")
+                                true
                             }
-                            isMatch
+
+                            val candDuration = candidate.duration
+                            val durationMatches = if (expectedDuration != null && candDuration != null) {
+                                java.lang.Math.abs(expectedDuration - candDuration) <= 12
+                            } else {
+                                true
+                            }
+
+                            if (titleMatches && artistMatches && !durationMatches) {
+                                Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" matches title/artist but duration differs too much (YT: $expectedDuration s, Saavn: ${candidate.duration} s)")
+                            }
+
+                            titleMatches && artistMatches && albumMatches && durationMatches
                         }
                     }
 
@@ -262,11 +281,10 @@ object YTPlayerUtils {
                         return@runCatching null
                     }
 
-                    // Optimization: Skip synchronous HTTP HEAD request to get content length during playback.
-                    // ExoPlayer parses the content length automatically from HTTP GET response headers on buffer.
-                    val contentLength: Long? = null
+                    // Resolve the actual content length using a lightweight Range query
+                    val contentLength = SaavnService.getContentLength(streamUrl)
 
-                    Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) for videoId=$videoId")
+                    Timber.tag(TAG).i("Saavn: streaming from JioSaavn (quality=${quality.toApiValue()}) resolved contentLength=$contentLength for videoId=$videoId")
                     // Return a minimal PlaybackData using the Saavn URL.
                     // Reuse the YouTube metadata already fetched in Step 1 — no second
                     // network call needed. This keeps audioConfig/videoDetails/playbackTracking

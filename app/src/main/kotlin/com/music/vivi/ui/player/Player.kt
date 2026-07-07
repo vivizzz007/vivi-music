@@ -243,8 +243,6 @@ import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
-import com.music.vivi.ui.player.normalizeCanvasArtistName
-import com.music.vivi.ui.player.normalizeCanvasSongTitle
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -555,10 +553,11 @@ fun BottomSheetPlayer(
         label = "icBackgroundColor"
     )
 
-    var canvasArtwork by remember(mediaMetadata?.id) { mutableStateOf<CanvasArtwork?>(null) }
-    var canvasFetchInFlight by remember(mediaMetadata?.id) { mutableStateOf(false) }
+    val albumTitle = mediaMetadata?.album?.title
+    var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
+    var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground, canvasSource) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, canvasSource) {
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
             canvasArtwork = null
             return@LaunchedEffect
@@ -579,34 +578,32 @@ fun BottomSheetPlayer(
             val requestedTitle = item.title
             val requestedArtist = item.artists.joinToString { it.name }
             val requestedAlbum = item.album?.title ?: ""
-            
-            val s = normalizeCanvasSongTitle(requestedTitle)
-            val a = normalizeCanvasArtistName(requestedArtist)
-            
+
+            val s = requestedTitle
+            val a = requestedArtist
+
+            android.util.Log.d("CanvasDebug", "=== Canvas Fetch START ===")
+            android.util.Log.d("CanvasDebug", "Source     : $canvasSource")
+            android.util.Log.d("CanvasDebug", "Storefront : $storefront")
+            android.util.Log.d("CanvasDebug", "Title      : '$requestedTitle'")
+            android.util.Log.d("CanvasDebug", "Artist     : '$requestedArtist'")
+            android.util.Log.d("CanvasDebug", "Album      : '$requestedAlbum' (blank=${requestedAlbum.isBlank()})")
+
             val fetched = when (canvasSource) {
                 CanvasSource.AUTO -> {
-                    val appleMusicCanvas = if (requestedAlbum.isNotBlank()) {
-                        AppleMusicCanvasProvider.getByAlbumArtist(
-                            album = requestedAlbum,
-                            artist = a,
-                            storefront = storefront
-                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                    } else null
-
-                    appleMusicCanvas
-                        ?: AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
                         ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
+                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
                 }
                 CanvasSource.APPLE_MUSIC -> {
                     AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.VIVIMUSIC -> {
-                    ViviMusicCanvasProvider.getBySongArtist(s, a)
+                    ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.TIDAL -> {
@@ -615,15 +612,30 @@ fun BottomSheetPlayer(
                 }
             }
 
-            val validated = fetched?.let { artwork ->
-                val resultArtist = artwork.artist
-                val artistMatches = if (resultArtist != null && requestedArtist.isNotBlank()) {
-                    resultArtist.contains(requestedArtist, ignoreCase = true) ||
-                    requestedArtist.contains(resultArtist, ignoreCase = true)
-                } else true
-                
-                if (artistMatches) artwork else null
+            android.util.Log.d("CanvasDebug", "Fetched artwork: ${if (fetched == null) "NULL" else "non-null"}")
+            if (fetched != null) {
+                android.util.Log.d("CanvasDebug", "  artwork.name      : '${fetched.name}'")
+                android.util.Log.d("CanvasDebug", "  artwork.artist    : '${fetched.artist}'")
+                android.util.Log.d("CanvasDebug", "  artwork.albumName : '${fetched.albumName}'")
+                android.util.Log.d("CanvasDebug", "  artwork.animUrl   : '${fetched.preferredAnimationUrl}'")
             }
+
+            val validated = fetched?.let { artwork ->
+                // For AUTO mode validation is already done per-provider inside takeIf.
+                // For single-source modes this block acts as the safety net.
+                val passes = validateCanvasMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
+
+                android.util.Log.d("CanvasDebug", "Validation:")
+                android.util.Log.d("CanvasDebug", "  artistMatches  : ${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}  ('${artwork.artist?.trim()}' vs '${requestedArtist.trim()}')")
+                android.util.Log.d("CanvasDebug", "  songMatches    : ${artwork.name.orEmpty().trim().equals(requestedTitle.trim(), ignoreCase = true)}  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
+                android.util.Log.d("CanvasDebug", "  albumMatches   : ${artwork.albumName.orEmpty().trim().equals(requestedAlbum.trim(), ignoreCase = true)}  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
+                android.util.Log.d("CanvasDebug", "  RESULT         : $passes")
+
+                if (passes) artwork else null
+            }
+
+            android.util.Log.d("CanvasDebug", "Final validated: ${if (validated == null) "NULL (canvas will NOT show)" else "OK (canvas will show)"}")
+            android.util.Log.d("CanvasDebug", "=== Canvas Fetch END ===")
 
             withContext(Dispatchers.Main) {
                 canvasArtwork = validated
@@ -752,72 +764,6 @@ fun BottomSheetPlayer(
                 delay(1000L)
             }
         }
-    }
-
-    var showSleepTimerDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var sleepTimerValue by remember {
-        mutableFloatStateOf(30f)
-    }
-    if (showSleepTimerDialog) {
-        AlertDialog(
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = { showSleepTimerDialog = false },
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.bedtime),
-                    contentDescription = null
-                )
-            },
-            title = { Text(stringResource(R.string.sleep_timer)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
-                    },
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showSleepTimerDialog = false },
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.minute,
-                            sleepTimerValue.roundToInt(),
-                            sleepTimerValue.roundToInt()
-                        ),
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-
-                    Slider(
-                        value = sleepTimerValue,
-                        onValueChange = { sleepTimerValue = it },
-                        valueRange = 5f..120f,
-                        steps = (120 - 5) / 5 - 1,
-                    )
-
-                    OutlinedIconButton(
-                        onClick = {
-                            showSleepTimerDialog = false
-                            playerConnection.service.sleepTimer.start(-1)
-                        },
-                    ) {
-                        Text(stringResource(R.string.end_of_song))
-                    }
-                }
-            },
-        )
     }
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -1188,8 +1134,9 @@ fun BottomSheetPlayer(
 
                                         if (enableCanvas && canvasArtwork != null && backgroundAlpha > 0.01f) {
                                             BackgroundVideoView(
-                                                videoUrl = canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
+                                                videoUrl = canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
                                                 isPlaying = isPlaying,
+                                                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
                                                 modifier = Modifier.fillMaxSize()
                                             )
                                         }
@@ -1441,7 +1388,7 @@ fun BottomSheetPlayer(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.vivi_music_icon),
+                                        painter = painterResource(R.drawable.vivi_music_small_icon),
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(32.dp),
@@ -2087,14 +2034,10 @@ fun BottomSheetPlayer(
                                 color = TextBackgroundColor.copy(alpha = 0.12f),
                                 shape = RoundedCornerShape(4.dp)
                             )
-                            .clickable {
-                                if (sleepTimerEnabled) {
-                                    showSleepTimerDialog = true
-                                } else {
-                                    mediaMetadata.id.let {
-                                        bottomSheetPageState.show {
-                                            ShowMediaInfo(it)
-                                        }
+                            .clickable(enabled = !sleepTimerEnabled) {
+                                mediaMetadata.id.let {
+                                    bottomSheetPageState.show {
+                                        ShowMediaInfo(it)
                                     }
                                 }
                             }
@@ -2955,7 +2898,8 @@ private fun PlayerMoreMenuButton(
 private fun BackgroundVideoView(
     videoUrl: String,
     isPlaying: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
 ) {
     val context = LocalContext.current
     var isVideoReady by remember(videoUrl) { mutableStateOf(false) }
@@ -2985,9 +2929,9 @@ private fun BackgroundVideoView(
             }
     }
 
-    val aspectRatioFrameLayout = remember {
+    val aspectRatioFrameLayout = remember(resizeMode) {
         AspectRatioFrameLayout(context).apply {
-            resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            this.resizeMode = resizeMode
             setBackgroundColor(android.graphics.Color.TRANSPARENT)
         }
     }
@@ -3019,6 +2963,14 @@ private fun BackgroundVideoView(
 
     LaunchedEffect(isPlaying) {
         exoPlayer.playWhenReady = isPlaying
+    }
+
+    LaunchedEffect(resizeMode) {
+        exoPlayer.videoScalingMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
+            C.VIDEO_SCALING_MODE_SCALE_TO_FIT
+        } else {
+            C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
+        }
     }
 
     DisposableEffect(Unit) {

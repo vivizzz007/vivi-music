@@ -80,4 +80,12 @@
     <string name="new_update">Nouvelle mise à jour</string>
     <string name="release_date_v">Date de sortie : %1$s</string>
     <string name="update_size_v">Taille : %1$s Mo</string>
+
+    <!-- Notification Permission Settings -->
+    <string name="notification_settings">Autorisation de notification</string>
+    <string name="notification_settings_summary">Configurer les paramètres de notification.</string>
+    <string name="notification_settings_desc">Configurez et gérez les notifications concernant les mises à jour de l\'application, les versions bêta et la progression des téléchargements. La désactivation des notifications empêchera l\'affichage des mises à jour d\'état en arrière-plan.</string>
+    <string name="enable_notifications">Activer les notifications</string>
+    <string name="download_notifications">Notifications de téléchargement</string>
+    <string name="download_notifications_desc">Affichez la progression du téléchargement de la mise à jour.</string>
 </resources>

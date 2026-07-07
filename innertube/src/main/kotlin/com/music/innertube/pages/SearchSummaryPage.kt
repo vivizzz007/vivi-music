@@ -13,6 +13,7 @@ import com.music.innertube.models.clean
 import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
 import com.music.innertube.models.filterYoutubeShorts
+import com.music.innertube.models.findViewCountText
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
@@ -114,6 +115,7 @@ data class SearchSummaryPage(
                             renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
+                        viewCountText = subtitle?.findViewCountText()
                     )
                 }
 
@@ -137,6 +139,7 @@ data class SearchSummaryPage(
                                 ?.buttonRenderer
                                 ?.command
                                 ?.watchPlaylistEndpoint ?: return null,
+                        subtext = subtitle?.map { list -> list.joinToString(separator = "") { it.text } }?.joinToString(separator = " • ")
                     )
                 }
 
@@ -271,7 +274,8 @@ data class SearchSummaryPage(
                         endpoint = renderer.navigationEndpoint?.watchEndpoint
                             ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
                         libraryAddToken = libraryTokens.addToken,
-                        libraryRemoveToken = libraryTokens.removeToken
+                        libraryRemoveToken = libraryTokens.removeToken,
+                        viewCountText = (secondaryLine + thirdLine).findViewCountText()
                     )
                 }
 
@@ -302,6 +306,7 @@ data class SearchSummaryPage(
                                 ?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
                                 ?.watchPlaylistEndpoint ?: return null,
+                        subtext = secondaryLine.map { list -> list.joinToString(separator = "") { it.text } }.joinToString(separator = " • ")
                     )
                 }
 

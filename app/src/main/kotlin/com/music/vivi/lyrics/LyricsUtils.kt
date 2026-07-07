@@ -582,6 +582,43 @@ object LyricsUtils {
         return lines.lastIndex
     }
 
+    fun findActiveLineIndices(
+        lines: List<LyricsEntry>,
+        position: Long,
+    ): Set<Int> {
+        val active = mutableSetOf<Int>()
+        val hasWordTimings = lines.any { !it.words.isNullOrEmpty() }
+
+        for (index in lines.indices) {
+            val line = lines[index]
+            if (line.time > position) break // Past current position, stop early
+
+            // Determine this line's end time
+            val lineEndMs: Long = if (!line.words.isNullOrEmpty()) {
+                // Use last word's endTime converted to ms
+                (line.words.last().endTime * 1000).toLong()
+            } else {
+                // Fallback: next line's start time
+                if (index + 1 < lines.size) lines[index + 1].time else Long.MAX_VALUE
+            }
+
+            if (position <= lineEndMs) {
+                active.add(index)
+            }
+        }
+
+        if (!hasWordTimings && active.size > 1) {
+            val mainActive = active.filter { !it.let { lines[it].isBackground } }
+            if (mainActive.size > 1) {
+                val maxTime = mainActive.maxOf { lines[it].time }
+                active.removeAll { it in mainActive && lines[it].time < maxTime }
+            }
+        }
+
+        return active
+    }
+
+
     // TODO: Will be useful if we let the user pick the language, useless for now
     /* enum class CyrillicLanguage {
         RUSSIAN,

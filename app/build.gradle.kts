@@ -25,8 +25,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 71
-        versionName = "6.0.2"
+        versionCode = 73
+        versionName = "6.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -284,6 +284,9 @@ dependencies {
     implementation(project(":vivimusiccanvas"))
     implementation(project(":paxsenixlyrics"))
     implementation(project(":jiosaavn"))
+    implementation(project(":spotify"))
+    implementation(project(":musixmatch"))
+
 
 
     implementation(libs.ktor.client.core)

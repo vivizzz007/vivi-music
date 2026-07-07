@@ -78,10 +78,37 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     fun restore(context: Context, uri: Uri) {
+        val inputStream = try {
+            context.contentResolver.openInputStream(uri)
+        } catch (e: Exception) {
+            null
+        }
+        if (inputStream == null) {
+            Timber.tag("RESTORE").e("Could not open input stream for uri: $uri")
+            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        restoreFromInputStream(context, inputStream)
+    }
+
+    fun restoreFromFile(context: Context, file: java.io.File) {
+        val inputStream = try {
+            java.io.FileInputStream(file)
+        } catch (e: Exception) {
+            null
+        }
+        if (inputStream == null) {
+            Timber.tag("RESTORE").e("Could not open input stream for file: ${file.absolutePath}")
+            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        restoreFromInputStream(context, inputStream)
+    }
+
+    private fun restoreFromInputStream(context: Context, raw: java.io.InputStream) {
         runCatching {
-            Timber.tag("RESTORE").i("Starting restore from URI: $uri")
-            context.applicationContext.contentResolver.openInputStream(uri)?.use { raw ->
-                raw.zipInputStream().use { inputStream ->
+            raw.use {
+                it.zipInputStream().use { inputStream ->
                     var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                     var foundAny = false
                     while (entry != null) {
@@ -118,8 +145,6 @@ class BackupRestoreViewModel @Inject constructor(
                         Timber.tag("RESTORE").w("No expected entries found in archive")
                     }
                 }
-            } ?: run {
-                Timber.tag("RESTORE").e("Could not open input stream for uri: $uri")
             }
 
             context.stopService(Intent(context, MusicService::class.java))

@@ -9,6 +9,7 @@
 <resources>
     <!-- Bottom navigation -->
     <string name="home">Accueil</string>
+    <string name="music">Musique</string>
     <string name="songs">Titres</string>
     <string name="artists">Artistes</string>
     <string name="albums">Albums</string>
@@ -276,6 +277,7 @@
     <string name="right">Droite</string>
     <string name="player_slider_style">Style du curseur du lecteur</string>
     <string name="default_">Par défaut</string>
+    <string name="apple_music">Apple Music</string>
     <string name="squiggly">Ondulations</string>
     <string name="misc">Divers</string>
     <string name="default_open_tab">Onglet ouvert par défaut</string>
@@ -287,6 +289,7 @@
     <string name="action_logout">Déconnexion</string>
     <string name="action_login">Connexion</string>
     <string name="login">Se connecter</string>
+    <string name="show_audio_quality_badge">Afficher le badge de qualité audio</string>
     <string name="not_logged_in">Non connecté</string>
     <string name="login_failed">Échec de la connexion</string>
 
@@ -388,4 +391,44 @@
     <string name="standard_lyrics_blur">Paroles standard floues</string>
     <string name="listen_together_smart_resync">Resynchronisation intelligente du réseau</string>
     <string name="listen_together_smart_resync_desc">Reprendre automatiquement la connexion avec l\'hôte après une perte de connexion</string>
+
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">Activer le streaming JioSaavn</string>
+    <string name="enable_saavn_streaming_desc">Écoutez de la musique en streaming depuis JioSaavn plutôt que depuis YouTube Music (retour à YouTube Music si JioSaavn n\'est pas disponible)</string>
+    <string name="saavn_audio_quality">Qualité audio de JioSaavn</string>
+    <string name="retry_stream">Réessayer le flux</string>
+    <string name="retry_stream_desc_saavn">Récupérer depuis JioSaavn à 320 kbps</string>
+    <string name="retry_stream_desc_yt">Récupérer depuis YouTube Music</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">À quoi pensez-vous ?</string>
+    <string name="search_prompt_todays_pick">C\'est quoi le choix du jour ?</string>
+    <string name="search_prompt_trending">Recherche des hits les plus populaires…</string>
+    <string name="search_prompt_vibe">Vous vous sentez chanceux ? Cherchez une ambiance…</string>
+    <string name="search_prompt_songs_artists">Recherchez des titres, des artistes, des albums…</string>
+    <string name="search_prompt_template_song">Rechercher « %s »…</string>
+    <string name="search_prompt_template_song_try">Essayez de rechercher « %s »…</string>
+    <string name="search_prompt_template_artist">Rechercher l\'artiste « %s »…</string>
+    <string name="enable_settings_popup">Activer la fenêtre contextuelle des paramètres</string>
+    <string name="enable_settings_popup_desc">Afficher la fenêtre contextuelle des réglages rapides lorsque l\'on appuie sur le bouton des réglages, au lieu d\'ouvrir directement les réglages</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Sauvegarde Automatique</string>
+    <string name="automatic_backup_desc">Configurez des sauvegardes automatiques de vos paramètres et de votre base de données afin d\'éviter toute perte de données.</string>
+    <string name="enable_automatic_backup">Activer la sauvegarde automatique</string>
+    <string name="weekly_backup">Sauvegarde hebdomadaire</string>
+    <string name="weekly_backup_desc">Sauvegardez automatiquement vos données chaque semaine en arrière-plan.</string>
+    <string name="backup_before_update">Sauvegarde avant la mise à jour</string>
+    <string name="backup_before_update_desc">Sauvegardez automatiquement vos données avant de télécharger une mise à jour d\'application.</string>
+    <string name="stored_backups">Sauvegardes archivées</string>
+    <string name="no_stored_backups">Aucune sauvegarde automatique n\'a encore été enregistrée.</string>
+    <string name="backup_type_weekly">Sauvegarde hebdomadaire</string>
+    <string name="backup_type_before_update">Avant la mise à jour</string>
+    <string name="delete_backup_confirm">Êtes-vous sûr de vouloir supprimer cette sauvegarde ?</string>
+    <string name="restore_backup_confirm">Êtes-vous sûr de vouloir restaurer cette sauvegarde ? L\'application va se fermer puis redémarrer pour appliquer les modifications.</string>
+    <string name="backup_deleted">Sauvegarde supprimée avec succès</string>
+    <string name="others">Autres</string>
+    <string name="last_backed_up">Dernière sauvegarde : %s</string>
+    <string name="never_backed_up">Jamais</string>
+    <string name="autobackup_settings">Paramètres de sauvegarde automatique</string>
 </resources>

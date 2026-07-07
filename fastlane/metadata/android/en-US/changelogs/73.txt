@@ -1,0 +1,9 @@
+fixed canvas issue 
+fixed apple music player background canvas (only enable apple canvas for this )
+added new decryption form vivi (only 3 time manual fetch allowed if used more than that its blocked)
+added musixmatch as the official lyrics provider
+added jio saavan unlimited  streaming (beta)
+replaced old app icon through out the app
+added smooth animations in metrolyrics (metrolist thank you)
+added paypal link in about section
+updated vivimusic (fluid)

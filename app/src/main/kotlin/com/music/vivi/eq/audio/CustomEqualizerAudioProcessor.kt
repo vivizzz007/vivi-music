@@ -50,13 +50,34 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
             return
         }
 
-        // Convert preamp from dB to linear gain
         preampGain = 10.0.pow(parametricEQ.preamp / 20.0)
+
+        val activeBands = parametricEQ.bands.filter { it.enabled && it.frequency < sampleRate / 2.0 }
+
+        if (equalizerEnabled && filters.size == activeBands.size) {
+            // Check if we can update filter gains in-place to avoid resetting history buffers (zipper-noise free)
+            var canUpdateInPlace = true
+            for (i in filters.indices) {
+                val filter = filters[i]
+                val band = activeBands[i]
+                if (filter.frequency != band.frequency || filter.filterType != band.filterType) {
+                    canUpdateInPlace = false
+                    break
+                }
+            }
+            if (canUpdateInPlace) {
+                for (i in filters.indices) {
+                    filters[i].updateGain(activeBands[i].gain)
+                }
+                Timber.tag(TAG).d("Updated EQ profile gains in-place (zipper-noise free)")
+                return
+            }
+        }
 
         createFilters(parametricEQ.bands)
         equalizerEnabled = true
 
-        // Reset filter states to ensure clean transition
+        // Reset filter states to ensure clean transition for newly loaded profiles
         filters.forEach { it.reset() }
 
         Timber.tag(TAG)
@@ -227,11 +248,11 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
                     var processedLeft = leftSample
                     var processedRight = rightSample
 
-                    // Apply all filters in series
+                    // Apply all filters in series in-place
                     for (filter in filters) {
-                        val (left, right) = filter.processStereo(processedLeft, processedRight)
-                        processedLeft = left
-                        processedRight = right
+                        filter.processStereo(processedLeft, processedRight)
+                        processedLeft = filter.lastOutputLeft
+                        processedRight = filter.lastOutputRight
                     }
 
                     // Apply preamp gain

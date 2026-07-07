@@ -72,6 +72,7 @@
     <string name="from_your_library">From your library</string>
 
     <!-- Album screen -->
+    <string name="album_label">Album</string>
     <string name="other_versions">Other versions</string>
     <string name="album_description_placeholder">This is a placeholder description for the album. Enjoy listening to the tracks below!</string>
 
@@ -411,4 +412,31 @@
     <string name="search_prompt_template_artist">Search artist \"%s\"…</string>
     <string name="enable_settings_popup">Enable settings popup</string>
     <string name="enable_settings_popup_desc">Show quick settings popup when tapping the settings button instead of opening settings directly</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Automatic backup</string>
+    <string name="automatic_backup_desc">Configure automatic backups of your settings and database to prevent data loss.</string>
+    <string name="enable_automatic_backup">Enable Automatic Backup</string>
+    <string name="weekly_backup">Weekly backup</string>
+    <string name="weekly_backup_desc">Automatically backup your data every week in the background.</string>
+    <string name="backup_before_update">Backup before update</string>
+    <string name="backup_before_update_desc">Automatically backup your data before downloading an app update.</string>
+    <string name="stored_backups">Stored backups</string>
+    <string name="no_stored_backups">No automatic backups stored yet.</string>
+    <string name="backup_type_weekly">Weekly Backup</string>
+    <string name="backup_type_before_update">Before Update</string>
+    <string name="delete_backup_confirm">Are you sure you want to delete this backup?</string>
+    <string name="restore_backup_confirm">Are you sure you want to restore this backup? The app will close and restart to apply changes.</string>
+    <string name="backup_deleted">Backup deleted successfully</string>
+    <string name="others">Others</string>
+    <string name="last_backed_up">Last backed up: %s</string>
+    <string name="never_backed_up">Never</string>
+    <string name="autobackup_settings">Auto Backup Settings</string>
+    <string name="new_release_notifications">New release alerts</string>
+    <string name="new_release_notifications_subtitle">Notify when bookmarked artists release new songs or albums (beta)</string>
+    <string name="new_release_channel_name">New Releases</string>
+    <string name="new_release_channel_desc">Notifications for new releases from your bookmarked artists</string>
+    <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
+    <string name="taste_based_release_notifications">Taste-based release alerts</string>
+    <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
 </resources>

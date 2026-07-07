@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -135,7 +136,15 @@ fun BackupAndRestore(
         )
 
         Material3SettingsGroup(
+            title = stringResource(R.string.backup_restore),
             items = listOf(
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.autobackup_settings)) },
+                    icon = painterResource(R.drawable.database_upload),
+                    onClick = {
+                        navController.navigate("settings/backup_restore/autobackup")
+                    }
+                ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.action_backup)) },
                     icon = painterResource(R.drawable.backup),
@@ -155,6 +164,14 @@ fun BackupAndRestore(
                         restoreLauncher.launch(arrayOf("application/octet-stream"))
                     },
                 ),
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.others),
+            items = listOf(
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.import_online)) },
                     icon = painterResource(R.drawable.playlist_add),
@@ -167,6 +184,13 @@ fun BackupAndRestore(
                     icon = painterResource(R.drawable.playlist_add),
                     onClick = {
                         importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"))
+                    }
+                ),
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.import_from_spotify)) },
+                    icon = painterResource(R.drawable.spotify),
+                    onClick = {
+                        navController.navigate("settings/spotify")
                     }
                 )
             )

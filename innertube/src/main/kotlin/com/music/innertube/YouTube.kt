@@ -272,17 +272,17 @@ object YouTube {
             response.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
             response.header?.musicImmersiveHeaderRenderer?.description?.runs?.let { yield(it) }
             response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicDetailHeaderRenderer?.description?.runs?.let { yield(it) }
-            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+            response.header?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
             
             // Check musicResponsiveHeaderRenderer in contents
             response.contents?.twoColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
                 tab?.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
-                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                    content.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
             response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
                 tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
-                    content.musicResponsiveHeaderRenderer?.description?.runs?.let { yield(it) }
+                    content.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
         }.firstOrNull()?.let(::mapRuns)
@@ -575,10 +575,47 @@ object YouTube {
             }
         }
 
+        // Safely extract header title — null means the API response is unrecognisable
+        val title = header?.title?.runs?.firstOrNull()?.text
+            ?: throw IllegalStateException("Playlist title not found for id=$playlistId (header=${header != null})")
+
+        // Thumbnail is optional — fall back to empty string rather than crashing
+        val thumbnailUrl = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
+            ?: ""
+
+        // shuffleEndpoint is NOT guaranteed — remove !! to avoid NPE
+        val shuffleEndpoint = header.buttons.lastOrNull()?.menuRenderer?.items?.firstOrNull()
+            ?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+
+        val sectionListContents = response.contents?.twoColumnBrowseResultsRenderer
+            ?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents
+
+        // Also check secondary contents (right column - song list area)
+        val secondarySectionListContents = response.contents?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents?.sectionListRenderer?.contents
+
+        // Debug: log what each source returns
+        val descFromShelf = sectionListContents?.firstNotNullOfOrNull {
+            it.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { run -> run.text }
+        }
+        val descFromSecondaryShelf = secondarySectionListContents?.firstNotNullOfOrNull {
+            it.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { run -> run.text }
+        }
+        val descFromHeader = header?.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
+        val descFromEditable = base?.musicEditablePlaylistDetailHeaderRenderer
+            ?.header?.musicDetailHeaderRenderer
+            ?.description?.runs?.joinToString("") { it.text }
+        val descFromTopLevel = response.header?.musicDetailHeaderRenderer
+            ?.description?.runs?.joinToString("") { it.text }
+        val descFromMicroformat = response.microformat?.microformatDataRenderer?.description
+
+        val description: String? = descFromShelf ?: descFromSecondaryShelf ?: descFromHeader ?: descFromEditable ?: descFromTopLevel ?: descFromMicroformat
+
+
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
-                title = header?.title?.runs?.firstOrNull()?.text!!,
+                title = title,
                 author = header.straplineTextOne?.runs?.firstOrNull()?.let {
                     Artist(
                         name = it.text,
@@ -586,13 +623,14 @@ object YouTube {
                     )
                 },
                 songCountText = header.secondSubtitle?.runs?.firstOrNull()?.text,
-                thumbnail = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url!!,
+                thumbnail = thumbnailUrl,
                 playEndpoint = null,
-                shuffleEndpoint = header.buttons.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
+                shuffleEndpoint = shuffleEndpoint,
                 radioEndpoint = header.buttons.getOrNull(2)?.menuRenderer?.items?.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
-                isEditable = editable
+                isEditable = editable,
+                description = description,
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {
@@ -821,8 +859,11 @@ object YouTube {
                     val shelfContents = contents?.musicShelfRenderer?.contents
                     println("[UPLOAD_DEBUG] musicShelfRenderer contents count: ${shelfContents?.size ?: 0}")
                     if (shelfContents == null) {
-                        println("[UPLOAD_DEBUG] ERROR: musicShelfRenderer contents is null!")
-                        throw IllegalStateException("No content found for browseId=$browseId")
+                        // API response format may have changed (e.g. Google updated response structure).
+                        // Return an empty page gracefully instead of crashing the entire library fetch,
+                        // which would keep accountPlaylists null and hide the homescreen playlists section.
+                        println("[UPLOAD_DEBUG] WARNING: No gridRenderer or musicShelfRenderer found for browseId=$browseId. API format may have changed. contents=$contents")
+                        return@runCatching LibraryPage(items = emptyList(), continuation = null)
                     }
                     val listItemRenderers = shelfContents.mapNotNull(MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                     println("[UPLOAD_DEBUG] musicResponsiveListItemRenderer count: ${listItemRenderers.size}")

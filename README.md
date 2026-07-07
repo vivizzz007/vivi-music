@@ -226,8 +226,10 @@
 
 <hr>
 
-<h2>📄 License</h2>
-<p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> file.</p>
+<h2>📄 License & Guidelines</h2>
+<p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> (GPL-3.0) file.</p>
+<p>If you copy, adapt, or reuse any part of the source code, you must adhere to the guidelines outlined in the <a href="rules.md">rules.md</a> file.</p>
+
 
 <hr>
 
@@ -267,6 +269,7 @@
         <b>💡 Special Thanks</b>
         <ul>
           <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+          <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – Huge congratulations and thanks for inventing the new playback method! 🎉</li>
         </ul>
       </td>
       <td width="60%" align="left">

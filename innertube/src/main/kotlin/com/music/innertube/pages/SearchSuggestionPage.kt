@@ -8,6 +8,7 @@ import com.music.innertube.models.MusicResponsiveListItemRenderer
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.clean
+import com.music.innertube.models.findViewCountText
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 
@@ -64,9 +65,17 @@ object SearchSuggestionPage {
                         renderer.badges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null,
+                    viewCountText = secondaryLine?.findViewCountText()
                 )
             }
             renderer.isArtist -> {
+                val secondaryLine =
+                    renderer.flexColumns
+                        .getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer
+                        ?.text
+                        ?.runs
+                        ?.splitBySeparator()
                 ArtistItem(
                     id = renderer.navigationEndpoint?.browseEndpoint?.browseId ?: return null,
                     title =
@@ -95,6 +104,7 @@ object SearchSuggestionPage {
                             ?.menuNavigationItemRenderer
                             ?.navigationEndpoint
                             ?.watchPlaylistEndpoint,
+                    subtext = secondaryLine?.map { list -> list.joinToString(separator = "") { it.text } }?.joinToString(separator = " • ")
                 )
             }
             renderer.isAlbum -> {

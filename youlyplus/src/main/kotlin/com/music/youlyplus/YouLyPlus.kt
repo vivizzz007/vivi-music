@@ -179,12 +179,10 @@ object YouLyPlus {
                     val sylTime = syl.time ?: 0L
                     sb.append(formatTime(sylTime, isSyllable = true))
                     sb.append(syl.text ?: "")
-                    // Add space after word if it's missing and not the last word
-                    if (syl.text?.endsWith(" ") == false) {
-                        sb.append(" ")
-                    }
+                    // Trust the API's own spacing — do not inject extra spaces,
+                    // as that would split intra-word syllables (e.g. "vi"+"dh" → "vi dh")
                 }
-                sb.toString().trim()
+                sb.toString().trimEnd()
             } else {
                 lineTimestamp + bgMarker + (item.text ?: "")
             }

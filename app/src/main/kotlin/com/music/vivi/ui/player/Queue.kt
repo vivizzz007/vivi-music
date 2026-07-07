@@ -416,13 +416,7 @@ fun Queue(
                     PlayerQueueButton(
                         icon = R.drawable.shuffle,
                         onClick = {
-                            coroutineScope.launch {
-                                lazyListState.animateScrollToItem(
-                                    if (shuffleModeEnabledInside) currentWindowIndex else 0,
-                                )
-                            }.invokeOnCompletion {
-                                playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
-                            }
+                            playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
                         },
                         isActive = shuffleModeEnabledInside,
                         enabled = !isListenTogetherGuest,

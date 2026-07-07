@@ -1,5 +1,13 @@
 @file:Suppress("UnstableApiUsage")
 
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 
@@ -33,6 +41,9 @@ include(":applecanvas")
 include(":vivimusiccanvas")
 include(":paxsenixlyrics")
 include(":jiosaavn")
+include(":spotify")
+include(":musixmatch")
+
 
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.

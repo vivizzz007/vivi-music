@@ -72,25 +72,40 @@ class AxionEqViewModel @Inject constructor(
         _isDirty.value = false // Reset dirty when switching modes
     }
 
-    fun setBandGain(index: Int, gain: Float) {
+    fun setBandGain(index: Int, gain: Float, applyOnly: Boolean = false) {
         val newGains = _bandGains.value.copyOf()
         newGains[index] = gain
         _bandGains.value = newGains
-        prefs.edit().putFloat("band_$index", gain).apply()
         _isDirty.value = true
+        
+        if (!applyOnly) {
+            prefs.edit().putFloat("band_$index", gain).apply()
+        }
+        
         if (_enabled.value) {
-            applyToService()
+            applyToService(saveToStorage = !applyOnly)
         }
     }
 
-    fun setBandsGains(gains: FloatArray, fromUser: Boolean = false) {
-        _bandGains.value = gains
+    fun commitCurrentGains() {
         val editor = prefs.edit()
-        gains.forEachIndexed { index, f -> editor.putFloat("band_$index", f) }
+        _bandGains.value.forEachIndexed { index, f -> editor.putFloat("band_$index", f) }
         editor.apply()
+        if (_enabled.value) {
+            applyToService(saveToStorage = true)
+        }
+    }
+
+    fun setBandsGains(gains: FloatArray, fromUser: Boolean = false, applyOnly: Boolean = false) {
+        _bandGains.value = gains
+        if (!applyOnly) {
+            val editor = prefs.edit()
+            gains.forEachIndexed { index, f -> editor.putFloat("band_$index", f) }
+            editor.apply()
+        }
         _isDirty.value = fromUser // Only dirty if coming from manual tuner moves
         if (_enabled.value) {
-            applyToService()
+            applyToService(saveToStorage = !applyOnly)
         }
     }
 
@@ -101,7 +116,11 @@ class AxionEqViewModel @Inject constructor(
 
     fun saveCustomProfile(name: String) {
         viewModelScope.launch {
-            val bands = _bandGains.value.mapIndexed { index, f ->
+            val bandVals = _bandGains.value
+            val maxBoostDb = bandVals.maxOrNull()?.toDouble() ?: 0.0
+            val calculatedPreamp = if (maxBoostDb > 0.0) -maxBoostDb / 50.0 else 0.0
+
+            val bands = bandVals.mapIndexed { index, f ->
                 ParametricEQBand(
                     frequency = bandFrequencies[index],
                     gain = f.toDouble() / 50.0,
@@ -117,7 +136,7 @@ class AxionEqViewModel @Inject constructor(
                 name = name,
                 deviceModel = "ViviEqualizer",
                 bands = bands,
-                preamp = 0.0,
+                preamp = calculatedPreamp,
                 isCustom = true,
                 isActive = true
             )
@@ -136,9 +155,13 @@ class AxionEqViewModel @Inject constructor(
         }
     }
 
-    private fun applyToService() {
+    private fun applyToService(saveToStorage: Boolean = true) {
         viewModelScope.launch {
-            val bands = _bandGains.value.mapIndexed { index, f ->
+            val bandVals = _bandGains.value
+            val maxBoostDb = bandVals.maxOrNull()?.toDouble() ?: 0.0
+            val calculatedPreamp = if (maxBoostDb > 0.0) -maxBoostDb / 50.0 else 0.0
+
+            val bands = bandVals.mapIndexed { index, f ->
                 ParametricEQBand(
                     frequency = bandFrequencies[index],
                     gain = f.toDouble() / 50.0, // 600 / 50 = 12dB
@@ -153,14 +176,16 @@ class AxionEqViewModel @Inject constructor(
                 name = "Vivi Tuning",
                 deviceModel = "ViviEqualizer",
                 bands = bands,
-                preamp = 0.0,
+                preamp = calculatedPreamp,
                 isCustom = false,
                 isActive = true
             )
             
-            // Save to global repository and set as active to ensure persistence across restarts
-            eqProfileRepository.saveProfile(profile)
-            eqProfileRepository.setActiveProfile(profile.id)
+            if (saveToStorage) {
+                // Save to global repository and set as active to ensure persistence across restarts
+                eqProfileRepository.saveProfile(profile)
+                eqProfileRepository.setActiveProfile(profile.id)
+            }
             
             equalizerService.applyProfile(profile)
         }
