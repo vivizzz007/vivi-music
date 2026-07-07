@@ -196,6 +196,11 @@ import com.music.vivi.ui.component.Lyrics
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.ResizableIconButton
 import com.music.vivi.ui.component.SquigglySlider
+import com.music.vivi.ui.component.GlassComponent
+import com.music.vivi.ui.component.LocalGlassEffectConfig
+import com.music.vivi.ui.component.PLAYER_BLUR_MULTIPLIER
+import com.music.vivi.ui.component.isGlassSupported
+import com.music.vivi.ui.component.liquidGlass
 import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.component.rememberBottomSheetState
 import com.music.vivi.ui.menu.OldPlayerMenu
@@ -285,7 +290,7 @@ fun BottomSheetPlayer(
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> true
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.LIQUID_GLASS -> true
             PlayerBackgroundStyle.DEFAULT -> useDarkTheme
         }
     }
@@ -302,7 +307,7 @@ fun BottomSheetPlayer(
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
             
             when (playerBackground) {
-                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> {
+                PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.LIQUID_GLASS -> {
                     insetsController.isAppearanceLightStatusBars = false
                 }
                 PlayerBackgroundStyle.DEFAULT -> {
@@ -530,6 +535,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.White
             PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
             PlayerBackgroundStyle.LIVE_MESH -> Color.White
+            PlayerBackgroundStyle.LIQUID_GLASS -> LocalGlassEffectConfig.current.textColor
         },
         label = "TextBackgroundColor"
     )
@@ -542,6 +548,7 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.Black
             PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
             PlayerBackgroundStyle.LIVE_MESH -> Color.Black
+            PlayerBackgroundStyle.LIQUID_GLASS -> Color.Black
         },
         label = "icBackgroundColor"
     )
@@ -645,7 +652,8 @@ fun BottomSheetPlayer(
         playerBackground == PlayerBackgroundStyle.GRADIENT ||
         playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED ||
         playerBackground == PlayerBackgroundStyle.APPLE_MUSIC ||
-        playerBackground == PlayerBackgroundStyle.LIVE_MESH -> {
+        playerBackground == PlayerBackgroundStyle.LIVE_MESH ||
+        playerBackground == PlayerBackgroundStyle.LIQUID_GLASS -> {
             when (playerButtonsStyle) {
                 PlayerButtonsStyle.DEFAULT -> Pair(Color.White, Color.Black)
                 PlayerButtonsStyle.PRIMARY -> Pair(
@@ -678,7 +686,8 @@ fun BottomSheetPlayer(
     // Separate colors for Previous/Next buttons in PRIMARY/TERTIARY modes
     val (sideButtonContainerColor, sideButtonContentColor) = when {
         playerBackground == PlayerBackgroundStyle.BLUR || 
-        playerBackground == PlayerBackgroundStyle.GRADIENT -> {
+        playerBackground == PlayerBackgroundStyle.GRADIENT ||
+        playerBackground == PlayerBackgroundStyle.LIQUID_GLASS -> {
             when (playerButtonsStyle) {
                 PlayerButtonsStyle.DEFAULT -> Pair(
                     Color.White.copy(alpha = 0.2f), 
@@ -815,7 +824,7 @@ fun BottomSheetPlayer(
     )
 
     val bottomSheetBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC ->
+        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIQUID_GLASS ->
             MaterialTheme.colorScheme.surfaceContainer
         PlayerBackgroundStyle.LIVE_MESH ->
             Color.Black
@@ -1283,6 +1292,51 @@ fun BottomSheetPlayer(
                                             )
                                     )
                                 }
+                            }
+                        }
+                    }
+                    PlayerBackgroundStyle.LIQUID_GLASS -> {
+                        val glassConfig = LocalGlassEffectConfig.current
+                        val glassActive = glassConfig.isEnabledFor(GlassComponent.PLAYER) && isGlassSupported()
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .then(
+                                    if (glassActive) {
+                                        // Pure glass sampling the app content behind the
+                                        // player. No edge effects (lens/highlight/shadow):
+                                        // on a full screen surface they render as stray
+                                        // bands of light along the edges. Heavier blur
+                                        // than the pills, like Apple Music's now playing
+                                        // background material.
+                                        Modifier.liquidGlass(
+                                            config = glassConfig,
+                                            applyEdgeEffects = false,
+                                            blurRadiusDp = (glassConfig.blurRadius * PLAYER_BLUR_MULTIPLIER)
+                                                .coerceAtMost(100f),
+                                        )
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                        ) {
+                            if (!glassActive && mediaMetadata?.thumbnailUrl != null) {
+                                // Fallback when glass is disabled or unsupported:
+                                // heavily blurred album art, like the BLUR style.
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(mediaMetadata?.thumbnailUrl)
+                                        .size(128, 128)
+                                        .allowHardware(false)
+                                        .build(),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .alpha(backgroundAlpha)
+                                        .blur(150.dp)
+                                )
                             }
                         }
                     }
@@ -2952,3 +3006,7 @@ private fun BackgroundVideoView(
         modifier = modifier.alpha(alpha)
     )
 }
+
+
+
+

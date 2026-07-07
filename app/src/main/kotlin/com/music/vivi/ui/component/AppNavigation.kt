@@ -8,10 +8,12 @@ package com.music.vivi.ui.component
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
@@ -28,6 +30,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import com.music.vivi.ui.screens.Screens
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -39,11 +42,11 @@ private data class NavItemState(
 )
 
 @Stable
-private fun isRouteSelected(currentRoute: String?, screenRoute: String, navigationItems: List<Screens>): Boolean {
+internal fun isRouteSelected(currentRoute: String?, screenRoute: String, navigationItems: List<Screens>): Boolean {
     if (currentRoute == null) return false
     if (currentRoute == screenRoute) return true
-    return navigationItems.any { it.route == screenRoute } && 
-           currentRoute.startsWith("$screenRoute/")
+    return navigationItems.any { it.route == screenRoute } &&
+        currentRoute.startsWith("$screenRoute/")
 }
 
 @Composable
@@ -58,13 +61,13 @@ fun AppNavigationRail(
     val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
-    
+
     NavigationRail(
         modifier = modifier,
         containerColor = containerColor
     ) {
         Spacer(modifier = Modifier.weight(1f))
-        
+
         navigationItems.forEach { screen ->
             val isSelected = remember(currentRoute, screen.route) {
                 isRouteSelected(currentRoute, screen.route, navigationItems)
@@ -72,11 +75,10 @@ fun AppNavigationRail(
             val iconRes = remember(isSelected, screen) {
                 if (isSelected) screen.iconIdActive else screen.iconIdInactive
             }
-            
+
             val isSearchItem = screen == Screens.Search && onSearchLongClick != null
             val interactionSource = remember { MutableInteractionSource() }
-            
-            // Long press detection using InteractionSource
+
             if (isSearchItem) {
                 LaunchedEffect(interactionSource) {
                     var isLongClick = false
@@ -101,14 +103,13 @@ fun AppNavigationRail(
                     }
                 }
             }
-            
+
             NavigationRailItem(
                 selected = isSelected,
-                onClick = { 
+                onClick = {
                     if (!isSearchItem) {
                         onItemClick(screen, isSelected)
                     }
-                    // For search item, click is handled via InteractionSource
                 },
                 interactionSource = interactionSource,
                 icon = {
@@ -119,13 +120,14 @@ fun AppNavigationRail(
                 }
             )
         }
-        
+
         Spacer(modifier = Modifier.weight(1f))
     }
 }
 
 @Composable
 fun AppNavigationBar(
+    glassEnabled: Boolean = false,
     navigationItems: List<Screens>,
     currentRoute: String?,
     onItemClick: (Screens, Boolean) -> Unit,
@@ -135,13 +137,40 @@ fun AppNavigationBar(
     onSearchLongClick: (() -> Unit)? = null
 ) {
     val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-    val contentColor = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+    val glassConfig = LocalGlassEffectConfig.current
+    val useGlass = glassEnabled && glassConfig.isEnabledFor(GlassComponent.NAV_BAR) && isGlassSupported()
+    val navContainerColor = if (useGlass) Color.Transparent else containerColor
+    val contentColor = when {
+        useGlass -> glassConfig.textColor
+        pureBlack -> Color.White
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
-    
+
+    val navBarModifier = if (useGlass) {
+        modifier.liquidGlass(
+            config = glassConfig,
+            shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+        )
+    } else {
+        modifier
+    }
+    val itemColors = if (useGlass) {
+        NavigationBarItemDefaults.colors(
+            selectedIconColor = glassConfig.textColor,
+            selectedTextColor = glassConfig.textColor,
+            indicatorColor = glassConfig.textColor.copy(alpha = 0.2f),
+            unselectedIconColor = glassConfig.textColor.copy(alpha = 0.65f),
+            unselectedTextColor = glassConfig.textColor.copy(alpha = 0.65f),
+        )
+    } else {
+        NavigationBarItemDefaults.colors()
+    }
+
     NavigationBar(
-        modifier = modifier,
-        containerColor = containerColor,
+        modifier = navBarModifier,
+        containerColor = navContainerColor,
         contentColor = contentColor
     ) {
         navigationItems.forEach { screen ->
@@ -151,11 +180,10 @@ fun AppNavigationBar(
             val iconRes = remember(isSelected, screen) {
                 if (isSelected) screen.iconIdActive else screen.iconIdInactive
             }
-            
+
             val isSearchItem = screen == Screens.Search && onSearchLongClick != null
             val interactionSource = remember { MutableInteractionSource() }
-            
-            // Long press detection using InteractionSource
+
             if (isSearchItem) {
                 LaunchedEffect(interactionSource) {
                     var isLongClick = false
@@ -180,16 +208,16 @@ fun AppNavigationBar(
                     }
                 }
             }
-            
+
             NavigationBarItem(
                 selected = isSelected,
-                onClick = { 
+                onClick = {
                     if (!isSearchItem) {
                         onItemClick(screen, isSelected)
                     }
-                    // For search item, click is handled via InteractionSource
                 },
                 interactionSource = interactionSource,
+                colors = itemColors,
                 icon = {
                     Icon(
                         painter = painterResource(id = iconRes),

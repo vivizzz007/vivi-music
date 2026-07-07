@@ -88,6 +88,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -124,6 +125,10 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.CastConnectionHandler
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.ui.component.GlassComponent
+import com.music.vivi.ui.component.LocalGlassEffectConfig
+import com.music.vivi.ui.component.isGlassSupported
+import com.music.vivi.ui.component.liquidGlass
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
@@ -272,10 +277,20 @@ private fun NewMiniPlayer(
     // Memoize colors
     val backgroundColor = if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer
     val isDynamicBackground = miniPlayerBackground != PlayerBackgroundStyle.DEFAULT
-    
-    val primaryColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.primary
-    val outlineColor = if (isDynamicBackground) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline
-    val onSurfaceColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.onSurface
+
+    val glassConfig = LocalGlassEffectConfig.current
+    val dynamicContentColor = if (
+        miniPlayerBackground == PlayerBackgroundStyle.LIQUID_GLASS &&
+        glassConfig.isEnabledFor(GlassComponent.MINI_PLAYER) &&
+        isGlassSupported()
+    ) {
+        glassConfig.textColor
+    } else {
+        Color.White
+    }
+    val primaryColor = if (isDynamicBackground) dynamicContentColor else MaterialTheme.colorScheme.primary
+    val outlineColor = if (isDynamicBackground) dynamicContentColor.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline
+    val onSurfaceColor = if (isDynamicBackground) dynamicContentColor else MaterialTheme.colorScheme.onSurface
     val errorColor = MaterialTheme.colorScheme.error
 
     Box(
@@ -976,7 +991,7 @@ private fun MiniPlayerColorExtractor(
     val fallbackColor = MaterialTheme.colorScheme.surfaceContainer.toArgb()
 
     LaunchedEffect(mediaMetadata?.id, miniPlayerBackground) {
-        if (miniPlayerBackground == PlayerBackgroundStyle.GRADIENT || miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+        if (miniPlayerBackground == PlayerBackgroundStyle.GRADIENT || miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED || miniPlayerBackground == PlayerBackgroundStyle.LIQUID_GLASS) {
             val currentMetadata = mediaMetadata
             if (currentMetadata?.thumbnailUrl != null) {
                 withContext(Dispatchers.IO) {
@@ -1124,6 +1139,25 @@ private fun MiniPlayerBackgroundLayer(
                 )
             }
         }
+        PlayerBackgroundStyle.LIQUID_GLASS -> {
+            val glassConfig = LocalGlassEffectConfig.current
+            if (glassConfig.isEnabledFor(GlassComponent.MINI_PLAYER) && isGlassSupported()) {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .liquidGlass(config = glassConfig)
+                )
+            } else if (gradientColors.isNotEmpty()) {
+                // Glass disabled or unsupported: fall back to the gradient look so the
+                // mini player still gets a dynamic background.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.verticalGradient(gradientColors))
+                        .background(Color.Black.copy(alpha = 0.2f))
+                )
+            }
+        }
         PlayerBackgroundStyle.LIVE_MESH -> {
             val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
             val rotation = infiniteTransition.animateFloat(
@@ -1165,3 +1199,4 @@ private fun MiniPlayerBackgroundLayer(
         else -> {}
     }
 }
+

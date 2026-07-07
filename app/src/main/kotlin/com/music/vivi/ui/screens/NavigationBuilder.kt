@@ -41,6 +41,7 @@ import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.GlassEffectSettings
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.AutoBackupSettings
@@ -353,6 +354,10 @@ fun NavGraphBuilder.navigationBuilder(
         CanvasSelection(navController, scrollBehavior)
     }
 
+    composable("settings/appearance/liquidglass") {
+        GlassEffectSettings(navController, scrollBehavior)
+    }
+
     composable("settings/appearance/font") {
         FontSelectionScreen(navController, scrollBehavior)
     }
@@ -461,3 +466,4 @@ fun NavGraphBuilder.navigationBuilder(
         CommitScreen(navController, scrollBehavior)
     }
 }
+

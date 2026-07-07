@@ -607,6 +607,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                 }
             }
         )
@@ -629,6 +630,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                     else -> ""
                 }
             }
@@ -1166,6 +1168,7 @@ fun AppearanceSettings(
                                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
                                     else -> stringResource(R.string.follow_theme)
                                 }
                             )
@@ -1243,7 +1246,8 @@ fun AppearanceSettings(
                                 PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                 PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                                 PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
-                            }
+                    PlayerBackgroundStyle.LIQUID_GLASS -> stringResource(R.string.player_background_liquid_glass)
+                }
                         )
                     },
                     onClick = { showPlayerBackgroundDialog = true }
@@ -1354,8 +1358,14 @@ fun AppearanceSettings(
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.canvas_art),
-                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
+                        icon = painterResource(R.drawable.image),
+                        title = { Text(stringResource(R.string.liquid_glass)) },
+                        description = { Text(stringResource(R.string.liquid_glass_settings)) },
+                        onClick = { navController.navigate("settings/appearance/liquidglass") }
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.canvas_art),
+                        title = { Text(stringResource(R.string.vivimusic_canvas)) },
                     description = {
                         val summary = if (!canvasThumbnailAnimation) {
                             stringResource(R.string.disable)
@@ -1999,3 +2009,5 @@ enum class PlayerTextAlignment {
     SIDED,
     CENTER,
 }
+
+
