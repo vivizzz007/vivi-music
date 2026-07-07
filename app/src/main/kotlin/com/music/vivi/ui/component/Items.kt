@@ -11,6 +11,12 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,6 +27,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -440,6 +447,85 @@ fun SongListItem(
         }
     } else {
         content()
+    }
+}
+
+@Composable
+fun ExpressiveSongRow(
+    song: Song,
+    albumIndex: Int? = null,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    isSelected: Boolean = false,
+    shape: Shape = RectangleShape,
+    trailingContent: @Composable RowScope.() -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = when {
+        isActive -> MaterialTheme.colorScheme.secondaryContainer
+        isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+        else -> MaterialTheme.colorScheme.surfaceContainer
+    }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .padding(vertical = 1.dp)
+            .height(56.dp)
+            .padding(horizontal = 16.dp)
+            .clip(shape)
+            .background(backgroundColor)
+            .padding(horizontal = 16.dp)
+    ) {
+        // 1. Index number or visualizer on the left
+        if (albumIndex != null) {
+            Box(
+                modifier = Modifier.width(28.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (isPlaying && isActive) {
+                    AnimatedVisualizer(color = MaterialTheme.colorScheme.primary)
+                } else {
+                    Text(
+                        text = "${albumIndex}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Normal,
+                        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+
+        // 2. Song Name
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text(
+                text = song.song.title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .then(if (isActive) Modifier.basicMarquee() else Modifier)
+            )
+        }
+
+        Spacer(Modifier.width(16.dp))
+
+        // 3. Total Time (duration)
+        Text(
+            text = makeTimeString(song.song.duration * 1000L),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.padding(end = 8.dp)
+        )
+
+        // 4. Trailing Content (more_vert or Checkbox)
+        trailingContent()
     }
 }
 

@@ -158,6 +158,8 @@
     <string name="glow_animated">Glow animated</string>
     <string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">New player design</string>
+    <string name="use_expressive_album_design">Expressive album design</string>
+    <string name="use_expressive_album_design_desc">Minimal list without thumbnails</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
     <string name="player_buttons_style">Player button colors</string>

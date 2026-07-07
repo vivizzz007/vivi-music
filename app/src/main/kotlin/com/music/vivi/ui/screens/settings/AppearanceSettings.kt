@@ -106,6 +106,7 @@ import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.UseExpressiveAlbumDesignKey
 import com.music.vivi.ui.component.ThumbnailCornerRadiusModal
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
@@ -195,6 +196,10 @@ fun AppearanceSettings(
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
         defaultValue = false
+    )
+    val (useExpressiveAlbumDesign, onUseExpressiveAlbumDesignChange) = rememberPreference(
+        UseExpressiveAlbumDesignKey,
+        defaultValue = true
     )
     val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) = rememberPreference(
         UseNewMiniPlayerDesignKey,
@@ -1208,6 +1213,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.album),
+                    title = { Text(stringResource(R.string.use_expressive_album_design)) },
+                    description = { Text(stringResource(R.string.use_expressive_album_design_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = useExpressiveAlbumDesign,
+                            onCheckedChange = onUseExpressiveAlbumDesignChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (useExpressiveAlbumDesign) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) }
                 ),
                 if (!useNewPlayerDesign) {
                     Material3SettingsItem(
