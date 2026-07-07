@@ -7,13 +7,6 @@ package com.music.vivi.ui.screens.settings
 
 import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -141,6 +135,10 @@ fun CipherSettings(
     } else {
         0L
     }
+
+    val attemptsUsed = listOf(updateTime1, updateTime2, updateTime3)
+        .count { it > 0L && (currentTimeMillis - it < limitWindow) }
+    val attemptsLeft = (3 - attemptsUsed).coerceIn(0, 3)
 
     val hours = (timeRemaining / (1000L * 60 * 60)) % 24
     val minutes = (timeRemaining / (1000L * 60)) % 60
@@ -253,26 +251,46 @@ fun CipherSettings(
                         }
                     },
                     trailingContent = {
-                        val rotation = if (isUpdating) {
-                            val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-                            val angle by infiniteTransition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 360f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(1200, easing = LinearEasing),
-                                    repeatMode = RepeatMode.Restart
-                                ),
-                                label = "angle"
-                            )
-                            angle
-                        } else {
-                            0f
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            if (isUpdating) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(40.dp),
+                                    strokeWidth = 4.dp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                            
+                            val containerColor = if (attemptsLeft == 0) {
+                                MaterialTheme.colorScheme.errorContainer
+                            } else {
+                                MaterialTheme.colorScheme.secondaryContainer
+                            }
+                            val contentColor = if (attemptsLeft == 0) {
+                                MaterialTheme.colorScheme.onErrorContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            }
+
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(
+                                        color = containerColor,
+                                        shape = RoundedCornerShape(50)
+                                    )
+                            ) {
+                                Text(
+                                    text = attemptsLeft.toString(),
+                                    style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = contentColor,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
-                        Icon(
-                            painter = painterResource(R.drawable.sync),
-                            contentDescription = null,
-                            modifier = Modifier.graphicsLayer(rotationZ = rotation)
-                        )
                     },
                     enabled = !isUpdating && !isRateLimited,
                     onClick = {
