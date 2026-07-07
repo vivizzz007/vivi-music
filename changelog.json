@@ -1,0 +1,31 @@
+{
+  "version": "6.0.5",
+  "description": "VIVI MUSIC v6.0.5 brings floating navbar (default off, can be enabled in appearance settings), album song listing can be disabled through appearance setting, ui to vivi-decrypter, and other improvements. It also includes several bug fixes.",
+  "image": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/v6.0.5.jpg",
+  "changelog": [
+    {
+      "title": "What's New",
+      "items": [
+        "added floating navbar (default off, can be enabled in appearance settings)",
+        "added new album song listing can be disabled through appearance setting",
+        "added new ui to vivi-decrypter",
+        "added new update banner, thanks to Aldeic"
+      ]
+    },
+    {
+      "title": "Fixes & Improvements",
+      "items": [
+        "fixed spotify login through google",
+        "fixed jio saavan random song playing"
+      ]
+    },
+    {
+      "title": "Support",
+      "items": [
+        "Support development on Ko-fi: https://ko-fi.com/vividhpashokan",
+        "Support via UPI: vividhpashokan@axl",
+        "Support via PayPal: https://www.paypal.me/vividhpashokan"
+      ]
+    }
+  ]
+}
