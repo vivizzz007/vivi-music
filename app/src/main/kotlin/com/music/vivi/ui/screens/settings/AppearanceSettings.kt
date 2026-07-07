@@ -96,6 +96,7 @@ import com.music.vivi.constants.ShowTopPlaylistKey
 import com.music.vivi.constants.ShowUploadedPlaylistKey
 import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
+import com.music.vivi.constants.FloatingNavBarKey
 import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeSensitivityKey
@@ -288,6 +289,10 @@ fun AppearanceSettings(
 
     val (slimNav, onSlimNavChange) = rememberPreference(
         SlimNavBarKey,
+        defaultValue = false
+    )
+    val (floatingNavBar, onFloatingNavBarChange) = rememberPreference(
+        FloatingNavBarKey,
         defaultValue = false
     )
 
@@ -1831,6 +1836,27 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onSlimNavChange(!slimNav) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.nav_bar),
+                    title = { Text(stringResource(R.string.floating_navbar)) },
+                    description = { Text(stringResource(R.string.floating_navbar_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = floatingNavBar,
+                            onCheckedChange = onFloatingNavBarChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (floatingNavBar) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onFloatingNavBarChange(!floatingNavBar) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.group_outlined),

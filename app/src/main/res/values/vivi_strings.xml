@@ -1023,4 +1023,8 @@
     <string name="minutes_label">Minutes</string>
     <string name="seconds_label">Seconds</string>
     <string name="cipher_rate_limited">Manual update rate limit reached. Please wait before updating again.</string>
+
+    <!-- Floating Navigation Bar -->
+    <string name="floating_navbar">Floating navigation bar</string>
+    <string name="floating_navbar_desc">Show suspended centered navigation bar at the bottom</string>
 </resources>

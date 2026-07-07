@@ -162,6 +162,7 @@ import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.SelectedThemeColorKey
 import com.music.vivi.constants.SlimNavBarHeight
 import com.music.vivi.constants.SlimNavBarKey
+import com.music.vivi.constants.FloatingNavBarKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.db.MusicDatabase
@@ -542,6 +543,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
+                val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = false)
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
@@ -954,6 +956,8 @@ class MainActivity : ComponentActivity() {
                                         pureBlack = pureBlack,
                                         slimNav = slimNav,
                                         onSearchLongClick = onSearchLongClick,
+                                        floatingNav = floatingNav,
+                                        bottomInset = bottomInset,
                                         modifier = Modifier
                                             .align(Alignment.BottomCenter)
                                             .height(bottomInset + navPadding)
@@ -983,7 +987,7 @@ class MainActivity : ComponentActivity() {
                                             // Use graphicsLayer for background color changes
                                             .graphicsLayer {
                                                 val progress = playerBottomSheetState.progress
-                                                alpha = if (progress > 0f || (useNewMiniPlayerDesign && !shouldShowNavigationBar)) 0f else 1f
+                                                alpha = if (progress > 0f || (useNewMiniPlayerDesign && !shouldShowNavigationBar) || floatingNav) 0f else 1f
                                             }
                                             .background(baseBg)
                                     )
