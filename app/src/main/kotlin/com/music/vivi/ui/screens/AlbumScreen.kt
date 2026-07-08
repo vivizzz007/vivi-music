@@ -674,10 +674,30 @@ fun AlbumScreen(
 
             if (filteredSongs.isNotEmpty()) {
                 item(key = "songs_title") {
-                    NavigationTitle(
-                        title = stringResource(R.string.songs),
-                        modifier = Modifier.animateItem()
-                    )
+                    if (useExpressiveAlbumDesign) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 1.dp)
+                                .padding(horizontal = 16.dp)
+                                .clip(listItemShape(0, filteredSongs.size + 1))
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.songs),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    } else {
+                        NavigationTitle(
+                            title = stringResource(R.string.songs),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
                 }
 
                 itemsIndexed(
@@ -699,7 +719,7 @@ fun AlbumScreen(
                             isActive = song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
                             isSelected = song.id in selection,
-                            shape = listItemShape(index, filteredSongs.size),
+                            shape = listItemShape(index + 1, filteredSongs.size + 1),
                             trailingContent = {
                                 if (inSelectMode) {
                                     Checkbox(
