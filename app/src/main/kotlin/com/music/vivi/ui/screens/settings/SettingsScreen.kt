@@ -103,85 +103,98 @@ fun SettingsScreen(
                     Material3SettingsItem(
                         icon = painterResource(if (isUpdateAvailable) R.drawable.vivimusicnotification else R.drawable.network_update),
                         title = { Text(stringResource(R.string.system_update)) },
-                        description = if (isUpdateAvailable) {
-                            {
+                        description = {
+                            if (isUpdateAvailable) {
                                 Text(
                                     text = stringResource(R.string.update_available),
                                     color = MaterialTheme.colorScheme.error
                                 )
+                            } else {
+                                Text(stringResource(R.string.app_update_uptodate))
                             }
-                        } else null,
-                        onClick = { navController.navigate("settings/update") }
+                        },
+                        onClick = { navController.navigate("settings/update") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.appearance)) },
-                        onClick = { navController.navigate("settings/appearance") }
+                        onClick = { navController.navigate("settings/appearance") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.play),
                         title = { Text(stringResource(R.string.player_and_audio)) },
-                        onClick = { navController.navigate("settings/player") }
+                        onClick = { navController.navigate("settings/player") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.account),
+                        icon = painterResource(R.drawable.google),
                         title = { Text(stringResource(R.string.account)) },
-                        onClick = { navController.navigate("settings/account") }
+                        onClick = { navController.navigate("settings/account") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.group),
                         title = { Text(stringResource(R.string.listen_together)) },
-                        onClick = { navController.navigate(Screens.ListenTogether.route) }
+                        onClick = { navController.navigate(Screens.ListenTogether.route) },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.content)) },
-                        onClick = { navController.navigate("settings/content") }
+                        onClick = { navController.navigate("settings/content") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.translate),
                         title = { Text(stringResource(R.string.ai_lyrics_translation)) },
-                        onClick = { navController.navigate("settings/ai") }
+                        onClick = { navController.navigate("settings/ai") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.security),
                         title = { Text(stringResource(R.string.privacy)) },
-                        onClick = { navController.navigate("settings/privacy") }
+                        onClick = { navController.navigate("settings/privacy") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.storage),
                         title = { Text(stringResource(R.string.storage)) },
-                        onClick = { navController.navigate("settings/storage") }
+                        onClick = { navController.navigate("settings/storage") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.restore),
                         title = { Text(stringResource(R.string.backup_restore)) },
-                        onClick = { navController.navigate("settings/backup_restore") }
+                        onClick = { navController.navigate("settings/backup_restore") },
+                        isExpressive = true
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.info),
                         title = { Text(stringResource(R.string.about)) },
-                        onClick = { navController.navigate("settings/about") }
+                        onClick = { navController.navigate("settings/about") },
+                        isExpressive = true
                     )
                 )
             }
