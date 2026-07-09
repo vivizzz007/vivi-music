@@ -387,6 +387,7 @@ fun PlaylistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (!isGuest) {
                         playlist.playlist.browseId?.let { browseId ->
@@ -462,6 +463,7 @@ fun PlaylistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (editable && autoPlaylist != true && !isGuest) {
                         add(

@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -267,6 +268,7 @@ fun AlbumMenu(
         album = album,
         showLikedIcon = false,
         badges = {},
+        backgroundColor = Color.Transparent,
         trailingContent = {
             IconButton(
                 onClick = {
@@ -379,6 +381,7 @@ fun AlbumMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (!isGuest) {
                         Material3MenuItemData(
@@ -466,6 +469,7 @@ fun AlbumMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (downloadState) {
                         STATE_COMPLETED -> {
@@ -551,6 +555,7 @@ fun AlbumMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     Material3MenuItemData(
                         title = { Text(text = stringResource(R.string.view_artist)) },

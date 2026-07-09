@@ -215,7 +215,8 @@ fun YouTubeSelectionSongMenu(
     ) {
         item {
             Material3MenuGroup(
-                listOfNotNull(
+                expressive = true,
+                items = listOfNotNull(
                     if (!isGuest) Material3MenuItemData(
                         icon = { Icon(painterResource(R.drawable.play), null) },
                         title = { Text(stringResource(R.string.play)) },

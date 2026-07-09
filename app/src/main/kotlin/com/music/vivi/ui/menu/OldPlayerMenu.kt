@@ -297,6 +297,7 @@ fun OldPlayerMenu(
         // Core Old Player Items
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // Shuffle
                     if (!isListenTogetherGuest) {
@@ -432,6 +433,7 @@ fun OldPlayerMenu(
         // Artist & Add to library
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // ── Single smart Retry button ────────────────────────────
                     // Always visible. Re-triggers the full resolution chain.
@@ -555,6 +557,7 @@ fun OldPlayerMenu(
         // Listen together
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -596,6 +599,7 @@ fun OldPlayerMenu(
         // details, eq, adv
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

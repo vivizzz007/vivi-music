@@ -296,6 +296,7 @@ fun QueueMenu(
         // Play next / Add to queue
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     Material3MenuItemData(
                         title = { Text(text = stringResource(R.string.play_next)) },
@@ -342,6 +343,7 @@ fun QueueMenu(
         // Download section
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -427,6 +429,7 @@ fun QueueMenu(
         // Navigation section (Artist, Album)
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (artists.isNotEmpty()) {
                         add(
@@ -493,6 +496,7 @@ fun QueueMenu(
         // Details and refetch section
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

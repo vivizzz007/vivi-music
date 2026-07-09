@@ -195,7 +195,7 @@ fun LocalPlaylistMenu(
         )
     }
 
-    Material3MenuGroup(items = menuItems)
+    Material3MenuGroup(expressive = true, items = menuItems)
 }
 
 /**
@@ -257,6 +257,7 @@ fun AutoPlaylistMenu(
     }
 
     Material3MenuGroup(
+        expressive = true,
         items = listOfNotNull(
             if (!isGuest) {
                 Material3MenuItemData(
@@ -338,6 +339,7 @@ fun TopPlaylistMenu(
     }
 
     Material3MenuGroup(
+        expressive = true,
         items = listOfNotNull(
             if (!isGuest) {
                 Material3MenuItemData(
@@ -419,6 +421,7 @@ fun CachePlaylistMenu(
     }
 
     Material3MenuGroup(
+        expressive = true,
         items = listOfNotNull(
             if (!isGuest) {
                 Material3MenuItemData(

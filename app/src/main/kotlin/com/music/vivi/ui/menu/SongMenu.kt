@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -303,6 +304,7 @@ fun SongMenu(
         song = song,
         badges = {},
         shape = listItemShape(0, 2),
+        backgroundColor = Color.Transparent,
         trailingContent = {
             IconButton(
                 onClick = {
@@ -393,6 +395,7 @@ fun SongMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                         Material3MenuItemData(
@@ -474,6 +477,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -626,6 +630,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -705,6 +710,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

@@ -154,7 +154,17 @@ inline fun ListItem(
     isAvailable: Boolean = true,
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
+    backgroundColor: Color = Color.Unspecified,
 ) {
+    val containerColor = if (backgroundColor != Color.Unspecified) {
+        backgroundColor
+    } else {
+        when {
+            isActive -> MaterialTheme.colorScheme.secondaryContainer
+            isSelected == true && drawHighlight -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+            else -> MaterialTheme.colorScheme.surfaceContainer
+        }
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -162,13 +172,7 @@ inline fun ListItem(
             .height(ListItemHeight)
             .padding(horizontal = 16.dp)
             .clip(shape)
-            .background(
-                color = when {
-                    isActive -> MaterialTheme.colorScheme.secondaryContainer
-                    isSelected == true && drawHighlight -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-                    else -> MaterialTheme.colorScheme.surfaceContainer
-                }
-            )
+            .background(color = containerColor)
     ) {
         Box(
             modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
@@ -233,6 +237,7 @@ fun ListItem(
     isActive: Boolean = false,
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
+    backgroundColor: Color = Color.Unspecified,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -253,7 +258,8 @@ fun ListItem(
     isSelected = isSelected,
     isActive = isActive,
     shape = shape,
-    drawHighlight = drawHighlight
+    drawHighlight = drawHighlight,
+    backgroundColor = backgroundColor,
 )
 
 // merge badges and subtitle text and pass to basic list item
@@ -269,6 +275,7 @@ fun ListItem(
     isActive: Boolean = false,
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
+    backgroundColor: Color = Color.Unspecified,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -290,7 +297,8 @@ fun ListItem(
     isSelected = isSelected,
     isActive = isActive,
     shape = shape,
-    drawHighlight = drawHighlight
+    drawHighlight = drawHighlight,
+    backgroundColor = backgroundColor,
 )
 
 @Composable
@@ -407,6 +415,7 @@ fun SongListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     drawHighlight: Boolean = true,
     shape: Shape = RectangleShape,
+    backgroundColor: Color = Color.Unspecified,
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
@@ -434,7 +443,8 @@ fun SongListItem(
             isSelected = isSelected,
             isActive = isActive,
             shape = shape,
-            drawHighlight = drawHighlight
+            drawHighlight = drawHighlight,
+            backgroundColor = backgroundColor
         )
     }
 
@@ -611,6 +621,7 @@ fun ArtistListItem(
         }
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
+    backgroundColor: Color = Color.Unspecified,
 ) = ListItem(
     title = artist.artist.name,
     subtitle = pluralStringResource(R.plurals.n_song, artist.songCount, artist.songCount),
@@ -631,6 +642,7 @@ fun ArtistListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
+    backgroundColor = backgroundColor,
 )
 
 @Composable
@@ -708,6 +720,7 @@ fun AlbumListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    backgroundColor: Color = Color.Unspecified,
 ) = ListItem(
     title = album.album.title,
     subtitle = joinByBullet(
@@ -726,7 +739,8 @@ fun AlbumListItem(
         )
     },
     trailingContent = trailingContent,
-    modifier = modifier
+    modifier = modifier,
+    backgroundColor = backgroundColor
 )
 
 @Composable
@@ -1093,6 +1107,7 @@ fun YouTubeListItem(
     },
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
+    backgroundColor: Color = Color.Unspecified,
 ) {
     val swipeEnabled by rememberPreference(SwipeToSongKey, defaultValue = false)
 
@@ -1122,7 +1137,8 @@ fun YouTubeListItem(
             isSelected = isSelected,
             isActive = isActive,
             shape = shape,
-            drawHighlight = drawHighlight
+            drawHighlight = drawHighlight,
+            backgroundColor = backgroundColor
         )
     }
 

@@ -322,6 +322,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                         Material3MenuItemData(
@@ -387,6 +388,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (song.historyRemoveToken != null) {
                         add(
@@ -480,6 +482,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -561,6 +564,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (artists.isNotEmpty()) {
                         add(
