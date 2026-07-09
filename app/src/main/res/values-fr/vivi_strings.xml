@@ -158,6 +158,9 @@
     <string name="glow_animated">Animation lumineuse</string>
 	<string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">Nouveau design du lecteur</string>
+	<string name="use_expressive_album_design">Une conception d\'album expressive</string>
+    <string name="use_expressive_album_design_desc">Liste minimaliste sans vignettes</string>
+    <string name="album_settings">Paramètres de l\'album</string>
     <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
     <string name="player_background_blur">Flou</string>
     <string name="player_buttons_style">Couleurs des boutons du lecteur</string>
@@ -1021,4 +1024,10 @@ est irréversible.
     <string name="minutes_label">Minutes</string>
     <string name="seconds_label">Secondes</string>
     <string name="cipher_rate_limited">La limite de fréquence des mises à jour manuelles a été atteinte. Veuillez patienter avant de tenter une nouvelle mise à jour.</string>
+
+	<!-- Floating Navigation Bar -->
+    <string name="floating_navbar">Barre de navigation flottante</string>
+    <string name="floating_navbar_desc">Afficher la barre de navigation suspendue et centrée en bas de la page</string>
+    <string name="enabled">Activé</string>
+    <string name="disabled">Désactivé</string>
 </resources>
