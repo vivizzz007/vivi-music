@@ -82,7 +82,7 @@
     <string name="update_size_v">Taille : %1$s Mo</string>
 
     <!-- Notification Permission Settings -->
-    <string name="notification_settings">Autorisation de notification</string>
+    <string name="notification_settings">Paramètres de notification</string>
     <string name="notification_settings_summary">Configurer les paramètres de notification.</string>
     <string name="notification_settings_desc">Configurez et gérez les notifications concernant les mises à jour de l\'application, les versions bêta et la progression des téléchargements. La désactivation des notifications empêchera l\'affichage des mises à jour d\'état en arrière-plan.</string>
     <string name="enable_notifications">Activer les notifications</string>
