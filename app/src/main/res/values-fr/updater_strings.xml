@@ -73,7 +73,7 @@
     <string name="donate">Faire un don</string>
     <string name="support_development">Soutenir le développement</string>
     <string name="beta_updates">Mises à jour de la version bêta</string>
-    <string name="beta_updates_subtitle">Activez cette option si vous souhaitez recevoir les mises à jour bêta (par exemple, b5.0.1)</string>
+    <string name="beta_updates_subtitle">Recevoir les mises à jour de la version bêta</string>
     <string name="on_latest_version">Vous utilisez la dernière version.</string>
     <string name="current_version_v">Version actuelle : %1$s</string>
     <string name="update_to_v">Mise à jour disponible %1$s</string>
