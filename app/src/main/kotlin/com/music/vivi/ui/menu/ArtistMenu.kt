@@ -157,38 +157,6 @@ fun ArtistMenu(
                         }
                     }
 
-                    add(
-                        NewAction(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            text = if (isPinned) "Unpin" else "Pin",
-                            onClick = {
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    if (isPinned) {
-                                        database.speedDialDao.delete(artist.id)
-                                    } else {
-                                        database.speedDialDao.insert(
-                                            SpeedDialItem(
-                                                id = artist.id,
-                                                title = artist.artist.name,
-                                                subtitle = null,
-                                                thumbnailUrl = artist.artist.thumbnailUrl,
-                                                type = "ARTIST"
-                                            )
-                                        )
-                                    }
-                                }
-                                onDismiss()
-                            }
-                        )
-                    )
-
                     if (artist.artist.isYouTubeArtist) {
                         add(
                             NewAction(
@@ -226,6 +194,35 @@ fun ArtistMenu(
             Material3MenuGroup(
                 expressive = true,
                 items = listOf(
+                    Material3MenuItemData(
+                        title = {
+                            Text(text = if (isPinned) "Unpin" else "Pin")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                if (isPinned) {
+                                    database.speedDialDao.delete(artist.id)
+                                } else {
+                                    database.speedDialDao.insert(
+                                        SpeedDialItem(
+                                            id = artist.id,
+                                            title = artist.artist.name,
+                                            subtitle = null,
+                                            thumbnailUrl = artist.artist.thumbnailUrl,
+                                            type = "ARTIST"
+                                        )
+                                    )
+                                }
+                            }
+                            onDismiss()
+                        }
+                    ),
                     Material3MenuItemData(
                         title = {
                             Text(text = if (artist.artist.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
