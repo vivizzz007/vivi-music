@@ -337,7 +337,7 @@
     <string name="size_used">%s utilisée</string>
 
     <string name="clear_downloaded_updates">Effacer les mises à jour téléchargées</string>
-    <string name="clear_downloaded_updates_desc">Supprimez les fichiers APK téléchargés pour libérer de l\'espace.</string>
+    <string name="clear_downloaded_updates_desc">Supprimez les fichiers APK téléchargés</string>
 
     <string name="privacy">Confidentialité</string>
     <string name="listen_history">Historique d\'écoute</string>
