@@ -152,7 +152,8 @@ fun AccountSettingsScreen(
                         onClick = {
                             if (isLoggedIn) navController.navigate("account")
                             else navController.navigate("login")
-                        }
+                        },
+                        isExpressive = true
                     )
                 )
             )
@@ -178,7 +179,8 @@ fun AccountSettingsScreen(
                             if (!isLoggedIn) showTokenEditor = true
                             else if (!showToken) showToken = true
                             else showTokenEditor = true
-                        }
+                        },
+                        isExpressive = true
                     )
                 )
             )
@@ -215,7 +217,8 @@ fun AccountSettingsScreen(
                                 val newValue = !useLoginForBrowse
                                 YouTube.useLoginForBrowse = newValue
                                 onUseLoginForBrowseChange(newValue)
-                            }
+                            },
+                            isExpressive = true
                         ),
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.cached),
@@ -235,7 +238,8 @@ fun AccountSettingsScreen(
                                     }
                                 )
                             },
-                            onClick = { onYtmSyncChange(!ytmSync) }
+                            onClick = { onYtmSyncChange(!ytmSync) },
+                            isExpressive = true
                         )
                     )
                 )
@@ -251,7 +255,8 @@ fun AccountSettingsScreen(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.integration),
                             title = { Text(stringResource(R.string.integrations)) },
-                            onClick = { navController.navigate("settings/integrations") }
+                            onClick = { navController.navigate("settings/integrations") },
+                            isExpressive = true
                         )
                     )
                 }

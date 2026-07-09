@@ -128,20 +128,24 @@ fun UpdateSettings(
                         } else {
                             navController.navigate("update")
                         }
-                    }
+                    },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),
-                    title = {
-                        Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
-                    },
-                    description = {
-                        val arch = BuildConfig.ARCHITECTURE
-                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
-                        Text("$arch - $variant")
-                    }
+                    title = { Text(stringResource(R.string.app_version)) },
+                    description = { Text(BuildConfig.VERSION_NAME) },
+                    isExpressive = true
                 ),
-                
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.stockpot_flavour),
+                    title = { Text(stringResource(R.string.flavour)) },
+                    description = {
+                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
+                        Text(variant)
+                    },
+                    isExpressive = true
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.update),
                     title = { Text(stringResource(R.string.auto_update_check)) },
@@ -173,7 +177,9 @@ fun UpdateSettings(
                         if (!autoUpdateEnabled) {
                             saveUpdateAvailableState(context, false)
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
 
                 Material3SettingsItem(
@@ -201,18 +207,20 @@ fun UpdateSettings(
                     onClick = {
                         betaUpdatesEnabled = !betaUpdatesEnabled
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
-
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.notification),
                     title = { Text(stringResource(R.string.notification_settings)) },
                     description = { Text(stringResource(R.string.notification_settings_summary)) },
                     onClick = {
                         navController.navigate("settings/update/notification_permission")
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
-
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete),
                     title = { Text(stringResource(R.string.clear_downloaded_updates)) },
@@ -251,19 +259,15 @@ fun UpdateSettings(
                                 apkCount = getDownloadedApkCount(context)
                             }
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
-
-//                Material3SettingsItem(
-//                    icon = painterResource(R.drawable.info),
-//                    title = { Text(stringResource(R.string.namespace)) },
-//                    description = { Text(BuildConfig.APPLICATION_ID) }
-//                )
-
             )
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Material3SettingsGroup(
             title = stringResource(R.string.changelog),
             items = listOf(
@@ -271,13 +275,17 @@ fun UpdateSettings(
                     icon = painterResource(R.drawable.history),
                     title = { Text(stringResource(R.string.changelog)) },
                     description = { Text(stringResource(R.string.view_version_history)) },
-                    onClick = { navController.navigate("settings/changelog") }
+                    onClick = { navController.navigate("settings/changelog") },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.commit),
                     title = { Text(stringResource(R.string.commits)) },
                     description = { Text(stringResource(R.string.view_commit_history)) },
-                    onClick = { navController.navigate("settings/commits") }
+                    onClick = { navController.navigate("settings/commits") },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )

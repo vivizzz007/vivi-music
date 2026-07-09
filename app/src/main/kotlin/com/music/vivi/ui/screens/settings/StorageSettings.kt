@@ -298,14 +298,16 @@ fun StorageSettings(
                     title = { Text(stringResource(R.string.downloaded_songs)) },
                     description = {
                         Text(text = formatFileSize(downloadCacheSize))
-                    }
+                    },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_all_downloads)) },
                     onClick = {
                         clearDownloads = true
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )
@@ -366,16 +368,19 @@ fun StorageSettings(
                                     }"
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
-                            )
+                             )
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_song_cache)) },
                     onClick = {
                         clearCacheDialog = true
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )
@@ -429,7 +434,9 @@ fun StorageSettings(
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
@@ -437,7 +444,8 @@ fun StorageSettings(
                     onClick = {
                         android.util.Log.d("StorageSettings", "Clear image cache button clicked!")
                         clearImageCacheDialog = true
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )

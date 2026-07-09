@@ -143,7 +143,9 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_auto)) },
                     description = { Text(stringResource(R.string.canvas_source_auto_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.AUTO) }
+                    onClick = { onCanvasSourceChange(CanvasSource.AUTO) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -156,7 +158,9 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_apple_music)) },
                     description = { Text(stringResource(R.string.canvas_source_apple_music_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.APPLE_MUSIC) }
+                    onClick = { onCanvasSourceChange(CanvasSource.APPLE_MUSIC) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -169,7 +173,9 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_vivimusic)) },
                     description = { Text(stringResource(R.string.canvas_source_vivimusic_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.VIVIMUSIC) }
+                    onClick = { onCanvasSourceChange(CanvasSource.VIVIMUSIC) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -182,7 +188,9 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_tidal)) },
                     description = { Text(stringResource(R.string.canvas_source_tidal_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.TIDAL) }
+                    onClick = { onCanvasSourceChange(CanvasSource.TIDAL) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )

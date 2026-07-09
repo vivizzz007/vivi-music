@@ -143,7 +143,8 @@ fun BackupAndRestore(
                     icon = painterResource(R.drawable.database_upload),
                     onClick = {
                         navController.navigate("settings/backup_restore/autobackup")
-                    }
+                    },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.action_backup)) },
@@ -156,6 +157,7 @@ fun BackupAndRestore(
                             }.backup"
                         )
                     },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.action_restore)) },
@@ -163,6 +165,7 @@ fun BackupAndRestore(
                     onClick = {
                         restoreLauncher.launch(arrayOf("application/octet-stream"))
                     },
+                    isExpressive = true
                 ),
             )
         )
@@ -177,21 +180,24 @@ fun BackupAndRestore(
                     icon = painterResource(R.drawable.playlist_add),
                     onClick = {
                         importM3uLauncherOnline.launch(arrayOf("audio/*"))
-                    }
+                    },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.import_csv)) },
                     icon = painterResource(R.drawable.playlist_add),
                     onClick = {
                         importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"))
-                    }
+                    },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.import_from_spotify)) },
                     icon = painterResource(R.drawable.spotify),
                     onClick = {
                         navController.navigate("settings/spotify")
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )

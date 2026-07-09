@@ -24,8 +24,8 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.IntegrationCard
-import com.music.vivi.ui.component.IntegrationCardItem
+import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,22 +40,24 @@ fun IntegrationScreen(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
     ) {
-        IntegrationCard(
+        Material3SettingsGroup(
             title = stringResource(R.string.general),
             items = listOf(
-                IntegrationCardItem(
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.discord),
                     title = { Text(stringResource(R.string.discord_integration)) },
                     onClick = {
                         navController.navigate("settings/integrations/discord")
-                    }
+                    },
+                    isExpressive = true
                 ),
-                IntegrationCardItem(
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.music_note),
                     title = { Text(stringResource(R.string.lastfm_integration)) },
                     onClick = {
                         navController.navigate("settings/integrations/lastfm")
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )

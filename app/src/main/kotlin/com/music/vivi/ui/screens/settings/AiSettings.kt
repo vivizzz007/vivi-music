@@ -405,14 +405,16 @@ fun AiSettings(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                    }
+                    },
+                    isExpressive = true
                 ),
                 if (aiProvider == "Custom") {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.link),
                         title = { Text(stringResource(R.string.ai_base_url)) },
                         description = { Text(openRouterBaseUrl.ifBlank { stringResource(R.string.not_set) }) },
-                        onClick = { showBaseUrlDialog = true }
+                        onClick = { showBaseUrlDialog = true },
+                        isExpressive = true
                     )
                 } else {
                     null
@@ -438,7 +440,8 @@ fun AiSettings(
                                         stringResource(R.string.not_set)
                                 )
                             },
-                            onClick = { showDeeplApiKeyDialog = true }
+                            onClick = { showDeeplApiKeyDialog = true },
+                            isExpressive = true
                         )
                     )
                     add(
@@ -455,7 +458,8 @@ fun AiSettings(
                                     }
                                 )
                             },
-                            onClick = { showDeeplFormalityDialog = true }
+                            onClick = { showDeeplFormalityDialog = true },
+                            isExpressive = true
                         )
                     )
                 } else {
@@ -471,7 +475,8 @@ fun AiSettings(
                                         stringResource(R.string.not_set)
                                 )
                             },
-                            onClick = { showApiKeyDialog = true }
+                            onClick = { showApiKeyDialog = true },
+                            isExpressive = true
                         )
                     )
                     if (aiProvider != "Custom") {
@@ -480,7 +485,8 @@ fun AiSettings(
                                 icon = painterResource(R.drawable.discover_tune),
                                 title = { Text(stringResource(R.string.ai_model)) },
                                 description = { Text(openRouterModel.ifBlank { stringResource(R.string.not_set) }) },
-                                onClick = { showModelDialog = true }
+                                onClick = { showModelDialog = true },
+                                isExpressive = true
                             )
                         )
                     }
@@ -516,7 +522,8 @@ fun AiSettings(
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
-                            }
+                            },
+                            isExpressive = true
                         )
                     )
                 }
@@ -525,7 +532,8 @@ fun AiSettings(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.ai_target_language)) },
                         description = { Text(LanguageCodeToName[translateLanguage] ?: translateLanguage) },
-                        onClick = { showLanguageDialog = true }
+                        onClick = { showLanguageDialog = true },
+                        isExpressive = true
                     )
                 )
             }

@@ -190,7 +190,9 @@ fun AutoBackupSettings(
                     enabled = autoBackupEnabled,
                     onClick = {
                         onAutoBackupWeeklyChange(!autoBackupWeekly)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.backup_before_update)) },
@@ -205,7 +207,9 @@ fun AutoBackupSettings(
                     enabled = autoBackupEnabled,
                     onClick = {
                         onAutoBackupBeforeUpdateChange(!autoBackupBeforeUpdate)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
@@ -219,7 +223,8 @@ fun AutoBackupSettings(
                 listOf(
                     Material3SettingsItem(
                         title = { Text(stringResource(R.string.no_stored_backups)) },
-                        enabled = false
+                        enabled = false,
+                        isExpressive = true
                     )
                 )
             } else {
@@ -242,7 +247,9 @@ fun AutoBackupSettings(
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
-                        }
+                        },
+                        isExpressive = true,
+                        descriptionBelow = true
                     )
                 }
             }

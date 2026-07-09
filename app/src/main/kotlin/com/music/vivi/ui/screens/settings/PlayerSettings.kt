@@ -277,7 +277,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { showAudioQualityDialog = true }
+                    onClick = { showAudioQualityDialog = true },
+                    isExpressive = true
                 ))
                 // JioSaavn settings navigation
                 add(Material3SettingsItem(
@@ -292,14 +293,17 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { navController.navigate("settings/player/jio") }
+                    onClick = { navController.navigate("settings/player/jio") },
+                    isExpressive = true
                 ))
                 // YouTube Extractor Settings
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.domino_mask),
                     title = { Text(stringResource(R.string.youtube_decryption_settings)) },
                     description = { Text(stringResource(R.string.youtube_decryption_desc)) },
-                    onClick = { navController.navigate("settings/player/cipher") }
+                    onClick = { navController.navigate("settings/player/cipher") },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
@@ -333,7 +337,9 @@ fun PlayerSettings(
                         } else {
                             onCrossfadeEnabledChange(false)
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 if (crossfadeEnabled) {
                     add(Material3SettingsItem(
@@ -349,7 +355,9 @@ fun PlayerSettings(
                                     steps = 14
                                 )
                             }
-                        }
+                        },
+                        isExpressive = true,
+                        descriptionBelow = true
                     ))
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.album),
@@ -370,7 +378,9 @@ fun PlayerSettings(
                                 }
                             )
                         },
-                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
+                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     ))
                 }
                 add(Material3SettingsItem(
@@ -385,7 +395,9 @@ fun PlayerSettings(
                                 valueRange = 1f..100f
                             )
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.fast_forward),
@@ -406,7 +418,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onSkipSilenceChange(!skipSilence) }
+                    onClick = { onSkipSilenceChange(!skipSilence) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),
@@ -428,7 +442,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) }
+                    onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_up),
@@ -448,7 +464,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAudioNormalizationChange(!audioNormalization) }
+                    onClick = { onAudioNormalizationChange(!audioNormalization) },
+                    isExpressive = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
@@ -475,7 +492,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
+                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {
@@ -498,7 +517,9 @@ fun PlayerSettings(
                                 }
                             )
                         },
-                        onClick = { onEnableGoogleCastChange(!enableGoogleCast) }
+                        onClick = { onEnableGoogleCastChange(!enableGoogleCast) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     ))
                 }
                 add(Material3SettingsItem(
@@ -520,13 +541,17 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onSeekExtraSeconds(!seekExtraSeconds) }
+                    onClick = { onSeekExtraSeconds(!seekExtraSeconds) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.viviequlizer),
                     title = { Text(stringResource(R.string.vivi_equalizer)) },
                     description = { Text(stringResource(R.string.vivi_equalizer_desc)) },
-                    onClick = { navController.navigate("settings/equalizer") }
+                    onClick = { navController.navigate("settings/equalizer") },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ))
             }
         )
@@ -555,7 +580,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPersistentQueueChange(!persistentQueue) }
+                    onClick = { onPersistentQueueChange(!persistentQueue) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.playlist_add),
@@ -576,7 +603,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoLoadMoreChange(!autoLoadMore) }
+                    onClick = { onAutoLoadMoreChange(!autoLoadMore) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.repeat),
@@ -597,7 +626,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) }
+                    onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.download),
@@ -618,7 +649,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) }
+                    onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.similar),
@@ -639,7 +672,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { similarContentEnabledChange(!similarContentEnabled) }
+                    onClick = { similarContentEnabledChange(!similarContentEnabled) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -660,7 +695,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) }
+                    onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -681,7 +718,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) }
+                    onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -702,7 +741,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
+                    onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
@@ -723,7 +764,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) }
+                    onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),
@@ -744,7 +787,9 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) }
+                    onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
@@ -772,7 +817,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) }
+                    onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_off_pause),
@@ -792,7 +838,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPauseOnMuteChange(!pauseOnMute) }
+                    onClick = { onPauseOnMuteChange(!pauseOnMute) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.bluetooth),
@@ -812,7 +859,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) }
+                    onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
@@ -832,7 +880,8 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onKeepScreenOnChange(!keepScreenOn) }
+                    onClick = { onKeepScreenOnChange(!keepScreenOn) },
+                    isExpressive = true
                 )
             )
         )

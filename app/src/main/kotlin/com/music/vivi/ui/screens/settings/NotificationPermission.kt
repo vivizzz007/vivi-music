@@ -246,7 +246,9 @@ fun NotificationPermission(
                         val newValue = !updateNotificationsEnabled
                         updateNotificationsEnabled = newValue
                         saveUpdateNotificationsSetting(context, newValue)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.download_notifications)) },
@@ -263,7 +265,9 @@ fun NotificationPermission(
                         val newValue = !downloadNotificationsEnabled
                         downloadNotificationsEnabled = newValue
                         saveDownloadNotificationsSetting(context, newValue)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.new_release_notifications)) },
@@ -278,7 +282,9 @@ fun NotificationPermission(
                     enabled = isNotificationsActive,
                     onClick = {
                         onNewReleaseNotificationsChange(!newReleaseNotificationsEnabled)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.taste_based_release_notifications)) },
@@ -293,7 +299,9 @@ fun NotificationPermission(
                     enabled = isNotificationsActive,
                     onClick = {
                         onTasteBasedReleaseNotificationsChange(!tasteBasedReleaseNotificationsEnabled)
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )

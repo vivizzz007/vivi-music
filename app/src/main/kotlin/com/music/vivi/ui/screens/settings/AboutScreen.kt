@@ -102,7 +102,7 @@ fun AboutScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp),
+                .padding(vertical = 15.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -146,7 +146,7 @@ fun AboutScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -242,13 +242,17 @@ fun AboutScreen(
                     description = { Text(stringResource(R.string.app_developer), color = MaterialTheme.colorScheme.primary) },
                     tintIcon = false,
                     iconShape = cookieShape,
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007") },
+                    isExpressive = true,
+                    descriptionBelow = true,
+                    isExternalLink = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.web_link),
                     title = { Text(stringResource(R.string.website)) },
-                    description = { Text("vivimusic") },
-                    onClick = { uriHandler.safeOpenUri(context, "https://vivimusic.mkmdevilmi.workers.dev/") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://vivimusic.mkmdevilmi.workers.dev/") },
+                    isExpressive = true,
+                    isExternalLink = true
                 )
             )
         )
@@ -277,14 +281,16 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.github),
                     title = { Text(stringResource(R.string.github_repository)) },
-                    description = { Text(stringResource(R.string.view_source_code)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") },
+                    isExpressive = true,
+                    isExternalLink = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.telegram), // add a telegram icon drawable
                     title = { Text(stringResource(R.string.telegram_channel)) },
-                    description = { Text(stringResource(R.string.join_telegram)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") },
+                    isExpressive = true,
+                    isExternalLink = true
                 )
             )
         )
@@ -298,18 +304,21 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.deployed_app_update),
                     title = { Text(stringResource(R.string.installed_date_title)) },
-                    description = { Text(installedDate) }
+                    description = { Text(installedDate) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
-                    description = { Text(BuildConfig.VERSION_CODE.toString()) }
+                    description = { Text(BuildConfig.VERSION_CODE.toString()) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
-                    description = { Text("GPL-3.0 • Free Open Source Software") },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") }
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") },
+                    isExpressive = true,
+                    isExternalLink = true
                 ),
             )
         )
@@ -328,7 +337,6 @@ fun AboutScreen(
                     contentDescription = null,
                 )
             }
-        },
-        scrollBehavior = scrollBehavior
+        }
     )
 }

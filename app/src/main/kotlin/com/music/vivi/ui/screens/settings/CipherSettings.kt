@@ -319,7 +319,9 @@ fun CipherSettings(
                                 }
                             }
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.last_updated)) },
@@ -329,7 +331,8 @@ fun CipherSettings(
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Medium
                         )
-                    }
+                    },
+                    isExpressive = true
                 )
             )
         )

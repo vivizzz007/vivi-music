@@ -5,6 +5,10 @@
 
 package com.music.vivi.ui.component
 
+import androidx.compose.ui.text.font.FontWeight
+import com.music.vivi.utils.listItemShape
+import androidx.compose.ui.res.painterResource
+import com.music.vivi.R
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -67,11 +72,15 @@ fun Material3SettingsGroup(
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items.forEachIndexed { index, item ->
-                val shape = when {
-                    items.size == 1 -> RoundedCornerShape(24.dp)
-                    index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 6.dp)
-                    index == items.size - 1 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
-                    else -> RoundedCornerShape(6.dp)
+                val shape = if (item.isExpressive) {
+                    listItemShape(index, items.size)
+                } else {
+                    when {
+                        items.size == 1 -> RoundedCornerShape(24.dp)
+                        index == 0 -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 6.dp)
+                        index == items.size - 1 -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+                        else -> RoundedCornerShape(6.dp)
+                    }
                 }
 
                 Card(
@@ -84,7 +93,11 @@ fun Material3SettingsGroup(
                     ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Material3SettingsItemRow(item = item)
+                    if (item.isExpressive) {
+                        ExpressiveSettingsItemRow(item = item)
+                    } else {
+                        Material3SettingsItemRow(item = item)
+                    }
                 }
             }
         }
@@ -225,6 +238,122 @@ private fun Material3SettingsItemRow(
 }
 
 /**
+ * Individual settings item row styled like ExpressiveSongRow (small icons, direct rendering, clean typography)
+ */
+@Composable
+private fun ExpressiveSettingsItemRow(
+    item: Material3SettingsItem
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                enabled = item.enabled && item.onClick != null,
+                onClick = { item.onClick?.invoke() }
+            )
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Icon or leading content
+        if (item.leadingContent != null) {
+            item.leadingContent.invoke()
+            Spacer(modifier = Modifier.width(16.dp))
+        } else item.icon?.let { icon ->
+            if (item.tintIcon) {
+                Icon(
+                    painter = icon,
+                    contentDescription = null,
+                    tint = if (!item.enabled)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else if (item.isHighlighted)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.9f),
+                    modifier = Modifier.size(22.dp)
+                )
+            } else {
+                Image(
+                    painter = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(item.iconShape ?: RoundedCornerShape(6.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+        }
+
+        // Title and description
+        Column(
+            modifier = Modifier.weight(1f)
+        ) {
+            ProvideTextStyle(
+                MaterialTheme.typography.bodyLarge.copy(
+                    color = if (!item.enabled)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else
+                        MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Normal
+                )
+            ) {
+                item.title()
+            }
+
+            if (item.descriptionBelow) {
+                item.description?.let { desc ->
+                    Spacer(modifier = Modifier.height(2.dp))
+                    ProvideTextStyle(
+                        MaterialTheme.typography.bodyMedium.copy(
+                            color = if (!item.enabled)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) {
+                        desc()
+                    }
+                }
+            }
+        }
+
+        if (!item.descriptionBelow) {
+            item.description?.let { desc ->
+                Spacer(modifier = Modifier.width(16.dp))
+                ProvideTextStyle(
+                    MaterialTheme.typography.bodyMedium.copy(
+                        color = if (!item.enabled)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
+                    desc()
+                }
+            }
+        }
+
+        // Trailing content
+        if (item.trailingContent != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            item.trailingContent.invoke()
+        } else if (item.isExternalLink && item.onClick != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(R.drawable.open_in_new_icon),
+                contentDescription = null,
+                tint = if (!item.enabled)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                else
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+/**
  * Data class for Material 3 settings item
  */
 data class Material3SettingsItem(
@@ -238,5 +367,8 @@ data class Material3SettingsItem(
     val tintIcon: Boolean = true,
     val iconShape: Shape? = null,
     val enabled: Boolean = true,
-    val onClick: (() -> Unit)? = null
+    val onClick: (() -> Unit)? = null,
+    val isExpressive: Boolean = false,
+    val descriptionBelow: Boolean = false,
+    val isExternalLink: Boolean = false
 )

@@ -119,6 +119,7 @@ fun SpotifyScreen(
             items = listOf(
                 if (state.isAuthenticated) {
                     Material3SettingsItem(
+                        isExpressive = true,
                         leadingContent = if (!state.accountAvatarUrl.isNullOrBlank()) {
                             {
                                 AsyncImage(
@@ -155,6 +156,8 @@ fun SpotifyScreen(
                     )
                 } else {
                     Material3SettingsItem(
+                        isExpressive = true,
+                        descriptionBelow = true,
                         title = { Text(stringResource(R.string.spotify_connect)) },
                         description = { Text(stringResource(R.string.spotify_not_connected)) },
                         icon = painterResource(R.drawable.spotify),
@@ -171,6 +174,7 @@ fun SpotifyScreen(
             title = stringResource(R.string.playlists),
             items = listOf(
                 Material3SettingsItem(
+                    isExpressive = true,
                     title = { Text(stringResource(R.string.spotify_select_sources)) },
                     description = {
                         Text(
@@ -187,6 +191,7 @@ fun SpotifyScreen(
                     onClick = { showPlaylistsSheet = true }
                 ),
                 Material3SettingsItem(
+                    isExpressive = true,
                     title = { Text(stringResource(R.string.spotify_refresh)) },
                     leadingContent = {
                         Box(

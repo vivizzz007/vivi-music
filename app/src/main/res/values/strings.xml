@@ -337,7 +337,7 @@
     <string name="size_used">%s used</string>
 
     <string name="clear_downloaded_updates">Clear downloaded updates</string>
-    <string name="clear_downloaded_updates_desc">Remove downloaded APK files to free up space</string>
+    <string name="clear_downloaded_updates_desc">Remove downloaded APK files</string>
 
     <string name="privacy">Privacy</string>
     <string name="listen_history">Listen history</string>
@@ -388,7 +388,7 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio devices</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="license">GNU General Public License v3.0</string>
+    <string name="license">GNU License 3.0</string>
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop</string>

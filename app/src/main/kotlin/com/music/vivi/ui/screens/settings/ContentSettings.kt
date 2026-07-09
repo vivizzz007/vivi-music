@@ -618,7 +618,8 @@ fun ContentSettings(
                             LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
                         )
                     },
-                    onClick = { showContentLanguageDialog = true }
+                    onClick = { showContentLanguageDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.location_on),
@@ -628,7 +629,8 @@ fun ContentSettings(
                             CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
                         )
                     },
-                    onClick = { showContentCountryDialog = true }
+                    onClick = { showContentCountryDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
@@ -638,7 +640,8 @@ fun ContentSettings(
                             SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
                         )
                     },
-                    onClick = { showSuggestionSheet = true }
+                    onClick = { showSuggestionSheet = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
@@ -658,7 +661,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onHideExplicitChange(!hideExplicit) }
+                    onClick = { onHideExplicitChange(!hideExplicit) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.slow_motion_video),
@@ -678,7 +682,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onHideVideoSongsChange(!hideVideoSongs) }
+                    onClick = { onHideVideoSongsChange(!hideVideoSongs) },
+                    isExpressive = true
                 ),
 
                 Material3SettingsItem(
@@ -699,7 +704,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
+                    onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) },
+                    isExpressive = true
                 )
             )
         )
@@ -727,7 +733,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onShowArtistDescriptionChange(!showArtistDescription) }
+                    onClick = { onShowArtistDescriptionChange(!showArtistDescription) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.person),
@@ -747,7 +754,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onShowArtistSubscriberCountChange(!showArtistSubscriberCount) }
+                    onClick = { onShowArtistSubscriberCountChange(!showArtistSubscriberCount) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.person),
@@ -767,7 +775,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onShowMonthlyListenersChange(!showMonthlyListeners) }
+                    onClick = { onShowMonthlyListenersChange(!showMonthlyListeners) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.slow_motion_video),
@@ -788,7 +797,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onShowArtistVideoChange(!showArtistVideo) }
+                    onClick = { onShowArtistVideoChange(!showArtistVideo) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.slow_motion_video),
@@ -809,7 +820,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onShowArtistBackgroundVideoChange(!showArtistBackgroundVideo) }
+                    onClick = { onShowArtistBackgroundVideoChange(!showArtistBackgroundVideo) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
@@ -836,7 +849,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) }
+                    onClick = { onAlbumCanvasEnabledChange(!albumCanvasEnabled) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
@@ -857,7 +872,8 @@ fun ContentSettings(
                                     "package:${context.packageName}".toUri()
                                 )
                             )
-                        }
+                        },
+                        isExpressive = true
                     )
                 } else {
                     Material3SettingsItem(
@@ -868,7 +884,8 @@ fun ContentSettings(
                                 LanguageCodeToName.getOrElse(appLanguage) { stringResource(R.string.system_default) }
                             )
                         },
-                        onClick = { showAppLanguageDialog = true }
+                        onClick = { showAppLanguageDialog = true },
+                        isExpressive = true
                     )
                 }
             )
@@ -891,7 +908,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { showIpVersionDialog = true }
+                    onClick = { showIpVersionDialog = true },
+                    isExpressive = true
                 ))
                 add(
                     Material3SettingsItem(
@@ -912,7 +930,8 @@ fun ContentSettings(
                                 }
                             )
                         },
-                        onClick = { onProxyEnabledChange(!proxyEnabled) }
+                        onClick = { onProxyEnabledChange(!proxyEnabled) },
+                        isExpressive = true
                     )
                 )
                 if (proxyEnabled) {
@@ -920,7 +939,8 @@ fun ContentSettings(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.settings),
                             title = { Text(stringResource(R.string.config_proxy)) },
-                            onClick = { showProxyConfigurationDialog = true }
+                            onClick = { showProxyConfigurationDialog = true },
+                            isExpressive = true
                         )
                     )
                 }
@@ -950,7 +970,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableLrclibChange(!enableLrclib) }
+                    onClick = { onEnableLrclibChange(!enableLrclib) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -970,7 +991,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableKugouChange(!enableKugou) }
+                    onClick = { onEnableKugouChange(!enableKugou) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -991,7 +1013,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableBetterLyricsChange(!enableBetterLyrics) }
+                    onClick = { onEnableBetterLyricsChange(!enableBetterLyrics) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1012,7 +1036,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableMusixmatchChange(!enableMusixmatch) }
+                    onClick = { onEnableMusixmatchChange(!enableMusixmatch) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1033,7 +1059,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableSimpMusicChange(!enableSimpMusic) }
+                    onClick = { onEnableSimpMusicChange(!enableSimpMusic) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1054,7 +1082,9 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableYouLyPlusChange(!enableYouLyPlus) }
+                    onClick = { onEnableYouLyPlusChange(!enableYouLyPlus) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1075,18 +1105,23 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnablePaxsenixChange(!enablePaxsenix) }
+                    onClick = { onEnablePaxsenixChange(!enablePaxsenix) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_provider_priority)) },
                     description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
                     onClick = { showProviderPriorityDialog = true },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),
                     title = { Text(stringResource(R.string.lyrics_romanization)) },
-                    onClick = { navController.navigate("settings/content/romanization") }
+                    onClick = { navController.navigate("settings/content/romanization") },
+                    isExpressive = true
                 )
             )
         )
@@ -1142,13 +1177,16 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onRandomizeHomeOrderChange(!randomizeHomeOrder) }
+                    onClick = { onRandomizeHomeOrderChange(!randomizeHomeOrder) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.top_length)) },
                     description = { Text(lengthTop) },
-                    onClick = { showTopLengthDialog = true }
+                    onClick = { showTopLengthDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.home_outlined),
@@ -1161,7 +1199,8 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { showQuickPicksDialog = true }
+                    onClick = { showQuickPicksDialog = true },
+                    isExpressive = true
                 )
             )
         )
@@ -1175,7 +1214,9 @@ fun ContentSettings(
                     icon = painterResource(R.drawable.bug_report),
                     title = { Text(stringResource(R.string.playback_logs)) },
                     description = { Text(stringResource(R.string.playback_logs_desc)) },
-                    onClick = { showPlaybackLogsDialog = true }
+                    onClick = { showPlaybackLogsDialog = true },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )

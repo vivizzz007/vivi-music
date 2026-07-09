@@ -133,7 +133,8 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_320.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_320) }
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_320) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -145,7 +146,8 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_160.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_160) }
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_160) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -157,7 +159,8 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_96.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_96) }
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_96) },
+                    isExpressive = true
                 )
             )
         )

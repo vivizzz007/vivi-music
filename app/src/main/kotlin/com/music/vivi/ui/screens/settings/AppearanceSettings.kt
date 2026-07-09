@@ -1015,7 +1015,8 @@ fun AppearanceSettings(
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.theme)) },
                         description = { Text(stringResource(R.string.theme_desc)) },
-                        onClick = { navController.navigate("settings/appearance/theme") }
+                        onClick = { navController.navigate("settings/appearance/theme") },
+                        isExpressive = true
                     )
                 )
                 add(
@@ -1032,7 +1033,8 @@ fun AppearanceSettings(
                             }
                             Text(fontLabel)
                         },
-                        onClick = { navController.navigate("settings/appearance/font") }
+                        onClick = { navController.navigate("settings/appearance/font") },
+                        isExpressive = true
                     )
                 )
                 add(
@@ -1055,7 +1057,9 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) }
+                        onClick = { onEnableHighRefreshRateChange(!enableHighRefreshRate) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     )
                 )
                 add(
@@ -1078,7 +1082,9 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onEnableSettingsPopupChange(!enableSettingsPopup) }
+                        onClick = { onEnableSettingsPopupChange(!enableSettingsPopup) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     )
                 )
                 // Only show dynamic theme option when using the default/dynamic color
@@ -1103,7 +1109,8 @@ fun AppearanceSettings(
                                     }
                                 )
                             },
-                            onClick = { onDynamicThemeChange(!dynamicTheme) }
+                            onClick = { onDynamicThemeChange(!dynamicTheme) },
+                            isExpressive = true
                         )
                     )
                 }
@@ -1139,7 +1146,8 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onUseNewMiniPlayerDesignChange(!useNewMiniPlayerDesign) }
+                        onClick = { onUseNewMiniPlayerDesignChange(!useNewMiniPlayerDesign) },
+                        isExpressive = true
                     )
                 )
                 add(
@@ -1161,7 +1169,8 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onPureBlackMiniPlayerChange(!pureBlackMiniPlayer) }
+                        onClick = { onPureBlackMiniPlayerChange(!pureBlackMiniPlayer) },
+                        isExpressive = true
                     )
                 )
                 add(
@@ -1180,7 +1189,8 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { showMiniPlayerBackgroundDialog = true }
+                        onClick = { showMiniPlayerBackgroundDialog = true },
+                        isExpressive = true
                     )
                 )
             }
@@ -1217,7 +1227,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) }
+                    onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.album),
@@ -1238,7 +1249,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) }
+                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 if (!useNewPlayerDesign) {
                     Material3SettingsItem(
@@ -1259,7 +1272,8 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onShowAudioQualityBadgeChange(!showAudioQualityBadge) }
+                        onClick = { onShowAudioQualityBadgeChange(!showAudioQualityBadge) },
+                        isExpressive = true
                     )
                 } else null,
                 Material3SettingsItem(
@@ -1277,7 +1291,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showPlayerBackgroundDialog = true }
+                    onClick = { showPlayerBackgroundDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.hide_image),
@@ -1298,7 +1313,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onHidePlayerThumbnailChange(!hidePlayerThumbnail) }
+                    onClick = { onHidePlayerThumbnailChange(!hidePlayerThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),
@@ -1311,7 +1328,9 @@ fun AppearanceSettings(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     },
-                    onClick = { showThumbnailCornerRadiusDialog = true }
+                    onClick = { showThumbnailCornerRadiusDialog = true },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.crop),
@@ -1332,7 +1351,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onCropAlbumArtChange(!cropAlbumArt) }
+                    onClick = { onCropAlbumArtChange(!cropAlbumArt) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
@@ -1346,7 +1367,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showPlayerButtonsStyleDialog = true }
+                    onClick = { showPlayerButtonsStyleDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.sliders),
@@ -1362,7 +1384,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showSliderOptionDialog = true }
+                    onClick = { showSliderOptionDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
@@ -1382,7 +1405,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
+                    onClick = { onSwipeThumbnailChange(!swipeThumbnail) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.canvas_art),
@@ -1400,7 +1424,8 @@ fun AppearanceSettings(
                         }
                         Text(summary)
                     },
-                    onClick = { navController.navigate("settings/appearance/canvas") }
+                    onClick = { navController.navigate("settings/appearance/canvas") },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),
@@ -1421,7 +1446,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
+                    onClick = { onRotatingThumbnailChange(!rotatingThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.chat_msg),
@@ -1442,7 +1469,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowCommentButtonChange(!showCommentButton) }
+                    onClick = { onShowCommentButtonChange(!showCommentButton) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             ) + if (swipeThumbnail) listOf(
                 Material3SettingsItem(
@@ -1456,7 +1485,8 @@ fun AppearanceSettings(
                             )
                         )
                     },
-                    onClick = { showSensitivityDialog = true }
+                    onClick = { showSensitivityDialog = true },
+                    isExpressive = true
                 )
             ) else emptyList()
         )
@@ -1555,7 +1585,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showLyricsPositionDialog = true }
+                    onClick = { showLyricsPositionDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1576,7 +1607,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showLyricsAnimationStyleDialog = true }
+                    onClick = { showLyricsAnimationStyleDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1597,7 +1629,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsGlowEffectChange(!lyricsGlowEffect) }
+                    onClick = { onLyricsGlowEffectChange(!lyricsGlowEffect) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     Material3SettingsItem(
@@ -1619,7 +1653,9 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) }
+                        onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     )
                 } else null,
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -1642,20 +1678,24 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
+                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     )
                 } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
                     description = { Text("${lyricsTextSize.roundToInt()} sp") },
-                    onClick = { showLyricsTextSizeDialog = true }
+                    onClick = { showLyricsTextSizeDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_line_spacing)) },
                     description = { Text("${String.format("%.1f", lyricsLineSpacing)}x") },
-                    onClick = { showLyricsLineSpacingDialog = true }
+                    onClick = { showLyricsLineSpacingDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1675,7 +1715,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsClickChange(!lyricsClick) }
+                    onClick = { onLyricsClickChange(!lyricsClick) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1695,7 +1736,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsScrollChange(!lyricsScroll) }
+                    onClick = { onLyricsScrollChange(!lyricsScroll) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
@@ -1716,7 +1758,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onSwipeLyricsChange(!swipeLyrics) }
+                    onClick = { onSwipeLyricsChange(!swipeLyrics) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.play),
@@ -1737,7 +1781,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onEnableLyricsThumbnailPlayPauseChange(!enableLyricsThumbnailPlayPause) }
+                    onClick = { onEnableLyricsThumbnailPlayPauseChange(!enableLyricsThumbnailPlayPause) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
@@ -1759,7 +1805,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showDefaultOpenTabDialog = true }
+                    onClick = { showDefaultOpenTabDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.tab),
@@ -1775,7 +1822,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showDefaultChipDialog = true }
+                    onClick = { showDefaultChipDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
@@ -1795,7 +1843,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onSwipeToSongChange(!swipeToSong) }
+                    onClick = { onSwipeToSongChange(!swipeToSong) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
@@ -1815,7 +1864,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onSwipeToRemoveSongChange(!swipeToRemoveSong) }
+                    onClick = { onSwipeToRemoveSongChange(!swipeToRemoveSong) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
@@ -1835,7 +1885,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onSlimNavChange(!slimNav) }
+                    onClick = { onSlimNavChange(!slimNav) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
@@ -1856,7 +1907,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onFloatingNavBarChange(!floatingNavBar) }
+                    onClick = { onFloatingNavBarChange(!floatingNavBar) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.group_outlined),
@@ -1877,7 +1930,9 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onListenTogetherInTopBarChange(!listenTogetherInTopBar) }
+                    onClick = { onListenTogetherInTopBarChange(!listenTogetherInTopBar) },
+                    isExpressive = true,
+                    descriptionBelow = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
@@ -1890,7 +1945,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { showGridSizeDialog = true }
+                    onClick = { showGridSizeDialog = true },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
@@ -1898,7 +1954,8 @@ fun AppearanceSettings(
                     description = {
                         Text(DensityScale.fromValue(densityScale).label)
                     },
-                    onClick = { showDensityScaleDialog = true }
+                    onClick = { showDensityScaleDialog = true },
+                    isExpressive = true
                 )
             )
         )
@@ -1926,7 +1983,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowLikedPlaylistChange(!showLikedPlaylist) }
+                    onClick = { onShowLikedPlaylistChange(!showLikedPlaylist) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.offline),
@@ -1946,7 +2004,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowDownloadedPlaylistChange(!showDownloadedPlaylist) }
+                    onClick = { onShowDownloadedPlaylistChange(!showDownloadedPlaylist) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
@@ -1966,7 +2025,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowTopPlaylistChange(!showTopPlaylist) }
+                    onClick = { onShowTopPlaylistChange(!showTopPlaylist) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.cached),
@@ -1986,7 +2046,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowCachedPlaylistChange(!showCachedPlaylist) }
+                    onClick = { onShowCachedPlaylistChange(!showCachedPlaylist) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.backup),
@@ -2006,7 +2067,8 @@ fun AppearanceSettings(
                             }
                         )
                     },
-                    onClick = { onShowUploadedPlaylistChange(!showUploadedPlaylist) }
+                    onClick = { onShowUploadedPlaylistChange(!showUploadedPlaylist) },
+                    isExpressive = true
                 )
             )
         )

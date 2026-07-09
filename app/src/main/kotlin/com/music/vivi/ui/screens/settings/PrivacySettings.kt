@@ -175,12 +175,14 @@ fun PrivacySettings(
                             }
                         )
                     },
-                    onClick = { onPauseListenHistoryChange(!pauseListenHistory) }
+                    onClick = { onPauseListenHistoryChange(!pauseListenHistory) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete_history),
                     title = { Text(stringResource(R.string.clear_listen_history)) },
-                    onClick = { showClearListenHistoryDialog = true }
+                    onClick = { showClearListenHistoryDialog = true },
+                    isExpressive = true
                 )
             )
         )
@@ -208,12 +210,14 @@ fun PrivacySettings(
                             }
                         )
                     },
-                    onClick = { onPauseSearchHistoryChange(!pauseSearchHistory) }
+                    onClick = { onPauseSearchHistoryChange(!pauseSearchHistory) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_search_history)) },
-                    onClick = { showClearSearchHistoryDialog = true }
+                    onClick = { showClearSearchHistoryDialog = true },
+                    isExpressive = true
                 )
             )
         )
@@ -226,7 +230,6 @@ fun PrivacySettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
                     title = { Text(stringResource(R.string.disable_screenshot)) },
-                    description = { Text(stringResource(R.string.disable_screenshot_desc)) },
                     trailingContent = {
                         Switch(
                             checked = disableScreenshot,
@@ -242,7 +245,18 @@ fun PrivacySettings(
                             }
                         )
                     },
-                    onClick = { onDisableScreenshotChange(!disableScreenshot) }
+                    onClick = { onDisableScreenshotChange(!disableScreenshot) },
+                    isExpressive = true
+                ),
+                Material3SettingsItem(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.disable_screenshot_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    isExpressive = true
                 )
             )
         )

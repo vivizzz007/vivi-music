@@ -104,7 +104,7 @@
     <string name="hide_player_thumbnail">Hide Player Thumbnail</string>
     <string name="hide_player_thumbnail_desc">Replace album artwork with app logo in player</string>
     <string name="thumbnail_corner_radius">Thumbnail Corner Radius</string>
-    <string name="thumbnail_corner_radius_desc">Change the corner radius of the album cover thumbnail</string>
+    <string name="thumbnail_corner_radius_desc">Adjust thumbnail corner radius</string>
     <string name="crop_album_art">Crop Album Art</string>
     <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
     <string name="vivimusic_canvas">Canvas</string>
@@ -155,7 +155,7 @@
     <string name="player_background_solid">Solid</string>
     <string name="follow_theme">Follow theme</string>
     <string name="gradient">Gradient</string>
-    <string name="glow_animated">Glow animated</string>
+    <string name="glow_animated">Glow motion</string>
     <string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">New player design</string>
     <string name="use_expressive_album_design">Expressive album design</string>
@@ -878,6 +878,9 @@
     <string name="version_code">Version code</string>
     <string name="namespace">Namespace</string>
     <string name="telegram_channel">Telegram</string>
+    <string name="version_info">Version Info</string>
+    <string name="flavour">Flavour</string>
+    <string name="version_title">Version</string>
 
     <!-- Onboarding -->
     <string name="welcome_to">Welcome to</string>
