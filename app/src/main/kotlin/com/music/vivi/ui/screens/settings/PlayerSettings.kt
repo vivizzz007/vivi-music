@@ -300,10 +300,9 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.domino_mask),
                     title = { Text(stringResource(R.string.youtube_decryption_settings)) },
-                    description = { Text(stringResource(R.string.youtube_decryption_desc)) },
+                    description = { Text(stringResource(R.string.enabled)) },
                     onClick = { navController.navigate("settings/player/cipher") },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    isExpressive = true
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),

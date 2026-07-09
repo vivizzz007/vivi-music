@@ -50,6 +50,15 @@ import com.music.vivi.vivimusic.updater.saveBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.autoClearOldApks
 import androidx.compose.material3.MaterialTheme
 import com.music.vivi.BuildConfig
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.constants.EnableNotificationsKey
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import android.Manifest
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
 
 //here b5.0.1 must be used for the beta tag
 
@@ -73,6 +82,42 @@ fun UpdateSettings(
     var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context) && autoUpdateEnabled) }
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
+
+    // Detect system permission state dynamically
+    var hasSystemPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else true
+        )
+    }
+
+    // Refresh system permission state when screen is resumed
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasSystemPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+                } else true
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val (notificationsEnabled, _) = rememberPreference(
+        EnableNotificationsKey,
+        defaultValue = true
+    )
+
+    val isNotificationsActive = hasSystemPermission && notificationsEnabled
 
     DisposableEffect(context, autoUpdateEnabled) {
         val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
@@ -149,7 +194,6 @@ fun UpdateSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.update),
                     title = { Text(stringResource(R.string.auto_update_check)) },
-                    description = { Text(stringResource(R.string.auto_update_check_subtitle)) },
                     trailingContent = {
                         Switch(
                             checked = autoUpdateEnabled,
@@ -178,14 +222,12 @@ fun UpdateSettings(
                             saveUpdateAvailableState(context, false)
                         }
                     },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    isExpressive = true
                 ),
 
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.biotech),
                     title = { Text(stringResource(R.string.beta_updates)) },
-                    description = { Text(stringResource(R.string.beta_updates_subtitle)) },
                     trailingContent = {
                         Switch(
                             checked = betaUpdatesEnabled,
@@ -208,35 +250,35 @@ fun UpdateSettings(
                         betaUpdatesEnabled = !betaUpdatesEnabled
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
                     },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.notification),
                     title = { Text(stringResource(R.string.notification_settings)) },
-                    description = { Text(stringResource(R.string.notification_settings_summary)) },
+                    description = {
+                        val status = if (isNotificationsActive) {
+                            stringResource(R.string.enabled)
+                        } else {
+                            stringResource(R.string.disabled)
+                        }
+                        Text(status)
+                    },
                     onClick = {
                         navController.navigate("settings/update/notification_permission")
                     },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete),
                     title = { Text(stringResource(R.string.clear_downloaded_updates)) },
-                    description = {
-                        if (apkCount == 0) {
-                            Text(
-                                text = stringResource(R.string.clear_downloaded_updates_desc),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
+                    description = if (apkCount > 0) {
+                        {
                             Text(
                                 text = pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
-                    },
+                    } else null,
                     trailingContent = {
                         IconButton(
                             onClick = { showInfoDialog = true },

@@ -425,7 +425,7 @@
     <string name="cache_size_warning_confirm">Continue</string>
 
     <!-- Lyrics Animation Styles -->
-    <string name="lyrics_animation_style">Word-by-word animation style</string>
+    <string name="lyrics_animation_style">Lyrics animation</string>
     <string name="none">None</string>
     <string name="fade">Fade</string>
     <string name="glow">Glow</string>
@@ -1030,4 +1030,6 @@
     <!-- Floating Navigation Bar -->
     <string name="floating_navbar">Floating navigation bar</string>
     <string name="floating_navbar_desc">Show suspended centered navigation bar at the bottom</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
 </resources>

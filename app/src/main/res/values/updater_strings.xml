@@ -82,7 +82,7 @@
     <string name="update_size_v">Size: %1$s MB</string>
 
     <!-- Notification Permission Settings -->
-    <string name="notification_settings">Notification Permission</string>
+    <string name="notification_settings">Notification setting</string>
     <string name="notification_settings_summary">Configure notification settings.</string>
     <string name="notification_settings_desc">Configure and manage notifications for app updates, beta releases, and download progress. Disabling notifications will prevent background status updates from appearing.</string>
     <string name="enable_notifications">Enable Notifications</string>
