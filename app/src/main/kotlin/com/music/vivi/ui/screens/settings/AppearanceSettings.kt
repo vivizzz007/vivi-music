@@ -1229,29 +1229,6 @@ fun AppearanceSettings(
                     onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) },
                     isExpressive = true
                 ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.album),
-                    title = { Text(stringResource(R.string.use_expressive_album_design)) },
-                    description = { Text(stringResource(R.string.use_expressive_album_design_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = useExpressiveAlbumDesign,
-                            onCheckedChange = onUseExpressiveAlbumDesignChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (useExpressiveAlbumDesign) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) },
-                    isExpressive = true,
-                    descriptionBelow = true
-                ),
                 if (!useNewPlayerDesign) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
@@ -1566,6 +1543,37 @@ fun AppearanceSettings(
                 }
             )
         }
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        Material3SettingsGroup(
+            title = stringResource(R.string.album_settings),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.album),
+                    title = { Text(stringResource(R.string.use_expressive_album_design)) },
+                    description = { Text(stringResource(R.string.use_expressive_album_design_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = useExpressiveAlbumDesign,
+                            onCheckedChange = onUseExpressiveAlbumDesignChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (useExpressiveAlbumDesign) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                )
+            )
+        )
 
         Spacer(modifier = Modifier.height(27.dp))
 
