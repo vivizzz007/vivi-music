@@ -59,6 +59,7 @@ import android.Manifest
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.Lifecycle
+import com.music.vivi.vivimusic.updater.checkForUpdate
 
 //here b5.0.1 must be used for the beta tag
 
@@ -79,7 +80,7 @@ fun UpdateSettings(
     val context = LocalContext.current
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
-    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context) && autoUpdateEnabled) }
+    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context)) }
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
 
@@ -119,16 +120,16 @@ fun UpdateSettings(
 
     val isNotificationsActive = hasSystemPermission && notificationsEnabled
 
-    DisposableEffect(context, autoUpdateEnabled) {
+    DisposableEffect(context) {
         val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == "update_available") {
-                isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+                isUpdateAvailable = getUpdateAvailableState(context)
             }
         }
         sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
         // Sync initial state
-        isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+        isUpdateAvailable = getUpdateAvailableState(context)
         onDispose {
             sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
         }
@@ -137,6 +138,15 @@ fun UpdateSettings(
     LaunchedEffect(Unit) {
         autoClearOldApks(context)
         apkCount = getDownloadedApkCount(context)
+        if (autoUpdateEnabled) {
+            checkForUpdate(
+                context = context,
+                onSuccess = { _, isAvailable, _, _, _, _, _, _ ->
+                    saveUpdateAvailableState(context, isAvailable)
+                },
+                onError = {}
+            )
+        }
     }
 
     if (showInfoDialog) {
