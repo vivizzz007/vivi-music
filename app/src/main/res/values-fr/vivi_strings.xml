@@ -104,7 +104,7 @@
     <string name="hide_player_thumbnail">Masquer la miniature du lecteur</string>
     <string name="hide_player_thumbnail_desc">Remplacer la pochette de l\'album par le logo de l\'application dans le lecteur</string>
     <string name="thumbnail_corner_radius">Rayon des coins de la miniature</string>
-    <string name="thumbnail_corner_radius_desc">Modifier le rayon des coins de la miniature de la pochette de l\'album</string>
+    <string name="thumbnail_corner_radius_desc">Régler le rayon des coins des miniatures</string>
     <string name="crop_album_art">Recadrer la pochette d\'album</string>
     <string name="crop_album_art_desc">Forcer un format carré en recadrant les miniatures vidéo</string>
     <string name="vivimusic_canvas">Canvas</string>
@@ -155,7 +155,7 @@
     <string name="player_background_solid">Solide</string>
     <string name="follow_theme">Suivre le thème</string>
     <string name="gradient">Dégradé</string>
-    <string name="glow_animated">Animation lumineuse</string>
+    <string name="glow_animated">Mouvement lumineux</string>
 	<string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">Nouveau design du lecteur</string>
 	<string name="use_expressive_album_design">Une conception d\'album expressive</string>
@@ -879,6 +879,9 @@ est irréversible.
     <string name="version_code">Code de version</string>
     <string name="namespace">Espace de noms</string>
     <string name="telegram_channel">Telegram</string>
+	<string name="version_info">Informations sur la version</string>
+    <string name="flavour">Saveur</string>
+    <string name="version_title">Version</string>
 
 	<!-- Onboarding -->
     <string name="welcome_to">Bienvenue sur</string>
