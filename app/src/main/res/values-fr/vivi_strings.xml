@@ -159,7 +159,9 @@
 	<string name="live_mesh">Live Mesh</string>
     <string name="new_player_design">Nouveau design du lecteur</string>
 	<string name="use_expressive_album_design">Une conception d\'album expressive</string>
-    <string name="use_expressive_album_design_desc">Liste minimaliste sans vignettes</string>
+    <string name="use_expressive_album_design_desc">Liste minimaliste sans miniature</string>
+	<string name="show_song_thumbnail_in_list">Afficher les miniatures des titres de l\'album</string>
+    <string name="show_song_thumbnail_in_list_desc">Afficher les pochettes d\'album à la place des numéros de piste dans les listes expressives</string>
     <string name="album_settings">Paramètres de l\'album</string>
     <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
     <string name="player_background_blur">Flou</string>
