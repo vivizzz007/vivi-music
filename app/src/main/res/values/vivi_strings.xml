@@ -103,6 +103,8 @@
     <string name="maximum_volume">Maximum Volume</string>
     <string name="hide_player_thumbnail">Hide Player Thumbnail</string>
     <string name="hide_player_thumbnail_desc">Replace album artwork with app logo in player</string>
+    <string name="show_player_thumbnail_shadow">Player Thumbnail Shadow</string>
+    <string name="show_player_thumbnail_shadow_desc">Show shadow around the player thumbnail image</string>
     <string name="thumbnail_corner_radius">Thumbnail Corner Radius</string>
     <string name="thumbnail_corner_radius_desc">Adjust thumbnail corner radius</string>
     <string name="crop_album_art">Crop Album Art</string>
