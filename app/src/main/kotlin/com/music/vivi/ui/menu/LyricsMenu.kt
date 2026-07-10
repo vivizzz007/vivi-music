@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -442,6 +443,7 @@ fun LyricsMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // Add "Translate with AI" option if API key is configured
                     if (hasApiKey) {
@@ -488,6 +490,15 @@ fun LyricsMenu(
                                                 }
                                             }
                                         },
+                                        thumbContent = {
+                                            Icon(
+                                                painter = painterResource(
+                                                    id = if (hasTranslations) R.drawable.check else R.drawable.close
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize)
+                                            )
+                                        }
                                     )
                                 },
                             )
@@ -544,6 +555,15 @@ fun LyricsMenu(
                                                 upsert(song.copy(romanizeLyrics = newCheckedState))
                                             }
                                         }
+                                    },
+                                    thumbContent = {
+                                        Icon(
+                                            painter = painterResource(
+                                                id = if (isChecked) R.drawable.check else R.drawable.close
+                                            ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize)
+                                        )
                                     }
                                 )
                             }
