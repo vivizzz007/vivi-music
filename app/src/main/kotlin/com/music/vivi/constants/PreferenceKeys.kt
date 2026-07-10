@@ -66,6 +66,7 @@ val UseExpressiveAlbumDesignKey = booleanPreferencesKey("useExpressiveAlbumDesig
 val ExpressiveSongAlbumImageKey = booleanPreferencesKey("expressiveSongAlbumImage")
 val UseNewMiniPlayerDesignKey = booleanPreferencesKey("useNewMiniPlayerDesign")
 val HidePlayerThumbnailKey = booleanPreferencesKey("hidePlayerThumbnail")
+val ShowPlayerThumbnailShadowKey = booleanPreferencesKey("showPlayerThumbnailShadow")
 val ThumbnailCornerRadiusKey = floatPreferencesKey("thumbnailCornerRadius")
 val CropAlbumArtKey = booleanPreferencesKey("cropAlbumArt")
 val SeekExtraSeconds = booleanPreferencesKey("seekExtraSeconds")

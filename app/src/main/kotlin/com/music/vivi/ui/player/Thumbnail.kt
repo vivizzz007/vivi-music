@@ -58,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -87,6 +88,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
@@ -612,6 +614,7 @@ private fun ThumbnailItem(
     modifier: Modifier = Modifier,
 ) {
     val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, defaultValue = false)
+    val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val isCurrentItem = item.mediaId == currentMediaId
     
@@ -681,19 +684,30 @@ private fun ThumbnailItem(
             },
         contentAlignment = Alignment.Center
     ) {
+        val shape = if (rotatingThumbnail) {
+            MaterialShapes.Clover8Leaf.toShape()
+        } else {
+            RoundedCornerShape(dimensions.cornerRadius)
+        }
+
         Box(
             modifier = Modifier
                 .size(dimensions.thumbnailSize)
                 .graphicsLayer {
                     rotationZ = rotation
                 }
-                .clip(
-                    if (rotatingThumbnail) {
-                        MaterialShapes.Clover8Leaf.toShape()
+                .then(
+                    if (showPlayerThumbnailShadow) {
+                        Modifier.shadow(
+                            elevation = 8.dp,
+                            shape = shape,
+                            clip = false
+                        )
                     } else {
-                        RoundedCornerShape(dimensions.cornerRadius)
+                        Modifier
                     }
                 )
+                .clip(shape)
                 .graphicsLayer {
                     rotationZ = -rotation
                 }

@@ -74,6 +74,7 @@ import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.LyricsAnimationStyle
@@ -214,6 +215,10 @@ fun AppearanceSettings(
     )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(
         HidePlayerThumbnailKey,
+        defaultValue = false
+    )
+    val (showPlayerThumbnailShadow, onShowPlayerThumbnailShadowChange) = rememberPreference(
+        ShowPlayerThumbnailShadowKey,
         defaultValue = false
     )
     val (cropAlbumArt, onCropAlbumArtChange) = rememberPreference(
@@ -1296,6 +1301,29 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onHidePlayerThumbnailChange(!hidePlayerThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.contrast),
+                    title = { Text(stringResource(R.string.show_player_thumbnail_shadow)) },
+                    description = { Text(stringResource(R.string.show_player_thumbnail_shadow_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = showPlayerThumbnailShadow,
+                            onCheckedChange = onShowPlayerThumbnailShadowChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (showPlayerThumbnailShadow) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onShowPlayerThumbnailShadowChange(!showPlayerThumbnailShadow) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),
