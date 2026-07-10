@@ -17,7 +17,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -82,7 +81,6 @@ fun AnimatedRadioButton(
     // Layout containing clickable bounds and canvas drawing
     Box(
         modifier = modifier
-            .minimumInteractiveComponentSize()
             .size(24.dp)
             .scale(buttonScale) // Apply the press squash-and-stretch scale
             .semantics { role = Role.RadioButton }
