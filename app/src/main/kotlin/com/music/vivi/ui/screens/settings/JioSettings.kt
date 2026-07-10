@@ -22,7 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import com.music.vivi.ui.component.AnimatedRadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -125,7 +125,7 @@ fun JioSettings(
             items = listOf(
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_320,
                             onClick = null,
                             enabled = saavnEnabled
@@ -138,7 +138,7 @@ fun JioSettings(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_160,
                             onClick = null,
                             enabled = saavnEnabled
@@ -151,7 +151,7 @@ fun JioSettings(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_96,
                             onClick = null,
                             enabled = saavnEnabled

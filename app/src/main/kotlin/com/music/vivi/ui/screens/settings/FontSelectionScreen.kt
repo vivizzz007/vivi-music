@@ -18,8 +18,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import com.music.vivi.ui.component.AnimatedRadioButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -121,8 +121,10 @@ fun FontSelectionScreen(
             title = stringResource(R.string.font_selection),
             items = listOf(
                 Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = selectedFont == AppFont.SYSTEM.value,
                             onClick = null
                         )
@@ -142,8 +144,10 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.SYSTEM.value) }
                 ),
                 Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = selectedFont == AppFont.GOOGLE_SANS.value,
                             onClick = null
                         )
@@ -163,8 +167,10 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.GOOGLE_SANS.value) }
                 ),
                 Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = selectedFont == AppFont.SANS_FLEX.value,
                             onClick = null
                         )
@@ -184,8 +190,10 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.SANS_FLEX.value) }
                 ),
                 Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = selectedFont == AppFont.OUTFIT.value,
                             onClick = null
                         )
@@ -205,8 +213,10 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.OUTFIT.value) }
                 ),
                 Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = selectedFont == AppFont.PLUS_JAKARTA_SANS.value,
                             onClick = null
                         )

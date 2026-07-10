@@ -25,7 +25,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import com.music.vivi.ui.component.AnimatedRadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -134,7 +134,7 @@ fun CanvasSelection(
             items = listOf(
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = canvasSource == CanvasSource.AUTO,
                             onClick = null,
                             enabled = canvasThumbnailAnimation
@@ -149,7 +149,7 @@ fun CanvasSelection(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = canvasSource == CanvasSource.APPLE_MUSIC,
                             onClick = null,
                             enabled = canvasThumbnailAnimation
@@ -164,7 +164,7 @@ fun CanvasSelection(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = canvasSource == CanvasSource.VIVIMUSIC,
                             onClick = null,
                             enabled = canvasThumbnailAnimation
@@ -179,7 +179,7 @@ fun CanvasSelection(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = canvasSource == CanvasSource.TIDAL,
                             onClick = null,
                             enabled = canvasThumbnailAnimation
