@@ -765,6 +765,7 @@
     <string name="palette_brown">Brown</string>
     <string name="palette_grey">Grey</string>
     <string name="palette_blue_grey">Blue Grey</string>
+    <string name="palette_monochrome">Monochrome</string>
 
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Back</string>

@@ -93,6 +93,7 @@ val PaletteColors = listOf(
     ThemePalette(R.string.palette_crimson, Color(0xFFEC5464)), // Slightly shifted from DefaultThemeColor (0xFFED5564) to avoid conflict
     ThemePalette(R.string.palette_rose, Color(0xFFD81B60)),
     ThemePalette(R.string.palette_purple, Color(0xFF8E24AA)),
+    ThemePalette(R.string.palette_monochrome, Color(0xFF000000)),
     ThemePalette(R.string.palette_deep_purple, Color(0xFF5E35B1)),
     ThemePalette(R.string.palette_indigo, Color(0xFF3949AB)),
     ThemePalette(R.string.palette_blue, Color(0xFF1E88E5)),
@@ -197,22 +198,19 @@ fun PortraitThemeLayout(
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(220.dp))
 
-        Box(
+        ThemePreviewCard(
             modifier = Modifier
-                .width(120.dp)
-                .height(240.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            ThemeMockupPortrait(
-                darkMode = darkMode,
-                pureBlack = pureBlack,
-                themeColor = selectedThemeColor
-            )
-        }
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .height(160.dp),
+            darkMode = darkMode,
+            pureBlack = pureBlack,
+            themeColor = selectedThemeColor
+        )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(160.dp))
 
         ThemeControls(
             darkMode = darkMode,
@@ -250,18 +248,14 @@ fun LandscapeThemeLayout(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            ThemePreviewCard(
                 modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .heightIn(max = 300.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                ThemeMockup(
-                    darkMode = darkMode,
-                    pureBlack = pureBlack,
-                    themeColor = selectedThemeColor
-                )
-            }
+                    .fillMaxWidth()
+                    .height(140.dp),
+                darkMode = darkMode,
+                pureBlack = pureBlack,
+                themeColor = selectedThemeColor
+            )
         }
 
         Column(
@@ -294,119 +288,110 @@ fun ThemeControls(
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit
 ) {
-    Card(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(R.string.theme_mode),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = stringResource(R.string.theme_mode),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // System mode (AUTO)
+                ModeCircle(
+                    darkMode = darkMode,
+                    pureBlack = pureBlack,
+                    targetMode = DarkMode.AUTO,
+                    targetPureBlack = pureBlack,
+                    onClick = {
+                        onDarkModeChange(DarkMode.AUTO)
+                    },
+                    showIcon = true
                 )
                 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // System mode (AUTO)
-                    ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
-                        targetMode = DarkMode.AUTO,
-                        targetPureBlack = pureBlack,
-                        onClick = {
-                            onDarkModeChange(DarkMode.AUTO)
-                        },
-                        showIcon = true
-                    )
-                    
-                    // Vertical divider to separate System from manual modes
-                    Box(
-                        modifier = Modifier
-                            .width(1.dp)
-                            .height(32.dp)
-                            .background(MaterialTheme.colorScheme.outlineVariant)
-                    )
-                    
-                    // Manual modes (Light, Dark, Pure Black)
-                    ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
-                        targetMode = DarkMode.OFF,
-                        targetPureBlack = false,
-                        onClick = {
-                            onDarkModeChange(DarkMode.OFF)
-                            onPureBlackChange(false)
-                        },
-                        showIcon = false
-                    )
-                    
-                    ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
-                        targetMode = DarkMode.ON,
-                        targetPureBlack = false,
-                        onClick = {
-                            onDarkModeChange(DarkMode.ON)
-                            onPureBlackChange(false)
-                        },
-                        showIcon = false
-                    )
-                    
-                    ModeCircle(
-                        darkMode = darkMode,
-                        pureBlack = pureBlack,
-                        targetMode = DarkMode.ON,
-                        targetPureBlack = true,
-                        onClick = {
-                            onDarkModeChange(DarkMode.ON)
-                            onPureBlackChange(true)
-                        },
-                        showIcon = false
-                    )
-                }
+                // Vertical divider to separate System from manual modes
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(32.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                )
+                
+                // Manual modes (Light, Dark, Pure Black)
+                ModeCircle(
+                    darkMode = darkMode,
+                    pureBlack = pureBlack,
+                    targetMode = DarkMode.OFF,
+                    targetPureBlack = false,
+                    onClick = {
+                        onDarkModeChange(DarkMode.OFF)
+                        onPureBlackChange(false)
+                    },
+                    showIcon = false
+                )
+                
+                ModeCircle(
+                    darkMode = darkMode,
+                    pureBlack = pureBlack,
+                    targetMode = DarkMode.ON,
+                    targetPureBlack = false,
+                    onClick = {
+                        onDarkModeChange(DarkMode.ON)
+                        onPureBlackChange(false)
+                    },
+                    showIcon = false
+                )
+                
+                ModeCircle(
+                    darkMode = darkMode,
+                    pureBlack = pureBlack,
+                    targetMode = DarkMode.ON,
+                    targetPureBlack = true,
+                    onClick = {
+                        onDarkModeChange(DarkMode.ON)
+                        onPureBlackChange(true)
+                    },
+                    showIcon = false
+                )
             }
+        }
 
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(R.string.color_palette),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                    contentPadding = PaddingValues(horizontal = 4.dp)
-                ) {
-                    items(PaletteColors) { palette ->
-                        val isDynamicPalette = palette.seedColor == Color.Transparent
-                        val isSelected = if (isDynamicPalette) {
-                            selectedThemeColor == DefaultThemeColor
-                        } else {
-                            selectedThemeColor == palette.seedColor
-                        }
-                        
-                        PaletteItem(
-                            palette = palette,
-                            isSelected = isSelected,
-                            onClick = { 
-                                val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
-                                onSelectedThemeColorChange(colorToSave) 
-                            }
-                        )
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = stringResource(R.string.color_palette),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(PaletteColors) { palette ->
+                    val isDynamicPalette = palette.seedColor == Color.Transparent
+                    val isSelected = if (isDynamicPalette) {
+                        selectedThemeColor == DefaultThemeColor
+                    } else {
+                        selectedThemeColor == palette.seedColor
                     }
+                    
+                    PaletteItem(
+                        palette = palette,
+                        isSelected = isSelected,
+                        onClick = { 
+                            val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
+                            onSelectedThemeColorChange(colorToSave) 
+                        }
+                    )
                 }
             }
         }
@@ -449,19 +434,9 @@ fun ModeCircle(
         else -> modeColorScheme.surface
     }
     
-    // Animated border width
-    val borderWidth by animateDpAsState(
-        targetValue = if (isSelected) 3.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "borderWidth"
-    )
-    
-    // Animated scale for the entire circle
+    // Scale animation on selection
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.05f else 1f,
+        targetValue = if (isSelected) 1.06f else 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -478,24 +453,20 @@ fun ModeCircle(
         else -> stringResource(R.string.cd_system_mode)
     }
     
+    // Outer card container similar to ReadYou's SelectableMiniPalette
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(72.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(CircleShape)
-            .background(fillColor)
-            .then(
-                if (borderWidth > 0.dp) {
-                    Modifier.border(
-                        width = borderWidth,
-                        color = MaterialTheme.colorScheme.inversePrimary,
-                        shape = CircleShape
-                    )
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (isSelected) {
+                    MaterialTheme.colorScheme.surfaceVariant
                 } else {
-                    Modifier
+                    MaterialTheme.colorScheme.surfaceContainerHigh
                 }
             )
             .clickable(
@@ -508,36 +479,64 @@ fun ModeCircle(
             },
         contentAlignment = Alignment.Center
     ) {
-        when {
-            showIcon -> {
-                Icon(
-                    painter = painterResource(R.drawable.sync),
-                    contentDescription = null,
-                    tint = modeColorScheme.onSurface,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            isSelected -> {
-                AnimatedVisibility(
-                    visible = isSelected,
-                    enter = fadeIn(animationSpec = tween(300)) + scaleIn(
-                        initialScale = 0.3f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessMedium
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(fillColor)
+                .then(
+                    if (targetPureBlack) {
+                        Modifier.border(
+                            width = 1.dp,
+                            color = modeColorScheme.outlineVariant,
+                            shape = CircleShape
                         )
-                    ),
-                    exit = fadeOut(animationSpec = tween(150)) + scaleOut(
-                        targetScale = 0.3f,
-                        animationSpec = tween(150)
-                    )
-                ) {
+                    } else {
+                        Modifier
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            when {
+                showIcon -> {
                     Icon(
-                        painter = painterResource(R.drawable.check),
+                        painter = painterResource(R.drawable.sync),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.inversePrimary,
+                        tint = modeColorScheme.onSurface,
                         modifier = Modifier.size(20.dp)
                     )
+                }
+                else -> {
+                    // Scaled checkmark animation overlaid on color circle (ReadYou style)
+                    AnimatedVisibility(
+                        visible = isSelected,
+                        enter = fadeIn() + scaleIn(
+                            initialScale = 0.4f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            )
+                        ),
+                        exit = fadeOut() + scaleOut(
+                            targetScale = 0.4f,
+                            animationSpec = tween(150)
+                        )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.check),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -555,29 +554,12 @@ fun PaletteItem(
     val colorScheme = rememberDynamicColorScheme(
         seedColor = palette.seedColor,
         isDark = isSystemDark,
-        style = PaletteStyle.TonalSpot
+        style = if (palette.seedColor.toArgb() == 0xFF000000.toInt()) PaletteStyle.Monochrome else PaletteStyle.TonalSpot
     )
     
-    val cornerRadius by animateDpAsState(
-        targetValue = if (isSelected) 48.dp * 0.25f else 24.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "cornerRadius"
-    )
-    
-    val borderWidth by animateDpAsState(
-        targetValue = if (isSelected) 3.dp else 0.dp,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium
-        ),
-        label = "borderWidth"
-    )
-    
+    // Scale animation on selection
     val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.08f else 1f,
+        targetValue = if (isSelected) 1.06f else 1.0f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -585,29 +567,24 @@ fun PaletteItem(
         label = "scale"
     )
     
-    val shape = RoundedCornerShape(cornerRadius)
     val interactionSource = remember { MutableInteractionSource() }
-    
     val paletteName = stringResource(palette.nameRes)
     val contentDesc = stringResource(R.string.cd_palette_item, paletteName)
     
+    // Outer card container similar to ReadYou's SelectableMiniPalette
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(72.dp)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(shape)
-            .then(
-                if (borderWidth > 0.dp) {
-                    Modifier.border(
-                        width = borderWidth,
-                        color = MaterialTheme.colorScheme.inversePrimary,
-                        shape = shape
-                    )
+            .clip(RoundedCornerShape(16.dp))
+            .background(
+                if (isSelected) {
+                    MaterialTheme.colorScheme.surfaceVariant
                 } else {
-                    Modifier
+                    MaterialTheme.colorScheme.surfaceContainerHigh
                 }
             )
             .clickable(
@@ -617,152 +594,107 @@ fun PaletteItem(
             )
             .semantics {
                 contentDescription = contentDesc
-            }
+            },
+        contentAlignment = Alignment.Center
     ) {
         if (palette.seedColor == Color.Transparent) {
-            // Draw Dynamic/System icon using Material Design icon
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.palette),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(24.dp)
+            // Draw Dynamic/System icon using Material Design icon directly in the center
+            Icon(
+                painter = painterResource(R.drawable.palette),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+            
+            // Scaled checkmark animation overlaid on the center
+            AnimatedVisibility(
+                visible = isSelected,
+                enter = fadeIn() + scaleIn(
+                    initialScale = 0.4f,
+                    animationSpec = spring(
+                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                        stiffness = Spring.StiffnessMedium
+                    )
+                ),
+                exit = fadeOut() + scaleOut(
+                    targetScale = 0.4f,
+                    animationSpec = tween(150)
                 )
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.check),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
         } else {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val width = size.width
-                val height = size.height
-                
-                drawRect(
-                    color = colorScheme.onPrimary,
-                    topLeft = Offset(0f, 0f),
-                    size = Size(width, height / 2)
-                )
-                
-                drawRect(
-                    color = colorScheme.secondary,
-                    topLeft = Offset(0f, height / 2),
-                    size = Size(width / 2, height / 2)
-                )
-                
-                drawRect(
-                    color = colorScheme.tertiary,
-                    topLeft = Offset(width / 2, height / 2),
-                    size = Size(width / 2, height / 2)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ThemeMockup(
-    darkMode: DarkMode,
-    pureBlack: Boolean,
-    themeColor: Color
-) {
-    val isSystemDark = isSystemInDarkTheme()
-    val useDark = when (darkMode) {
-        DarkMode.AUTO -> isSystemDark
-        DarkMode.ON -> true
-        DarkMode.OFF -> false
-    }
-
-    vivimusicTheme(
-        darkTheme = useDark,
-        pureBlack = pureBlack,
-        themeColor = themeColor
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxSize()
-                .aspectRatio(9f / 18f),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .padding(10.dp),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(32.dp)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(6.dp))
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val width = size.width
+                    val height = size.height
+                    
+                    drawRect(
+                        color = colorScheme.onPrimary,
+                        topLeft = Offset(0f, 0f),
+                        size = Size(width, height / 2)
                     )
                     
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(6.dp))
-                        )
-                        
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(40.dp)
-                                .background(MaterialTheme.colorScheme.tertiary, RoundedCornerShape(6.dp))
-                        )
-                    }
+                    drawRect(
+                        color = colorScheme.secondary,
+                        topLeft = Offset(0f, height / 2),
+                        size = Size(width / 2, height / 2)
+                    )
+                    
+                    drawRect(
+                        color = colorScheme.tertiary,
+                        topLeft = Offset(width / 2, height / 2),
+                        size = Size(width / 2, height / 2)
+                    )
                 }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    contentAlignment = Alignment.BottomEnd
+                
+                // Scaled checkmark animation overlaid on color circle (ReadYou style)
+                AnimatedVisibility(
+                    visible = isSelected,
+                    modifier = Modifier.align(Alignment.Center),
+                    enter = fadeIn() + scaleIn(
+                        initialScale = 0.4f,
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
+                    ),
+                    exit = fadeOut() + scaleOut(
+                        targetScale = 0.4f,
+                        animationSpec = tween(150)
+                    )
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                    )
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                 }
             }
         }
@@ -770,7 +702,8 @@ fun ThemeMockup(
 }
 
 @Composable
-fun ThemeMockupPortrait(
+fun ThemePreviewCard(
+    modifier: Modifier = Modifier,
     darkMode: DarkMode,
     pureBlack: Boolean,
     themeColor: Color
@@ -788,9 +721,8 @@ fun ThemeMockupPortrait(
         themeColor = themeColor
     ) {
         Card(
-            modifier = Modifier
-                .fillMaxSize(),
-            shape = RoundedCornerShape(12.dp),
+            modifier = modifier,
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surface
             ),
@@ -798,83 +730,76 @@ fun ThemeMockupPortrait(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Header (20% of height)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(0.2f)
-                        .background(MaterialTheme.colorScheme.surfaceContainer)
-                        .padding(6.dp),
-                    contentAlignment = Alignment.CenterStart
+                // Top bar mockup
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(MaterialTheme.colorScheme.secondary, CircleShape)
-                        )
-                    }
-                }
-
-                // Main Content (60% of height)
-                Column(
-                    modifier = Modifier
-                        .weight(0.6f)
-                        .padding(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+                    // Title bar pill
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
                             .weight(1f)
-                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(4.dp))
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(7.dp))
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
                     )
-                    
-                    Row(
+                    Spacer(modifier = Modifier.width(12.dp))
+                    // Action dot
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1.2f),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            .size(28.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape)
+                    )
+                }
+
+                // Color swatch row — primary, secondary, tertiary, primaryContainer
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Primary — largest swatch
+                    Box(
+                        modifier = Modifier
+                            .weight(2f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Box(
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .weight(1f)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.secondary, RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.secondary)
                         )
-                        
                         Box(
                             modifier = Modifier
+                                .fillMaxWidth()
                                 .weight(1f)
-                                .fillMaxHeight()
-                                .background(MaterialTheme.colorScheme.tertiary, RoundedCornerShape(4.dp))
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(MaterialTheme.colorScheme.tertiary)
                         )
                     }
-                }
-
-                // FAB Area (20% of height)
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(0.2f)
-                        .padding(6.dp),
-                    contentAlignment = Alignment.BottomEnd
-                ) {
                     Box(
                         modifier = Modifier
-                            .size(18.dp)
-                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                     )
                 }
             }
