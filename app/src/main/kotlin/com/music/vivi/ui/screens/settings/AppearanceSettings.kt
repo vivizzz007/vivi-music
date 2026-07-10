@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -108,6 +109,7 @@ import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.UseExpressiveAlbumDesignKey
+import com.music.vivi.constants.ExpressiveSongAlbumImageKey
 import com.music.vivi.ui.component.ThumbnailCornerRadiusModal
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
@@ -201,6 +203,10 @@ fun AppearanceSettings(
     val (useExpressiveAlbumDesign, onUseExpressiveAlbumDesignChange) = rememberPreference(
         UseExpressiveAlbumDesignKey,
         defaultValue = true
+    )
+    val (expressiveSongAlbumImage, onExpressiveSongAlbumImageChange) = rememberPreference(
+        ExpressiveSongAlbumImageKey,
+        defaultValue = false
     )
     val (useNewMiniPlayerDesign, onUseNewMiniPlayerDesignChange) = rememberPreference(
         UseNewMiniPlayerDesignKey,
@@ -1548,31 +1554,51 @@ fun AppearanceSettings(
 
         Material3SettingsGroup(
             title = stringResource(R.string.album_settings),
-            items = listOf(
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.album),
-                    title = { Text(stringResource(R.string.use_expressive_album_design)) },
-                    description = { Text(stringResource(R.string.use_expressive_album_design_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = useExpressiveAlbumDesign,
-                            onCheckedChange = onUseExpressiveAlbumDesignChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (useExpressiveAlbumDesign) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) },
-                    isExpressive = true,
-                    descriptionBelow = true
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.album),
+                        title = { Text(stringResource(R.string.use_expressive_album_design)) },
+                        description = { Text(stringResource(R.string.use_expressive_album_design_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = useExpressiveAlbumDesign,
+                                onCheckedChange = onUseExpressiveAlbumDesignChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (useExpressiveAlbumDesign) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onUseExpressiveAlbumDesignChange(!useExpressiveAlbumDesign) },
+                        isExpressive = true,
+                        descriptionBelow = true
+                    )
                 )
-            )
+                if (useExpressiveAlbumDesign) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.image),
+                            title = { Text(stringResource(R.string.show_song_thumbnail_in_list)) },
+                            description = { Text(stringResource(R.string.show_song_thumbnail_in_list_desc)) },
+                            trailingContent = {
+                                Checkbox(
+                                    checked = expressiveSongAlbumImage,
+                                    onCheckedChange = onExpressiveSongAlbumImageChange
+                                )
+                            },
+                            onClick = { onExpressiveSongAlbumImageChange(!expressiveSongAlbumImage) },
+                            isExpressive = true,
+                            descriptionBelow = true
+                        )
+                    )
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(27.dp))

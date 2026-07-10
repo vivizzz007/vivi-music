@@ -160,6 +160,8 @@
     <string name="new_player_design">New player design</string>
     <string name="use_expressive_album_design">Expressive album design</string>
     <string name="use_expressive_album_design_desc">Minimal list without thumbnails</string>
+    <string name="show_song_thumbnail_in_list">Show album song thumbnails</string>
+    <string name="show_song_thumbnail_in_list_desc">Show album song artwork instead of track numbers in expressive lists</string>
     <string name="album_settings">Album Settings</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>

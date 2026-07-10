@@ -48,6 +48,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -104,6 +107,7 @@ import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
+import com.music.vivi.constants.ExpressiveSongAlbumImageKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.GridThumbnailHeight
@@ -460,6 +464,7 @@ fun SongListItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ExpressiveSongRow(
     song: Song,
@@ -477,6 +482,8 @@ fun ExpressiveSongRow(
         else -> MaterialTheme.colorScheme.surfaceContainer
     }
 
+    val expressiveSongAlbumImage by rememberPreference(key = ExpressiveSongAlbumImageKey, defaultValue = false)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -487,21 +494,72 @@ fun ExpressiveSongRow(
             .background(backgroundColor)
             .padding(horizontal = 16.dp)
     ) {
-        // 1. Index number or visualizer on the left
-        if (albumIndex != null) {
+        // 1. Thumbnail, index number or visualizer on the left
+        if (expressiveSongAlbumImage) {
             Box(
-                modifier = Modifier.width(28.dp),
-                contentAlignment = Alignment.CenterStart
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(end = 12.dp)
+                    .size(40.dp)
+                    .clip(MaterialShapes.Cookie4Sided.toShape())
             ) {
-                if (isPlaying && isActive) {
-                    AnimatedVisualizer(color = MaterialTheme.colorScheme.primary)
-                } else {
-                    Text(
-                        text = "${albumIndex}.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Normal,
-                        color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-                    )
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(song.song.thumbnailUrl?.resize(120, 120))
+                        .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
+                        .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
+                        .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+
+                if (isActive) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.4f))
+                    ) {
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                } else if (isSelected) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.done),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        } else {
+            if (albumIndex != null) {
+                Box(
+                    modifier = Modifier.width(28.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (isPlaying && isActive) {
+                        AnimatedVisualizer(color = MaterialTheme.colorScheme.primary)
+                    } else {
+                        Text(
+                            text = "${albumIndex}.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal,
+                            color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
         }
