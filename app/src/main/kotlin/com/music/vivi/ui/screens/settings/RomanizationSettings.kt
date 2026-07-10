@@ -103,7 +103,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeAsMainChange(!lyricsRomanizeAsMain) }
+                    onClick = { onLyricsRomanizeAsMainChange(!lyricsRomanizeAsMain) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_japanese_latin),
@@ -123,7 +124,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeJapaneseChange(!lyricsRomanizeJapanese) }
+                    onClick = { onLyricsRomanizeJapaneseChange(!lyricsRomanizeJapanese) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),
@@ -143,7 +145,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeKoreanChange(!lyricsRomanizeKorean) }
+                    onClick = { onLyricsRomanizeKoreanChange(!lyricsRomanizeKorean) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
@@ -163,7 +166,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeChineseChange(!lyricsRomanizeChinese) }
+                    onClick = { onLyricsRomanizeChineseChange(!lyricsRomanizeChinese) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
@@ -183,7 +187,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeHindiChange(!lyricsRomanizeHindi) }
+                    onClick = { onLyricsRomanizeHindiChange(!lyricsRomanizeHindi) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
@@ -203,7 +208,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizePunjabiChange(!lyricsRomanizePunjabi) }
+                    onClick = { onLyricsRomanizePunjabiChange(!lyricsRomanizePunjabi) },
+                    isExpressive = true
                 )
             )
         )
@@ -231,7 +237,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeRussianChange(!lyricsRomanizeRussian) }
+                    onClick = { onLyricsRomanizeRussianChange(!lyricsRomanizeRussian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -251,7 +258,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeUkrainianChange(!lyricsRomanizeUkrainian) }
+                    onClick = { onLyricsRomanizeUkrainianChange(!lyricsRomanizeUkrainian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -271,7 +279,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeSerbianChange(!lyricsRomanizeSerbian) }
+                    onClick = { onLyricsRomanizeSerbianChange(!lyricsRomanizeSerbian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -291,7 +300,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeBulgarianChange(!lyricsRomanizeBulgarian) }
+                    onClick = { onLyricsRomanizeBulgarianChange(!lyricsRomanizeBulgarian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -311,7 +321,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeBelarusianChange(!lyricsRomanizeBelarusian) }
+                    onClick = { onLyricsRomanizeBelarusianChange(!lyricsRomanizeBelarusian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -331,7 +342,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeKyrgyzChange(!lyricsRomanizeKyrgyz) }
+                    onClick = { onLyricsRomanizeKyrgyzChange(!lyricsRomanizeKyrgyz) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.alphabet_cyrillic),
@@ -351,7 +363,8 @@ fun RomanizationSettings(
                             }
                         )
                     },
-                    onClick = { onLyricsRomanizeMacedonianChange(!lyricsRomanizeMacedonian) }
+                    onClick = { onLyricsRomanizeMacedonianChange(!lyricsRomanizeMacedonian) },
+                    isExpressive = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.warning),
@@ -384,7 +397,9 @@ fun RomanizationSettings(
                         } else {
                             onLyricsRomanizeCyrillicByLineChange(false)
                         }
-                    }
+                    },
+                    isExpressive = true,
+                    descriptionBelow = true
                 )
             )
         )
