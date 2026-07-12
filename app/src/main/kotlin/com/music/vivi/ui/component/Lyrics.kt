@@ -1124,6 +1124,7 @@ fun Lyrics(
                         } else if (isSynced && changeLyrics && !isGuest) {
                             val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
                             playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
+                            scrollTargetIndex = index
                             isAutoScrollEnabled = true
                             lastPreviewTime = 0L
                         }
@@ -2434,8 +2435,12 @@ fun Lyrics(
             exit = slideOutVertically { it } + fadeOut()
         ) {
             FilledTonalButton(onClick = {
-                scope.launch {
-                    performSmoothPageScroll(currentLineIndex, 1500)
+                if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS) {
+                    scrollTargetIndex = currentLineIndex
+                } else {
+                    scope.launch {
+                        performSmoothPageScroll(currentLineIndex, 1500)
+                    }
                 }
                 isAutoScrollEnabled = true
             }) {
