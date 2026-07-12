@@ -18,13 +18,13 @@ plugins {
 
 android {
     namespace = "com.music.vivi"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 74
         versionName = "6.0.5"
 
@@ -135,6 +135,7 @@ android {
         jvmToolchain(21)
         compilerOptions {
             freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
             jvmTarget.set(JvmTarget.JVM_21)
         }
     }
@@ -234,6 +235,7 @@ dependencies {
     implementation(libs.androidx.adaptive)
     implementation(libs.androidx.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
+    implementation(libs.material3.adaptive.navigation.suite)
     implementation(libs.palette)
     implementation(libs.materialKolor)
 
