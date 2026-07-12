@@ -105,6 +105,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -178,6 +179,7 @@ import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.FollowColorThemeKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
@@ -274,6 +276,10 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
+    val followColorTheme by rememberPreference(
+        key = FollowColorThemeKey,
+        defaultValue = false
+    )
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
@@ -284,13 +290,16 @@ fun BottomSheetPlayer(
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
+    val sliderUseDarkTheme = remember(useDarkTheme, playerBackground, followColorTheme) {
+        if (playerBackground == PlayerBackgroundStyle.AMBIENT_FADE) (useDarkTheme || !followColorTheme) else useDarkTheme
+    }
 
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
     val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> true
+            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.AMBIENT_FADE -> true
             PlayerBackgroundStyle.DEFAULT -> useDarkTheme
         }
     }
@@ -301,7 +310,7 @@ fun BottomSheetPlayer(
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val keepScreenOn = isPlaying && isKeepScreenOn
 
-    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme, keepScreenOn) {
+    DisposableEffect(playerBackground, state.isExpanded, useDarkTheme, followColorTheme, keepScreenOn) {
         val window = (context as? android.app.Activity)?.window
         if (window != null && state.isExpanded) {
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -309,6 +318,9 @@ fun BottomSheetPlayer(
             when (playerBackground) {
                 PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> {
                     insetsController.isAppearanceLightStatusBars = false
+                }
+                PlayerBackgroundStyle.AMBIENT_FADE -> {
+                    insetsController.isAppearanceLightStatusBars = followColorTheme && !useDarkTheme
                 }
                 PlayerBackgroundStyle.DEFAULT -> {
                     insetsController.isAppearanceLightStatusBars = !useDarkTheme
@@ -535,6 +547,9 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.White
             PlayerBackgroundStyle.APPLE_MUSIC -> Color.White
             PlayerBackgroundStyle.LIVE_MESH -> Color.White
+            PlayerBackgroundStyle.AMBIENT_FADE -> {
+                if (followColorTheme && !useDarkTheme) MaterialTheme.colorScheme.onBackground else Color.White
+            }
         },
         label = "TextBackgroundColor"
     )
@@ -547,6 +562,9 @@ fun BottomSheetPlayer(
             PlayerBackgroundStyle.GLOW_ANIMATED -> Color.Black
             PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
             PlayerBackgroundStyle.LIVE_MESH -> Color.Black
+            PlayerBackgroundStyle.AMBIENT_FADE -> {
+                if (followColorTheme && !useDarkTheme) MaterialTheme.colorScheme.surface else Color.Black
+            }
         },
         label = "icBackgroundColor"
     )
@@ -664,9 +682,10 @@ fun BottomSheetPlayer(
             }
         }
         else -> {
+            val isDark = if (playerBackground == PlayerBackgroundStyle.AMBIENT_FADE) (useDarkTheme || !followColorTheme) else useDarkTheme
             when (playerButtonsStyle) {
                 PlayerButtonsStyle.DEFAULT ->
-                    if (useDarkTheme) Pair(Color.White, Color.Black)
+                    if (isDark) Pair(Color.White, Color.Black)
                     else Pair(Color.Black, Color.White)
                 PlayerButtonsStyle.PRIMARY -> Pair(
                     MaterialTheme.colorScheme.primary,
@@ -824,6 +843,8 @@ fun BottomSheetPlayer(
             MaterialTheme.colorScheme.surfaceContainer
         PlayerBackgroundStyle.LIVE_MESH ->
             Color.Black
+        PlayerBackgroundStyle.AMBIENT_FADE ->
+            if (followColorTheme && !useDarkTheme) Color.White else Color.Black
         else ->
             if (useBlackBackground) Color.Black
             else MaterialTheme.colorScheme.surfaceContainer
@@ -1297,6 +1318,176 @@ fun BottomSheetPlayer(
                                                     listOf(
                                                         Color.Transparent,
                                                         Color.Black.copy(alpha = 0.25f)
+                                                    )
+                                                )
+                                            )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    PlayerBackgroundStyle.AMBIENT_FADE -> {
+                        val infiniteTransition = rememberInfiniteTransition(label = "bottomMeshRotation")
+                        
+                        val anchorRotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = -360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(80000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "anchorRotation"
+                        )
+                        
+                        val fastRotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(40000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "fastRotation"
+                        )
+                        
+                        val slowRotation by infiniteTransition.animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec = infiniteRepeatable(
+                                animation = tween(60000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart
+                            ),
+                            label = "slowRotation"
+                        )
+
+                        AnimatedContent(
+                            targetState = mediaMetadata?.thumbnailUrl,
+                            transitionSpec = {
+                                fadeIn(tween(1500)).togetherWith(fadeOut(tween(1500)))
+                            },
+                            label = "bottomMeshBackground"
+                        ) { thumbnailUrl ->
+                            if (thumbnailUrl != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .alpha(backgroundAlpha)
+                                ) {
+                                    // Theme-based background base
+                                    Box(modifier = Modifier.fillMaxSize().background(bottomSheetBackgroundColor))
+                                    
+                                    // Rotating blurred mesh layers
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer {
+                                                scaleX = 1.7f
+                                                scaleY = 1.7f
+                                            }
+                                    ) {
+                                        val matrix = remember(useDarkTheme, followColorTheme) { 
+                                            val m = ColorMatrix()
+                                            val isLightMode = followColorTheme && !useDarkTheme
+                                            val saturation = if (isLightMode) 3.0f else 1.8f
+                                            m.setToSaturation(saturation)
+                                            val (min, max) = if (isLightMode) {
+                                                Pair(0.15f, 0.85f)
+                                            } else {
+                                                Pair(0.0f, 0.7f)
+                                            }
+                                            val scale = max - min
+                                            val offset = min
+                                            for (row in 0 until 3) {
+                                                val startIndex = row * 5
+                                                for (col in 0 until 4) {
+                                                    m.values[startIndex + col] = m.values[startIndex + col] * scale
+                                                }
+                                                m.values[startIndex + 4] = m.values[startIndex + 4] * scale + offset
+                                            }
+                                            m
+                                        }
+                                        val colorFilter = ColorFilter.colorMatrix(matrix)
+
+                                        // Layer 1: The Anchor (Full Image, Counter-Clockwise)
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(thumbnailUrl)
+                                                .size(128, 128)
+                                                .allowHardware(false)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            colorFilter = colorFilter,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .blur(100.dp)
+                                                .graphicsLayer { rotationZ = anchorRotation }
+                                        )
+
+                                        // Layer 2: Fast Rotating Crop (Top-Left)
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(thumbnailUrl)
+                                                .size(128, 128)
+                                                .allowHardware(false)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            colorFilter = colorFilter,
+                                            alignment = Alignment.TopStart,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .blur(120.dp)
+                                                .graphicsLayer { 
+                                                    rotationZ = fastRotation
+                                                    alpha = 0.6f
+                                                }
+                                        )
+
+                                        // Layer 3: Slow Rotating Crop (Bottom-Right)
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(context)
+                                                .data(thumbnailUrl)
+                                                .size(128, 128)
+                                                .allowHardware(false)
+                                                .build(),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            colorFilter = colorFilter,
+                                            alignment = Alignment.BottomEnd,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .blur(120.dp)
+                                                .graphicsLayer { 
+                                                    rotationZ = slowRotation
+                                                    alpha = 0.5f
+                                                }
+                                        )
+                                        
+                                        // Global tint to prevent neon look
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .background(
+                                                    bottomSheetBackgroundColor.copy(
+                                                        alpha = if (followColorTheme && !useDarkTheme) 0.05f else 0.2f
+                                                    )
+                                                )
+                                        )
+                                    }
+                                    
+                                    // Smoothly transitions from theme background color to transparent with an easing curve
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                Brush.verticalGradient(
+                                                    colorStops = arrayOf(
+                                                        0.0f to bottomSheetBackgroundColor,
+                                                        0.45f to bottomSheetBackgroundColor,
+                                                        0.65f to bottomSheetBackgroundColor.copy(alpha = 0.88f),
+                                                        0.8f to bottomSheetBackgroundColor.copy(alpha = 0.5f),
+                                                        0.92f to bottomSheetBackgroundColor.copy(alpha = 0.15f),
+                                                        1.0f to Color.Transparent
                                                     )
                                                 )
                                             )
@@ -1850,7 +2041,7 @@ fun BottomSheetPlayer(
                         colors = PlayerSliderColors.getSliderColors(
                             activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
                             playerBackground = playerBackground,
-                            useDarkTheme = useDarkTheme
+                            useDarkTheme = sliderUseDarkTheme
                         ),
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
                     )
@@ -1880,7 +2071,7 @@ fun BottomSheetPlayer(
                             colors = PlayerSliderColors.getSliderColors(
                                 activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
                                 playerBackground = playerBackground,
-                                useDarkTheme = useDarkTheme
+                                useDarkTheme = sliderUseDarkTheme
                             ),
                             isPlaying = effectiveIsPlaying,
                         )
@@ -1906,7 +2097,7 @@ fun BottomSheetPlayer(
                             colors = PlayerSliderColors.getSliderColors(
                                 activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
                                 playerBackground = playerBackground,
-                                useDarkTheme = useDarkTheme
+                                useDarkTheme = sliderUseDarkTheme
                             ),
                             modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
                             isPlaying = effectiveIsPlaying
@@ -1961,7 +2152,7 @@ fun BottomSheetPlayer(
                                 colors = PlayerSliderColors.getSliderColors(
                                     activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
                                     playerBackground = playerBackground,
-                                    useDarkTheme = useDarkTheme
+                                    useDarkTheme = sliderUseDarkTheme
                                 )
                             )
                         },

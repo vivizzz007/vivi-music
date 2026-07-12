@@ -1484,7 +1484,7 @@ private fun PlayerQueueButton(
                 iconButtonColor
             } else {
                 when (playerBackground) {
-                    PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH ->
+                    PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.AMBIENT_FADE ->
                         Color.White
                     PlayerBackgroundStyle.DEFAULT ->
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)

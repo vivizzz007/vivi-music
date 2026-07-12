@@ -6,6 +6,9 @@
 package com.music.vivi.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -91,6 +94,7 @@ import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.FollowColorThemeKey
 import com.music.vivi.constants.PlayerHorizontalPadding
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SeekExtraSeconds
@@ -209,15 +213,17 @@ private fun getMediaItems(
     return MediaItemsData(items, currentMediaIndex)
 }
 
-/**
- * Get text color based on player background style.
- * Computed once per background style change.
- */
 @Stable
 @Composable
 private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme() else darkTheme == DarkMode.ON
+    val followColorTheme by rememberPreference(FollowColorThemeKey, defaultValue = false)
     return when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.onBackground
+        PlayerBackgroundStyle.AMBIENT_FADE -> {
+            if (followColorTheme && !useDarkTheme) MaterialTheme.colorScheme.onBackground else Color.White
+        }
         PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> Color.White
     }
 }
