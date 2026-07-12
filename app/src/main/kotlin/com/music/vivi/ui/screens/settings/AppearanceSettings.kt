@@ -109,6 +109,7 @@ import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.PlayerFullscreenEnhancedKey
 import com.music.vivi.constants.UseExpressiveAlbumDesignKey
 import com.music.vivi.constants.ExpressiveSongAlbumImageKey
 import com.music.vivi.ui.component.ThumbnailCornerRadiusModal
@@ -199,6 +200,10 @@ fun AppearanceSettings(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
+        defaultValue = false
+    )
+    val (playerFullscreenEnhanced, onPlayerFullscreenEnhancedChange) = rememberPreference(
+        PlayerFullscreenEnhancedKey,
         defaultValue = false
     )
     val (useExpressiveAlbumDesign, onUseExpressiveAlbumDesignChange) = rememberPreference(
@@ -1219,6 +1224,29 @@ fun AppearanceSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.player),
             items = listOfNotNull(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.fullscreen),
+                    title = { Text(stringResource(R.string.player_fullscreen_enhanced)) },
+                    description = { Text(stringResource(R.string.player_fullscreen_enhanced_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = playerFullscreenEnhanced,
+                            onCheckedChange = onPlayerFullscreenEnhancedChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (playerFullscreenEnhanced) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPlayerFullscreenEnhancedChange(!playerFullscreenEnhanced) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.new_player_design)) },

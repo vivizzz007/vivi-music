@@ -141,6 +141,9 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.ui.platform.LocalView
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -178,6 +181,7 @@ import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.PlayerFullscreenEnhancedKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
@@ -262,6 +266,10 @@ fun BottomSheetPlayer(
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
+        defaultValue = false
+    )
+    val (playerFullscreenEnhanced) = rememberPreference(
+        PlayerFullscreenEnhancedKey,
         defaultValue = false
     )
     val (showAudioQualityBadge) = rememberPreference(
@@ -807,6 +815,20 @@ fun BottomSheetPlayer(
                 position = castPosition
                 if (castDuration > 0) duration = castDuration
             }
+        }
+    }
+
+    // Hide status bar when full-screen player is visible (only when enhanced mode is enabled)
+    val view = LocalView.current
+    LaunchedEffect(state.isExpanded, playerFullscreenEnhanced) {
+        val window = (view.context as? android.app.Activity)?.window ?: return@LaunchedEffect
+        val insetsController = WindowInsetsControllerCompat(window, view)
+        if (state.isExpanded && playerFullscreenEnhanced) {
+            insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            insetsController.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            insetsController.show(WindowInsetsCompat.Type.statusBars())
         }
     }
 
