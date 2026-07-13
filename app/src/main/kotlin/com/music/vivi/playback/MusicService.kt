@@ -247,6 +247,11 @@ class MusicService :
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
 
     private lateinit var audioManager: AudioManager
+    // Wi-Fi Lock: Prevents modern Wi-Fi 6/7 routers from putting the Wi-Fi chip into
+    // low-power sleep mode while music is actively streaming in the background.
+    // Without this, the router's power-saving protocol (Target Wake Time) causes
+    // packet delays, leading to audio buffering or playback stopping after the screen turns off.
+    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
@@ -1848,6 +1853,40 @@ class MusicService :
         }
     }
 
+    /**
+     * Acquires a high-performance Wi-Fi lock when playback starts.
+     *
+     * WIFI_MODE_FULL_HIGH_PERF tells the system to keep the Wi-Fi chip fully
+     * active with minimal latency — disabling power-saving sleep cycles.
+     * This is called every time [player.isPlaying] becomes true.
+     */
+    private fun acquireWifiLock() {
+        if (wifiLock == null) {
+            val wifiManager = applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
+            wifiLock = wifiManager?.createWifiLock(
+                android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF,
+                "vivi_music:wifi_lock"
+            )
+        }
+        if (wifiLock?.isHeld == false) {
+            wifiLock?.acquire()
+            Timber.tag(TAG).d("Wi-Fi lock acquired")
+        }
+    }
+
+    /**
+     * Releases the Wi-Fi lock when playback is paused, stopped, or the service is destroyed.
+     *
+     * Releasing the lock allows the device to return to normal Wi-Fi power-saving
+     * behaviour, preserving battery when music is not playing.
+     */
+    private fun releaseWifiLock() {
+        if (wifiLock?.isHeld == true) {
+            wifiLock?.release()
+            Timber.tag(TAG).d("Wi-Fi lock released")
+        }
+    }
+
     private fun openAudioEffectSession() {
         if (isAudioEffectSessionOpened) return
         isAudioEffectSessionOpened = true
@@ -2111,8 +2150,10 @@ class MusicService :
             updateWidgetUI(player.isPlaying)
             if (player.isPlaying) {
                 startWidgetUpdates()
+                acquireWifiLock()
             } else {
                 stopWidgetUpdates()
+                releaseWifiLock()
             }
             if (!player.isPlaying && !events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope.launch {
@@ -3105,6 +3146,7 @@ class MusicService :
         }
         discordRpc = null
         connectivityObserver.unregister()
+        releaseWifiLock()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
         mediaSession.release()

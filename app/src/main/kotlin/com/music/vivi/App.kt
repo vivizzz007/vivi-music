@@ -134,7 +134,7 @@ class App : Application(), SingletonImageLoader.Factory {
         }
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
-        YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+        YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
 
         val channel = NotificationChannel(
             "updates",
@@ -231,7 +231,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 .map { it[IpVersionKey] }
                 .distinctUntilChanged()
                 .collect { ipVersion ->
-                    YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+                    YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
                 }
         }
 
