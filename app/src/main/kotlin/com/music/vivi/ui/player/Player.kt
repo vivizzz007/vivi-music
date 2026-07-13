@@ -818,20 +818,6 @@ fun BottomSheetPlayer(
         }
     }
 
-    // Hide status bar when full-screen player is visible (only when enhanced mode is enabled)
-    val view = LocalView.current
-    LaunchedEffect(state.isExpanded, playerFullscreenEnhanced) {
-        val window = (view.context as? android.app.Activity)?.window ?: return@LaunchedEffect
-        val insetsController = WindowInsetsControllerCompat(window, view)
-        if (state.isExpanded && playerFullscreenEnhanced) {
-            insetsController.hide(WindowInsetsCompat.Type.statusBars())
-            insetsController.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        } else {
-            insetsController.show(WindowInsetsCompat.Type.statusBars())
-        }
-    }
-
     val dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
 
     val queueSheetState = rememberBottomSheetState(
@@ -840,6 +826,20 @@ fun BottomSheetPlayer(
         collapsedBound = dismissedBound + 1.dp,
         initialAnchor = 1
     )
+
+    // Hide status bar when full-screen player is visible (only when enhanced mode is enabled and queue is collapsed)
+    val view = LocalView.current
+    LaunchedEffect(state.isExpanded, playerFullscreenEnhanced, queueSheetState.isCollapsed) {
+        val window = (view.context as? android.app.Activity)?.window ?: return@LaunchedEffect
+        val insetsController = WindowInsetsControllerCompat(window, view)
+        if (state.isExpanded && playerFullscreenEnhanced && queueSheetState.isCollapsed) {
+            insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            insetsController.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            insetsController.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
 
     val bottomSheetBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC ->
