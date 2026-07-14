@@ -1038,4 +1038,8 @@
     <string name="floating_navbar_desc">Show suspended centered navigation bar at the bottom</string>
     <string name="enabled">Enabled</string>
     <string name="disabled">Disabled</string>
+
+    <!-- Setup Wizard / Onboarding -->
+    <string name="setting_up_vivimusic">Setting up ViviMusic…</string>
+    <string name="skip">Skip</string>
 </resources>
