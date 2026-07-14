@@ -28,6 +28,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Error
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -85,6 +90,7 @@ import com.music.vivi.ui.component.detachedItemShape
 import com.music.vivi.ui.component.AnimatedActionButton
 import com.music.vivi.ui.component.ExpressiveIconButton
 import com.music.vivi.ui.component.ErrorSnackbar
+import com.music.vivi.ui.component.UpdaterBlobCluster
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -378,172 +384,204 @@ fun UpdateScreen(navController: NavHostController) {
                         modifier = contentModifier,
                         contentAlignment = Alignment.Center
                     ) {
-                        when (val currentStatus = status) {
-                            is ViviUpdateStatus.Checking -> {
-                                androidx.compose.material3.ContainedLoadingIndicator(
-                                    modifier = Modifier.size(64.dp)
-                                )
-                            }
-
-                            is ViviUpdateStatus.NoUpdate -> {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.deployed_app_update),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(120.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    Text(
-                                        text = stringResource(R.string.on_latest_version),
-                                        style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.current_version_v, currentStatus.version),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-
-                            is ViviUpdateStatus.Error -> {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.error),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(120.dp),
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    Text(
-                                        text = currentStatus.message,
-                                        style = MaterialTheme.typography.titleLarge,
-                                        color = MaterialTheme.colorScheme.error,
-                                        textAlign = TextAlign.Center,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-
-                            is ViviUpdateStatus.Available -> {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.Start
-                                ) {
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    Text(
-                                        text = stringResource(R.string.release_date_v, currentStatus.releaseDate),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Text(
-                                        text = stringResource(R.string.update_size_v, currentStatus.size),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(24.dp))
-                                    if (!currentStatus.imageUrl.isNullOrBlank()) {
-                                        AsyncImage(
-                                            model = currentStatus.imageUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(200.dp)
-                                                .clip(RoundedCornerShape(24.dp)),
-                                            contentScale = ContentScale.Crop
+                        AnimatedContent(
+                            targetState = status,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                            },
+                            label = "statusTransition"
+                        ) { currentStatus ->
+                            when (currentStatus) {
+                                is ViviUpdateStatus.Checking -> {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        UpdaterBlobCluster(
+                                            modifier = Modifier.size(180.dp),
+                                            rotate = true
                                         )
                                         Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = stringResource(com.music.vivi.R.string.checking_for_updates),
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Transparent,
+                                            textAlign = TextAlign.Center
+                                        )
                                     }
-                                    if (!currentStatus.description.isNullOrBlank()) {
-                                        val urls = currentStatus.description.extractUrls()
-                                        val annotatedText = buildAnnotatedString {
-                                            append(currentStatus.description.trim())
-                                            urls.forEach { (range, url) ->
-                                                addStringAnnotation("URL", url, range.first, range.last + 1)
-                                                addStyle(
-                                                    SpanStyle(
-                                                        color = MaterialTheme.colorScheme.primary,
-                                                        textDecoration = TextDecoration.Underline
-                                                    ),
-                                                    range.first,
-                                                    range.last + 1
+                                }
+
+                                is ViviUpdateStatus.NoUpdate -> {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        UpdaterBlobCluster(
+                                            modifier = Modifier.size(180.dp),
+                                            rotate = false
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = stringResource(R.string.on_latest_version),
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = stringResource(R.string.current_version_v, currentStatus.version),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+
+                                is ViviUpdateStatus.Error -> {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        UpdaterBlobCluster(
+                                            modifier = Modifier.size(180.dp),
+                                            rotate = false,
+                                            isError = true
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = currentStatus.message,
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = MaterialTheme.colorScheme.error,
+                                            textAlign = TextAlign.Center,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color.Transparent,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+
+                                is ViviUpdateStatus.Available -> {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.Start
+                                    ) {
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        Text(
+                                            text = stringResource(R.string.release_date_v, currentStatus.releaseDate),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.update_size_v, currentStatus.size),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        if (!currentStatus.imageUrl.isNullOrBlank()) {
+                                            AsyncImage(
+                                                model = currentStatus.imageUrl,
+                                                contentDescription = null,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .height(200.dp)
+                                                    .clip(RoundedCornerShape(24.dp)),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            Spacer(modifier = Modifier.height(24.dp))
+                                        }
+                                        if (!currentStatus.description.isNullOrBlank()) {
+                                            val urls = currentStatus.description.extractUrls()
+                                            val annotatedText = buildAnnotatedString {
+                                                append(currentStatus.description.trim())
+                                                urls.forEach { (range, url) ->
+                                                    addStringAnnotation("URL", url, range.first, range.last + 1)
+                                                    addStyle(
+                                                        SpanStyle(
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            textDecoration = TextDecoration.Underline
+                                                        ),
+                                                        range.first,
+                                                        range.last + 1
+                                                    )
+                                                }
+                                            }
+
+                                            ClickableText(
+                                                text = annotatedText,
+                                                onClick = { offset ->
+                                                    annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                        ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                    }
+                                                },
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    lineHeight = 20.sp
+                                                ),
+                                                modifier = Modifier.padding(bottom = 24.dp)
+                                            )
+                                        }
+                                        if (isDownloading) {
+                                            if (downloadProgress > 0f) {
+                                                androidx.compose.material3.LinearProgressIndicator(
+                                                    progress = downloadProgress,
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(8.dp)
+                                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                                )
+                                            } else {
+                                                androidx.compose.material3.LinearProgressIndicator(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(8.dp)
+                                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
                                                 )
                                             }
+                                            Spacer(modifier = Modifier.height(24.dp))
                                         }
-
-                                        ClickableText(
-                                            text = annotatedText,
-                                            onClick = { offset ->
-                                                annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
-                                                    ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
-                                                }
-                                            },
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                lineHeight = 20.sp
-                                            ),
-                                            modifier = Modifier.padding(bottom = 24.dp)
-                                        )
-                                    }
-                                    if (isDownloading) {
-                                        if (downloadProgress > 0f) {
-                                            androidx.compose.material3.LinearProgressIndicator(
-                                                progress = downloadProgress,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(8.dp)
-                                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                            )
-                                        } else {
-                                            androidx.compose.material3.LinearProgressIndicator(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(8.dp)
-                                                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
-                                                color = MaterialTheme.colorScheme.primary,
-                                                trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(24.dp))
-                                    }
-                                    currentStatus.changelog.forEach { section ->
-                                        if (section.title.isNotBlank()) {
-                                            Text(
-                                                text = section.title,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
-                                            )
-                                        }
-                                        section.items.forEachIndexed { index, item ->
-                                            val shape = when {
-                                                section.items.size == 1 -> com.music.vivi.ui.component.detachedItemShape()
-                                                index == 0 -> com.music.vivi.ui.component.leadingItemShape()
-                                                index == section.items.size - 1 -> com.music.vivi.ui.component.endItemShape()
-                                                else -> com.music.vivi.ui.component.middleItemShape()
+                                        currentStatus.changelog.forEach { section ->
+                                            if (section.title.isNotBlank()) {
+                                                Text(
+                                                    text = section.title,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
+                                                )
                                             }
-                                            com.music.vivi.ui.component.ChangelogItem(
-                                                text = item,
-                                                shape = shape,
-                                                modifier = Modifier.padding(vertical = 1.dp)
-                                            )
+                                            section.items.forEachIndexed { index, item ->
+                                                val shape = when {
+                                                    section.items.size == 1 -> com.music.vivi.ui.component.detachedItemShape()
+                                                    index == 0 -> com.music.vivi.ui.component.leadingItemShape()
+                                                    index == section.items.size - 1 -> com.music.vivi.ui.component.endItemShape()
+                                                    else -> com.music.vivi.ui.component.middleItemShape()
+                                                }
+                                                com.music.vivi.ui.component.ChangelogItem(
+                                                    text = item,
+                                                    shape = shape,
+                                                    modifier = Modifier.padding(vertical = 1.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(16.dp))
                                         }
-                                        Spacer(modifier = Modifier.height(16.dp))
                                     }
                                 }
+                                else -> {}
                             }
-                            else -> {}
                         }
                     }
                 }

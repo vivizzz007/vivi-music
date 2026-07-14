@@ -24,7 +24,7 @@
     <string name="whats_new">What\'s new?</string>
     <string name="update_available">Update</string>
     <string name="checking_for_updates">Checking for updates…</string>
-    <string name="cant_check_updates">Can\'t check for\nupdates</string>
+    <string name="cant_check_updates">Pay the dev,\nhe will give you updates</string>
     <string name="app_up_to_date">App is up to date</string>
     <string name="version">Version %1$s</string>
     <string name="released">Released: %1$s</string>
