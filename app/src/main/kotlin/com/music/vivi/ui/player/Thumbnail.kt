@@ -31,6 +31,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
@@ -89,6 +92,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
+import com.music.vivi.constants.PlayerFullscreenEnhancedKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
@@ -538,10 +542,12 @@ private fun ThumbnailHeader(
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+    val (playerFullscreenEnhanced) = rememberPreference(PlayerFullscreenEnhancedKey, defaultValue = false)
+    val topPadding = if (playerFullscreenEnhanced) 45.dp else 8.dp
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(start = 16.dp, end = 16.dp, top = topPadding, bottom = 0.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
