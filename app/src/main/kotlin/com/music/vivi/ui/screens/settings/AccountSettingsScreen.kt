@@ -5,8 +5,13 @@
 
 package com.music.vivi.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.foundation.layout.Spacer
@@ -20,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -43,10 +49,16 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.constants.*
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 import com.music.vivi.R
+private enum class AccountTab {
+    RECOMMENDED,
+    ALL_SERVICES
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AccountSettingsScreen(
@@ -77,11 +89,12 @@ fun AccountSettingsScreen(
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf(AccountTab.RECOMMENDED) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.account)) },
+                title = {},
                 navigationIcon = {
                     IconButton(
                         onClick = navController::navigateUp,
@@ -89,6 +102,14 @@ fun AccountSettingsScreen(
                     ) {
                         Icon(
                             painterResource(R.drawable.arrow_back),
+                            contentDescription = null
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            painterResource(R.drawable.more_vert),
                             contentDescription = null
                         )
                     }
@@ -106,152 +127,290 @@ fun AccountSettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp)
         ) {
-            // Account Profile Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.settings),
-                items = listOf(
-                    Material3SettingsItem(
-                        icon = if (isLoggedIn && !accountImageUrl.isNullOrBlank()) null else painterResource(R.drawable.login),
-                        title = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (isLoggedIn && !accountImageUrl.isNullOrBlank()) {
-                                    AsyncImage(
-                                        model = accountImageUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                }
-                                Text(
-                                    text = if (isLoggedIn) accountName else stringResource(R.string.login),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                                )
-                            }
-                        },
-                        trailingContent = if (isLoggedIn) ({
-                            OutlinedButton(
-//                                onClick = {
-//                                    accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
-//                                    navController.navigateUp()
-//                                },
-                                onClick = {
-                                    showLogoutDialog = true
-                                },
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                )
-                            ) {
-                                Text(stringResource(R.string.action_logout))
-                            }
-                        }) else null,
-                        onClick = {
-                            if (isLoggedIn) navController.navigate("account")
-                            else navController.navigate("login")
-                        },
-                        isExpressive = true
-                    )
-                )
+            // Header Section
+            Text(
+                text = stringResource(R.string.account_services),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(vertical = 12.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Token / Advanced Login Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.advanced_login),
-                items = listOf(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.token),
-                        title = {
-                            Text(
-                                when {
-                                    !isLoggedIn -> stringResource(R.string.advanced_login)
-                                    showToken -> stringResource(R.string.token_shown)
-                                    else -> stringResource(R.string.token_hidden)
-                                }
-                            )
-                        },
-                        onClick = {
-                            if (!isLoggedIn) showTokenEditor = true
-                            else if (!showToken) showToken = true
-                            else showTokenEditor = true
-                        },
-                        isExpressive = true
-                    )
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sync & Content Section
             if (isLoggedIn) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate("account") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!accountImageUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = accountImageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.person),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = accountName,
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (accountEmail.isNotBlank()) accountEmail else accountChannelHandle,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        painter = painterResource(R.drawable.chevron_right_px),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Switcher Buttons Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { selectedTab = AccountTab.RECOMMENDED },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTab == AccountTab.RECOMMENDED) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        },
+                        contentColor = if (selectedTab == AccountTab.RECOMMENDED) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    ),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.tab_recommended),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                }
+
+                Button(
+                    onClick = { selectedTab = AccountTab.ALL_SERVICES },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (selectedTab == AccountTab.ALL_SERVICES) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        },
+                        contentColor = if (selectedTab == AccountTab.ALL_SERVICES) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    ),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.tab_all_services),
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Tab Panels
+            if (selectedTab == AccountTab.RECOMMENDED) {
+                if (isLoggedIn) {
+                    // Toggles & Log Out wrapped inside standard Material3SettingsGroup
+                    Material3SettingsGroup(
+                        items = listOf(
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.add_circle),
+                                title = { Text(stringResource(R.string.more_content)) },
+                                trailingContent = {
+                                    Switch(
+                                        checked = useLoginForBrowse,
+                                        onCheckedChange = {
+                                            YouTube.useLoginForBrowse = it
+                                            onUseLoginForBrowseChange(it)
+                                        },
+                                        thumbContent = {
+                                            Icon(
+                                                painter = painterResource(
+                                                    id = if (useLoginForBrowse) R.drawable.check else R.drawable.close
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        }
+                                    )
+                                },
+                                onClick = {
+                                    val newValue = !useLoginForBrowse
+                                    YouTube.useLoginForBrowse = newValue
+                                    onUseLoginForBrowseChange(newValue)
+                                },
+                                isExpressive = true
+                            ),
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.cached),
+                                title = { Text(stringResource(R.string.yt_sync)) },
+                                trailingContent = {
+                                    Switch(
+                                        checked = ytmSync,
+                                        onCheckedChange = onYtmSyncChange,
+                                        thumbContent = {
+                                            Icon(
+                                                painter = painterResource(
+                                                    id = if (ytmSync) R.drawable.check else R.drawable.close
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                                            )
+                                        }
+                                    )
+                                },
+                                onClick = { onYtmSyncChange(!ytmSync) },
+                                isExpressive = true
+                            ),
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.logout),
+                                title = { Text(stringResource(R.string.action_logout)) },
+                                onClick = { showLogoutDialog = true },
+                                isExpressive = true
+                            )
+                        )
+                    )
+                } else {
+                    // Sign In Box
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                            .padding(20.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(R.drawable.google),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = stringResource(R.string.login),
+                                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.account_sync_desc_off),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            TextButton(
+                                onClick = { navController.navigate("login") }
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.login),
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.give_feedback),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                            fontWeight = FontWeight.Medium
+                        ),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.clickable {
+                            uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/issues")
+                        }
+                    )
+                }
+            } else {
+                // All Services Tab Content
+                Text(
+                    text = stringResource(R.string.account_settings_tab_general),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
+                )
+
                 Material3SettingsGroup(
-                    title = stringResource(R.string.settings_section_player_content),
                     items = listOf(
                         Material3SettingsItem(
-                            icon = painterResource(R.drawable.add_circle),
-                            title = { Text(stringResource(R.string.more_content)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = useLoginForBrowse,
-                                    onCheckedChange = {
-                                        YouTube.useLoginForBrowse = it
-                                        onUseLoginForBrowseChange(it)
-                                    },
-                                    thumbContent = {
-                                        Icon(
-                                            painter = painterResource(
-                                                id = if (useLoginForBrowse) R.drawable.check else R.drawable.close
-                                            ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
+                            icon = painterResource(R.drawable.token),
+                            title = {
+                                Text(
+                                    when {
+                                        !isLoggedIn -> stringResource(R.string.advanced_login)
+                                        showToken -> stringResource(R.string.token_shown)
+                                        else -> stringResource(R.string.token_hidden)
                                     }
                                 )
                             },
                             onClick = {
-                                val newValue = !useLoginForBrowse
-                                YouTube.useLoginForBrowse = newValue
-                                onUseLoginForBrowseChange(newValue)
+                                if (!isLoggedIn) showTokenEditor = true
+                                else if (!showToken) showToken = true
+                                else showTokenEditor = true
                             },
                             isExpressive = true
                         ),
-                        Material3SettingsItem(
-                            icon = painterResource(R.drawable.cached),
-                            title = { Text(stringResource(R.string.yt_sync)) },
-                            trailingContent = {
-                                Switch(
-                                    checked = ytmSync,
-                                    onCheckedChange = onYtmSyncChange,
-                                    thumbContent = {
-                                        Icon(
-                                            painter = painterResource(
-                                                id = if (ytmSync) R.drawable.check else R.drawable.close
-                                            ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                                        )
-                                    }
-                                )
-                            },
-                            onClick = { onYtmSyncChange(!ytmSync) },
-                            isExpressive = true
-                        )
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // Quick Links Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.integrations),
-                items = buildList {
-                    add(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.integration),
                             title = { Text(stringResource(R.string.integrations)) },
@@ -259,8 +418,8 @@ fun AccountSettingsScreen(
                             isExpressive = true
                         )
                     )
-                }
-            )
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
