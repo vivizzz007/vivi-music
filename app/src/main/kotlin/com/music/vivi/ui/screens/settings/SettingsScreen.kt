@@ -198,6 +198,14 @@ fun SettingsScreen(
                 )
                 add(
                     Material3SettingsItem(
+                        icon = painterResource(R.drawable.energy_savings_leaf),
+                        title = { Text(stringResource(R.string.data_saver)) },
+                        onClick = { navController.navigate("settings/datasaver") },
+                        isExpressive = true
+                    )
+                )
+                add(
+                    Material3SettingsItem(
                         icon = painterResource(R.drawable.restore),
                         title = { Text(stringResource(R.string.backup_restore)) },
                         onClick = { navController.navigate("settings/backup_restore") },
