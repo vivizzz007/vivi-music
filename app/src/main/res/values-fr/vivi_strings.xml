@@ -1038,4 +1038,35 @@ est irréversible.
     <string name="floating_navbar_desc">Afficher la barre de navigation suspendue et centrée en bas de la page</string>
     <string name="enabled">Activé</string>
     <string name="disabled">Désactivé</string>
+
+	<!-- Setup Wizard / Onboarding -->
+    <string name="setting_up_vivimusic">Configuration de Vivi Music…</string>
+    <string name="skip">Passer</string>
+
+    <!-- Data Saver -->
+    <string name="data_saver">Économiseur de données</string>
+    <string name="data_saver_desc">Désactive les vidéos « canvas » et d\'arrière-plan pour économiser les données et la batterie</string>
+    <string name="data_saver_turns_off_header">Se désactive lorsqu\'il est activé</string>
+    <string name="data_saver_player_canvas">Animation du lecteur sur la toile</string>
+    <string name="data_saver_artist_video">Vidéo sur la toile d\'artiste</string>
+    <string name="data_saver_artist_bg_video">Vidéo présentant le parcours de l\'artiste</string>
+    <string name="data_saver_album_canvas">Toile d\'album</string>
+
+    <string name="tab_recommended">Recommandé</string>
+    <string name="tab_all_services">Tous les services</string>
+    <string name="whats_new_title">Nouveautés de Vivi Music</string>
+    <string name="whats_new_desc">Découvrez les nouvelles fonctionnalités, les améliorations apportées à l\'interface utilisateur et les mises à jour</string>
+    <string name="account_sync_desc_off">Connectez-vous pour synchroniser votre bibliothèque YouTube Music, vos playlists et vos recommandations</string>
+    <string name="settings_for_account">Paramètres du compte</string>
+    <string name="give_feedback">Donner son avis</string>
+    <string name="account_services">Services de gestion de compte</string>
+    <string name="account_settings_tab_general">Généralités</string>
+    <string name="account_settings_tab_appearance">Apparence</string>
+    <string name="account_settings_tab_data">Données &amp; Confidentialité</string>
+    <string name="account_settings_tab_about">À propos</string>
+    <string name="account_settings_header_actions">Actions</string>
+    <string name="account_settings_desc_general">Gérer les paramètres de votre compte et l\'état de la synchronisation</string>
+    <string name="account_settings_desc_appearance">Personnalisez le thème et la mise en page de l\'interface utilisateur de votre application</string>
+    <string name="account_settings_desc_data">Gérez vos téléchargements et l\'utilisation du cache</string>
+    <string name="account_settings_desc_about">Informations sur la version et mentions légales</string>
 </resources>
