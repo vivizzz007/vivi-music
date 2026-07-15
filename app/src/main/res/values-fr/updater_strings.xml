@@ -24,7 +24,7 @@
     <string name="whats_new">Quoi de neuf ?</string>
     <string name="update_available">Mise à jour</string>
     <string name="checking_for_updates">Recherche de mises à jour…</string>
-    <string name="cant_check_updates">Can\'t check for\nupdates</string>
+    <string name="cant_check_updates">Paye le développeur, \nil vous tiendra au courant des mises à jour</string>
     <string name="app_up_to_date">L\'application est à jour</string>
     <string name="version">Version %1$s</string>
     <string name="released">Date de sortie : %1$s</string>
