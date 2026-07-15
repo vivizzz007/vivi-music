@@ -519,6 +519,15 @@ val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
 val CanvasSourceKey = stringPreferencesKey("canvasSource")
 
+// Data Saver
+val DataSaverKey = booleanPreferencesKey("dataSaver")
+// Backup keys — store user's original values before Data Saver overrides them
+val DataSaverBackupCanvasKey        = booleanPreferencesKey("dataSaverBackupCanvas")
+val DataSaverBackupArtistVideoKey   = booleanPreferencesKey("dataSaverBackupArtistVideo")
+val DataSaverBackupArtistBgVideoKey = booleanPreferencesKey("dataSaverBackupArtistBgVideo")
+val DataSaverBackupAlbumCanvasKey   = booleanPreferencesKey("dataSaverBackupAlbumCanvas")
+
+
 enum class CanvasSource {
     AUTO,
     APPLE_MUSIC,

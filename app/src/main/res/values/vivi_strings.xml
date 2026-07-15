@@ -1042,4 +1042,31 @@
     <!-- Setup Wizard / Onboarding -->
     <string name="setting_up_vivimusic">Setting up ViviMusic…</string>
     <string name="skip">Skip</string>
+
+    <!-- Data Saver -->
+    <string name="data_saver">Data Saver</string>
+    <string name="data_saver_desc">Turns off canvas and background videos to save data and battery</string>
+    <string name="data_saver_turns_off_header">Turns off when enabled</string>
+    <string name="data_saver_player_canvas">Player canvas animation</string>
+    <string name="data_saver_artist_video">Artist canvas video</string>
+    <string name="data_saver_artist_bg_video">Artist background video</string>
+    <string name="data_saver_album_canvas">Album canvas</string>
+
+    <string name="tab_recommended">Recommended</string>
+    <string name="tab_all_services">All services</string>
+    <string name="whats_new_title">What’s new in ViviMusic</string>
+    <string name="whats_new_desc">Discover new features, UI improvements, and updates</string>
+    <string name="account_sync_desc_off">Sign in to sync your YouTube Music library, playlists, and recommendations</string>
+    <string name="settings_for_account">Settings for account</string>
+    <string name="give_feedback">Give feedback</string>
+    <string name="account_services">Account services</string>
+    <string name="account_settings_tab_general">General</string>
+    <string name="account_settings_tab_appearance">Appearance</string>
+    <string name="account_settings_tab_data">Data &amp; Privacy</string>
+    <string name="account_settings_tab_about">About</string>
+    <string name="account_settings_header_actions">Actions</string>
+    <string name="account_settings_desc_general">Manage your account preferences and sync status</string>
+    <string name="account_settings_desc_appearance">Customize your app theme and UI layout</string>
+    <string name="account_settings_desc_data">Control your downloads and cache usage</string>
+    <string name="account_settings_desc_about">Version information and legal details</string>
 </resources>
