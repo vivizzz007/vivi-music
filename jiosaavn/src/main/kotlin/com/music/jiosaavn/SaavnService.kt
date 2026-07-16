@@ -76,7 +76,9 @@ data class SaavnSong(
     @SerialName("artists")         val artists:         SaavnArtists           = SaavnArtists(),
     @SerialName("image")           val image:           List<SaavnImage>       = emptyList(),
     @SerialName("downloadUrl")     val downloadUrl:     List<SaavnDownloadUrl> = emptyList(),
-    @SerialName("album")           val album:           SaavnAlbum?            = null
+    @SerialName("album")           val album:           SaavnAlbum?            = null,
+    /** True when JioSaavn marks this track as Pro-Only (paid/premium content). */
+    val isProOnly: Boolean = false
 )
 
 // ─── JioSaavn Raw API Response Models ───────────────────────────────────────
@@ -96,13 +98,31 @@ data class RawArtistMap(
     val artists: List<RawArtistMapItem> = emptyList()
 )
 
+/**
+ * Rights information returned by JioSaavn for every song.
+ * code == "1" means the track is Pro-Only (requires a paid subscription).
+ */
+@Serializable
+data class RawRights(
+    val code: String = "",
+    val cacheable: String = "",
+    @SerialName("delete_cached_object") val deleteCachedObject: String = "",
+    val reason: String = ""
+) {
+    /** True when this track is gated behind JioSaavn Pro. */
+    val isProOnly: Boolean
+        get() = code == "1" || reason.contains("Pro Only", ignoreCase = true)
+}
+
 @Serializable
 data class RawMoreInfo(
     val album_id: String = "",
     val album: String = "",
     @SerialName("encrypted_media_url") val encryptedMediaUrl: String = "",
     val duration: String = "",
-    val artistMap: RawArtistMap = RawArtistMap()
+    val artistMap: RawArtistMap = RawArtistMap(),
+    /** Pro/rights gating metadata. code=="1" means Pro-Only. */
+    val rights: RawRights = RawRights()
 )
 
 @Serializable
@@ -266,7 +286,8 @@ object SaavnService {
             album = SaavnAlbum(
                 id = raw.moreInfo.album_id,
                 name = raw.moreInfo.album
-            )
+            ),
+            isProOnly = raw.moreInfo.rights.isProOnly
         )
     }
 
@@ -280,10 +301,10 @@ object SaavnService {
             parameter("_format", "json")
             parameter("_marker", "0")
             parameter("api_version", "4")
-            parameter("ctx", "wap6dot0")
+            parameter("ctx", "android")  // android ctx: better 320kbps access than wap6dot0
             parameter("q", query)
             parameter("p", "1")
-            parameter("n", "5")
+            parameter("n", "10")  // larger pool → better candidate matching
         }
 
         Log.d(TAG, "searchSongs: HTTP response status: ${response.status}")
@@ -349,7 +370,7 @@ object SaavnService {
                 parameter("_format", "json")
                 parameter("_marker", "0")
                 parameter("api_version", "4")
-                parameter("ctx", "wap6dot0")
+                parameter("ctx", "android")  // android ctx: better 320kbps access than wap6dot0
                 parameter("pids", saavnSongId)
             }
 
