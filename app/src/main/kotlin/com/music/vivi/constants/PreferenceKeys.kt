@@ -25,6 +25,7 @@ val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
 val MiniPlayerOutlineKey = booleanPreferencesKey("miniPlayerOutline")
 val SelectedFontKey = stringPreferencesKey("selected_font")
+val CardlessDesign = booleanPreferencesKey("cardlessDesign")
 
 enum class AppFont(val value: String) {
     SYSTEM("system"),
