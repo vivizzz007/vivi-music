@@ -113,6 +113,7 @@ fun SettingsScreen(
 
         // All Settings Items combined
         Material3SettingsGroup(
+            itemMinHeight = 64.dp,
             items = buildList {
                 add(
                     Material3SettingsItem(

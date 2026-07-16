@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
@@ -50,7 +51,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun Material3SettingsGroup(
     title: String? = null,
-    items: List<Material3SettingsItem>
+    items: List<Material3SettingsItem>,
+    itemMinHeight: Dp? = null
 ) {
     Column(
         modifier = Modifier
@@ -94,9 +96,9 @@ fun Material3SettingsGroup(
                     elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
                     if (item.isExpressive) {
-                        ExpressiveSettingsItemRow(item = item)
+                        ExpressiveSettingsItemRow(item = item, minHeight = itemMinHeight)
                     } else {
-                        Material3SettingsItemRow(item = item)
+                        Material3SettingsItemRow(item = item, minHeight = itemMinHeight)
                     }
                 }
             }
@@ -109,7 +111,8 @@ fun Material3SettingsGroup(
  */
 @Composable
 private fun Material3SettingsItemRow(
-    item: Material3SettingsItem
+    item: Material3SettingsItem,
+    minHeight: Dp? = null
 ) {
     Row(
         modifier = Modifier
@@ -118,6 +121,13 @@ private fun Material3SettingsItemRow(
                 enabled = item.enabled && item.onClick != null,
                 onClick = { item.onClick?.invoke() }
             )
+            .let {
+                if (minHeight != null) {
+                    it.heightIn(min = minHeight)
+                } else {
+                    it
+                }
+            }
             .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -242,7 +252,8 @@ private fun Material3SettingsItemRow(
  */
 @Composable
 private fun ExpressiveSettingsItemRow(
-    item: Material3SettingsItem
+    item: Material3SettingsItem,
+    minHeight: Dp? = null
 ) {
     Row(
         modifier = Modifier
@@ -251,7 +262,7 @@ private fun ExpressiveSettingsItemRow(
                 enabled = item.enabled && item.onClick != null,
                 onClick = { item.onClick?.invoke() }
             )
-            .heightIn(min = 56.dp)
+            .heightIn(min = minHeight ?: 56.dp)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
