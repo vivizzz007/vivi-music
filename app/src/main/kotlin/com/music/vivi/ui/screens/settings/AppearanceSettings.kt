@@ -75,6 +75,7 @@ import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
+import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.LyricsAnimationStyle
@@ -220,6 +221,10 @@ fun AppearanceSettings(
     val (showPlayerThumbnailShadow, onShowPlayerThumbnailShadowChange) = rememberPreference(
         ShowPlayerThumbnailShadowKey,
         defaultValue = false
+    )
+    val (playerThumbnailShadowElevation, onPlayerThumbnailShadowElevationChange) = rememberPreference(
+        PlayerThumbnailShadowElevationKey,
+        defaultValue = 8f
     )
     val (cropAlbumArt, onCropAlbumArtChange) = rememberPreference(
         CropAlbumArtKey,
@@ -1327,6 +1332,33 @@ fun AppearanceSettings(
                     isExpressive = true,
                     descriptionBelow = true
                 ),
+                if (showPlayerThumbnailShadow) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.sliders),
+                        title = { Text(stringResource(R.string.player_thumbnail_shadow_depth)) },
+                        description = {
+                            Column {
+                                Text(stringResource(R.string.player_thumbnail_shadow_depth_desc))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Slider(
+                                    value = playerThumbnailShadowElevation,
+                                    onValueChange = onPlayerThumbnailShadowElevationChange,
+                                    valueRange = 2f..24f,
+                                    steps = 10
+                                )
+                            }
+                        },
+                        trailingContent = {
+                            Text(
+                                text = "${playerThumbnailShadowElevation.roundToInt()}dp",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        isExpressive = true,
+                        descriptionBelow = true
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),
                     title = { Text(stringResource(R.string.thumbnail_corner_radius)) },

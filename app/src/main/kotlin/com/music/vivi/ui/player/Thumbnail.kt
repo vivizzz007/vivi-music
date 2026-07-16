@@ -58,8 +58,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -89,6 +93,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
+import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
@@ -615,6 +620,7 @@ private fun ThumbnailItem(
 ) {
     val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, defaultValue = false)
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
+    val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val isCurrentItem = item.mediaId == currentMediaId
     
@@ -698,36 +704,51 @@ private fun ThumbnailItem(
                 }
                 .then(
                     if (showPlayerThumbnailShadow) {
-                        Modifier.shadow(
-                            elevation = 8.dp,
-                            shape = shape,
-                            clip = false
-                        )
+                        if (rotatingThumbnail) {
+                            Modifier.shadow(
+                                elevation = playerThumbnailShadowElevation.dp,
+                                shape = shape,
+                                clip = false,
+                                ambientColor = Color.Black.copy(alpha = 0.4f),
+                                spotColor = Color.Black.copy(alpha = 0.4f)
+                            )
+                        } else {
+                            Modifier.customSoftShadow(
+                                elevation = playerThumbnailShadowElevation.dp,
+                                cornerRadius = dimensions.cornerRadius,
+                                enabled = true
+                            )
+                        }
                     } else {
                         Modifier
                     }
-                )
-                .clip(shape)
-                .graphicsLayer {
-                    rotationZ = -rotation
-                }
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            if (hidePlayerThumbnail) {
-                HiddenThumbnailPlaceholder(textBackgroundColor = textBackgroundColor)
-            } else {
-                val artworkUriToUse = if (item.mediaId == currentMediaId && !currentMediaThumbnail.isNullOrBlank()) {
-                    currentMediaThumbnail
+            Box(
+                modifier = Modifier
+                    .size(dimensions.thumbnailSize)
+                    .clip(shape)
+                    .graphicsLayer {
+                        rotationZ = -rotation
+                    }
+            ) {
+                if (hidePlayerThumbnail) {
+                    HiddenThumbnailPlaceholder(textBackgroundColor = textBackgroundColor)
                 } else {
-                    item.mediaMetadata.artworkUri?.toString()
+                    val artworkUriToUse = if (item.mediaId == currentMediaId && !currentMediaThumbnail.isNullOrBlank()) {
+                        currentMediaThumbnail
+                    } else {
+                        item.mediaMetadata.artworkUri?.toString()
+                    }
+
+                    ThumbnailImage(
+                        artworkUri = artworkUriToUse?.resize(1200, 1200),
+                        cropArtwork = cropAlbumArt
+                    )
                 }
 
-                ThumbnailImage(
-                    artworkUri = artworkUriToUse?.resize(1200, 1200),
-                    cropArtwork = cropAlbumArt
-                )
-            }
-            
-            if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
+                if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                 val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
                 val albumTitle = item.mediaMetadata.albumTitle?.toString()
                 var canvasArtwork by remember(item.mediaId, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
@@ -854,8 +875,9 @@ private fun ThumbnailItem(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-            }
-        }
+            } // end canvas if block
+            } // end inner clip Box
+        } // end outer shadow Box
     }
 }
 
@@ -982,6 +1004,42 @@ internal fun splitAndNormalizeArtists(raw: String): List<String> {
         )
     ).map { it.normalizeForComparison() }
         .filter { it.isNotBlank() }
+}
+
+fun Modifier.customSoftShadow(
+    elevation: Dp,
+    cornerRadius: Dp,
+    enabled: Boolean
+): Modifier = if (enabled && elevation > 0.dp) {
+    this.drawBehind {
+        val shadowColor = Color.Black.copy(alpha = 0.60f).toArgb()
+        drawIntoCanvas { canvas ->
+            val paint = Paint()
+            val frameworkPaint = paint.asFrameworkPaint()
+            frameworkPaint.color = shadowColor
+            
+            val blurRadius = elevation.toPx() * 2.2f
+            val offsetY = elevation.toPx() * 0.25f
+            
+            frameworkPaint.setShadowLayer(
+                blurRadius,
+                0f,
+                offsetY,
+                shadowColor
+            )
+            canvas.drawRoundRect(
+                left = 0f,
+                top = 0f,
+                right = size.width,
+                bottom = size.height,
+                radiusX = cornerRadius.toPx(),
+                radiusY = cornerRadius.toPx(),
+                paint = paint
+            )
+        }
+    }
+} else {
+    this
 }
 
 
