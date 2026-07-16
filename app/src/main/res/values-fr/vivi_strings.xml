@@ -105,6 +105,8 @@
     <string name="hide_player_thumbnail_desc">Remplacer la pochette de l\'album par le logo de l\'application dans le lecteur</string>
 	<string name="show_player_thumbnail_shadow">Ombre de la miniature du lecteur</string>
     <string name="show_player_thumbnail_shadow_desc">Afficher une ombre autour de la miniature du lecteur</string>
+	<string name="player_thumbnail_shadow_depth">Profondeur de l\'ombre</string>
+    <string name="player_thumbnail_shadow_depth_desc">Régler l\'intensité et la distance de l\'ombre de la miniature du lecteur</string>
     <string name="thumbnail_corner_radius">Rayon des coins de la miniature</string>
     <string name="thumbnail_corner_radius_desc">Régler le rayon des coins des miniatures</string>
     <string name="crop_album_art">Recadrer la pochette d\'album</string>
