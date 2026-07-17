@@ -73,8 +73,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
-import com.music.innertube.utils.YouTubeUrlParser
-import com.music.vivi.constants.CardlessDesign
+import com.music.innertube.utils.YouTubeUrlParser 
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -370,9 +369,7 @@ fun SuggestionItem(
     onFillTextField: () -> Unit,
     pureBlack: Boolean
 ) {
-    val cardlessDesign by rememberPreference(CardlessDesign, false)
     val background = when {
-        cardlessDesign -> Color.Transparent
         pureBlack -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         else -> MaterialTheme.colorScheme.surfaceContainerHigh
     }

@@ -131,7 +131,6 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
-import com.music.vivi.constants.CardlessDesign
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
@@ -175,7 +174,6 @@ fun AppearanceSettings(
         SelectedThemeColorKey,
         defaultValue = DefaultThemeColor.toArgb()
     )
-    val (enableCardlessDesign, onEnableCardlessDesignChange) = rememberPreference(CardlessDesign, false)
 
     // Check if user has selected a custom color (not the default/dynamic color)
     val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
@@ -1132,29 +1130,6 @@ fun AppearanceSettings(
                         )
                     )
                 }
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.cardless_icon),
-                        title = { Text(stringResource(R.string.cardless_design)) },
-                        trailingContent = {
-                            Switch(
-                                checked = enableCardlessDesign,
-                                onCheckedChange = onEnableCardlessDesignChange,
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (enableCardlessDesign) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-                                    )
-                                }
-                            )
-                        },
-                        onClick = { onEnableCardlessDesignChange(!enableCardlessDesign) },
-                        isExpressive = true
-                    )
-                )
             }
         )
 

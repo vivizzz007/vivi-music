@@ -107,7 +107,6 @@ import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
-import com.music.vivi.constants.CardlessDesign
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.ExpressiveSongAlbumImageKey
 import com.music.vivi.constants.GridItemSize
@@ -164,7 +163,6 @@ inline fun ListItem(
     backgroundColor: Color = Color.Unspecified,
 ) {
     val isPureBlack by rememberPreference(PureBlackKey, false)
-    val cardlessMode by rememberPreference(CardlessDesign, false)
     val containerColor = if (backgroundColor != Color.Unspecified) {
         backgroundColor
     } else {
@@ -185,10 +183,10 @@ inline fun ListItem(
             .height(ListItemHeight)
             .padding(horizontal = 16.dp)
             .clip(shape)
-            .background(color = if (cardlessMode) Color.Transparent else containerColor)
+            .background(color = containerColor)
     ) {
         Box(
-            modifier = Modifier.fillMaxHeight().padding(start = 12.dp, top = 10.dp, end = 6.dp, bottom = 10.dp),
+            modifier = Modifier.fillMaxHeight().padding(start = 12.dp, top = 12.dp, end = 6.dp, bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             thumbnailContent()
