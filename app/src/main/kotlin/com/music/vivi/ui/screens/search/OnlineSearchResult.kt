@@ -12,6 +12,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -30,6 +31,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
@@ -46,6 +48,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -84,8 +87,6 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -430,10 +431,13 @@ fun OnlineSearchResult(
 
                     if (itemsPage?.continuation != null) {
                         item(key = "loading") {
-                            ShimmerHost {
-                                repeat(3) {
-                                    ListItemPlaceHolder()
-                                }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
                             }
                         }
                     }
@@ -450,10 +454,13 @@ fun OnlineSearchResult(
 
                 if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
                     item {
-                        ShimmerHost {
-                            repeat(8) {
-                                ListItemPlaceHolder()
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(64.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
                         }
                     }
                 }
