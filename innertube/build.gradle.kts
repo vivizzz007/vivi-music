@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
     implementation(libs.newpipeextractor)
+    implementation(libs.rhino)
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)

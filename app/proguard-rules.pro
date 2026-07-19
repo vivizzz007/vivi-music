@@ -6,19 +6,11 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # WEB_REMIX Streaming - WebView JavaScript interfaces
--keepclassmembers class com.music.vivi.utils.sabr.EjsNTransformSolver$SolverWebView {
-    @android.webkit.JavascriptInterface public *;
-}
--keepclassmembers class com.music.vivi.utils.cipher.CipherWebView {
-    @android.webkit.JavascriptInterface public *;
-}
 -keepclassmembers class com.music.vivi.utils.potoken.PoTokenWebView {
     @android.webkit.JavascriptInterface public *;
 }
 
 # Keep streaming utility classes
--keep class com.music.vivi.utils.cipher.** { *; }
--keep class com.music.vivi.utils.sabr.** { *; }
 -keep class com.music.vivi.utils.potoken.** { *; }
 
 # Keep coroutine continuation for WebView callbacks
@@ -26,6 +18,10 @@
     void resume(...);
     void resumeWithException(...);
 }
+
+# Rhino JS engine - required for YouTube signature/n-param deobfuscation in release builds
+-keep class org.mozilla.javascript.** { *; }
+-dontwarn org.mozilla.javascript.**
 
 # If your project uses WebView with JS, uncomment the following
 # and specify the fully qualified class name to the JavaScript interface

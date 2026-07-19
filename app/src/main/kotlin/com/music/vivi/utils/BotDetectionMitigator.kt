@@ -8,7 +8,7 @@ package com.music.vivi.utils
 import androidx.datastore.preferences.core.edit
 import com.music.innertube.YouTube
 import com.music.vivi.constants.VisitorDataKey
-import com.music.vivi.utils.cipher.CipherDeobfuscator
+import com.music.vivi.App
 import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.utils.PlaybackLogLevel
 import kotlinx.coroutines.Dispatchers
@@ -97,7 +97,7 @@ object BotDetectionMitigator {
                 Timber.tag(TAG).i("New visitorData obtained successfully for region ${currentLocale.gl}.")
                 
                 // Persist to DataStore
-                CipherDeobfuscator.appContext?.dataStore?.edit { settings ->
+                App.context.dataStore.edit { settings ->
                     settings[VisitorDataKey] = newData
                 }
             }.onFailure { e ->

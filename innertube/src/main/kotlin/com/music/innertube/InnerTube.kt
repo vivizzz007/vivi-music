@@ -102,23 +102,15 @@ class InnerTube {
                 )
                 
                 // Timeout configurations
-                connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
-                writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+                readTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
+                writeTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
                 
                 // Enable HTTP/2 for better performance
                 protocols(listOf(okhttp3.Protocol.HTTP_2, okhttp3.Protocol.HTTP_1_1))
                 
                 // Retry on connection failure
                 retryOnConnectionFailure(true)
-                
-                // Cache configuration for better performance
-                cache(
-                    okhttp3.Cache(
-                        directory = java.io.File(System.getProperty("java.io.tmpdir"), "http_cache"),
-                        maxSize = 50L * 1024L * 1024L // 50 MB
-                    )
-                )
                 
                 // Apply IP version filtering
                 dns(object : Dns {
@@ -157,10 +149,6 @@ class InnerTube {
 
         defaultRequest {
             url(YouTubeClient.API_URL_YOUTUBE_MUSIC)
-            // Add common headers for better compatibility
-            header("Accept", "application/json")
-            header("Accept-Language", "en-US,en;q=0.9")
-            header("Cache-Control", "no-cache")
         }
     }
 
@@ -704,7 +692,6 @@ class InnerTube {
         playlistId: String,
     ) = withRetry {
         httpClient.post("playlist/delete") {
-            println("deleting $playlistId")
             ytClient(client, setLogin = true)
             setBody(
                 PlaylistDeleteBody(

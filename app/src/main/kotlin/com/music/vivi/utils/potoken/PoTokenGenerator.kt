@@ -1,7 +1,7 @@
 package com.music.vivi.utils.potoken
 
 import android.webkit.CookieManager
-import com.music.vivi.utils.cipher.CipherDeobfuscator
+import com.music.vivi.App
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -66,7 +66,7 @@ class PoTokenGenerator {
                     }
 
                     // create a new webPoTokenGenerator
-                    webPoTokenGenerator = PoTokenWebView.getNewPoTokenGenerator(CipherDeobfuscator.appContext)
+                    webPoTokenGenerator = PoTokenWebView.getNewPoTokenGenerator(App.context)
 
                     // The streaming poToken needs to be generated exactly once before generating
                     // any other (player) tokens.

@@ -33,7 +33,6 @@ import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.ViviPrefCache
-import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
@@ -56,12 +55,14 @@ import javax.inject.Inject
 @HiltAndroidApp
 class App : Application(), SingletonImageLoader.Factory {
 
+
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()
+        context = this
 
         // Start preferences cache immediately
         ViviPrefCache.start(this)
@@ -69,10 +70,15 @@ class App : Application(), SingletonImageLoader.Factory {
         // Install crash handler first
         CrashHandler.install(this)
 
-        // Initialize cipher deobfuscator for WEB_REMIX streaming
-        CipherDeobfuscator.initialize(this)
+        // Initialize cacheDir for YouTubeExtractor JS decipher caching
+        com.music.innertube.YouTubeExtractor.cacheDir = cacheDir
 
         Timber.plant(Timber.DebugTree())
+
+        // Pre-warm decipher scripts in the background so first song plays instantly
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching { com.music.innertube.YouTubeExtractor.ensureInitialized() }
+        }
 
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {
@@ -289,6 +295,9 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     companion object {
+        lateinit var context: Context
+            private set
+
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")
 
