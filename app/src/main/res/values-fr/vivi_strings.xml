@@ -1047,12 +1047,13 @@ est irréversible.
 
     <!-- Data Saver -->
     <string name="data_saver">Économiseur de données</string>
-    <string name="data_saver_desc">Désactive les vidéos « canvas » et d\'arrière-plan pour économiser les données et la batterie</string>
+    <string name="data_saver_desc">Désactive les vidéos en arrière-plan et celles affichées sur le « canvas », et charge des images de faible qualité afin d\'économiser les données mobiles et la batterie</string>
     <string name="data_saver_turns_off_header">Se désactive lorsqu\'il est activé</string>
     <string name="data_saver_player_canvas">Animation du lecteur sur la toile</string>
     <string name="data_saver_artist_video">Vidéo sur la toile d\'artiste</string>
     <string name="data_saver_artist_bg_video">Vidéo présentant le parcours de l\'artiste</string>
     <string name="data_saver_album_canvas">Toile d\'album</string>
+	<string name="data_saver_high_quality_images">Des images de haute qualité</string>
 
     <string name="tab_recommended">Recommandé</string>
     <string name="tab_all_services">Tous les services</string>
