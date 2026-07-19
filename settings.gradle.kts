@@ -28,21 +28,15 @@ rootProject.name = "vivimusic"
 include(":app")
 include(":canvas")
 include(":innertube")
-include(":kugou")
-include(":lrclib")
 include(":kizzy")
 include(":lastfm")
-include(":betterlyrics")
-include(":simpmusic")
-include(":youlyplus")
 include(":shazamkit")
 include(":artistvideo")
 include(":applecanvas")
 include(":vivimusiccanvas")
-include(":paxsenixlyrics")
 include(":jiosaavn")
 include(":spotify")
-include(":musixmatch")
+include(":lyricsProvider")
 
 
 

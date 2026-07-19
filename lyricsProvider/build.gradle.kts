@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.music.lrclib"
+    namespace = "com.music.lyricsprovider"
     compileSdk = 37
 
     defaultConfig {
@@ -23,12 +23,17 @@ kotlin {
 }
 
 dependencies {
+    // Ktor (superset of all 7 old modules)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.cio)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
+
+    // Logging (required by Paxsenix)
+    implementation(libs.timber)
+
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)
