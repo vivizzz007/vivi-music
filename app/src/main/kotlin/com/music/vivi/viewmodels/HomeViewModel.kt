@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.Artist
+import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import kotlinx.coroutines.flow.combine
@@ -139,6 +140,13 @@ class HomeViewModel @Inject constructor(
                                 year = item.album.year,
                                 thumbnail = item.thumbnailUrl ?: ""
                             )
+                            is com.music.vivi.db.entities.Artist -> ArtistItem(
+                                id = item.id,
+                                title = item.title,
+                                thumbnail = item.thumbnailUrl,
+                                shuffleEndpoint = null,
+                                radioEndpoint = null
+                            )
                             else -> null
                         }
                     }
@@ -210,6 +218,13 @@ class HomeViewModel @Inject constructor(
                             artists = item.artists.map { Artist(name = it.name, id = it.id) },
                             year = item.album.year,
                             thumbnail = item.thumbnailUrl ?: ""
+                        ))
+                        is com.music.vivi.db.entities.Artist -> otherSources.add(ArtistItem(
+                            id = item.id,
+                            title = item.title,
+                            thumbnail = item.thumbnailUrl,
+                            shuffleEndpoint = null,
+                            radioEndpoint = null
                         ))
                         else -> {}
                     }
