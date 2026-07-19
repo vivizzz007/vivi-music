@@ -137,6 +137,7 @@ import com.music.vivi.ui.menu.QueueMenu
 import com.music.vivi.ui.menu.SelectionMediaMetadataMenu
 import com.music.vivi.ui.screens.CommentSheet
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
@@ -794,7 +795,7 @@ fun Queue(
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
+                        model = mediaMetadata?.thumbnailUrl?.resize(120, 120),
                         contentDescription = null,
                         modifier = Modifier
                             .size(48.dp)

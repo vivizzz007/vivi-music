@@ -184,6 +184,10 @@ fun DataSaverSetting(
                     icon = R.drawable.image,
                     text = stringResource(R.string.data_saver_album_canvas)
                 )
+                DataSaverInfoRow(
+                    icon = R.drawable.image,
+                    text = stringResource(R.string.data_saver_high_quality_images)
+                )
             }
         }
 

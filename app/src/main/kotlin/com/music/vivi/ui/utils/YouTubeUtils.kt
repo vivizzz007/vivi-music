@@ -5,6 +5,8 @@
 
 package com.music.vivi.ui.utils
 
+import com.music.vivi.constants.DataSaverKey
+import com.music.vivi.utils.ViviPrefCache
 import timber.log.Timber
 
 /**
@@ -24,9 +26,11 @@ fun String.resize(
     // Detect YouTube video thumbnails (containing i.ytimg.com, img.youtube.com, or path segment /vi/)
     val isYtimg = this.contains("ytimg") || this.contains("youtube.com") || this.contains("/vi/")
 
+    val isDataSaverEnabled = ViviPrefCache.get(DataSaverKey) == true
+
     return when {
-        isGoogleCdn -> resizeGoogleCdn(width, height)
-        isYtimg -> resizeYtimg(width, height)
+        isGoogleCdn -> resizeGoogleCdn(width, height, isDataSaverEnabled)
+        isYtimg -> resizeYtimg(width, height, isDataSaverEnabled)
         else -> this
     }
 }
@@ -35,9 +39,17 @@ fun String.resize(
  * Rewrites a Google CDN URL to request high resolution dimensions.
  * Uses generic regex to locate parameters, ensuring robustness.
  */
-private fun String.resizeGoogleCdn(width: Int?, height: Int?): String {
-    val w = (width ?: height ?: 1200).coerceAtLeast(544)
-    val h = (height ?: width ?: 1200).coerceAtLeast(544)
+private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
+    val w = if (isDataSaverEnabled) {
+        (width ?: height ?: 150).coerceAtMost(150)
+    } else {
+        (width ?: height ?: 1200).coerceAtLeast(544)
+    }
+    val h = if (isDataSaverEnabled) {
+        (height ?: width ?: 150).coerceAtMost(150)
+    } else {
+        (height ?: width ?: 1200).coerceAtLeast(544)
+    }
 
     // Handle wNNN-hNNN path segment style parameters
     if (this.contains(Regex("w\\d+-h\\d+"))) {
@@ -53,11 +65,25 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?): String {
  * Rewrites a YouTube thumbnail URL to request the highest quality tier.
  * Supports fallback to hqdefault/mqdefault for smaller requested widths.
  */
-private fun String.resizeYtimg(width: Int?, height: Int?): String {
-    val w = width ?: height ?: 1200
-    
+private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
     // Extract video ID using regex that matches any standard YouTube thumbnail path
     val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1) ?: return this
+
+    if (isDataSaverEnabled) {
+        val w = width ?: height ?: 150
+        return when {
+            w >= 800 -> {
+                // If data saver is enabled, don't use maxresdefault, use mqdefault (medium quality)
+                "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+            }
+            else -> {
+                // For small list thumbnails, use default.jpg (120x90)
+                "https://i.ytimg.com/vi/$videoId/default.jpg"
+            }
+        }
+    }
+
+    val w = width ?: height ?: 1200
 
     return when {
         w >= 800 -> {

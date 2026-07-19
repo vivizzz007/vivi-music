@@ -1047,12 +1047,13 @@
 
     <!-- Data Saver -->
     <string name="data_saver">Data Saver</string>
-    <string name="data_saver_desc">Turns off canvas and background videos to save data and battery</string>
+    <string name="data_saver_desc">Turns off canvas and background videos, and loads low-quality images to save data and battery</string>
     <string name="data_saver_turns_off_header">Turns off when enabled</string>
     <string name="data_saver_player_canvas">Player canvas animation</string>
     <string name="data_saver_artist_video">Artist canvas video</string>
     <string name="data_saver_artist_bg_video">Artist background video</string>
     <string name="data_saver_album_canvas">Album canvas</string>
+    <string name="data_saver_high_quality_images">High-quality images</string>
 
     <string name="tab_recommended">Recommended</string>
     <string name="tab_all_services">All services</string>
