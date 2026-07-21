@@ -6,6 +6,8 @@
 package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.util.lerp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -81,6 +84,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
@@ -913,20 +917,47 @@ fun HomeScreen(
         forgottenFavoritesLazyGridState.scrollToItem(0)
     }
 
+    val pullDensity = LocalDensity.current
+    val maxOffsetPx = with(pullDensity) { PullToRefreshDefaults.PositionalThreshold.toPx() + 16.dp.toPx() }
+    val topInsetPx = with(pullDensity) {
+        LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding().toPx() + 16.dp.toPx()
+    }
+    val indicatorHeightPx = with(pullDensity) { 56.dp.toPx() }
+    val expressiveSpring = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    val targetFraction = if (isRefreshing) 1f
+                         else pullRefreshState.distanceFraction.coerceIn(0f, 1f)
+    val animatedFraction by animateFloatAsState(
+        targetValue = targetFraction,
+        animationSpec = expressiveSpring,
+        label = "pull_fraction"
+    )
+
     PullToRefreshBox(
         state = pullRefreshState,
         isRefreshing = isRefreshing,
         onRefresh = viewModel::refresh,
         indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = pullRefreshState,
-                isRefreshing = isRefreshing,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
-            )
+            if (animatedFraction > 0.001f) {
+                val yOffset = lerp(-indicatorHeightPx, topInsetPx, animatedFraction)
+                if (isRefreshing) {
+                    ContainedLoadingIndicator(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset { IntOffset(0, yOffset.toInt()) }
+                    )
+                } else {
+                    ContainedLoadingIndicator(
+                        progress = { pullRefreshState.distanceFraction.coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset { IntOffset(0, yOffset.toInt()) }
+                    )
+                }
+            }
         }
     ) {
+        val density = LocalDensity.current
+
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopStart
@@ -952,7 +983,10 @@ fun HomeScreen(
 
             LazyColumn(
                 state = lazylistState,
-                contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+                modifier = Modifier.offset {
+                    IntOffset(0, (animatedFraction * maxOffsetPx).toInt())
+                }
             ) {
                 item {
                     ChipsRow(

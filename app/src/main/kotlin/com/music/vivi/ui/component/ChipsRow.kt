@@ -111,12 +111,14 @@ fun <E> ChipsRow(
                 },
                 shape = RoundedCornerShape(cornerRadius),
                 border = null,
-                modifier = Modifier.animateContentSize(
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessMedium
+                modifier = Modifier
+                    .height(35.dp)
+                    .animateContentSize(
+                        animationSpec = spring(
+                            dampingRatio = Spring.DampingRatioMediumBouncy,
+                            stiffness = Spring.StiffnessMedium
+                        )
                     )
-                )
             )
 
             Spacer(Modifier.width(8.dp))

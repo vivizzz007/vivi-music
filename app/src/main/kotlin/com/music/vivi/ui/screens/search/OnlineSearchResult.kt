@@ -372,6 +372,8 @@ fun OnlineSearchResult(
                 .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
+            Spacer(modifier = Modifier.height(10.dp))
+
             ChipsRow(
                 chips = listOf(
                     null to stringResource(R.string.filter_all),
@@ -393,6 +395,8 @@ fun OnlineSearchResult(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             LazyColumn(
                 state = lazyListState,
