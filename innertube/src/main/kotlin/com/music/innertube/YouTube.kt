@@ -23,6 +23,7 @@ import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.YouTubeClient.Companion.WEB
 import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.YouTubeLocale
+import com.music.innertube.models.extractCountText
 import com.music.innertube.models.getContinuation
 import com.music.innertube.models.getItems
 import com.music.innertube.models.oddElements
@@ -433,13 +434,13 @@ object YouTube {
                 ?.tabRenderer?.content?.sectionListRenderer?.contents
                 ?.mapNotNull(ArtistPage::fromSectionListRendererContent)!!,
             description = descriptionRuns?.joinToString(separator = "") { it.text },
-                subscriberCountText = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton2
-                    ?.subscribeButtonRenderer?.subscriberCountWithSubscribeText?.runs?.firstOrNull()?.text
-                    ?: response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer
-                        ?.longSubscriberCountText?.runs?.firstOrNull()?.text
-                    ?: response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer
-                        ?.shortSubscriberCountText?.runs?.firstOrNull()?.text,
-            monthlyListenerCount = response.header?.musicImmersiveHeaderRenderer?.monthlyListenerCount?.runs?.firstOrNull()?.text,
+            subscriberCountText = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton2
+                ?.subscribeButtonRenderer?.subscriberCountWithSubscribeText.extractCountText()
+                ?: response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer
+                    ?.longSubscriberCountText.extractCountText()
+                ?: response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer
+                    ?.shortSubscriberCountText.extractCountText(),
+            monthlyListenerCount = response.header?.musicImmersiveHeaderRenderer?.monthlyListenerCount.extractCountText(),
             descriptionRuns = descriptionRuns
         )
     }
