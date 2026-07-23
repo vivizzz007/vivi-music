@@ -243,6 +243,7 @@ class MainActivity : ComponentActivity() {
     private var pendingIntent: Intent? = null
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
+    private var serviceBound = false
 
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
@@ -288,15 +289,21 @@ class MainActivity : ComponentActivity() {
         // On Android 12+, we can't start foreground services from background
         // Use BIND_AUTO_CREATE which will create the service if needed
         // The service will call startForeground() in onCreate() when bound
-        bindService(
+        val bound = bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
             BIND_AUTO_CREATE
         )
+        if (bound) {
+            serviceBound = true
+        }
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        if (serviceBound) {
+            unbindService(serviceConnection)
+            serviceBound = false
+        }
         super.onStop()
     }
 
@@ -307,7 +314,10 @@ class MainActivity : ComponentActivity() {
             isFinishing
         ) {
             stopService(Intent(this, MusicService::class.java))
-            unbindService(serviceConnection)
+            if (serviceBound) {
+                unbindService(serviceConnection)
+                serviceBound = false
+            }
             playerConnection = null
         }
     }
