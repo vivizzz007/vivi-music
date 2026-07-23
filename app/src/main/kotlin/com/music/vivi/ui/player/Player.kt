@@ -78,6 +78,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ProvideTextStyle
@@ -87,6 +88,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -1929,44 +1931,46 @@ fun BottomSheetPlayer(
                         label = "trackHeight"
                     )
 
-                    Slider(
-                        value = (sliderPosition ?: effectivePosition).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                        onValueChange = {
-                            if (!isListenTogetherGuest) {
-                                sliderPosition = it.toLong()
-                            }
-                        },
-                        onValueChangeFinished = {
-                            if (!isListenTogetherGuest) {
-                                sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
-                                    }
-                                    position = it
+                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                        Slider(
+                            value = (sliderPosition ?: effectivePosition).toFloat(),
+                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            onValueChange = {
+                                if (!isListenTogetherGuest) {
+                                    sliderPosition = it.toLong()
                                 }
-                                sliderPosition = null
-                            }
-                        },
-                        enabled = !isListenTogetherGuest,
-                        interactionSource = trackInteractionSource,
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                trackHeight = trackHeight,
-                                colors = PlayerSliderColors.getSliderColors(
-                                    activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
-                                    playerBackground = playerBackground,
-                                    useDarkTheme = useDarkTheme
+                            },
+                            onValueChangeFinished = {
+                                if (!isListenTogetherGuest) {
+                                    sliderPosition?.let {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
+                                    }
+                                    sliderPosition = null
+                                }
+                            },
+                            enabled = !isListenTogetherGuest,
+                            interactionSource = trackInteractionSource,
+                            thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                            track = { sliderState ->
+                                PlayerSliderTrack(
+                                    sliderState = sliderState,
+                                    trackHeight = trackHeight,
+                                    colors = PlayerSliderColors.getSliderColors(
+                                        activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
+                                        playerBackground = playerBackground,
+                                        useDarkTheme = useDarkTheme
+                                    )
                                 )
-                            )
-                        },
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
-                    )
+                            },
+                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                        )
+                    }
                 }
             }
 
