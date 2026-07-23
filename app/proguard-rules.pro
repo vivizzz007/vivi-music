@@ -5,12 +5,12 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
-# WEB_REMIX Streaming - WebView JavaScript interfaces
+##──────────────────────────────────────────────────────────────────────────────
+## 1. PoToken / WebView JS Interface
+##──────────────────────────────────────────────────────────────────────────────
 -keepclassmembers class com.music.vivi.utils.potoken.PoTokenWebView {
     @android.webkit.JavascriptInterface public *;
 }
-
-# Keep streaming utility classes
 -keep class com.music.vivi.utils.potoken.** { *; }
 
 # Keep coroutine continuation for WebView callbacks
@@ -19,34 +19,29 @@
     void resumeWithException(...);
 }
 
-# Rhino JS engine - required for YouTube signature/n-param deobfuscation in release builds
+##──────────────────────────────────────────────────────────────────────────────
+## 2. Rhino JS Engine (YouTube signature/n-param deobfuscation)
+##──────────────────────────────────────────────────────────────────────────────
 -keep class org.mozilla.javascript.** { *; }
+-keep class org.mozilla.javascript.engine.** { *; }
 -dontwarn org.mozilla.javascript.**
+-dontwarn org.mozilla.javascript.tools.**
+-dontwarn org.mozilla.javascript.JavaToJSONConverters
+-keep class javax.script.** { *; }
+-dontwarn javax.script.**
+-keep class jdk.dynalink.** { *; }
+-dontwarn jdk.dynalink.**
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
-
-## Kotlin Serialization
+##──────────────────────────────────────────────────────────────────────────────
+## 3. Kotlin Serialization
+##──────────────────────────────────────────────────────────────────────────────
 # Keep `Companion` object fields of serializable classes.
-# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
 -if @kotlinx.serialization.Serializable class **
 -keepclasseswithmembers class <1> {
     static <1>$Companion Companion;
 }
 
-# Keep `serializer()` on companion objects (both default and named) of serializable classes.
+# Keep `serializer()` on companion objects of serializable classes.
 -if @kotlinx.serialization.Serializable class ** {
     static **$* *;
 }
@@ -65,7 +60,18 @@
 
 # @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+-keepattributes *Annotation*
 
+##──────────────────────────────────────────────────────────────────────────────
+## 4. Kotlin Reflection
+##──────────────────────────────────────────────────────────────────────────────
+-keep class kotlin.Metadata { *; }
+-keep class kotlin.reflect.** { *; }
+-dontwarn kotlin.reflect.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 5. OkHttp / SSL / Logging
+##──────────────────────────────────────────────────────────────────────────────
 -dontwarn javax.servlet.ServletContainerInitializer
 -dontwarn org.bouncycastle.jsse.BCSSLParameters
 -dontwarn org.bouncycastle.jsse.BCSSLSocket
@@ -78,90 +84,83 @@
 -dontwarn org.openjsse.net.ssl.OpenJSSE
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-## Rules for NewPipeExtractor
+##──────────────────────────────────────────────────────────────────────────────
+## 6. NewPipe Extractor
+##──────────────────────────────────────────────────────────────────────────────
 -keep class org.schabi.newpipe.extractor.services.youtube.protos.** { *; }
 -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
--keep class org.mozilla.javascript.** { *; }
--keep class org.mozilla.javascript.engine.** { *; }
--dontwarn org.mozilla.javascript.JavaToJSONConverters
--dontwarn org.mozilla.javascript.tools.**
--keep class javax.script.** { *; }
--dontwarn javax.script.**
--keep class jdk.dynalink.** { *; }
--dontwarn jdk.dynalink.**
 
-## Logging (does not affect Timber)
+##──────────────────────────────────────────────────────────────────────────────
+## 7. Logging — strip verbose logs in release
+##──────────────────────────────────────────────────────────────────────────────
 -assumenosideeffects class android.util.Log {
     public static boolean isLoggable(java.lang.String, int);
     public static int v(...);
     public static int d(...);
-    ## Leave in release builds
-    #public static int i(...);
-    #public static int w(...);
-    #public static int e(...);
 }
 
-# Generated automatically by the Android Gradle plugin.
+##──────────────────────────────────────────────────────────────────────────────
+## 8. Java Beans (auto-generated dontwarn)
+##──────────────────────────────────────────────────────────────────────────────
 -dontwarn java.beans.BeanDescriptor
 -dontwarn java.beans.BeanInfo
 -dontwarn java.beans.IntrospectionException
 -dontwarn java.beans.Introspector
 -dontwarn java.beans.PropertyDescriptor
 
-# Keep all classes within the kuromoji package
+##──────────────────────────────────────────────────────────────────────────────
+## 9. Kuromoji (Japanese tokenizer)
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.atilika.kuromoji.** { *; }
 
-## Queue Persistence Rules
-# Keep queue-related classes to prevent serialization issues in release builds
+##──────────────────────────────────────────────────────────────────────────────
+## 10. Queue / Playback Persistence
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.vivi.models.PersistQueue { *; }
 -keep class com.music.vivi.models.PersistPlayerState { *; }
 -keep class com.music.vivi.models.QueueData { *; }
 -keep class com.music.vivi.models.QueueType { *; }
 -keep class com.music.vivi.playback.queues.** { *; }
-
-# Keep serialization methods for queue persistence
 -keepclassmembers class * implements java.io.Serializable {
     private void writeObject(java.io.ObjectOutputStream);
     private void readObject(java.io.ObjectInputStream);
 }
 
-## UCrop Rules
+##──────────────────────────────────────────────────────────────────────────────
+## 11. UCrop
+##──────────────────────────────────────────────────────────────────────────────
 -dontwarn com.yalantis.ucrop**
 -keep class com.yalantis.ucrop** { *; }
 -keep interface com.yalantis.ucrop** { *; }
 
-## Google Cast Rules
+##──────────────────────────────────────────────────────────────────────────────
+## 12. Google Cast
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.vivi.cast.** { *; }
 -keep class com.google.android.gms.cast.** { *; }
 -keep class androidx.mediarouter.** { *; }
-
-## JSoup re2j optional dependency
 -dontwarn com.google.re2j.**
 
-# Vibra fingerprint library
+##──────────────────────────────────────────────────────────────────────────────
+## 13. Vibra Fingerprint (native JNI)
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.vivi.recognition.VibraSignature { *; }
 -keepclassmembers class com.music.vivi.recognition.VibraSignature {
     native <methods>;
 }
 
-## Kotlin Reflection Fix
--keep class kotlin.Metadata { *; }
--keep class kotlin.reflect.** { *; }
--dontwarn kotlin.reflect.**
-
-## Ktor Serialization
+##──────────────────────────────────────────────────────────────────────────────
+## 14. Ktor
+##──────────────────────────────────────────────────────────────────────────────
 -keep class io.ktor.** { *; }
 -keepclassmembers class io.ktor.** { *; }
 -dontwarn io.ktor.**
 
-## Shazam Models
+##──────────────────────────────────────────────────────────────────────────────
+## 15. Shazam Models
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.shazamkit.models.** { *; }
--keepclassmembers class com.music.shazamkit.models.** {
-    *;
-}
-
-## Kotlinx Serialization
--keepattributes *Annotation*
+-keepclassmembers class com.music.shazamkit.models.** { *; }
 -keepclassmembers class com.music.shazamkit.models.** {
     *** Companion;
 }
@@ -169,14 +168,127 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
-## Listen Together Serialization
+##──────────────────────────────────────────────────────────────────────────────
+## 16. Listen Together
+##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.vivi.listentogether.** { *; }
--keepclassmembers class com.music.vivi.listentogether.** {
-    *;
-}
+-keepclassmembers class com.music.vivi.listentogether.** { *; }
 -keepclassmembers class com.music.vivi.listentogether.** {
     *** Companion;
 }
 -keepclasseswithmembers class com.music.vivi.listentogether.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
+
+##──────────────────────────────────────────────────────────────────────────────
+## 17. Haze (blur library) — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class dev.chrisbanes.haze.** { *; }
+-keepclassmembers class dev.chrisbanes.haze.** { *; }
+-dontwarn dev.chrisbanes.haze.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 18. Coil 3 — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class io.coil3.** { *; }
+-keepclassmembers class io.coil3.** { *; }
+-dontwarn io.coil3.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 19. Media3 / ExoPlayer — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class androidx.media3.** { *; }
+-keepclassmembers class androidx.media3.** { *; }
+-dontwarn androidx.media3.**
+-keep class androidx.media3.exoplayer.** { *; }
+-keep interface androidx.media3.exoplayer.** { *; }
+
+##──────────────────────────────────────────────────────────────────────────────
+## 20. Room — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class * extends androidx.room.RoomDatabase { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Embedded class * { *; }
+-dontwarn androidx.room.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 21. Hilt / Dagger — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class dagger.hilt.** { *; }
+-keep class * extends dagger.hilt.android.internal.managers.ActivityComponentManager { *; }
+-keepclasseswithmembers class * {
+    @dagger.hilt.android.AndroidEntryPoint *;
+}
+-keepclasseswithmembers class * {
+    @javax.inject.Inject *;
+}
+-dontwarn dagger.**
+-dontwarn javax.inject.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 22. Protobuf — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.google.protobuf.** { *; }
+-keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
+    <fields>;
+}
+-dontwarn com.google.protobuf.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 23. Lottie — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.airbnb.lottie.** { *; }
+-dontwarn com.airbnb.lottie.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 24. MaterialKolor — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.materialkolor.** { *; }
+-dontwarn com.materialkolor.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 25. AndroidX DataStore — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class androidx.datastore.** { *; }
+-dontwarn androidx.datastore.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 26. WorkManager — was MISSING
+##──────────────────────────────────────────────────────────────────────────────
+-keep class * extends androidx.work.Worker { *; }
+-keep class * extends androidx.work.CoroutineWorker { *; }
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+-dontwarn androidx.work.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 27. Reorderable (Compose drag-and-drop)
+##──────────────────────────────────────────────────────────────────────────────
+-keep class sh.calvin.reorderable.** { *; }
+-dontwarn sh.calvin.reorderable.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 28. Palette
+##──────────────────────────────────────────────────────────────────────────────
+-keep class androidx.palette.** { *; }
+-dontwarn androidx.palette.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 29. Shimmer
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.valentinilk.shimmer.** { *; }
+-dontwarn com.valentinilk.shimmer.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 30. Smooth Corner Rect
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.github.racra.** { *; }
+-dontwarn com.github.racra.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 31. InnerTube module (music API models)
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.music.innertube.** { *; }
+-keepclassmembers class com.music.innertube.** { *; }

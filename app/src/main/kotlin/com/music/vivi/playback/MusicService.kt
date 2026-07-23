@@ -390,6 +390,17 @@ class MusicService :
     // URL cache for stream URLs - class-level so it can be invalidated on errors
     private val songUrlCache = HashMap<String, Pair<String, Long>>()
 
+    private val sessionKey = java.util.UUID.randomUUID().toString()
+    private fun cacheKey(mediaId: String) = "${sessionKey}:$mediaId"
+
+    private val playbackUrlCache = java.util.Collections.synchronizedMap(
+        object : java.util.LinkedHashMap<String, String>(0, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
+                return size > 500
+            }
+        }
+    )
+
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
 
@@ -2943,6 +2954,7 @@ class MusicService :
                     Timber.tag(TAG).w("No loudness data available from YouTube for video: $mediaId")
                 }
 
+                val playbackTrackingUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                 database.query {
                     upsert(
                         FormatEntity(
@@ -2955,10 +2967,15 @@ class MusicService :
                             contentLength = format.contentLength ?: 0L,
                             loudnessDb = loudnessDb,
                             perceptualLoudnessDb = perceptualLoudnessDb,
-                            playbackUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                            playbackUrl = playbackTrackingUrl
                         )
                     )
                 }
+
+                playbackTrackingUrl?.let {
+                    playbackUrlCache[cacheKey(mediaId)] = it
+                }
+
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId, nonNullPlayback) }
 
                 // Clear bypass flag now that we've fetched fresh stream
@@ -3040,15 +3057,19 @@ class MusicService :
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs) {
             CoroutineScope(Dispatchers.IO).launch {
-                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                val playbackUrl = playbackUrlCache[cacheKey(mediaItem.mediaId)]
                     ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
                         .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                playbackUrl?.let {
-                    YouTube.registerPlayback(null, playbackUrl)
-                        .onFailure {
-                            reportException(it)
-                        }
+
+                if (playbackUrl == null) {
+                    Timber.tag(TAG).w("No playback tracking URL available for ${mediaItem.mediaId}, skipping YouTube history registration")
+                    return@launch
                 }
+
+                YouTube.registerPlayback(null, playbackUrl)
+                    .onFailure {
+                        reportException(it)
+                    }
             }
         }
     }

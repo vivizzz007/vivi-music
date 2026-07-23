@@ -6,6 +6,7 @@
 package com.music.vivi.viewmodels
 
 import kotlinx.coroutines.flow.combine
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.Immutable
 import android.content.Context
 import androidx.lifecycle.ViewModel
@@ -128,6 +129,30 @@ constructor(
     }.flowOn(Dispatchers.Default)
      .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
+    /**
+     * Pre-flattened list of local history items (headers + songs) ready for a single
+     * LazyColumn `items {}` call. Computed on [Dispatchers.Default] so zero work
+     * happens on the composition thread.
+     */
+    val flatLocalItems = filteredEvents
+        .map { eventsMap ->
+            val result = mutableListOf<FlatHistoryItem>()
+            eventsMap.forEach { (dateAgo, dateEvents) ->
+                result += FlatHistoryItem.LocalHeader(dateAgo)
+                dateEvents.forEachIndexed { index, event ->
+                    result += FlatHistoryItem.LocalSong(
+                        event = event,
+                        index = index,
+                        sectionSize = dateEvents.size,
+                        dateAgo = dateAgo
+                    )
+                }
+            }
+            result.toList()
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
     val filteredRemoteContent = combine(historyPage, searchQuery) { page, queryText ->
         if (queryText.isEmpty()) {
             page?.sections
@@ -144,6 +169,28 @@ constructor(
     }.flowOn(Dispatchers.Default)
      .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    /**
+     * Pre-flattened list of remote history items (section headers + songs) ready for a
+     * single LazyColumn `items {}` call. Computed on [Dispatchers.Default].
+     */
+    val flatRemoteItems = filteredRemoteContent
+        .map { sections ->
+            val result = mutableListOf<FlatHistoryItem>()
+            sections?.forEach { section ->
+                result += FlatHistoryItem.RemoteHeader(section.title)
+                section.songs.forEachIndexed { index, song ->
+                    result += FlatHistoryItem.RemoteSong(
+                        song = song,
+                        index = index,
+                        sectionSize = section.songs.size,
+                        sectionTitle = section.title
+                    )
+                }
+            }
+            result.toList()
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         fetchRemoteHistory()
@@ -170,6 +217,36 @@ constructor(
             }
         }
     }
+}
+
+/**
+ * Flat item types for HistoryScreen LazyColumn.
+ * Precomputed in the ViewModel on a background thread, consumed as a single
+ * `items {}` block in the screen — eliminates the `forEach` anti-pattern.
+ */
+@Stable
+sealed class FlatHistoryItem {
+    /** Section date header for local history. */
+    data class LocalHeader(val dateAgo: DateAgo) : FlatHistoryItem()
+
+    /** A single local history song row. */
+    data class LocalSong(
+        val event: com.music.vivi.db.entities.EventWithSong,
+        val index: Int,
+        val sectionSize: Int,
+        val dateAgo: DateAgo,
+    ) : FlatHistoryItem()
+
+    /** Section title header for remote history. */
+    data class RemoteHeader(val title: String) : FlatHistoryItem()
+
+    /** A single remote history song row. */
+    data class RemoteSong(
+        val song: com.music.innertube.models.SongItem,
+        val index: Int,
+        val sectionSize: Int,
+        val sectionTitle: String,
+    ) : FlatHistoryItem()
 }
 
 @Immutable
