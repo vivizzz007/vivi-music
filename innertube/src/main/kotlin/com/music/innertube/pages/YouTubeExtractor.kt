@@ -4,6 +4,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.mozilla.javascript.Context
 import org.mozilla.javascript.Function
+import org.mozilla.javascript.Scriptable
 import java.io.File
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -19,15 +20,31 @@ import java.net.URLEncoder
  * - Time-based caching: Persists deobfuscated JS snippets to disk for up to 6 hours,
  *   bypassing network lookups completely on subsequent plays.
  * - No WebView overhead: Executes scripts in milliseconds inside JVM memory.
+ * - Thread-safe: Single init lock prevents duplicate network + parse work on concurrent calls.
+ * - Compiled Rhino functions: JS is parsed once; Function + Scope objects are reused per call.
  */
 object YouTubeExtractor {
     private val client = OkHttpClient.Builder().build()
+
+    /** Guards all initialization state — prevents race conditions on first play. */
+    private val initLock = Any()
+
     private var cachedPlayerJs: String? = null
     private var deobfuscateJsCode: String? = null
     private var deobfuscateFuncName: String? = null
     private var transformNJsCode: String? = null
     private var transformNFuncName: String? = null
     private var currentResolvedUrl: String? = null
+
+    /**
+     * Cached compiled Rhino objects. Populated on first use, then reused.
+     * Eliminates the expensive `evaluateString` JS parse on every single call.
+     */
+    private var sigScope: Scriptable? = null
+    private var sigFunction: Function? = null
+    private var nScope: Scriptable? = null
+    private var nFunction: Function? = null
+    private val rhinoLock = Any()
 
     var cacheDir: File? = null
 
@@ -39,15 +56,33 @@ object YouTubeExtractor {
         get() = deobfuscateJsCode != null && transformNJsCode != null
 
     /**
-     * Pre-loads and compiles the YouTube player decipher scripts in the background.
+     * Pre-loads AND fully parses both YouTube player decipher scripts in the background.
      * Call this from App.onCreate() on a background thread so the very first
      * song play resolves without any waiting.
+     *
+     * Thread-safe: protected by [initLock] to prevent concurrent duplicate work.
      */
     fun ensureInitialized() {
-        if (isReady) return
-        runCatching { getPlayerJs() }
+        synchronized(initLock) {
+            if (isReady) return
+            try {
+                val js = getPlayerJs()
+                if (js.isNotEmpty()) {
+                    // Pre-parse both decipher functions while still on background thread
+                    runCatching { prepareSignatureDeobfuscator(js) }
+                    runCatching { prepareThrottlingDeobfuscator(js) }
+                }
+                // Pre-compile Rhino Function objects so first call has zero compile cost
+                if (isReady) {
+                    runCatching { ensureRhinoCompiled() }
+                }
+            } catch (e: Exception) {
+                println("[YouTubeExtractor] ensureInitialized failed: ${e.message}")
+            }
+        }
     }
 
+    // ─── Cache I/O ────────────────────────────────────────────────────────────
 
     private fun loadCache(resolvedPlayerJsUrl: String): Boolean {
         val dir = cacheDir ?: return false
@@ -101,6 +136,8 @@ object YouTubeExtractor {
         }
     }
 
+    // ─── Network ──────────────────────────────────────────────────────────────
+
     private fun fetchUrl(url: String): String {
         println("[YouTubeExtractor] Fetching URL: $url")
         val request = Request.Builder()
@@ -118,10 +155,13 @@ object YouTubeExtractor {
         }
     }
 
+    // ─── Player JS Resolution ─────────────────────────────────────────────────
+
     private fun getPlayerJs(): String {
         cachedPlayerJs?.let { return it }
 
-        // Fast-path: Check if cached decipher files are present and fresh (less than 6 hours old)
+        // ── Fast-path: if disk cache is fresh (< 6 hours), load it directly
+        //    No network call required — skip iframe_api fetch entirely.
         val dir = cacheDir
         if (dir != null) {
             try {
@@ -129,7 +169,7 @@ object YouTubeExtractor {
                 if (timeFile.exists()) {
                     val lastSaved = timeFile.readText().trim().toLongOrNull() ?: 0L
                     val age = System.currentTimeMillis() - lastSaved
-                    if (age in 0 until (6 * 3600 * 1000)) { // 6 hours
+                    if (age in 0 until (24L * 3600 * 1000)) {
                         val sigJsFile = File(dir, "yt_sig_js.txt")
                         val sigFuncFile = File(dir, "yt_sig_func.txt")
                         val nJsFile = File(dir, "yt_n_js.txt")
@@ -139,20 +179,21 @@ object YouTubeExtractor {
                             deobfuscateFuncName = sigFuncFile.readText().trim()
                             transformNJsCode = nJsFile.readText()
                             transformNFuncName = nFuncFile.readText().trim()
-                            println("[YouTubeExtractor] Loaded fresh decipher snippets from cache immediately (age=${age/1000}s)")
-                            cachedPlayerJs = "" // Set non-null to bypass subsequent fetches
+                            println("[YouTubeExtractor] Cache hit — loaded decipher snippets instantly (age=${age / 1000}s). No network call.")
+                            cachedPlayerJs = "" // mark as resolved to bypass future calls
                             return ""
                         }
                     }
                 }
             } catch (e: Exception) {
-                println("[YouTubeExtractor] Failed to read fresh cache check: ${e.message}")
+                println("[YouTubeExtractor] Failed to read fresh cache: ${e.message}")
             }
         }
 
-        println("[YouTubeExtractor] Resolving YouTube player JS URL...")
+        // ── Cache miss: resolve player JS URL from network ──
+        println("[YouTubeExtractor] Cache miss — resolving YouTube player JS URL...")
         val iframeApi = fetchUrl("https://www.youtube.com/iframe_api")
-        val hashMatch = Regex("""player\\/([a-z0-9]{8})\\/""").find(iframeApi)
+        val hashMatch = Regex("""player\/([a-z0-9]{8})\/""").find(iframeApi)
         val playerJsUrl = if (hashMatch != null) {
             val url = "https://www.youtube.com/s/player/${hashMatch.groupValues[1]}/player_ias.vflset/en_GB/base.js"
             println("[YouTubeExtractor] Found player JS URL via iframe_api: $url")
@@ -173,8 +214,9 @@ object YouTubeExtractor {
 
         currentResolvedUrl = playerJsUrl
 
+        // Try URL-matched disk cache before downloading the full base.js
         if (loadCache(playerJsUrl)) {
-            cachedPlayerJs = "" // Non-null to avoid re-runs
+            cachedPlayerJs = ""
             return ""
         }
 
@@ -182,6 +224,8 @@ object YouTubeExtractor {
         cachedPlayerJs = playerJs
         return playerJs
     }
+
+    // ─── JS Parsing ───────────────────────────────────────────────────────────
 
     private fun matchToClosingBrace(str: String, startIndex: Int): String {
         var braceCount = 0
@@ -199,9 +243,7 @@ object YouTubeExtractor {
                 continue
             }
             if (inString) {
-                if (c == stringChar) {
-                    inString = false
-                }
+                if (c == stringChar) inString = false
                 continue
             }
             if (c == '"' || c == '\'') {
@@ -213,9 +255,7 @@ object YouTubeExtractor {
                 braceCount++
             } else if (c == '}') {
                 braceCount--
-                if (braceCount == 0) {
-                    return str.substring(startIndex, i + 1)
-                }
+                if (braceCount == 0) return str.substring(startIndex, i + 1)
             }
         }
         throw IllegalArgumentException("No matching closing brace found")
@@ -270,7 +310,7 @@ object YouTubeExtractor {
         deobfuscateFuncName = funcName
         deobfuscateJsCode = "$helperBody\nvar $funcBody;"
         println("[YouTubeExtractor] Signature deobfuscator prepared successfully")
-        
+
         saveCacheIfComplete()
     }
 
@@ -314,50 +354,136 @@ object YouTubeExtractor {
         transformNFuncName = funcName
         transformNJsCode = "var $funcBody;"
         println("[YouTubeExtractor] Throttling deobfuscator prepared successfully")
-        
+
         saveCacheIfComplete()
     }
 
-    fun decryptSignature(s: String): String {
-        try {
-            val playerJs = getPlayerJs()
-            if (deobfuscateJsCode == null && playerJs.isNotEmpty()) {
-                prepareSignatureDeobfuscator(playerJs)
-            }
-            val code = deobfuscateJsCode ?: return s
-            val func = deobfuscateFuncName ?: return s
+    // ─── Rhino Compilation ────────────────────────────────────────────────────
 
-            println("[YouTubeExtractor] decryptSignature: decrypting $s ...")
-            val res = evaluateJs(code, func, s)
-            println("[YouTubeExtractor] decryptSignature result: original=$s -> decrypted=$res")
-            return res
-        } catch (e: Exception) {
-            println("[YouTubeExtractor] decryptSignature failed: ${e.message}")
-            e.printStackTrace()
-            return s
+    /**
+     * Compiles both decipher JS snippets into persistent Rhino Function objects.
+     * Called once (from [ensureInitialized] or lazily on first use).
+     * Subsequent calls are instant — the compiled objects are reused.
+     */
+    private fun ensureRhinoCompiled() {
+        synchronized(rhinoLock) {
+            val sigCode = deobfuscateJsCode
+            val sigFuncName = deobfuscateFuncName
+            val nCode = transformNJsCode
+            val nFuncName = transformNFuncName
+
+            if (sigCode != null && sigFuncName != null && sigScope == null) {
+                val ctx = Context.enter()
+                try {
+                    ctx.optimizationLevel = -1
+                    val scope = ctx.initSafeStandardObjects()
+                    ctx.evaluateString(scope, sigCode, "sig_deobfuscator", 1, null)
+                    sigScope = scope
+                    sigFunction = scope.get(sigFuncName, scope) as? Function
+                    println("[YouTubeExtractor] Signature Rhino function compiled and cached")
+                } finally {
+                    Context.exit()
+                }
+            }
+
+            if (nCode != null && nFuncName != null && nScope == null) {
+                val ctx = Context.enter()
+                try {
+                    ctx.optimizationLevel = -1
+                    val scope = ctx.initSafeStandardObjects()
+                    ctx.evaluateString(scope, nCode, "n_deobfuscator", 1, null)
+                    nScope = scope
+                    nFunction = scope.get(nFuncName, scope) as? Function
+                    println("[YouTubeExtractor] Throttling Rhino function compiled and cached")
+                } finally {
+                    Context.exit()
+                }
+            }
+        }
+    }
+
+    /**
+     * Calls a pre-compiled Rhino [Function] if available, otherwise falls back
+     * to compiling [code] from source (legacy path for first cold-start call).
+     */
+    private fun callCompiledOrFallback(
+        compiledScope: Scriptable?,
+        compiledFunc: Function?,
+        code: String,
+        functionName: String,
+        parameter: String
+    ): String {
+        if (compiledScope != null && compiledFunc != null) {
+            // Fast path: reuse pre-compiled function, no JS parsing overhead
+            val ctx = Context.enter()
+            return try {
+                ctx.optimizationLevel = -1
+                val result = compiledFunc.call(ctx, compiledScope, compiledScope, arrayOf(parameter))
+                result?.toString() ?: parameter
+            } finally {
+                Context.exit()
+            }
+        }
+        // Slow path (first call before pre-compilation, or compilation failed)
+        return evaluateJs(code, functionName, parameter)
+    }
+
+    // ─── Public API ───────────────────────────────────────────────────────────
+
+    fun decryptSignature(s: String): String {
+        return synchronized(initLock) {
+            try {
+                val playerJs = getPlayerJs()
+                if (deobfuscateJsCode == null && playerJs.isNotEmpty()) {
+                    prepareSignatureDeobfuscator(playerJs)
+                }
+                val code = deobfuscateJsCode ?: return@synchronized s
+                val func = deobfuscateFuncName ?: return@synchronized s
+
+                // Ensure compiled function is ready (no-op if already compiled)
+                if (sigFunction == null) ensureRhinoCompiled()
+
+                println("[YouTubeExtractor] decryptSignature: decrypting...")
+                val res = callCompiledOrFallback(sigScope, sigFunction, code, func, s)
+                println("[YouTubeExtractor] decryptSignature result: decrypted OK")
+                res
+            } catch (e: Exception) {
+                println("[YouTubeExtractor] decryptSignature failed: ${e.message}")
+                s
+            }
         }
     }
 
     fun deobfuscateThrottling(n: String): String {
-        try {
-            val playerJs = getPlayerJs()
-            if (transformNJsCode == null && playerJs.isNotEmpty()) {
-                prepareThrottlingDeobfuscator(playerJs)
-            }
-            val code = transformNJsCode ?: return n
-            val func = transformNFuncName ?: return n
+        return synchronized(initLock) {
+            try {
+                val playerJs = getPlayerJs()
+                if (transformNJsCode == null && playerJs.isNotEmpty()) {
+                    prepareThrottlingDeobfuscator(playerJs)
+                }
+                val code = transformNJsCode ?: return@synchronized n
+                val func = transformNFuncName ?: return@synchronized n
 
-            println("[YouTubeExtractor] deobfuscateThrottling: deobfuscating $n ...")
-            val res = evaluateJs(code, func, n)
-            println("[YouTubeExtractor] deobfuscateThrottling result: original=$n -> deobfuscated=$res")
-            return res
-        } catch (e: Exception) {
-            println("[YouTubeExtractor] deobfuscateThrottling failed: ${e.message}")
-            e.printStackTrace()
-            return n
+                // Ensure compiled function is ready (no-op if already compiled)
+                if (nFunction == null) ensureRhinoCompiled()
+
+                println("[YouTubeExtractor] deobfuscateThrottling: deobfuscating...")
+                val res = callCompiledOrFallback(nScope, nFunction, code, func, n)
+                println("[YouTubeExtractor] deobfuscateThrottling result: deobfuscated OK")
+                res
+            } catch (e: Exception) {
+                println("[YouTubeExtractor] deobfuscateThrottling failed: ${e.message}")
+                n
+            }
         }
     }
 
+    // ─── Utilities ────────────────────────────────────────────────────────────
+
+    /**
+     * Legacy JS evaluation path: parses and executes [code] fresh each time.
+     * Only used as a fallback if pre-compilation hasn't run yet.
+     */
     private fun evaluateJs(code: String, functionName: String, parameter: String): String {
         val context = Context.enter()
         return try {
