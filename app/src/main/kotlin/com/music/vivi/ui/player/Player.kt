@@ -61,6 +61,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -2610,6 +2611,25 @@ fun BottomSheetPlayer(
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
                         Spacer(Modifier.weight(1f))
+
+                        // On tablets, the compact controls row (56dp thumbnail) looks
+                        // too small next to the lyrics panel, so show a large album art
+                        // thumbnail above it instead.
+                        val isTabletScreen = LocalConfiguration.current.screenWidthDp >= 600
+                        if (isTabletScreen && showInlineLyrics) {
+                            mediaMetadata?.let {
+                                AsyncImage(
+                                    model = it.thumbnailUrl,
+                                    contentDescription = null,
+                                    contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.7f)
+                                        .aspectRatio(1f)
+                                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                )
+                                Spacer(Modifier.height(24.dp))
+                            }
+                        }
 
                         mediaMetadata?.let {
                             controlsContent(it)
