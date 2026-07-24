@@ -1333,7 +1333,7 @@ fun BottomSheetPlayer(
         // (see the ORIENTATION_LANDSCAPE branch below) - used to hide the redundant small
         // thumbnail that normally sits next to the title in the compact controls row.
         val isTabletLandscapeWithBigThumbnail = LocalConfiguration.current.let {
-            it.screenWidthDp >= 600 &&
+            it.smallestScreenWidthDp >= 600 &&
                 it.orientation == Configuration.ORIENTATION_LANDSCAPE &&
                 showInlineLyrics
         }
