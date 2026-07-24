@@ -55,6 +55,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -113,6 +114,7 @@ import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.constants.SmallGridThumbnailHeight
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadius
@@ -160,13 +162,18 @@ inline fun ListItem(
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
 ) {
+    val isPureBlack by rememberPreference(PureBlackKey, false)
     val containerColor = if (backgroundColor != Color.Unspecified) {
         backgroundColor
     } else {
-        when {
-            isActive -> MaterialTheme.colorScheme.secondaryContainer
-            isSelected == true && drawHighlight -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
-            else -> MaterialTheme.colorScheme.surfaceContainer
+        if (isPureBlack) {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        } else {
+            when {
+                isActive -> MaterialTheme.colorScheme.secondaryContainer
+                isSelected == true && drawHighlight -> MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                else -> MaterialTheme.colorScheme.surfaceContainer
+            }
         }
     }
     Row(
@@ -179,7 +186,7 @@ inline fun ListItem(
             .background(color = containerColor)
     ) {
         Box(
-            modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
+            modifier = Modifier.fillMaxHeight().padding(start = 12.dp, top = 12.dp, end = 6.dp, bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             thumbnailContent()
@@ -1425,7 +1432,7 @@ fun ItemThumbnail(
         if (albumIndex == null) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(thumbnailUrl?.resize(544, 544))
+                    .data(thumbnailUrl?:"") //.resize(544, 544)) This caused black framing in video thumbnails
                     .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .networkCachePolicy(coil3.request.CachePolicy.ENABLED)

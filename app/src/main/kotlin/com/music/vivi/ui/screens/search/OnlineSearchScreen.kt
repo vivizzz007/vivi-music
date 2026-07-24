@@ -70,13 +70,15 @@ import com.music.vivi.ui.component.YouTubeListItem
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.getGroupedShape
 import androidx.compose.material3.Surface
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
-import com.music.innertube.utils.YouTubeUrlParser
+import com.music.innertube.utils.YouTubeUrlParser 
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
@@ -367,6 +369,10 @@ fun SuggestionItem(
     onFillTextField: () -> Unit,
     pureBlack: Boolean
 ) {
+    val background = when {
+        pureBlack -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        else -> MaterialTheme.colorScheme.surfaceContainerHigh
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -374,7 +380,7 @@ fun SuggestionItem(
             .fillMaxWidth()
             .height(SuggestionItemHeight)
             .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .background(background)
             .clickable(onClick = onClick)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal)),
     ) {

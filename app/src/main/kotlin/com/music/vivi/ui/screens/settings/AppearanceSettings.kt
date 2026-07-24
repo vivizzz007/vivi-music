@@ -174,6 +174,7 @@ fun AppearanceSettings(
         SelectedThemeColorKey,
         defaultValue = DefaultThemeColor.toArgb()
     )
+
     // Check if user has selected a custom color (not the default/dynamic color)
     val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
     val coroutineScope = rememberCoroutineScope()
