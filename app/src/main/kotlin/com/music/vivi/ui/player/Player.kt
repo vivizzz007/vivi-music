@@ -61,6 +61,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -78,6 +79,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ProvideTextStyle
@@ -87,6 +89,7 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -171,12 +174,15 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
+import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.QueuePeekHeight
+import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
 import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
@@ -1323,6 +1329,15 @@ fun BottomSheetPlayer(
             )
         },
     ) {
+        // True when we're showing the large tablet-landscape thumbnail above the controls
+        // (see the ORIENTATION_LANDSCAPE branch below) - used to hide the redundant small
+        // thumbnail that normally sits next to the title in the compact controls row.
+        val isTabletLandscapeWithBigThumbnail = LocalConfiguration.current.let {
+            it.smallestScreenWidthDp >= 600 &&
+                it.orientation == Configuration.ORIENTATION_LANDSCAPE &&
+                showInlineLyrics
+        }
+
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
@@ -1342,7 +1357,7 @@ fun BottomSheetPlayer(
                     targetState = showInlineLyrics,
                     label = "ThumbnailAnimation"
                 ) { showLyrics ->
-                    if (showLyrics) {
+                    if (showLyrics && !isTabletLandscapeWithBigThumbnail) {
                         Row {
                             if (hidePlayerThumbnail) {
                                 Box(
@@ -1929,44 +1944,46 @@ fun BottomSheetPlayer(
                         label = "trackHeight"
                     )
 
-                    Slider(
-                        value = (sliderPosition ?: effectivePosition).toFloat(),
-                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                        onValueChange = {
-                            if (!isListenTogetherGuest) {
-                                sliderPosition = it.toLong()
-                            }
-                        },
-                        onValueChangeFinished = {
-                            if (!isListenTogetherGuest) {
-                                sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
-                                    }
-                                    position = it
+                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+                        Slider(
+                            value = (sliderPosition ?: effectivePosition).toFloat(),
+                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                            onValueChange = {
+                                if (!isListenTogetherGuest) {
+                                    sliderPosition = it.toLong()
                                 }
-                                sliderPosition = null
-                            }
-                        },
-                        enabled = !isListenTogetherGuest,
-                        interactionSource = trackInteractionSource,
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                trackHeight = trackHeight,
-                                colors = PlayerSliderColors.getSliderColors(
-                                    activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
-                                    playerBackground = playerBackground,
-                                    useDarkTheme = useDarkTheme
+                            },
+                            onValueChangeFinished = {
+                                if (!isListenTogetherGuest) {
+                                    sliderPosition?.let {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
+                                    }
+                                    sliderPosition = null
+                                }
+                            },
+                            enabled = !isListenTogetherGuest,
+                            interactionSource = trackInteractionSource,
+                            thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                            track = { sliderState ->
+                                PlayerSliderTrack(
+                                    sliderState = sliderState,
+                                    trackHeight = trackHeight,
+                                    colors = PlayerSliderColors.getSliderColors(
+                                        activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
+                                        playerBackground = playerBackground,
+                                        useDarkTheme = useDarkTheme
+                                    )
                                 )
-                            )
-                        },
-                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
-                    )
+                            },
+                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                        )
+                    }
                 }
             }
 
@@ -2606,6 +2623,47 @@ fun BottomSheetPlayer(
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
                         Spacer(Modifier.weight(1f))
+
+                        // On tablets, the compact controls row (56dp thumbnail) looks
+                        // too small next to the lyrics panel, so show a large album art
+                        // thumbnail above it instead - styled the same way (corner radius,
+                        // shadow) as the regular non-lyrics thumbnail.
+                        val isTabletScreen = isTabletLandscapeWithBigThumbnail
+                        if (isTabletScreen) {
+                            val bigThumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
+                            val showBigThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
+                            val bigThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
+                            val bigThumbnailShape = RoundedCornerShape(bigThumbnailCornerRadius.dp * 2)
+
+                            mediaMetadata?.let {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.7f)
+                                        .aspectRatio(1f)
+                                        .then(
+                                            if (showBigThumbnailShadow) {
+                                                Modifier.customSoftShadow(
+                                                    elevation = bigThumbnailShadowElevation.dp,
+                                                    cornerRadius = bigThumbnailCornerRadius.dp * 2,
+                                                    enabled = true
+                                                )
+                                            } else {
+                                                Modifier
+                                            }
+                                        )
+                                ) {
+                                    AsyncImage(
+                                        model = it.thumbnailUrl,
+                                        contentDescription = null,
+                                        contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(bigThumbnailShape)
+                                    )
+                                }
+                                Spacer(Modifier.height(24.dp))
+                            }
+                        }
 
                         mediaMetadata?.let {
                             controlsContent(it)
