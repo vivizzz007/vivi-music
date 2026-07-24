@@ -169,6 +169,9 @@
     <string name="album_settings">Album Settings</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
+    <string name="ambient_fade">Ambient Fade</string>
+    <string name="follow_color_theme">Follow color theme</string>
+    <string name="follow_color_theme_desc">Adapt player background based on light/dark mode</string>
     <string name="player_buttons_style">Player button colors</string>
     <string name="default_style">Default</string>
     <string name="primary_color_style">Primary color</string>
