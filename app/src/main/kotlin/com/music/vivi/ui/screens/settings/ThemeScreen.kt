@@ -195,6 +195,7 @@ fun PortraitThemeLayout(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
