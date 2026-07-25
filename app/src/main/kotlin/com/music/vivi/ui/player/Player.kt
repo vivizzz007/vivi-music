@@ -232,6 +232,7 @@ import android.view.TextureView
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -2618,7 +2619,14 @@ fun BottomSheetPlayer(
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .weight(if (showInlineLyrics) 0.65f else 1f, false)
+                            .weight(
+                                when {
+                                    isTabletLandscapeWithBigThumbnail -> 0.9f
+                                    showInlineLyrics -> 0.65f
+                                    else -> 1f
+                                },
+                                false
+                            )
                             .animateContentSize()
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
@@ -2665,8 +2673,23 @@ fun BottomSheetPlayer(
                             }
                         }
 
-                        mediaMetadata?.let {
-                            controlsContent(it)
+                        if (isTabletScreen) {
+                            val baseDensity = LocalDensity.current
+                            val controlsScale = 1.35f
+                            CompositionLocalProvider(
+                                LocalDensity provides Density(
+                                    density = baseDensity.density * controlsScale,
+                                    fontScale = baseDensity.fontScale
+                                )
+                            ) {
+                                mediaMetadata?.let {
+                                    controlsContent(it)
+                                }
+                            }
+                        } else {
+                            mediaMetadata?.let {
+                                controlsContent(it)
+                            }
                         }
 
                         Spacer(Modifier.weight(1f))
