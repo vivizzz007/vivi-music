@@ -61,7 +61,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -174,15 +173,12 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
-import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.QueuePeekHeight
-import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
 import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
-import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
@@ -1329,15 +1325,6 @@ fun BottomSheetPlayer(
             )
         },
     ) {
-        // True when we're showing the large tablet-landscape thumbnail above the controls
-        // (see the ORIENTATION_LANDSCAPE branch below) - used to hide the redundant small
-        // thumbnail that normally sits next to the title in the compact controls row.
-        val isTabletLandscapeWithBigThumbnail = LocalConfiguration.current.let {
-            it.smallestScreenWidthDp >= 600 &&
-                it.orientation == Configuration.ORIENTATION_LANDSCAPE &&
-                showInlineLyrics
-        }
-
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
@@ -1357,7 +1344,7 @@ fun BottomSheetPlayer(
                     targetState = showInlineLyrics,
                     label = "ThumbnailAnimation"
                 ) { showLyrics ->
-                    if (showLyrics && !isTabletLandscapeWithBigThumbnail) {
+                    if (showLyrics) {
                         Row {
                             if (hidePlayerThumbnail) {
                                 Box(
@@ -2623,47 +2610,6 @@ fun BottomSheetPlayer(
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
                         Spacer(Modifier.weight(1f))
-
-                        // On tablets, the compact controls row (56dp thumbnail) looks
-                        // too small next to the lyrics panel, so show a large album art
-                        // thumbnail above it instead - styled the same way (corner radius,
-                        // shadow) as the regular non-lyrics thumbnail.
-                        val isTabletScreen = isTabletLandscapeWithBigThumbnail
-                        if (isTabletScreen) {
-                            val bigThumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
-                            val showBigThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
-                            val bigThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
-                            val bigThumbnailShape = RoundedCornerShape(bigThumbnailCornerRadius.dp * 2)
-
-                            mediaMetadata?.let {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.7f)
-                                        .aspectRatio(1f)
-                                        .then(
-                                            if (showBigThumbnailShadow) {
-                                                Modifier.customSoftShadow(
-                                                    elevation = bigThumbnailShadowElevation.dp,
-                                                    cornerRadius = bigThumbnailCornerRadius.dp * 2,
-                                                    enabled = true
-                                                )
-                                            } else {
-                                                Modifier
-                                            }
-                                        )
-                                ) {
-                                    AsyncImage(
-                                        model = it.thumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(bigThumbnailShape)
-                                    )
-                                }
-                                Spacer(Modifier.height(24.dp))
-                            }
-                        }
 
                         mediaMetadata?.let {
                             controlsContent(it)
