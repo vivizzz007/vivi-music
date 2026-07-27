@@ -96,6 +96,7 @@ val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
 
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
+val UseWordSyncPriorityFetchKey = booleanPreferencesKey("useWordSyncPriorityFetch")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val HideVideoSongsKey = booleanPreferencesKey("hideVideoSongs")
 val HideYoutubeShortsKey = booleanPreferencesKey("hideYoutubeShorts")
