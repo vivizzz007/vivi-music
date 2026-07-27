@@ -701,7 +701,7 @@ interface DatabaseDao {
     )
     fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
 
-    fun artists(sortType: ArtistSortType, descending: Boolean) =
+    fun artists(sortType: ArtistSortType, descending: Boolean, sourceFilter: com.music.vivi.constants.ArtistSourceFilter = com.music.vivi.constants.ArtistSourceFilter.ALL) =
         when (sortType) {
             ArtistSortType.CREATE_DATE -> artistsByCreateDateAsc()
             ArtistSortType.NAME -> artistsByNameAsc()
@@ -709,11 +709,17 @@ interface DatabaseDao {
             ArtistSortType.PLAY_TIME -> artistsByPlayTimeAsc()
         }.map { artists ->
             artists
-                .filter { it.artist.isYouTubeArtist || it.artist.isLocal } // TODO: add ui to filter by local or remote or something idk
+                .filter {
+                    when (sourceFilter) {
+                        com.music.vivi.constants.ArtistSourceFilter.ALL -> it.artist.isYouTubeArtist || it.artist.isLocal
+                        com.music.vivi.constants.ArtistSourceFilter.LOCAL -> it.artist.isLocal
+                        com.music.vivi.constants.ArtistSourceFilter.YOUTUBE -> it.artist.isYouTubeArtist
+                    }
+                }
                 .reversed(descending)
         }
 
-    fun artistsBookmarked(sortType: ArtistSortType, descending: Boolean) =
+    fun artistsBookmarked(sortType: ArtistSortType, descending: Boolean, sourceFilter: com.music.vivi.constants.ArtistSourceFilter = com.music.vivi.constants.ArtistSourceFilter.ALL) =
         when (sortType) {
             ArtistSortType.CREATE_DATE -> artistsBookmarkedByCreateDateAsc()
             ArtistSortType.NAME -> artistsBookmarkedByNameAsc()
@@ -721,7 +727,13 @@ interface DatabaseDao {
             ArtistSortType.PLAY_TIME -> artistsBookmarkedByPlayTimeAsc()
         }.map { artists ->
             artists
-                .filter { it.artist.isYouTubeArtist || it.artist.isLocal } // TODO: add ui to filter by local or remote or something idk
+                .filter {
+                    when (sourceFilter) {
+                        com.music.vivi.constants.ArtistSourceFilter.ALL -> it.artist.isYouTubeArtist || it.artist.isLocal
+                        com.music.vivi.constants.ArtistSourceFilter.LOCAL -> it.artist.isLocal
+                        com.music.vivi.constants.ArtistSourceFilter.YOUTUBE -> it.artist.isYouTubeArtist
+                    }
+                }
                 .reversed(descending)
         }
 
