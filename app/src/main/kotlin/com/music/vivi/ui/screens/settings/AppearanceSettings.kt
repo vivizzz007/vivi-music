@@ -137,6 +137,8 @@ import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.constants.ShowCommentButtonKey
+import com.music.vivi.constants.LyricsAutoFullscreenKey
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -269,6 +271,7 @@ fun AppearanceSettings(
     val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
     val (swipeLyrics, onSwipeLyricsChange) = rememberPreference(SwipeLyricsKey, defaultValue = false)
     val (enableLyricsThumbnailPlayPause, onEnableLyricsThumbnailPlayPauseChange) = rememberPreference(EnableLyricsThumbnailPlayPauseKey, defaultValue = false)
+    val (lyricsAutoFullscreen, onLyricsAutoFullscreenChange) = rememberPreference(LyricsAutoFullscreenKey, defaultValue = false)
 
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(
         SliderStyleKey,
@@ -1489,6 +1492,29 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onRotatingThumbnailChange(!rotatingThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.fullscreen),
+                    title = { Text(stringResource(R.string.lyrics_auto_fullscreen)) },
+                    description = { Text(stringResource(R.string.lyrics_auto_fullscreen_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsAutoFullscreen,
+                            onCheckedChange = onLyricsAutoFullscreenChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsAutoFullscreen) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsAutoFullscreenChange(!lyricsAutoFullscreen) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),
