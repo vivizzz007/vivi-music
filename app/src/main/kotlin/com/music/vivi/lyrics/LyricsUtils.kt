@@ -344,6 +344,22 @@ object LyricsUtils {
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
 
+    fun getSyncTier(lyrics: String): Int {
+        if (lyrics.isBlank()) return 0
+        val parsed = try {
+            parseLyrics(lyrics)
+        } catch (e: Exception) {
+            emptyList()
+        }
+        if (parsed.isEmpty()) return 0 // no [mm:ss.xx] tags matched -> plain text
+        val hasWordTimings = parsed.any { !it.words.isNullOrEmpty() }
+        return if (hasWordTimings) TIER_WORD_SYNC else TIER_LINE_SYNC
+    }
+
+    const val TIER_PLAIN = 0
+    const val TIER_LINE_SYNC = 1
+    const val TIER_WORD_SYNC = 2
+
     fun parseLyrics(lyrics: String): List<LyricsEntry> {
         // Unescape JSON string if needed
         val unescapedLyrics = lyrics
