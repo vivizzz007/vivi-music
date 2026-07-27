@@ -61,7 +61,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -79,7 +78,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ProvideTextStyle
@@ -89,7 +87,6 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -124,6 +121,8 @@ import coil3.size.Size as CoilSize
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -144,6 +143,8 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.hazeEffect
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -167,6 +168,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -174,15 +176,12 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
 import com.music.vivi.constants.PlayerButtonsStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
-import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.QueuePeekHeight
-import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.SliderStyle
 import com.music.vivi.constants.SliderStyleKey
 import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
-import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
@@ -780,6 +779,32 @@ fun BottomSheetPlayer(
         mutableStateOf(false)
     }
 
+    val hideStatusBarInPlayer by rememberPreference(HideStatusBarInPlayerKey, defaultValue = false)
+    val shouldHideStatusBar = isFullScreen &&
+        hideStatusBarInPlayer &&
+        (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC || showInlineLyrics)
+
+    DisposableEffect(shouldHideStatusBar) {
+        val window = (context as? android.app.Activity)?.window
+        if (window != null) {
+            val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+            if (shouldHideStatusBar) {
+                insetsController.systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsController.hide(WindowInsetsCompat.Type.statusBars())
+            } else {
+                insetsController.show(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+
+        onDispose {
+            if (window != null) {
+                val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+                insetsController.show(WindowInsetsCompat.Type.statusBars())
+            }
+        }
+    }
+
     // Position update - only for local playback
     // When casting, we use castPosition directly to avoid sync issues
     // Use isPlaying instead of playbackState to ensure continuous updates during playback
@@ -836,6 +861,12 @@ fun BottomSheetPlayer(
     }
 
     val backgroundAlpha = state.progress.coerceIn(0f, 1f)
+
+    // Shared between the background (Apple Music style) and the content below:
+    // tracks the y-position (in px, root-relative) where the title/controls area
+    // begins, so the background can show the clear thumbnail only above that point
+    // and start blurring from there down, instead of a fixed screen-fraction guess.
+    var controlsTopYPx by remember { mutableStateOf<Float?>(null) }
 
     BottomSheet(
         state = state,
@@ -1108,18 +1139,32 @@ fun BottomSheetPlayer(
                                             .blur(150.dp)
                                     )
 
-                                    // Layer 2: Clear Artwork (Limited to top 60% of screen)
+                                    // Layer 2: Clear Artwork
+                                    // Shown only down to where the title/controls area begins
+                                    // (measured live via controlsTopYPx); the blur takes over
+                                    // from there down through the player name and controls.
                                     // Fades out when lyrics are shown to provide a full-screen blur
                                     val clearArtworkAlpha by animateFloatAsState(
                                         targetValue = if (showInlineLyrics) 0f else 1f,
                                         animationSpec = tween(500),
                                         label = "clearArtworkAlpha"
                                     )
-                                    
+
+                                    val density = LocalDensity.current
+                                    val maxClearHeight = LocalConfiguration.current.screenHeightDp.dp
+                                    val clearArtworkHeight by animateDpAsState(
+                                        targetValue = controlsTopYPx
+                                            ?.let { with(density) { it.toDp() } }
+                                            ?.coerceIn(0.dp, maxClearHeight)
+                                            ?: (maxClearHeight * 0.5f),
+                                        animationSpec = tween(300),
+                                        label = "clearArtworkHeight"
+                                    )
+
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .fillMaxHeight(0.65f) // Occupies top 65%
+                                            .height(clearArtworkHeight)
                                             .alpha(clearArtworkAlpha)
                                             .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                                             .drawWithContent {
@@ -1329,15 +1374,6 @@ fun BottomSheetPlayer(
             )
         },
     ) {
-        // True when we're showing the large tablet-landscape thumbnail above the controls
-        // (see the ORIENTATION_LANDSCAPE branch below) - used to hide the redundant small
-        // thumbnail that normally sits next to the title in the compact controls row.
-        val isTabletLandscapeWithBigThumbnail = LocalConfiguration.current.let {
-            it.smallestScreenWidthDp >= 600 &&
-                it.orientation == Configuration.ORIENTATION_LANDSCAPE &&
-                showInlineLyrics
-        }
-
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
@@ -1351,13 +1387,18 @@ fun BottomSheetPlayer(
                 modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = PlayerHorizontalPadding),
+                    .padding(horizontal = PlayerHorizontalPadding)
+                    .onGloballyPositioned { coordinates ->
+                        if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                            controlsTopYPx = coordinates.positionInRoot().y
+                        }
+                    },
             ) {
                 AnimatedContent(
                     targetState = showInlineLyrics,
                     label = "ThumbnailAnimation"
                 ) { showLyrics ->
-                    if (showLyrics && !isTabletLandscapeWithBigThumbnail) {
+                    if (showLyrics) {
                         Row {
                             if (hidePlayerThumbnail) {
                                 Box(
@@ -1944,46 +1985,44 @@ fun BottomSheetPlayer(
                         label = "trackHeight"
                     )
 
-                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
-                        Slider(
-                            value = (sliderPosition ?: effectivePosition).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                            onValueChange = {
-                                if (!isListenTogetherGuest) {
-                                    sliderPosition = it.toLong()
-                                }
-                            },
-                            onValueChangeFinished = {
-                                if (!isListenTogetherGuest) {
-                                    sliderPosition?.let {
-                                        if (isCasting) {
-                                            castHandler?.seekTo(it)
-                                            lastManualSeekTime = System.currentTimeMillis()
-                                        } else {
-                                            playerConnection.player.seekTo(it)
-                                        }
-                                        position = it
+                    Slider(
+                        value = (sliderPosition ?: effectivePosition).toFloat(),
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        onValueChange = {
+                            if (!isListenTogetherGuest) {
+                                sliderPosition = it.toLong()
+                            }
+                        },
+                        onValueChangeFinished = {
+                            if (!isListenTogetherGuest) {
+                                sliderPosition?.let {
+                                    if (isCasting) {
+                                        castHandler?.seekTo(it)
+                                        lastManualSeekTime = System.currentTimeMillis()
+                                    } else {
+                                        playerConnection.player.seekTo(it)
                                     }
-                                    sliderPosition = null
+                                    position = it
                                 }
-                            },
-                            enabled = !isListenTogetherGuest,
-                            interactionSource = trackInteractionSource,
-                            thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                            track = { sliderState ->
-                                PlayerSliderTrack(
-                                    sliderState = sliderState,
-                                    trackHeight = trackHeight,
-                                    colors = PlayerSliderColors.getSliderColors(
-                                        activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
-                                        playerBackground = playerBackground,
-                                        useDarkTheme = useDarkTheme
-                                    )
+                                sliderPosition = null
+                            }
+                        },
+                        enabled = !isListenTogetherGuest,
+                        interactionSource = trackInteractionSource,
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                trackHeight = trackHeight,
+                                colors = PlayerSliderColors.getSliderColors(
+                                    activeColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f),
+                                    playerBackground = playerBackground,
+                                    useDarkTheme = useDarkTheme
                                 )
-                            },
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
-                        )
-                    }
+                            )
+                        },
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                    )
                 }
             }
 
@@ -2623,47 +2662,6 @@ fun BottomSheetPlayer(
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
                         Spacer(Modifier.weight(1f))
-
-                        // On tablets, the compact controls row (56dp thumbnail) looks
-                        // too small next to the lyrics panel, so show a large album art
-                        // thumbnail above it instead - styled the same way (corner radius,
-                        // shadow) as the regular non-lyrics thumbnail.
-                        val isTabletScreen = isTabletLandscapeWithBigThumbnail
-                        if (isTabletScreen) {
-                            val bigThumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
-                            val showBigThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
-                            val bigThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
-                            val bigThumbnailShape = RoundedCornerShape(bigThumbnailCornerRadius.dp * 2)
-
-                            mediaMetadata?.let {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.7f)
-                                        .aspectRatio(1f)
-                                        .then(
-                                            if (showBigThumbnailShadow) {
-                                                Modifier.customSoftShadow(
-                                                    elevation = bigThumbnailShadowElevation.dp,
-                                                    cornerRadius = bigThumbnailCornerRadius.dp * 2,
-                                                    enabled = true
-                                                )
-                                            } else {
-                                                Modifier
-                                            }
-                                        )
-                                ) {
-                                    AsyncImage(
-                                        model = it.thumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(bigThumbnailShape)
-                                    )
-                                }
-                                Spacer(Modifier.height(24.dp))
-                            }
-                        }
 
                         mediaMetadata?.let {
                             controlsContent(it)
