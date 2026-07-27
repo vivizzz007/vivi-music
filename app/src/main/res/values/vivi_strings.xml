@@ -959,6 +959,8 @@
     <string name="no_playback_logs">No playback events recorded yet</string>
     <string name="show_comment_button">Show comment button</string>
     <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
+    <string name="use_word_sync_priority_fetch">Word-by-word priority fetching</string>
+    <string name="use_word_sync_priority_fetch_desc">Prioritize providers that offer word-synced lyrics timing</string>
     <string name="build_stable">STABLE</string>
     <string name="build_nightly">NIGHTLY</string>
     <string name="jiosaavn_settings">JioSaavn Settings</string>
