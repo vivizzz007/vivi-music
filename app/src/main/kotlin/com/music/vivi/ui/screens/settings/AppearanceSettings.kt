@@ -74,6 +74,7 @@ import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.LibraryFilter
@@ -220,6 +221,10 @@ fun AppearanceSettings(
     )
     val (showPlayerThumbnailShadow, onShowPlayerThumbnailShadowChange) = rememberPreference(
         ShowPlayerThumbnailShadowKey,
+        defaultValue = false
+    )
+    val (hideStatusBarInPlayer, onHideStatusBarInPlayerChange) = rememberPreference(
+        HideStatusBarInPlayerKey,
         defaultValue = false
     )
     val (playerThumbnailShadowElevation, onPlayerThumbnailShadowElevationChange) = rememberPreference(
@@ -1306,6 +1311,29 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onHidePlayerThumbnailChange(!hidePlayerThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.fullscreen),
+                    title = { Text(stringResource(R.string.hide_status_bar_in_player)) },
+                    description = { Text(stringResource(R.string.hide_status_bar_in_player_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = hideStatusBarInPlayer,
+                            onCheckedChange = onHideStatusBarInPlayerChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (hideStatusBarInPlayer) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onHideStatusBarInPlayerChange(!hideStatusBarInPlayer) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),
