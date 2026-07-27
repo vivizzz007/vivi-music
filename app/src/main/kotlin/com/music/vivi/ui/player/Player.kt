@@ -165,6 +165,7 @@ import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
+import com.music.vivi.constants.LyricsAutoFullscreenKey
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -298,6 +299,7 @@ fun BottomSheetPlayer(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val swipeLyrics by rememberPreference(SwipeLyricsKey, false)
     val enableLyricsThumbnailPlayPause by rememberPreference(EnableLyricsThumbnailPlayPauseKey, false)
+    val lyricsAutoFullscreen by rememberPreference(LyricsAutoFullscreenKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val keepScreenOn = isPlaying && isKeepScreenOn
 
@@ -772,6 +774,13 @@ fun BottomSheetPlayer(
 
     var isFullScreen by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(showInlineLyrics, isFullScreen, lyricsAutoFullscreen, mediaMetadata?.id) {
+        if (lyricsAutoFullscreen && showInlineLyrics && !isFullScreen) {
+            delay(7_000L)
+            isFullScreen = true
+        }
     }
 
     // Position update - only for local playback
