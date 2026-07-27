@@ -100,6 +100,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -146,6 +147,7 @@ import androidx.compose.runtime.produceState
 import android.content.IntentFilter
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.media.AudioManager
 import android.bluetooth.BluetoothDevice
@@ -323,13 +325,27 @@ fun Queue(
             Box(Modifier.fillMaxSize().background(Color.Unspecified))
         },
         collapsedContent = {
+            // In landscape (two-column player: thumbnail/lyrics on the left, controls
+            // on the right), keep this bar under the right column / volume bar instead
+            // of spanning the whole screen edge-to-edge.
+            val isLandscapeQueueBar = LocalConfiguration.current.orientation ==
+                Configuration.ORIENTATION_LANDSCAPE
+
             if (useNewPlayerDesign) {
                 // New design
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .then(
+                            if (isLandscapeQueueBar) {
+                                Modifier
+                                    .fillMaxWidth(0.45f)
+                                    .align(Alignment.BottomEnd)
+                            } else {
+                                Modifier.fillMaxWidth()
+                            }
+                        )
                         .padding(horizontal = 30.dp, vertical = 12.dp)
                         .windowInsetsPadding(
                             WindowInsets.systemBars.only(
@@ -491,7 +507,15 @@ fun Queue(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .then(
+                            if (isLandscapeQueueBar) {
+                                Modifier
+                                    .fillMaxWidth(0.45f)
+                                    .align(Alignment.BottomEnd)
+                            } else {
+                                Modifier.fillMaxWidth()
+                            }
+                        )
                         .padding(horizontal = 30.dp, vertical = 12.dp)
                         .windowInsetsPadding(
                             WindowInsets.systemBars
