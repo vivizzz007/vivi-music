@@ -115,6 +115,8 @@ import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.ui.component.PlaybackLogsDialog
 import androidx.compose.runtime.collectAsState
 import java.net.Proxy
+import com.music.vivi.constants.UseWordSyncPriorityFetchKey
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,6 +154,10 @@ fun ContentSettings(
     val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
+    val (useWordSyncPriorityFetch, onUseWordSyncPriorityFetchChange) = rememberPreference(
+        key = UseWordSyncPriorityFetchKey,
+        defaultValue = true,
+    )
     val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(
         key = LyricsProviderOrderKey,
         defaultValue = "",
@@ -1114,6 +1120,29 @@ fun ContentSettings(
                     title = { Text(stringResource(R.string.lyrics_provider_priority)) },
                     description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
                     onClick = { showProviderPriorityDialog = true },
+                    isExpressive = true,
+                    descriptionBelow = true	
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.use_word_sync_priority_fetch)) },
+                    description = { Text(stringResource(R.string.use_word_sync_priority_fetch_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = useWordSyncPriorityFetch,
+                            onCheckedChange = onUseWordSyncPriorityFetchChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (useWordSyncPriorityFetch) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onUseWordSyncPriorityFetchChange(!useWordSyncPriorityFetch) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),
