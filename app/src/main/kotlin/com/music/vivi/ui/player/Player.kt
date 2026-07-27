@@ -786,10 +786,11 @@ fun BottomSheetPlayer(
     }
 
     val hideStatusBarInPlayer by rememberPreference(HideStatusBarInPlayerKey, defaultValue = false)
-    val shouldHideSystemBars = hideStatusBarInPlayer &&
+    val shouldHideSystemBars = state.isExpanded &&
+        hideStatusBarInPlayer &&
         (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC || (isFullScreen && showInlineLyrics))
 
-    DisposableEffect(shouldHideSystemBars) {
+    DisposableEffect(shouldHideSystemBars, state.isExpanded) {
         val window = (context as? android.app.Activity)?.window
         if (window != null) {
             val insetsController = WindowCompat.getInsetsController(window, window.decorView)
@@ -872,6 +873,12 @@ fun BottomSheetPlayer(
     // begins, so the background can show the clear thumbnail only above that point
     // and start blurring from there down, instead of a fixed screen-fraction guess.
     var controlsTopYPx by remember { mutableStateOf<Float?>(null) }
+
+    // Same idea, but for landscape: tracks the x-position where the right-hand
+    // controls column begins, so the background can show the clear thumbnail only
+    // to the left of that point and blur everything from there to the right
+    // (behind the title/seekbar/buttons), instead of a fixed 50/50 guess.
+    var controlsLeftXPx by remember { mutableStateOf<Float?>(null) }
 
     BottomSheet(
         state = state,
@@ -1145,16 +1152,76 @@ fun BottomSheetPlayer(
                                     )
 
                                     // Layer 2: Clear Artwork
-                                    // Shown only down to where the title/controls area begins
-                                    // (measured live via controlsTopYPx); the blur takes over
-                                    // from there down through the player name and controls.
-                                    // Fades out when lyrics are shown to provide a full-screen blur
+                                    // Portrait: shown down to where the title/controls area
+                                    // begins (measured live via controlsTopYPx); blur takes
+                                    // over from there down through the player name/controls.
+                                    // Landscape: shown on the left (matching the left
+                                    // thumbnail/lyrics column's width) with blur on the right,
+                                    // behind the title/seekbar/controls column.
+                                    // Fades out entirely when lyrics are shown, for a full blur.
                                     val clearArtworkAlpha by animateFloatAsState(
                                         targetValue = if (showInlineLyrics) 0f else 1f,
                                         animationSpec = tween(500),
                                         label = "clearArtworkAlpha"
                                     )
 
+                                    val isLandscapeBackground = LocalConfiguration.current.orientation ==
+                                        Configuration.ORIENTATION_LANDSCAPE
+
+                                    if (isLandscapeBackground) {
+                                        val density = LocalDensity.current
+                                        val maxClearWidth = LocalConfiguration.current.screenWidthDp.dp
+                                        val clearArtworkWidth by animateDpAsState(
+                                            targetValue = controlsLeftXPx
+                                                ?.let { with(density) { it.toDp() } }
+                                                ?.coerceIn(0.dp, maxClearWidth)
+                                                ?: (maxClearWidth * 0.5f),
+                                            animationSpec = tween(300),
+                                            label = "clearArtworkWidth"
+                                        )
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .width(clearArtworkWidth)
+                                                .alpha(clearArtworkAlpha)
+                                                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                                                .drawWithContent {
+                                                    drawContent()
+                                                    // Fade the right edge of the clear box for a cloudy blend
+                                                    drawRect(
+                                                        brush = Brush.horizontalGradient(
+                                                            colorStops = arrayOf(
+                                                                0.00f to Color.Black,
+                                                                0.75f to Color.Black,
+                                                                0.92f to Color.Black.copy(alpha = 0.4f),
+                                                                1.00f to Color.Transparent,
+                                                            )
+                                                        ),
+                                                        blendMode = BlendMode.DstIn
+                                                    )
+                                                }
+                                        ) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(context)
+                                                    .data(thumbnailUrl)
+                                                    .size(CoilSize.ORIGINAL)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+
+                                            if (enableCanvas && canvasArtwork != null && backgroundAlpha > 0.01f) {
+                                                BackgroundVideoView(
+                                                    videoUrl = canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
+                                                    isPlaying = isPlaying,
+                                                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
+                                        }
+                                    } else {
                                     val density = LocalDensity.current
                                     val maxClearHeight = LocalConfiguration.current.screenHeightDp.dp
                                     val clearArtworkHeight by animateDpAsState(
@@ -1206,6 +1273,7 @@ fun BottomSheetPlayer(
                                                 modifier = Modifier.fillMaxSize()
                                             )
                                         }
+                                    }
                                     }
                                     
                                     // Layer 3: Dynamic overlay for depth
@@ -2658,7 +2726,7 @@ fun BottomSheetPlayer(
                                     showLyrics = showLyrics,
                                     positionProvider = { effectivePosition }
                                 )
-                            } else {
+                            } else if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.animateContentSize(),
@@ -2675,6 +2743,11 @@ fun BottomSheetPlayer(
                         modifier = Modifier
                             .weight(if (showInlineLyrics) 0.65f else 1f, false)
                             .animateContentSize()
+                            .onGloballyPositioned { coordinates ->
+                                if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                                    controlsLeftXPx = coordinates.positionInRoot().x
+                                }
+                            }
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
                         Spacer(Modifier.weight(1f))
