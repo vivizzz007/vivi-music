@@ -13,6 +13,7 @@ import com.music.vivi.utils.get
 
 object KuGouLyricsProvider : LyricsProvider {
     override val name = "Kugou"
+    override val supportsWordSync = false
     override fun isEnabled(context: Context): Boolean =
         context.dataStore[EnableKugouKey] ?: true
 

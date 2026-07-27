@@ -11,6 +11,7 @@ import com.music.innertube.models.WatchEndpoint
 
 object YouTubeLyricsProvider : LyricsProvider {
     override val name = "YouTube Music"
+    override val supportsWordSync = false
 
     override fun isEnabled(context: Context) = true
 

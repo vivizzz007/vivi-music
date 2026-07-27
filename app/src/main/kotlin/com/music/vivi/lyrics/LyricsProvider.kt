@@ -12,6 +12,7 @@ interface LyricsProvider {
 
     fun isEnabled(context: Context): Boolean
 
+    val supportsWordSync: Boolean get() = true
     suspend fun getLyrics(
         id: String,
         title: String,

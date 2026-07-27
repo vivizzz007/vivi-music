@@ -10,6 +10,7 @@ import com.music.innertube.YouTube
 
 object YouTubeSubtitleLyricsProvider : LyricsProvider {
     override val name = "YouTube Subtitle"
+    override val supportsWordSync = false
 
     override fun isEnabled(context: Context) = true
 

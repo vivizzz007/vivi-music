@@ -13,6 +13,7 @@ import com.music.vivi.utils.get
 
 object LrcLibLyricsProvider : LyricsProvider {
     override val name = "LrcLib"
+    override val supportsWordSync = false
 
     override fun isEnabled(context: Context): Boolean = context.dataStore[EnableLrcLibKey] ?: true
 
