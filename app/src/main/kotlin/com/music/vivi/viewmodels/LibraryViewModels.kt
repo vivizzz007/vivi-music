@@ -27,6 +27,8 @@ import com.music.vivi.constants.ArtistSongSortTypeKey
 import com.music.vivi.constants.ArtistSortDescendingKey
 import com.music.vivi.constants.ArtistSortType
 import com.music.vivi.constants.ArtistSortTypeKey
+import com.music.vivi.constants.ArtistSourceFilter
+import com.music.vivi.constants.ArtistSourceFilterKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -119,19 +121,27 @@ constructor(
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    private data class ArtistState(
+        val filter: ArtistFilter,
+        val sortType: ArtistSortType,
+        val descending: Boolean,
+        val sourceFilter: ArtistSourceFilter
+    )
+
     val allArtists =
         context.dataStore.data
             .map {
-                Triple(
+                ArtistState(
                     it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
                     it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
                     it[ArtistSortDescendingKey] ?: true,
+                    it[ArtistSourceFilterKey].toEnum(ArtistSourceFilter.ALL)
                 )
             }.distinctUntilChanged()
-            .flatMapLatest { (filter, sortType, descending) ->
-                when (filter) {
-                    ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
-                    ArtistFilter.LIBRARY -> database.artists(sortType, descending)
+            .flatMapLatest { state ->
+                when (state.filter) {
+                    ArtistFilter.LIKED -> database.artistsBookmarked(state.sortType, state.descending, state.sourceFilter)
+                    ArtistFilter.LIBRARY -> database.artists(state.sortType, state.descending, state.sourceFilter)
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
