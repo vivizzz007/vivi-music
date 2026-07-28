@@ -74,6 +74,8 @@ import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.AppleMusicAutoAdjustThumbnailKey
+import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
@@ -226,6 +228,14 @@ fun AppearanceSettings(
     val (hideStatusBarInPlayer, onHideStatusBarInPlayerChange) = rememberPreference(
         HideStatusBarInPlayerKey,
         defaultValue = false
+    )
+    val (appleMusicAutoAdjustThumbnail, onAppleMusicAutoAdjustThumbnailChange) = rememberPreference(
+        AppleMusicAutoAdjustThumbnailKey,
+        defaultValue = true
+    )
+    val (appleMusicThumbnailPercentage, onAppleMusicThumbnailPercentageChange) = rememberPreference(
+        AppleMusicThumbnailPercentageKey,
+        defaultValue = 50f
     )
     val (playerThumbnailShadowElevation, onPlayerThumbnailShadowElevationChange) = rememberPreference(
         PlayerThumbnailShadowElevationKey,
@@ -1337,6 +1347,56 @@ fun AppearanceSettings(
                     isExpressive = true,
                     descriptionBelow = true
                 ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.apple_music_auto_adjust_thumbnail)) },
+                    description = { Text(stringResource(R.string.apple_music_auto_adjust_thumbnail_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = appleMusicAutoAdjustThumbnail,
+                            onCheckedChange = onAppleMusicAutoAdjustThumbnailChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (appleMusicAutoAdjustThumbnail) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAppleMusicAutoAdjustThumbnailChange(!appleMusicAutoAdjustThumbnail) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
+                if (!appleMusicAutoAdjustThumbnail) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.sliders),
+                        title = { Text(stringResource(R.string.apple_music_thumbnail_percentage)) },
+                        description = {
+                            Column {
+                                Text(stringResource(R.string.apple_music_thumbnail_percentage_desc))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Slider(
+                                    value = appleMusicThumbnailPercentage,
+                                    onValueChange = onAppleMusicThumbnailPercentageChange,
+                                    valueRange = 20f..80f,
+                                    steps = 11
+                                )
+                            }
+                        },
+                        trailingContent = {
+                            Text(
+                                text = "${appleMusicThumbnailPercentage.roundToInt()}%",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        isExpressive = true,
+                        descriptionBelow = true
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.contrast),
                     title = { Text(stringResource(R.string.show_player_thumbnail_shadow)) },
