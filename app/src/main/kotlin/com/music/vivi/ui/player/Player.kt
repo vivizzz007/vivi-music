@@ -128,6 +128,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -148,6 +149,8 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
@@ -168,6 +171,8 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
+import com.music.vivi.constants.AppleMusicAutoAdjustThumbnailKey
+import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
@@ -281,6 +286,8 @@ fun BottomSheetPlayer(
     )
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
+    val appleMusicAutoAdjustThumbnail by rememberPreference(AppleMusicAutoAdjustThumbnailKey, defaultValue = true)
+    val appleMusicThumbnailPercentage by rememberPreference(AppleMusicThumbnailPercentageKey, defaultValue = 50f)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
@@ -788,7 +795,8 @@ fun BottomSheetPlayer(
     val hideStatusBarInPlayer by rememberPreference(HideStatusBarInPlayerKey, defaultValue = false)
     val shouldHideSystemBars = state.isExpanded &&
         hideStatusBarInPlayer &&
-        (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC || (isFullScreen && showInlineLyrics))
+        isFullScreen &&
+        showInlineLyrics
 
     DisposableEffect(shouldHideSystemBars, state.isExpanded) {
         val window = (context as? android.app.Activity)?.window
@@ -808,6 +816,25 @@ fun BottomSheetPlayer(
                 val insetsController = WindowCompat.getInsetsController(window, window.decorView)
                 insetsController.show(WindowInsetsCompat.Type.systemBars())
             }
+        }
+    }
+
+    // Safety net: pressing Home (or switching apps, opening recents, etc.) never goes
+    // through the in-app back handler / collapses the sheet, so shouldHideSystemBars
+    // never flips and the bars stay hidden - leaving a stuck black bar behind on the
+    // home screen. Force them back as soon as the activity leaves the foreground.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val window = (context as? android.app.Activity)?.window
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP && window != null) {
+                WindowCompat.getInsetsController(window, window.decorView)
+                    .show(WindowInsetsCompat.Type.systemBars())
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -875,9 +902,10 @@ fun BottomSheetPlayer(
     var controlsTopYPx by remember { mutableStateOf<Float?>(null) }
 
     // Same idea, but for landscape: tracks the x-position where the right-hand
-    // controls column begins, so the background can show the clear thumbnail only
-    // to the left of that point and blur everything from there to the right
-    // (behind the title/seekbar/buttons), instead of a fixed 50/50 guess.
+    // controls column begins. Used both by the Apple Music background (clear
+    // thumbnail to the left of this point, blur to the right) and to align the
+    // Queue bottom bar under the controls column instead of the whole screen.
+    // Measured in landscape regardless of background style.
     var controlsLeftXPx by remember { mutableStateOf<Float?>(null) }
 
     BottomSheet(
@@ -1137,7 +1165,15 @@ fun BottomSheetPlayer(
                                         .fillMaxSize()
                                         .alpha(backgroundAlpha)
                                 ) {
+                                    val isLandscapeBackground = LocalConfiguration.current.orientation ==
+                                        Configuration.ORIENTATION_LANDSCAPE
+
                                     // Layer 1: Full-Screen Blurred Background
+                                    // Mirrored relative to the clear artwork below it - flipped
+                                    // vertically in portrait (clear art is on top, blur below)
+                                    // and horizontally in landscape (clear art on the left, blur
+                                    // on the right) - so the blur reads as a continuation/
+                                    // reflection of the artwork rather than an identical copy.
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
@@ -1148,6 +1184,10 @@ fun BottomSheetPlayer(
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
+                                            .graphicsLayer(
+                                                scaleX = if (isLandscapeBackground) -1f else 1f,
+                                                scaleY = if (isLandscapeBackground) 1f else -1f
+                                            )
                                             .blur(150.dp)
                                     )
 
@@ -1165,18 +1205,19 @@ fun BottomSheetPlayer(
                                         label = "clearArtworkAlpha"
                                     )
 
-                                    val isLandscapeBackground = LocalConfiguration.current.orientation ==
-                                        Configuration.ORIENTATION_LANDSCAPE
-
                                     if (isLandscapeBackground) {
                                         val density = LocalDensity.current
                                         val maxClearWidth = LocalConfiguration.current.screenWidthDp.dp
                                         val clearArtworkWidth by animateDpAsState(
-                                            targetValue = controlsLeftXPx
-                                                ?.let { with(density) { it.toDp() } }
-                                                ?.coerceIn(0.dp, maxClearWidth)
-                                                ?: (maxClearWidth * 0.5f),
-                                            animationSpec = tween(300),
+                                            targetValue = if (appleMusicAutoAdjustThumbnail) {
+                                                controlsLeftXPx
+                                                    ?.let { with(density) { it.toDp() } }
+                                                    ?.coerceIn(0.dp, maxClearWidth)
+                                                    ?: (maxClearWidth * 0.5f)
+                                            } else {
+                                                maxClearWidth * (appleMusicThumbnailPercentage / 100f)
+                                            },
+                                            animationSpec = tween(100),
                                             label = "clearArtworkWidth"
                                         )
 
@@ -1225,11 +1266,15 @@ fun BottomSheetPlayer(
                                     val density = LocalDensity.current
                                     val maxClearHeight = LocalConfiguration.current.screenHeightDp.dp
                                     val clearArtworkHeight by animateDpAsState(
-                                        targetValue = controlsTopYPx
-                                            ?.let { with(density) { it.toDp() } }
-                                            ?.coerceIn(0.dp, maxClearHeight)
-                                            ?: (maxClearHeight * 0.5f),
-                                        animationSpec = tween(300),
+                                        targetValue = if (appleMusicAutoAdjustThumbnail) {
+                                            controlsTopYPx
+                                                ?.let { with(density) { it.toDp() } }
+                                                ?.coerceIn(0.dp, maxClearHeight)
+                                                ?: (maxClearHeight * 0.5f)
+                                        } else {
+                                            maxClearHeight * (appleMusicThumbnailPercentage / 100f)
+                                        },
+                                        animationSpec = tween(100),
                                         label = "clearArtworkHeight"
                                     )
 
@@ -2744,9 +2789,7 @@ fun BottomSheetPlayer(
                             .weight(if (showInlineLyrics) 0.65f else 1f, false)
                             .animateContentSize()
                             .onGloballyPositioned { coordinates ->
-                                if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-                                    controlsLeftXPx = coordinates.positionInRoot().x
-                                }
+                                controlsLeftXPx = coordinates.positionInRoot().x
                             }
                             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                     ) {
@@ -2858,6 +2901,7 @@ fun BottomSheetPlayer(
             enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
             exit = shrinkVertically(shrinkTowards = Alignment.Top) + slideOutVertically(targetOffsetY = { it }) + fadeOut()
         ) {
+            val queueDensity = LocalDensity.current
             Queue(
                 state = queueSheetState,
                 playerBottomSheetState = state,
@@ -2875,6 +2919,7 @@ fun BottomSheetPlayer(
             pureBlack = pureBlack,
             showInlineLyrics = showInlineLyrics,
             playerBackground = playerBackground,
+            controlsStartX = controlsLeftXPx?.let { with(queueDensity) { it.toDp() } },
             onToggleLyrics = {
                 showInlineLyrics = !showInlineLyrics
             },
