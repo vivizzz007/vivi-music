@@ -169,6 +169,10 @@ import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
 import com.music.vivi.playback.queues.filterVideoSongs
+import coil3.imageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.NetworkConnectivityObserver
@@ -705,7 +709,7 @@ class MusicService :
             }
         }
 
-        currentSong.debounce(1000).collect(scope) { song ->
+        currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
             updateWidgetUI(player.isPlaying)
         }
@@ -1998,6 +2002,24 @@ class MusicService :
         // Save state when media item changes
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
+        }
+
+        // Eagerly push updated custom layout so notification buttons (like/repeat/shuffle)
+        // reflect the new track immediately — before the 50ms debounced observer fires.
+        updateNotification()
+
+        // Pre-warm album art into Coil's memory cache so the notification bitmap is
+        // ready before DefaultMediaNotificationProvider requests it, avoiding a
+        // visible artwork-loading delay in the control panel.
+        mediaItem?.mediaMetadata?.artworkUri?.let { artworkUri ->
+            val request = ImageRequest.Builder(this)
+                .data(artworkUri)
+                .allowHardware(false)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .size(256, 256)
+                .build()
+            applicationContext.imageLoader.enqueue(request)
         }
     }
 
