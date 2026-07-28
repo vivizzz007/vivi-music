@@ -106,7 +106,11 @@
     <string name="show_player_thumbnail_shadow">Player Thumbnail Shadow</string>
     <string name="show_player_thumbnail_shadow_desc">Show shadow around the player thumbnail image</string>
     <string name="hide_status_bar_in_player">Hide Status Bar</string>
-    <string name="hide_status_bar_in_player_desc">Hide the status bar in Apple Music style and full screen lyrics</string>
+    <string name="hide_status_bar_in_player_desc">Hide the status bar and navigation bar in full screen lyrics</string>
+    <string name="apple_music_auto_adjust_thumbnail">Auto Adjust Thumbnail</string>
+    <string name="apple_music_auto_adjust_thumbnail_desc">Automatically size the Apple Music style thumbnail to match your title and controls. Turn off to set a fixed size manually.</string>
+    <string name="apple_music_thumbnail_percentage">Thumbnail Size</string>
+    <string name="apple_music_thumbnail_percentage_desc">Portion of the screen the thumbnail occupies when auto adjust is off</string>
     <string name="player_thumbnail_shadow_depth">Shadow Depth</string>
     <string name="player_thumbnail_shadow_depth_desc">Adjust the intensity and distance of the player thumbnail shadow</string>
     <string name="thumbnail_corner_radius">Thumbnail Corner Radius</string>
