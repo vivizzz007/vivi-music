@@ -108,6 +108,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
@@ -183,6 +184,7 @@ fun Queue(
     pureBlack: Boolean,
     showInlineLyrics: Boolean,
     playerBackground: PlayerBackgroundStyle = PlayerBackgroundStyle.DEFAULT,
+    controlsStartX: Dp? = null,
     onToggleLyrics: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -327,9 +329,13 @@ fun Queue(
         collapsedContent = {
             // In landscape (two-column player: thumbnail/lyrics on the left, controls
             // on the right), keep this bar under the right column / volume bar instead
-            // of spanning the whole screen edge-to-edge.
+            // of spanning the whole screen edge-to-edge. controlsStartX is measured live
+            // by Player.kt from the actual controls column position; fall back to a 55%
+            // guess only for the first frame or two before that measurement arrives.
             val isLandscapeQueueBar = LocalConfiguration.current.orientation ==
                 Configuration.ORIENTATION_LANDSCAPE
+            val queueBarStartX = controlsStartX
+                ?: (LocalConfiguration.current.screenWidthDp.dp * 0.55f)
 
             if (useNewPlayerDesign) {
                 // New design
@@ -340,8 +346,9 @@ fun Queue(
                         .then(
                             if (isLandscapeQueueBar) {
                                 Modifier
-                                    .fillMaxWidth(0.45f)
-                                    .align(Alignment.BottomEnd)
+                                    .fillMaxWidth()
+                                    .padding(start = queueBarStartX)
+                                    .align(Alignment.BottomStart)
                             } else {
                                 Modifier.fillMaxWidth()
                             }
@@ -510,8 +517,9 @@ fun Queue(
                         .then(
                             if (isLandscapeQueueBar) {
                                 Modifier
-                                    .fillMaxWidth(0.45f)
-                                    .align(Alignment.BottomEnd)
+                                    .fillMaxWidth()
+                                    .padding(start = queueBarStartX)
+                                    .align(Alignment.BottomStart)
                             } else {
                                 Modifier.fillMaxWidth()
                             }
