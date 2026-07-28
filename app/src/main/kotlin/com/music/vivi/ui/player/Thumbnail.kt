@@ -7,9 +7,12 @@ package com.music.vivi.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -642,6 +645,21 @@ private fun ThumbnailItem(
 
     val canvasThumbnailAnimation by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = true)
 
+    // Apple Music style has its own thumbnail treatment (see Player.kt's background
+    // rendering), so this bounce is intentionally left out for it.
+    val playPauseScale by animateFloatAsState(
+        targetValue = if (isPlaying || playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+            1f
+        } else {
+            0.92f
+        },
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "PlayPauseScale"
+    )
+
     Box(
         modifier = modifier
             .then(
@@ -702,6 +720,8 @@ private fun ThumbnailItem(
                 .size(dimensions.thumbnailSize)
                 .graphicsLayer {
                     rotationZ = rotation
+                    scaleX = playPauseScale
+                    scaleY = playPauseScale
                 }
                 .then(
                     if (showPlayerThumbnailShadow) {
@@ -1043,5 +1063,3 @@ fun Modifier.customSoftShadow(
 } else {
     this
 }
-
-
