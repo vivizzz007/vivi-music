@@ -196,6 +196,8 @@ import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.lyrics.LyricsEntry
+import com.music.vivi.lyrics.LyricsUtils
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.extensions.toggleRepeatMode
@@ -2572,6 +2574,24 @@ fun BottomSheetPlayer(
 
                         Spacer(modifier = Modifier.height(8.dp)) //space between play and audio
 
+                        // Tablet landscape only: a compact 4-line synced lyrics preview,
+                        // shown when the full lyrics panel isn't already up on the left.
+                        val isTabletLandscapeCompact = LocalConfiguration.current.let {
+                            it.smallestScreenWidthDp >= 600 &&
+                                it.orientation == Configuration.ORIENTATION_LANDSCAPE
+                        } && !showInlineLyrics
+
+                        if (isTabletLandscapeCompact) {
+                            MiniSyncedLyrics(
+                                position = effectivePosition,
+                                textColor = textButtonColor,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = PlayerHorizontalPadding, vertical = 4.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -2998,6 +3018,65 @@ fun InlineLyricsView(
                     lyricsContent()
                 }
             }
+        }
+    }
+}
+
+/**
+ * Compact synced-lyrics preview for tablet landscape (see the controls column in
+ * Player.kt's landscape branch): shows the current line plus the next few lines,
+ * updating as playback progresses - without the full scroll/animation machinery of
+ * the dedicated Lyrics screen. Deliberately lightweight since it's a small
+ * secondary element sitting under the playback controls, not the main lyrics view.
+ */
+@Composable
+fun MiniSyncedLyrics(
+    position: Long,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    lineCount: Int = 4
+) {
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
+    val lyricsText = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
+
+    val lines = remember(lyricsText) {
+        if (lyricsText.isNullOrBlank() || lyricsText == LyricsEntity.LYRICS_NOT_FOUND) {
+            emptyList()
+        } else {
+            try {
+                LyricsUtils.parseLyrics(lyricsText).filterNot { it.isBackground }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    if (lines.isEmpty()) return
+
+    val currentLineIndex = LyricsUtils.findCurrentLineIndex(lines, position)
+        .coerceIn(0, lines.lastIndex)
+    val startIndex = currentLineIndex.coerceAtMost((lines.size - lineCount).coerceAtLeast(0))
+    val displayLines = lines.subList(startIndex, (startIndex + lineCount).coerceAtMost(lines.size))
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        displayLines.forEach { entry ->
+            val isCurrentLine = entry === lines[currentLineIndex]
+            Text(
+                text = entry.text,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isCurrentLine) FontWeight.Bold else FontWeight.Normal,
+                color = if (isCurrentLine) textColor else textColor.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp)
+            )
         }
     }
 }
