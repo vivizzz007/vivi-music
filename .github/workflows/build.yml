@@ -2,13 +2,7 @@ name: CI & Debug Build
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ '**' ]
-    paths-ignore:
-      - 'README.md'
-      - 'fastlane/**'
-      - 'assets/**'
-      - '.github/**/*.md'
+  
   pull_request:
     branches: [ '**' ]
 
