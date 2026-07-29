@@ -176,6 +176,9 @@ import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.LyricsLineSpacingKey
+import com.music.vivi.constants.LyricsTextPositionKey
+import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.KeepScreenOn
@@ -196,6 +199,8 @@ import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.lyrics.LyricsEntry
+import com.music.vivi.lyrics.LyricsUtils
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.extensions.toggleRepeatMode
@@ -211,6 +216,7 @@ import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.Lyrics
+import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.ResizableIconButton
 import com.music.vivi.ui.component.SquigglySlider
@@ -1501,7 +1507,7 @@ fun BottomSheetPlayer(
                 showInlineLyrics
         }
 
-        val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
+        val controlsContent: @Composable ColumnScope.(mediaMetadata: MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
                 animationSpec = tween(durationMillis = 90, easing = LinearEasing),
@@ -2729,10 +2735,12 @@ fun BottomSheetPlayer(
 
                         // Tablet landscape only: a compact synced-lyrics preview below the
                         // volume bar and device name, shown when the full lyrics panel isn't
-                        // already up on the left. Reuses the real Lyrics composable (just
-                        // height-constrained) so it automatically matches every lyrics
-                        // appearance setting - side/position, font size, animation style,
-                        // word-by-word sync - instead of a separate approximation.
+                        // already up on the left. Purpose-built rather than reusing the real
+                        // Lyrics composable directly - that one auto-scrolls to center the
+                        // current line against a full-screen viewport, which pushed the
+                        // current line outside a small preview box entirely. This reads the
+                        // same side/font-size/line-spacing preferences and does word-by-word
+                        // sync for the active line, without any scroll state.
                         val isTabletLandscapeCompact = LocalConfiguration.current.let {
                             it.smallestScreenWidthDp >= 600 &&
                                 it.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -2740,16 +2748,13 @@ fun BottomSheetPlayer(
 
                         if (isTabletLandscapeCompact) {
                             Spacer(modifier = Modifier.height(12.dp))
-                            Box(
+                            MiniSyncedLyrics(
+                                position = effectivePosition,
+                                textColor = textButtonColor,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(160.dp)
-                            ) {
-                                Lyrics(
-                                    sliderPositionProvider = { effectivePosition },
-                                    showLyrics = false
-                                )
-                            }
+                                    .padding(horizontal = PlayerHorizontalPadding)
+                            )
                         }
                     }
                 }
@@ -3022,6 +3027,129 @@ fun InlineLyricsView(
                 ) {
                     lyricsContent()
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Compact synced-lyrics preview for tablet landscape (see the controls column in
+ * Player.kt's landscape branch). Deliberately does NOT reuse the real Lyrics
+ * composable - that one auto-scrolls to center the current line against a
+ * full-screen viewport, which pushes the current line outside a small preview box
+ * entirely (it still shows the "scroll to current" button since it correctly
+ * detects the current line isn't visible, but the box itself stays blank).
+ * Instead this directly renders a small, fixed window of lines with no scroll
+ * state, while still reading the same side/font-size/line-spacing preferences
+ * used by the real lyrics screen, plus word-by-word sync for the active line.
+ */
+@Composable
+fun MiniSyncedLyrics(
+    position: Long,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    lineCount: Int = 4
+) {
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
+    val lyricsText = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
+
+    val lines = remember(lyricsText) {
+        if (lyricsText.isNullOrBlank() || lyricsText == LyricsEntity.LYRICS_NOT_FOUND) {
+            emptyList()
+        } else {
+            try {
+                LyricsUtils.parseLyrics(lyricsText).filterNot { it.isBackground }
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+    }
+
+    if (lines.isEmpty()) return
+
+    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.LEFT)
+    val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
+    val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
+
+    val horizontalAlignment = when (lyricsTextPosition) {
+        LyricsPosition.LEFT -> Alignment.Start
+        LyricsPosition.CENTER -> Alignment.CenterHorizontally
+        LyricsPosition.RIGHT -> Alignment.End
+    }
+    val textAlign = when (lyricsTextPosition) {
+        LyricsPosition.LEFT -> TextAlign.Left
+        LyricsPosition.CENTER -> TextAlign.Center
+        LyricsPosition.RIGHT -> TextAlign.Right
+    }
+
+    // Scaled down from the full lyrics-screen size to fit a compact preview area -
+    // the ratio between lines is preserved, so bumping the setting still makes
+    // this preview bigger/smaller accordingly.
+    val fontSize = (lyricsTextSize * 0.45f).coerceIn(10f, 22f).sp
+
+    val currentLineIndex = LyricsUtils.findCurrentLineIndex(lines, position)
+        .coerceIn(0, lines.lastIndex)
+
+    // One line of context before the current line (if available), then the
+    // current line, then enough following lines to fill lineCount - a fixed
+    // window, recomputed each time the current line changes, rather than a
+    // scrolling list.
+    val before = if (currentLineIndex > 0) 1 else 0
+    val startIndex = (currentLineIndex - before).coerceAtLeast(0)
+    val endIndex = (startIndex + lineCount).coerceAtMost(lines.size)
+    val displayLines = lines.subList(startIndex, endIndex)
+
+    Column(
+        modifier = modifier,
+        horizontalAlignment = horizontalAlignment
+    ) {
+        displayLines.forEach { entry ->
+            val isCurrentLine = entry === lines[currentLineIndex]
+            val dimColor = textColor.copy(alpha = 0.4f)
+
+            if (isCurrentLine && !entry.words.isNullOrEmpty()) {
+                val annotated = buildAnnotatedString {
+                    entry.words!!.forEach { word ->
+                        val wordStartMs = (word.startTime * 1000).toLong()
+                        val wordEndMs = (word.endTime * 1000).toLong()
+                        val sung = position >= wordEndMs || position >= wordStartMs
+                        withStyle(
+                            SpanStyle(
+                                color = if (sung) textColor else dimColor,
+                                fontWeight = FontWeight.Bold
+                            )
+                        ) {
+                            append(word.text)
+                            append(" ")
+                        }
+                    }
+                }
+                Text(
+                    text = annotated,
+                    fontSize = fontSize,
+                    lineHeight = fontSize * lyricsLineSpacing,
+                    textAlign = textAlign,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                )
+            } else {
+                Text(
+                    text = entry.text,
+                    fontSize = fontSize,
+                    lineHeight = fontSize * lyricsLineSpacing,
+                    fontWeight = if (isCurrentLine) FontWeight.Bold else FontWeight.Normal,
+                    color = if (isCurrentLine) textColor else dimColor,
+                    textAlign = textAlign,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                )
             }
         }
     }
