@@ -332,10 +332,15 @@ fun Queue(
             // of spanning the whole screen edge-to-edge. controlsStartX is measured live
             // by Player.kt from the actual controls column position; fall back to a 55%
             // guess only for the first frame or two before that measurement arrives.
-            val isLandscapeQueueBar = LocalConfiguration.current.orientation ==
-                Configuration.ORIENTATION_LANDSCAPE
+            // Only realign under the controls column on tablets in landscape - phones
+            // keep the original full-width bar. This previously applied to phone
+            // landscape too, which narrowed/repositioned the bar enough to overlap
+            // the connected-device name text above it.
+            val configuration = LocalConfiguration.current
+            val isLandscapeQueueBar = configuration.smallestScreenWidthDp >= 600 &&
+                configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
             val queueBarStartX = controlsStartX
-                ?: (LocalConfiguration.current.screenWidthDp.dp * 0.55f)
+                ?: (configuration.screenWidthDp.dp * 0.55f)
 
             if (useNewPlayerDesign) {
                 // New design
