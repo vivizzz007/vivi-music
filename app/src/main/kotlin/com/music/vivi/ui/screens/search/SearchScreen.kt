@@ -75,6 +75,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.utils.YouTubeUrlParser
 import com.music.vivi.LocalDatabase
@@ -452,6 +453,25 @@ fun SearchScreen(
         
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    // Double-tapping the Search nav bar icon sets this flag (see MainActivity.kt's
+    // onNavItemClick) so returning to an already-open Search screen focuses the
+    // search bar directly, instead of requiring a separate manual tap on it.
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val focusSearch = backStackEntry?.savedStateHandle
+        ?.getStateFlow("focusSearch", false)
+        ?.collectAsState()
+
+    LaunchedEffect(focusSearch?.value) {
+        if (focusSearch?.value == true) {
+            try {
+                focusRequester.requestFocus()
+            } catch (e: Exception) {
+                // Ignore focus request failures
+            }
+            backStackEntry?.savedStateHandle?.set("focusSearch", false)
         }
     }
 }
