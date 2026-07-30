@@ -72,6 +72,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -908,6 +909,7 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
+                            var lastSearchTapTime by remember { mutableLongStateOf(0L) }
                             val onNavItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState) {
                                 { screen: Screens, isSelected: Boolean ->
                                     if (playerBottomSheetState.isExpanded) {
@@ -919,6 +921,14 @@ class MainActivity : ComponentActivity() {
                                         coroutineScope.launch {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
                                         }
+
+                                        if (screen == Screens.Search) {
+                                            val now = System.currentTimeMillis()
+                                            if (now - lastSearchTapTime < 400L) {
+                                                navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
+                                            }
+                                            lastSearchTapTime = now
+                                        }
                                     } else {
                                         navController.navigate(screen.route) {
                                             popUpTo(navController.graph.startDestinationId) {
@@ -926,6 +936,10 @@ class MainActivity : ComponentActivity() {
                                             }
                                             launchSingleTop = true
                                             restoreState = true
+                                        }
+
+                                        if (screen == Screens.Search) {
+                                            lastSearchTapTime = System.currentTimeMillis()
                                         }
                                     }
                                 }
