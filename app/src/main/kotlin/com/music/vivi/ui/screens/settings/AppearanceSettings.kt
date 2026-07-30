@@ -51,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -136,6 +137,9 @@ import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
+import com.music.vivi.constants.MainPlayerLyricsLineSpacingKey
+import com.music.vivi.constants.MainPlayerLyricsTextPositionKey
+import com.music.vivi.constants.MainPlayerLyricsTextSizeKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
@@ -279,6 +283,18 @@ fun AppearanceSettings(
     )
     val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(LyricsTextSizeKey, defaultValue = 24f)
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
+    val (mainPlayerLyricsPosition, onMainPlayerLyricsPositionChange) = rememberEnumPreference(
+        MainPlayerLyricsTextPositionKey,
+        defaultValue = LyricsPosition.LEFT
+    )
+    val (mainPlayerLyricsTextSize, onMainPlayerLyricsTextSizeChange) = rememberPreference(
+        MainPlayerLyricsTextSizeKey,
+        defaultValue = 22f
+    )
+    val (mainPlayerLyricsLineSpacing, onMainPlayerLyricsLineSpacingChange) = rememberPreference(
+        MainPlayerLyricsLineSpacingKey,
+        defaultValue = 1.05f
+    )
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
     val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
@@ -432,6 +448,18 @@ fun AppearanceSettings(
     }
 
     var showLyricsLineSpacingDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMainPlayerLyricsPositionDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMainPlayerLyricsTextSizeDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMainPlayerLyricsLineSpacingDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -604,6 +632,154 @@ fun AppearanceSettings(
                     onValueChange = { tempLineSpacing = it },
                     valueRange = 1.0f..4.0f,
                     steps = 59,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+
+    if (showMainPlayerLyricsPositionDialog) {
+        EnumDialog(
+            onDismiss = { showMainPlayerLyricsPositionDialog = false },
+            onSelect = {
+                onMainPlayerLyricsPositionChange(it)
+                showMainPlayerLyricsPositionDialog = false
+            },
+            title = stringResource(R.string.main_player_lyrics_text_position),
+            current = mainPlayerLyricsPosition,
+            values = LyricsPosition.values().toList(),
+            valueText = {
+                when (it) {
+                    LyricsPosition.LEFT -> stringResource(R.string.left)
+                    LyricsPosition.CENTER -> stringResource(R.string.center)
+                    LyricsPosition.RIGHT -> stringResource(R.string.right)
+                }
+            }
+        )
+    }
+
+    if (showMainPlayerLyricsTextSizeDialog) {
+        var tempTextSize by remember { mutableFloatStateOf(mainPlayerLyricsTextSize) }
+
+        DefaultDialog(
+            onDismiss = {
+                tempTextSize = mainPlayerLyricsTextSize
+                showMainPlayerLyricsTextSizeDialog = false
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        tempTextSize = 22f
+                    }
+                ) {
+                    Text(stringResource(R.string.reset))
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                TextButton(
+                    onClick = {
+                        tempTextSize = mainPlayerLyricsTextSize
+                        showMainPlayerLyricsTextSizeDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        onMainPlayerLyricsTextSizeChange(tempTextSize)
+                        showMainPlayerLyricsTextSizeDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.main_player_lyrics_text_size),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Text(
+                    text = "${tempTextSize.roundToInt()} sp",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Slider(
+                    value = tempTextSize,
+                    onValueChange = { tempTextSize = it },
+                    valueRange = 12f..40f,
+                    steps = 27,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
+
+    if (showMainPlayerLyricsLineSpacingDialog) {
+        var tempLineSpacing by remember { mutableFloatStateOf(mainPlayerLyricsLineSpacing) }
+
+        DefaultDialog(
+            onDismiss = {
+                tempLineSpacing = mainPlayerLyricsLineSpacing
+                showMainPlayerLyricsLineSpacingDialog = false
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        tempLineSpacing = 1.05f
+                    }
+                ) {
+                    Text(stringResource(R.string.reset))
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                TextButton(
+                    onClick = {
+                        tempLineSpacing = mainPlayerLyricsLineSpacing
+                        showMainPlayerLyricsLineSpacingDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        onMainPlayerLyricsLineSpacingChange(tempLineSpacing)
+                        showMainPlayerLyricsLineSpacingDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.main_player_lyrics_line_spacing),
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Text(
+                    text = "${String.format("%.2f", tempLineSpacing)}x",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                Slider(
+                    value = tempLineSpacing,
+                    onValueChange = { tempLineSpacing = it },
+                    valueRange = 1.0f..2.0f,
+                    steps = 19,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -1968,6 +2144,48 @@ fun AppearanceSettings(
                 )
             )
         )
+
+        // Only relevant on tablets - phones don't show the tablet-landscape
+        // compact lyrics preview these settings control (see MiniSyncedLyrics
+        // in Player.kt).
+        if (LocalConfiguration.current.smallestScreenWidthDp >= 600) {
+            Spacer(modifier = Modifier.height(27.dp))
+
+            Material3SettingsGroup(
+                title = stringResource(R.string.main_player_lyrics),
+                items = listOf(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.main_player_lyrics_text_position)) },
+                        description = {
+                            Text(
+                                when (mainPlayerLyricsPosition) {
+                                    LyricsPosition.LEFT -> stringResource(R.string.left)
+                                    LyricsPosition.CENTER -> stringResource(R.string.center)
+                                    LyricsPosition.RIGHT -> stringResource(R.string.right)
+                                }
+                            )
+                        },
+                        onClick = { showMainPlayerLyricsPositionDialog = true },
+                        isExpressive = true
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.main_player_lyrics_text_size)) },
+                        description = { Text("${mainPlayerLyricsTextSize.roundToInt()} sp") },
+                        onClick = { showMainPlayerLyricsTextSizeDialog = true },
+                        isExpressive = true
+                    ),
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.main_player_lyrics_line_spacing)) },
+                        description = { Text("${String.format("%.2f", mainPlayerLyricsLineSpacing)}x") },
+                        onClick = { showMainPlayerLyricsLineSpacingDialog = true },
+                        isExpressive = true
+                    )
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(27.dp))
 
