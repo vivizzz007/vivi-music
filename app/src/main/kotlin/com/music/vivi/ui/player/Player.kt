@@ -176,9 +176,9 @@ import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
-import com.music.vivi.constants.LyricsLineSpacingKey
-import com.music.vivi.constants.LyricsTextPositionKey
-import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.MainPlayerLyricsLineSpacingKey
+import com.music.vivi.constants.MainPlayerLyricsTextPositionKey
+import com.music.vivi.constants.MainPlayerLyricsTextSizeKey
 import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.KeepScreenOn
@@ -3068,9 +3068,9 @@ fun MiniSyncedLyrics(
 
     if (lines.isEmpty()) return
 
-    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.LEFT)
-    val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
-    val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
+    val lyricsTextPosition by rememberEnumPreference(MainPlayerLyricsTextPositionKey, LyricsPosition.LEFT)
+    val lyricsTextSize by rememberPreference(MainPlayerLyricsTextSizeKey, 22f)
+    val lyricsLineSpacing by rememberPreference(MainPlayerLyricsLineSpacingKey, 1.05f)
 
     val horizontalAlignment = when (lyricsTextPosition) {
         LyricsPosition.LEFT -> Alignment.Start
@@ -3083,10 +3083,9 @@ fun MiniSyncedLyrics(
         LyricsPosition.RIGHT -> TextAlign.Right
     }
 
-    // Scaled down from the full lyrics-screen size to fit a compact preview area -
-    // the ratio between lines is preserved, so bumping the setting still makes
-    // this preview bigger/smaller accordingly.
-    val fontSize = (lyricsTextSize * 0.45f).coerceIn(10f, 22f).sp
+    // Independent setting (Appearance > Main Player Lyrics), not tied to the main
+    // lyrics screen's font size - so the two can be sized differently.
+    val fontSize = lyricsTextSize.sp
 
     val currentLineIndex = LyricsUtils.findCurrentLineIndex(lines, position)
         .coerceIn(0, lines.lastIndex)
@@ -3132,9 +3131,7 @@ fun MiniSyncedLyrics(
                     textAlign = textAlign,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
             } else {
                 Text(
@@ -3146,9 +3143,7 @@ fun MiniSyncedLyrics(
                     textAlign = textAlign,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp)
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
