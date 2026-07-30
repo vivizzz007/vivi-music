@@ -916,18 +916,23 @@ class MainActivity : ComponentActivity() {
                                         playerBottomSheetState.collapseSoft()
                                     }
 
+                                    // Checked unconditionally (not just when isSelected) since on a
+                                    // fast repeat tap, currentRoute/isSelected may not have
+                                    // recomposed yet to reflect tap 1's navigation - isSelected can
+                                    // still read false for tap 2, which would otherwise skip this
+                                    // check entirely and silently no-op via launchSingleTop.
+                                    if (screen == Screens.Search) {
+                                        val now = System.currentTimeMillis()
+                                        if (now - lastSearchTapTime < 400L) {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
+                                        }
+                                        lastSearchTapTime = now
+                                    }
+
                                     if (isSelected) {
                                         navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                         coroutineScope.launch {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
-                                        }
-
-                                        if (screen == Screens.Search) {
-                                            val now = System.currentTimeMillis()
-                                            if (now - lastSearchTapTime < 400L) {
-                                                navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
-                                            }
-                                            lastSearchTapTime = now
                                         }
                                     } else {
                                         navController.navigate(screen.route) {
@@ -936,10 +941,6 @@ class MainActivity : ComponentActivity() {
                                             }
                                             launchSingleTop = true
                                             restoreState = true
-                                        }
-
-                                        if (screen == Screens.Search) {
-                                            lastSearchTapTime = System.currentTimeMillis()
                                         }
                                     }
                                 }
