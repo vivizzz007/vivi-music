@@ -453,6 +453,10 @@
     <string name="lyrics_animation_metro">MetroLyrics</string>
     <string name="lyrics_text_size">Lyrics text size</string>
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
+    <string name="main_player_lyrics">Main Player Lyrics</string>
+    <string name="main_player_lyrics_text_position">Text position</string>
+    <string name="main_player_lyrics_text_size">Text size</string>
+    <string name="main_player_lyrics_line_spacing">Line spacing</string>
     <string name="album_art_for">Album art for %s</string>
     <string name="wrapped_total_albums_title">You\'ve listened to</string>
     <string name="wrapped_total_albums_subtitle">unique albums</string>
