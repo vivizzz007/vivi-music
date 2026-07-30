@@ -176,9 +176,7 @@ import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
-import com.music.vivi.constants.MainPlayerLyricsLineSpacingKey
 import com.music.vivi.constants.MainPlayerLyricsTextPositionKey
-import com.music.vivi.constants.MainPlayerLyricsTextSizeKey
 import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.KeepScreenOn
@@ -216,6 +214,7 @@ import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.Lyrics
+import com.music.vivi.ui.component.MetroLyricsLine
 import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.ResizableIconButton
@@ -3039,9 +3038,15 @@ fun InlineLyricsView(
  * full-screen viewport, which pushes the current line outside a small preview box
  * entirely (it still shows the "scroll to current" button since it correctly
  * detects the current line isn't visible, but the box itself stays blank).
- * Instead this directly renders a small, fixed window of lines with no scroll
- * state, while still reading the same side/font-size/line-spacing preferences
- * used by the real lyrics screen, plus word-by-word sync for the active line.
+ * Instead this renders a small, fixed window of lines with no scroll state, using
+ * the real MetroLyricsLine composable per line (the same one the main lyrics
+ * screen uses for its MetroLyrics style) - so the sync animation, per-word/letter
+ * fill, and dimming of context lines all match exactly rather than being
+ * approximated separately here.
+ *
+ * Note: MetroLyricsLine has its own fixed internal font size (36sp) and line
+ * spacing - the Main Player Lyrics font size/line spacing settings only apply to
+ * the side/position, not size, when this style is used.
  */
 @Composable
 fun MiniSyncedLyrics(
@@ -3069,23 +3074,6 @@ fun MiniSyncedLyrics(
     if (lines.isEmpty()) return
 
     val lyricsTextPosition by rememberEnumPreference(MainPlayerLyricsTextPositionKey, LyricsPosition.LEFT)
-    val lyricsTextSize by rememberPreference(MainPlayerLyricsTextSizeKey, 22f)
-    val lyricsLineSpacing by rememberPreference(MainPlayerLyricsLineSpacingKey, 1.05f)
-
-    val horizontalAlignment = when (lyricsTextPosition) {
-        LyricsPosition.LEFT -> Alignment.Start
-        LyricsPosition.CENTER -> Alignment.CenterHorizontally
-        LyricsPosition.RIGHT -> Alignment.End
-    }
-    val textAlign = when (lyricsTextPosition) {
-        LyricsPosition.LEFT -> TextAlign.Left
-        LyricsPosition.CENTER -> TextAlign.Center
-        LyricsPosition.RIGHT -> TextAlign.Right
-    }
-
-    // Independent setting (Appearance > Main Player Lyrics), not tied to the main
-    // lyrics screen's font size - so the two can be sized differently.
-    val fontSize = lyricsTextSize.sp
 
     val currentLineIndex = LyricsUtils.findCurrentLineIndex(lines, position)
         .coerceIn(0, lines.lastIndex)
@@ -3097,55 +3085,29 @@ fun MiniSyncedLyrics(
     val before = if (currentLineIndex > 0) 1 else 0
     val startIndex = (currentLineIndex - before).coerceAtLeast(0)
     val endIndex = (startIndex + lineCount).coerceAtMost(lines.size)
-    val displayLines = lines.subList(startIndex, endIndex)
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = horizontalAlignment
-    ) {
-        displayLines.forEach { entry ->
-            val isCurrentLine = entry === lines[currentLineIndex]
-            val dimColor = textColor.copy(alpha = 0.4f)
-
-            if (isCurrentLine && !entry.words.isNullOrEmpty()) {
-                val annotated = buildAnnotatedString {
-                    entry.words!!.forEach { word ->
-                        val wordStartMs = (word.startTime * 1000).toLong()
-                        val wordEndMs = (word.endTime * 1000).toLong()
-                        val sung = position >= wordEndMs || position >= wordStartMs
-                        withStyle(
-                            SpanStyle(
-                                color = if (sung) textColor else dimColor,
-                                fontWeight = FontWeight.Bold
-                            )
-                        ) {
-                            append(word.text)
-                            append(" ")
-                        }
-                    }
-                }
-                Text(
-                    text = annotated,
-                    fontSize = fontSize,
-                    lineHeight = fontSize * lyricsLineSpacing,
-                    textAlign = textAlign,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            } else {
-                Text(
-                    text = entry.text,
-                    fontSize = fontSize,
-                    lineHeight = fontSize * lyricsLineSpacing,
-                    fontWeight = if (isCurrentLine) FontWeight.Bold else FontWeight.Normal,
-                    color = if (isCurrentLine) textColor else dimColor,
-                    textAlign = textAlign,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+    Column(modifier = modifier) {
+        for (i in startIndex until endIndex) {
+            val entry = lines[i]
+            MetroLyricsLine(
+                entry = entry,
+                nextEntryTime = lines.getOrNull(i + 1)?.time,
+                effectivePlaybackPosition = position,
+                isSynced = true,
+                isActive = i == currentLineIndex,
+                distanceFromCurrent = kotlin.math.abs(i - currentLineIndex),
+                lyricsTextPosition = lyricsTextPosition,
+                textColor = textColor,
+                showRomanized = false,
+                showTranslated = false,
+                onClick = {},
+                onLongClick = {},
+                isSelected = false,
+                isSelectionModeActive = false,
+                isAutoScrollActive = true,
+                expressiveAccent = textColor,
+                bgVisible = true
+            )
         }
     }
 }
