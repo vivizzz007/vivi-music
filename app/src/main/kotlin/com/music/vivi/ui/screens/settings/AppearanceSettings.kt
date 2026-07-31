@@ -137,6 +137,7 @@ import com.music.vivi.constants.LyricsClickKey
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
+import com.music.vivi.constants.MainPlayerLyricsEnabledKey
 import com.music.vivi.constants.MainPlayerLyricsLineSpacingKey
 import com.music.vivi.constants.MainPlayerLyricsTextPositionKey
 import com.music.vivi.constants.MainPlayerLyricsTextSizeKey
@@ -283,17 +284,21 @@ fun AppearanceSettings(
     )
     val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(LyricsTextSizeKey, defaultValue = 24f)
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
+    val (mainPlayerLyricsEnabled, onMainPlayerLyricsEnabledChange) = rememberPreference(
+        MainPlayerLyricsEnabledKey,
+        defaultValue = true
+    )
     val (mainPlayerLyricsPosition, onMainPlayerLyricsPositionChange) = rememberEnumPreference(
         MainPlayerLyricsTextPositionKey,
         defaultValue = LyricsPosition.LEFT
     )
     val (mainPlayerLyricsTextSize, onMainPlayerLyricsTextSizeChange) = rememberPreference(
         MainPlayerLyricsTextSizeKey,
-        defaultValue = 22f
+        defaultValue = 27f
     )
     val (mainPlayerLyricsLineSpacing, onMainPlayerLyricsLineSpacingChange) = rememberPreference(
         MainPlayerLyricsLineSpacingKey,
-        defaultValue = 1.05f
+        defaultValue = 0.98f
     )
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
@@ -669,7 +674,7 @@ fun AppearanceSettings(
             buttons = {
                 TextButton(
                     onClick = {
-                        tempTextSize = 22f
+                        tempTextSize = 27f
                     }
                 ) {
                     Text(stringResource(R.string.reset))
@@ -733,7 +738,7 @@ fun AppearanceSettings(
             buttons = {
                 TextButton(
                     onClick = {
-                        tempLineSpacing = 1.05f
+                        tempLineSpacing = 0.98f
                     }
                 ) {
                     Text(stringResource(R.string.reset))
@@ -778,8 +783,8 @@ fun AppearanceSettings(
                 Slider(
                     value = tempLineSpacing,
                     onValueChange = { tempLineSpacing = it },
-                    valueRange = 1.0f..2.0f,
-                    steps = 19,
+                    valueRange = 0.7f..2.0f,
+                    steps = 25,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -2153,36 +2158,65 @@ fun AppearanceSettings(
 
             Material3SettingsGroup(
                 title = stringResource(R.string.main_player_lyrics),
-                items = listOf(
+                items = listOfNotNull(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.lyrics),
-                        title = { Text(stringResource(R.string.main_player_lyrics_text_position)) },
-                        description = {
-                            Text(
-                                when (mainPlayerLyricsPosition) {
-                                    LyricsPosition.LEFT -> stringResource(R.string.left)
-                                    LyricsPosition.CENTER -> stringResource(R.string.center)
-                                    LyricsPosition.RIGHT -> stringResource(R.string.right)
+                        title = { Text(stringResource(R.string.main_player_lyrics_enabled)) },
+                        description = { Text(stringResource(R.string.main_player_lyrics_enabled_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = mainPlayerLyricsEnabled,
+                                onCheckedChange = onMainPlayerLyricsEnabledChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (mainPlayerLyricsEnabled) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
                                 }
                             )
                         },
-                        onClick = { showMainPlayerLyricsPositionDialog = true },
-                        isExpressive = true
+                        onClick = { onMainPlayerLyricsEnabledChange(!mainPlayerLyricsEnabled) },
+                        isExpressive = true,
+                        descriptionBelow = true
                     ),
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.lyrics),
-                        title = { Text(stringResource(R.string.main_player_lyrics_text_size)) },
-                        description = { Text("${mainPlayerLyricsTextSize.roundToInt()} sp") },
-                        onClick = { showMainPlayerLyricsTextSizeDialog = true },
-                        isExpressive = true
-                    ),
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.lyrics),
-                        title = { Text(stringResource(R.string.main_player_lyrics_line_spacing)) },
-                        description = { Text("${String.format("%.2f", mainPlayerLyricsLineSpacing)}x") },
-                        onClick = { showMainPlayerLyricsLineSpacingDialog = true },
-                        isExpressive = true
-                    )
+                    if (mainPlayerLyricsEnabled) {
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.lyrics),
+                            title = { Text(stringResource(R.string.main_player_lyrics_text_position)) },
+                            description = {
+                                Text(
+                                    when (mainPlayerLyricsPosition) {
+                                        LyricsPosition.LEFT -> stringResource(R.string.left)
+                                        LyricsPosition.CENTER -> stringResource(R.string.center)
+                                        LyricsPosition.RIGHT -> stringResource(R.string.right)
+                                    }
+                                )
+                            },
+                            onClick = { showMainPlayerLyricsPositionDialog = true },
+                            isExpressive = true
+                        )
+                    } else null,
+                    if (mainPlayerLyricsEnabled) {
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.lyrics),
+                            title = { Text(stringResource(R.string.main_player_lyrics_text_size)) },
+                            description = { Text("${mainPlayerLyricsTextSize.roundToInt()} sp") },
+                            onClick = { showMainPlayerLyricsTextSizeDialog = true },
+                            isExpressive = true
+                        )
+                    } else null,
+                    if (mainPlayerLyricsEnabled) {
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.lyrics),
+                            title = { Text(stringResource(R.string.main_player_lyrics_line_spacing)) },
+                            description = { Text("${String.format("%.2f", mainPlayerLyricsLineSpacing)}x") },
+                            onClick = { showMainPlayerLyricsLineSpacingDialog = true },
+                            isExpressive = true
+                        )
+                    } else null
                 )
             )
         }
