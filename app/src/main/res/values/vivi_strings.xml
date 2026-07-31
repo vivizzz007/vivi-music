@@ -454,6 +454,8 @@
     <string name="lyrics_text_size">Lyrics text size</string>
     <string name="lyrics_line_spacing">Lyrics line spacing</string>
     <string name="main_player_lyrics">Main Player Lyrics</string>
+    <string name="main_player_lyrics_enabled">Enable Main Player Lyrics</string>
+    <string name="main_player_lyrics_enabled_desc">Show a compact synced lyrics preview in the tablet landscape player</string>
     <string name="main_player_lyrics_text_position">Text position</string>
     <string name="main_player_lyrics_text_size">Text size</string>
     <string name="main_player_lyrics_line_spacing">Line spacing</string>
