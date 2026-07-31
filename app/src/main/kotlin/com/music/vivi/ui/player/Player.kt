@@ -176,7 +176,10 @@ import com.music.vivi.constants.AppleMusicThumbnailPercentageKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.MainPlayerLyricsEnabledKey
+import com.music.vivi.constants.MainPlayerLyricsLineSpacingKey
 import com.music.vivi.constants.MainPlayerLyricsTextPositionKey
+import com.music.vivi.constants.MainPlayerLyricsTextSizeKey
 import com.music.vivi.constants.HideStatusBarInPlayerKey
 import com.music.vivi.constants.EnableLyricsThumbnailPlayPauseKey
 import com.music.vivi.constants.KeepScreenOn
@@ -2734,13 +2737,13 @@ fun BottomSheetPlayer(
 
                         // Tablet landscape only: a compact synced-lyrics preview below the
                         // volume bar and device name, shown when the full lyrics panel isn't
-                        // already up on the left. Purpose-built rather than reusing the real
-                        // Lyrics composable directly - that one auto-scrolls to center the
-                        // current line against a full-screen viewport, which pushed the
-                        // current line outside a small preview box entirely. This reads the
-                        // same side/font-size/line-spacing preferences and does word-by-word
-                        // sync for the active line, without any scroll state.
-                        val isTabletLandscapeCompact = LocalConfiguration.current.let {
+                        // already up on the left, and the feature is enabled in Appearance
+                        // settings. Purpose-built rather than reusing the real Lyrics
+                        // composable directly - that one auto-scrolls to center the current
+                        // line against a full-screen viewport, which pushed the current line
+                        // outside a small preview box entirely.
+                        val mainPlayerLyricsEnabled by rememberPreference(MainPlayerLyricsEnabledKey, defaultValue = true)
+                        val isTabletLandscapeCompact = mainPlayerLyricsEnabled && LocalConfiguration.current.let {
                             it.smallestScreenWidthDp >= 600 &&
                                 it.orientation == Configuration.ORIENTATION_LANDSCAPE
                         } && !showInlineLyrics
@@ -3044,9 +3047,10 @@ fun InlineLyricsView(
  * fill, and dimming of context lines all match exactly rather than being
  * approximated separately here.
  *
- * Note: MetroLyricsLine has its own fixed internal font size (36sp) and line
- * spacing - the Main Player Lyrics font size/line spacing settings only apply to
- * the side/position, not size, when this style is used.
+ * Always renders exactly lineCount slots (invisible placeholders fill any that
+ * don't have a real line left in the song) so the space reserved for lyrics -
+ * and everything laid out below it - stays fixed rather than shifting as the
+ * song nears its end.
  */
 @Composable
 fun MiniSyncedLyrics(
@@ -3074,6 +3078,8 @@ fun MiniSyncedLyrics(
     if (lines.isEmpty()) return
 
     val lyricsTextPosition by rememberEnumPreference(MainPlayerLyricsTextPositionKey, LyricsPosition.LEFT)
+    val lyricsTextSize by rememberPreference(MainPlayerLyricsTextSizeKey, 27f)
+    val lyricsLineSpacing by rememberPreference(MainPlayerLyricsLineSpacingKey, 0.98f)
 
     val currentLineIndex = LyricsUtils.findCurrentLineIndex(lines, position)
         .coerceIn(0, lines.lastIndex)
@@ -3087,27 +3093,57 @@ fun MiniSyncedLyrics(
     val endIndex = (startIndex + lineCount).coerceAtMost(lines.size)
 
     Column(modifier = modifier) {
-        for (i in startIndex until endIndex) {
-            val entry = lines[i]
-            MetroLyricsLine(
-                entry = entry,
-                nextEntryTime = lines.getOrNull(i + 1)?.time,
-                effectivePlaybackPosition = position,
-                isSynced = true,
-                isActive = i == currentLineIndex,
-                distanceFromCurrent = kotlin.math.abs(i - currentLineIndex),
-                lyricsTextPosition = lyricsTextPosition,
-                textColor = textColor,
-                showRomanized = false,
-                showTranslated = false,
-                onClick = {},
-                onLongClick = {},
-                isSelected = false,
-                isSelectionModeActive = false,
-                isAutoScrollActive = true,
-                expressiveAccent = textColor,
-                bgVisible = true
-            )
+        for (slot in 0 until lineCount) {
+            val i = startIndex + slot
+            if (i < endIndex) {
+                val entry = lines[i]
+                MetroLyricsLine(
+                    entry = entry,
+                    nextEntryTime = lines.getOrNull(i + 1)?.time,
+                    effectivePlaybackPosition = position,
+                    isSynced = true,
+                    isActive = i == currentLineIndex,
+                    distanceFromCurrent = kotlin.math.abs(i - currentLineIndex),
+                    lyricsTextPosition = lyricsTextPosition,
+                    textColor = textColor,
+                    showRomanized = false,
+                    showTranslated = false,
+                    onClick = {},
+                    onLongClick = {},
+                    isSelected = false,
+                    isSelectionModeActive = false,
+                    isAutoScrollActive = true,
+                    expressiveAccent = textColor,
+                    bgVisible = true,
+                    fontSizeOverride = lyricsTextSize,
+                    lineSpacingOverride = lyricsLineSpacing
+                )
+            } else {
+                // Placeholder: keeps the fixed lineCount-line height near the
+                // end of a song, so the volume bar/buttons below don't shift.
+                MetroLyricsLine(
+                    entry = LyricsEntry(time = 0L, text = ""),
+                    nextEntryTime = null,
+                    effectivePlaybackPosition = position,
+                    isSynced = true,
+                    isActive = false,
+                    distanceFromCurrent = slot,
+                    lyricsTextPosition = lyricsTextPosition,
+                    textColor = textColor,
+                    showRomanized = false,
+                    showTranslated = false,
+                    onClick = {},
+                    onLongClick = {},
+                    isSelected = false,
+                    isSelectionModeActive = false,
+                    isAutoScrollActive = true,
+                    expressiveAccent = textColor,
+                    bgVisible = true,
+                    fontSizeOverride = lyricsTextSize,
+                    lineSpacingOverride = lyricsLineSpacing,
+                    modifier = Modifier.alpha(0f)
+                )
+            }
         }
     }
 }
