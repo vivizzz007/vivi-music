@@ -525,6 +525,7 @@ val LyricsLineSpacingKey = floatPreferencesKey("lyricsLineSpacing")
 // Main Player Lyrics: independent appearance settings for the compact tablet
 // landscape lyrics preview (see MiniSyncedLyrics in Player.kt), separate from the
 // main lyrics screen's settings above so the two can be sized/positioned differently.
+val MainPlayerLyricsEnabledKey = booleanPreferencesKey("mainPlayerLyricsEnabled")
 val MainPlayerLyricsTextPositionKey = stringPreferencesKey("mainPlayerLyricsTextPosition")
 val MainPlayerLyricsTextSizeKey = floatPreferencesKey("mainPlayerLyricsTextSize")
 val MainPlayerLyricsLineSpacingKey = floatPreferencesKey("mainPlayerLyricsLineSpacing")
