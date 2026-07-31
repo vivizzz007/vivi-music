@@ -144,6 +144,8 @@ fun MetroLyricsLine(
     isAutoScrollActive: Boolean,
     expressiveAccent: Color,
     bgVisible: Boolean = true,
+    fontSizeOverride: Float? = null,
+    lineSpacingOverride: Float? = null,
     modifier: Modifier = Modifier
 ) {
     val (romanizeAsMain) = rememberPreference(LyricsRomanizeAsMainKey, false)
@@ -181,8 +183,8 @@ fun MetroLyricsLine(
         label = "lineAlpha"
     )
 
-    val lyricsTextSize = 36f
-    val lyricsLineSpacing = 1.3f
+    val lyricsTextSize = fontSizeOverride ?: 36f
+    val lyricsLineSpacing = lineSpacingOverride ?: 1.3f
 
     val itemModifier = modifier
         .fillMaxWidth()
