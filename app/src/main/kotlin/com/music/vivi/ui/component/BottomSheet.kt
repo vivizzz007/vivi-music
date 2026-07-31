@@ -341,7 +341,7 @@ fun rememberBottomSheetState(
 
         animatable.updateBounds(dismissedBound.coerceAtMost(expandedBound), expandedBound)
         coroutineScope.launch {
-            animatable.animateTo(initialValue, NavigationBarAnimationSpec)
+            animatable.snapTo(initialValue)
         }
 
         BottomSheetState(
