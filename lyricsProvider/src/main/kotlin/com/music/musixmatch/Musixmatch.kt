@@ -19,6 +19,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
@@ -329,20 +330,26 @@ object Musixmatch {
                 val trackId = bestTrack.trackId
                 val trackLength = bestTrack.trackLength ?: duration
 
-                // Fetch tiers and invoke callback for each found
-                val richsyncResult = getRichSyncLyrics(trackId, trackLength, token, secret)
-                if (richsyncResult.isSuccess) {
-                    callback(richsyncResult.getOrThrow())
-                }
+                // Fetch tiers concurrently but yield in strict priority order (Synced first)
+                kotlinx.coroutines.coroutineScope {
+                    val richsyncDeferred = async { getRichSyncLyrics(trackId, trackLength, token, secret) }
+                    val subtitleDeferred = async { getSubtitleLyrics(trackId, trackLength, token, secret) }
+                    val plainDeferred = async { getPlainLyrics(trackId, token, secret) }
 
-                val subtitleResult = getSubtitleLyrics(trackId, trackLength, token, secret)
-                if (subtitleResult.isSuccess) {
-                    callback(subtitleResult.getOrThrow())
-                }
+                    val richsyncResult = richsyncDeferred.await()
+                    if (richsyncResult.isSuccess) {
+                        callback(richsyncResult.getOrThrow())
+                    }
 
-                val plainLyricsResult = getPlainLyrics(trackId, token, secret)
-                if (plainLyricsResult.isSuccess) {
-                    callback(plainLyricsResult.getOrThrow())
+                    val subtitleResult = subtitleDeferred.await()
+                    if (subtitleResult.isSuccess) {
+                        callback(subtitleResult.getOrThrow())
+                    }
+
+                    val plainResult = plainDeferred.await()
+                    if (plainResult.isSuccess) {
+                        callback(plainResult.getOrThrow())
+                    }
                 }
             }
         }.onFailure {
