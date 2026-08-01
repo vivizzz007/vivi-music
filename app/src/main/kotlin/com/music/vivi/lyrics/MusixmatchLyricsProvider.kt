@@ -25,4 +25,15 @@ object MusixmatchLyricsProvider : LyricsProvider {
         album: String?,
     ): Result<String> =
         Musixmatch.getLyrics(title, artist, duration, album)
+
+    override suspend fun getAllLyrics(
+        id: String,
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String?,
+        callback: (String) -> Unit
+    ) {
+        Musixmatch.getAllLyrics(title, artist, duration, album, callback)
+    }
 }
