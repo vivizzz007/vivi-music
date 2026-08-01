@@ -60,4 +60,14 @@ class MusixmatchTest {
         val expected = "taylor swift ed sheeran someone else"
         assertEquals(expected, cleaned)
     }
+
+    @Test
+    fun debugKaliUchis() = kotlinx.coroutines.runBlocking {
+        println("STARTING DEBUG KALI UCHIS")
+        Musixmatch.getAllLyrics("all i can say", "kali uchis", 258) {
+            println("LYRICS FOUND:")
+            println(it.take(100))
+        }
+        println("FINISHED DEBUG KALI UCHIS")
+    }
 }
