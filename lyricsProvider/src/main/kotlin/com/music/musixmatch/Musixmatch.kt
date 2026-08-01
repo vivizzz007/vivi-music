@@ -253,13 +253,13 @@ object Musixmatch {
 
             // 2. Fetch lyrics using 3-tier priority chain
             // Tier 1: RichSync (Word-level timing)
-            val richsyncResult = getRichSyncLyrics(trackId, trackLength, token, secret)
+            val richsyncResult = getRichSyncLyrics(trackId, token, secret)
             if (richsyncResult.isSuccess) {
                 return@runWithTokenRetry richsyncResult.getOrThrow()
             }
 
             // Tier 2: Subtitle (Line-level synced timing)
-            val subtitleResult = getSubtitleLyrics(trackId, trackLength, token, secret)
+            val subtitleResult = getSubtitleLyrics(trackId, token, secret)
             if (subtitleResult.isSuccess) {
                 return@runWithTokenRetry subtitleResult.getOrThrow()
             }
@@ -332,8 +332,8 @@ object Musixmatch {
 
                 // Fetch tiers concurrently but yield in strict priority order (Synced first)
                 kotlinx.coroutines.coroutineScope {
-                    val richsyncDeferred = async { getRichSyncLyrics(trackId, trackLength, token, secret) }
-                    val subtitleDeferred = async { getSubtitleLyrics(trackId, trackLength, token, secret) }
+                    val richsyncDeferred = async { getRichSyncLyrics(trackId, token, secret) }
+                    val subtitleDeferred = async { getSubtitleLyrics(trackId, token, secret) }
                     val plainDeferred = async { getPlainLyrics(trackId, token, secret) }
 
                     val richsyncResult = richsyncDeferred.await()
@@ -357,8 +357,8 @@ object Musixmatch {
         }
     }
 
-    private suspend fun getRichSyncLyrics(trackId: Long, duration: Int, token: String, secret: String): Result<String> = runCatching {
-        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token&f_richsync_length=$duration&f_richsync_length_max_deviation=10"
+    private suspend fun getRichSyncLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
+        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(richsyncUrl, secret)
         
         val response = client.get(signedUrl) {
@@ -386,8 +386,8 @@ object Musixmatch {
         convertRichSyncToLrc(entries)
     }
 
-    private suspend fun getSubtitleLyrics(trackId: Long, duration: Int, token: String, secret: String): Result<String> = runCatching {
-        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token&f_subtitle_length=$duration&f_subtitle_length_max_deviation=10"
+    private suspend fun getSubtitleLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
+        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(subtitleUrl, secret)
 
         val response = client.get(signedUrl) {
