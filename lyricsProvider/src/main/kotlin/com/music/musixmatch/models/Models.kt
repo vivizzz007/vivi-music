@@ -141,3 +141,14 @@ data class TrackSubtitleResponseContainer(
 data class TrackSubtitleResponse(
     val message: TrackSubtitleResponseContainer
 )
+
+@Serializable
+data class SubtitleEntry(
+    val text: String,
+    val time: SubtitleTime
+)
+
+@Serializable
+data class SubtitleTime(
+    val total: Double // Time in seconds
+)
