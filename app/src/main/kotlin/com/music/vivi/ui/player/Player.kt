@@ -65,6 +65,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -111,6 +112,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -125,6 +127,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -916,6 +919,16 @@ fun BottomSheetPlayer(
     // Measured in landscape regardless of background style.
     var controlsLeftXPx by remember { mutableStateOf<Float?>(null) }
 
+    // Root-relative bounds of the big (non-lyrics) and small (near-title, lyrics
+    // mode) thumbnail, measured live from wherever each currently renders (works
+    // for portrait and landscape, phone and tablet, since it's just wherever the
+    // real elements happen to be laid out). Used to animate a floating album-art
+    // overlay smoothly between the two positions/sizes when lyrics open or close,
+    // instead of the plain crossfade - old design only (see isTabletLandscapeWithBigThumbnail
+    // for a similar precedent). Also see ThumbnailMorphOverlay below.
+    var bigThumbnailBoundsRoot by remember { mutableStateOf<Rect?>(null) }
+    var smallThumbnailBoundsRoot by remember { mutableStateOf<Rect?>(null) }
+
     BottomSheet(
         state = state,
         modifier = modifier,
@@ -1557,6 +1570,11 @@ fun BottomSheetPlayer(
                                     modifier = Modifier
                                         .size(56.dp)
                                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                        .onGloballyPositioned { coordinates ->
+                                            if (!useNewPlayerDesign) {
+                                                smallThumbnailBoundsRoot = coordinates.boundsInRoot()
+                                            }
+                                        }
                                         .clickable(enabled = isFullScreen && enableLyricsThumbnailPlayPause) {
                                             playerConnection.togglePlayPause()
                                         }
@@ -2806,7 +2824,13 @@ fun BottomSheetPlayer(
                             } else if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
-                                    modifier = Modifier.animateContentSize(),
+                                    modifier = Modifier
+                                        .animateContentSize()
+                                        .onGloballyPositioned { coordinates ->
+                                            if (!useNewPlayerDesign) {
+                                                bigThumbnailBoundsRoot = coordinates.boundsInRoot()
+                                            }
+                                        },
                                     isPlayerExpanded = isExpandedProvider,
                                     isLandscape = true,
                                     isListenTogetherGuest = isListenTogetherGuest
@@ -2891,7 +2915,7 @@ fun BottomSheetPlayer(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(if (!useNewPlayerDesign) 0.65f else 1f),
                     ) {
                         // Remember lambdas to prevent unnecessary recomposition
                         val currentSliderPosition by rememberUpdatedState(sliderPosition)
@@ -2911,7 +2935,13 @@ fun BottomSheetPlayer(
                             } else {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
-                                    modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
+                                    modifier = Modifier
+                                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
+                                        .onGloballyPositioned { coordinates ->
+                                            if (!useNewPlayerDesign) {
+                                                bigThumbnailBoundsRoot = coordinates.boundsInRoot()
+                                            }
+                                        },
                                     isPlayerExpanded = isExpandedProvider,
                                     isListenTogetherGuest = isListenTogetherGuest
                                 )
@@ -2919,11 +2949,77 @@ fun BottomSheetPlayer(
                         }
                     }
 
-                    mediaMetadata?.let {
-                        controlsContent(it)
+                    if (!useNewPlayerDesign) {
+                        // Reserve exactly 35% of the available height for controls (song
+                        // time/slider, play buttons, volume bar, device row), matching the
+                        // Apple Music style's 65/35 split. controlsContent is a ColumnScope
+                        // extension, so its existing children become direct children of this
+                        // Column and SpaceBetween distributes them across that 35% - no need
+                        // to touch controlsContent's own internal spacing.
+                        Column(
+                            modifier = Modifier
+                                .weight(0.35f)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            mediaMetadata?.let {
+                                controlsContent(it)
+                            }
+                        }
+                    } else {
+                        mediaMetadata?.let {
+                            controlsContent(it)
+                        }
                     }
 
                     Spacer(Modifier.height(if (useNewPlayerDesign) 30.dp else 8.dp))
+                }
+            }
+        }
+
+        // Smooth thumbnail morph (old design only): animates a floating copy of
+        // the album art between the big thumbnail's position/size and the small
+        // (near-title, lyrics mode) thumbnail's, instead of the plain crossfade,
+        // whenever lyrics open or close. Both positions are measured live from
+        // wherever the real elements actually render, so this works the same way
+        // in portrait/landscape and phone/tablet without any orientation-specific
+        // logic here.
+        if (!useNewPlayerDesign && !hidePlayerThumbnail) {
+            val bigBounds = bigThumbnailBoundsRoot
+            val smallBounds = smallThumbnailBoundsRoot
+            if (bigBounds != null && smallBounds != null) {
+                var isThumbnailTransitioning by remember { mutableStateOf(false) }
+                LaunchedEffect(showInlineLyrics) {
+                    isThumbnailTransitioning = true
+                    delay(350)
+                    isThumbnailTransitioning = false
+                }
+
+                val targetBounds = if (showInlineLyrics) smallBounds else bigBounds
+                val animatedX by animateFloatAsState(targetBounds.left, tween(350), label = "thumbMorphX")
+                val animatedY by animateFloatAsState(targetBounds.top, tween(350), label = "thumbMorphY")
+                val animatedW by animateFloatAsState(targetBounds.width, tween(350), label = "thumbMorphW")
+                val animatedH by animateFloatAsState(targetBounds.height, tween(350), label = "thumbMorphH")
+
+                AnimatedVisibility(
+                    visible = isThumbnailTransitioning,
+                    enter = fadeIn(tween(100)),
+                    exit = fadeOut(tween(200))
+                ) {
+                    val morphDensity = LocalDensity.current
+                    mediaMetadata?.let {
+                        AsyncImage(
+                            model = it.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                            modifier = with(morphDensity) {
+                                Modifier
+                                    .offset(x = animatedX.toDp(), y = animatedY.toDp())
+                                    .size(width = animatedW.toDp(), height = animatedH.toDp())
+                            }.clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        )
+                    }
                 }
             }
         }
