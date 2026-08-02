@@ -65,14 +65,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -82,13 +80,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.produceState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -112,7 +108,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -127,14 +122,12 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -207,14 +200,12 @@ import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.lyrics.LyricsUtils
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.extensions.togglePlayPause
-import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import com.music.vivi.vivimusic.isBuds
 import com.music.vivi.vivimusic.isSpeaker
-import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.LocalBottomSheetPageState
@@ -229,7 +220,6 @@ import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.component.rememberBottomSheetState
 import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.menu.PlayerMenu
-import com.music.vivi.ui.component.VolumeSlider
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
@@ -260,14 +250,12 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
-import androidx.media3.ui.PlayerView
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
@@ -919,16 +907,6 @@ fun BottomSheetPlayer(
     // Measured in landscape regardless of background style.
     var controlsLeftXPx by remember { mutableStateOf<Float?>(null) }
 
-    // Root-relative bounds of the big (non-lyrics) and small (near-title, lyrics
-    // mode) thumbnail, measured live from wherever each currently renders (works
-    // for portrait and landscape, phone and tablet, since it's just wherever the
-    // real elements happen to be laid out). Used to animate a floating album-art
-    // overlay smoothly between the two positions/sizes when lyrics open or close,
-    // instead of the plain crossfade - old design only (see isTabletLandscapeWithBigThumbnail
-    // for a similar precedent). Also see ThumbnailMorphOverlay below.
-    var bigThumbnailBoundsRoot by remember { mutableStateOf<Rect?>(null) }
-    var smallThumbnailBoundsRoot by remember { mutableStateOf<Rect?>(null) }
-
     BottomSheet(
         state = state,
         modifier = modifier,
@@ -1570,11 +1548,6 @@ fun BottomSheetPlayer(
                                     modifier = Modifier
                                         .size(56.dp)
                                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                        .onGloballyPositioned { coordinates ->
-                                            if (!useNewPlayerDesign) {
-                                                smallThumbnailBoundsRoot = coordinates.boundsInRoot()
-                                            }
-                                        }
                                         .clickable(enabled = isFullScreen && enableLyricsThumbnailPlayPause) {
                                             playerConnection.togglePlayPause()
                                         }
@@ -2318,7 +2291,15 @@ fun BottomSheetPlayer(
                 )
             }
 
-            Spacer(Modifier.height(if (useNewPlayerDesign) 24.dp else 8.dp))
+            Spacer(
+                Modifier.height(
+                    when {
+                        useNewPlayerDesign -> 24.dp
+                        bluetoothDeviceName != null -> 4.dp
+                        else -> 8.dp
+                    }
+                )
+            )
 
             AnimatedVisibility(
                 visible = !isFullScreen,
@@ -2482,26 +2463,6 @@ fun BottomSheetPlayer(
                                 .fillMaxWidth()
                                 .padding(horizontal = PlayerHorizontalPadding),
                         ) {
-//                            Box(modifier = Modifier.weight(1f)) {
-//                                ResizableIconButton(
-//                                    icon = when (repeatMode) {
-//                                        Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-//                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-//                                        else -> throw IllegalStateException()
-//                                    },
-//                                    color = TextBackgroundColor,
-//                                    modifier = Modifier
-//                                        .size(32.dp)
-//                                        .padding(4.dp)
-//                                        .align(Alignment.Center)
-//                                        .alpha(if (isListenTogetherGuest) 0.5f else 1f),
-//                                    enabled = !isListenTogetherGuest,
-//                                    onClick = {
-//                                        playerConnection.player.toggleRepeatMode()
-//                                    }
-//                                )
-//                            }
-
                             Box(modifier = Modifier.weight(1f)) {
                                 ResizableIconButton(
                                     icon = R.drawable.apple_skip_previous,
@@ -2581,22 +2542,13 @@ fun BottomSheetPlayer(
                                     onClick = playerConnection::seekToNext,
                                 )
                             }
-
-//                            Box(modifier = Modifier.weight(1f)) {
-//                                ResizableIconButton(
-//                                    icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-//                                    color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else TextBackgroundColor,
-//                                    modifier =
-//                                    Modifier
-//                                        .size(32.dp)
-//                                        .padding(4.dp)
-//                                        .align(Alignment.Center),
-//                                    onClick = playerConnection::toggleLike,
-//                                )
-//                            }
                         }
 
-                        Spacer(modifier = Modifier.height(8.dp)) //space between play and audio
+                        Spacer(
+                            modifier = Modifier.height(
+                                if (!useNewPlayerDesign && bluetoothDeviceName != null) 4.dp else 8.dp
+                            )
+                        ) //space between play and audio
 
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -2824,13 +2776,7 @@ fun BottomSheetPlayer(
                             } else if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
-                                    modifier = Modifier
-                                        .animateContentSize()
-                                        .onGloballyPositioned { coordinates ->
-                                            if (!useNewPlayerDesign) {
-                                                bigThumbnailBoundsRoot = coordinates.boundsInRoot()
-                                            }
-                                        },
+                                    modifier = Modifier.animateContentSize(),
                                     isPlayerExpanded = isExpandedProvider,
                                     isLandscape = true,
                                     isListenTogetherGuest = isListenTogetherGuest
@@ -2915,7 +2861,7 @@ fun BottomSheetPlayer(
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(if (!useNewPlayerDesign) 0.65f else 1f),
+                        modifier = Modifier.weight(1f),
                     ) {
                         // Remember lambdas to prevent unnecessary recomposition
                         val currentSliderPosition by rememberUpdatedState(sliderPosition)
@@ -2935,13 +2881,7 @@ fun BottomSheetPlayer(
                             } else {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
-                                    modifier = Modifier
-                                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
-                                        .onGloballyPositioned { coordinates ->
-                                            if (!useNewPlayerDesign) {
-                                                bigThumbnailBoundsRoot = coordinates.boundsInRoot()
-                                            }
-                                        },
+                                    modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
                                     isPlayerExpanded = isExpandedProvider,
                                     isListenTogetherGuest = isListenTogetherGuest
                                 )
@@ -2949,77 +2889,11 @@ fun BottomSheetPlayer(
                         }
                     }
 
-                    if (!useNewPlayerDesign) {
-                        // Reserve exactly 35% of the available height for controls (song
-                        // time/slider, play buttons, volume bar, device row), matching the
-                        // Apple Music style's 65/35 split. controlsContent is a ColumnScope
-                        // extension, so its existing children become direct children of this
-                        // Column and SpaceBetween distributes them across that 35% - no need
-                        // to touch controlsContent's own internal spacing.
-                        Column(
-                            modifier = Modifier
-                                .weight(0.35f)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            mediaMetadata?.let {
-                                controlsContent(it)
-                            }
-                        }
-                    } else {
-                        mediaMetadata?.let {
-                            controlsContent(it)
-                        }
+                    mediaMetadata?.let {
+                        controlsContent(it)
                     }
 
                     Spacer(Modifier.height(if (useNewPlayerDesign) 30.dp else 8.dp))
-                }
-            }
-        }
-
-        // Smooth thumbnail morph (old design only): animates a floating copy of
-        // the album art between the big thumbnail's position/size and the small
-        // (near-title, lyrics mode) thumbnail's, instead of the plain crossfade,
-        // whenever lyrics open or close. Both positions are measured live from
-        // wherever the real elements actually render, so this works the same way
-        // in portrait/landscape and phone/tablet without any orientation-specific
-        // logic here.
-        if (!useNewPlayerDesign && !hidePlayerThumbnail) {
-            val bigBounds = bigThumbnailBoundsRoot
-            val smallBounds = smallThumbnailBoundsRoot
-            if (bigBounds != null && smallBounds != null) {
-                var isThumbnailTransitioning by remember { mutableStateOf(false) }
-                LaunchedEffect(showInlineLyrics) {
-                    isThumbnailTransitioning = true
-                    delay(350)
-                    isThumbnailTransitioning = false
-                }
-
-                val targetBounds = if (showInlineLyrics) smallBounds else bigBounds
-                val animatedX by animateFloatAsState(targetBounds.left, tween(350), label = "thumbMorphX")
-                val animatedY by animateFloatAsState(targetBounds.top, tween(350), label = "thumbMorphY")
-                val animatedW by animateFloatAsState(targetBounds.width, tween(350), label = "thumbMorphW")
-                val animatedH by animateFloatAsState(targetBounds.height, tween(350), label = "thumbMorphH")
-
-                AnimatedVisibility(
-                    visible = isThumbnailTransitioning,
-                    enter = fadeIn(tween(100)),
-                    exit = fadeOut(tween(200))
-                ) {
-                    val morphDensity = LocalDensity.current
-                    mediaMetadata?.let {
-                        AsyncImage(
-                            model = it.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-                            modifier = with(morphDensity) {
-                                Modifier
-                                    .offset(x = animatedX.toDp(), y = animatedY.toDp())
-                                    .size(width = animatedW.toDp(), height = animatedH.toDp())
-                            }.clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        )
-                    }
                 }
             }
         }
@@ -3159,14 +3033,17 @@ fun MiniSyncedLyrics(
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
     val lyricsText = remember(currentLyrics) { currentLyrics?.lyrics?.trim() }
 
-    val lines = remember(lyricsText) {
-        if (lyricsText.isNullOrBlank() || lyricsText == LyricsEntity.LYRICS_NOT_FOUND) {
-            emptyList()
-        } else {
-            try {
-                LyricsUtils.parseLyrics(lyricsText).filterNot { it.isBackground }
-            } catch (e: Exception) {
+    var lines by remember { mutableStateOf<List<LyricsEntry>>(emptyList()) }
+    LaunchedEffect(lyricsText) {
+        lines = withContext(Dispatchers.Default) {
+            if (lyricsText.isNullOrBlank() || lyricsText == LyricsEntity.LYRICS_NOT_FOUND) {
                 emptyList()
+            } else {
+                try {
+                    LyricsUtils.parseLyrics(lyricsText).filterNot { it.isBackground }
+                } catch (e: Exception) {
+                    emptyList()
+                }
             }
         }
     }
