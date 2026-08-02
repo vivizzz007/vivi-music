@@ -471,6 +471,11 @@ fun BottomSheetPlayer(
         }
     }
 
+    // Measured live from the actual bluetooth info row (icon + name) so the two
+    // gap reductions below can exactly offset its real height instead of a
+    // guessed constant - see bluetoothSectionHeightPx usage further down.
+    var bluetoothSectionHeightPx by remember { mutableStateOf(0) }
+
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
     val maxSystemVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat() }
     val systemVolume by produceState(initialValue = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume) {
@@ -2291,12 +2296,23 @@ fun BottomSheetPlayer(
                 )
             }
 
+            // Exact compensation for the bluetooth info row's real height (measured
+            // via bluetoothSectionHeightPx), split evenly between this gap and the
+            // one between the play buttons and volume bar below - so the title's
+            // position stays fixed instead of drifting up when a device connects.
+            val bluetoothGapDensity = LocalDensity.current
+            val bluetoothGapReduction = if (bluetoothDeviceName != null && bluetoothSectionHeightPx > 0) {
+                with(bluetoothGapDensity) { (bluetoothSectionHeightPx / 2f).toDp() }
+            } else {
+                0.dp
+            }
+
             Spacer(
                 Modifier.height(
-                    when {
-                        useNewPlayerDesign -> 24.dp
-                        bluetoothDeviceName != null -> 4.dp
-                        else -> 8.dp
+                    if (useNewPlayerDesign) {
+                        24.dp
+                    } else {
+                        (8.dp - bluetoothGapReduction).coerceAtLeast(0.dp)
                     }
                 )
             )
@@ -2546,7 +2562,11 @@ fun BottomSheetPlayer(
 
                         Spacer(
                             modifier = Modifier.height(
-                                if (!useNewPlayerDesign && bluetoothDeviceName != null) 4.dp else 8.dp
+                                if (!useNewPlayerDesign) {
+                                    (8.dp - bluetoothGapReduction).coerceAtLeast(0.dp)
+                                } else {
+                                    8.dp
+                                }
                             )
                         ) //space between play and audio
 
@@ -2668,8 +2688,12 @@ fun BottomSheetPlayer(
                             label = "BluetoothInfoVisibility"
                         ) {
                             val nameToShow = bluetoothDeviceName ?: lastNonNullName
-                            Column {
-                                Spacer(Modifier.height(8.dp))
+                            Column(
+                                modifier = Modifier.onGloballyPositioned { coordinates ->
+                                    bluetoothSectionHeightPx = coordinates.size.height
+                                }
+                            ) {
+                                Spacer(Modifier.height(2.dp))
                                 Row(
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically,
