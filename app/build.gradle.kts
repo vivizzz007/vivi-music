@@ -22,7 +22,7 @@ android {
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
-        applicationId = "com.vivi.vivimusic"
+        applicationId = "com.kptech.vivimusic"
         minSdk = 26
         targetSdk = 37
         versionCode = 74
