@@ -92,6 +92,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -195,6 +196,7 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
+import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.lyrics.LyricsUtils
@@ -227,6 +229,7 @@ import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
+import com.music.vivi.viewmodels.LyricsMenuViewModel
 import com.music.vivi.utils.rememberPreference
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
@@ -305,13 +308,6 @@ fun BottomSheetPlayer(
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
     val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
 
-    val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
-        when (playerBackground) {
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> true
-            PlayerBackgroundStyle.DEFAULT -> useDarkTheme
-        }
-    }
-
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val swipeLyrics by rememberPreference(SwipeLyricsKey, false)
     val enableLyricsThumbnailPlayPause by rememberPreference(EnableLyricsThumbnailPlayPauseKey, false)
@@ -371,6 +367,16 @@ fun BottomSheetPlayer(
         AudioQualityKey,
         defaultValue = AudioQuality.AUTO
     )
+
+    // Real playback bitrate for the audio quality badge - same source ShowMediaInfo
+    // uses (the locally cached format info for whichever stream is actually
+    // playing), rather than just naming the quality setting (High/Low/Auto).
+    var currentPlaybackFormat by remember { mutableStateOf<FormatEntity?>(null) }
+    LaunchedEffect(mediaMetadata?.id) {
+        val songId = mediaMetadata?.id ?: return@LaunchedEffect
+        database.format(songId).collect { currentPlaybackFormat = it }
+    }
+
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.SLIM)
     val squigglySlider by rememberPreference(SquigglySliderKey, defaultValue = false)
     
@@ -493,7 +499,6 @@ fun BottomSheetPlayer(
         }
     }
 
-    val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
     LaunchedEffect(mediaMetadata?.id, playerBackground) {
@@ -782,10 +787,6 @@ fun BottomSheetPlayer(
                 delay(1000L)
             }
         }
-    }
-
-    var showChoosePlaylistDialog by rememberSaveable {
-        mutableStateOf(false)
     }
 
     var showInlineLyrics by rememberSaveable {
@@ -1744,8 +1745,6 @@ fun BottomSheetPlayer(
                         topEnd = 50.dp, bottomEnd = 50.dp
                     )
 
-                    val middleShape = RoundedCornerShape(3.dp)
-
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -2268,7 +2267,9 @@ fun BottomSheetPlayer(
                                             }
                                     )
                                     Text(
-                                        text = when (audioQuality) {
+                                        text = currentPlaybackFormat?.bitrate?.let { bitrate ->
+                                            "${bitrate / 1000} KBPS"
+                                        } ?: when (audioQuality) {
                                             AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
                                             AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                                             AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
@@ -2672,9 +2673,6 @@ fun BottomSheetPlayer(
                             )
                         }
 
-                        val displayBluetoothName = remember(bluetoothDeviceName) {
-                            if (bluetoothDeviceName != null) bluetoothDeviceName else bluetoothDeviceName
-                        }
                         // Use a persistent state to keep the name during exit animation
                         var lastNonNullName by remember { mutableStateOf<String?>(null) }
                         LaunchedEffect(bluetoothDeviceName) {
@@ -3072,7 +3070,32 @@ fun MiniSyncedLyrics(
         }
     }
 
-    if (lines.isEmpty()) return
+    if (lines.isEmpty()) {
+        val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+        val lyricsMenuViewModel: LyricsMenuViewModel = hiltViewModel()
+        mediaMetadata?.let { metadata ->
+            Row(
+                modifier = modifier.clickable {
+                    lyricsMenuViewModel.refetchLyrics(metadata, currentLyrics)
+                },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.cached),
+                    contentDescription = null,
+                    tint = textColor.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
+                )
+                Text(
+                    text = stringResource(R.string.refetch),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = textColor.copy(alpha = 0.7f)
+                )
+            }
+        }
+        return
+    }
 
     val lyricsTextPosition by rememberEnumPreference(MainPlayerLyricsTextPositionKey, LyricsPosition.LEFT)
     val lyricsTextSize by rememberPreference(MainPlayerLyricsTextSizeKey, 27f)
