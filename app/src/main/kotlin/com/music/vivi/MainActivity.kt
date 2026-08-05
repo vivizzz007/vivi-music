@@ -695,14 +695,22 @@ class MainActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(playerConnection) {
-                    val player = playerConnection?.player ?: return@LaunchedEffect
-                    if (player.currentMediaItem == null) {
-                        if (!playerBottomSheetState.isDismissed) {
-                            playerBottomSheetState.dismiss()
-                        }
-                    } else {
-                        if (playerBottomSheetState.isDismissed) {
-                            playerBottomSheetState.collapseSoft()
+                    val connection = playerConnection ?: return@LaunchedEffect
+                    // Collect continuously rather than checking once - after a cold
+                    // restart (app killed while backgrounded), the MediaController can
+                    // take a moment to sync its current item after reconnecting, and a
+                    // one-shot check here could read null just before it becomes
+                    // available, leaving the mini player stuck hidden with nothing to
+                    // correct it afterward.
+                    connection.mediaMetadata.collect { metadata ->
+                        if (metadata == null) {
+                            if (!playerBottomSheetState.isDismissed) {
+                                playerBottomSheetState.dismiss()
+                            }
+                        } else {
+                            if (playerBottomSheetState.isDismissed) {
+                                playerBottomSheetState.collapseSoft()
+                            }
                         }
                     }
                 }
