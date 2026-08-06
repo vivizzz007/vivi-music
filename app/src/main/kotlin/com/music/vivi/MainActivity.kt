@@ -694,7 +694,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                LaunchedEffect(playerConnection) {
+                LaunchedEffect(playerConnection, playerBottomSheetState) {
                     val connection = playerConnection ?: return@LaunchedEffect
                     // Collect continuously rather than checking once - after a cold
                     // restart (app killed while backgrounded), the MediaController can
