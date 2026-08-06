@@ -1,6 +1,7 @@
 package com.music.vivi.ui.player
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -53,6 +54,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.ui.draw.alpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -302,11 +304,18 @@ fun QueueV2(
                     }
 
                     val content: @Composable () -> Unit = {
+                        val glassBg = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
+                            Color.Unspecified
+                        } else {
+                            if (isActive) adaptiveSurface.copy(alpha = 0.4f) else adaptiveSurface.copy(alpha = 0.15f)
+                        }
+
                         MediaMetadataListItem(
                             mediaMetadata = window.mediaItem.metadata!!,
                             isSelected = false,
                             isActive = isActive,
                             isPlaying = isPlaying && isActive,
+                            backgroundColor = glassBg,
                             shape = listItemShape(index, mutableQueueWindows.size),
                             trailingContent = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -379,10 +388,16 @@ fun QueueV2(
                                         .background(color),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
+                                    val iconAlpha by animateFloatAsState(
+                                        targetValue = if (dismissBoxState.targetValue != SwipeToDismissBoxValue.Settled) 1f else 0f,
+                                        label = "iconAlpha"
+                                    )
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = "Delete",
-                                        modifier = Modifier.padding(end = 16.dp),
+                                        modifier = Modifier
+                                            .padding(end = 16.dp)
+                                            .alpha(iconAlpha),
                                         tint = MaterialTheme.colorScheme.onError
                                     )
                                 }
