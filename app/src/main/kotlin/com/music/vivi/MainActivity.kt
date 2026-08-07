@@ -165,6 +165,7 @@ import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.FloatingNavBarKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.extensions.toEnum
@@ -545,6 +546,7 @@ class MainActivity : ComponentActivity() {
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
                 val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = false)
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+                val (useAppleMiniPlayer) = rememberPreference(UseAppleMiniPlayerKey, defaultValue = false)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
@@ -623,7 +625,7 @@ class MainActivity : ComponentActivity() {
                     dismissedBound = 0.dp,
                     collapsedBound = bottomInset +
                         (if (!showRail && shouldShowNavigationBar) navPadding else 0.dp) +
-                        (if (useNewMiniPlayerDesign) MiniPlayerBottomSpacing else 0.dp) +
+                        (if (useNewMiniPlayerDesign || useAppleMiniPlayer) MiniPlayerBottomSpacing else 0.dp) +
                         MiniPlayerHeight,
                     expandedBound = maxHeight,
                 )
