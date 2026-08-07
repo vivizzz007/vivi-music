@@ -55,6 +55,8 @@ import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.EnableGoogleCastKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.KeepScreenOn
+import com.music.vivi.constants.MusicHapticsEnabledKey
+import com.music.vivi.constants.MusicHapticsIntensityKey
 import com.music.vivi.constants.PauseOnMute
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
@@ -94,6 +96,14 @@ fun PlayerSettings(
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
         defaultValue = 5f
+    )
+    val (musicHapticsEnabled, onMusicHapticsEnabledChange) = rememberPreference(
+        MusicHapticsEnabledKey,
+        defaultValue = false
+    )
+    val (musicHapticsIntensity, onMusicHapticsIntensityChange) = rememberPreference(
+        MusicHapticsIntensityKey,
+        defaultValue = 1f
     )
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
         CrossfadeGaplessKey,
@@ -370,6 +380,47 @@ fun PlayerSettings(
                             )
                         },
                         onClick = { onCrossfadeGaplessChange(!crossfadeGapless) },
+                        isExpressive = true,
+                        descriptionBelow = true
+                    ))
+                }
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.graphic_eq),
+                    title = { Text(stringResource(R.string.music_haptics)) },
+                    description = { Text(stringResource(R.string.music_haptics_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = musicHapticsEnabled,
+                            onCheckedChange = onMusicHapticsEnabledChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (musicHapticsEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onMusicHapticsEnabledChange(!musicHapticsEnabled) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ))
+                if (musicHapticsEnabled) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.graphic_eq),
+                        title = { Text(stringResource(R.string.music_haptics_intensity)) },
+                        description = {
+                            Column {
+                                Text("${(musicHapticsIntensity * 100).roundToInt()}%")
+                                Slider(
+                                    value = musicHapticsIntensity,
+                                    onValueChange = onMusicHapticsIntensityChange,
+                                    valueRange = 0.1f..1f
+                                )
+                            }
+                        },
                         isExpressive = true,
                         descriptionBelow = true
                     ))
