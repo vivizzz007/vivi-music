@@ -340,6 +340,9 @@
     <string name="crossfade_duration">Crossfade duration</string>
     <string name="crossfade_gapless">Disable for gapless albums</string>
     <string name="crossfade_gapless_desc">Don\'t crossfade if the album is gapless</string>
+    <string name="music_haptics">Music Haptics</string>
+    <string name="music_haptics_desc">Feel a beat-synced vibration in sync with the music as it plays</string>
+    <string name="music_haptics_intensity">Haptics intensity</string>
     <string name="crossfade_beta_title">Beta Feature</string>
     <string name="crossfade_beta_message">Crossfade is a new feature and may have bugs. If you experience any issues, please report them.\n\nThis feature disables audio offload due to technical limitations.</string>
 
