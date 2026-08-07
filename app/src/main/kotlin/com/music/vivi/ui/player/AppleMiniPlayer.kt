@@ -16,9 +16,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.toShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -57,6 +60,7 @@ import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import com.music.vivi.ui.component.Icon as MIcon
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppleMiniPlayer(
     progressState: ProgressState,
@@ -129,7 +133,7 @@ fun AppleMiniPlayer(
     )
     
     // Memoize colors
-    val backgroundColor = if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+    val backgroundColor = if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surface
     val isDynamicBackground = miniPlayerBackground != PlayerBackgroundStyle.DEFAULT
     
     val primaryColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.primary
@@ -213,7 +217,6 @@ fun AppleMiniPlayer(
                 .offset { IntOffset(offsetXAnimatable.value.roundToInt(), 0) }
                 .clip(RoundedCornerShape(8.dp)) // Apple rectangular shape with slightly rounded corners
                 .background(color = backgroundColor)
-                .border(1.dp, outlineColor.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
         ) {
             // Background Layers
             MiniPlayerBackgroundLayer(
@@ -240,14 +243,13 @@ fun AppleMiniPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
             ) {
-                // Rectangular Thumbnail
+                // Cookie 4-Sided Thumbnail
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .size(42.dp)
-                        .clip(RoundedCornerShape(6.dp))
+                        .clip(MaterialShapes.Cookie4Sided.toShape())
                         .background(color = outlineColor.copy(alpha = 0.2f))
-                        .border(1.dp, outlineColor.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
                 ) {
                     mediaMetadata?.let { metadata ->
                         AsyncImage(
