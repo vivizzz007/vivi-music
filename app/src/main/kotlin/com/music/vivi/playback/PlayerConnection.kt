@@ -24,13 +24,18 @@ import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.MusicService.MusicBinder
 import com.music.vivi.playback.queues.Queue
+import com.music.vivi.constants.MusicHapticsEnabledKey
+import com.music.vivi.constants.MusicHapticsIntensityKey
+import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -128,7 +133,49 @@ class PlayerConnection(
         SharingStarted.Lazily,
         player.playbackState != STATE_ENDED && player.playWhenReady
     )
-    
+
+    // Beat-synchronized haptic feedback ("Music Haptics"). See
+    // MusicHapticsManager for how beats are detected. Only runs during actual
+    // local playback - disabled while casting, since the Visualizer would only
+    // ever capture local silence in that case (the audio is playing on the
+    // remote device, not through this device's audio session).
+    private val musicHapticsManager = MusicHapticsManager(context)
+
+    private data class HapticsState(
+        val enabled: Boolean,
+        val intensity: Float,
+        val playing: Boolean,
+        val casting: Boolean
+    )
+
+    init {
+        scope.launch {
+            val hapticsEnabledFlow = context.dataStore.data
+                .map { it[MusicHapticsEnabledKey] ?: false }
+                .distinctUntilChanged()
+            val hapticsIntensityFlow = context.dataStore.data
+                .map { it[MusicHapticsIntensityKey] ?: 1f }
+                .distinctUntilChanged()
+            val isCastingFlow = service.castConnectionHandler?.isCasting ?: MutableStateFlow(false)
+
+            combine(
+                hapticsEnabledFlow,
+                hapticsIntensityFlow,
+                isPlaying,
+                isCastingFlow
+            ) { enabled, intensity, playing, casting ->
+                HapticsState(enabled, intensity, playing, casting)
+            }.distinctUntilChanged().collect { state ->
+                musicHapticsManager.intensity = state.intensity
+                if (state.enabled && state.playing && !state.casting) {
+                    musicHapticsManager.start(player.audioSessionId)
+                } else {
+                    musicHapticsManager.stop()
+                }
+            }
+        }
+    }
+
     val mediaMetadata = MutableStateFlow(player.currentMetadata)
     val currentSong =
         mediaMetadata.flatMapLatest {
@@ -495,6 +542,7 @@ class PlayerConnection(
         try {
             attachedPlayer?.removeListener(this)
             attachedPlayer = null
+            musicHapticsManager.stop()
             Timber.tag(TAG).d("PlayerConnection disposed successfully")
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error during PlayerConnection disposal")
