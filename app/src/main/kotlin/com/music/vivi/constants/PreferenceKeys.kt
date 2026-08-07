@@ -531,6 +531,8 @@ val MainPlayerLyricsTextSizeKey = floatPreferencesKey("mainPlayerLyricsTextSize"
 val MainPlayerLyricsLineSpacingKey = floatPreferencesKey("mainPlayerLyricsLineSpacing")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
+val MusicHapticsEnabledKey = booleanPreferencesKey("musicHapticsEnabled")
+val MusicHapticsIntensityKey = floatPreferencesKey("musicHapticsIntensity")
 val RepeatModeKey = intPreferencesKey("repeatMode")
 
 val SearchSourceKey = stringPreferencesKey("searchSource")
