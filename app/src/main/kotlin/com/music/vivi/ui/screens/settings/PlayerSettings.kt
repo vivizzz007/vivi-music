@@ -5,6 +5,10 @@
 
 package com.music.vivi.ui.screens.settings
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -18,6 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Slider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -105,6 +115,59 @@ fun PlayerSettings(
         MusicHapticsIntensityKey,
         defaultValue = 1f
     )
+
+    // RECORD_AUDIO is a dangerous permission (API 23+) - declaring it in the
+    // manifest alone doesn't grant it. Music Haptics uses Visualizer, which
+    // needs this granted at runtime or it silently fails to capture audio.
+    val hapticsContext = LocalContext.current
+    var hasRecordAudioPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                hapticsContext,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // Re-check on resume in case the user granted/revoked it from system
+    // Settings while away from this screen.
+    val hapticsLifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(hapticsLifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasRecordAudioPermission = ContextCompat.checkSelfPermission(
+                    hapticsContext,
+                    Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+        hapticsLifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { hapticsLifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            hasRecordAudioPermission = isGranted
+            if (isGranted) {
+                onMusicHapticsEnabledChange(true)
+            }
+        }
+    )
+
+    val onMusicHapticsToggle: (Boolean) -> Unit = { checked ->
+        if (checked && !hasRecordAudioPermission) {
+            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        } else {
+            onMusicHapticsEnabledChange(checked)
+        }
+    }
+
+    // Reflects the real effective state - if permission was revoked from
+    // system Settings after being enabled here, this shows the toggle as off
+    // rather than appearing on while silently doing nothing.
+    val isMusicHapticsActive = musicHapticsEnabled && hasRecordAudioPermission
+
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
         CrossfadeGaplessKey,
         defaultValue = true
@@ -390,12 +453,12 @@ fun PlayerSettings(
                     description = { Text(stringResource(R.string.music_haptics_desc)) },
                     trailingContent = {
                         Switch(
-                            checked = musicHapticsEnabled,
-                            onCheckedChange = onMusicHapticsEnabledChange,
+                            checked = isMusicHapticsActive,
+                            onCheckedChange = onMusicHapticsToggle,
                             thumbContent = {
                                 Icon(
                                     painter = painterResource(
-                                        id = if (musicHapticsEnabled) R.drawable.check else R.drawable.close
+                                        id = if (isMusicHapticsActive) R.drawable.check else R.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -403,11 +466,11 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onMusicHapticsEnabledChange(!musicHapticsEnabled) },
+                    onClick = { onMusicHapticsToggle(!isMusicHapticsActive) },
                     isExpressive = true,
                     descriptionBelow = true
                 ))
-                if (musicHapticsEnabled) {
+                if (isMusicHapticsActive) {
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.graphic_eq),
                         title = { Text(stringResource(R.string.music_haptics_intensity)) },
