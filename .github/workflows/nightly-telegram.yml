@@ -70,7 +70,7 @@ jobs:
         id: find_apk
         run: |
           # Search entire app/build directory to reliably find the APK
-          APK_FILE=$(find app/build -name "*.apk" | grep -v unsigned | head -n 1)
+          APK_FILE=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
           echo "Found APK at: $APK_FILE"
           if [ -z "$APK_FILE" ]; then
             echo "ERROR: No APK file found!"
