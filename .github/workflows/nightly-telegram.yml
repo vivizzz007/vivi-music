@@ -69,8 +69,13 @@ jobs:
         if: steps.check_commits.outputs.cancel == 'false'
         id: find_apk
         run: |
-          # Dynamically find the built apk file to ensure we get the right path
-          APK_FILE=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+          # Search entire app/build directory to reliably find the APK
+          APK_FILE=$(find app/build -name "*.apk" | grep -v unsigned | head -n 1)
+          echo "Found APK at: $APK_FILE"
+          if [ -z "$APK_FILE" ]; then
+            echo "ERROR: No APK file found!"
+            exit 1
+          fi
           echo "APK_PATH=$APK_FILE" >> "$GITHUB_ENV"
 
       - name: Upload APK to Telegram
