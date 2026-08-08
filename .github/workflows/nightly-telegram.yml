@@ -84,6 +84,6 @@ jobs:
           CAPTION=$'🚀 New ViviMusic Nightly Build!\nCommit: ${{ github.sha }}'
           curl -s -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
                -F message_thread_id="${{ secrets.TELEGRAM_THREAD_ID }}" \
-               -F document=@"${{ env.APK_PATH }}" \
+               -F document=@"$GITHUB_WORKSPACE/${{ env.APK_PATH }}" \
                -F caption="$CAPTION" \
                https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
