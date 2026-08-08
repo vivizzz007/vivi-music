@@ -1198,17 +1198,16 @@ object YouTube {
             )]
         }.joinToString("")
 
-        val playbackUrl = playbackTracking.replace(
-            "https://s.youtube.com",
-            "https://music.youtube.com",
-        )
-
+        // Pass the videostatsPlaybackUrl as-is — it's a telemetry endpoint on s.youtube.com.
+        // Do NOT rewrite the host; doing so routes the request to the wrong server and causes
+        // silent history registration failures.
         innerTube.registerPlayback(
-            url = playbackUrl,
+            url = playbackTracking,
             playlistId = playlistId,
             cpn = cpn
         )
     }
+
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
         val response = innerTube.next(
