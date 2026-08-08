@@ -55,12 +55,12 @@ jobs:
         if: steps.check_commits.outputs.cancel == 'false'
         run: |
           mkdir -p app/keystore
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.keystore
+          echo "${{ secrets.KEYSTORE }}" | base64 --decode > app/keystore/release.keystore
 
       - name: Build APK (Universal GMS Release)
         if: steps.check_commits.outputs.cancel == 'false'
         env:
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleUniversalGmsRelease --no-daemon
