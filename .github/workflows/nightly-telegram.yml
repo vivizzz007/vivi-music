@@ -51,10 +51,19 @@ jobs:
         if: steps.check_commits.outputs.cancel == 'false'
         run: chmod +x gradlew
 
-      - name: Build APK (Universal FOSS Debug)
+      - name: Decode Release Keystore
         if: steps.check_commits.outputs.cancel == 'false'
-        # Builds the universal FOSS debug variant which doesn't require release keystores
-        run: ./gradlew assembleUniversalFossDebug --no-daemon
+        run: |
+          mkdir -p app/keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/keystore/release.keystore
+
+      - name: Build APK (Universal GMS Release)
+        if: steps.check_commits.outputs.cancel == 'false'
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleUniversalGmsRelease --no-daemon
 
       - name: Find APK Path
         if: steps.check_commits.outputs.cancel == 'false'
