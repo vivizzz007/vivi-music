@@ -72,7 +72,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -917,30 +916,23 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
-                            var lastSearchTapTime by remember { mutableLongStateOf(0L) }
                             val onNavItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState) {
                                 { screen: Screens, isSelected: Boolean ->
                                     if (playerBottomSheetState.isExpanded) {
                                         playerBottomSheetState.collapseSoft()
                                     }
 
-                                    // Checked unconditionally (not just when isSelected) since on a
-                                    // fast repeat tap, currentRoute/isSelected may not have
-                                    // recomposed yet to reflect tap 1's navigation - isSelected can
-                                    // still read false for tap 2, which would otherwise skip this
-                                    // check entirely and silently no-op via launchSingleTop.
-                                    if (screen == Screens.Search) {
-                                        val now = System.currentTimeMillis()
-                                        if (now - lastSearchTapTime < 400L) {
-                                            navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
-                                        }
-                                        lastSearchTapTime = now
-                                    }
-
                                     if (isSelected) {
                                         navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                         coroutineScope.launch {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
+                                        }
+
+                                        // Tapping Search while it's already the open tab, however
+                                        // long after the first tap, focuses the search bar directly -
+                                        // same as if the user had tapped the search bar itself.
+                                        if (screen == Screens.Search) {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
                                         }
                                     } else {
                                         navController.navigate(screen.route) {
