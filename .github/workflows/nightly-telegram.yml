@@ -69,17 +69,17 @@ jobs:
         if: steps.check_commits.outputs.cancel == 'false'
         id: find_apk
         run: |
-          APK_FILE=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
-          if [ -z "$APK_FILE" ]; then
-            APK_FILE=$(find app/build -name "*.apk" | head -n 1)
+          RAW_PATH=$(find app/build/outputs/apk -name "*.apk" | head -n 1 | tr -d '\r')
+          if [ -z "$RAW_PATH" ]; then
+            RAW_PATH=$(find app/build -name "*.apk" | head -n 1 | tr -d '\r')
           fi
-          if [ -z "$APK_FILE" ]; then
+          if [ -z "$RAW_PATH" ]; then
             echo "ERROR: No APK file found!"
             exit 1
           fi
-          FULL_PATH="$GITHUB_WORKSPACE/$APK_FILE"
+          FULL_PATH=$(realpath "$RAW_PATH" | tr -d '\r')
           echo "Found APK at: $FULL_PATH"
-          FILE_SIZE=$(du -h "$FULL_PATH" | cut -f1)
+          FILE_SIZE=$(du -h "$FULL_PATH" | cut -f1 | tr -d '\r')
           echo "APK Size: $FILE_SIZE"
           echo "APK_PATH=$FULL_PATH" >> "$GITHUB_ENV"
           echo "APK_SIZE=$FILE_SIZE" >> "$GITHUB_ENV"
