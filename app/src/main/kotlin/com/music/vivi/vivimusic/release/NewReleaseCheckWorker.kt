@@ -209,12 +209,10 @@ class NewReleaseCheckWorker(
             Timber.tag(TAG).d("Enqueuing periodic release check worker")
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
                 .build()
 
             val workRequest = PeriodicWorkRequestBuilder<NewReleaseCheckWorker>(
-                24, TimeUnit.HOURS,
-                2, TimeUnit.HOURS
+                15, TimeUnit.MINUTES
             )
                 .setConstraints(constraints)
                 .addTag(UNIQUE_WORK_NAME)

@@ -19,6 +19,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 
@@ -176,8 +177,14 @@ object Musixmatch {
             try {
                 block()
             } catch (retryException: Exception) {
+                tokenCache.set(null)
+                secretCache.set(null)
                 throw retryException
             }
+        } catch (e: Exception) {
+            tokenCache.set(null)
+            secretCache.set(null)
+            throw e
         }
     }
 
@@ -246,13 +253,13 @@ object Musixmatch {
 
             // 2. Fetch lyrics using 3-tier priority chain
             // Tier 1: RichSync (Word-level timing)
-            val richsyncResult = getRichSyncLyrics(trackId, trackLength, token, secret)
+            val richsyncResult = getRichSyncLyrics(trackId, token, secret)
             if (richsyncResult.isSuccess) {
                 return@runWithTokenRetry richsyncResult.getOrThrow()
             }
 
             // Tier 2: Subtitle (Line-level synced timing)
-            val subtitleResult = getSubtitleLyrics(trackId, trackLength, token, secret)
+            val subtitleResult = getSubtitleLyrics(trackId, token, secret)
             if (subtitleResult.isSuccess) {
                 return@runWithTokenRetry subtitleResult.getOrThrow()
             }
@@ -267,8 +274,91 @@ object Musixmatch {
         }
     }
 
-    private suspend fun getRichSyncLyrics(trackId: Long, duration: Int, token: String, secret: String): Result<String> = runCatching {
-        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token&f_richsync_length=$duration&f_richsync_length_max_deviation=10"
+    suspend fun getAllLyrics(
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String? = null,
+        callback: (String) -> Unit
+    ) {
+        runCatching {
+            runWithTokenRetry {
+                val secret = getSecret()
+                val token = getUserToken(secret)
+
+                val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.name())
+                val encodedArtist = URLEncoder.encode(artist, StandardCharsets.UTF_8.name())
+                val searchUrl = "${BASE_URL}track.search?app_id=web-desktop-app-v1.0&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
+                val signedSearch = sign(searchUrl, secret)
+
+                val searchResponse = client.get(signedSearch) {
+                    header("User-Agent", USER_AGENT)
+                    header("Accept", "application/json, text/plain, */*")
+                    header("Accept-Language", "en-US,en;q=0.9")
+                }.body<SearchTrackResponse>()
+
+                val searchHeader = searchResponse.message.header
+                checkStatusCode(searchHeader.statusCode)
+
+                val bodyElement = searchResponse.message.body
+                val trackList = if (bodyElement is kotlinx.serialization.json.JsonObject) {
+                    val json = Json { ignoreUnknownKeys = true }
+                    val bodyObj = json.decodeFromJsonElement<SearchTrackResponseBody>(bodyElement)
+                    bodyObj.trackList
+                } else {
+                    emptyList()
+                }
+
+                if (trackList.isEmpty()) return@runWithTokenRetry
+
+                val normalizedQueryTitle = cleanText(title)
+
+                val bestTrack = trackList.map { it.track }.minByOrNull { track ->
+                    val trackTitleCleaned = cleanText(track.trackName)
+                    val textScore = when {
+                        trackTitleCleaned == normalizedQueryTitle -> 0
+                        trackTitleCleaned.contains(normalizedQueryTitle) || normalizedQueryTitle.contains(trackTitleCleaned) -> 1
+                        else -> 2
+                    }
+
+                    val trackDur = track.trackLength ?: 0
+                    val durDelta = if (duration > 0 && trackDur > 0) abs(trackDur - duration) else if (trackDur == 0) 999 else Int.MAX_VALUE
+                    
+                    (textScore.toLong() shl 32) + durDelta
+                } ?: trackList[0].track
+
+                val trackId = bestTrack.trackId
+                val trackLength = bestTrack.trackLength ?: duration
+
+                // Fetch tiers concurrently but yield in strict priority order (Synced first)
+                kotlinx.coroutines.coroutineScope {
+                    val richsyncDeferred = async { getRichSyncLyrics(trackId, token, secret) }
+                    val subtitleDeferred = async { getSubtitleLyrics(trackId, token, secret) }
+                    val plainDeferred = async { getPlainLyrics(trackId, token, secret) }
+
+                    val richsyncResult = richsyncDeferred.await()
+                    if (richsyncResult.isSuccess) {
+                        callback(richsyncResult.getOrThrow())
+                    }
+
+                    val subtitleResult = subtitleDeferred.await()
+                    if (subtitleResult.isSuccess) {
+                        callback(subtitleResult.getOrThrow())
+                    }
+
+                    val plainResult = plainDeferred.await()
+                    if (plainResult.isSuccess) {
+                        callback(plainResult.getOrThrow())
+                    }
+                }
+            }
+        }.onFailure {
+            logDebug("getAllLyrics failed: ${it.message}")
+        }
+    }
+
+    private suspend fun getRichSyncLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
+        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(richsyncUrl, secret)
         
         val response = client.get(signedUrl) {
@@ -296,8 +386,8 @@ object Musixmatch {
         convertRichSyncToLrc(entries)
     }
 
-    private suspend fun getSubtitleLyrics(trackId: Long, duration: Int, token: String, secret: String): Result<String> = runCatching {
-        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token&f_subtitle_length=$duration&f_subtitle_length_max_deviation=10"
+    private suspend fun getSubtitleLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
+        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=web-desktop-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(subtitleUrl, secret)
 
         val response = client.get(signedUrl) {
@@ -322,7 +412,7 @@ object Musixmatch {
         if (body.isBlank()) {
             throw IllegalStateException("Subtitle body is empty")
         }
-        body
+        convertSubtitleJsonToLrc(body)
     }
 
     private suspend fun getPlainLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
@@ -388,11 +478,28 @@ object Musixmatch {
         return sb.toString()
     }
 
-    private fun cleanText(text: String): String {
-        return text.replace(Regex("\\(.*?\\)"), "")
+    internal fun convertSubtitleJsonToLrc(body: String): String {
+        return try {
+            val entries = Json { ignoreUnknownKeys = true }.decodeFromString<List<SubtitleEntry>>(body)
+            val sb = StringBuilder()
+            entries.forEach { entry ->
+                sb.append(formatTime((entry.time.total * 1000).toLong(), isSyllable = false))
+                sb.append(entry.text)
+                sb.append("\n")
+            }
+            sb.toString()
+        } catch (e: Exception) {
+            body
+        }
+    }
+
+    internal fun cleanText(text: String): String {
+        val noSpecialChars = text.replace(",", " ").replace("&", " ")
+        return noSpecialChars.replace(Regex("\\(.*?\\)"), "")
             .replace(Regex("\\[.*?\\]"), "")
             .lowercase(Locale.US)
-            .replace(Regex("[^a-z0-9]"), "")
+            .replace(Regex("[^a-z0-9 ]"), "")
+            .replace(Regex("\\s+"), " ")
             .trim()
     }
 

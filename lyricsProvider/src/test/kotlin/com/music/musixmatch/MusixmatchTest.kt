@@ -41,4 +41,33 @@ class MusixmatchTest {
         val expected = "[00:32.240]<00:32.240>This <00:32.676>is <00:32.867>the <00:33.527>end\n"
         assertEquals(expected, lrc)
     }
+
+    @Test
+    fun testConvertSubtitleJsonToLrc() {
+        val json = """[{"text":"This is the first line","time":{"total":12.345}},{"text":"Second line","time":{"total":15.0}}]"""
+        val lrc = Musixmatch.convertSubtitleJsonToLrc(json)
+        
+        val expected = "[00:12.345]This is the first line\n[00:15.000]Second line\n"
+        assertEquals(expected, lrc)
+    }
+    
+    @Test
+    fun testMultiArtistClean() {
+        val input = "Taylor Swift, Ed Sheeran & Someone Else (feat. Guest) [Remix]"
+        val cleaned = Musixmatch.cleanText(input)
+        
+        // Should preserve space for each word separated by comma or ampersand
+        val expected = "taylor swift ed sheeran someone else"
+        assertEquals(expected, cleaned)
+    }
+
+    @Test
+    fun debugKaliUchis() = kotlinx.coroutines.runBlocking {
+        println("STARTING DEBUG KALI UCHIS")
+        Musixmatch.getAllLyrics("all i can say", "kali uchis", 258) {
+            println("LYRICS FOUND:")
+            println(it.take(100))
+        }
+        println("FINISHED DEBUG KALI UCHIS")
+    }
 }
