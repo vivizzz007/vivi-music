@@ -927,13 +927,6 @@ class MainActivity : ComponentActivity() {
                                         coroutineScope.launch {
                                             topAppBarScrollBehavior.state.resetHeightOffset()
                                         }
-
-                                        // Tapping Search while it's already the open tab, however
-                                        // long after the first tap, focuses the search bar directly -
-                                        // same as if the user had tapped the search bar itself.
-                                        if (screen == Screens.Search) {
-                                            navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
-                                        }
                                     } else {
                                         navController.navigate(screen.route) {
                                             popUpTo(navController.graph.startDestinationId) {
@@ -942,6 +935,16 @@ class MainActivity : ComponentActivity() {
                                             launchSingleTop = true
                                             restoreState = true
                                         }
+                                    }
+
+                                    // Every tap on Search - the first one that navigates there, or
+                                    // any later one while it's already open - focuses the search bar
+                                    // and opens the keyboard directly, instead of requiring a separate
+                                    // manual tap on the search bar itself. Set after the navigation/
+                                    // scroll logic above (not before) so currentBackStackEntry always
+                                    // reflects the final, current Search entry.
+                                    if (screen == Screens.Search) {
+                                        navController.currentBackStackEntry?.savedStateHandle?.set("focusSearch", true)
                                     }
                                 }
                             }
