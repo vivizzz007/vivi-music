@@ -175,6 +175,7 @@ import com.music.vivi.viewmodels.DailyDiscoverItem
 sealed class HomeSection(val id: String, val baseWeight: Int) {
     data object SpeedDial : HomeSection("speed_dial", 100)
     data object QuickPicks : HomeSection("quick_picks", 90)
+    data object CoversAndRemixes : HomeSection("covers_and_remixes", 85)
     data object DailyDiscover : HomeSection("daily_discover", 80)
     data object KeepListening : HomeSection("keep_listening", 50)
     data object AccountPlaylists : HomeSection("account_playlists", 40)
@@ -574,6 +575,7 @@ fun HomeScreen(
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
     val dailyDiscover by viewModel.dailyDiscover.collectAsState()
+    val coversAndRemixes by viewModel.coversAndRemixes.collectAsState()
     val communityPlaylists by viewModel.communityPlaylists.collectAsState()
 
     val allLocalItems by viewModel.allLocalItems.collectAsState()
@@ -827,6 +829,7 @@ fun HomeScreen(
 
         if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
         if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+        if (!chipActive && coversAndRemixes?.items?.isNotEmpty() == true) list.add(HomeSection.CoversAndRemixes)
         if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
         if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
         if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
@@ -872,6 +875,7 @@ fun HomeScreen(
                     // Range: [500-200, 500+400] = [300, 900]
                     HomeSection.SpeedDial,
                     HomeSection.QuickPicks,
+                    HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
 
                     // Middle tier: Can jump up to challenge top tier, or drop lower
@@ -891,6 +895,7 @@ fun HomeScreen(
             val defaultOrder = mapOf(
                 HomeSection.SpeedDial to 100,
                 HomeSection.QuickPicks to 90,
+                HomeSection.CoversAndRemixes to 85,
                 HomeSection.FromTheCommunity to 80,
                 HomeSection.DailyDiscover to 70,
                 HomeSection.KeepListening to 60,
@@ -1353,6 +1358,94 @@ fun HomeScreen(
                                                             menuState.show {
                                                                 SongMenu(
                                                                     originalSong = song!!,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+                                                            }
+                                                        }
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        HomeSection.CoversAndRemixes -> {
+                            coversAndRemixes?.takeIf { it.items.isNotEmpty() }?.let { mixSection ->
+                                val mixSongs = mixSection.items.filterIsInstance<SongItem>()
+                                if (mixSongs.isEmpty()) return@let
+
+                                item(key = "covers_and_remixes_title") {
+                                    val mixTitle = mixSection.title
+                                    NavigationTitle(
+                                        title = mixTitle,
+                                        modifier = Modifier.animateItem(),
+                                        onPlayAllClick = {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = mixTitle,
+                                                    items = mixSongs.distinctBy { it.id }.map { it.toMediaMetadata().toMediaItem() }
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+
+                                item(key = "covers_and_remixes_list") {
+                                    LazyHorizontalGrid(
+                                        state = rememberLazyGridState(),
+                                        rows = GridCells.Fixed(4),
+                                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(ListItemHeight * 4)
+                                            .animateItem()
+                                    ) {
+                                        itemsIndexed(
+                                            items = mixSongs.distinctBy { it.id },
+                                            key = { _, it -> it.id }
+                                        ) { index, song ->
+                                            YouTubeListItem(
+                                                item = song,
+                                                isActive = song.id == mediaMetadata?.id,
+                                                isPlaying = isPlaying,
+                                                isSwipeable = false,
+                                                shape = listItemShape(index = index % 4, count = 4),
+                                                trailingContent = {
+                                                    IconButton(
+                                                        onClick = {
+                                                            menuState.show {
+                                                                YouTubeSongMenu(
+                                                                    song = song,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+                                                            }
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.more_vert),
+                                                            contentDescription = null
+                                                        )
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .width(horizontalLazyGridItemWidth)
+                                                    .combinedClickable(
+                                                        onClick = {
+                                                            if (song.id == mediaMetadata?.id) {
+                                                                playerConnection.togglePlayPause()
+                                                            } else {
+                                                                playerConnection.playQueue(
+                                                                    YouTubeQueue.radio(song.toMediaMetadata())
+                                                                )
+                                                            }
+                                                        },
+                                                        onLongClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            menuState.show {
+                                                                YouTubeSongMenu(
+                                                                    song = song,
                                                                     navController = navController,
                                                                     onDismiss = menuState::dismiss
                                                                 )

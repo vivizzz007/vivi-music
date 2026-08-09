@@ -101,6 +101,7 @@ class HomeViewModel @Inject constructor(
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
+    val coversAndRemixes = MutableStateFlow<HomePage.Section?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
@@ -580,8 +581,22 @@ class HomeViewModel @Inject constructor(
             launch(Dispatchers.IO) { loadSimilarRecommendations() }
             launch(Dispatchers.IO) {
                 YouTube.home().onSuccess { page ->
+                    val cnrSection = page.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }
+                    if (cnrSection != null) {
+                        val filteredItems = cnrSection.items
+                            .filterExplicit(hideExplicit)
+                            .filterYoutubeShorts(hideYoutubeShorts)
+                        if (filteredItems.isNotEmpty()) {
+                            coversAndRemixes.value = cnrSection.copy(items = filteredItems)
+                        }
+                    } else {
+                        // Force fetch backend if not returned in initial home page natively
+                        launch(Dispatchers.IO) { loadFallbackCoversAndRemixes() }
+                    }
+
                     homePage.value = page.copy(
                         sections = page.sections.mapNotNull { section ->
+                            if (section == cnrSection) return@mapNotNull null
                             val filteredItems = section.items
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs)
@@ -620,6 +635,30 @@ class HomeViewModel @Inject constructor(
     }
 
     private val _isLoadingMore = MutableStateFlow(false)
+    private suspend fun loadFallbackCoversAndRemixes() {
+        YouTube.searchSummary("music covers and remixes").onSuccess { result ->
+            val songs = result.summaries.find { it.title == "Songs" }?.items?.filterIsInstance<SongItem>().orEmpty()
+            val videos = result.summaries.find { it.title == "Videos" }?.items?.filterIsInstance<SongItem>().orEmpty()
+            
+            // Aggressively strip out Podcasts which YT Search often incorrectly mixes in
+            val combined = (songs + videos)
+                .filter { !it.musicVideoType.toString().contains("PODCAST", ignoreCase = true) }
+                .filter { (it.duration ?: 0) < 600 } // Exclude anything longer than 10 minutes
+                .distinctBy { it.id }
+                .shuffled()
+            
+            if (combined.isNotEmpty()) {
+                coversAndRemixes.value = HomePage.Section(
+                    title = "Covers and remixes",
+                    label = null,
+                    thumbnail = null,
+                    endpoint = null,
+                    items = combined.take(20) // max 20 covers like other standard shelves
+                )
+            }
+        }.onFailure { reportException(it) }
+    }
+
     fun loadMoreYouTubeItems(continuation: String?) {
         if (continuation == null || _isLoadingMore.value) return
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)
@@ -633,9 +672,20 @@ class HomeViewModel @Inject constructor(
                 return@launch
             }
 
+            val cnrSection = nextSections.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }
+            if (cnrSection != null && coversAndRemixes.value == null) {
+                val filteredItems = cnrSection.items
+                    .filterExplicit(hideExplicit)
+                    .filterYoutubeShorts(hideYoutubeShorts)
+                if (filteredItems.isNotEmpty()) {
+                    coversAndRemixes.value = cnrSection.copy(items = filteredItems)
+                }
+            }
+
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = (homePage.value?.sections.orEmpty() + nextSections.sections).mapNotNull { section ->
+                    if (section == cnrSection) return@mapNotNull null
                     val filteredItems = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts)
                     if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                 }
