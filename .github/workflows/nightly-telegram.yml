@@ -86,11 +86,9 @@ jobs:
 
       - name: Upload APK to Telegram
         if: steps.check_commits.outputs.cancel == 'false'
-        run: |
-          CAPTION=$'🚀 New ViviMusic Nightly Build!\nCommit: ${{ github.sha }}\nSize: ${{ env.APK_SIZE }}'
-          echo "Uploading ${{ env.APK_PATH }} to Telegram..."
-          curl -v -F chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
-               -F message_thread_id="${{ secrets.TELEGRAM_THREAD_ID }}" \
-               -F document=@"${{ env.APK_PATH }}" \
-               -F caption="$CAPTION" \
-               https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_THREAD_ID: ${{ secrets.TELEGRAM_THREAD_ID }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: python3 scripts/send_telegram.py
