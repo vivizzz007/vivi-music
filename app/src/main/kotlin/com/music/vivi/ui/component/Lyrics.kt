@@ -28,6 +28,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -214,6 +215,7 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -668,12 +670,14 @@ fun Lyrics(
     LaunchedEffect(showLyrics, lyrics, mergedLyricsList.size) {
         if (showLyrics && mergedLyricsList.isNotEmpty()) {
             isInitialLayout = true
-            snapshotFlow { 
-                val h = itemHeights.toMap()
-                val windowStart = (activeListIndex - 8).coerceAtLeast(0)
-                val windowEnd = (activeListIndex + 12).coerceAtMost(mergedLyricsList.size - 1)
-                (windowStart..windowEnd).all { h.containsKey(it) } 
-            }.first { it }
+            withTimeoutOrNull(1000) {
+                snapshotFlow { 
+                    val h = itemHeights.toMap()
+                    val windowStart = (activeListIndex - 8).coerceAtLeast(0)
+                    val windowEnd = (activeListIndex + 12).coerceAtMost(mergedLyricsList.size - 1)
+                    (windowStart..windowEnd).all { h.containsKey(it) } 
+                }.first { it }
+            }
             delay(150)
             isInitialLayout = false
         }
@@ -687,10 +691,12 @@ fun Lyrics(
             val needsMeasurement = (windowStart..windowEnd).any { !h.containsKey(it) }
             if (needsMeasurement) {
                 isInitialLayout = true
-                snapshotFlow { 
-                    val hh = itemHeights.toMap()
-                    (windowStart..windowEnd).all { hh.containsKey(it) } 
-                }.first { it }
+                withTimeoutOrNull(1000) {
+                    snapshotFlow { 
+                        val hh = itemHeights.toMap()
+                        (windowStart..windowEnd).all { hh.containsKey(it) } 
+                    }.first { it }
+                }
                 isInitialLayout = false
             }
         }
@@ -901,8 +907,24 @@ fun Lyrics(
                     )
                 }
             } else {
-                // Item not visible — jump to it so next cycle can animate from a visible position
-                lazyListState.scrollToItem(targetIndex)
+                // Item not visible (the common case for resync, since the user
+                // scrolled far enough away that a resync is needed at all) -
+                // jump to it using lookUpIndex (not the raw targetIndex - that
+                // was off by one whenever the lyrics-provider attribution
+                // header is shown, landing on the wrong item and leaving the
+                // real active line out of frame), then center it immediately
+                // rather than leaving it pinned to the very top edge.
+                lazyListState.scrollToItem(lookUpIndex)
+                val itemInfoAfterJump = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == lookUpIndex }
+                if (itemInfoAfterJump != null) {
+                    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
+                    val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                    val itemCenter = itemInfoAfterJump.offset + itemInfoAfterJump.size / 2
+                    val offset = itemCenter - center
+                    if (kotlin.math.abs(offset) > 10) {
+                        lazyListState.scrollBy(offset.toFloat())
+                    }
+                }
             }
         } finally {
             isAnimating = false
