@@ -19,7 +19,19 @@ def send_telegram_apk():
         print(f"Error: APK file not found at path: {apk_path}")
         sys.exit(1)
 
-    caption = f"🚀 New ViviMusic Nightly Build!\nCommit: {commit_sha}\nSize: {apk_size}"
+    short_sha = commit_sha[:7] if commit_sha else "latest"
+    commit_url = f"https://github.com/vivizzz007/vivi-music/commit/{commit_sha}" if commit_sha else "#"
+
+    caption = (
+        f"🎧 <b>ViviMusic Nightly Build</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"📱 <b>Variant:</b> Universal GMS Release\n"
+        f"🌿 <b>Branch:</b> <code>beta</code>\n"
+        f"📦 <b>File Size:</b> {apk_size}\n"
+        f"🔗 <b>Commit:</b> <a href=\"{commit_url}\">{short_sha}</a>\n"
+        f"━━━━━━━━━━━━━━━━━━━━\n"
+        f"🚀 <i>Compiled automatically with the latest updates!</i>"
+    )
 
     boundary = f"------------------------{uuid.uuid4().hex}"
     
@@ -31,6 +43,7 @@ def send_telegram_apk():
     add_field("chat_id", chat_id)
     if thread_id:
         add_field("message_thread_id", thread_id)
+    add_field("parse_mode", "HTML")
     add_field("caption", caption)
 
     filename = os.path.basename(apk_path)
