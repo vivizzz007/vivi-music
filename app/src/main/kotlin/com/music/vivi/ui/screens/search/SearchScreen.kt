@@ -456,9 +456,10 @@ fun SearchScreen(
         }
     }
 
-    // Double-tapping the Search nav bar icon sets this flag (see MainActivity.kt's
-    // onNavItemClick) so returning to an already-open Search screen focuses the
-    // search bar directly, instead of requiring a separate manual tap on it.
+    // Tapping the Search nav bar icon sets this flag (see MainActivity.kt's
+    // onNavItemClick) so it expands straight into the full search input with
+    // the keyboard open - the same state you'd reach by tapping the search bar
+    // itself - instead of landing on the collapsed Explore view.
     val backStackEntry by navController.currentBackStackEntryAsState()
     val focusSearch = backStackEntry?.savedStateHandle
         ?.getStateFlow("focusSearch", false)
@@ -466,11 +467,7 @@ fun SearchScreen(
 
     LaunchedEffect(focusSearch?.value) {
         if (focusSearch?.value == true) {
-            try {
-                focusRequester.requestFocus()
-            } catch (e: Exception) {
-                // Ignore focus request failures
-            }
+            searchActive = true
             backStackEntry?.savedStateHandle?.set("focusSearch", false)
         }
     }
