@@ -118,6 +118,7 @@ import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
+import com.music.vivi.constants.FollowColorThemeKey
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.listentogether.ListenTogetherManager
 import com.music.vivi.models.MediaMetadata
@@ -209,6 +210,7 @@ private fun NewMiniPlayer(
     }
     
     val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+    val followColorTheme by rememberPreference(FollowColorThemeKey, defaultValue = false)
     
     // Player states - only collect what's needed at this level
     val playbackState by playerConnection.playbackState.collectAsState()
@@ -269,13 +271,16 @@ private fun NewMiniPlayer(
         onGradientColorsChange = onGradientColorsChange
     )
     
-    // Memoize colors
-    val backgroundColor = if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer
-    val isDynamicBackground = miniPlayerBackground != PlayerBackgroundStyle.DEFAULT
+    val backgroundColor = when (miniPlayerBackground) {
+        PlayerBackgroundStyle.AMBIENT_FADE -> if (followColorTheme && !useDarkTheme) Color.White else Color.Black
+        else -> if (pureBlack && useDarkTheme) Color.Black else MaterialTheme.colorScheme.surfaceContainer
+    }
+    val isThemeAdaptingBackground = miniPlayerBackground == PlayerBackgroundStyle.DEFAULT || 
+        (miniPlayerBackground == PlayerBackgroundStyle.AMBIENT_FADE && followColorTheme)
     
-    val primaryColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.primary
-    val outlineColor = if (isDynamicBackground) Color.White.copy(alpha = 0.5f) else MaterialTheme.colorScheme.outline
-    val onSurfaceColor = if (isDynamicBackground) Color.White else MaterialTheme.colorScheme.onSurface
+    val primaryColor = if (isThemeAdaptingBackground && !useDarkTheme) MaterialTheme.colorScheme.primary else Color.White
+    val outlineColor = if (isThemeAdaptingBackground && !useDarkTheme) MaterialTheme.colorScheme.outline else Color.White.copy(alpha = 0.5f)
+    val onSurfaceColor = if (isThemeAdaptingBackground && !useDarkTheme) MaterialTheme.colorScheme.onSurface else Color.White
     val errorColor = MaterialTheme.colorScheme.error
 
     Box(
@@ -1160,6 +1165,105 @@ private fun MiniPlayerBackgroundLayer(
                         .graphicsLayer { rotationZ = rotation.value }
                 )
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+            }
+        }
+        PlayerBackgroundStyle.AMBIENT_FADE -> {
+            val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+            val isSystemInDarkTheme = isSystemInDarkTheme()
+            val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+            val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
+                if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+            }
+            val followColorTheme by rememberPreference(FollowColorThemeKey, defaultValue = false)
+            val baseBackgroundColor = if (followColorTheme && !useDarkTheme) Color.White else Color.Black
+
+            val infiniteTransition = rememberInfiniteTransition(label = "bottomMeshMini")
+            val rotation = infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(60000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                ),
+                label = "rotation"
+            )
+
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Base background
+                Box(modifier = Modifier.fillMaxSize().background(baseBackgroundColor))
+                
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = 1.5f
+                            scaleY = 1.5f
+                        }
+                ) {
+                    val matrix = remember(useDarkTheme, followColorTheme) { 
+                        val isLightMode = followColorTheme && !useDarkTheme
+                        val saturation = if (isLightMode) 3.0f else 1.6f
+                        val m = ColorMatrix().apply { setToSaturation(saturation) }
+                        val (min, max) = if (isLightMode) {
+                            Pair(0.15f, 0.85f)
+                        } else {
+                            Pair(0.0f, 0.7f)
+                        }
+                        val scale = max - min
+                        val offset = min
+                        for (row in 0 until 3) {
+                            val startIndex = row * 5
+                            for (col in 0 until 4) {
+                                m.values[startIndex + col] = m.values[startIndex + col] * scale
+                            }
+                            m.values[startIndex + 4] = m.values[startIndex + 4] * scale + offset
+                        }
+                        m
+                    }
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(mediaMetadata?.thumbnailUrl)
+                            .size(128, 128)
+                            .allowHardware(false)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.colorMatrix(matrix),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(40.dp)
+                            .graphicsLayer { rotationZ = rotation.value }
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                baseBackgroundColor.copy(
+                                    alpha = if (followColorTheme && !useDarkTheme) 0.05f else 0.2f
+                                )
+                            )
+                    )
+                }
+                
+                // Smooth transition to theme background with an easing curve
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to baseBackgroundColor,
+                                    0.3f to baseBackgroundColor,
+                                    0.55f to baseBackgroundColor.copy(alpha = 0.88f),
+                                    0.75f to baseBackgroundColor.copy(alpha = 0.5f),
+                                    0.9f to baseBackgroundColor.copy(alpha = 0.15f),
+                                    1.0f to Color.Transparent
+                                )
+                            )
+                        )
+                )
             }
         }
         else -> {}
