@@ -95,6 +95,7 @@ import com.music.vivi.viewmodels.MoodAndGenresViewModel
 import com.music.vivi.viewmodels.ExploreViewModel
 import com.music.vivi.ui.screens.search.suggestions.SuggestionsTabContent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import androidx.compose.runtime.collectAsState
@@ -468,6 +469,13 @@ fun SearchScreen(
     LaunchedEffect(focusSearch?.value) {
         if (focusSearch?.value == true) {
             searchActive = true
+            // Give the expanded SearchBar's input a moment to actually compose
+            // and take focus before explicitly requesting the keyboard -
+            // active=true alone doesn't reliably show it here, since this focus
+            // change comes from this effect rather than directly from the tap
+            // that triggered it.
+            delay(100)
+            keyboardController?.show()
             backStackEntry?.savedStateHandle?.set("focusSearch", false)
         }
     }
