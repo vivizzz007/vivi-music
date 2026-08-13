@@ -1038,6 +1038,9 @@ class MainActivity : ComponentActivity() {
                                         modifier = Modifier
                                             .align(Alignment.BottomCenter)
                                             .padding(bottom = snackbarBottomPadding)
+                                            .graphicsLayer {
+                                                alpha = (1f - playerBottomSheetState.progress).coerceIn(0f, 1f)
+                                            }
                                     ) { data ->
                                         Snackbar(
                                             snackbarData = data,
