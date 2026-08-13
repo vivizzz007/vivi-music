@@ -1075,4 +1075,6 @@
     <string name="account_settings_desc_appearance">Customize your app theme and UI layout</string>
     <string name="account_settings_desc_data">Control your downloads and cache usage</string>
     <string name="account_settings_desc_about">Version information and legal details</string>
+    <string name="action_view_update">View</string>
+    <string name="new_version_found">New version found</string>
 </resources>
