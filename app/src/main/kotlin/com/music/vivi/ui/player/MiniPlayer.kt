@@ -117,6 +117,7 @@ import com.music.vivi.constants.PureBlackMiniPlayerKey
 import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.listentogether.ListenTogetherManager
@@ -170,11 +171,17 @@ fun MiniPlayer(
     modifier: Modifier = Modifier
 ) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
+    val useAppleMiniPlayer by rememberPreference(UseAppleMiniPlayerKey, false)
     
     // Create stable progress state - doesn't cause recomposition on position changes
     val progressState = remember { ProgressState(positionState, durationState) }
 
-    if (useNewMiniPlayerDesign) {
+    if (useAppleMiniPlayer) {
+        AppleMiniPlayer(
+            progressState = progressState,
+            modifier = modifier
+        )
+    } else if (useNewMiniPlayerDesign) {
         NewMiniPlayer(
             progressState = progressState,
             modifier = modifier
@@ -967,7 +974,7 @@ private fun FavoriteButton(
     }
 }
 @Composable
-private fun MiniPlayerColorExtractor(
+internal fun MiniPlayerColorExtractor(
     mediaMetadata: MediaMetadata?,
     miniPlayerBackground: PlayerBackgroundStyle,
     onGradientColorsChange: (List<Color>) -> Unit
@@ -1023,7 +1030,7 @@ private fun MiniPlayerColorExtractor(
 }
 
 @Composable
-private fun MiniPlayerBackgroundLayer(
+internal fun MiniPlayerBackgroundLayer(
     style: PlayerBackgroundStyle,
     mediaMetadata: MediaMetadata?,
     gradientColors: List<Color>

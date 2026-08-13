@@ -178,6 +178,7 @@ import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.UsePlayerV2Key
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
@@ -1323,7 +1324,11 @@ fun BottomSheetPlayer(
             )
         },
     ) {
-        val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
+        val usePlayerV2 by rememberPreference(UsePlayerV2Key, false)
+        if (usePlayerV2) {
+             PlayerV2(state, navController, modifier)
+        } else {
+            val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
                 animationSpec = tween(durationMillis = 90, easing = LinearEasing),
@@ -2695,6 +2700,7 @@ fun BottomSheetPlayer(
             },
             )
         }
+    }
     }
 }
 

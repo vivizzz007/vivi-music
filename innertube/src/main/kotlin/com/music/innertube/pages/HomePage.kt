@@ -48,7 +48,8 @@ data class HomePage(
     ) {
         companion object {
             fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): Section? {
-                val title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: return null
+                val title = renderer.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.joinToString("") { it.text } ?: return null
+                
                 val items = mutableListOf<YTItem>()
 
                 renderer.contents.mapNotNull { it.musicTwoRowItemRenderer }

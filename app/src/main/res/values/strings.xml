@@ -96,6 +96,8 @@
     <string name="details">Details</string>
     <string name="edit">Edit</string>
     <string name="start_radio">Start radio</string>
+    <string name="apple_mini_player_design">Apple-style mini player</string>
+    <string name="classic_mini_player">Classic mini player</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="play_next">Play next</string>

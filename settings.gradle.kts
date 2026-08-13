@@ -38,8 +38,6 @@ include(":jiosaavn")
 include(":spotify")
 include(":lyricsProvider")
 
-
-
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
 // We assume, that vivimusic and NewPipe Extractor have the same parent directory.
 // If this is not the case, please change the path in includeBuild().

@@ -13,6 +13,8 @@ import androidx.compose.ui.graphics.Color
 fun CastButton(
     modifier: Modifier = Modifier,
     tintColor: Color = MaterialTheme.colorScheme.onSurface,
+    activeTintColor: Color = MaterialTheme.colorScheme.primary,
+    showBackground: Boolean = true
 ) {
     // No-op: Cast not available in FOSS build
 }
