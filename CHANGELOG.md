@@ -13,6 +13,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Full desktop UI: sidebar navigation with Home, Search, Album, Artist,
+  Playlist, Library, Player, Lyrics and Settings screens, artwork thumbnails,
+  and an Apple Music–style mini-player. (Library is a placeholder pending
+  login; audio playback and the animated canvas are deferred to later phases.)
 - Added a "Devices" section in the Android Settings to pair the phone with
   VIVI Music DE (relay server URL, generate/join pairing code, unpair).
 

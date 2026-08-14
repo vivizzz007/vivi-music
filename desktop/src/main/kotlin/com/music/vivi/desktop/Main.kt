@@ -1,41 +1,53 @@
 package com.music.vivi.desktop
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.music.innertube.YouTube
+import com.music.innertube.models.SongItem
 import com.music.innertube.models.YouTubeLocale
 import com.music.vivi.sync.SyncClient
 import com.music.vivi.sync.SyncConnectionState
 import com.music.vivi.sync.SyncEvent
 import com.music.vivi.sync.SyncServer
-import kotlinx.coroutines.launch
 
 fun main() = application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does.
@@ -65,61 +77,170 @@ fun main() = application {
 
 @Composable
 fun App(language: String, onLanguageChange: (String) -> Unit) {
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
-    ) {
-        Text(Localization.get(language, "header"), style = MaterialTheme.typography.headlineMedium)
-        SearchSection(language)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        DeviceSyncSection(language)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        LanguageSection(language, onLanguageChange)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        AboutSection(language)
+    var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
+    var nowPlaying by remember { mutableStateOf<NowPlaying?>(null) }
+    var isPlaying by remember { mutableStateOf(false) }
+
+    val current = backStack.last()
+
+    val navigate: (Screen) -> Unit = { backStack = backStack + it }
+    val openRoot: (Screen) -> Unit = { backStack = listOf(it) }
+    val goBack: () -> Unit = { if (backStack.size > 1) backStack = backStack.dropLast(1) }
+    val playSong: (SongItem) -> Unit = { song ->
+        nowPlaying = NowPlaying(
+            videoId = song.id,
+            title = song.title,
+            artist = song.artists.joinToString(", ") { it.name },
+            thumbnail = song.thumbnail,
+        )
+        isPlaying = true
+    }
+
+    Row(Modifier.fillMaxSize()) {
+        Sidebar(language, current, openRoot)
+        Column(Modifier.weight(1f).fillMaxHeight()) {
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                when (current) {
+                    is Screen.Home -> HomeScreen(
+                        language = language,
+                        onOpenAlbum = { navigate(Screen.Album(it)) },
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onOpenPlaylist = { navigate(Screen.Playlist(it)) },
+                        onPlaySong = playSong,
+                    )
+                    is Screen.Search -> SearchScreen(
+                        language = language,
+                        onOpenAlbum = { navigate(Screen.Album(it)) },
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onOpenPlaylist = { navigate(Screen.Playlist(it)) },
+                        onPlaySong = playSong,
+                    )
+                    is Screen.Library -> LibraryScreen(language)
+                    is Screen.Settings -> SettingsScreen(language, onLanguageChange)
+                    is Screen.Album -> AlbumScreen(
+                        browseId = current.browseId,
+                        language = language,
+                        onBack = goBack,
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onPlaySong = playSong,
+                    )
+                    is Screen.Artist -> ArtistScreen(
+                        browseId = current.browseId,
+                        language = language,
+                        onBack = goBack,
+                        onOpenAlbum = { navigate(Screen.Album(it)) },
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onOpenPlaylist = { navigate(Screen.Playlist(it)) },
+                        onPlaySong = playSong,
+                    )
+                    is Screen.Playlist -> PlaylistScreen(
+                        playlistId = current.playlistId,
+                        language = language,
+                        onBack = goBack,
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onPlaySong = playSong,
+                    )
+                    is Screen.Player -> PlayerScreen(
+                        nowPlaying = nowPlaying,
+                        isPlaying = isPlaying,
+                        onTogglePlay = { isPlaying = !isPlaying },
+                        language = language,
+                        onOpenLyrics = { navigate(Screen.Lyrics) },
+                    )
+                    is Screen.Lyrics -> LyricsScreen(
+                        nowPlaying = nowPlaying,
+                        language = language,
+                        onBack = goBack,
+                    )
+                }
+            }
+            MiniPlayer(
+                nowPlaying = nowPlaying,
+                isPlaying = isPlaying,
+                onTogglePlay = { isPlaying = !isPlaying },
+                onOpen = { navigate(Screen.Player) },
+            )
+        }
     }
 }
 
 @Composable
-fun SearchSection(language: String) {
-    var query by remember { mutableStateOf("") }
-    var results by remember { mutableStateOf<List<String>>(emptyList()) }
-    var loading by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val scope = rememberCoroutineScope()
-
-    Text(Localization.get(language, "search"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
-
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            placeholder = { Text(Localization.get(language, "search_placeholder")) },
+fun Sidebar(language: String, current: Screen, onSelect: (Screen) -> Unit) {
+    val entries = listOf(
+        Screen.Home to "home",
+        Screen.Search to "search",
+        Screen.Library to "library",
+        Screen.Settings to "settings",
+    )
+    Column(Modifier.width(200.dp).fillMaxHeight().padding(12.dp)) {
+        Text(
+            "VIVI Music",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         )
-        Button(onClick = {
-            scope.launch {
-                loading = true
-                error = null
-                results = emptyList()
-                YouTube.search(query.trim(), YouTube.SearchFilter.FILTER_SONG)
-                    .fold(
-                        onSuccess = { page -> results = page.items.map { it.title } },
-                        onFailure = { error = it.message },
-                    )
-                loading = false
+        Spacer(Modifier.height(12.dp))
+        entries.forEach { (screen, key) ->
+            val selected = current == screen
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)
+                    .clickable { onSelect(screen) }
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
+                Text(
+                    Localization.get(language, key),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
+                )
             }
-        }) {
-            Text(Localization.get(language, "search_button"))
         }
     }
+}
 
-    when {
-        loading -> Text(Localization.get(language, "loading"), Modifier.padding(top = 8.dp))
-        error != null -> Text("${Localization.get(language, "error")}: $error", color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
-        else -> Column(Modifier.padding(top = 8.dp)) {
-            results.forEach { title -> Text(title, Modifier.padding(vertical = 4.dp)) }
+@Composable
+fun MiniPlayer(nowPlaying: NowPlaying?, isPlaying: Boolean, onTogglePlay: () -> Unit, onOpen: () -> Unit) {
+    val np = nowPlaying ?: return
+    Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpen)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Thumbnail(np.thumbnail, Modifier.size(44.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text(
+                    np.artist,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            IconButton(onClick = onTogglePlay) {
+                Text(if (isPlaying) "⏸" else "▶", fontSize = 20.sp)
+            }
         }
+    }
+}
+
+@Composable
+fun SettingsScreen(language: String, onLanguageChange: (String) -> Unit) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
+    ) {
+        Text(Localization.get(language, "settings"), style = MaterialTheme.typography.headlineMedium)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        LanguageSection(language, onLanguageChange)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        DeviceSyncSection(language)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        AboutSection(language)
     }
 }
 

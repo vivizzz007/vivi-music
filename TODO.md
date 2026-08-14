@@ -33,8 +33,8 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [ ] Full desktop settings layer (same keys as the Android app).
 
 ## Phase 6 — Full desktop UI
-- [ ] Screens: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings.
-- [ ] Apple Music–style mini-player and canvas.
+- [x] Screens: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings (Library is a placeholder until Phase 5 login; Player/Lyrics are UI-only until Phase 4 playback).
+- [~] Apple Music–style mini-player (done) and animated canvas (pending — the canvas modules are Android-only and need a desktop port).
 
 ## Phase 7 — End-to-end encryption
 - [ ] Per-pair key exchanged during pairing.

@@ -53,6 +53,11 @@ dependencies {
     implementation(project(":sync"))
 
     implementation(libs.kotlinx.coroutines.core)
+
+    // Thumbnail / artwork loading (Coil 3, desktop JVM support)
+    implementation(libs.coil)
+    implementation(libs.coil.network.okhttp)
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
