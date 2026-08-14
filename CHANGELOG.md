@@ -13,6 +13,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Added offline LAN (same Wi-Fi) device pairing: the desktop can start a
+  local WebSocket relay from Settings → Device sync, so the Android app can
+  pair directly without the cloud relay.
 - [DE] Added an Updates section in Settings: an automatic update check on
   startup plus a manual "Check for updates" button, an opt-in toggle to include
   pre-releases, and a download link when a newer desktop release is available.

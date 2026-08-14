@@ -29,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -317,7 +318,38 @@ fun DeviceSyncSection(language: String) {
             deviceName = "Desktop",
         )
         client = created
-        DesktopSettings.save(DesktopSettings.load().copy(serverUrl = serverUrl.trim()))
+        // Persist only real relay URLs; the ephemeral local LAN address must
+        // not become the saved default.
+        if (!serverUrl.startsWith("ws://localhost")) {
+            DesktopSettings.save(DesktopSettings.load().copy(serverUrl = serverUrl.trim()))
+        }
+    }
+
+    val lanRelay = remember { LanSyncRelay() }
+    var lanRunning by remember { mutableStateOf(false) }
+    var lanAddress by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    DisposableEffect(Unit) {
+        onDispose { lanRelay.stop() }
+    }
+
+    fun startLan() {
+        scope.launch {
+            val p = lanRelay.start()
+            lanAddress = "ws://${lanIpAddress()}:$p"
+            lanRunning = true
+            serverUrl = "ws://localhost:$p"
+            connect()
+        }
+    }
+
+    fun stopLan() {
+        lanRelay.stop()
+        lanRunning = false
+        lanAddress = ""
+        client?.disconnect()
+        client = null
     }
 
     LaunchedEffect(client) {
@@ -369,6 +401,27 @@ fun DeviceSyncSection(language: String) {
             label = { Text(Localization.get(language, "relay_server")) },
         )
         Button(onClick = { connect() }) { Text(Localization.get(language, "connect")) }
+    }
+
+    Text(Localization.get(language, "lan_sync"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
+    Button(
+        onClick = { if (lanRunning) stopLan() else startLan() },
+        modifier = Modifier.padding(top = 4.dp),
+    ) {
+        Text(Localization.get(language, if (lanRunning) "stop_lan" else "start_lan"))
+    }
+    if (lanRunning && lanAddress.isNotEmpty()) {
+        Text(
+            "${Localization.get(language, "lan_address")}: $lanAddress",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            Localization.get(language, "lan_hint"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
     }
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
