@@ -3,6 +3,7 @@ androidGradlePlugin = "9.1.1"
 json = "20260522"
 kotlin = "2.3.10"
 compose = "1.11.4"
+compose-multiplatform = "1.8.2"
 lifecycle = "2.10.0"
 material3 = "1.5.0-alpha23"
 adaptive = "1.3.0-alpha09"
@@ -49,6 +50,7 @@ rhino = "1.9.1"
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutinesGuava" }
 concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "concurrentFutures" }
 
 gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradlePlugin" }
@@ -145,3 +147,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 protobufPlugin = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }

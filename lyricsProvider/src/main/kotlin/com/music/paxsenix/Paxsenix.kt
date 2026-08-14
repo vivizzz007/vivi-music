@@ -1,6 +1,5 @@
 package com.music.paxsenix
 
-import android.content.Context
 import com.music.vivi.betterlyrics.TTMLParser
 import com.music.paxsenix.models.AppleMusicSearchResponse
 import com.music.paxsenix.models.LyricsResponse
@@ -20,7 +19,6 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
-import timber.log.Timber
 import java.net.URLEncoder
 import java.util.Locale
 import kotlin.math.abs
@@ -30,19 +28,13 @@ object Paxsenix {
     private var client: HttpClient? = null
     private var appVersion: String = "Unknown"
 
-    fun init(context: Context) {
+    fun init(version: String) {
         if (client != null) return // Already initialized
         
         synchronized(this) {
             if (client != null) return
             
-            appVersion = try {
-                context.packageManager.getPackageInfo(context.packageName, 0).versionName
-                    ?: "Unknown"
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to get app version")
-                "Unknown"
-            }
+            appVersion = version
             
             Timber.d("Initializing Paxsenix with version: $appVersion")
             
