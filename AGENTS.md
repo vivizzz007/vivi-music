@@ -60,6 +60,14 @@ dependencies there, or you break the desktop build.
   `feat(sync): …`.
 - Commit and push after making changes, when asked (and per the project's
   standing rule to commit+push after every modification).
+- **Release-triggering commits (`v` prefix)**: any change to program code or to
+  anything that affects the release assets (the `desktop` module,
+  `.github/workflows/`, `installer/`, `version.txt`, `desktop/build.gradle.kts`,
+  icons, the shared JVM modules, the `sync-server`) MUST be committed and
+  pushed with a commit message starting with `v` (e.g. `v6.0.5_DE-1.0.0`,
+  optionally followed by a short description after `:`), so the auto-release
+  runs and the result can be verified. Documentation-only changes (README,
+  AGENTS.md, CHANGELOG.md, TODO.md) do **not** need the `v` prefix.
 - Do not commit unrelated files (stray artifacts, debug dumps) unless relevant.
 - Match the existing conventions of the file you edit (naming, formatting,
   KDoc style). Do not reformat untouched code.
