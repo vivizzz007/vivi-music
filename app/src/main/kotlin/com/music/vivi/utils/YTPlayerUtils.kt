@@ -396,40 +396,50 @@ object YTPlayerUtils {
             }
         }
 
-        // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution and METADATA_CLIENT (WEB_REMIX) for history tracking in parallel
+        // Try MAIN_CLIENT (ANDROID_VR) for fast stream resolution and METADATA_CLIENT (WEB_REMIX) for
+        // history tracking in parallel. Both are awaited so that metadataResponse is always populated
+        // before playbackTracking is read — previously using launch() caused a race condition where
+        // metadataResponse was always null and history never registered.
         var metadataResponse: PlayerResponse? = null
-        var mainPlayerResponse = coroutineScope {
+        var mainPlayerResponse: PlayerResponse
+        coroutineScope {
             val mainDeferred = async {
                 Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
                 PlaybackLogManager.log(PlaybackLogLevel.DEBUG, "Trying ${MAIN_CLIENT.clientName} (Main)")
                 val sigTimestamp = if (MAIN_CLIENT.useSignatureTimestamp) getSigTimestampLazy() else null
                 YouTube.player(videoId, playlistId, MAIN_CLIENT, sigTimestamp, poToken?.playerRequestPoToken).getOrThrow()
             }
-            if (isLoggedIn) {
-                launch {
-                    Timber.tag(logTag).d("Fetching metadata from METADATA_CLIENT (WEB_REMIX) for authenticated tracking")
-                    try {
-                        // Only generate PoToken for web client metadata fetch
-                        var metaPoToken: PoTokenResult? = null
-                        val metaSessionId = YouTube.dataSyncId
-                        if (METADATA_CLIENT.useWebPoTokens && metaSessionId != null) {
-                            try {
-                                metaPoToken = poTokenGenerator.getWebClientPoToken(videoId, metaSessionId)
-                            } catch (e: Exception) {
-                                Timber.tag(logTag).e(e, "Metadata PoToken generation failed")
-                            }
+            val metaDeferred = if (isLoggedIn) async {
+                Timber.tag(logTag).d("Fetching metadata from METADATA_CLIENT (WEB_REMIX) for authenticated tracking")
+                try {
+                    // Only generate PoToken for web client metadata fetch
+                    var metaPoToken: PoTokenResult? = null
+                    val metaSessionId = YouTube.visitorData
+                    if (METADATA_CLIENT.useWebPoTokens && metaSessionId != null) {
+                        try {
+                            metaPoToken = poTokenGenerator.getWebClientPoToken(videoId, metaSessionId)
+                        } catch (e: Exception) {
+                            Timber.tag(logTag).e(e, "Metadata PoToken generation failed")
                         }
-                        val sigTimestamp = if (METADATA_CLIENT.useSignatureTimestamp) getSigTimestampLazy() else null
-                        metadataResponse = YouTube.player(
-                            videoId, playlistId, METADATA_CLIENT,
-                            sigTimestamp, metaPoToken?.playerRequestPoToken
-                        ).getOrNull()
-                    } catch (e: Exception) {
-                        Timber.tag(logTag).e(e, "Failed to fetch metadata from METADATA_CLIENT")
                     }
+                    val sigTimestamp = if (METADATA_CLIENT.useSignatureTimestamp) getSigTimestampLazy() else null
+                    YouTube.player(
+                        videoId, playlistId, METADATA_CLIENT,
+                        sigTimestamp, metaPoToken?.playerRequestPoToken
+                    ).getOrNull()
+                } catch (e: Exception) {
+                    Timber.tag(logTag).e(e, "Failed to fetch metadata from METADATA_CLIENT")
+                    null
                 }
-            }
-            mainDeferred.await()
+            } else null
+
+            // Await both in parallel — main fetch drives playback, meta fetch drives history
+            mainPlayerResponse = mainDeferred.await()
+            metadataResponse = metaDeferred?.await()
+            Timber.tag(logTag).d(
+                "Parallel fetch complete: mainOK=${mainPlayerResponse.playabilityStatus.status == "OK"}, " +
+                "metaTracking=${metadataResponse?.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.take(40)}"
+            )
         }
 
 
@@ -462,10 +472,8 @@ object YTPlayerUtils {
             }
         }
 
-        // If we still don't have a valid response, throw
-        if (mainPlayerResponse == null) {
-            throw Exception("Failed to get player response")
-        }
+        // mainPlayerResponse is guaranteed non-null here: mainDeferred uses getOrThrow(), so any
+        // failure propagates as an exception rather than a null value.
 
         // Fetch audioConfig and playbackTracking from the metadata client if available (authenticated)
         // Fall back to mainPlayerResponse values if metadata fetch failed or user is not logged in
@@ -740,7 +748,15 @@ object YTPlayerUtils {
         playlistId: String? = null,
     ): Result<PlayerResponse> {
         Timber.tag(logTag).d("Fetching metadata-only player response for videoId: $videoId using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        return YouTube.player(videoId, playlistId, client = WEB_REMIX) // ANDROID_VR does not work with history
+        val signatureTimestamp = getSignatureTimestampOrNull(videoId)
+        val sessionId = YouTube.visitorData
+        var poToken: PoTokenResult? = null
+        if (WEB_REMIX.useWebPoTokens && sessionId != null) {
+            try {
+                poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
+            } catch (_: Exception) { }
+        }
+        return YouTube.player(videoId, playlistId, WEB_REMIX, signatureTimestamp.timestamp, poToken?.playerRequestPoToken) // ANDROID_VR does not work with history
             .onSuccess { Timber.tag(logTag).d("Successfully fetched metadata") }
             .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata") }
     }

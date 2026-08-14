@@ -167,7 +167,10 @@
     <string name="gradient">Gradient</string>
     <string name="glow_animated">Glow motion</string>
     <string name="live_mesh">Live Mesh</string>
-    <string name="new_player_design">New player design</string>
+    <string name="classic_player">Apple player</string>
+    <string name="new_player_design">M3e player</string>
+    <string name="player_design">Player</string>
+    <string name="player_v2">Apple Music v17</string>
     <string name="use_expressive_album_design">Expressive album design</string>
     <string name="use_expressive_album_design_desc">Minimal list without thumbnails</string>
     <string name="show_song_thumbnail_in_list">Show album song thumbnails</string>
@@ -1087,4 +1090,6 @@
     <string name="account_settings_desc_appearance">Customize your app theme and UI layout</string>
     <string name="account_settings_desc_data">Control your downloads and cache usage</string>
     <string name="account_settings_desc_about">Version information and legal details</string>
+    <string name="action_view_update">View</string>
+    <string name="new_version_found">New version found</string>
 </resources>

@@ -112,6 +112,7 @@ import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.SwipeToRemoveSongKey
 import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.UseExpressiveAlbumDesignKey
@@ -210,6 +211,20 @@ fun AppearanceSettings(
         UseNewPlayerDesignKey,
         defaultValue = false
     )
+    val (usePlayerV2, onUsePlayerV2Change) = rememberPreference(
+        com.music.vivi.constants.UsePlayerV2Key,
+        defaultValue = false
+    )
+    
+    val currentPlayerDesign = remember(useNewPlayerDesign, usePlayerV2) {
+        when {
+            usePlayerV2 -> PlayerDesignOption.V2
+            useNewPlayerDesign -> PlayerDesignOption.NEW
+            else -> PlayerDesignOption.CLASSIC
+        }
+    }
+    var showPlayerDesignDialog by rememberSaveable { mutableStateOf(false) }
+    
     val (useExpressiveAlbumDesign, onUseExpressiveAlbumDesignChange) = rememberPreference(
         UseExpressiveAlbumDesignKey,
         defaultValue = true
@@ -222,6 +237,18 @@ fun AppearanceSettings(
         UseNewMiniPlayerDesignKey,
         defaultValue = true
     )
+    val (useAppleMiniPlayer, onUseAppleMiniPlayerChange) = rememberPreference(
+        UseAppleMiniPlayerKey,
+        defaultValue = false
+    )
+    val currentMiniPlayerDesign = remember(useNewMiniPlayerDesign, useAppleMiniPlayer) {
+        when {
+            useAppleMiniPlayer -> MiniPlayerDesignOption.APPLE
+            useNewMiniPlayerDesign -> MiniPlayerDesignOption.NEW
+            else -> MiniPlayerDesignOption.CLASSIC
+        }
+    }
+    var showMiniPlayerDesignDialog by rememberSaveable { mutableStateOf(false) }
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(
         HidePlayerThumbnailKey,
         defaultValue = false
@@ -408,7 +435,9 @@ fun AppearanceSettings(
     )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val blurSupported = it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        val notAppleOnV2 = !(it == PlayerBackgroundStyle.APPLE_MUSIC && currentPlayerDesign == PlayerDesignOption.V2)
+        blurSupported && notAppleOnV2
     }
 
     val availableMiniPlayerBackgroundStyles = availableBackgroundStyles.filter { 
@@ -424,6 +453,72 @@ fun AppearanceSettings(
 
     var showSliderOptionDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showPlayerDesignDialog) {
+        EnumDialog(
+            onDismiss = { showPlayerDesignDialog = false },
+            onSelect = { option ->
+                when (option) {
+                    PlayerDesignOption.CLASSIC -> {
+                        onUsePlayerV2Change(false)
+                        onUseNewPlayerDesignChange(false)
+                    }
+                    PlayerDesignOption.NEW -> {
+                        onUsePlayerV2Change(false)
+                        onUseNewPlayerDesignChange(true)
+                    }
+                    PlayerDesignOption.V2 -> {
+                        onUsePlayerV2Change(true)
+                        onUseNewPlayerDesignChange(false)
+                    }
+                }
+                showPlayerDesignDialog = false
+            },
+            title = stringResource(R.string.player),
+            current = currentPlayerDesign,
+            values = PlayerDesignOption.values().toList(),
+            valueText = {
+                when (it) {
+                    PlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
+                    PlayerDesignOption.NEW -> stringResource(R.string.new_player_design)
+                    PlayerDesignOption.V2 -> stringResource(R.string.player_v2)
+                }
+            }
+        )
+    }
+
+    if (showMiniPlayerDesignDialog) {
+        EnumDialog(
+            onDismiss = { showMiniPlayerDesignDialog = false },
+            onSelect = { option ->
+                when (option) {
+                    MiniPlayerDesignOption.CLASSIC -> {
+                        onUseAppleMiniPlayerChange(false)
+                        onUseNewMiniPlayerDesignChange(false)
+                    }
+                    MiniPlayerDesignOption.NEW -> {
+                        onUseAppleMiniPlayerChange(false)
+                        onUseNewMiniPlayerDesignChange(true)
+                    }
+                    MiniPlayerDesignOption.APPLE -> {
+                        onUseAppleMiniPlayerChange(true)
+                        onUseNewMiniPlayerDesignChange(false)
+                    }
+                }
+                showMiniPlayerDesignDialog = false
+            },
+            title = stringResource(R.string.mini_player),
+            current = currentMiniPlayerDesign,
+            values = MiniPlayerDesignOption.values().toList(),
+            valueText = {
+                when (it) {
+                    MiniPlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
+                    MiniPlayerDesignOption.NEW -> stringResource(R.string.new_mini_player_design)
+                    MiniPlayerDesignOption.APPLE -> stringResource(R.string.apple_mini_player_design)
+                }
+            }
+        )
     }
 
 
@@ -1341,23 +1436,17 @@ fun AppearanceSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.nav_bar),
-                        title = { Text(stringResource(R.string.new_mini_player_design)) },
-                        trailingContent = {
-                            Switch(
-                                checked = useNewMiniPlayerDesign,
-                                onCheckedChange = onUseNewMiniPlayerDesignChange,
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (useNewMiniPlayerDesign) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-                                    )
+                        title = { Text(stringResource(R.string.mini_player)) },
+                        description = {
+                            Text(
+                                text = when (currentMiniPlayerDesign) {
+                                    MiniPlayerDesignOption.CLASSIC -> stringResource(R.string.classic_mini_player)
+                                    MiniPlayerDesignOption.NEW -> stringResource(R.string.new_mini_player_design)
+                                    MiniPlayerDesignOption.APPLE -> stringResource(R.string.apple_mini_player_design)
                                 }
                             )
                         },
-                        onClick = { onUseNewMiniPlayerDesignChange(!useNewMiniPlayerDesign) },
+                        onClick = { showMiniPlayerDesignDialog = true },
                         isExpressive = true
                     )
                 )
@@ -1422,26 +1511,20 @@ fun AppearanceSettings(
             items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
-                    title = { Text(stringResource(R.string.new_player_design)) },
-                    trailingContent = {
-                        Switch(
-                            checked = useNewPlayerDesign,
-                            onCheckedChange = onUseNewPlayerDesignChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (useNewPlayerDesign) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
+                    title = { Text(stringResource(R.string.player_design)) },
+                    description = {
+                        Text(
+                            when (currentPlayerDesign) {
+                                PlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
+                                PlayerDesignOption.NEW -> stringResource(R.string.new_player_design)
+                                PlayerDesignOption.V2 -> stringResource(R.string.player_v2)
                             }
                         )
                     },
-                    onClick = { onUseNewPlayerDesignChange(!useNewPlayerDesign) },
+                    onClick = { showPlayerDesignDialog = true },
                     isExpressive = true
                 ),
-                if (!useNewPlayerDesign) {
+                if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
                         title = { Text(stringResource(R.string.show_audio_quality_badge)) },
@@ -2545,4 +2628,17 @@ enum class LyricsPosition {
 enum class PlayerTextAlignment {
     SIDED,
     CENTER,
+}
+
+
+enum class PlayerDesignOption {
+    CLASSIC
+    ,NEW
+    ,V2
+}
+
+enum class MiniPlayerDesignOption {
+    CLASSIC,
+    NEW,
+    APPLE
 }

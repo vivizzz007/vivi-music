@@ -195,6 +195,7 @@ import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.UsePlayerV2Key
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.LyricsEntity
@@ -1505,6 +1506,13 @@ fun BottomSheetPlayer(
                 it.orientation == Configuration.ORIENTATION_LANDSCAPE &&
                 showInlineLyrics
         }
+
+        val usePlayerV2 by rememberPreference(UsePlayerV2Key, false)
+        if (usePlayerV2) {
+             PlayerV2(state, navController, modifier)
+        } else {
+            
+        
 
         val controlsContent: @Composable ColumnScope.(mediaMetadata: MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
@@ -2949,6 +2957,7 @@ fun BottomSheetPlayer(
             },
             )
         }
+    }
     }
 }
 

@@ -10,8 +10,10 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -62,6 +64,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
+import com.music.vivi.ui.component.snackbar.SnackbarManager
+import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -150,6 +157,7 @@ import com.music.vivi.vivimusic.updater.isNewerVersion
 import com.music.vivi.vivimusic.updater.saveUpdateAvailableState
 import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
 import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
+import com.music.vivi.vivimusic.updater.getUpdateAvailableState
 import com.music.vivi.vivimusic.updater.shouldRunNightlyCheck
 import com.music.vivi.vivimusic.updater.markNightlyCheckDone
 import com.music.vivi.vivimusic.UpdateNotificationHelper
@@ -165,6 +173,7 @@ import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.FloatingNavBarKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.extensions.toEnum
@@ -378,6 +387,23 @@ class MainActivity : ComponentActivity() {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(Unit) {
+            SnackbarManager.events.collectLatest { event ->
+                snackbarHostState.currentSnackbarData?.dismiss()
+                val messageStr = context.getString(event.messageResource)
+                val actionLabelStr = event.actionLabel?.let { context.getString(it) }
+                val result = snackbarHostState.showSnackbar(
+                    message = messageStr,
+                    actionLabel = actionLabelStr,
+                    duration = event.duration
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    event.onAction?.invoke()
+                }
+            }
+        }
 
         LaunchedEffect(Unit) {
             if (getAutoUpdateCheckSetting(context)) {
@@ -545,6 +571,7 @@ class MainActivity : ComponentActivity() {
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
                 val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = false)
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+                val (useAppleMiniPlayer) = rememberPreference(UseAppleMiniPlayerKey, defaultValue = false)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
@@ -619,11 +646,18 @@ class MainActivity : ComponentActivity() {
                     label = "navBarHeight",
                 )
 
+                val isSnackbarShowing = snackbarHostState.currentSnackbarData != null
+                val extraSnackbarHeight by animateDpAsState(
+                    targetValue = if (isSnackbarShowing) 64.dp else 0.dp,
+                    label = "snackbarHeight"
+                )
+
                 val playerBottomSheetState = rememberBottomSheetState(
                     dismissedBound = 0.dp,
                     collapsedBound = bottomInset +
                         (if (!showRail && shouldShowNavigationBar) navPadding else 0.dp) +
-                        (if (useNewMiniPlayerDesign) MiniPlayerBottomSpacing else 0.dp) +
+                        extraSnackbarHeight +
+                        (if (useNewMiniPlayerDesign || useAppleMiniPlayer) MiniPlayerBottomSpacing else 0.dp) +
                         MiniPlayerHeight,
                     expandedBound = maxHeight,
                 )
@@ -633,11 +667,13 @@ class MainActivity : ComponentActivity() {
                     shouldShowNavigationBar,
                     playerBottomSheetState.isDismissed,
                     showRail,
+                    extraSnackbarHeight
                 ) {
                     var bottom = bottomInset
                     if (shouldShowNavigationBar && !showRail) {
                         bottom += NavigationBarHeight
                     }
+                    bottom += extraSnackbarHeight
                     if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight
                     windowsInsets
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -746,11 +782,51 @@ class MainActivity : ComponentActivity() {
                         !(isListenTogetherScreen && listenTogetherInTopBar)
                 }
 
+                val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                val isUpdateAvailable = remember { mutableStateOf(getUpdateAvailableState(context)) }
+                
+                val updateListener = remember {
+                    SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                        if (key == "update_available") {
+                            isUpdateAvailable.value = getUpdateAvailableState(context)
+                        }
+                    }
+                }
+                
+                DisposableEffect(sharedPrefs, updateListener) {
+                    sharedPrefs.registerOnSharedPreferenceChangeListener(updateListener)
+                    onDispose {
+                        sharedPrefs.unregisterOnSharedPreferenceChangeListener(updateListener)
+                    }
+                }
+                
+                LaunchedEffect(isUpdateAvailable.value) {
+                    if (isUpdateAvailable.value && getUpdateNotificationsSetting(context)) {
+                        delay(200) // Ensure Snackbar collector is ready before emitting
+                        SnackbarManager.show(
+                            messageResource = R.string.new_version_found,
+                            actionLabel = R.string.action_view_update,
+                            duration = SnackbarDuration.Indefinite,
+                            onAction = {
+                                val isFoss = !BuildConfig.CAST_AVAILABLE
+                                if (isFoss) {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest")
+                                    )
+                                    context.startActivity(intent)
+                                } else {
+                                    navController.navigate("update")
+                                }
+                            }
+                        )
+                    }
+                }
+
                 val coroutineScope = rememberCoroutineScope()
                 var sharedSong: SongItem? by remember {
                     mutableStateOf(null)
                 }
-                val snackbarHostState = remember { SnackbarHostState() }
                 var showSettingDialoge by remember { mutableStateOf(false) }
                 val (enableSettingsPopup) = rememberPreference(EnableSettingsPopupKey, defaultValue = false)
 
@@ -801,11 +877,10 @@ class MainActivity : ComponentActivity() {
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
+                    LocalSnackbarHostState provides snackbarHostState,
                 ) {
-
                     Scaffold(
                         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
-                        snackbarHost = { SnackbarHost(snackbarHostState) },
                         topBar = {
                             AnimatedVisibility(
                                 visible = shouldShowTopBar,
@@ -967,6 +1042,33 @@ class MainActivity : ComponentActivity() {
                                         navController = navController,
                                         pureBlack = pureBlack
                                     )
+
+                                    val snackbarBottomPadding = remember(bottomInset, shouldShowNavigationBar, slimNav) {
+                                        var bottom = bottomInset
+                                        if (shouldShowNavigationBar) {
+                                            bottom += if (slimNav) SlimNavBarHeight else NavigationBarHeight
+                                        }
+                                        bottom
+                                    }
+
+                                    SnackbarHost(
+                                        hostState = snackbarHostState,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = snackbarBottomPadding)
+                                            .graphicsLayer {
+                                                alpha = (1f - playerBottomSheetState.progress).coerceIn(0f, 1f)
+                                            }
+                                    ) { data ->
+                                        Snackbar(
+                                            snackbarData = data,
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            actionColor = MaterialTheme.colorScheme.primary,
+                                            actionContentColor = MaterialTheme.colorScheme.primary,
+                                            dismissActionContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
 
                                     AppNavigationBar(
                                         navigationItems = navigationItems,
