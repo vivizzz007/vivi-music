@@ -53,6 +53,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] Split the Linux build into independent DEB and AppImage jobs so a
   failure in the AppImage step no longer blocks the DEB package (or the
   release).
+- [DE] The auto-release now also builds and attaches the Android APKs
+  (GMS + FOSS) to the same release, so each release ships desktop + mobile
+  assets together.
 
 ## [6.0.5] - 2026-08-14
 

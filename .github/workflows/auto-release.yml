@@ -39,10 +39,16 @@ jobs:
     uses: ./.github/workflows/build-desktop-macos.yml
     secrets: inherit
 
+  build-android:
+    name: Android
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+
   release:
     name: Publish GitHub Release
-    needs: [ build-windows, build-linux, build-macos ]
-    if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
+    needs: [ build-windows, build-linux, build-macos, build-android ]
+    if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' && needs.build-android.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
