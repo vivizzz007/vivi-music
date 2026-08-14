@@ -9,9 +9,9 @@ permissions:
 
 jobs:
   build:
-    name: Windows installer (Inno Setup)
+    name: Windows installers (Inno Setup + MSI)
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     env:
       WINDOWS_SIGNING_CERT: ${{ secrets.WINDOWS_SIGNING_CERT }}
       WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
@@ -67,8 +67,6 @@ jobs:
             "/DSourceDir=$source" `
             "/DOutputDir=$output" `
             "/DIconFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde.ico" `
-            "/DWizardImageFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde_wizard.bmp" `
-            "/DWizardSmallImageFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde_small.bmp" `
             "$env:GITHUB_WORKSPACE\installer\windows\VIVIMusic.iss" 2>&1 |
             Tee-Object -FilePath $compileLog
           if ($LASTEXITCODE -ne 0) {
@@ -77,7 +75,27 @@ jobs:
             throw "Inno Setup compilation failed (exit $LASTEXITCODE)"
           }
 
-      - name: Sign installer
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: choco install wixtoolset --no-progress -y
+
+      - name: Build MSI installer (best-effort)
+        continue-on-error: true
+        shell: bash
+        run: ./gradlew :desktop:packageMsi --no-daemon
+
+      - name: Collect packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)_DE-$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          # The MSI is best-effort; copy it only if jpackage produced one.
+          if ls desktop/build/compose/binaries/main/msi/*.msi >/dev/null 2>&1; then
+            cp desktop/build/compose/binaries/main/msi/*.msi "dist/VIVIMusic-${VERSION}.msi"
+          fi
+          ls -la dist
+
+      - name: Sign packages
         if: ${{ env.WINDOWS_SIGNING_CERT != '' }}
         shell: pwsh
         run: |
@@ -86,15 +104,15 @@ jobs:
           if (-not $signtool) { throw "signtool.exe not found" }
           $pfx = Join-Path $env:RUNNER_TEMP 'signing-cert.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT))
-          Get-ChildItem dist -Recurse -Include *.exe | ForEach-Object {
+          Get-ChildItem dist -Recurse -Include *.msi,*.exe | ForEach-Object {
             Write-Host "Signing $($_.FullName)"
             & $signtool sign /f $pfx /p $env:WINDOWS_SIGNING_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($_.FullName) (exit $LASTEXITCODE)" }
           }
 
-      - name: Upload installer
+      - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
-          path: dist/*.exe
+          path: dist/*
           if-no-files-found: error

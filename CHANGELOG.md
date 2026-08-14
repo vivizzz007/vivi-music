@@ -22,6 +22,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   workflows (fixes `./gradlew: Permission denied` on Linux/macOS runners).
 - [DE] Replaced the retired `macos-13` runner with `macos-15-intel` for the
   Intel macOS build.
+- [DE] Removed the Inno Setup wizard images that could make the installer open
+  and immediately close on some systems.
 
 ### Changed
 
@@ -37,6 +39,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   translated.
 - Release tags no longer carry a `v` prefix; non-stable releases append the
   channel to the tag (e.g. `6.0.5_DE-1.0.0-nightly`).
+- [DE] The Windows build now produces both an Inno Setup installer and a
+  jpackage MSI.
 - [DE] The Windows installer now performs a machine-wide install into
   `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
   install into `%LOCALAPPDATA%`.

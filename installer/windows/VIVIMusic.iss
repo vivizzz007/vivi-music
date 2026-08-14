@@ -1,9 +1,9 @@
 ; VIVI Music DE — Windows installer (Inno Setup).
 ;
 ; The self-contained app image is produced by jpackage (Gradle
-; `createDistributable`) and passed in through /DSourceDir. Version, icon and
-; wizard image paths are also supplied from the CI workflow so this file stays
-; the single source of the installer layout.
+; `createDistributable`) and passed in through /DSourceDir. Version and icon
+; paths are also supplied from the CI workflow so this file stays the single
+; source of the installer layout.
 
 #ifndef AppVersion
 #define AppVersion "0.0.0-dev"
@@ -19,12 +19,6 @@
 #endif
 #ifndef IconFile
 #define IconFile "desktop/icons/logo_vmde.ico"
-#endif
-#ifndef WizardImageFile
-#define WizardImageFile "desktop/icons/logo_vmde_wizard.bmp"
-#endif
-#ifndef WizardSmallImageFile
-#define WizardSmallImageFile "desktop/icons/logo_vmde_small.bmp"
 #endif
 
 #define AppName "VIVI Music DE"
@@ -49,10 +43,7 @@ DisableProgramGroupPage=yes
 OutputDir={#OutputDir}
 OutputBaseFilename=VIVIMusic-{#AppVersion}-setup
 SetupIconFile={#IconFile}
-WizardImageFile={#WizardImageFile}
-WizardSmallImageFile={#WizardSmallImageFile}
 WizardStyle=modern
-WizardImageStretch=no
 ; The jpackage image is 200+ MB; avoid solid compression so CI stays fast.
 Compression=lzma
 SolidCompression=no
