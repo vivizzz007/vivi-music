@@ -39,6 +39,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Fixed
 
+- [DE] Fixed the desktop player showing "could not resolve the audio stream":
+  the stream resolver now uses the same multi-client fallback chain as the
+  mobile app (ANDROID_VR + 11 fallback clients, n-param deobfuscation and URL
+  validation) instead of a single ANDROID_VR attempt that YouTube often answers
+  with `LOGIN_REQUIRED`.
 - [DE] Fixed the auto-release workflow's invalid YAML: `continue-on-error` is not
   allowed on a job that calls a reusable workflow, so the Android APK build is
   now made optional with per-step `continue-on-error` inside `build-android.yml`
