@@ -72,8 +72,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] The auto-release now also builds and attaches the Android APKs
   (GMS + FOSS) to the same release, so each release ships desktop + mobile
   assets together.
-- [DE] The Android APK is now optional in the auto-release: if it fails to
-  build (e.g. signing secrets missing), the desktop release is still published.
+- [DE] The auto-release now attaches the mobile APKs by downloading them from
+  the mobile CI release (tag `v<mobile>`) instead of rebuilding them in a
+  separate Android job, making desktop releases much faster.
 - [DE] Release notes now collapse the commit list into an expandable section
   when there are more than 7 commits.
 
