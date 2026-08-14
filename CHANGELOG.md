@@ -60,6 +60,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] The auto-release now also builds and attaches the Android APKs
   (GMS + FOSS) to the same release, so each release ships desktop + mobile
   assets together.
+- [DE] The Android APK is now optional in the auto-release: if it fails to
+  build (e.g. signing secrets missing), the desktop release is still published.
 
 ## [6.0.5] - 2026-08-14
 
