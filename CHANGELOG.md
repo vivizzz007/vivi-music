@@ -27,6 +27,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - The release channel is now read from line 3 of `version.txt`: `stable` (or
   empty) publishes a stable release; any other value (`rc`/`beta`/`alpha`/
   `nightly`) publishes a pre-release.
+- [DE] The desktop UI is now English-first with a 49-language picker (first
+  launch + Language menu); non-English strings fall back to English until
+  translated.
 - [DE] The Windows installer now performs a machine-wide install into
   `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
   install into `%LOCALAPPDATA%`.

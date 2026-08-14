@@ -162,6 +162,13 @@ The app is translated through Android string resources. **English is the
 primary language** (the source of truth); every other language is a
 translation of it.
 
+The **desktop edition** is English-first too, using the same 49-language list
+(locale tag → native name) in
+`desktop/src/main/kotlin/com/music/vivi/desktop/Languages.kt`, with strings in
+`Localization.kt` (English source of truth; other languages fall back to
+English until translated). The language is chosen on first launch and can be
+changed from the desktop Language menu.
+
 ### Structure
 
 - `app/src/main/res/values/strings.xml` — **default/English** strings.

@@ -1,46 +1,46 @@
-# TODO — VIVI Music DE (desktop) + sync Android ↔ Desktop
+# TODO — VIVI Music DE (desktop) + Android ↔ Desktop sync
 
-Legenda: `[x]` fatto · `[ ]` da fare · `[~]` in corso
+Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 
-## Fase 0 — Fondamenta desktop (completata)
-- [x] Convertire i 7 moduli rete (`innertube`, `spotify`, `lastfm`, `kizzy`, `shazamkit`, `lyricsProvider`, `jiosaavn`) da `com.android.library` a `kotlin("jvm")`.
-- [x] Modulo `desktop` (Compose Multiplatform) con PoC di ricerca via `innertube`.
-- [x] Icone native: Windows `.ico`, macOS `.icns`, Linux `.png` (da `logo_vmde.png`).
-- [x] Workflow CI: build per-OS (Windows/Linux/macOS) + auto-release su GitHub Releases.
+## Phase 0 — Desktop foundation (completed)
+- [x] Convert the 7 network modules (`innertube`, `spotify`, `lastfm`, `kizzy`, `shazamkit`, `lyricsProvider`, `jiosaavn`) from `com.android.library` to `kotlin("jvm")`.
+- [x] `desktop` module (Compose Multiplatform) with a search PoC via `innertube`.
+- [x] Native icons: Windows `.ico`, macOS `.icns`, Linux `.png` (from `logo_vmde.png`).
+- [x] CI workflows: per-OS builds (Windows/Linux/macOS) + auto-release to GitHub Releases.
 
-## Fase 1 — Sync: pairing + impostazioni (completata)
-- [x] Modulo condiviso `sync` (modello dati + client WebSocket OkHttp).
-- [x] Relay `sync-server/` (Node.js): pairing a 6 cifre + mailbox per device offline.
-- [x] `DeviceSyncManager` Android (Hilt): push/pull del sottoinsieme impostazioni condivise.
-- [x] UI pairing desktop + store impostazioni JSON (`~/.vivimusic/`).
-- [ ] Deploy del relay su Render/Hugging Face e impostazione URL reale (`deviceSyncServerUrl` / desktop).
-- [ ] Schermata di pairing anche nell'app Android (Impostazioni).
+## Phase 1 — Sync: pairing + settings (completed)
+- [x] Shared `sync` module (data model + OkHttp WebSocket client).
+- [x] `sync-server/` relay (Node.js): 6-digit pairing + mailbox for offline devices.
+- [x] Android `DeviceSyncManager` (Hilt): push/pull of the shared settings subset.
+- [x] Desktop pairing UI + JSON settings store (`~/.vivimusic/`).
+- [ ] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop).
+- [ ] Pairing screen in the Android app (Settings).
 
-## Fase 2 — Sync: coda + posizione di ascolto
-- [ ] Catturare coda e posizione dal player Android (`pushPlayback` già esposto).
-- [ ] Resume sul desktop: applicare `pendingPlayback` (richiede il player desktop, Fase 4).
+## Phase 2 — Sync: queue + playback position
+- [ ] Capture the queue and position from the Android player (`pushPlayback` is already exposed).
+- [ ] Resume on desktop: apply `pendingPlayback` (requires the desktop player, Phase 4).
 
-## Fase 3 — Sync: libreria
-- [ ] Sincronizzare brani piaciuti, album, artisti e playlist (schema `LibrarySnapshot` già presente).
+## Phase 3 — Sync: library
+- [ ] Sync liked songs, albums, artists and playlists (`LibrarySnapshot` schema already present).
 
-## Fase 4 — Playback audio desktop
-- [ ] Backend audio JVM che sostituisce Media3/ExoPlayer (Java Sound / OpenAL / altro).
-- [ ] Portare la risoluzione stream da `YTPlayerUtils` (signature decipher, PoToken, proxy, HLS).
+## Phase 4 — Desktop audio playback
+- [ ] JVM audio backend replacing Media3/ExoPlayer (Java Sound / OpenAL / other).
+- [ ] Port stream resolution from `YTPlayerUtils` (signature decipher, PoToken, proxy, HLS).
 
-## Fase 5 — Persistenza + autenticazione desktop
-- [ ] Sostituire Room con SQLDelight / file storage.
-- [ ] Login YouTube (OAuth via browser) e proxy.
-- [ ] Layer impostazioni desktop completo (stesse chiavi dell'app Android).
+## Phase 5 — Desktop persistence + authentication
+- [ ] Replace Room with SQLDelight / file storage.
+- [ ] YouTube login (browser OAuth) and proxy.
+- [ ] Full desktop settings layer (same keys as the Android app).
 
-## Fase 6 — UI desktop completa
-- [ ] Schermate: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings.
-- [ ] Mini-player e canvas stile Apple Music.
+## Phase 6 — Full desktop UI
+- [ ] Screens: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings.
+- [ ] Apple Music–style mini-player and canvas.
 
-## Fase 7 — Crittografia end-to-end
-- [ ] Chiave per-pair scambiata durante il pairing.
-- [ ] Snapshot cifrati prima dell'invio (il relay non legge più i dati).
+## Phase 7 — End-to-end encryption
+- [ ] Per-pair key exchanged during pairing.
+- [ ] Snapshots encrypted before sending (the relay no longer reads the data).
 
 ## Infra / release
-- [ ] Secret `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` per firmare MSI/EXE.
-- [ ] Bump versione in `version.txt` a ogni release.
-- [ ] (Facoltativo) includere l'APK Android nella stessa GitHub Release del desktop.
+- [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.
+- [ ] Bump the version in `version.txt` on every release.
+- [ ] (Optional) include the Android APK in the same GitHub Release as the desktop.
