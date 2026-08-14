@@ -441,4 +441,16 @@
     <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
     <string name="taste_based_release_notifications">Taste-based release alerts</string>
     <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
+
+    <!-- Device sync (Android <-> Desktop) -->
+    <string name="devices">Devices</string>
+    <string name="device_sync">Device sync</string>
+    <string name="device_sync_desc">Pair this phone with VIVI Music DE on your computer to sync settings, queue and library.</string>
+    <string name="device_sync_server">Relay server</string>
+    <string name="device_sync_generate_code">Generate code</string>
+    <string name="device_sync_join_code">6-digit code from your computer</string>
+    <string name="device_sync_pair">Pair</string>
+    <string name="device_sync_unpair">Unpair</string>
+    <string name="device_sync_paired">Paired</string>
+    <string name="device_sync_not_paired">Not paired</string>
 </resources>

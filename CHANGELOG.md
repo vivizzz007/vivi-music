@@ -11,6 +11,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ## [Unreleased]
 
+### Added
+
+- Added a "Devices" section in the Android Settings to pair the phone with
+  VIVI Music DE (relay server URL, generate/join pairing code, unpair).
+
 ### Fixed
 
 - [DE] Made `gradlew` executable in the repository and in the desktop build

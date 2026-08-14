@@ -14,7 +14,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Android `DeviceSyncManager` (Hilt): push/pull of the shared settings subset.
 - [x] Desktop pairing UI + JSON settings store (`~/.vivimusic/`).
 - [ ] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop).
-- [ ] Pairing screen in the Android app (Settings).
+- [x] Pairing screen in the Android app (Settings).
 
 ## Phase 2 — Sync: queue + playback position
 - [ ] Capture the queue and position from the Android player (`pushPlayback` is already exposed).

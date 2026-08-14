@@ -167,6 +167,14 @@ fun SettingsScreen(
                 )
                 add(
                     Material3SettingsItem(
+                        icon = painterResource(R.drawable.sync),
+                        title = { Text(stringResource(R.string.devices)) },
+                        onClick = { navController.navigate("settings/devices") },
+                        isExpressive = true
+                    )
+                )
+                add(
+                    Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.content)) },
                         onClick = { navController.navigate("settings/content") },

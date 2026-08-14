@@ -49,6 +49,7 @@ import com.music.vivi.viewmodels.SpotifyImportViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
+import com.music.vivi.ui.screens.settings.DeviceSyncScreen
 import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.JioSettings
@@ -339,6 +340,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/account") {
         AccountSettingsScreen(navController, scrollBehavior)
+    }
+
+    composable("settings/devices") {
+        DeviceSyncScreen(navController, scrollBehavior)
     }
 
     composable("settings/appearance") {
