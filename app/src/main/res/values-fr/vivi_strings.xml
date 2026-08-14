@@ -165,6 +165,9 @@
     <string name="new_player_design">Lecteur M3e</string>
     <string name="player_design">Lecteur</string>
     <string name="player_v2">Apple Music v17</string>
+	<string name="use_expressive_album_design">Conception d\'album expressive</string>
+    <string name="use_expressive_album_design_desc">Liste minimale sans pochette</string>
+    <string name="show_song_thumbnail_in_list">Afficher les pochettes des titres de l\'album</string>
     <string name="show_song_thumbnail_in_list_desc">Afficher les pochettes d\'album à la place des numéros de piste dans les listes expressives</string>
     <string name="album_settings">Paramètres de l\'album</string>
     <string name="new_mini_player_design">Nouveau design du mini-lecteur</string>
