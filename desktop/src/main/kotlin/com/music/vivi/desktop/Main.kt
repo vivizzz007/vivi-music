@@ -279,6 +279,7 @@ fun App(
                         onSkipTo = { player.skipTo(it) },
                         onRemoveAt = { player.removeAt(it) },
                         onClear = { player.clearQueue() },
+                        onReorder = { player.reorder(it) },
                     )
                     is Screen.Changelog -> ChangelogScreen(
                         language = language,

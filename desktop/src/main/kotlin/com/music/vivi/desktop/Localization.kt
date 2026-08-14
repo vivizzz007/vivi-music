@@ -102,6 +102,7 @@ object Localization {
             "login_instructions" to "Log in to music.youtube.com in your browser, then open DevTools → Network, reload, click any music.youtube.com request and copy the full value of its 'Cookie' request header. Paste it below. Your cookie is stored only on this device.",
             "library_login_prompt" to "Log in to see your library",
             "library_empty" to "Nothing here yet",
+            "drag_to_reorder" to "Drag the ⠿ handle to reorder",
         ),
     )
 

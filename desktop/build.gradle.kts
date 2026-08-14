@@ -75,6 +75,9 @@ dependencies {
     // QR code (ZXing) + mDNS service registration (JmDNS) for LAN discovery
     implementation(libs.zxing.core)
     implementation(libs.jmdns)
+
+    // Drag-to-reorder for the Queue screen (same lib as the Android app)
+    implementation(libs.compose.reorderable)
 }
 
 compose.desktop {

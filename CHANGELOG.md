@@ -43,6 +43,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   `CHANGELOG.md` plus the latest GitHub release notes.
 - [DE] Added Player & audio settings (autoplay next track) and a Storage
   section (cache size + clear cache) to Settings.
+- [DE] Added drag-to-reorder to the Queue screen (drag the ⠿ handle), reusing
+  the same `sh.calvin.reorderable` library as the Android app.
 - [DE] Added a full playback queue: "add to queue" on every song row, "Play
   all" on albums/playlists, next/previous, auto-advance, and a Queue screen
   (jump / remove / clear).

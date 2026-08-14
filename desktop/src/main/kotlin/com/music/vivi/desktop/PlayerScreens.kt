@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -22,9 +23,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -108,7 +112,35 @@ fun QueueScreen(
     onSkipTo: (Int) -> Unit,
     onRemoveAt: (Int) -> Unit,
     onClear: () -> Unit,
+    onReorder: (List<NowPlaying>) -> Unit,
 ) {
+    val lazyListState = rememberLazyListState()
+    val localQueue = remember { mutableStateListOf<NowPlaying>() }
+    var hasDragged by remember { mutableStateOf(false) }
+
+    val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+        localQueue.add(to.index, localQueue.removeAt(from.index))
+        hasDragged = true
+    }
+
+    // Keep the local copy in sync with the real queue (skip while dragging).
+    LaunchedEffect(queue) {
+        if (!reorderableState.isAnyItemDragging) {
+            localQueue.clear()
+            localQueue.addAll(queue)
+        }
+    }
+
+    // Commit the new order once the drag ends.
+    LaunchedEffect(reorderableState.isAnyItemDragging) {
+        if (!reorderableState.isAnyItemDragging && hasDragged) {
+            onReorder(localQueue.toList())
+            hasDragged = false
+        }
+    }
+
+    val currentVideoId = queue.getOrNull(index)?.videoId
+
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -126,48 +158,64 @@ fun QueueScreen(
                 modifier = Modifier.padding(top = 16.dp),
             )
         } else {
-            LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
-                itemsIndexed(queue, key = { _, item -> item.videoId }) { i, item ->
-                    val isCurrent = i == index
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { onSkipTo(i) }
-                            .padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            if (isCurrent) "▶" else "${i + 1}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(end = 8.dp),
-                        )
-                        Thumbnail(item.thumbnail, Modifier.size(44.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
+            Text(
+                Localization.get(language, "drag_to_reorder"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                itemsIndexed(localQueue, key = { _, item -> item.videoId }) { i, item ->
+                    val isCurrent = item.videoId == currentVideoId
+                    ReorderableItem(state = reorderableState, key = item.videoId) {
+                        Row(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { onSkipTo(i) }
+                                .padding(vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
-                                item.title,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                "⠿",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .draggableHandle()
+                                    .padding(horizontal = 6.dp, vertical = 4.dp),
                             )
                             Text(
-                                item.artist,
-                                style = MaterialTheme.typography.bodySmall,
+                                if (isCurrent) "▶" else "${i + 1}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(end = 8.dp),
+                            )
+                            Thumbnail(item.thumbnail, Modifier.size(44.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(
+                                    item.title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Text(
+                                    item.artist,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Text(
+                                "✕",
+                                style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .clickable { onRemoveAt(i) }
+                                    .padding(horizontal = 10.dp, vertical = 4.dp),
                             )
                         }
-                        Text(
-                            "✕",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .clickable { onRemoveAt(i) }
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                        )
                     }
                 }
             }

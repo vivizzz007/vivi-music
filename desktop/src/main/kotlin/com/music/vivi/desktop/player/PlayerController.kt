@@ -107,6 +107,18 @@ class PlayerController {
         _state.value = PlayerState()
     }
 
+    /**
+     * Applies a new ordering of the same queue items (drag-to-reorder),
+     * keeping the currently playing track selected.
+     */
+    fun reorder(newQueue: List<NowPlaying>) {
+        val s = _state.value
+        if (newQueue.size != s.queue.size) return
+        val currentId = s.current?.videoId
+        val newIndex = newQueue.indexOfFirst { it.videoId == currentId }.takeIf { it != -1 } ?: s.index
+        _state.update { it.copy(queue = newQueue, index = newIndex) }
+    }
+
     fun toggle() {
         val s = _state.value
         if (s.current == null) return
