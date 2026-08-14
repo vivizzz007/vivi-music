@@ -41,10 +41,16 @@ object LoginManager {
     }
 
     /**
-     * Logs in with a pasted `Cookie` header. Throws with a readable message on
-     * failure. Returns the validated account info.
+     * Logs in with a pasted `Cookie` header. [dataSyncIdOverride] and
+     * [visitorDataOverride] are optional manual fallbacks used when the
+     * automatic extraction from the music.youtube.com shell fails. Throws with
+     * a readable message on failure. Returns the validated account info.
      */
-    suspend fun login(cookie: String): AccountInfo = withContext(Dispatchers.IO) {
+    suspend fun login(
+        cookie: String,
+        dataSyncIdOverride: String? = null,
+        visitorDataOverride: String? = null,
+    ): AccountInfo = withContext(Dispatchers.IO) {
         val trimmed = cookie.trim()
         if (trimmed.isBlank()) throw IllegalArgumentException("Cookie is empty")
         if ("SAPISID" !in trimmed) {
@@ -53,7 +59,9 @@ object LoginManager {
 
         YouTube.cookie = trimmed
 
-        val (dataSyncId, visitorData) = extractAccountIds(trimmed)
+        val (extractedDataSyncId, extractedVisitorData) = extractAccountIds(trimmed)
+        val dataSyncId = dataSyncIdOverride?.trim()?.takeIf { it.isNotBlank() } ?: extractedDataSyncId
+        val visitorData = visitorDataOverride?.trim()?.takeIf { it.isNotBlank() } ?: extractedVisitorData
         YouTube.dataSyncId = dataSyncId
         YouTube.visitorData = visitorData
         YouTube.useLoginForBrowse = true

@@ -53,6 +53,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   proper Material icons and a large artwork presentation. Playback now reports
   the track duration and supports seeking (the stream is cached locally), the
   volume is adjustable, and the mini-player shows a progress bar.
+- [DE] Added optional manual `DATASYNC_ID` / `VISITOR_DATA` fields to the
+  desktop login screen as a fallback for when the automatic extraction from
+  the music.youtube.com shell fails.
 - [DE] Added synced lyrics: the Lyrics screen now parses LRC timestamps,
   highlights the current line and auto-scrolls to it as the song plays
   (falls back to plain text when lyrics aren't synced).

@@ -30,6 +30,8 @@ import kotlinx.coroutines.withContext
 @Composable
 fun LoginScreen(language: String, onBack: () -> Unit, onLoggedIn: () -> Unit) {
     var cookie by remember { mutableStateOf("") }
+    var dataSyncId by remember { mutableStateOf("") }
+    var visitorData by remember { mutableStateOf("") }
     var status by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
@@ -52,6 +54,29 @@ fun LoginScreen(language: String, onBack: () -> Unit, onLoggedIn: () -> Unit) {
             modifier = Modifier.fillMaxWidth().padding(top = 16.dp).height(160.dp),
             label = { Text(Localization.get(language, "cookie_label")) },
         )
+
+        // Optional manual fallbacks, used only when auto-detection fails.
+        Text(
+            Localization.get(language, "advanced_login_hint"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        OutlinedTextField(
+            value = dataSyncId,
+            onValueChange = { dataSyncId = it },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            label = { Text(Localization.get(language, "data_sync_id_label")) },
+            singleLine = true,
+        )
+        OutlinedTextField(
+            value = visitorData,
+            onValueChange = { visitorData = it },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            label = { Text(Localization.get(language, "visitor_data_label")) },
+            singleLine = true,
+        )
+
         Button(
             onClick = {
                 scope.launch {
@@ -59,7 +84,13 @@ fun LoginScreen(language: String, onBack: () -> Unit, onLoggedIn: () -> Unit) {
                     error = null
                     status = null
                     try {
-                        val account = withContext(Dispatchers.IO) { LoginManager.login(cookie) }
+                        val account = withContext(Dispatchers.IO) {
+                            LoginManager.login(
+                                cookie = cookie,
+                                dataSyncIdOverride = dataSyncId.ifBlank { null },
+                                visitorDataOverride = visitorData.ifBlank { null },
+                            )
+                        }
                         status = "${Localization.get(language, "logged_in_as")}: ${account.name}"
                         onLoggedIn()
                     } catch (e: Exception) {
