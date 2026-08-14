@@ -18,6 +18,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Fixed
 
+- [DE] Fixed desktop device pairing: the desktop client now actually connects
+  (the `connect()` call was unreachable) and defaults to the same relay URL as
+  the Android app instead of the local `wss://localhost:8080` placeholder, so
+  "Generate code" produces a code.
 - [DE] Made `gradlew` executable in the repository and in the desktop build
   workflows (fixes `./gradlew: Permission denied` on Linux/macOS runners).
 - [DE] Replaced the retired `macos-13` runner with `macos-15-intel` for the

@@ -24,6 +24,7 @@ object Localization {
             "status" to "Status",
             "connected" to "Connected",
             "disconnected" to "Disconnected",
+            "connection_failed" to "Connection failed — check the relay server URL",
             "paired_with" to "Paired with",
             "code_generated" to "Code generated",
             "snapshot_received" to "Snapshot received from",

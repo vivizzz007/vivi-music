@@ -34,6 +34,7 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.vivi.sync.SyncClient
 import com.music.vivi.sync.SyncConnectionState
 import com.music.vivi.sync.SyncEvent
+import com.music.vivi.sync.SyncServer
 import kotlinx.coroutines.launch
 
 fun main() = application {
@@ -125,7 +126,10 @@ fun SearchSection(language: String) {
 @Composable
 fun DeviceSyncSection(language: String) {
     var serverUrl by remember {
-        mutableStateOf(DesktopSettings.load().serverUrl.ifBlank { "wss://localhost:8080" })
+        val saved = DesktopSettings.load().serverUrl
+        // Default to the same relay the Android app uses; treat the old
+        // hardcoded localhost placeholder as "not set" so it gets migrated.
+        mutableStateOf(if (saved.isBlank() || saved == "wss://localhost:8080") SyncServer.DEFAULT_URL else saved)
     }
     var joinCode by remember { mutableStateOf("") }
     var client by remember { mutableStateOf<SyncClient?>(null) }
@@ -147,7 +151,13 @@ fun DeviceSyncSection(language: String) {
 
     LaunchedEffect(client) {
         val c = client ?: return@LaunchedEffect
-        c.connectionState.collect { connectionState = it }
+        c.connect()
+        c.connectionState.collect {
+            connectionState = it
+            if (it == SyncConnectionState.ERROR) {
+                status = Localization.get(language, "connection_failed")
+            }
+        }
     }
 
     LaunchedEffect(client) {
@@ -175,7 +185,6 @@ fun DeviceSyncSection(language: String) {
                 is SyncEvent.Error -> status = "${Localization.get(language, "error")}: ${event.message}"
             }
         }
-        c.connect()
     }
 
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
