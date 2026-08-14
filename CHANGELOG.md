@@ -62,6 +62,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   assets together.
 - [DE] The Android APK is now optional in the auto-release: if it fails to
   build (e.g. signing secrets missing), the desktop release is still published.
+- [DE] Release notes now collapse the commit list into an expandable section
+  when there are more than 7 commits.
 
 ## [6.0.5] - 2026-08-14
 

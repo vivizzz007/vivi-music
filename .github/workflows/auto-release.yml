@@ -148,6 +148,13 @@ jobs:
           if [[ -z "$COMMITS" ]]; then
             COMMITS="- Initial release"
           fi
+          # If there are many commits, collapse the whole list into an
+          # expandable <details> block (a "cascading menu") so the release body
+          # stays readable.
+          COMMIT_COUNT="$(printf '%s\n' "$COMMITS" | grep -c . || true)"
+          if [[ "$COMMIT_COUNT" -gt 7 ]]; then
+            COMMITS="$(printf '<details>\n<summary>Show all %s commits</summary>\n\n%s\n</details>' "$COMMIT_COUNT" "$COMMITS")"
+          fi
           {
             echo "commits<<COMMITS_EOF"
             echo "$COMMITS"
