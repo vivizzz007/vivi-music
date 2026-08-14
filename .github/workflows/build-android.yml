@@ -36,13 +36,19 @@ jobs:
         shell: bash
         run: chmod +x gradlew
 
+      # The APK is optional in the release: a failure here (e.g. missing
+      # signing secrets) must not fail this job. GitHub forbids
+      # `continue-on-error` on the job that *calls* a reusable workflow, so the
+      # tolerance lives on the individual steps below instead.
       - name: Decode release keystore
+        continue-on-error: true
         shell: bash
         run: |
           mkdir -p app/keystore
           echo "${{ secrets.KEYSTORE }}" | base64 --decode > app/keystore/release.keystore
 
       - name: Build GMS release APK
+        continue-on-error: true
         shell: bash
         env:
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -51,6 +57,7 @@ jobs:
         run: ./gradlew assembleUniversalGmsRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Build FOSS release APK
+        continue-on-error: true
         shell: bash
         env:
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -59,6 +66,7 @@ jobs:
         run: ./gradlew assembleUniversalFossRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Collect APKs
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -72,8 +80,10 @@ jobs:
           [ -n "$GMS" ] || [ -n "$FOSS" ] || { echo "No APKs produced" >&2; exit 1; }
 
       - name: Upload APKs
+        if: always()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: android-apks
           path: dist/*
-          if-no-files-found: error
+          if-no-files-found: warn

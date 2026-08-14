@@ -43,8 +43,9 @@ jobs:
     name: Android
     # Best-effort: the APK is attached to the release when it builds, but a
     # failure here (e.g. missing signing secrets) must NOT block the desktop
-    # release.
-    continue-on-error: true
+    # release. This is implemented with continue-on-error inside the reusable
+    # workflow (build-android.yml) — GitHub does not allow continue-on-error on
+    # a job that calls a reusable workflow.
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
     uses: ./.github/workflows/build-android.yml
     secrets: inherit

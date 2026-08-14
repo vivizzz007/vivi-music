@@ -27,6 +27,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Fixed
 
+- [DE] Fixed the auto-release workflow's invalid YAML: `continue-on-error` is not
+  allowed on a job that calls a reusable workflow, so the Android APK build is
+  now made optional with per-step `continue-on-error` inside `build-android.yml`
+  instead (the desktop release no longer requires the APK to succeed).
 - [DE] Fixed desktop device pairing: the desktop client now actually connects
   (the `connect()` call was unreachable) and defaults to the same relay URL as
   the Android app instead of the local `wss://localhost:8080` placeholder, so
