@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -90,7 +91,13 @@ fun AppTheme(
     } else {
         lightColorScheme(primary = accent)
     }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+    MaterialTheme(colorScheme = colorScheme) {
+        // Paint the whole window with the theme background, otherwise the
+        // native (light) window background shows through in dark mode.
+        Box(Modifier.fillMaxSize().background(colorScheme.background)) {
+            content()
+        }
+    }
 }
 
 /** A clickable circle showing an accent color, highlighted when selected. */
