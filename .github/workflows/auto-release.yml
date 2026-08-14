@@ -17,9 +17,10 @@ permissions:
   actions: write
 
 jobs:
-  # Reusable per-OS builds. They run on manual dispatch, or on push when the
-  # commit message starts with "v" (our release signal), mirroring the old
-  # deprecated vivi-music-de release pipeline.
+  # Builds are delegated to the per-OS reusable workflows. This workflow only
+  # collects their artifacts and publishes the release. They run on manual
+  # dispatch, or on push when the commit message starts with "v" (our release
+  # signal), mirroring the old vivi-music-de release pipeline.
   build-windows:
     name: Windows
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
@@ -68,14 +69,45 @@ jobs:
           VERSION="${VERSION// /-}"
           if [[ "$VERSION" =~ -(alpha|beta|rc|pre)([.-]?[0-9]+)?$ ]]; then
             PRERELEASE=true
+            CHANNEL="pre-release"
           else
             PRERELEASE=false
+            CHANNEL="stable"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "name=Vivi Music DE $VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
           echo "Resolved version: $VERSION (prerelease: $PRERELEASE)"
+
+      - name: Extract changelog section
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          CORE="${VERSION%%-*}"   # strip -DE (or any pre-release) for fallback
+          SECTION=""
+          if [[ -f CHANGELOG.md ]]; then
+            for v in "$VERSION" "$CORE"; do
+              [[ -z "$v" ]] && continue
+              SECTION="$(awk -v v="$v" '
+                index($0, "## [" v "]") == 1 { found = 1; print; next }
+                found && /^## / { exit }
+                found { print }
+              ' CHANGELOG.md)"
+              [[ -n "$SECTION" ]] && break
+            done
+          fi
+          if [[ -z "$SECTION" ]]; then
+            SECTION="*No changelog entry found for version $VERSION.*"
+          fi
+          {
+            echo "section<<CHANGELOG_EOF"
+            echo "$SECTION"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Collect commits
         id: commits
@@ -114,9 +146,13 @@ jobs:
           fail_on_unmatched_files: true
           body: |
             ## Vivi Music DE ${{ steps.version.outputs.version }}
+            **Release channel:** `${{ steps.version.outputs.channel }}`
+
+            ${{ steps.changelog.outputs.section }}
+
             ### Commits
             ${{ steps.commits.outputs.commits }}
             ---
-            Built automatically from commit `${{ github.sha }}`.
+            This release was built automatically from commit `${{ github.sha }}`.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
