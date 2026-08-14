@@ -11,6 +11,13 @@ feature.`), and desktop releases are versioned with a `-DE` suffix
 
 ## [Unreleased]
 
+### Fixed
+
+- [DE] Made `gradlew` executable in the repository and in the desktop build
+  workflows (fixes `./gradlew: Permission denied` on Linux/macOS runners).
+- [DE] Replaced the retired `macos-13` runner with `macos-15-intel` for the
+  Intel macOS build.
+
 ### Changed
 
 - Desktop releases now use a `-DE` version suffix (e.g. `6.0.5-DE`) in
