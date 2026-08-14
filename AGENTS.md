@@ -111,6 +111,19 @@ keep them in sync:
 When in doubt about which segment to bump, prefer PATCH for fixes and MINOR for
 features; only use MAJOR for genuinely breaking changes.
 
+#### Desktop release marker (`-DE`)
+
+Desktop releases are distinguished from Android releases with a `-DE` suffix:
+
+- `version.txt` holds the full desktop version, e.g. `6.0.5-DE`. The Android
+  app version stays numeric (e.g. `6.0.5` in `app/build.gradle.kts`).
+- The GitHub release tag/title and the desktop artifact filenames use the full
+  `-DE` version (`v6.0.5-DE`, `VIVIMusic-6.0.5-DE.msi`, …).
+- jpackage requires a purely numeric `MAJOR.MINOR.PATCH` on Windows and macOS
+  (JDK-8283707), so `desktop/build.gradle.kts` derives the numeric package
+  version by stripping the `-DE` (and any pre-release/build) suffix. Keep that
+  derivation in place — do not put `-DE` into `packageVersion`.
+
 ### CHANGELOG.md — Keep a Changelog
 
 Update `CHANGELOG.md` on **every important change**, following
@@ -126,6 +139,11 @@ Update `CHANGELOG.md` on **every important change**, following
 Keep an `## [Unreleased]` section at the top; when a version is released,
 convert it to a dated entry (`## [X.Y.Z] - YYYY-MM-DD`) and add the new version
 to the top of `CHANGELOG.md`. Omit sections that have no entries.
+
+**Desktop-specific entries are marked with `[DE]`** (e.g.
+`- [DE] New desktop feature.`), so desktop and Android changes stay
+distinguishable in the changelog. Desktop releases use the `-DE` version
+suffix (`## [6.0.5-DE] - …`) when a release is desktop-only.
 
 ## 6. Localization (multilingual support)
 

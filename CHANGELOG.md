@@ -5,19 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+Desktop-specific changes are marked with `[DE]` (e.g. `- [DE] New desktop
+feature.`), and desktop releases are versioned with a `-DE` suffix
+(e.g. `6.0.5-DE`).
+
 ## [Unreleased]
+
+### Changed
+
+- Desktop releases now use a `-DE` version suffix (e.g. `6.0.5-DE`) in
+  `version.txt`, the GitHub release tag/title, and artifact filenames; desktop
+  changelog entries are marked `[DE]`.
 
 ## [6.0.5] - 2026-08-14
 
 ### Added
 
-- Compose Multiplatform desktop target (`desktop` module) reusing the
+- [DE] Compose Multiplatform desktop target (`desktop` module) reusing the
   pure-JVM network modules.
-- Native desktop icons (Windows `.ico`, macOS `.icns`, Linux `.png`).
-- Per-OS GitHub Actions builds (MSI/EXE, DEB/AppImage, DMG/PKG) and an
+- [DE] Native desktop icons (Windows `.ico`, macOS `.icns`, Linux `.png`).
+- [DE] Per-OS GitHub Actions builds (MSI/EXE, DEB/AppImage, DMG/PKG) and an
   auto-release workflow.
-- Cross-device sync foundation: shared `sync` module, Node.js WebSocket relay
-  (`sync-server/`), Android `DeviceSyncManager`, and desktop pairing UI.
+- [DE] Cross-device sync foundation: shared `sync` module, Node.js WebSocket
+  relay (`sync-server/`), Android `DeviceSyncManager`, and desktop pairing UI.
 
 ### Changed
 

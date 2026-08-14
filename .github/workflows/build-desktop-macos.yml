@@ -44,15 +44,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="$(tr -d '\r\n' < version.txt | xargs)"
           mkdir -p dist
-          for f in desktop/build/compose/binaries/main/dmg/*.dmg; do
-            base="$(basename "$f" .dmg)"
-            cp "$f" "dist/${base}-${{ matrix.arch }}.dmg"
-          done
-          for f in desktop/build/compose/binaries/main/pkg/*.pkg; do
-            base="$(basename "$f" .pkg)"
-            cp "$f" "dist/${base}-${{ matrix.arch }}.pkg"
-          done
+          cp desktop/build/compose/binaries/main/dmg/*.dmg "dist/VIVIMusic-${VERSION}-${{ matrix.arch }}.dmg"
+          cp desktop/build/compose/binaries/main/pkg/*.pkg "dist/VIVIMusic-${VERSION}-${{ matrix.arch }}.pkg"
           ls -la dist
 
       - name: Upload installer
