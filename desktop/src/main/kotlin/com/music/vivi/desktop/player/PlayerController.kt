@@ -30,6 +30,9 @@ class PlayerController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val player = AudioPlayer()
 
+    /** Whether to automatically play the next queued track when one ends. */
+    @Volatile var autoPlayNext: Boolean = true
+
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
 
@@ -149,8 +152,8 @@ class PlayerController {
                     if (token != playToken) return@play
                     val s = _state.value
                     if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                        // Natural end of the current track → auto-advance.
-                        if (index < s.queue.lastIndex) {
+                        // Natural end of the current track → auto-advance (if enabled).
+                        if (autoPlayNext && index < s.queue.lastIndex) {
                             playAt(s.queue, index + 1)
                         } else {
                             _state.update { it.copy(isPlaying = false) }

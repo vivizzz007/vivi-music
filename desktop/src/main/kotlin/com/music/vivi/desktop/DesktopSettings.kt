@@ -21,6 +21,7 @@ data class DesktopSyncState(
     val includePreReleases: Boolean = false,
     val darkMode: String = "system",
     val accentColor: Int = 0xFFED5564.toInt(),
+    val autoPlayNext: Boolean = true,
 )
 
 object DesktopSettings {

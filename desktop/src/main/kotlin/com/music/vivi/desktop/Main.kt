@@ -22,6 +22,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -120,6 +121,9 @@ fun App(
     val nowPlaying = playerState.current
     val isPlaying = playerState.isPlaying
 
+    var autoPlayNext by remember { mutableStateOf(DesktopSettings.load().autoPlayNext) }
+    player.autoPlayNext = autoPlayNext
+
     val current = backStack.last()
 
     val navigate: (Screen) -> Unit = { backStack = backStack + it }
@@ -185,6 +189,11 @@ fun App(
                         accent = accent,
                         onThemeModeChange = onThemeModeChange,
                         onAccentChange = onAccentChange,
+                        autoPlayNext = autoPlayNext,
+                        onToggleAutoPlayNext = { checked ->
+                            autoPlayNext = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(autoPlayNext = checked))
+                        },
                         updateStatus = updateStatus,
                         includePreReleases = includePreReleases,
                         onTogglePreReleases = { checked ->
@@ -193,6 +202,7 @@ fun App(
                             runUpdateCheck()
                         },
                         onCheckUpdates = { runUpdateCheck() },
+                        onOpenChangelog = { navigate(Screen.Changelog) },
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
@@ -248,6 +258,10 @@ fun App(
                         onSkipTo = { player.skipTo(it) },
                         onRemoveAt = { player.removeAt(it) },
                         onClear = { player.clearQueue() },
+                    )
+                    is Screen.Changelog -> ChangelogScreen(
+                        language = language,
+                        onBack = goBack,
                     )
                 }
             }
@@ -350,10 +364,13 @@ fun SettingsScreen(
     accent: Color,
     onThemeModeChange: (ThemeMode) -> Unit,
     onAccentChange: (Color) -> Unit,
+    autoPlayNext: Boolean,
+    onToggleAutoPlayNext: (Boolean) -> Unit,
     updateStatus: UpdateStatus,
     includePreReleases: Boolean,
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
+    onOpenChangelog: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
@@ -364,11 +381,15 @@ fun SettingsScreen(
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        PlayerSection(language, autoPlayNext, onToggleAutoPlayNext)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
         DeviceSyncSection(language)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         UpdateSection(language, updateStatus, includePreReleases, onTogglePreReleases, onCheckUpdates)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        AboutSection(language)
+        AboutSection(language, onOpenChangelog)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        StorageSection(language)
     }
 }
 
@@ -604,6 +625,11 @@ fun UpdateSection(
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
+    var downloadedFile by remember { mutableStateOf<File?>(null) }
+    var installerCount by remember { mutableStateOf(UpdateDownloader.downloadedInstallers().size) }
+
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
         "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION} (${Localization.get(language, "de")} ${AppInfo.DE_VERSION})",
@@ -624,8 +650,51 @@ fun UpdateSection(
         is UpdateStatus.UpToDate -> Text(Localization.get(language, "up_to_date"), modifier = Modifier.padding(top = 8.dp))
         is UpdateStatus.Available -> {
             Text("${Localization.get(language, "update_available")}: ${status.version}", modifier = Modifier.padding(top = 8.dp))
-            Button(onClick = { openUrl(status.url) }, modifier = Modifier.padding(top = 4.dp)) {
-                Text(Localization.get(language, "download"))
+            val asset = status.asset
+            when {
+                asset == null -> Button(onClick = { openUrl(status.url) }, modifier = Modifier.padding(top = 4.dp)) {
+                    Text(Localization.get(language, "download"))
+                }
+                downloadedFile != null -> {
+                    Text(
+                        "${Localization.get(language, "downloaded")}: ${downloadedFile!!.name}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    Button(onClick = { openFile(downloadedFile!!) }, modifier = Modifier.padding(top = 4.dp)) {
+                        Text(Localization.get(language, "open_installer"))
+                    }
+                }
+                progress != null -> {
+                    val p = progress!!
+                    Text(
+                        "${Localization.get(language, "downloading")}: ${p.percent}% · ${formatBytes(p.downloadedBytes)} / ${formatBytes(p.totalBytes)} · ${formatSpeed(p.speedBytesPerSecond)}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    LinearProgressIndicator(
+                        progress = { p.percent / 100f },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
+                }
+                else -> Button(
+                    onClick = {
+                        scope.launch {
+                            progress = DownloadProgress(0, asset.sizeBytes, 0)
+                            val file = withContext(Dispatchers.IO) {
+                                runCatching { UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p } }.getOrNull()
+                            }
+                            progress = null
+                            if (file != null) {
+                                downloadedFile = file
+                                installerCount = UpdateDownloader.downloadedInstallers().size
+                            }
+                        }
+                    },
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
+                    Text("${Localization.get(language, "download")} (${formatBytes(asset.sizeBytes)})")
+                }
             }
         }
         is UpdateStatus.Failed -> Text(
@@ -635,14 +704,41 @@ fun UpdateSection(
         )
         is UpdateStatus.Idle -> Unit
     }
+
+    // Downloaded installer management.
+    Text(
+        "${Localization.get(language, "installers_downloaded")}: $installerCount",
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    if (installerCount > 0) {
+        Button(
+            onClick = {
+                UpdateDownloader.deleteAll()
+                installerCount = 0
+                downloadedFile = null
+            },
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            Text(Localization.get(language, "delete_installers"))
+        }
+    }
 }
 
 private fun openUrl(url: String) {
     runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(url)) }
 }
 
+private fun openFile(file: File) {
+    runCatching { java.awt.Desktop.getDesktop().open(file) }
+}
+
+private fun formatSpeed(bps: Long): String =
+    if (bps <= 0) "0 B/s" else "${formatBytes(bps)}/s"
+
 @Composable
-fun AboutSection(language: String) {
+fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
     Text(Localization.get(language, "about"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
         "${AppInfo.FULL_VERSION} ${AppInfo.CHANNEL.uppercase()}",
@@ -654,4 +750,61 @@ fun AboutSection(language: String) {
         style = MaterialTheme.typography.bodySmall,
         modifier = Modifier.padding(top = 2.dp),
     )
+    Button(onClick = onOpenChangelog, modifier = Modifier.padding(top = 8.dp)) {
+        Text(Localization.get(language, "changelog"))
+    }
+}
+
+@Composable
+fun PlayerSection(language: String, autoPlayNext: Boolean, onToggleAutoPlayNext: (Boolean) -> Unit) {
+    Text(Localization.get(language, "player_audio"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Row(
+        Modifier.fillMaxWidth().padding(top = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Switch(checked = autoPlayNext, onCheckedChange = onToggleAutoPlayNext)
+        Text(Localization.get(language, "autoplay_next"))
+    }
+}
+
+private fun dirSize(dir: File): Long =
+    dir.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+
+private fun formatBytes(bytes: Long): String {
+    if (bytes < 1024) return "$bytes B"
+    val kb = bytes / 1024.0
+    if (kb < 1024) return "%.1f KB".format(kb)
+    return "%.1f MB".format(kb / 1024.0)
+}
+
+@Composable
+fun StorageSection(language: String) {
+    val scope = rememberCoroutineScope()
+    val cacheDir = remember { File(System.getProperty("user.home"), ".vivimusic/cache") }
+    var sizeText by remember { mutableStateOf<String?>(null) }
+
+    fun refresh() {
+        scope.launch {
+            sizeText = withContext(Dispatchers.IO) { formatBytes(dirSize(cacheDir)) }
+        }
+    }
+
+    LaunchedEffect(Unit) { refresh() }
+
+    Text(Localization.get(language, "storage"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Text(
+        "${Localization.get(language, "cache_size")}: ${sizeText ?: "…"}",
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+    Button(
+        onClick = {
+            scope.launch {
+                withContext(Dispatchers.IO) { cacheDir.listFiles()?.forEach { it.deleteRecursively() } }
+                sizeText = withContext(Dispatchers.IO) { formatBytes(dirSize(cacheDir)) }
+            }
+        },
+        modifier = Modifier.padding(top = 8.dp),
+    ) { Text(Localization.get(language, "clear_cache")) }
 }

@@ -30,6 +30,14 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   played through Java Sound — no external player or native codec required.
   The mini-player and Player screen now actually play/pause/resume songs and
   show the playback position.
+- [DE] Added in-app update downloads: the Updates section detects the right
+  installer for the host OS/arch (MSI/AppImage/DMG with EXE/DEB/PKG fallback),
+  downloads it with progress % + speed, opens it, and can delete downloaded
+  installers.
+- [DE] Added a changelog screen (About → Changelog) showing the bundled
+  `CHANGELOG.md` plus the latest GitHub release notes.
+- [DE] Added Player & audio settings (autoplay next track) and a Storage
+  section (cache size + clear cache) to Settings.
 - [DE] Added a full playback queue: "add to queue" on every song row, "Play
   all" on albums/playlists, next/previous, auto-advance, and a Queue screen
   (jump / remove / clear).

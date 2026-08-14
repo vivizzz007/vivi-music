@@ -28,10 +28,11 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
-// Ship version.txt as a classpath resource so the About screen can read build
-// metadata at runtime (config-cache friendly, no codegen task needed).
+// Ship version.txt + CHANGELOG.md as classpath resources so the About screen
+// can read build metadata and the changelog at runtime (config-cache friendly).
 tasks.processResources {
     from(rootProject.file("version.txt"))
+    from(rootProject.file("CHANGELOG.md"))
 }
 
 kotlin {
