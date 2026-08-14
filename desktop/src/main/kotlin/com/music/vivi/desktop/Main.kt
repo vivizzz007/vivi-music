@@ -268,6 +268,8 @@ fun App(
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
+                        positionMs = playerState.positionMs,
+                        isPlaying = isPlaying,
                         language = language,
                         onBack = goBack,
                     )

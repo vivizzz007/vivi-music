@@ -43,6 +43,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   `CHANGELOG.md` plus the latest GitHub release notes.
 - [DE] Added Player & audio settings (autoplay next track) and a Storage
   section (cache size + clear cache) to Settings.
+- [DE] Added synced lyrics: the Lyrics screen now parses LRC timestamps,
+  highlights the current line and auto-scrolls to it as the song plays
+  (falls back to plain text when lyrics aren't synced).
 - [DE] Added drag-to-reorder to the Queue screen (drag the ⠿ handle), reusing
   the same `sh.calvin.reorderable` library as the Android app.
 - [DE] Added a full playback queue: "add to queue" on every song row, "Play
