@@ -5,7 +5,8 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 // from Android releases.
 val desktopVersion: String = rootProject.file("version.txt")
     .takeIf { it.exists() }
-    ?.readText()
+    ?.readLines()
+    ?.firstOrNull()
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
     ?: "6.0.5-DE"

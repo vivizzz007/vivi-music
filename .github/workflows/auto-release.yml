@@ -60,26 +60,28 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
+          # version.txt: line 1 = version, line 2 = release channel.
           if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$VERSION_INPUT" ]]; then
             VERSION="$VERSION_INPUT"
           else
-            VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+            VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
           fi
           VERSION="${VERSION#v}"
           VERSION="${VERSION// /-}"
-          if [[ "$VERSION" =~ -(alpha|beta|rc|pre)([.-]?[0-9]+)?$ ]]; then
-            PRERELEASE=true
-            CHANNEL="pre-release"
-          else
+          # Channel: "stable" (or empty) => stable release, anything else => pre-release.
+          CHANNEL="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
+          if [[ "$CHANNEL" == "stable" || -z "$CHANNEL" ]]; then
             PRERELEASE=false
             CHANNEL="stable"
+          else
+            PRERELEASE=true
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
           echo "name=Vivi Music DE $VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $VERSION (prerelease: $PRERELEASE)"
+          echo "Resolved version: $VERSION (channel: $CHANNEL, prerelease: $PRERELEASE)"
 
       - name: Extract changelog section
         id: changelog

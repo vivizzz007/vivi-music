@@ -36,7 +36,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
           # jpackage --type app-image produces a directory, not a single-file
           # .AppImage. Wrap it into an AppDir (AppRun + .desktop + icon) and pack
           # it with appimagetool so Arch / other distros get a portable AppImage.
@@ -84,7 +84,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/deb/*.deb "dist/VIVIMusic-${VERSION}.deb"
           find desktop/build/compose/binaries/main -name '*.AppImage' -exec cp {} dist/ \;

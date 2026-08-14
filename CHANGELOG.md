@@ -16,6 +16,8 @@ feature.`), and desktop releases are versioned with a `-DE` suffix
 - Desktop releases now use a `-DE` version suffix (e.g. `6.0.5-DE`) in
   `version.txt`, the GitHub release tag/title, and artifact filenames; desktop
   changelog entries are marked `[DE]`.
+- The release channel is now read from line 2 of `version.txt`: `stable` (or
+  empty) publishes a stable release, any other value publishes a pre-release.
 
 ## [6.0.5] - 2026-08-14
 

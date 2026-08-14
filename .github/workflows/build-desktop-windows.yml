@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/msi/*.msi "dist/VIVIMusic-${VERSION}.msi"
           for f in desktop/build/compose/binaries/main/exe/*.exe; do

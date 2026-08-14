@@ -115,8 +115,12 @@ features; only use MAJOR for genuinely breaking changes.
 
 Desktop releases are distinguished from Android releases with a `-DE` suffix:
 
-- `version.txt` holds the full desktop version, e.g. `6.0.5-DE`. The Android
-  app version stays numeric (e.g. `6.0.5` in `app/build.gradle.kts`).
+- `version.txt` holds the desktop release metadata on **two lines**: line 1 is
+  the full desktop version (e.g. `6.0.5-DE`), line 2 is the release channel.
+  The Android app version stays numeric (e.g. `6.0.5` in `app/build.gradle.kts`).
+- Release channel (line 2 of `version.txt`): `stable` (or empty) publishes a
+  stable GitHub release; any other value (e.g. `beta`, `rc`) publishes a
+  pre-release.
 - The GitHub release tag/title and the desktop artifact filenames use the full
   `-DE` version (`v6.0.5-DE`, `VIVIMusic-6.0.5-DE.msi`, …).
 - jpackage requires a purely numeric `MAJOR.MINOR.PATCH` on Windows and macOS
