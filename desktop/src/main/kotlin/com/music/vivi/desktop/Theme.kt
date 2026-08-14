@@ -13,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -92,10 +94,16 @@ fun AppTheme(
         lightColorScheme(primary = accent)
     }
     MaterialTheme(colorScheme = colorScheme) {
-        // Paint the whole window with the theme background, otherwise the
-        // native (light) window background shows through in dark mode.
-        Box(Modifier.fillMaxSize().background(colorScheme.background)) {
-            content()
+        // Material3's MaterialTheme does NOT set LocalContentColor, so any Text
+        // without an explicit color would fall back to the default (black) and
+        // never adapt to the theme. Provide it explicitly so text follows the
+        // onBackground color, then paint the whole window with the theme
+        // background (otherwise the native light window shows through in dark
+        // mode).
+        CompositionLocalProvider(LocalContentColor provides colorScheme.onBackground) {
+            Box(Modifier.fillMaxSize().background(colorScheme.background)) {
+                content()
+            }
         }
     }
 }

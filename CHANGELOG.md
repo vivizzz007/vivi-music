@@ -79,6 +79,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] Fixed dark mode not repainting the page background: the app root now
   paints the theme's `background` color, so switching to dark converts the
   whole window instead of leaving the native light background showing through.
+- [DE] Fixed most text not adapting to the dark/light theme: Material 3's
+  `MaterialTheme` does not set `LocalContentColor`, so text without an explicit
+  color fell back to black. The app root now provides `LocalContentColor =
+  onBackground`, so titles, headers and other uncolored text follow the theme.
 - [DE] Fixed the "Open installer" button not launching the downloaded
   installer: opening now falls back to the OS's native opener (`cmd /c start`
   on Windows, `open` on macOS, `xdg-open` on Linux) when `Desktop.open()`
