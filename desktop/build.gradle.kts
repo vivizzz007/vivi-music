@@ -54,15 +54,18 @@ compose.desktop {
                 menuGroup = "VIVI Music"
                 // per-user install keeps Windows 10+ happy without admin rights
                 perUserInstall = true
+                iconFile.set(project.file("icons/logo_vmde.ico"))
             }
 
             linux {
                 debMaintainer = "VIVI Music"
+                iconFile.set(project.file("icons/logo_vmde.png"))
             }
 
             macOS {
                 bundleID = "com.vivi.vivimusic.desktop"
                 minimumSystemVersion = "10.15"
+                iconFile.set(project.file("icons/logo_vmde.icns"))
             }
         }
     }
