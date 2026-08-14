@@ -71,8 +71,9 @@ compose.desktop {
 
             windows {
                 menuGroup = "VIVI Music"
-                // per-user install keeps Windows 10+ happy without admin rights
-                perUserInstall = true
+                // Machine-wide install into Program Files (requires admin/UAC).
+                perUserInstall = false
+                installationPath = "C:/Program Files/VIVIMusic"
                 iconFile.set(project.file("icons/logo_vmde.ico"))
             }
 

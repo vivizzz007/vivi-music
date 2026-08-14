@@ -25,6 +25,9 @@ feature.`), and desktop releases are versioned with a `-DE` suffix
   changelog entries are marked `[DE]`.
 - The release channel is now read from line 2 of `version.txt`: `stable` (or
   empty) publishes a stable release, any other value publishes a pre-release.
+- [DE] The Windows installer now performs a machine-wide install into
+  `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
+  install into `%LOCALAPPDATA%`.
 
 ## [6.0.5] - 2026-08-14
 
