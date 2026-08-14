@@ -60,28 +60,31 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          # version.txt: line 1 = version, line 2 = release channel.
+          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          MOBILE_VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+          DE_VERSION="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
           if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$VERSION_INPUT" ]]; then
-            VERSION="$VERSION_INPUT"
+            FULL_VERSION="$VERSION_INPUT"
           else
-            VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
+            FULL_VERSION="${MOBILE_VERSION}_DE-${DE_VERSION}"
           fi
-          VERSION="${VERSION#v}"
-          VERSION="${VERSION// /-}"
+          FULL_VERSION="${FULL_VERSION#v}"
+          FULL_VERSION="${FULL_VERSION// /-}"
           # Channel: "stable" (or empty) => stable release, anything else => pre-release.
-          CHANNEL="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
+          CHANNEL="$(sed -n '3p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
           if [[ "$CHANNEL" == "stable" || -z "$CHANNEL" ]]; then
             PRERELEASE=false
             CHANNEL="stable"
           else
             PRERELEASE=true
           fi
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
-          echo "name=Vivi Music DE $VERSION" >> "$GITHUB_OUTPUT"
+          echo "version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "de_version=$DE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=Vivi Music DE $FULL_VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $VERSION (channel: $CHANNEL, prerelease: $PRERELEASE)"
+          echo "Resolved version: $FULL_VERSION (channel: $CHANNEL, prerelease: $PRERELEASE)"
 
       - name: Extract changelog section
         id: changelog
@@ -89,10 +92,10 @@ jobs:
         run: |
           set -euo pipefail
           VERSION="${{ steps.version.outputs.version }}"
-          CORE="${VERSION%%-*}"   # strip -DE (or any pre-release) for fallback
+          DE_VERSION="${{ steps.version.outputs.de_version }}"
           SECTION=""
           if [[ -f CHANGELOG.md ]]; then
-            for v in "$VERSION" "$CORE"; do
+            for v in "$VERSION" "$DE_VERSION"; do
               [[ -z "$v" ]] && continue
               SECTION="$(awk -v v="$v" '
                 index($0, "## [" v "]") == 1 { found = 1; print; next }

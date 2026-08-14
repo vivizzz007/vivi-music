@@ -48,7 +48,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
+          MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          VERSION="${MOBILE}_DE-${DE}"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/dmg/*.dmg "dist/VIVIMusic-${VERSION}-${{ matrix.arch }}.dmg"
           cp desktop/build/compose/binaries/main/pkg/*.pkg "dist/VIVIMusic-${VERSION}-${{ matrix.arch }}.pkg"

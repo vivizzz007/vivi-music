@@ -40,7 +40,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
+          MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          VERSION="${MOBILE}_DE-${DE}"
           # jpackage --type app-image produces a directory, not a single-file
           # .AppImage. Wrap it into an AppDir (AppRun + .desktop + icon) and pack
           # it with appimagetool so Arch / other distros get a portable AppImage.
@@ -88,7 +90,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
+          MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          VERSION="${MOBILE}_DE-${DE}"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/deb/*.deb "dist/VIVIMusic-${VERSION}.deb"
           find desktop/build/compose/binaries/main -name '*.AppImage' -exec cp {} dist/ \;

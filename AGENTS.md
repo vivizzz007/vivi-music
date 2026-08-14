@@ -102,8 +102,8 @@ The agent must **autonomously advance the version** as part of each change that
 warrants it (no need to wait for the user to ask). Update **all** of these to
 keep them in sync:
 
-1. `version.txt` — single source of truth for the desktop release version
-   (read by `desktop/build.gradle.kts` and CI).
+1. `version.txt` — single source of truth for release metadata (mobile
+   version, DE version, channel — see "Desktop versioning" below).
 2. `app/build.gradle.kts` — `versionName` (SemVer string) and `versionCode`
    (monotonically increasing integer; the Android requirement is that
    `versionCode` always increases on each release).
@@ -111,22 +111,29 @@ keep them in sync:
 When in doubt about which segment to bump, prefer PATCH for fixes and MINOR for
 features; only use MAJOR for genuinely breaking changes.
 
-#### Desktop release marker (`-DE`)
+#### Desktop versioning (`<mobile>_DE-<de>` + channel)
 
-Desktop releases are distinguished from Android releases with a `-DE` suffix:
+Desktop releases are distinguished from Android releases with a combined
+version of the form `<mobile>_DE-<de>` (e.g. `6.0.5_DE-1.0.0`):
 
-- `version.txt` holds the desktop release metadata on **two lines**: line 1 is
-  the full desktop version (e.g. `6.0.5-DE`), line 2 is the release channel.
-  The Android app version stays numeric (e.g. `6.0.5` in `app/build.gradle.kts`).
-- Release channel (line 2 of `version.txt`): `stable` (or empty) publishes a
-  stable GitHub release; any other value (e.g. `beta`, `rc`) publishes a
-  pre-release.
-- The GitHub release tag/title and the desktop artifact filenames use the full
-  `-DE` version (`v6.0.5-DE`, `VIVIMusic-6.0.5-DE.msi`, …).
-- jpackage requires a purely numeric `MAJOR.MINOR.PATCH` on Windows and macOS
-  (JDK-8283707), so `desktop/build.gradle.kts` derives the numeric package
-  version by stripping the `-DE` (and any pre-release/build) suffix. Keep that
-  derivation in place — do not put `-DE` into `packageVersion`.
+- `6.0.5` is the Android (mobile) version the desktop is paired with; `1.0.0`
+  is the desktop ("DE") version — the program's own SemVer.
+- `version.txt` holds the release metadata on **three lines**: line 1 = mobile
+  version, line 2 = DE version, line 3 = release channel. The Android app
+  version stays numeric in `app/build.gradle.kts` (e.g. `6.0.5`).
+- Release channel (line 3): `stable` (or empty) publishes a stable GitHub
+  release; any other value (`rc`, `beta`, `alpha`, `nightly`, …) publishes a
+  pre-release. The channel is shown (uppercased) in the About screen.
+- The GitHub release tag/title and desktop artifact filenames use the full
+  version (`v6.0.5_DE-1.0.0`, `VIVIMusic-6.0.5_DE-1.0.0-setup.exe`, …).
+- Windows/macOS installers need a purely numeric `MAJOR.MINOR.PATCH`
+  (jpackage JDK-8283707; Inno Setup `AppVersion` too), so the
+  **installer/package version is the DE version** (`1.0.0`, the part after
+  `DE-`). `desktop/build.gradle.kts` derives both values from `version.txt`
+  (`fullVersion` for display, `numericPackageVersion` for jpackage) and
+  generates `AppInfo` so the About screen can show `fullVersion` + channel.
+  Keep that derivation in place — do not put the full `_DE-` version into
+  `packageVersion`.
 
 ### CHANGELOG.md — Keep a Changelog
 
@@ -146,8 +153,8 @@ to the top of `CHANGELOG.md`. Omit sections that have no entries.
 
 **Desktop-specific entries are marked with `[DE]`** (e.g.
 `- [DE] New desktop feature.`), so desktop and Android changes stay
-distinguishable in the changelog. Desktop releases use the `-DE` version
-suffix (`## [6.0.5-DE] - …`) when a release is desktop-only.
+distinguishable in the changelog. Desktop releases use the combined
+`<mobile>_DE-<de>` version (`## [6.0.5_DE-1.0.0] - …`).
 
 ## 6. Localization (multilingual support)
 

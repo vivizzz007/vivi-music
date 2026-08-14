@@ -50,8 +50,25 @@ fun App() {
             SearchSection()
             HorizontalDivider(Modifier.padding(vertical = 16.dp))
             DeviceSyncSection()
+            HorizontalDivider(Modifier.padding(vertical = 16.dp))
+            AboutSection()
         }
     }
+}
+
+@Composable
+fun AboutSection() {
+    Text("About", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Text(
+        "${AppInfo.FULL_VERSION} ${AppInfo.CHANNEL.uppercase()}",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+    Text(
+        "Mobile ${AppInfo.MOBILE_VERSION} · DE ${AppInfo.DE_VERSION}",
+        style = MaterialTheme.typography.bodySmall,
+        modifier = Modifier.padding(top = 2.dp),
+    )
 }
 
 @Composable

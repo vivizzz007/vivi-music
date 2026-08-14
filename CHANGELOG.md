@@ -6,8 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 Desktop-specific changes are marked with `[DE]` (e.g. `- [DE] New desktop
-feature.`), and desktop releases are versioned with a `-DE` suffix
-(e.g. `6.0.5-DE`).
+feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
+(e.g. `6.0.5_DE-1.0.0`), where the desktop part is the program's own SemVer.
 
 ## [Unreleased]
 
@@ -20,11 +20,13 @@ feature.`), and desktop releases are versioned with a `-DE` suffix
 
 ### Changed
 
-- Desktop releases now use a `-DE` version suffix (e.g. `6.0.5-DE`) in
-  `version.txt`, the GitHub release tag/title, and artifact filenames; desktop
-  changelog entries are marked `[DE]`.
-- The release channel is now read from line 2 of `version.txt`: `stable` (or
-  empty) publishes a stable release, any other value publishes a pre-release.
+- Desktop releases now use a combined `<mobile>_DE-<desktop>` version
+  (e.g. `6.0.5_DE-1.0.0`): `version.txt` line 1 = mobile version, line 2 = DE
+  version, line 3 = channel. The About screen shows the full version + channel;
+  desktop changelog entries are marked `[DE]`.
+- The release channel is now read from line 3 of `version.txt`: `stable` (or
+  empty) publishes a stable release; any other value (`rc`/`beta`/`alpha`/
+  `nightly`) publishes a pre-release.
 - [DE] The Windows installer now performs a machine-wide install into
   `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
   install into `%LOCALAPPDATA%`.

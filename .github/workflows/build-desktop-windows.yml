@@ -48,12 +48,11 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          # version.txt: line 1 = version (e.g. 6.0.5-DE), line 2 = channel.
-          $version = (Get-Content version.txt)[0].Trim()
-          $core = ($version -split '-')[0]
-          $parts = $core -split '\.'
-          $major = [Math]::Max(1, [int]$parts[0])
-          $installerVersion = "$major.$($parts[1]).$($parts[2])"
+          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          $mobileVersion = (Get-Content version.txt)[0].Trim()
+          $deVersion = (Get-Content version.txt)[1].Trim()
+          $fullVersion = "${mobileVersion}_DE-$deVersion"
+          $installerVersion = $deVersion
           $source = Join-Path $env:GITHUB_WORKSPACE 'desktop\build\compose\binaries\main\app\VIVIMusic'
           $output = Join-Path $env:GITHUB_WORKSPACE 'dist'
           New-Item -ItemType Directory -Force -Path $output | Out-Null
@@ -63,7 +62,7 @@ jobs:
           if (-not (Test-Path $iscc)) { throw "Inno Setup compiler not found at $iscc" }
           $compileLog = Join-Path $output 'innosetup.log'
           & $iscc `
-            "/DAppVersion=$version" `
+            "/DAppVersion=$fullVersion" `
             "/DInstallerVersion=$installerVersion" `
             "/DSourceDir=$source" `
             "/DOutputDir=$output" `
