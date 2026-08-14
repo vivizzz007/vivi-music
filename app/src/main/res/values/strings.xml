@@ -447,6 +447,8 @@
     <string name="device_sync">Device sync</string>
     <string name="device_sync_desc">Pair this phone with VIVI Music DE on your computer to sync settings, queue and library.</string>
     <string name="device_sync_server">Relay server</string>
+    <string name="device_sync_discover">Find desktop</string>
+    <string name="device_sync_scan_qr">Scan QR code</string>
     <string name="device_sync_generate_code">Generate code</string>
     <string name="device_sync_join_code">6-digit code from your computer</string>
     <string name="device_sync_pair">Pair</string>

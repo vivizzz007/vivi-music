@@ -25,8 +25,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 37
-        versionCode = 75
-        versionName = "6.1.0"
+        versionCode = 76
+        versionName = "6.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -292,6 +292,9 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
+
+    // QR scanning for LAN device pairing
+    implementation(libs.zxing.embedded)
 
     // Protobuf for message serialization (lite version for Android)
     implementation(libs.protobuf.javalite)

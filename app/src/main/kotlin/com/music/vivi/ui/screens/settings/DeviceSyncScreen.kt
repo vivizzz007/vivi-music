@@ -21,14 +21,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanIntentResult
+import com.journeyapps.barcodescanner.ScanOptions
 import com.music.vivi.constants.DeviceSyncServerUrlKey
+import com.music.vivi.devicesync.LanDiscovery
 import com.music.vivi.sync.SyncServer
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
@@ -47,6 +53,18 @@ fun DeviceSyncScreen(
 
     val (serverUrl, onServerUrlChange) = rememberPreference(DeviceSyncServerUrlKey, SyncServer.DEFAULT_URL)
     var joinCode by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val lanDiscovery = remember { LanDiscovery(context) }
+    var discovering by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose { lanDiscovery.stop() }
+    }
+
+    val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result: ScanIntentResult ->
+        result.contents?.let { scanned -> onServerUrlChange(scanned.trim()) }
+    }
 
     Scaffold(
         topBar = {
@@ -97,6 +115,39 @@ fun DeviceSyncScreen(
                 singleLine = true,
                 label = { Text(stringResource(R.string.device_sync_server)) },
             )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Button(
+                    onClick = {
+                        discovering = true
+                        lanDiscovery.discover(
+                            onFound = { url ->
+                                discovering = false
+                                onServerUrlChange(url)
+                            },
+                            onError = { discovering = false },
+                        )
+                    },
+                    enabled = !discovering,
+                ) {
+                    Text(stringResource(R.string.device_sync_discover))
+                }
+                OutlinedButton(
+                    onClick = {
+                        scanLauncher.launch(
+                            ScanOptions()
+                                .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
+                                .setPrompt(context.getString(R.string.device_sync_scan_qr))
+                                .setBeepEnabled(false)
+                        )
+                    },
+                ) {
+                    Text(stringResource(R.string.device_sync_scan_qr))
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

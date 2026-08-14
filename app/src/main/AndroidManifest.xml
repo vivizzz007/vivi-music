@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- For mDNS/NSD discovery of the desktop on the local network -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <!--    bluetooth connect-->
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
@@ -21,6 +24,8 @@
 
     <!-- Microphone feature for music recognition (not required) -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Camera feature for QR scanning (not required) -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
 
 <!--    install permission-->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />

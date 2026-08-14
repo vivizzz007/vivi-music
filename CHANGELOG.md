@@ -13,6 +13,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- Added LAN discovery to the Android Devices screen: "Find desktop" (mDNS/NSD
+  `_vivimusic._tcp`) and "Scan QR code" auto-fill the relay server URL when
+  pairing with VIVI Music DE over the same Wi-Fi.
 - [DE] Added LAN discovery aids to the desktop Device sync section: a QR code
   encoding the local relay address, and mDNS service registration
   (`_vivimusic._tcp`) so the Android app can discover/scan the desktop.

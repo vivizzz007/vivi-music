@@ -16,6 +16,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [ ] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop). The placeholder `wss://vivimusic-device-sync.onrender.com` currently returns `x-render-routing: no-server` from Render — the service is NOT deployed yet.
 - [x] Pairing screen in the Android app (Settings).
 - [x] Offline LAN (same Wi-Fi) pairing via a local desktop WebSocket relay (desktop hosts, Android connects by setting the relay URL to `ws://<lan-ip>:<port>`).
+- [x] Mobile LAN discovery: NSD/mDNS "Find desktop" + QR scan in the Devices screen.
 
 ## Phase 2 — Sync: queue + playback position
 - [ ] Capture the queue and position from the Android player (`pushPlayback` is already exposed).

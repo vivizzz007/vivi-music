@@ -46,6 +46,7 @@ coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 rhino = "1.9.1"
 zxing = "3.5.3"
+zxingEmbedded = "4.3.0"
 jmdns = "3.5.8"
 
 
@@ -147,6 +148,7 @@ work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "w
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingEmbedded" }
 jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
 
 
