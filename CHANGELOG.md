@@ -13,6 +13,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Integrated self-contained audio playback (Phase 4): AAC stream
+  resolution (NewPipe + ANDROID_VR) and a pure-Java AAC decoder (`jaad`)
+  played through Java Sound — no external player or native codec required.
+  The mini-player and Player screen now actually play/pause/resume songs and
+  show the playback position.
 - [DE] Full desktop UI: sidebar navigation with Home, Search, Album, Artist,
   Playlist, Library, Player, Lyrics and Settings screens, artwork thumbnails,
   and an Apple Music–style mini-player. (Library is a placeholder pending

@@ -31,6 +31,8 @@ import com.music.lrclib.LrcLib
 fun PlayerScreen(
     nowPlaying: NowPlaying?,
     isPlaying: Boolean,
+    positionMs: Long,
+    errorKey: String?,
     onTogglePlay: () -> Unit,
     language: String,
     onOpenLyrics: () -> Unit,
@@ -59,15 +61,22 @@ fun PlayerScreen(
                 Text(if (isPlaying) "⏸" else "▶", fontSize = 32.sp)
             }
         }
+        Text(
+            formatTime(positionMs),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Spacer(Modifier.height(16.dp))
         Button(onClick = onOpenLyrics) { Text(Localization.get(language, "lyrics")) }
-        Spacer(Modifier.height(16.dp))
-        Text(
-            Localization.get(language, "playback_soon"),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
+        if (errorKey != null) {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                Localization.get(language, errorKey),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 

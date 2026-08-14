@@ -58,6 +58,9 @@ dependencies {
     implementation(libs.coil)
     implementation(libs.coil.network.okhttp)
 
+    // Pure-Java AAC decoder + MP4 demuxer (self-contained desktop audio playback)
+    implementation("net.sourceforge.jaadec:jaad:0.8.5")
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)

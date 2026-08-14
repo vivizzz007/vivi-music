@@ -24,8 +24,8 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [ ] Sync liked songs, albums, artists and playlists (`LibrarySnapshot` schema already present).
 
 ## Phase 4 — Desktop audio playback
-- [ ] JVM audio backend replacing Media3/ExoPlayer (Java Sound / OpenAL / other).
-- [ ] Port stream resolution from `YTPlayerUtils` (signature decipher, PoToken, proxy, HLS).
+- [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position).
+- [~] Port stream resolution: NewPipe + ANDROID_VR player response (done); PoToken fallback chain, proxy, HLS and seek are pending.
 
 ## Phase 5 — Desktop persistence + authentication
 - [ ] Replace Room with SQLDelight / file storage.

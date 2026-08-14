@@ -44,6 +44,8 @@ object Localization {
             "nothing_playing" to "Nothing playing",
             "library_placeholder" to "Your library will appear here once YouTube login is available (coming in a later phase).",
             "playback_soon" to "Audio playback is coming soon — pick a song to see it here.",
+            "stream_error" to "Could not resolve the audio stream for this track",
+            "resolving" to "Resolving audio…",
             "back" to "Back",
             "about" to "About",
             "language" to "Language",

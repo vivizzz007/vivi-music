@@ -29,6 +29,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,16 +43,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.music.innertube.YouTube
+import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YouTubeLocale
 import com.music.vivi.sync.SyncClient
 import com.music.vivi.sync.SyncConnectionState
 import com.music.vivi.sync.SyncEvent
+import com.music.vivi.desktop.player.PlayerController
 import com.music.vivi.sync.SyncServer
+import java.io.File
 
 fun main() = application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does.
     YouTube.locale = YouTubeLocale(gl = "US", hl = "en")
+    YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
 
@@ -78,8 +83,10 @@ fun main() = application {
 @Composable
 fun App(language: String, onLanguageChange: (String) -> Unit) {
     var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
-    var nowPlaying by remember { mutableStateOf<NowPlaying?>(null) }
-    var isPlaying by remember { mutableStateOf(false) }
+    val player = remember { PlayerController() }
+    val playerState by player.state.collectAsState()
+    val nowPlaying = playerState.current
+    val isPlaying = playerState.isPlaying
 
     val current = backStack.last()
 
@@ -87,13 +94,14 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
     val openRoot: (Screen) -> Unit = { backStack = listOf(it) }
     val goBack: () -> Unit = { if (backStack.size > 1) backStack = backStack.dropLast(1) }
     val playSong: (SongItem) -> Unit = { song ->
-        nowPlaying = NowPlaying(
-            videoId = song.id,
-            title = song.title,
-            artist = song.artists.joinToString(", ") { it.name },
-            thumbnail = song.thumbnail,
+        player.play(
+            NowPlaying(
+                videoId = song.id,
+                title = song.title,
+                artist = song.artists.joinToString(", ") { it.name },
+                thumbnail = song.thumbnail,
+            )
         )
-        isPlaying = true
     }
 
     Row(Modifier.fillMaxSize()) {
@@ -143,7 +151,9 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
                     is Screen.Player -> PlayerScreen(
                         nowPlaying = nowPlaying,
                         isPlaying = isPlaying,
-                        onTogglePlay = { isPlaying = !isPlaying },
+                        positionMs = playerState.positionMs,
+                        errorKey = playerState.errorKey,
+                        onTogglePlay = { player.toggle() },
                         language = language,
                         onOpenLyrics = { navigate(Screen.Lyrics) },
                     )
@@ -157,7 +167,7 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
             MiniPlayer(
                 nowPlaying = nowPlaying,
                 isPlaying = isPlaying,
-                onTogglePlay = { isPlaying = !isPlaying },
+                onTogglePlay = { player.toggle() },
                 onOpen = { navigate(Screen.Player) },
             )
         }

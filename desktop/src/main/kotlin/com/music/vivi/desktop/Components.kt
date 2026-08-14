@@ -52,6 +52,13 @@ fun formatDuration(totalSeconds: Int): String {
     return "%d:%02d".format(minutes, seconds)
 }
 
+fun formatTime(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return "%d:%02d".format(minutes, seconds)
+}
+
 private fun subtitleOf(item: YTItem): String = when (item) {
     is SongItem -> item.artists.joinToString(", ") { it.name }
     is AlbumItem -> buildString {
