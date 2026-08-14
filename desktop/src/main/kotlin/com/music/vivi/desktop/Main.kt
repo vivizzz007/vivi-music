@@ -62,7 +62,9 @@ import com.music.vivi.sync.SyncConnectionState
 import com.music.vivi.sync.SyncEvent
 import com.music.vivi.desktop.player.PlayerController
 import com.music.vivi.sync.SyncServer
+import java.awt.Desktop
 import java.io.File
+import java.net.URI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -736,6 +738,7 @@ fun UpdateSection(
     var progress by remember { mutableStateOf<DownloadProgress?>(null) }
     var downloadedFile by remember { mutableStateOf<File?>(null) }
     var installerCount by remember { mutableStateOf(UpdateDownloader.downloadedInstallers().size) }
+    var openError by remember { mutableStateOf<String?>(null) }
 
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
@@ -759,7 +762,13 @@ fun UpdateSection(
             Text("${Localization.get(language, "update_available")}: ${status.version}", modifier = Modifier.padding(top = 8.dp))
             val asset = status.asset
             when {
-                asset == null -> Button(onClick = { openUrl(status.url) }, modifier = Modifier.padding(top = 4.dp)) {
+                asset == null -> Button(
+                    onClick = {
+                        openError = null
+                        if (!openUrl(status.url)) openError = Localization.get(language, "open_failed")
+                    },
+                    modifier = Modifier.padding(top = 4.dp),
+                ) {
                     Text(Localization.get(language, "download"))
                 }
                 downloadedFile != null -> {
@@ -768,7 +777,13 @@ fun UpdateSection(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 4.dp),
                     )
-                    Button(onClick = { openFile(downloadedFile!!) }, modifier = Modifier.padding(top = 4.dp)) {
+                    Button(
+                        onClick = {
+                            openError = null
+                            if (!openFile(downloadedFile!!)) openError = Localization.get(language, "open_failed")
+                        },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
                         Text(Localization.get(language, "open_installer"))
                     }
                 }
@@ -812,6 +827,10 @@ fun UpdateSection(
         is UpdateStatus.Idle -> Unit
     }
 
+    openError?.let {
+        Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+    }
+
     // Downloaded installer management.
     Text(
         "${Localization.get(language, "installers_downloaded")}: $installerCount",
@@ -833,12 +852,36 @@ fun UpdateSection(
     }
 }
 
-private fun openUrl(url: String) {
-    runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(url)) }
+private fun openUrl(url: String): Boolean {
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        if (runCatching { Desktop.getDesktop().browse(URI(url)) }.isSuccess) return true
+    }
+    return runCatching {
+        val cmd = when (Platform.os) {
+            DesktopOs.WINDOWS -> listOf("cmd", "/c", "start", "", url)
+            DesktopOs.MACOS -> listOf("open", url)
+            DesktopOs.LINUX -> listOf("xdg-open", url)
+        }
+        ProcessBuilder(cmd).start()
+        true
+    }.getOrDefault(false)
 }
 
-private fun openFile(file: File) {
-    runCatching { java.awt.Desktop.getDesktop().open(file) }
+private fun openFile(file: File): Boolean {
+    if (!file.exists()) return false
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+        if (runCatching { Desktop.getDesktop().open(file) }.isSuccess) return true
+    }
+    return runCatching {
+        val path = file.absolutePath
+        val cmd = when (Platform.os) {
+            DesktopOs.WINDOWS -> listOf("cmd", "/c", "start", "", path)
+            DesktopOs.MACOS -> listOf("open", path)
+            DesktopOs.LINUX -> listOf("xdg-open", path)
+        }
+        ProcessBuilder(cmd).start()
+        true
+    }.getOrDefault(false)
 }
 
 private fun formatSpeed(bps: Long): String =

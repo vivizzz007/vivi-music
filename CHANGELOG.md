@@ -79,6 +79,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] Fixed dark mode not repainting the page background: the app root now
   paints the theme's `background` color, so switching to dark converts the
   whole window instead of leaving the native light background showing through.
+- [DE] Fixed the "Open installer" button not launching the downloaded
+  installer: opening now falls back to the OS's native opener (`cmd /c start`
+  on Windows, `open` on macOS, `xdg-open` on Linux) when `Desktop.open()`
+  fails, and reports an error instead of failing silently.
 - [DE] Fixed the desktop player showing "could not resolve the audio stream":
   the stream resolver now uses the same multi-client fallback chain as the
   mobile app (ANDROID_VR + 11 fallback clients, n-param deobfuscation and URL

@@ -112,6 +112,7 @@ object Localization {
             "data_sync_id_label" to "DATASYNC_ID (optional)",
             "visitor_data_label" to "VISITOR_DATA (optional)",
             "advanced_login_hint" to "Optional: if auto-detection fails, paste DATASYNC_ID and VISITOR_DATA from the music.youtube.com page source.",
+            "open_failed" to "Could not open the installer. Find it in ~/.vivimusic/updates and open it manually.",
         ),
     )
 
