@@ -1,5 +1,13 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
+// Single source of truth for the desktop release version (read by CI too).
+val desktopVersion: String = rootProject.file("version.txt")
+    .takeIf { it.exists() }
+    ?.readText()
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: "6.0.5"
+
 plugins {
     kotlin("jvm")
     alias(libs.plugins.compose.compiler)
@@ -43,10 +51,9 @@ compose.desktop {
                 TargetFormat.Dmg,
                 TargetFormat.Pkg,
                 TargetFormat.Deb,
-                TargetFormat.AppImage,
             )
             packageName = "VIVIMusic"
-            packageVersion = "6.0.5"
+            packageVersion = desktopVersion
             description = "VIVI Music — desktop client"
             vendor = "VIVI Music"
 

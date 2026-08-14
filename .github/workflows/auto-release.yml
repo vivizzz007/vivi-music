@@ -1,0 +1,122 @@
+name: Auto Release (Desktop)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (leave empty to use version.txt)'
+        required: false
+        type: string
+        default: ''
+  push:
+    branches: [ vivi-music-de, main, beta ]
+    tags-ignore: [ '**' ]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  # Reusable per-OS builds. They run on manual dispatch, or on push when the
+  # commit message starts with "v" (our release signal), mirroring the old
+  # deprecated vivi-music-de release pipeline.
+  build-windows:
+    name: Windows
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-windows.yml
+    secrets: inherit
+
+  build-linux:
+    name: Linux
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-linux.yml
+    secrets: inherit
+
+  build-macos:
+    name: macOS
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-macos.yml
+    secrets: inherit
+
+  release:
+    name: Publish GitHub Release
+    needs: [ build-windows, build-linux, build-macos ]
+    if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$VERSION_INPUT" ]]; then
+            VERSION="$VERSION_INPUT"
+          else
+            VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+          fi
+          VERSION="${VERSION#v}"
+          VERSION="${VERSION// /-}"
+          if [[ "$VERSION" =~ -(alpha|beta|rc|pre)([.-]?[0-9]+)?$ ]]; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=Vivi Music DE $VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $VERSION (prerelease: $PRERELEASE)"
+
+      - name: Collect commits
+        id: commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREV_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          if [[ -n "$PREV_TAG" ]]; then
+            COMMITS="$(git log "$PREV_TAG..HEAD" --pretty=format:'- %s' --no-merges 2>/dev/null || true)"
+          else
+            COMMITS="$(git log --pretty=format:'- %s' --no-merges 2>/dev/null || true)"
+          fi
+          if [[ -z "$COMMITS" ]]; then
+            COMMITS="- Initial release"
+          fi
+          {
+            echo "commits<<COMMITS_EOF"
+            echo "$COMMITS"
+            echo "COMMITS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: artifacts/*
+          fail_on_unmatched_files: true
+          body: |
+            ## Vivi Music DE ${{ steps.version.outputs.version }}
+            ### Commits
+            ${{ steps.commits.outputs.commits }}
+            ---
+            Built automatically from commit `${{ github.sha }}`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

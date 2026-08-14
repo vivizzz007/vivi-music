@@ -1,0 +1,63 @@
+name: Build Desktop (macOS)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-13
+            arch: x64
+          - os: macos-latest
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Package desktop distribution
+        shell: bash
+        run: ./gradlew :desktop:packageDmg :desktop:packagePkg --no-daemon
+
+      - name: Collect installer
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for f in desktop/build/compose/binaries/main/dmg/*.dmg; do
+            base="$(basename "$f" .dmg)"
+            cp "$f" "dist/${base}-${{ matrix.arch }}.dmg"
+          done
+          for f in desktop/build/compose/binaries/main/pkg/*.pkg; do
+            base="$(basename "$f" .pkg)"
+            cp "$f" "dist/${base}-${{ matrix.arch }}.pkg"
+          done
+          ls -la dist
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error

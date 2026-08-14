@@ -1,0 +1,97 @@
+name: Build Desktop (Linux)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Linux packages (DEB + AppImage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Package desktop distribution
+        shell: bash
+        run: ./gradlew :desktop:packageDistributionForCurrentOS --no-daemon
+
+      - name: Build AppImage
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '\r\n' < version.txt | xargs)"
+          # jpackage --type app-image produces a directory, not a single-file
+          # .AppImage. Wrap it into an AppDir (AppRun + .desktop + icon) and pack
+          # it with appimagetool so Arch / other distros get a portable AppImage.
+          APPDIR="$(find desktop/build/compose/binaries/main/app -maxdepth 1 -mindepth 1 -type d | head -n 1)"
+          if [ -z "$APPDIR" ]; then
+            echo "jpackage app-image directory not found" >&2
+            exit 1
+          fi
+
+          cat > "$APPDIR/AppRun" <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          if [ -x "$HERE/bin/VIVIMusic" ]; then exec "$HERE/bin/VIVIMusic" "$@"; fi
+          if [ -x "$HERE/VIVIMusic" ]; then exec "$HERE/VIVIMusic" "$@"; fi
+          for f in "$HERE"/bin/*; do
+            if [ -x "$f" ] && [ ! -d "$f" ]; then exec "$f" "$@"; fi
+          done
+          echo "VIVIMusic: no executable found" >&2
+          exit 1
+          EOF
+          chmod +x "$APPDIR/AppRun"
+
+          cat > "$APPDIR/vivimusic.desktop" <<'EOF'
+          [Desktop Entry]
+          Name=VIVI Music
+          Comment=Expressive YouTube Music client for desktop
+          Exec=AppRun
+          Icon=vivimusic
+          Terminal=false
+          Type=Application
+          Categories=AudioVideo;Audio;Player;
+          EOF
+
+          cp desktop/icons/logo_vmde.png "$APPDIR/vivimusic.png"
+
+          # appimagetool is itself an AppImage; extract it to avoid the FUSE
+          # requirement on the runner, then run the extracted AppRun.
+          wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O appimagetool.AppImage
+          chmod +x appimagetool.AppImage
+          ./appimagetool.AppImage --appimage-extract >/dev/null
+          mkdir -p desktop/build/compose/binaries/main/appImage
+          ARCH=x86_64 ./squashfs-root/AppRun "$APPDIR" "desktop/build/compose/binaries/main/appImage/VIVIMusic-${VERSION}.AppImage"
+
+      - name: Collect packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp desktop/build/compose/binaries/main/deb/*.deb dist/
+          find desktop/build/compose/binaries/main -name '*.AppImage' -exec cp {} dist/ \;
+          ls -la dist
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: dist/*
+          if-no-files-found: error
