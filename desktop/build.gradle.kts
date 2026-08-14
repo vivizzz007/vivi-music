@@ -42,6 +42,7 @@ kotlin {
 dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
+    implementation(compose.materialIconsExtended)
 
     // Reused JVM-pure network/parsing modules (same code as the Android app)
     implementation(project(":innertube"))

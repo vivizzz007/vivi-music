@@ -17,10 +17,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -258,10 +264,18 @@ fun App(
                         index = playerState.index,
                         isPlaying = isPlaying,
                         positionMs = playerState.positionMs,
+                        durationMs = playerState.durationMs,
+                        volume = playerState.volume,
+                        isShuffle = playerState.isShuffle,
+                        repeatMode = playerState.repeatMode,
                         errorKey = playerState.errorKey,
                         onTogglePlay = { player.toggle() },
                         onNext = { player.next() },
                         onPrevious = { player.previous() },
+                        onSeek = { player.seekTo(it) },
+                        onVolume = { player.setVolume(it) },
+                        onToggleShuffle = { player.toggleShuffle() },
+                        onCycleRepeat = { player.cycleRepeatMode() },
                         language = language,
                         onOpenLyrics = { navigate(Screen.Lyrics) },
                         onOpenQueue = { navigate(Screen.Queue) },
@@ -300,6 +314,8 @@ fun App(
             MiniPlayer(
                 nowPlaying = nowPlaying,
                 isPlaying = isPlaying,
+                positionMs = playerState.positionMs,
+                durationMs = playerState.durationMs,
                 onTogglePlay = { player.toggle() },
                 onNext = { player.next() },
                 onOpen = { navigate(Screen.Player) },
@@ -349,6 +365,8 @@ fun Sidebar(language: String, current: Screen, onSelect: (Screen) -> Unit) {
 fun MiniPlayer(
     nowPlaying: NowPlaying?,
     isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onOpen: () -> Unit,
@@ -356,33 +374,53 @@ fun MiniPlayer(
 ) {
     val np = nowPlaying ?: return
     Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onOpen)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Thumbnail(np.thumbnail, Modifier.size(44.dp))
-            Spacer(Modifier.width(12.dp))
-            Column(Modifier.weight(1f)) {
-                Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text(
-                    np.artist,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+        Column {
+            if (durationMs > 0) {
+                LinearProgressIndicator(
+                    progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
+                    modifier = Modifier.fillMaxWidth().height(2.dp),
                 )
             }
-            IconButton(onClick = onTogglePlay) {
-                Text(if (isPlaying) "⏸" else "▶", fontSize = 20.sp)
-            }
-            IconButton(onClick = onNext) {
-                Text("⏭", fontSize = 20.sp)
-            }
-            IconButton(onClick = onOpenQueue) {
-                Text("≡", fontSize = 20.sp)
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onOpen)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Thumbnail(np.thumbnail, Modifier.size(44.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(
+                        np.artist,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                IconButton(onClick = onTogglePlay) {
+                    Icon(
+                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(onClick = onNext) {
+                    Icon(
+                        Icons.Filled.SkipNext,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                IconButton(onClick = onOpenQueue) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.QueueMusic,
+                        contentDescription = null,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
             }
         }
     }

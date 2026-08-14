@@ -27,7 +27,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 
 ## Phase 4 — Desktop audio playback
 - [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position).
-- [~] Port stream resolution: NewPipe + ANDROID_VR player response (done); PoToken fallback chain, proxy, HLS and seek are pending.
+- [~] Port stream resolution: NewPipe + ANDROID_VR player response, the multi-client fallback chain and seek are done; PoToken, proxy and HLS are pending.
 
 ## Phase 5 — Desktop persistence + authentication
 - [ ] Replace Room with SQLDelight / file storage.
@@ -36,7 +36,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 
 ## Phase 6 — Full desktop UI
 - [x] Screens: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings (Library is a placeholder until Phase 5 login; Player/Lyrics are UI-only until Phase 4 playback).
-- [~] Apple Music–style mini-player (done) and animated canvas (pending — the canvas modules are Android-only and need a desktop port).
+- [x] Apple Music–style mini-player, animated canvas and a full Material 3 Player (seek, volume, shuffle, repeat) are done.
 
 ## Phase 7 — End-to-end encryption
 - [ ] Per-pair key exchanged during pairing.

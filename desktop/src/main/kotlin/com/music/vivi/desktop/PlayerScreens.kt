@@ -12,14 +12,33 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.automirrored.filled.Subject
+import androidx.compose.material.icons.automirrored.filled.VolumeDown
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,12 +51,13 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.desktop.player.RepeatMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -47,10 +67,18 @@ fun PlayerScreen(
     index: Int,
     isPlaying: Boolean,
     positionMs: Long,
+    durationMs: Long,
+    volume: Float,
+    isShuffle: Boolean,
+    repeatMode: RepeatMode,
     errorKey: String?,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onVolume: (Float) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
     language: String,
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
@@ -68,56 +96,245 @@ fun PlayerScreen(
 
     Box(Modifier.fillMaxSize()) {
         CanvasBackground(bgUrl, Modifier.fillMaxSize())
-        Column(
-            Modifier.fillMaxSize().padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        if (np == null) {
+            Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text(Localization.get(language, "nothing_playing"), style = MaterialTheme.typography.titleLarge)
+            }
+        } else {
+            PlayerContent(
+                np = np,
+                queueSize = queue.size,
+                isPlaying = isPlaying,
+                positionMs = positionMs,
+                durationMs = durationMs,
+                volume = volume,
+                isShuffle = isShuffle,
+                repeatMode = repeatMode,
+                errorKey = errorKey,
+                onTogglePlay = onTogglePlay,
+                onNext = onNext,
+                onPrevious = onPrevious,
+                onSeek = onSeek,
+                onVolume = onVolume,
+                onToggleShuffle = onToggleShuffle,
+                onCycleRepeat = onCycleRepeat,
+                language = language,
+                onOpenLyrics = onOpenLyrics,
+                onOpenQueue = onOpenQueue,
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlayerContent(
+    np: NowPlaying,
+    queueSize: Int,
+    isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    volume: Float,
+    isShuffle: Boolean,
+    repeatMode: RepeatMode,
+    errorKey: String?,
+    onTogglePlay: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onVolume: (Float) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
+    language: String,
+    onOpenLyrics: () -> Unit,
+    onOpenQueue: () -> Unit,
+) {
+    val contentWidth = 620.dp
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 32.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        // Header: label + queue shortcut.
+        Row(
+            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (np == null) {
-                Text(
-                    Localization.get(language, "nothing_playing"),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(top = 32.dp),
-                )
-                return@Column
-            }
-            Spacer(Modifier.height(16.dp))
-            Thumbnail(np.thumbnail, Modifier.size(240.dp))
-            Spacer(Modifier.height(24.dp))
-            Text(np.title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-            Text(np.artist, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(24.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(onClick = onPrevious) {
-                    Text("⏮", fontSize = 28.sp)
-                }
-                IconButton(onClick = onTogglePlay) {
-                    Text(if (isPlaying) "⏸" else "▶", fontSize = 40.sp)
-                }
-                IconButton(onClick = onNext) {
-                    Text("⏭", fontSize = 28.sp)
-                }
-            }
             Text(
-                formatTime(positionMs),
-                style = MaterialTheme.typography.titleMedium,
+                Localization.get(language, "now_playing"),
+                style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(16.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = onOpenLyrics) { Text(Localization.get(language, "lyrics")) }
-                Button(onClick = onOpenQueue) { Text("${Localization.get(language, "queue")} (${queue.size})") }
+            Spacer(Modifier.weight(1f))
+            IconButton(onClick = onOpenQueue) {
+                Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = Localization.get(language, "queue"))
             }
-            if (errorKey != null) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    Localization.get(language, errorKey),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center,
+        }
+
+        Spacer(Modifier.height(28.dp))
+
+        // Artwork.
+        Box(Modifier.shadow(24.dp, RoundedCornerShape(12.dp))) {
+            Thumbnail(np.thumbnail, Modifier.size(300.dp))
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        // Title / artist.
+        Column(Modifier.widthIn(max = contentWidth).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                np.title,
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                np.artist,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+
+        Spacer(Modifier.height(28.dp))
+
+        // Seek slider (position / duration).
+        var sliderPosition by remember(np.videoId) { mutableStateOf<Long?>(null) }
+        val effectivePosition = sliderPosition ?: positionMs
+        val sliderMax = durationMs.coerceAtLeast(1L)
+        Slider(
+            value = effectivePosition.toFloat().coerceIn(0f, sliderMax.toFloat()),
+            onValueChange = { sliderPosition = it.toLong() },
+            onValueChangeFinished = {
+                sliderPosition?.let { onSeek(it) }
+                sliderPosition = null
+            },
+            valueRange = 0f..sliderMax.toFloat(),
+            modifier = Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+        )
+        Row(Modifier.widthIn(max = contentWidth).fillMaxWidth()) {
+            Text(
+                formatTime(effectivePosition),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(
+                formatTime(durationMs),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Transport controls: shuffle / previous / play / next / repeat.
+        Row(
+            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onToggleShuffle) {
+                Icon(
+                    Icons.Filled.Shuffle,
+                    contentDescription = Localization.get(language, "shuffle"),
+                    tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
+                Icon(
+                    Icons.Filled.SkipPrevious,
+                    contentDescription = Localization.get(language, "previous"),
+                    modifier = Modifier.size(36.dp),
+                )
+            }
+            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
+                    modifier = Modifier.size(40.dp),
+                )
+            }
+            IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
+                Icon(
+                    Icons.Filled.SkipNext,
+                    contentDescription = Localization.get(language, "next"),
+                    modifier = Modifier.size(36.dp),
+                )
+            }
+            IconButton(onClick = onCycleRepeat) {
+                Icon(
+                    repeatIcon(repeatMode),
+                    contentDescription = Localization.get(language, "repeat"),
+                    tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Volume.
+        Row(
+            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                volumeIcon(volume),
+                contentDescription = Localization.get(language, "volume"),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.width(8.dp))
+            Slider(
+                value = volume.coerceIn(0f, 1f),
+                onValueChange = onVolume,
+                valueRange = 0f..1f,
+                modifier = Modifier.weight(1f),
+            )
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Secondary actions.
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            OutlinedButton(onClick = onOpenLyrics) {
+                Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(Localization.get(language, "lyrics"))
+            }
+            OutlinedButton(onClick = onOpenQueue) {
+                Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("${Localization.get(language, "queue")} ($queueSize)")
+            }
+        }
+
+        if (errorKey != null) {
+            Spacer(Modifier.height(16.dp))
+            Text(
+                Localization.get(language, errorKey),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
+}
+
+private fun volumeIcon(volume: Float) = when {
+    volume <= 0f -> Icons.AutoMirrored.Filled.VolumeOff
+    volume < 0.5f -> Icons.AutoMirrored.Filled.VolumeDown
+    else -> Icons.AutoMirrored.Filled.VolumeUp
+}
+
+private fun repeatIcon(mode: RepeatMode) = when (mode) {
+    RepeatMode.OFF, RepeatMode.ALL -> Icons.Filled.Repeat
+    RepeatMode.ONE -> Icons.Filled.RepeatOne
 }
 
 @Composable

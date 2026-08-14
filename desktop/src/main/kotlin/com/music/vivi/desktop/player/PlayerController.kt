@@ -9,12 +9,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.random.Random
+
+enum class RepeatMode { OFF, ALL, ONE }
 
 data class PlayerState(
     val queue: List<NowPlaying> = emptyList(),
     val index: Int = -1,
     val isPlaying: Boolean = false,
     val positionMs: Long = 0L,
+    val durationMs: Long = 0L,
+    val volume: Float = 1f,
+    val isShuffle: Boolean = false,
+    val repeatMode: RepeatMode = RepeatMode.OFF,
     /** Localization key shown when stream resolution fails. */
     val errorKey: String? = null,
 ) {
@@ -23,8 +30,9 @@ data class PlayerState(
 
 /**
  * Owns the [AudioPlayer] and exposes UI-facing playback state, including a
- * full queue (add/remove/next/previous/skip/auto-advance). The current track
- * is resolved to an AAC stream and played on a background coroutine.
+ * full queue (add/remove/next/previous/skip/auto-advance), shuffle, repeat,
+ * volume and seeking. The current track is resolved to an AAC stream and
+ * played on a background coroutine.
  */
 class PlayerController {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -36,12 +44,11 @@ class PlayerController {
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
 
-    /**
-     * Monotonic token identifying the active play session. Incremented whenever
-     * playback is (re)started or explicitly stopped, so a stale onComplete from
-     * a superseded session never triggers auto-advance.
-     */
+    /** Monotonic token identifying the active play session. */
     private var playToken = 0
+
+    /** Back-navigation history used by "previous" in shuffle mode. */
+    private val previousStack = ArrayDeque<Int>()
 
     fun play(track: NowPlaying) = playAt(listOf(track), 0)
 
@@ -72,17 +79,36 @@ class PlayerController {
 
     fun next() {
         val s = _state.value
-        if (s.index < s.queue.lastIndex) playAt(s.queue, s.index + 1)
+        if (s.queue.isEmpty()) return
+        val nextIndex = when {
+            s.queue.size == 1 -> 0
+            s.isShuffle -> randomIndexExcluding(s.queue.size, s.index)
+            s.index < s.queue.lastIndex -> s.index + 1
+            s.repeatMode == RepeatMode.ALL -> 0
+            else -> return
+        }
+        previousStack.addLast(s.index)
+        playAt(s.queue, nextIndex)
     }
 
     fun previous() {
         val s = _state.value
-        if (s.index > 0) playAt(s.queue, s.index - 1)
+        if (s.queue.isEmpty()) return
+        val prevIndex = when {
+            s.isShuffle -> previousStack.removeLastOrNull() ?: randomIndexExcluding(s.queue.size, s.index)
+            s.index > 0 -> s.index - 1
+            s.repeatMode == RepeatMode.ALL -> s.queue.lastIndex
+            else -> return
+        }
+        playAt(s.queue, prevIndex)
     }
 
     fun skipTo(index: Int) {
         val s = _state.value
-        if (index in s.queue.indices) playAt(s.queue, index)
+        if (index in s.queue.indices) {
+            previousStack.addLast(s.index)
+            playAt(s.queue, index)
+        }
     }
 
     fun removeAt(index: Int) {
@@ -93,7 +119,7 @@ class PlayerController {
             newQueue.isEmpty() -> {
                 playToken++
                 player.stop()
-                _state.value = PlayerState()
+                _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
             }
             index < s.index -> _state.update { it.copy(queue = newQueue, index = it.index - 1) }
             index == s.index -> playAt(newQueue, s.index.coerceAtMost(newQueue.lastIndex))
@@ -102,9 +128,10 @@ class PlayerController {
     }
 
     fun clearQueue() {
+        val s = _state.value
         playToken++
         player.stop()
-        _state.value = PlayerState()
+        _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
     }
 
     /**
@@ -137,12 +164,50 @@ class PlayerController {
         _state.update { it.copy(isPlaying = false, positionMs = 0L) }
     }
 
+    fun seekTo(ms: Long) {
+        val s = _state.value
+        if (s.current == null) return
+        val target = ms.coerceIn(0L, if (s.durationMs > 0) s.durationMs else ms)
+        player.seekTo(target)
+        _state.update { it.copy(positionMs = target) }
+    }
+
+    fun setVolume(v: Float) {
+        player.setVolume(v)
+        _state.update { it.copy(volume = v.coerceIn(0f, 1f)) }
+    }
+
+    fun toggleShuffle() {
+        val s = _state.value
+        val newShuffle = !s.isShuffle
+        if (!newShuffle) previousStack.clear()
+        _state.update { it.copy(isShuffle = newShuffle) }
+    }
+
+    fun cycleRepeatMode() {
+        val s = _state.value
+        val next = when (s.repeatMode) {
+            RepeatMode.OFF -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.OFF
+        }
+        _state.update { it.copy(repeatMode = next) }
+    }
+
     private fun playAt(tracks: List<NowPlaying>, index: Int) {
         val track = tracks[index]
         val token = ++playToken
         scope.launch {
             player.stop()
-            _state.value = PlayerState(queue = tracks, index = index, isPlaying = true, positionMs = 0L)
+            _state.value = PlayerState(
+                queue = tracks,
+                index = index,
+                isPlaying = true,
+                positionMs = 0L,
+                volume = _state.value.volume,
+                isShuffle = _state.value.isShuffle,
+                repeatMode = _state.value.repeatMode,
+            )
 
             val url = StreamResolver.resolveAacUrl(track.videoId)
             if (url == null) {
@@ -153,6 +218,7 @@ class PlayerController {
 
             player.play(
                 url = url,
+                cacheKey = track.videoId,
                 onPosition = { pos ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
@@ -160,19 +226,52 @@ class PlayerController {
                         } else s
                     }
                 },
+                onDuration = { dur ->
+                    _state.update { s ->
+                        if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
+                            s.copy(durationMs = dur)
+                        } else s
+                    }
+                },
                 onComplete = {
                     if (token != playToken) return@play
                     val s = _state.value
                     if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                        // Natural end of the current track → auto-advance (if enabled).
-                        if (autoPlayNext && index < s.queue.lastIndex) {
-                            playAt(s.queue, index + 1)
-                        } else {
-                            _state.update { it.copy(isPlaying = false) }
-                        }
+                        handleTrackEnd(s, index, token)
                     }
                 },
             )
         }
+    }
+
+    private fun handleTrackEnd(s: PlayerState, index: Int, token: Int) {
+        when {
+            s.repeatMode == RepeatMode.ONE -> {
+                if (token == playToken) playAt(s.queue, index)
+            }
+            autoPlayNext -> {
+                val nextIndex = when {
+                    s.queue.size == 1 && s.repeatMode != RepeatMode.ALL -> -1
+                    s.isShuffle -> randomIndexExcluding(s.queue.size, s.index)
+                    s.index < s.queue.lastIndex -> s.index + 1
+                    s.repeatMode == RepeatMode.ALL -> 0
+                    else -> -1
+                }
+                if (nextIndex >= 0) {
+                    previousStack.addLast(s.index)
+                    playAt(s.queue, nextIndex)
+                } else {
+                    _state.update { it.copy(isPlaying = false) }
+                }
+            }
+            else -> _state.update { it.copy(isPlaying = false) }
+        }
+    }
+
+    private fun randomIndexExcluding(size: Int, exclude: Int): Int {
+        if (size <= 1) return 0
+        var idx = Random.nextInt(size)
+        while (idx == exclude) idx = Random.nextInt(size)
+        return idx
     }
 }

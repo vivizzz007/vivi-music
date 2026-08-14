@@ -48,6 +48,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   from the same providers as the Android app (Apple Music / Tidal / VIVI Music
   canvas); animated GIF/WebP URLs play via Coil, while video canvases
   (MP4/HLS) fall back to static art + zoom.
+- [DE] Rebuilt the Player screen as a full Material 3 player: a seek slider
+  with elapsed/total time, a volume slider, shuffle and repeat (off/all/one),
+  proper Material icons and a large artwork presentation. Playback now reports
+  the track duration and supports seeking (the stream is cached locally), the
+  volume is adjustable, and the mini-player shows a progress bar.
 - [DE] Added synced lyrics: the Lyrics screen now parses LRC timestamps,
   highlights the current line and auto-scrolls to it as the song plays
   (falls back to plain text when lyrics aren't synced).

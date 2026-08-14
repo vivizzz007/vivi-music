@@ -103,6 +103,12 @@ object Localization {
             "library_login_prompt" to "Log in to see your library",
             "library_empty" to "Nothing here yet",
             "drag_to_reorder" to "Drag the ⠿ handle to reorder",
+            "now_playing" to "Now playing",
+            "shuffle" to "Shuffle",
+            "repeat" to "Repeat",
+            "volume" to "Volume",
+            "previous" to "Previous",
+            "next" to "Next",
         ),
     )
 
