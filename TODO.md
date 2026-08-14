@@ -13,7 +13,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] `sync-server/` relay (Node.js): 6-digit pairing + mailbox for offline devices.
 - [x] Android `DeviceSyncManager` (Hilt): push/pull of the shared settings subset.
 - [x] Desktop pairing UI + JSON settings store (`~/.vivimusic/`).
-- [ ] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop).
+- [x] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop) — live at `wss://vivimusic-device-sync.onrender.com`.
 - [x] Pairing screen in the Android app (Settings).
 
 ## Phase 2 — Sync: queue + playback position

@@ -6,11 +6,12 @@
 package com.music.vivi.sync
 
 /**
- * Default relay endpoint for device sync.
+ * Default relay endpoint for device sync (Android app + desktop edition).
  *
- * NOTE: this is a placeholder. Deploy the server in `sync-server/` to your own
- * Render / Hugging Face account and point `DeviceSyncServerUrlKey` (Android) or
- * the desktop settings to your real URL. See `sync-server/README.md`.
+ * This is the live relay deployed at Render (`sync-server/`). Both the Android
+ * `DeviceSyncManager` and the desktop settings default to this URL; it can be
+ * overridden with `DeviceSyncServerUrlKey` (Android) or the desktop "Relay
+ * server" field.
  */
 object SyncServer {
     const val DEFAULT_URL = "wss://vivimusic-device-sync.onrender.com"
