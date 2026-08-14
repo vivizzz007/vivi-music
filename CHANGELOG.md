@@ -30,6 +30,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   played through Java Sound — no external player or native codec required.
   The mini-player and Player screen now actually play/pause/resume songs and
   show the playback position.
+- [DE] Added a light/dark/system theme with a selectable accent color palette
+  (Settings → Appearance), applied across the whole desktop app.
 - [DE] Full desktop UI: sidebar navigation with Home, Search, Album, Artist,
   Playlist, Library, Player, Lyrics and Settings screens, artwork thumbnails,
   and an Apple Music–style mini-player. (Library is a placeholder pending

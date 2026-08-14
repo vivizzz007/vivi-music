@@ -40,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,9 +66,17 @@ fun main() = application {
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
+    var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
+    var accent by remember { mutableStateOf(argbIntToColor(DesktopSettings.load().accentColor)) }
+
+    fun saveTheme() {
+        DesktopSettings.save(
+            DesktopSettings.load().copy(darkMode = themeMode.key, accentColor = colorToArgbInt(accent))
+        )
+    }
 
     Window(onCloseRequest = ::exitApplication, title = "VIVI Music — desktop") {
-        MaterialTheme {
+        AppTheme(mode = themeMode, accent = accent) {
             if (language.isBlank()) {
                 LanguageSelectionScreen { selected ->
                     language = selected
@@ -80,6 +89,16 @@ fun main() = application {
                         language = selected
                         DesktopSettings.save(DesktopSettings.load().copy(language = selected))
                     },
+                    themeMode = themeMode,
+                    accent = accent,
+                    onThemeModeChange = {
+                        themeMode = it
+                        saveTheme()
+                    },
+                    onAccentChange = {
+                        accent = it
+                        saveTheme()
+                    },
                 )
             }
         }
@@ -87,7 +106,14 @@ fun main() = application {
 }
 
 @Composable
-fun App(language: String, onLanguageChange: (String) -> Unit) {
+fun App(
+    language: String,
+    onLanguageChange: (String) -> Unit,
+    themeMode: ThemeMode,
+    accent: Color,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    onAccentChange: (Color) -> Unit,
+) {
     var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
     val player = remember { PlayerController() }
     val playerState by player.state.collectAsState()
@@ -148,6 +174,10 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
                     is Screen.Settings -> SettingsScreen(
                         language = language,
                         onLanguageChange = onLanguageChange,
+                        themeMode = themeMode,
+                        accent = accent,
+                        onThemeModeChange = onThemeModeChange,
+                        onAccentChange = onAccentChange,
                         updateStatus = updateStatus,
                         includePreReleases = includePreReleases,
                         onTogglePreReleases = { checked ->
@@ -275,6 +305,10 @@ fun MiniPlayer(nowPlaying: NowPlaying?, isPlaying: Boolean, onTogglePlay: () -> 
 fun SettingsScreen(
     language: String,
     onLanguageChange: (String) -> Unit,
+    themeMode: ThemeMode,
+    accent: Color,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    onAccentChange: (Color) -> Unit,
     updateStatus: UpdateStatus,
     includePreReleases: Boolean,
     onTogglePreReleases: (Boolean) -> Unit,
@@ -286,6 +320,8 @@ fun SettingsScreen(
         Text(Localization.get(language, "settings"), style = MaterialTheme.typography.headlineMedium)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         LanguageSection(language, onLanguageChange)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         DeviceSyncSection(language)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))

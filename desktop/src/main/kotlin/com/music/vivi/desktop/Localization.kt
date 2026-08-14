@@ -67,6 +67,12 @@ object Localization {
             "include_prereleases" to "Include pre-releases",
             "update_failed" to "Update check failed",
             "current_version" to "Current version",
+            "appearance" to "Appearance",
+            "theme_mode" to "Theme mode",
+            "theme_system" to "System",
+            "theme_light" to "Light",
+            "theme_dark" to "Dark",
+            "accent_color" to "Accent color",
         ),
     )
 

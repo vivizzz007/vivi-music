@@ -19,6 +19,8 @@ data class DesktopSyncState(
     val settings: Map<String, String> = emptyMap(),
     val language: String = "",
     val includePreReleases: Boolean = false,
+    val darkMode: String = "system",
+    val accentColor: Int = 0xFFED5564.toInt(),
 )
 
 object DesktopSettings {
