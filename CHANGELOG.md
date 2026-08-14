@@ -13,6 +13,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Added LAN discovery aids to the desktop Device sync section: a QR code
+  encoding the local relay address, and mDNS service registration
+  (`_vivimusic._tcp`) so the Android app can discover/scan the desktop.
 - [DE] Added offline LAN (same Wi-Fi) device pairing: the desktop can start a
   local WebSocket relay from Settings → Device sync, so the Android app can
   pair directly without the cloud relay.

@@ -417,10 +417,17 @@ fun DeviceSyncSection(language: String) {
             modifier = Modifier.padding(top = 8.dp),
         )
         Text(
+            Localization.get(language, "scan_qr"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        QrCode(lanAddress, size = 180.dp)
+        Text(
             Localization.get(language, "lan_hint"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp),
+            modifier = Modifier.padding(top = 8.dp),
         )
     }
 

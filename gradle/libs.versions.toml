@@ -45,6 +45,8 @@ work = "2.10.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 rhino = "1.9.1"
+zxing = "3.5.3"
+jmdns = "3.5.8"
 
 
 [libraries]
@@ -144,6 +146,8 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
+jmdns = { module = "org.jmdns:jmdns", version.ref = "jmdns" }
 
 
 [plugins]

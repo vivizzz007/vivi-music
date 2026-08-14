@@ -70,6 +70,10 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.ktor.server.websockets)
+
+    // QR code (ZXing) + mDNS service registration (JmDNS) for LAN discovery
+    implementation(libs.zxing.core)
+    implementation(libs.jmdns)
 }
 
 compose.desktop {

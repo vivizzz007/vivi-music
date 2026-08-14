@@ -13,11 +13,16 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.net.Inet4Address
+import java.net.InetAddress
 import java.util.Collections
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import javax.jmdns.JmDNS
+import javax.jmdns.ServiceInfo
 import kotlin.random.Random
 
 /**
@@ -48,6 +53,8 @@ class LanSyncRelay {
     private val pending = ConcurrentHashMap<String, PendingPair>()
 
     private var server: EmbeddedServer<*, *>? = null
+    private var jmdns: JmDNS? = null
+    private var serviceInfo: ServiceInfo? = null
 
     @Volatile
     var port: Int = 0
@@ -74,6 +81,7 @@ class LanSyncRelay {
         created.start(wait = false)
         server = created
         port = created.engine.resolvedConnectors().first().port
+        startMdns(port)
         return port
     }
 
@@ -87,6 +95,7 @@ class LanSyncRelay {
         mailboxes.clear()
         pending.clear()
         runCatching { s.stop(500, 1000) }
+        stopMdns()
         port = 0
     }
 
@@ -193,6 +202,28 @@ class LanSyncRelay {
         sockets[peer]?.let { send(it, SyncEnvelope(type = SyncMessageTypes.PAIR_ERROR, message = "Device was unpaired")) }
     }
 
+    private suspend fun startMdns(port: Int) {
+        stopMdns()
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val ip = lanIpAddress()
+                if (ip == "127.0.0.1") return@runCatching
+                val j = JmDNS.create(InetAddress.getByName(ip))
+                val s = ServiceInfo.create(MDNS_TYPE, MDNS_NAME, port, "VIVI Music DE")
+                j.registerService(s)
+                jmdns = j
+                serviceInfo = s
+            }
+        }
+    }
+
+    private fun stopMdns() {
+        runCatching { serviceInfo?.let { jmdns?.unregisterService(it) } }
+        runCatching { jmdns?.close() }
+        jmdns = null
+        serviceInfo = null
+    }
+
     private fun peerOf(deviceId: String): String? {
         val pairId = devicePair[deviceId] ?: return null
         if (pairId.isEmpty()) return null
@@ -222,6 +253,10 @@ class LanSyncRelay {
 
     companion object {
         private const val PAIR_CODE_TTL_MS = 5 * 60 * 1000L
+
+        /** mDNS service type advertised so the phone can discover this relay. */
+        const val MDNS_TYPE = "_vivimusic._tcp.local."
+        const val MDNS_NAME = "VIVI Music DE"
     }
 }
 

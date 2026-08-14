@@ -25,6 +25,7 @@ object Localization {
             "start_lan" to "Start LAN server",
             "stop_lan" to "Stop LAN server",
             "lan_address" to "Phone connects to",
+            "scan_qr" to "Scan to connect",
             "lan_hint" to "On your phone, open Settings → Devices, set the relay server to the address above, then enter the code.",
             "status" to "Status",
             "connected" to "Connected",
