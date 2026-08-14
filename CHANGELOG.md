@@ -46,6 +46,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   install into `%LOCALAPPDATA%`.
 - [DE] The Windows installer is now a branded Inno Setup wizard and shows a
   "successfully uninstalled" confirmation message after removal.
+- [DE] Split the Linux build into independent DEB and AppImage jobs so a
+  failure in the AppImage step no longer blocks the DEB package (or the
+  release).
 
 ## [6.0.5] - 2026-08-14
 
