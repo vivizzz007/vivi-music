@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build:
-    name: Windows packages (MSI + EXE)
+    name: Windows installer (Inno Setup)
     runs-on: windows-latest
     timeout-minutes: 30
     env:
@@ -35,23 +35,50 @@ jobs:
         shell: bash
         run: chmod +x gradlew
 
-      - name: Package desktop distribution
+      - name: Package desktop app image
         shell: bash
-        run: ./gradlew :desktop:packageMsi :desktop:packageExe --no-daemon
+        run: ./gradlew :desktop:createDistributable --no-daemon
 
-      - name: Collect packages
-        shell: bash
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Compile branded installer
+        id: custom_setup
+        shell: pwsh
         run: |
-          set -euo pipefail
-          VERSION="$(head -n 1 version.txt | tr -d '\r\n' | xargs)"
-          mkdir -p dist
-          cp desktop/build/compose/binaries/main/msi/*.msi "dist/VIVIMusic-${VERSION}.msi"
-          for f in desktop/build/compose/binaries/main/exe/*.exe; do
-            cp "$f" "dist/VIVIMusic-${VERSION}-portable.exe"
-          done
-          ls -la dist
+          $ErrorActionPreference = 'Stop'
+          # version.txt: line 1 = version (e.g. 6.0.5-DE), line 2 = channel.
+          $version = (Get-Content version.txt)[0].Trim()
+          $core = ($version -split '-')[0]
+          $parts = $core -split '\.'
+          $major = [Math]::Max(1, [int]$parts[0])
+          $installerVersion = "$major.$($parts[1]).$($parts[2])"
+          $source = Join-Path $env:GITHUB_WORKSPACE 'desktop\build\compose\binaries\main\app\VIVIMusic'
+          $output = Join-Path $env:GITHUB_WORKSPACE 'dist'
+          New-Item -ItemType Directory -Force -Path $output | Out-Null
+          $mainExecutable = Join-Path $source 'VIVIMusic.exe'
+          if (-not (Test-Path $mainExecutable)) { throw "jpackage app image is incomplete: $mainExecutable was not found" }
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { throw "Inno Setup compiler not found at $iscc" }
+          $compileLog = Join-Path $output 'innosetup.log'
+          & $iscc `
+            "/DAppVersion=$version" `
+            "/DInstallerVersion=$installerVersion" `
+            "/DSourceDir=$source" `
+            "/DOutputDir=$output" `
+            "/DIconFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde.ico" `
+            "/DWizardImageFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde_wizard.bmp" `
+            "/DWizardSmallImageFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde_small.bmp" `
+            "$env:GITHUB_WORKSPACE\installer\windows\VIVIMusic.iss" 2>&1 |
+            Tee-Object -FilePath $compileLog
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Inno Setup compiler log:'
+            Get-Content $compileLog
+            throw "Inno Setup compilation failed (exit $LASTEXITCODE)"
+          }
 
-      - name: Sign packages
+      - name: Sign installer
         if: ${{ env.WINDOWS_SIGNING_CERT != '' }}
         shell: pwsh
         run: |
@@ -60,15 +87,15 @@ jobs:
           if (-not $signtool) { throw "signtool.exe not found" }
           $pfx = Join-Path $env:RUNNER_TEMP 'signing-cert.pfx'
           [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT))
-          Get-ChildItem dist -Recurse -Include *.msi,*.exe | ForEach-Object {
+          Get-ChildItem dist -Recurse -Include *.exe | ForEach-Object {
             Write-Host "Signing $($_.FullName)"
             & $signtool sign /f $pfx /p $env:WINDOWS_SIGNING_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $_.FullName
             if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($_.FullName) (exit $LASTEXITCODE)" }
           }
 
-      - name: Upload packages
+      - name: Upload installer
         uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
-          path: dist/*
+          path: dist/*.exe
           if-no-files-found: error

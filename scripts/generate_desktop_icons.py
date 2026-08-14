@@ -33,6 +33,17 @@ def build_ico(img: Image.Image, path: str) -> None:
     img.save(path, format="ICO", sizes=sizes)
 
 
+def build_bmp(img: Image.Image, path: str, size: tuple[int, int], bg=(255, 255, 255)) -> None:
+    """Place the logo centered on a solid-color canvas (Inno Setup wizard images
+    use BMP without alpha, so a white background blends into the modern wizard)."""
+    thumb = img.copy()
+    thumb.thumbnail((size[0] - 8, size[1] - 8), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGB", size, bg)
+    thumb_rgba = thumb.convert("RGBA")
+    canvas.paste(thumb_rgba, ((size[0] - thumb.width) // 2, (size[1] - thumb.height) // 2), thumb_rgba)
+    canvas.save(path, format="BMP")
+
+
 def build_icns(img: Image.Image, path: str) -> None:
     # Modern ICNS: PNG data stored in standard slot types. macOS 10.15+ reads
     # PNG-based icns fine, so we do not need legacy JPEG2000/PNG fallbacks.
@@ -63,7 +74,9 @@ def main() -> None:
 
     build_ico(img, os.path.join(OUT_DIR, "logo_vmde.ico"))
     build_icns(img, os.path.join(OUT_DIR, "logo_vmde.icns"))
-    print(f"Wrote {OUT_DIR}/logo_vmde.ico and logo_vmde.icns")
+    build_bmp(img, os.path.join(OUT_DIR, "logo_vmde_wizard.bmp"), (164, 314))
+    build_bmp(img, os.path.join(OUT_DIR, "logo_vmde_small.bmp"), (55, 58))
+    print(f"Wrote {OUT_DIR}/logo_vmde.ico, logo_vmde.icns, logo_vmde_wizard.bmp and logo_vmde_small.bmp")
 
 
 if __name__ == "__main__":

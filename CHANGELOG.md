@@ -28,6 +28,8 @@ feature.`), and desktop releases are versioned with a `-DE` suffix
 - [DE] The Windows installer now performs a machine-wide install into
   `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
   install into `%LOCALAPPDATA%`.
+- [DE] The Windows installer is now a branded Inno Setup wizard and shows a
+  "successfully uninstalled" confirmation message after removal.
 
 ## [6.0.5] - 2026-08-14
 
