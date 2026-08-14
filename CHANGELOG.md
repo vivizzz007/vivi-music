@@ -13,6 +13,9 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Added an Updates section in Settings: an automatic update check on
+  startup plus a manual "Check for updates" button, an opt-in toggle to include
+  pre-releases, and a download link when a newer desktop release is available.
 - [DE] Integrated self-contained audio playback (Phase 4): AAC stream
   resolution (NewPipe + ANDROID_VR) and a pure-Java AAC decoder (`jaad`)
   played through Java Sound — no external player or native codec required.

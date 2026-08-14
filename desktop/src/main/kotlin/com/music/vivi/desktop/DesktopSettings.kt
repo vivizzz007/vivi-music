@@ -18,6 +18,7 @@ data class DesktopSyncState(
     val serverUrl: String = "",
     val settings: Map<String, String> = emptyMap(),
     val language: String = "",
+    val includePreReleases: Boolean = false,
 )
 
 object DesktopSettings {

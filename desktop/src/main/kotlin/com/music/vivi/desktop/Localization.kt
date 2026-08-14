@@ -52,6 +52,15 @@ object Localization {
             "choose_language" to "Choose your language",
             "mobile" to "Mobile",
             "de" to "DE",
+            "updates" to "Updates",
+            "check_updates" to "Check for updates",
+            "checking" to "Checking…",
+            "up_to_date" to "You're up to date",
+            "update_available" to "Update available",
+            "download" to "Download",
+            "include_prereleases" to "Include pre-releases",
+            "update_failed" to "Update check failed",
+            "current_version" to "Current version",
         ),
     )
 

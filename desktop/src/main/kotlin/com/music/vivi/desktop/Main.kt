@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +54,9 @@ import com.music.vivi.sync.SyncEvent
 import com.music.vivi.desktop.player.PlayerController
 import com.music.vivi.sync.SyncServer
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 fun main() = application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does.
@@ -104,6 +109,21 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
         )
     }
 
+    val scope = rememberCoroutineScope()
+    var includePreReleases by remember { mutableStateOf(DesktopSettings.load().includePreReleases) }
+    var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
+
+    fun runUpdateCheck() {
+        updateStatus = UpdateStatus.Checking
+        scope.launch {
+            val result = withContext(Dispatchers.IO) { UpdateChecker.check(includePreReleases) }
+            updateStatus = result
+        }
+    }
+
+    // Automatic update check on startup.
+    LaunchedEffect(Unit) { runUpdateCheck() }
+
     Row(Modifier.fillMaxSize()) {
         Sidebar(language, current, openRoot)
         Column(Modifier.weight(1f).fillMaxHeight()) {
@@ -124,7 +144,18 @@ fun App(language: String, onLanguageChange: (String) -> Unit) {
                         onPlaySong = playSong,
                     )
                     is Screen.Library -> LibraryScreen(language)
-                    is Screen.Settings -> SettingsScreen(language, onLanguageChange)
+                    is Screen.Settings -> SettingsScreen(
+                        language = language,
+                        onLanguageChange = onLanguageChange,
+                        updateStatus = updateStatus,
+                        includePreReleases = includePreReleases,
+                        onTogglePreReleases = { checked ->
+                            includePreReleases = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
+                            runUpdateCheck()
+                        },
+                        onCheckUpdates = { runUpdateCheck() },
+                    )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
                         language = language,
@@ -240,7 +271,14 @@ fun MiniPlayer(nowPlaying: NowPlaying?, isPlaying: Boolean, onTogglePlay: () -> 
 }
 
 @Composable
-fun SettingsScreen(language: String, onLanguageChange: (String) -> Unit) {
+fun SettingsScreen(
+    language: String,
+    onLanguageChange: (String) -> Unit,
+    updateStatus: UpdateStatus,
+    includePreReleases: Boolean,
+    onTogglePreReleases: (Boolean) -> Unit,
+    onCheckUpdates: () -> Unit,
+) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
@@ -249,6 +287,8 @@ fun SettingsScreen(language: String, onLanguageChange: (String) -> Unit) {
         LanguageSection(language, onLanguageChange)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         DeviceSyncSection(language)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        UpdateSection(language, updateStatus, includePreReleases, onTogglePreReleases, onCheckUpdates)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         AboutSection(language)
     }
@@ -417,6 +457,51 @@ fun LanguageSelectionScreen(onSelect: (String) -> Unit) {
             }
         }
     }
+}
+
+@Composable
+fun UpdateSection(
+    language: String,
+    status: UpdateStatus,
+    includePreReleases: Boolean,
+    onTogglePreReleases: (Boolean) -> Unit,
+    onCheckUpdates: () -> Unit,
+) {
+    Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    Text(
+        "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION} (${Localization.get(language, "de")} ${AppInfo.DE_VERSION})",
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = onCheckUpdates, enabled = status != UpdateStatus.Checking) {
+            Text(Localization.get(language, "check_updates"))
+        }
+        Switch(checked = includePreReleases, onCheckedChange = onTogglePreReleases)
+        Text(Localization.get(language, "include_prereleases"))
+    }
+
+    when (status) {
+        is UpdateStatus.Checking -> Text(Localization.get(language, "checking"), modifier = Modifier.padding(top = 8.dp))
+        is UpdateStatus.UpToDate -> Text(Localization.get(language, "up_to_date"), modifier = Modifier.padding(top = 8.dp))
+        is UpdateStatus.Available -> {
+            Text("${Localization.get(language, "update_available")}: ${status.version}", modifier = Modifier.padding(top = 8.dp))
+            Button(onClick = { openUrl(status.url) }, modifier = Modifier.padding(top = 4.dp)) {
+                Text(Localization.get(language, "download"))
+            }
+        }
+        is UpdateStatus.Failed -> Text(
+            "${Localization.get(language, "update_failed")}: ${status.message}",
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        is UpdateStatus.Idle -> Unit
+    }
+}
+
+private fun openUrl(url: String) {
+    runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(url)) }
 }
 
 @Composable
