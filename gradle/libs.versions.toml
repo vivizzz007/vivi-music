@@ -14,6 +14,7 @@ castFramework = "22.2.0"
 room = "2.8.4"
 hilt = "2.59.1"
 ktor = "3.4.0"
+okhttp = "4.12.0"
 ksp = "2.3.6"
 jsoup = "1.22.1"
 coil = "3.3.0"
@@ -110,6 +111,7 @@ hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.re
 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }

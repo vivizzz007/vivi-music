@@ -37,6 +37,7 @@ include(":vivimusiccanvas")
 include(":jiosaavn")
 include(":spotify")
 include(":lyricsProvider")
+include(":sync")
 include(":desktop")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.

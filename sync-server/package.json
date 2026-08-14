@@ -1,0 +1,17 @@
+{
+  "name": "vivi-music-sync-server",
+  "version": "1.0.0",
+  "description": "Device pairing + snapshot sync relay for VIVI Music (Android <-> Desktop)",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "GPL-3.0"
+}

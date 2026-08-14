@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":shazamkit"))
     implementation(project(":jiosaavn"))
     implementation(project(":lyricsProvider"))
+    implementation(project(":sync"))
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.ktor.client.core)
