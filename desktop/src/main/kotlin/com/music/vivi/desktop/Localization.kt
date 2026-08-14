@@ -73,6 +73,12 @@ object Localization {
             "theme_light" to "Light",
             "theme_dark" to "Dark",
             "accent_color" to "Accent color",
+            "play_all" to "Play all",
+            "queue" to "Queue",
+            "queue_empty" to "Queue is empty",
+            "clear_queue" to "Clear queue",
+            "history" to "History",
+            "history_empty" to "No history yet",
         ),
     )
 

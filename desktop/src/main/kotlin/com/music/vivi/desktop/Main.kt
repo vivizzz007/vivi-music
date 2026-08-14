@@ -125,16 +125,16 @@ fun App(
     val navigate: (Screen) -> Unit = { backStack = backStack + it }
     val openRoot: (Screen) -> Unit = { backStack = listOf(it) }
     val goBack: () -> Unit = { if (backStack.size > 1) backStack = backStack.dropLast(1) }
-    val playSong: (SongItem) -> Unit = { song ->
-        player.play(
-            NowPlaying(
-                videoId = song.id,
-                title = song.title,
-                artist = song.artists.joinToString(", ") { it.name },
-                thumbnail = song.thumbnail,
-            )
-        )
-    }
+    fun songToNowPlaying(song: SongItem): NowPlaying = NowPlaying(
+        videoId = song.id,
+        title = song.title,
+        artist = song.artists.joinToString(", ") { it.name },
+        thumbnail = song.thumbnail,
+    )
+
+    val playSong: (SongItem) -> Unit = { song -> player.play(songToNowPlaying(song)) }
+    val addToQueue: (SongItem) -> Unit = { song -> player.addToQueue(songToNowPlaying(song)) }
+    val playAll: (List<SongItem>) -> Unit = { songs -> player.playAll(songs.map(::songToNowPlaying)) }
 
     val scope = rememberCoroutineScope()
     var includePreReleases by remember { mutableStateOf(DesktopSettings.load().includePreReleases) }
@@ -169,8 +169,15 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
                     )
                     is Screen.Library -> LibraryScreen(language)
+                    is Screen.History -> HistoryScreen(
+                        language = language,
+                        onBack = goBack,
+                        onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
+                    )
                     is Screen.Settings -> SettingsScreen(
                         language = language,
                         onLanguageChange = onLanguageChange,
@@ -193,6 +200,8 @@ fun App(
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
+                        onPlayAll = playAll,
                     )
                     is Screen.Artist -> ArtistScreen(
                         browseId = current.browseId,
@@ -202,6 +211,7 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
                     )
                     is Screen.Playlist -> PlaylistScreen(
                         playlistId = current.playlistId,
@@ -209,20 +219,35 @@ fun App(
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
+                        onPlayAll = playAll,
                     )
                     is Screen.Player -> PlayerScreen(
-                        nowPlaying = nowPlaying,
+                        queue = playerState.queue,
+                        index = playerState.index,
                         isPlaying = isPlaying,
                         positionMs = playerState.positionMs,
                         errorKey = playerState.errorKey,
                         onTogglePlay = { player.toggle() },
+                        onNext = { player.next() },
+                        onPrevious = { player.previous() },
                         language = language,
                         onOpenLyrics = { navigate(Screen.Lyrics) },
+                        onOpenQueue = { navigate(Screen.Queue) },
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
                         language = language,
                         onBack = goBack,
+                    )
+                    is Screen.Queue -> QueueScreen(
+                        queue = playerState.queue,
+                        index = playerState.index,
+                        language = language,
+                        onBack = goBack,
+                        onSkipTo = { player.skipTo(it) },
+                        onRemoveAt = { player.removeAt(it) },
+                        onClear = { player.clearQueue() },
                     )
                 }
             }
@@ -230,7 +255,9 @@ fun App(
                 nowPlaying = nowPlaying,
                 isPlaying = isPlaying,
                 onTogglePlay = { player.toggle() },
+                onNext = { player.next() },
                 onOpen = { navigate(Screen.Player) },
+                onOpenQueue = { navigate(Screen.Queue) },
             )
         }
     }
@@ -242,6 +269,7 @@ fun Sidebar(language: String, current: Screen, onSelect: (Screen) -> Unit) {
         Screen.Home to "home",
         Screen.Search to "search",
         Screen.Library to "library",
+        Screen.History to "history",
         Screen.Settings to "settings",
     )
     Column(Modifier.width(200.dp).fillMaxHeight().padding(12.dp)) {
@@ -272,7 +300,14 @@ fun Sidebar(language: String, current: Screen, onSelect: (Screen) -> Unit) {
 }
 
 @Composable
-fun MiniPlayer(nowPlaying: NowPlaying?, isPlaying: Boolean, onTogglePlay: () -> Unit, onOpen: () -> Unit) {
+fun MiniPlayer(
+    nowPlaying: NowPlaying?,
+    isPlaying: Boolean,
+    onTogglePlay: () -> Unit,
+    onNext: () -> Unit,
+    onOpen: () -> Unit,
+    onOpenQueue: () -> Unit,
+) {
     val np = nowPlaying ?: return
     Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
         Row(
@@ -296,6 +331,12 @@ fun MiniPlayer(nowPlaying: NowPlaying?, isPlaying: Boolean, onTogglePlay: () -> 
             }
             IconButton(onClick = onTogglePlay) {
                 Text(if (isPlaying) "⏸" else "▶", fontSize = 20.sp)
+            }
+            IconButton(onClick = onNext) {
+                Text("⏭", fontSize = 20.sp)
+            }
+            IconButton(onClick = onOpenQueue) {
+                Text("≡", fontSize = 20.sp)
             }
         }
     }

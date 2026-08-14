@@ -78,6 +78,7 @@ fun SearchScreen(
     onOpenArtist: (String) -> Unit,
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
+    onAddToQueue: (SongItem) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
     var page by remember { mutableStateOf<SearchSummaryPage?>(null) }
@@ -129,7 +130,7 @@ fun SearchScreen(
                         )
                     }
                     item(key = "body-${summary.title}") {
-                        SummaryBody(summary, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong)
+                        SummaryBody(summary, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong, onAddToQueue)
                     }
                 }
             }
@@ -144,13 +145,14 @@ private fun SummaryBody(
     onOpenArtist: (String) -> Unit,
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
+    onAddToQueue: (SongItem) -> Unit,
 ) {
     val songs = summary.items.filterIsInstance<SongItem>()
     val others = summary.items.filterNot { it is SongItem }
 
     Column {
         songs.forEach { song ->
-            SongRow(song) { onPlaySong(song) }
+            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
         }
         if (others.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

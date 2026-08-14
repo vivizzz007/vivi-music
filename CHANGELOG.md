@@ -30,6 +30,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   played through Java Sound — no external player or native codec required.
   The mini-player and Player screen now actually play/pause/resume songs and
   show the playback position.
+- [DE] Added a full playback queue: "add to queue" on every song row, "Play
+  all" on albums/playlists, next/previous, auto-advance, and a Queue screen
+  (jump / remove / clear).
+- [DE] Added a History screen (sidebar) listing the user's listening history.
 - [DE] Added a light/dark/system theme with a selectable accent color palette
   (Settings → Appearance), applied across the whole desktop app.
 - [DE] Full desktop UI: sidebar navigation with Home, Search, Album, Artist,

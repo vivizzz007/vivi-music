@@ -98,7 +98,7 @@ fun YtItemCard(item: YTItem, onClick: () -> Unit, width: Dp = 140.dp) {
 
 /** One song in a vertical list (album / playlist / search songs). */
 @Composable
-fun SongRow(song: SongItem, onClick: () -> Unit) {
+fun SongRow(song: SongItem, onClick: () -> Unit, onAddToQueue: (() -> Unit)? = null) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -113,6 +113,16 @@ fun SongRow(song: SongItem, onClick: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (onAddToQueue != null) {
+            Text(
+                "＋",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickable { onAddToQueue() }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
             )
         }
         song.duration?.let {
