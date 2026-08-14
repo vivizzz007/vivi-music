@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -59,6 +60,7 @@ import com.music.lrclib.LrcLib
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.desktop.player.RepeatMode
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -562,7 +564,21 @@ fun LyricsScreen(
                     }
                 } else {
                     val listState = rememberLazyListState()
-                    val currentIndex = currentLineIndex(lines, positionMs)
+                    var currentIndex by remember(lines) { mutableStateOf(-1) }
+                    val latestPosition by rememberUpdatedState(positionMs)
+
+                    // Debounce: poll the position ~5x/s and only commit the
+                    // highlighted line when it actually changes, so the lyric
+                    // list isn't recomposed on every decoded-frame position
+                    // update (~40/s).
+                    LaunchedEffect(lines) {
+                        while (true) {
+                            val idx = currentLineIndex(lines, latestPosition)
+                            if (idx != currentIndex) currentIndex = idx
+                            delay(200)
+                        }
+                    }
+
                     LaunchedEffect(currentIndex) {
                         if (currentIndex >= 0) {
                             listState.animateScrollToItem(maxOf(0, currentIndex - 3))

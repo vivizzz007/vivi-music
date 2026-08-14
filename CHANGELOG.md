@@ -136,6 +136,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] Release notes now collapse the commit list into an expandable section
   when there are more than 7 commits.
 
+- [DE] Debounced the Lyrics screen position updates: the highlighted line is
+  now polled ~5×/s and only recomposed when it changes, instead of recomposing
+  the list on every decoded-frame position update (~40×/s).
+
 ## [6.0.5] - 2026-08-14
 
 ### Added
