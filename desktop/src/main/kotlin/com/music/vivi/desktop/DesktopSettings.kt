@@ -22,6 +22,12 @@ data class DesktopSyncState(
     val darkMode: String = "system",
     val accentColor: Int = 0xFFED5564.toInt(),
     val autoPlayNext: Boolean = true,
+    val cookie: String = "",
+    val dataSyncId: String = "",
+    val visitorData: String = "",
+    val accountName: String = "",
+    val accountEmail: String = "",
+    val accountChannelHandle: String = "",
 )
 
 object DesktopSettings {

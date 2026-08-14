@@ -92,6 +92,16 @@ object Localization {
             "open_installer" to "Open installer",
             "installers_downloaded" to "Downloaded installers",
             "delete_installers" to "Delete installers",
+            "account" to "Account",
+            "login" to "Log in",
+            "logout" to "Log out",
+            "not_logged_in" to "Not logged in",
+            "logged_in_as" to "Logged in as",
+            "logging_in" to "Logging in…",
+            "cookie_label" to "Cookie header (from music.youtube.com)",
+            "login_instructions" to "Log in to music.youtube.com in your browser, then open DevTools → Network, reload, click any music.youtube.com request and copy the full value of its 'Cookie' request header. Paste it below. Your cookie is stored only on this device.",
+            "library_login_prompt" to "Log in to see your library",
+            "library_empty" to "Nothing here yet",
         ),
     )
 

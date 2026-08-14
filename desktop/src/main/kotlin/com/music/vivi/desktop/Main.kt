@@ -65,6 +65,7 @@ fun main() = application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does.
     YouTube.locale = YouTubeLocale(gl = "US", hl = "en")
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
+    LoginManager.restore()
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
     var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
@@ -124,6 +125,9 @@ fun App(
     var autoPlayNext by remember { mutableStateOf(DesktopSettings.load().autoPlayNext) }
     player.autoPlayNext = autoPlayNext
 
+    var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
+    var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
+
     val current = backStack.last()
 
     val navigate: (Screen) -> Unit = { backStack = backStack + it }
@@ -175,7 +179,16 @@ fun App(
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                     )
-                    is Screen.Library -> LibraryScreen(language)
+                    is Screen.Library -> LibraryScreen(
+                        language = language,
+                        isLoggedIn = isLoggedIn,
+                        onOpenLogin = { navigate(Screen.Login) },
+                        onOpenAlbum = { navigate(Screen.Album(it)) },
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onOpenPlaylist = { navigate(Screen.Playlist(it)) },
+                        onPlaySong = playSong,
+                        onAddToQueue = addToQueue,
+                    )
                     is Screen.History -> HistoryScreen(
                         language = language,
                         onBack = goBack,
@@ -203,6 +216,14 @@ fun App(
                         },
                         onCheckUpdates = { runUpdateCheck() },
                         onOpenChangelog = { navigate(Screen.Changelog) },
+                        isLoggedIn = isLoggedIn,
+                        accountName = accountName,
+                        onOpenLogin = { navigate(Screen.Login) },
+                        onLogout = {
+                            LoginManager.logout()
+                            isLoggedIn = false
+                            accountName = ""
+                        },
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
@@ -262,6 +283,14 @@ fun App(
                     is Screen.Changelog -> ChangelogScreen(
                         language = language,
                         onBack = goBack,
+                    )
+                    is Screen.Login -> LoginScreen(
+                        language = language,
+                        onBack = goBack,
+                        onLoggedIn = {
+                            isLoggedIn = true
+                            accountName = DesktopSettings.load().accountName
+                        },
                     )
                 }
             }
@@ -371,6 +400,10 @@ fun SettingsScreen(
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
+    isLoggedIn: Boolean,
+    accountName: String,
+    onOpenLogin: () -> Unit,
+    onLogout: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
@@ -378,6 +411,8 @@ fun SettingsScreen(
         Text(Localization.get(language, "settings"), style = MaterialTheme.typography.headlineMedium)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         LanguageSection(language, onLanguageChange)
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+        AccountSection(language, isLoggedIn, accountName, onOpenLogin, onLogout)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
@@ -563,6 +598,37 @@ fun DeviceSyncSection(language: String) {
             syncedSettings.entries.sortedBy { it.key }.forEach { (k, v) ->
                 Text("$k = $v", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 1.dp))
             }
+        }
+    }
+}
+
+@Composable
+fun AccountSection(
+    language: String,
+    isLoggedIn: Boolean,
+    accountName: String,
+    onOpenLogin: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    Text(Localization.get(language, "account"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+    if (isLoggedIn) {
+        Text(
+            "${Localization.get(language, "logged_in_as")}: ${accountName.ifBlank { "YouTube" }}",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Button(onClick = onLogout, modifier = Modifier.padding(top = 8.dp)) {
+            Text(Localization.get(language, "logout"))
+        }
+    } else {
+        Text(
+            Localization.get(language, "not_logged_in"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        Button(onClick = onOpenLogin, modifier = Modifier.padding(top = 8.dp)) {
+            Text(Localization.get(language, "login"))
         }
     }
 }

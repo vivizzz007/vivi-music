@@ -212,19 +212,6 @@ fun PlaylistScreen(
 }
 
 @Composable
-fun LibraryScreen(language: String) {
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Text(Localization.get(language, "library"), style = MaterialTheme.typography.headlineMedium)
-        Text(
-            Localization.get(language, "library_placeholder"),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 16.dp),
-        )
-    }
-}
-
-@Composable
 fun HistoryScreen(
     language: String,
     onBack: () -> Unit,

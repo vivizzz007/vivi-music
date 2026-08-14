@@ -30,6 +30,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   played through Java Sound — no external player or native codec required.
   The mini-player and Player screen now actually play/pause/resume songs and
   show the playback position.
+- [DE] Added YouTube login on desktop: paste the music.youtube.com `Cookie`
+  header (no WebView needed), which auto-extracts the account's
+  `DATASYNC_ID`/`VISITOR_DATA`, validates the session and persists it locally.
+  History now works when signed in, and Library gained Songs / Albums / Artists
+  / Playlists tabs (liked songs, albums, artists and playlists).
 - [DE] Added in-app update downloads: the Updates section detects the right
   installer for the host OS/arch (MSI/AppImage/DMG with EXE/DEB/PKG fallback),
   downloads it with progress % + speed, opens it, and can delete downloaded

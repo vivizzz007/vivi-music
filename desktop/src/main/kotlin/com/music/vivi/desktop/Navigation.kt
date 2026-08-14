@@ -18,6 +18,7 @@ sealed interface Screen {
     data object Lyrics : Screen
     data object Queue : Screen
     data object Changelog : Screen
+    data object Login : Screen
 }
 
 /**
