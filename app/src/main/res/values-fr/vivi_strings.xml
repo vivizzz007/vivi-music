@@ -1075,4 +1075,6 @@ est irréversible.
     <string name="account_settings_desc_appearance">Personnalisez le thème et la mise en page de l\'interface utilisateur de votre application</string>
     <string name="account_settings_desc_data">Gérez vos téléchargements et l\'utilisation du cache</string>
     <string name="account_settings_desc_about">Informations sur la version et mentions légales</string>
+	<string name="action_view_update">Afficher</string>
+    <string name="new_version_found">Une nouvelle version a été trouvée</string>
 </resources>
