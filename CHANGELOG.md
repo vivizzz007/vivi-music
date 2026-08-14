@@ -43,6 +43,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   `CHANGELOG.md` plus the latest GitHub release notes.
 - [DE] Added Player & audio settings (autoplay next track) and a Storage
   section (cache size + clear cache) to Settings.
+- [DE] Added the animated canvas to the Player: a blurred, slowly-zooming
+  (Ken Burns) artwork background behind the track. Canvas artwork is resolved
+  from the same providers as the Android app (Apple Music / Tidal / VIVI Music
+  canvas); animated GIF/WebP URLs play via Coil, while video canvases
+  (MP4/HLS) fall back to static art + zoom.
 - [DE] Added synced lyrics: the Lyrics screen now parses LRC timestamps,
   highlights the current line and auto-scrolls to it as the song plays
   (falls back to plain text when lyrics aren't synced).

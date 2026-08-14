@@ -2,6 +2,7 @@ package com.music.vivi.desktop
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +37,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
+import com.music.vivi.canvas.CanvasArtwork
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun PlayerScreen(
@@ -52,53 +56,66 @@ fun PlayerScreen(
     onOpenQueue: () -> Unit,
 ) {
     val np = queue.getOrNull(index)
-    Column(
-        Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        if (np == null) {
-            Text(
-                Localization.get(language, "nothing_playing"),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(top = 32.dp),
-            )
-            return@Column
-        }
-        Spacer(Modifier.height(16.dp))
-        Thumbnail(np.thumbnail, Modifier.size(240.dp))
-        Spacer(Modifier.height(24.dp))
-        Text(np.title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-        Text(np.artist, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(24.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onPrevious) {
-                Text("⏮", fontSize = 28.sp)
+    var canvasArt by remember { mutableStateOf<CanvasArtwork?>(null) }
+
+    LaunchedEffect(np?.videoId) {
+        canvasArt = null
+        val track = np ?: return@LaunchedEffect
+        canvasArt = withContext(Dispatchers.IO) { CanvasResolver.resolve(track.title, track.artist, null) }
+    }
+
+    val bgUrl = CanvasResolver.displayUrl(canvasArt, np?.thumbnail)
+
+    Box(Modifier.fillMaxSize()) {
+        CanvasBackground(bgUrl, Modifier.fillMaxSize())
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            if (np == null) {
+                Text(
+                    Localization.get(language, "nothing_playing"),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(top = 32.dp),
+                )
+                return@Column
             }
-            IconButton(onClick = onTogglePlay) {
-                Text(if (isPlaying) "⏸" else "▶", fontSize = 40.sp)
-            }
-            IconButton(onClick = onNext) {
-                Text("⏭", fontSize = 28.sp)
-            }
-        }
-        Text(
-            formatTime(positionMs),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Spacer(Modifier.height(16.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Button(onClick = onOpenLyrics) { Text(Localization.get(language, "lyrics")) }
-            Button(onClick = onOpenQueue) { Text("${Localization.get(language, "queue")} (${queue.size})") }
-        }
-        if (errorKey != null) {
             Spacer(Modifier.height(16.dp))
+            Thumbnail(np.thumbnail, Modifier.size(240.dp))
+            Spacer(Modifier.height(24.dp))
+            Text(np.title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
+            Text(np.artist, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(24.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onPrevious) {
+                    Text("⏮", fontSize = 28.sp)
+                }
+                IconButton(onClick = onTogglePlay) {
+                    Text(if (isPlaying) "⏸" else "▶", fontSize = 40.sp)
+                }
+                IconButton(onClick = onNext) {
+                    Text("⏭", fontSize = 28.sp)
+                }
+            }
             Text(
-                Localization.get(language, errorKey),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
+                formatTime(positionMs),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Spacer(Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = onOpenLyrics) { Text(Localization.get(language, "lyrics")) }
+                Button(onClick = onOpenQueue) { Text("${Localization.get(language, "queue")} (${queue.size})") }
+            }
+            if (errorKey != null) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    Localization.get(language, errorKey),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

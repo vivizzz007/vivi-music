@@ -52,6 +52,9 @@ dependencies {
     implementation(project(":jiosaavn"))
     implementation(project(":lyricsProvider"))
     implementation(project(":sync"))
+    implementation(project(":canvas"))
+    implementation(project(":applecanvas"))
+    implementation(project(":vivimusiccanvas"))
 
     implementation(libs.kotlinx.coroutines.core)
 
