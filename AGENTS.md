@@ -132,8 +132,11 @@ version of the form `<mobile>_DE-<de>` (e.g. `6.0.5_DE-1.0.0`):
 - Release channel (line 3): `stable` (or empty) publishes a stable GitHub
   release; any other value (`rc`, `beta`, `alpha`, `nightly`, …) publishes a
   pre-release. The channel is shown (uppercased) in the About screen.
-- The GitHub release tag/title and desktop artifact filenames use the full
-  version (`v6.0.5_DE-1.0.0`, `VIVIMusic-6.0.5_DE-1.0.0-setup.exe`, …).
+- The GitHub release title and desktop artifact filenames use the full
+  version (`VIVIMusic-6.0.5_DE-1.0.0-setup.exe`, …). Release **tags carry no
+  `v` prefix**: stable releases use the bare version (`6.0.5_DE-1.0.0`), while
+  non-stable releases append the channel (`6.0.5_DE-1.0.0-nightly`). The `v`
+  prefix is used **only** in commit messages, as the auto-release trigger.
 - Windows/macOS installers need a purely numeric `MAJOR.MINOR.PATCH`
   (jpackage JDK-8283707; Inno Setup `AppVersion` too), so the
   **installer/package version is the DE version** (`1.0.0`, the part after

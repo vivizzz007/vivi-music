@@ -78,13 +78,20 @@ jobs:
           else
             PRERELEASE=true
           fi
+          # Tags carry NO "v" prefix. Stable releases use the bare version;
+          # non-stable releases append the channel (e.g. 6.0.5_DE-1.0.0-nightly).
+          if [[ "$CHANNEL" == "stable" ]]; then
+            TAG="$FULL_VERSION"
+          else
+            TAG="$FULL_VERSION-$CHANNEL"
+          fi
           echo "version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
           echo "de_version=$DE_VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "name=Vivi Music DE $FULL_VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $FULL_VERSION (channel: $CHANNEL, prerelease: $PRERELEASE)"
+          echo "Resolved version: $FULL_VERSION (tag: $TAG, channel: $CHANNEL, prerelease: $PRERELEASE)"
 
       - name: Extract changelog section
         id: changelog

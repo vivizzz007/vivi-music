@@ -30,6 +30,8 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 - [DE] The desktop UI is now English-first with a 49-language picker (first
   launch + Language menu); non-English strings fall back to English until
   translated.
+- Release tags no longer carry a `v` prefix; non-stable releases append the
+  channel to the tag (e.g. `6.0.5_DE-1.0.0-nightly`).
 - [DE] The Windows installer now performs a machine-wide install into
   `C:\Program Files\VIVIMusic` (requires admin rights) instead of a per-user
   install into `%LOCALAPPDATA%`.
