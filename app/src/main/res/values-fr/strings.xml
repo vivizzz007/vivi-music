@@ -96,6 +96,8 @@
     <string name="details">Détails</string>
     <string name="edit">Modifier</string>
     <string name="start_radio">Démarrer la radio</string>
+    <string name="apple_mini_player_design">Mini-lecteur façon Apple</string>
+    <string name="classic_mini_player">Mini-lecteur classique</string>
     <string name="play">Lecture</string>
     <string name="pause">Pause</string>
     <string name="play_next">Lire ensuite</string>
