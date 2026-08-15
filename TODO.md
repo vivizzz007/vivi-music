@@ -23,6 +23,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Resume on desktop: apply `pendingPlayback`; the desktop also pushes its playback and applies incoming snapshots (bidirectional), with echo suppression.
 - [x] Precise sync: seek is pushed instantly (both sides), same-track commands apply as a lightweight in-place seek (no restart), and positions carry a timestamp (`positionAtMs`) so receivers extrapolate while playing; PING/PONG clock-sync (relay + `server.js`) removes clock skew between phone and PC.
 - [x] Drift auto-correction: while playing, the position is re-pushed every 5s (`SyncServer.RESYNC_TICK_MS`) so players re-align continuously; a 250 ms tolerance (`RESYNC_TOLERANCE_MS`) skips near-no-op seeks to avoid audio glitches.
+- [x] Volume sync: the volume slider (0..1) is carried in the playback snapshot and mirrored on both devices.
 - [x] Paired device names shown on both sides (desktop announces its real hostname, mobile shows the paired desktop name and vice versa).
 
 ## Phase 3 — Sync: library
@@ -58,7 +59,8 @@ The desktop should look exactly like the Android app, except:
 - [x] Player + mini-player + queue + lyrics (large responsive artwork, animated canvas background, seek/volume, shuffle/repeat, drag-to-reorder queue, synced lyrics highlighting with configurable text size).
 - [x] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage, Updates, About), keeping the custom Devices screen — with real functionality (pure black, audio quality, remember shuffle/repeat, persistent queue, lyrics text size, content language/region).
 - [x] History / Changelog / Login screens (history from YouTube, live changelog fetched from the repo, cookie-based login with DATASYNC_ID/VISITOR_DATA fallback).
-- [ ] Song / album / artist / playlist context menus port.
+- [ ] Song / album / artist / playlist context menus port (needed by the playlist system for "Add to playlist").
+- [ ] Local playlist system port: create/rename/delete playlists, add/remove songs, a "My playlists" screen, and cross-device playlist sync (extend the library snapshot with playlist name + song ids).
 
 ## Phase 9 — In-app updater + developer options (completed)
 - [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels).
@@ -66,7 +68,7 @@ The desktop should look exactly like the Android app, except:
 - [x] In-app download (progress + speed), "open installer" closes the app after launching, and a "Delete installers" option to clear downloaded update files.
 - [x] Non-invasive update notification (Install now / Dismiss) when an update is available.
 - [x] Developer options: Settings entry always visible but disabled by default; unlockable via 7 taps on the version code or the dedicated toggle; unlock notification pointing to Settings → Developer options.
-- [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar.
+- [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar and a "Title bar only" display mode.
 
 ## Infra / release
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.

@@ -11,6 +11,30 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.0_DE-1.32.0] - 2026-08-16
+
+### Added
+
+- [DE] Developer options "Title bar only" display mode (stats only in the
+  window title, no overlay or separate window).
+- [DE] Queue entry in the sidebar (opens the Queue screen directly).
+- [DE] "View changelog" button in Settings → Updates.
+- [DE+APK] Volume sync: the volume slider now syncs between the two devices.
+
+### Changed
+
+- [DE] Player layout is now two columns: a smaller artwork on the left and the
+  seek bar + controls + volume on the right.
+- [DE] Clicking the mini-player toggles the full player (open / go back).
+- [DE] The About screen's GitHub row now uses the correct GitHub logo.
+- [DE] README: smaller logo and @PiBOH added to Special Thanks.
+
+### Fixed
+
+- [DE] Stream resolution is more resilient: it retries transient failures and
+  throttles guest-session refreshes so a track can start even with no paired
+  device.
+
 ## [6.3.0_DE-1.31.0] - 2026-08-15
 
 ### Added

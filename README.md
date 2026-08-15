@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/PiBOH/vivi-music">
-    <img src="desktop/icons/logo_vmde.png" alt="VIVI Music DE Logo" style="display: block; margin: 0 auto; max-width: 260px"/>
+    <img src="desktop/icons/logo_vmde.png" alt="VIVI Music DE Logo" style="display: block; margin: 0 auto; max-width: 150px"/>
   </a>
   <br>
   <h1>VIVI Music DE</h1>
@@ -247,6 +247,7 @@
         <b>💡 Special Thanks</b>
         <ul>
           <li><strong><a href="https://github.com/vivizzz007/vivi-music">VIVI Music</a></strong> – the original Android app that VIVI Music DE ports to the desktop.</li>
+          <li><strong><a href="https://github.com/PiBOH">@PiBOH</a></strong> – for having created and maintaining VIVI Music DE.</li>
           <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – inspiration and contributions to the open source community.</li>
           <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – for inventing the new playback method! 🎉</li>
         </ul>

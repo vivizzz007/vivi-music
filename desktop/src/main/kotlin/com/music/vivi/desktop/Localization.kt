@@ -65,6 +65,7 @@ object Localization {
             "dev_tools_profile_performance" to "Performance",
             "dev_tools_title_bar" to "Show in title bar",
             "dev_tools_title_bar_desc" to "Show CPU and memory usage in the window title",
+            "dev_tools_title_bar_only" to "Title bar only",
             "dev_tools_window" to "Dedicated window",
             "dev_unlocked_desc" to "Configure them in Settings → Developer options",
             "dev_unlocked_open" to "Open",

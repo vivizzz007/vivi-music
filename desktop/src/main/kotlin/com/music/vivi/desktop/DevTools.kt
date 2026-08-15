@@ -48,7 +48,7 @@ import java.lang.management.ManagementFactory
 import kotlin.math.roundToInt
 
 /** Where the live dev-tools stats are shown. */
-enum class DevToolsMode { OVERLAY, WINDOW }
+enum class DevToolsMode { OVERLAY, WINDOW, TITLE_BAR }
 
 /** How much detail the dev tools show. */
 enum class DevToolsProfile { FULL, PERFORMANCE }

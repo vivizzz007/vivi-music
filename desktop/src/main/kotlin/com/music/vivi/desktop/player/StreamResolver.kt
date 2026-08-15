@@ -7,6 +7,7 @@ import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.response.PlayerResponse
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -94,6 +95,14 @@ object StreamResolver {
         if (!resolution.anyValidated) {
             GuestSession.rotate()
             resolution = resolveOnce(videoId, quality)
+        }
+        // Last resort: transient failures can leave us with no candidates at all;
+        // retry a couple of times with a short backoff before reporting failure.
+        var attempts = 0
+        while (resolution.streams.isEmpty() && attempts < 2) {
+            delay(750L)
+            resolution = resolveOnce(videoId, quality)
+            attempts++
         }
         return resolution.streams
     }

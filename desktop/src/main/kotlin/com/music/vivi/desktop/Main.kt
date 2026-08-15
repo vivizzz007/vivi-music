@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -148,13 +149,17 @@ fun main() = application {
         )
     }
 
-    // Live window title: shows CPU/RAM when dev options + title-bar stats are on.
+    // Live window title: shows CPU/RAM when dev options are on and either the
+    // "show in title bar" toggle is set or the display mode is "title bar only".
     val devTitleEnabled by DeveloperOptions.enabled.collectAsState()
     val devTitleVisible by DeveloperOptions.showInTitleBar.collectAsState()
+    val devMode by DeveloperOptions.mode.collectAsState()
     val titleStats by SystemMonitor.stats.collectAsState()
     val windowTitle = buildString {
         append("VIVI Music — desktop")
-        if (devTitleEnabled && devTitleVisible) append(titleStats.titleBarText())
+        if (devTitleEnabled && (devTitleVisible || devMode == DevToolsMode.TITLE_BAR)) {
+            append(titleStats.titleBarText())
+        }
     }
 
     Window(onCloseRequest = ::exitApplication, title = windowTitle) {
@@ -335,6 +340,7 @@ fun App(
                     isPlaying = s.isPlaying,
                     index = s.index,
                     queue = s.queue.map { it.videoId },
+                    volume = s.volume,
                 )
             }
             .distinctUntilChanged()
@@ -361,6 +367,10 @@ fun App(
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
+            // Volume sync: mirror the peer's volume slider.
+            pb.volume?.let { v ->
+                if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+            }
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
@@ -583,6 +593,7 @@ fun App(
                             runUpdateCheck()
                         },
                         onCheckUpdates = { runUpdateCheck() },
+                        onOpenChangelog = { navigate(Screen.Changelog) },
                     )
                     is Screen.SettingsAbout -> SettingsAboutScreen(
                         language = language,
@@ -721,7 +732,8 @@ fun App(
                 durationMs = playerState.durationMs,
                 onTogglePlay = { player.toggle() },
                 onNext = { player.next() },
-                onOpen = { navigate(Screen.Player) },
+                // Click toggles the full player: open it, or hide it (go back).
+                onOpen = { if (current == Screen.Player) goBack() else navigate(Screen.Player) },
                 onOpenQueue = { navigate(Screen.Queue) },
             )
         }
@@ -766,6 +778,7 @@ fun Sidebar(
         SidebarEntry(Screen.Home, "home", Icons.Outlined.Home, Icons.Filled.Home),
         SidebarEntry(Screen.Search, "search", Icons.Outlined.Search, Icons.Filled.Search),
         SidebarEntry(Screen.Library, "library", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
+        SidebarEntry(Screen.Queue, "queue", Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
         SidebarEntry(Screen.History, "history", Icons.Outlined.History, Icons.Filled.History),
         SidebarEntry(Screen.Settings, "settings", Icons.Outlined.Settings, Icons.Filled.Settings),
     )
@@ -1437,6 +1450,7 @@ fun UpdateSection(
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
+    onOpenChangelog: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var progress by remember { mutableStateOf<DownloadProgress?>(null) }
@@ -1451,6 +1465,10 @@ fun UpdateSection(
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(top = 4.dp),
     )
+
+    OutlinedButton(onClick = onOpenChangelog, modifier = Modifier.padding(top = 8.dp)) {
+        Text(Localization.get(language, "changelog"))
+    }
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(onClick = onCheckUpdates, enabled = status != UpdateStatus.Checking) {
@@ -1923,6 +1941,7 @@ private data class PlaybackSyncKey(
     val isPlaying: Boolean,
     val index: Int,
     val queue: List<String>,
+    val volume: Float,
 )
 
 /** Builds a [PlaybackSnapshot] from the current player state (null if nothing plays). */
@@ -1934,6 +1953,7 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         trackTitle = current.title,
         positionMs = s.positionMs,
         isPlaying = s.isPlaying,
+        volume = s.volume,
         queue = s.queue.map { np ->
             TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
         },

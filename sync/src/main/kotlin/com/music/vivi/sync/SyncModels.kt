@@ -82,6 +82,8 @@ data class PlaybackSnapshot(
      */
     val positionAtMs: Long = 0L,
     val isPlaying: Boolean = false,
+    /** Player volume (0f..1f). Syncs the volume slider between the two devices. */
+    val volume: Float? = null,
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,
     val queueTitle: String? = null,

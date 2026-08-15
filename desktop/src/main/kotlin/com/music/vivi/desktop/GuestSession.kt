@@ -16,6 +16,15 @@ import kotlinx.coroutines.sync.withLock
 object GuestSession {
     private val mutex = Mutex()
 
+    @Volatile private var lastRefreshAttemptAt = 0L
+    @Volatile private var lastRefreshSucceeded = false
+
+    /**
+     * A failed fetch must not be re-attempted on every single play: retrying too
+     * eagerly adds a slow network round-trip (and holds the [mutex]) each time.
+     */
+    private const val REFRESH_COOLDOWN_MS = 30_000L
+
     /** Ensures a guest visitorData is loaded (persisted value first, then fresh). */
     suspend fun ensure() {
         mutex.withLock {
@@ -39,8 +48,13 @@ object GuestSession {
     }
 
     private suspend fun refresh() {
+        val now = System.currentTimeMillis()
+        if (now - lastRefreshAttemptAt < REFRESH_COOLDOWN_MS && !lastRefreshSucceeded) return
+        lastRefreshAttemptAt = now
         YouTube.visitorData = null
-        YouTube.visitorData().onSuccess { v ->
+        val result = YouTube.visitorData()
+        lastRefreshSucceeded = result.isSuccess
+        result.onSuccess { v ->
             YouTube.visitorData = v
             // Persist so it survives restarts. LoginManager.restore() only acts
             // when logged in, so this never collides with account credentials.

@@ -334,6 +334,7 @@ ENGLISH = {
     "dev_tools_mode": "Display mode",
     "dev_tools_overlay": "Overlay in main window",
     "dev_tools_window": "Dedicated window",
+    "dev_tools_title_bar_only": "Title bar only",
     "tap_version_code_hint": "Tap the version code 7 times to enable developer options",
     "cpu": "CPU",
     "memory": "Memory",

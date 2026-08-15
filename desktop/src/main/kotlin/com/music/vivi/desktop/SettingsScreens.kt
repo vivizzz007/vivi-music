@@ -329,6 +329,7 @@ fun SettingsUpdatesScreen(
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
+    onOpenChangelog: () -> Unit,
 ) {
     // Check for updates every time the section is opened.
     LaunchedEffect(Unit) { onCheckUpdates() }
@@ -341,6 +342,7 @@ fun SettingsUpdatesScreen(
             onIntervalChange,
             onTogglePreReleases,
             onCheckUpdates,
+            onOpenChangelog,
         )
     }
 }
@@ -589,15 +591,23 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 16.dp),
         )
-        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = { DeveloperOptions.setMode(DevToolsMode.OVERLAY) },
-                enabled = mode != DevToolsMode.OVERLAY,
-            ) { Text(Localization.get(language, "dev_tools_overlay")) }
-            OutlinedButton(
-                onClick = { DeveloperOptions.setMode(DevToolsMode.WINDOW) },
-                enabled = mode != DevToolsMode.WINDOW,
-            ) { Text(Localization.get(language, "dev_tools_window")) }
+        Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { DeveloperOptions.setMode(DevToolsMode.OVERLAY) },
+                    enabled = mode != DevToolsMode.OVERLAY,
+                ) { Text(Localization.get(language, "dev_tools_overlay")) }
+                OutlinedButton(
+                    onClick = { DeveloperOptions.setMode(DevToolsMode.WINDOW) },
+                    enabled = mode != DevToolsMode.WINDOW,
+                ) { Text(Localization.get(language, "dev_tools_window")) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { DeveloperOptions.setMode(DevToolsMode.TITLE_BAR) },
+                    enabled = mode != DevToolsMode.TITLE_BAR,
+                ) { Text(Localization.get(language, "dev_tools_title_bar_only")) }
+            }
         }
 
         Text(

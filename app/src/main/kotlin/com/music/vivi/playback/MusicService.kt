@@ -1467,6 +1467,7 @@ class MusicService :
                 trackTitle = meta.title,
                 positionMs = player.currentPosition,
                 isPlaying = player.isPlaying,
+                volume = player.volume,
                 queue = items.map { item ->
                     item.metadata?.toTrackRef()
                         ?: TrackRef(id = item.mediaId, title = item.mediaId)
@@ -1484,6 +1485,8 @@ class MusicService :
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
         val position = deviceSyncManager.effectivePosition(snapshot)
+        // Volume sync: mirror the desktop's volume slider.
+        snapshot.volume?.let { v -> player.volume = v.coerceIn(0f, 1f) }
         if (!playerInitialized.value) {
             scope.launch {
                 playerInitialized.first { it }

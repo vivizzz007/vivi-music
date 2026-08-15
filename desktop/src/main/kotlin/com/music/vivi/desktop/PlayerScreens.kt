@@ -156,7 +156,7 @@ private fun PlayerContent(
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
 ) {
-    val contentWidth = 620.dp
+    val contentWidth = 720.dp
 
     Column(
         Modifier
@@ -183,148 +183,150 @@ private fun PlayerContent(
 
         Spacer(Modifier.height(28.dp))
 
-        // Artwork — scales with the window width so resizing the window resizes it.
-        BoxWithConstraints(
-            Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
-        ) {
-            val artworkSize = (maxWidth * 0.45f).coerceIn(180.dp, 360.dp)
-            Box(Modifier.shadow(24.dp, RoundedCornerShape(12.dp))) {
-                Thumbnail(np.thumbnail, Modifier.size(artworkSize))
-            }
-        }
-
-        Spacer(Modifier.height(32.dp))
-
-        // Title / artist.
-        Column(Modifier.widthIn(max = contentWidth).fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                np.title,
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(6.dp))
-            Text(
-                np.artist,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-
-        Spacer(Modifier.height(28.dp))
-
-        // Seek slider (position / duration).
-        var sliderPosition by remember(np.videoId) { mutableStateOf<Long?>(null) }
-        val effectivePosition = sliderPosition ?: positionMs
-        val sliderMax = durationMs.coerceAtLeast(1L)
-        Slider(
-            value = effectivePosition.toFloat().coerceIn(0f, sliderMax.toFloat()),
-            onValueChange = { sliderPosition = it.toLong() },
-            onValueChangeFinished = {
-                sliderPosition?.let { onSeek(it) }
-                sliderPosition = null
-            },
-            valueRange = 0f..sliderMax.toFloat(),
-            modifier = Modifier.widthIn(max = contentWidth).fillMaxWidth(),
-        )
-        Row(Modifier.widthIn(max = contentWidth).fillMaxWidth()) {
-            Text(
-                formatTime(effectivePosition),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.weight(1f))
-            Text(
-                formatTime(durationMs),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Transport controls: shuffle / previous / play / next / repeat.
-        Row(
-            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(onClick = onToggleShuffle) {
-                Icon(
-                    Icons.Filled.Shuffle,
-                    contentDescription = Localization.get(language, "shuffle"),
-                    tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-            IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
-                Icon(
-                    Icons.Filled.SkipPrevious,
-                    contentDescription = Localization.get(language, "previous"),
-                    modifier = Modifier.size(36.dp),
-                )
-            }
-            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
-                Icon(
-                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
-                    modifier = Modifier.size(40.dp),
-                )
-            }
-            IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
-                Icon(
-                    Icons.Filled.SkipNext,
-                    contentDescription = Localization.get(language, "next"),
-                    modifier = Modifier.size(36.dp),
-                )
-            }
-            IconButton(onClick = onCycleRepeat) {
-                Icon(
-                    repeatIcon(repeatMode),
-                    contentDescription = Localization.get(language, "repeat"),
-                    tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Volume.
+        // Two-column layout: compact artwork on the left, controls on the right.
         Row(
             Modifier.widthIn(max = contentWidth).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(40.dp),
         ) {
-            Icon(
-                volumeIcon(volume),
-                contentDescription = Localization.get(language, "volume"),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Spacer(Modifier.width(8.dp))
-            Slider(
-                value = volume.coerceIn(0f, 1f),
-                onValueChange = onVolume,
-                valueRange = 0f..1f,
-                modifier = Modifier.weight(1f),
-            )
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        // Secondary actions.
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            OutlinedButton(onClick = onOpenLyrics) {
-                Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(Localization.get(language, "lyrics"))
+            // Left: smaller artwork + title/artist.
+            Column(
+                Modifier.widthIn(max = 240.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Box(Modifier.shadow(16.dp, RoundedCornerShape(12.dp))) {
+                    Thumbnail(np.thumbnail, Modifier.size(200.dp))
+                }
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    np.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    np.artist,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-            OutlinedButton(onClick = onOpenQueue) {
-                Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text("${Localization.get(language, "queue")} ($queueSize)")
+
+            // Right: seek bar + transport controls + volume + secondary actions.
+            Column(Modifier.weight(1f)) {
+                // Seek slider (position / duration).
+                var sliderPosition by remember(np.videoId) { mutableStateOf<Long?>(null) }
+                val effectivePosition = sliderPosition ?: positionMs
+                val sliderMax = durationMs.coerceAtLeast(1L)
+                Slider(
+                    value = effectivePosition.toFloat().coerceIn(0f, sliderMax.toFloat()),
+                    onValueChange = { sliderPosition = it.toLong() },
+                    onValueChangeFinished = {
+                        sliderPosition?.let { onSeek(it) }
+                        sliderPosition = null
+                    },
+                    valueRange = 0f..sliderMax.toFloat(),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Row(Modifier.fillMaxWidth()) {
+                    Text(
+                        formatTime(effectivePosition),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        formatTime(durationMs),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Transport controls: shuffle / previous / play / next / repeat.
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    IconButton(onClick = onToggleShuffle) {
+                        Icon(
+                            Icons.Filled.Shuffle,
+                            contentDescription = Localization.get(language, "shuffle"),
+                            tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
+                        Icon(
+                            Icons.Filled.SkipPrevious,
+                            contentDescription = Localization.get(language, "previous"),
+                            modifier = Modifier.size(36.dp),
+                        )
+                    }
+                    FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
+                        Icon(
+                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
+                            modifier = Modifier.size(40.dp),
+                        )
+                    }
+                    IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
+                        Icon(
+                            Icons.Filled.SkipNext,
+                            contentDescription = Localization.get(language, "next"),
+                            modifier = Modifier.size(36.dp),
+                        )
+                    }
+                    IconButton(onClick = onCycleRepeat) {
+                        Icon(
+                            repeatIcon(repeatMode),
+                            contentDescription = Localization.get(language, "repeat"),
+                            tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Volume.
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        volumeIcon(volume),
+                        contentDescription = Localization.get(language, "volume"),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Slider(
+                        value = volume.coerceIn(0f, 1f),
+                        onValueChange = onVolume,
+                        valueRange = 0f..1f,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Secondary actions.
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(onClick = onOpenLyrics) {
+                        Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(Localization.get(language, "lyrics"))
+                    }
+                    OutlinedButton(onClick = onOpenQueue) {
+                        Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("${Localization.get(language, "queue")} ($queueSize)")
+                    }
+                }
             }
         }
 
