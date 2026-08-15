@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -142,14 +143,21 @@ class DesktopSyncManager {
             _lanRunning.value = true
             _lanAddress.value = "ws://${lanIpAddress()}:$port"
             connect("ws://localhost:$port")
-            // Wait for the local client to actually connect before requesting the
-            // code: requesting earlier races the relay startup and can leave the
-            // code never generated.
             val c = client ?: return@launch
-            val connected = withTimeoutOrNull(15_000L) {
-                c.connectionState.first { it == SyncConnectionState.CONNECTED }
+            // Wait for the local client to connect, then request the code.
+            // Retry a few times so a startup race (relay still binding, or the
+            // request landing before the session is ready) can't leave the code
+            // missing right after "Start LAN server".
+            repeat(5) {
+                if (_pairCode.value.isNotEmpty()) return@launch
+                withTimeoutOrNull(3_000L) {
+                    c.connectionState.first { it == SyncConnectionState.CONNECTED }
+                }
+                if (c.connectionState.value == SyncConnectionState.CONNECTED) {
+                    requestPairingCode()
+                }
+                delay(1_000L)
             }
-            if (connected != null) requestPairingCode()
         }
     }
 

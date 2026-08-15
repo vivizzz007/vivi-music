@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.0_DE-1.32.1] - 2026-08-16
+
+### Fixed
+
+- [DE] "Start LAN server" now retries the pairing-code request until the relay
+  answers, so the 6-digit code is generated automatically and reliably right
+  after starting the server.
+
 ## [6.4.0_DE-1.32.0] - 2026-08-16
 
 ### Added
