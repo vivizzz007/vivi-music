@@ -11,6 +11,24 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.17.1] - 2026-08-15
+
+### Fixed
+
+- [DE] Fixed desktop audio not playing: the player reused a stale cache file when
+  switching tracks, silently swallowed every decode/download/audio-device error
+  (so playback stopped with no message), and did not verify the downloaded file.
+  Failures now surface a clear reason in the player, and the decode pipeline is
+  more robust.
+- [DE] The app now closes itself right after launching an update installer so the
+  installer can replace the running files (updates could not install otherwise).
+
+### Changed
+
+- [DE] The About → Changelog screen now fetches `CHANGELOG.md` live from the
+  repository (falling back to the bundled copy when offline), so it always shows
+  the current changelog without waiting for a new build.
+
 ## [6.2.0_DE-1.17.0] - 2026-08-15
 
 ### Added

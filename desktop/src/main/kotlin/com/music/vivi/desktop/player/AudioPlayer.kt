@@ -22,11 +22,14 @@ import javax.sound.sampled.SourceDataLine
  * Caching to a seekable file is what unlocks duration reporting and seek:
  * `Movie.getDuration()` and re-reading from a random position both need a
  * `RandomAccessFile`-backed container (streaming `InputStream`s can't seek).
+ *
+ * Every failure stage reports a human-readable message through [onError]
+ * instead of failing silently, so playback problems are visible in the UI.
  */
 class AudioPlayer {
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
         .build()
 
     private val cacheDir =
@@ -46,18 +49,18 @@ class AudioPlayer {
 
     private var onPosition: ((Long) -> Unit)? = null
     private var onDuration: ((Long) -> Unit)? = null
+    private var onError: ((String) -> Unit)? = null
     private var onComplete: (() -> Unit)? = null
 
     private var currentUrl: String? = null
     private var currentCacheKey: String? = null
-    @Volatile private var currentFile: File? = null
 
     /**
      * Starts playing [url] on a background thread. [cacheKey] names the local
      * cache file (use a stable id such as the videoId so repeats/seeks don't
      * re-download). [onPosition] reports decoded position, [onDuration] the
-     * total track length, and [onComplete] fires when the stream ends or is
-     * stopped.
+     * total track length, [onError] a human-readable failure reason, and
+     * [onComplete] fires when the stream ends or is stopped.
      */
     fun play(
         url: String,
@@ -66,10 +69,12 @@ class AudioPlayer {
         startPaused: Boolean = false,
         onPosition: (Long) -> Unit,
         onDuration: (Long) -> Unit,
+        onError: (String) -> Unit,
         onComplete: () -> Unit,
     ) {
         this.onPosition = onPosition
         this.onDuration = onDuration
+        this.onError = onError
         this.onComplete = onComplete
         startDecode(url, cacheKey, startAtMs, startPaused)
     }
@@ -121,10 +126,12 @@ class AudioPlayer {
 
         thread = Thread {
             try {
-                val file = currentFile ?: ensureDownloaded(url, cacheKey)
+                val file = ensureDownloaded(url, cacheKey)
                 decodeAndPlay(file, gen, startAtMs)
-            } catch (_: Exception) {
-                // fall through to onComplete
+            } catch (e: Exception) {
+                if (gen == generation) {
+                    onError?.invoke(e.message ?: e::class.simpleName ?: "Unknown playback error")
+                }
             } finally {
                 if (gen == generation) onComplete?.invoke()
             }
@@ -138,10 +145,7 @@ class AudioPlayer {
     private fun ensureDownloaded(url: String, cacheKey: String): File {
         val safe = cacheKey.replace(Regex("[^A-Za-z0-9._-]"), "_")
         val file = File(cacheDir, "$safe.m4a")
-        if (file.exists() && file.length() > 0) {
-            currentFile = file
-            return file
-        }
+        if (file.exists() && file.length() > 0) return file
         val part = File(cacheDir, "$safe.m4a.part")
         if (part.exists()) part.delete()
 
@@ -151,30 +155,38 @@ class AudioPlayer {
             .build()
 
         client.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-            val body = response.body ?: throw IOException("Empty response body")
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code} downloading audio")
+            val body = response.body ?: throw IOException("Empty audio response body")
             part.outputStream().use { out -> body.byteStream().copyTo(out) }
         }
 
-        currentFile = if (part.renameTo(file)) file else part
-        return currentFile!!
+        if (part.length() <= 0) {
+            part.delete()
+            throw IOException("Downloaded audio file is empty")
+        }
+        if (!part.renameTo(file)) {
+            part.copyTo(file, overwrite = true)
+            part.delete()
+        }
+        return file
     }
 
     private fun decodeAndPlay(file: File, gen: Int, startAtMs: Long) {
         RandomAccessFile(file, "r").use { raf ->
             val container = MP4Container(raf)
-            val movie = container.movie ?: return
-            val track = movie.tracks.firstOrNull { it is AudioTrack } as? AudioTrack ?: return
+            val movie = container.movie ?: throw IOException("No MP4 movie found in audio file")
+            val track = movie.tracks.firstOrNull { it is AudioTrack } as? AudioTrack
+                ?: throw IOException("No AAC audio track found in file")
 
             runCatching { movie.getDuration() }
                 .getOrNull()
                 ?.takeIf { it > 0 }
                 ?.let { seconds -> if (gen == generation) onDuration?.invoke((seconds * 1000).toLong()) }
 
-            val decoder = Decoder(track.decoderSpecificInfo)
+            val decoder = Decoder(track.getDecoderSpecificInfo())
             val buffer = SampleBuffer()
 
-            var frame = track.readNextFrame() ?: return
+            var frame = track.readNextFrame() ?: throw IOException("No audio frames to decode")
             decoder.decodeFrame(frame.data, buffer)
 
             val format = AudioFormat(
@@ -184,7 +196,8 @@ class AudioPlayer {
                 true,
                 buffer.isBigEndian,
             )
-            val out = AudioSystem.getSourceDataLine(format) ?: return
+            val out = AudioSystem.getSourceDataLine(format)
+                ?: throw IOException("No audio output device supports $format")
             line = out
             out.open(format, 8192)
             out.start()
@@ -203,7 +216,12 @@ class AudioPlayer {
                         } else {
                             buffer.data
                         }
-                        out.write(data, 0, data.size)
+                        var written = 0
+                        while (written < data.size) {
+                            val n = out.write(data, written, data.size - written)
+                            if (n <= 0) break
+                            written += n
+                        }
                     }
                     if (gen == generation) {
                         onPosition?.invoke(((elapsedSeconds + buffer.length) * 1000).toLong())

@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.music.innertube.YouTube
+import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YouTubeLocale
@@ -385,6 +386,7 @@ fun App(
                         isShuffle = playerState.isShuffle,
                         repeatMode = playerState.repeatMode,
                         errorKey = playerState.errorKey,
+                        errorDetail = playerState.errorDetail,
                         onTogglePlay = { player.toggle() },
                         onNext = { player.next() },
                         onPrevious = { player.previous() },
@@ -875,7 +877,13 @@ fun UpdateSection(
                     Button(
                         onClick = {
                             openError = null
-                            if (!openFile(downloadedFile!!)) openError = Localization.get(language, "open_failed")
+                            if (openFile(downloadedFile!!)) {
+                                // The app must close so the installer can replace
+                                // the running files (updates cannot install otherwise).
+                                exitProcess(0)
+                            } else {
+                                openError = Localization.get(language, "open_failed")
+                            }
                         },
                         modifier = Modifier.padding(top = 4.dp),
                     ) {

@@ -24,6 +24,8 @@ data class PlayerState(
     val repeatMode: RepeatMode = RepeatMode.OFF,
     /** Localization key shown when stream resolution fails. */
     val errorKey: String? = null,
+    /** Human-readable technical detail for playback failures. */
+    val errorDetail: String? = null,
 ) {
     val current: NowPlaying? get() = queue.getOrNull(index)
 }
@@ -226,16 +228,23 @@ class PlayerController {
 
             val url = StreamResolver.resolveAacUrl(track.videoId)
             if (url == null) {
-                _state.update { it.copy(isPlaying = false, errorKey = "stream_error") }
+                _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
                 return@launch
             }
-            _state.update { it.copy(errorKey = null) }
+            _state.update { it.copy(errorKey = null, errorDetail = null) }
 
             player.play(
                 url = url,
                 cacheKey = track.videoId,
                 startAtMs = startAtMs,
                 startPaused = startPaused,
+                onError = { msg ->
+                    _state.update { s ->
+                        if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
+                            s.copy(isPlaying = false, errorDetail = msg)
+                        } else s
+                    }
+                },
                 onPosition = { pos ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {

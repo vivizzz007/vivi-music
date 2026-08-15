@@ -74,6 +74,7 @@ fun PlayerScreen(
     isShuffle: Boolean,
     repeatMode: RepeatMode,
     errorKey: String?,
+    errorDetail: String?,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -113,6 +114,7 @@ fun PlayerScreen(
                 isShuffle = isShuffle,
                 repeatMode = repeatMode,
                 errorKey = errorKey,
+                errorDetail = errorDetail,
                 onTogglePlay = onTogglePlay,
                 onNext = onNext,
                 onPrevious = onPrevious,
@@ -139,6 +141,7 @@ private fun PlayerContent(
     isShuffle: Boolean,
     repeatMode: RepeatMode,
     errorKey: String?,
+    errorDetail: String?,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -316,14 +319,24 @@ private fun PlayerContent(
             }
         }
 
-        if (errorKey != null) {
+        if (errorKey != null || errorDetail != null) {
             Spacer(Modifier.height(16.dp))
-            Text(
-                Localization.get(language, errorKey),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
-                textAlign = TextAlign.Center,
-            )
+            if (errorKey != null) {
+                Text(
+                    Localization.get(language, errorKey),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
+            if (errorDetail != null) {
+                Text(
+                    errorDetail,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                )
+            }
         }
     }
 }

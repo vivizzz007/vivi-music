@@ -49,6 +49,7 @@ sealed interface UpdateStatus {
  */
 object UpdateChecker {
     private const val REPO = "PiBOH/vivi-music"
+    private const val DEFAULT_BRANCH = "vivi-music-de"
     private const val API_URL = "https://api.github.com/repos/$REPO/releases"
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -132,6 +133,25 @@ object UpdateChecker {
             .filter { !it.prerelease || includePreReleases }
             .mapNotNull { r -> deVersionFromTag(r.tagName)?.let { it to r } }
             .maxWithOrNull { a, b -> compareVersions(a.first, b.first) }
+
+    /**
+     * Fetches the live CHANGELOG.md straight from the repository (default
+     * branch), so the About → Changelog screen always shows the current
+     * changelog without waiting for a new app build. Returns null on any
+     * failure.
+     */
+    fun fetchChangelogFromRepo(): String? = try {
+        val request = Request.Builder()
+            .url("https://raw.githubusercontent.com/$REPO/$DEFAULT_BRANCH/CHANGELOG.md")
+            .header("User-Agent", "VIVIMusic-Desktop-Updater")
+            .build()
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return null
+            response.body.string().takeIf { it.isNotBlank() }
+        }
+    } catch (_: Exception) {
+        null
+    }
 
     /**
      * Fetches the release notes (body) of the latest GitHub release, used by

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,11 +36,13 @@ object ChangelogLoader {
  */
 @Composable
 fun ChangelogScreen(language: String, onBack: () -> Unit) {
-    var releaseNotes by remember { mutableStateOf<String?>(null) }
-    val local = remember { ChangelogLoader.fromResources() }
+    var repoChangelog by remember { mutableStateOf<String?>(null) }
+    val bundled = remember { ChangelogLoader.fromResources() }
 
+    // Prefer the live CHANGELOG.md from the repository; fall back to the
+    // copy bundled with the app when offline.
     LaunchedEffect(Unit) {
-        releaseNotes = withContext(Dispatchers.IO) { UpdateChecker.latestReleaseNotes() }
+        repoChangelog = withContext(Dispatchers.IO) { UpdateChecker.fetchChangelogFromRepo() }
     }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
@@ -56,23 +57,14 @@ fun ChangelogScreen(language: String, onBack: () -> Unit) {
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 8.dp),
         ) {
-            if (!releaseNotes.isNullOrBlank()) {
-                Text(
-                    Localization.get(language, "latest_release"),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
-                MarkdownLite(releaseNotes!!)
-                HorizontalDivider(Modifier.padding(vertical = 12.dp))
-            }
-            if (local.isNullOrBlank()) {
-                Text(
+            when {
+                !repoChangelog.isNullOrBlank() -> MarkdownLite(repoChangelog!!)
+                bundled.isNullOrBlank() -> Text(
                     Localization.get(language, "changelog_unavailable"),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            } else {
-                MarkdownLite(local)
+                else -> MarkdownLite(bundled)
             }
         }
     }
