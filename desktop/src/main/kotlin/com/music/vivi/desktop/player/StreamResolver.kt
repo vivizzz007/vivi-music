@@ -1,5 +1,6 @@
 package com.music.vivi.desktop.player
 
+import com.music.vivi.desktop.GuestSession
 import com.music.innertube.NewPipeExtractor
 import com.music.innertube.YouTube
 import com.music.innertube.YouTubeExtractor
@@ -85,6 +86,21 @@ object StreamResolver {
      * prevents playback when another source works.
      */
     suspend fun resolveAacStream(videoId: String, quality: AudioQuality = AudioQuality.AUTO): List<ResolvedStream> {
+        GuestSession.ensure()
+        var resolution = resolveOnce(videoId, quality)
+        // Bot detection: when no candidate URL passed validation, YouTube likely
+        // flagged the guest identity — rotate it and retry once (mirrors the
+        // Android BotDetectionMitigator).
+        if (!resolution.anyValidated) {
+            GuestSession.rotate()
+            resolution = resolveOnce(videoId, quality)
+        }
+        return resolution.streams
+    }
+
+    private data class Resolution(val streams: List<ResolvedStream>, val anyValidated: Boolean)
+
+    private suspend fun resolveOnce(videoId: String, quality: AudioQuality): Resolution {
         val candidates = mutableListOf<ResolvedStream>()
 
         // 1) NewPipe — handles the signature cipher and returns already-playable
@@ -128,7 +144,7 @@ object StreamResolver {
             if (validateUrl(url, ytClient.userAgent)) validated += stream else unvalidated += stream
         }
 
-        return candidates + validated + unvalidated
+        return Resolution(candidates + validated + unvalidated, validated.isNotEmpty())
     }
 
     /** Picks the best AAC format from a successful player response and resolves its URL. */

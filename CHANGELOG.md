@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.1] - 2026-08-15
+
+### Fixed
+
+- [DE] Audio playback no longer fails with "HTTP 403 downloading audio": the
+  desktop now keeps a fresh guest `visitorData` (like the Android app) and
+  rotates it once when YouTube flags the request as a bot, so the googlevideo
+  CDN stops rejecting the resolved stream URLs.
+
 ## [6.2.2_DE-1.28.0] - 2026-08-15
 
 ### Added

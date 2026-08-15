@@ -199,6 +199,10 @@ fun App(
     var autoPlayNext by remember { mutableStateOf(DesktopSettings.load().autoPlayNext) }
     player.autoPlayNext = autoPlayNext
 
+    // Guest sessions need a visitorData (like the Android app) or YouTube flags
+    // the requests as bots and 403s audio playback.
+    LaunchedEffect(Unit) { GuestSession.ensure() }
+
     var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
     var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
     var sidebarCollapsed by remember { mutableStateOf(DesktopSettings.load().sidebarCollapsed) }
