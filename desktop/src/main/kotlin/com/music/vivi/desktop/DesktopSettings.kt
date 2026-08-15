@@ -32,6 +32,15 @@ data class DesktopSyncState(
     val contentLanguage: String = "",
     val contentCountry: String = "",
     val syncedLyrics: Boolean = true,
+    val pureBlack: Boolean = false,
+    val audioQuality: String = "auto",
+    val rememberShuffleRepeat: Boolean = false,
+    val isShuffle: Boolean = false,
+    val repeatModeKey: String = "OFF",
+    val persistentQueue: Boolean = true,
+    val queueJson: String = "",
+    val queueIndex: Int = 0,
+    val lyricsTextSize: Float = 18f,
 )
 
 object DesktopSettings {

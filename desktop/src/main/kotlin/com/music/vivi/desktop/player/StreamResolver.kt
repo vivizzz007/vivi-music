@@ -25,6 +25,23 @@ import java.util.concurrent.TimeUnit
  */
 object StreamResolver {
 
+    /**
+     * Audio quality: picks the preferred AAC-LC itag. `139` (HE-AAC) and `251`
+     * (Opus) are deliberately excluded because the JAAD decoder cannot decode
+     * them. `AUTO`/`HIGH` prefer 256 kbps (itag 141), `LOW` prefers 128 kbps
+     * (itag 140).
+     */
+    enum class AudioQuality(val preferredItags: List<Int>) {
+        AUTO(listOf(141, 140)),
+        HIGH(listOf(141, 140)),
+        LOW(listOf(140, 141));
+
+        companion object {
+            fun from(key: String?): AudioQuality =
+                entries.firstOrNull { it.name.equals(key, ignoreCase = true) } ?: AUTO
+        }
+    }
+
     /** A resolved stream URL plus the User-Agent required to download it. */
     data class ResolvedStream(val url: String, val userAgent: String)
 
@@ -60,15 +77,14 @@ object StreamResolver {
      * resolved. Callers should invoke this from a background coroutine: the
      * NewPipe path is blocking and the player path performs network I/O.
      */
-    suspend fun resolveAacStream(videoId: String): ResolvedStream? {
+    suspend fun resolveAacStream(videoId: String, quality: AudioQuality = AudioQuality.AUTO): ResolvedStream? {
         // 1) NewPipe — handles signature cipher and returns already-playable
         //    stream URLs when its extractor is not bot-blocked. These URLs are
         //    served to NewPipe's Firefox UA, so keep that UA for the download.
         val newPipeUrl = withContext(Dispatchers.IO) {
             runCatching {
-                YouTube.getNewPipeStreamUrls(videoId)
-                    .firstOrNull { it.first == 140 }
-                    ?.second
+                val urls = YouTube.getNewPipeStreamUrls(videoId)
+                quality.preferredItags.firstNotNullOfOrNull { tag -> urls.firstOrNull { it.first == tag }?.second }
             }.getOrNull()
         }
         if (!newPipeUrl.isNullOrBlank()) {
@@ -96,7 +112,7 @@ object StreamResolver {
                 ?: continue
             if (response.playabilityStatus.status != "OK") continue
 
-            val url = resolveFromResponse(response) ?: continue
+            val url = resolveFromResponse(response, quality.preferredItags) ?: continue
             val stream = ResolvedStream(url, ytClient.userAgent)
             if (firstResolved == null) firstResolved = stream
             if (validateUrl(url, ytClient.userAgent)) return stream
@@ -106,16 +122,14 @@ object StreamResolver {
     }
 
     /** Picks the best AAC format from a successful player response and resolves its URL. */
-    private fun resolveFromResponse(response: PlayerResponse): String? {
+    private fun resolveFromResponse(response: PlayerResponse, preferredItags: List<Int>): String? {
         val adaptive = response.streamingData?.adaptiveFormats ?: return null
-        val audioFormats = adaptive.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
-        // Prefer AAC-LC (codec mp4a.40.2, itags 140/141): the JAAD decoder handles
+        // Only AAC-LC (codec mp4a.40.2, itags 140/141): the JAAD decoder handles
         // AAC-LC, but fails on HE-AAC/SBR (mp4a.40.5, e.g. itag 139) with a
-        // "FIL element overread" error. Only fall back to other audio/mp4 codecs
-        // (HE-AAC) if no AAC-LC stream exists.
-        val format = audioFormats.firstOrNull { it.mimeType.contains("mp4a.40.2") }
-            ?: audioFormats.firstOrNull()
-            ?: adaptive.filter { it.isAudio && it.isOriginal }.firstOrNull()
+        // "FIL element overread" error. Order by the requested quality's itags.
+        val aacLc = adaptive.filter { it.isAudio && it.isOriginal && it.mimeType.contains("mp4a.40.2") }
+        val format = preferredItags.firstNotNullOfOrNull { tag -> aacLc.firstOrNull { it.itag == tag } }
+            ?: aacLc.firstOrNull()
             ?: return null
 
         val raw = when {

@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.23.0] - 2026-08-15
+
+### Added
+
+- [DE] The settings sub-screens now carry real functionality instead of being
+  empty shells:
+  - **Appearance**: pure black background toggle (true black in dark mode).
+  - **Player & audio**: audio quality (Auto / High 256kbps / Low 128kbps,
+    wired to the itag 141/140 picker), "remember shuffle and repeat" across
+    restarts, and "persistent queue" (the queue is saved and restored between
+    sessions).
+  - **Lyrics**: adjustable lyrics text size.
+
 ## [6.2.1_DE-1.22.1] - 2026-08-15
 
 ### Fixed

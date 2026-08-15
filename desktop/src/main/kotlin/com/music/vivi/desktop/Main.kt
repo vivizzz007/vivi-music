@@ -97,6 +97,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 fun main() = application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does,
@@ -109,15 +112,20 @@ fun main() = application {
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
     var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
     var accent by remember { mutableStateOf(argbIntToColor(DesktopSettings.load().accentColor)) }
+    var pureBlack by remember { mutableStateOf(DesktopSettings.load().pureBlack) }
 
     fun saveTheme() {
         DesktopSettings.save(
-            DesktopSettings.load().copy(darkMode = themeMode.key, accentColor = colorToArgbInt(accent))
+            DesktopSettings.load().copy(
+                darkMode = themeMode.key,
+                accentColor = colorToArgbInt(accent),
+                pureBlack = pureBlack,
+            )
         )
     }
 
     Window(onCloseRequest = ::exitApplication, title = "VIVI Music — desktop") {
-        AppTheme(mode = themeMode, accent = accent) {
+        AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
             // Make all text selectable (copyable) across the whole app:
             // errors, options, settings, LAN server details, etc.
             SelectionContainer {
@@ -143,6 +151,11 @@ fun main() = application {
                             accent = it
                             saveTheme()
                         },
+                        pureBlack = pureBlack,
+                        onPureBlackChange = {
+                            pureBlack = it
+                            saveTheme()
+                        },
                     )
                 }
             }
@@ -158,6 +171,8 @@ fun App(
     accent: Color,
     onThemeModeChange: (ThemeMode) -> Unit,
     onAccentChange: (Color) -> Unit,
+    pureBlack: Boolean,
+    onPureBlackChange: (Boolean) -> Unit,
 ) {
     var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
     val player = remember { PlayerController() }
@@ -174,6 +189,30 @@ fun App(
     var contentLanguage by remember { mutableStateOf(DesktopSettings.load().contentLanguage) }
     var contentCountry by remember { mutableStateOf(DesktopSettings.load().contentCountry) }
     var syncedLyrics by remember { mutableStateOf(DesktopSettings.load().syncedLyrics) }
+    var audioQuality by remember { mutableStateOf(DesktopSettings.load().audioQuality) }
+    var rememberShuffleRepeat by remember { mutableStateOf(DesktopSettings.load().rememberShuffleRepeat) }
+    var persistentQueue by remember { mutableStateOf(DesktopSettings.load().persistentQueue) }
+    var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
+
+    // Persistent queue: restore the saved queue on startup (paused, not auto-played).
+    LaunchedEffect(Unit) {
+        val s = DesktopSettings.load()
+        if (s.persistentQueue && s.queueJson.isNotBlank()) {
+            runCatching { queueJson.decodeFromString<List<NowPlaying>>(s.queueJson) }
+                .getOrNull()
+                ?.let { player.restoreQueue(it, s.queueIndex) }
+        }
+    }
+
+    // Persistent queue: save the queue whenever it changes.
+    LaunchedEffect(playerState.queue, playerState.index, persistentQueue) {
+        if (persistentQueue && playerState.queue.isNotEmpty()) {
+            val s = DesktopSettings.load()
+            DesktopSettings.save(
+                s.copy(queueJson = queueJson.encodeToString(playerState.queue), queueIndex = playerState.index)
+            )
+        }
+    }
 
     val current = backStack.last()
 
@@ -355,6 +394,8 @@ fun App(
                         accent = accent,
                         onThemeModeChange = onThemeModeChange,
                         onAccentChange = onAccentChange,
+                        pureBlack = pureBlack,
+                        onPureBlackChange = onPureBlackChange,
                     )
                     is Screen.SettingsPlayer -> SettingsPlayerScreen(
                         language = language,
@@ -363,6 +404,21 @@ fun App(
                         onToggleAutoPlayNext = { checked ->
                             autoPlayNext = checked
                             DesktopSettings.save(DesktopSettings.load().copy(autoPlayNext = checked))
+                        },
+                        audioQuality = audioQuality,
+                        onAudioQualityChange = { q ->
+                            audioQuality = q
+                            DesktopSettings.save(DesktopSettings.load().copy(audioQuality = q))
+                        },
+                        rememberShuffleRepeat = rememberShuffleRepeat,
+                        onToggleRememberShuffleRepeat = { checked ->
+                            rememberShuffleRepeat = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(rememberShuffleRepeat = checked))
+                        },
+                        persistentQueue = persistentQueue,
+                        onTogglePersistentQueue = { checked ->
+                            persistentQueue = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(persistentQueue = checked))
                         },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
@@ -405,6 +461,11 @@ fun App(
                         onToggleSyncedLyrics = { checked ->
                             syncedLyrics = checked
                             DesktopSettings.save(DesktopSettings.load().copy(syncedLyrics = checked))
+                        },
+                        lyricsTextSize = lyricsTextSize,
+                        onLyricsTextSizeChange = { size ->
+                            lyricsTextSize = size
+                            DesktopSettings.save(DesktopSettings.load().copy(lyricsTextSize = size))
                         },
                     )
                     is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
@@ -506,6 +567,7 @@ fun App(
                         isPlaying = isPlaying,
                         language = language,
                         synced = syncedLyrics,
+                        textSizeSp = lyricsTextSize,
                         onBack = goBack,
                     )
                     is Screen.Queue -> QueueScreen(
@@ -1222,16 +1284,57 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
 }
 
 @Composable
-fun PlayerSection(language: String, autoPlayNext: Boolean, onToggleAutoPlayNext: (Boolean) -> Unit) {
+fun PlayerSection(
+    language: String,
+    autoPlayNext: Boolean,
+    onToggleAutoPlayNext: (Boolean) -> Unit,
+    audioQuality: String,
+    onAudioQualityChange: (String) -> Unit,
+    rememberShuffleRepeat: Boolean,
+    onToggleRememberShuffleRepeat: (Boolean) -> Unit,
+    persistentQueue: Boolean,
+    onTogglePersistentQueue: (Boolean) -> Unit,
+) {
+    var qualityExpanded by remember { mutableStateOf(false) }
+
     Text(Localization.get(language, "player_audio"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+
+    Text(Localization.get(language, "audio_quality"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+    Box(Modifier.padding(top = 8.dp)) {
+        OutlinedButton(onClick = { qualityExpanded = true }) {
+            Text(audioQualityLabel(language, audioQuality))
+        }
+        DropdownMenu(expanded = qualityExpanded, onDismissRequest = { qualityExpanded = false }) {
+            listOf("auto", "high", "low").forEach { q ->
+                DropdownMenuItem(
+                    text = { Text(audioQualityLabel(language, q)) },
+                    onClick = { qualityExpanded = false; onAudioQualityChange(q) },
+                )
+            }
+        }
+    }
+
+    SettingSwitch(language, "autoplay_next", autoPlayNext, onToggleAutoPlayNext)
+    SettingSwitch(language, "remember_shuffle_repeat", rememberShuffleRepeat, onToggleRememberShuffleRepeat)
+    SettingSwitch(language, "persistent_queue", persistentQueue, onTogglePersistentQueue)
+}
+
+@Composable
+private fun SettingSwitch(language: String, key: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Row(
         Modifier.fillMaxWidth().padding(top = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Switch(checked = autoPlayNext, onCheckedChange = onToggleAutoPlayNext)
-        Text(Localization.get(language, "autoplay_next"))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Text(Localization.get(language, key))
     }
+}
+
+private fun audioQualityLabel(language: String, quality: String): String = when (quality) {
+    "high" -> Localization.get(language, "audio_quality_high")
+    "low" -> Localization.get(language, "audio_quality_low")
+    else -> Localization.get(language, "audio_quality_auto")
 }
 
 private fun dirSize(dir: File): Long =
@@ -1274,6 +1377,9 @@ fun StorageSection(language: String) {
         modifier = Modifier.padding(top = 8.dp),
     ) { Text(Localization.get(language, "clear_cache")) }
 }
+
+/** JSON codec for persisting the queue between sessions. */
+private val queueJson = Json { ignoreUnknownKeys = true }
 
 /** Key used to detect discrete playback changes worth syncing (no per-frame pushes). */
 private data class PlaybackSyncKey(

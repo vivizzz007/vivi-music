@@ -139,6 +139,14 @@ MAPPING = {
     "filter_playlists": "filter_featured_playlists",
     "no_results_found": "no_results_found",
     "suggestions": "suggestions",
+    "pure_black": "pure_black",
+    "audio_quality": "audio_quality",
+    "audio_quality_auto": "audio_quality_auto",
+    "audio_quality_high": "audio_quality_high",
+    "audio_quality_low": "audio_quality_low",
+    "remember_shuffle_repeat": "remember_shuffle_and_repeat",
+    "persistent_queue": "persistent_queue",
+    "lyrics_text_size": "lyrics_text_size",
     # vivi_strings.xml
     "lyrics": "lyrics",
     "now_playing": "now_playing",
@@ -289,6 +297,14 @@ ENGLISH = {
     "no_results_found": "No results found",
     "suggestions": "Suggestions",
     "shuffle_all": "Shuffle all",
+    "pure_black": "Pure black",
+    "audio_quality": "Audio quality",
+    "audio_quality_auto": "Auto",
+    "audio_quality_high": "High",
+    "audio_quality_low": "Low",
+    "remember_shuffle_repeat": "Remember shuffle and repeat",
+    "persistent_queue": "Persistent queue",
+    "lyrics_text_size": "Lyrics text size",
 }
 
 

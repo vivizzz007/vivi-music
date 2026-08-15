@@ -264,9 +264,11 @@ fun SettingsAppearanceScreen(
     accent: androidx.compose.ui.graphics.Color,
     onThemeModeChange: (ThemeMode) -> Unit,
     onAccentChange: (androidx.compose.ui.graphics.Color) -> Unit,
+    pureBlack: Boolean,
+    onPureBlackChange: (Boolean) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
-        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange)
+        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange, pureBlack, onPureBlackChange)
     }
 }
 
@@ -276,8 +278,26 @@ fun SettingsPlayerScreen(
     onBack: () -> Unit,
     autoPlayNext: Boolean,
     onToggleAutoPlayNext: (Boolean) -> Unit,
+    audioQuality: String,
+    onAudioQualityChange: (String) -> Unit,
+    rememberShuffleRepeat: Boolean,
+    onToggleRememberShuffleRepeat: (Boolean) -> Unit,
+    persistentQueue: Boolean,
+    onTogglePersistentQueue: (Boolean) -> Unit,
 ) {
-    SettingsSubScreen(language, onBack) { PlayerSection(language, autoPlayNext, onToggleAutoPlayNext) }
+    SettingsSubScreen(language, onBack) {
+        PlayerSection(
+            language,
+            autoPlayNext,
+            onToggleAutoPlayNext,
+            audioQuality,
+            onAudioQualityChange,
+            rememberShuffleRepeat,
+            onToggleRememberShuffleRepeat,
+            persistentQueue,
+            onTogglePersistentQueue,
+        )
+    }
 }
 
 @Composable
@@ -336,8 +356,17 @@ fun SettingsContentScreen(
 }
 
 @Composable
-fun SettingsLyricsScreen(language: String, onBack: () -> Unit, syncedLyrics: Boolean, onToggleSyncedLyrics: (Boolean) -> Unit) {
-    SettingsSubScreen(language, onBack) { LyricsSection(language, syncedLyrics, onToggleSyncedLyrics) }
+fun SettingsLyricsScreen(
+    language: String,
+    onBack: () -> Unit,
+    syncedLyrics: Boolean,
+    onToggleSyncedLyrics: (Boolean) -> Unit,
+    lyricsTextSize: Float,
+    onLyricsTextSizeChange: (Float) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        LyricsSection(language, syncedLyrics, onToggleSyncedLyrics, lyricsTextSize, onLyricsTextSizeChange)
+    }
 }
 
 @Composable
@@ -398,9 +427,15 @@ fun ContentSection(
     }
 }
 
-/** Lyrics section: synced (line-by-line) highlighting toggle. */
+/** Lyrics section: synced (line-by-line) highlighting toggle + text size. */
 @Composable
-fun LyricsSection(language: String, syncedLyrics: Boolean, onToggleSyncedLyrics: (Boolean) -> Unit) {
+fun LyricsSection(
+    language: String,
+    syncedLyrics: Boolean,
+    onToggleSyncedLyrics: (Boolean) -> Unit,
+    lyricsTextSize: Float,
+    onLyricsTextSizeChange: (Float) -> Unit,
+) {
     Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Row(
         Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -417,6 +452,18 @@ fun LyricsSection(language: String, syncedLyrics: Boolean, onToggleSyncedLyrics:
             )
         }
     }
+
+    Text(
+        "${Localization.get(language, "lyrics_text_size")}: ${lyricsTextSize.toInt()} sp",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    androidx.compose.material3.Slider(
+        value = lyricsTextSize,
+        onValueChange = onLyricsTextSizeChange,
+        valueRange = 12f..32f,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 /** Privacy section: clear the local session, cache and downloaded installers. */

@@ -54,9 +54,11 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.desktop.player.RepeatMode
@@ -536,6 +538,7 @@ fun LyricsScreen(
     isPlaying: Boolean,
     language: String,
     synced: Boolean = true,
+    textSizeSp: Float = 18f,
     onBack: () -> Unit,
 ) {
     var lyrics by remember { mutableStateOf<String?>(null) }
@@ -580,7 +583,11 @@ fun LyricsScreen(
                         Modifier.verticalScroll(rememberScrollState()).padding(top = 8.dp),
                     ) {
                         cleanLyrics(lyrics!!).forEach { line ->
-                            Text(line, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                            Text(
+                                line,
+                                fontSize = textSizeSp.sp,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                            )
                         }
                     }
                 } else {
@@ -610,7 +617,8 @@ fun LyricsScreen(
                             val isCurrent = i == currentIndex
                             Text(
                                 line.text,
-                                style = if (isCurrent) MaterialTheme.typography.titleLarge else MaterialTheme.typography.bodyLarge,
+                                fontSize = if (isCurrent) (textSizeSp + 4).sp else textSizeSp.sp,
+                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 6.dp),
                             )

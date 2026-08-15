@@ -1,5 +1,7 @@
 package com.music.vivi.desktop
 
+import kotlinx.serialization.Serializable
+
 /**
  * Desktop navigation destinations. The top-level entries (Home, Search,
  * Library, Settings) live in the sidebar; the others are pushed onto a simple
@@ -40,9 +42,10 @@ sealed interface Screen {
  * Lyrics screens. Actual audio playback lands in Phase 4; until then this only
  * drives the UI.
  */
+@Serializable
 data class NowPlaying(
     val videoId: String,
     val title: String,
     val artist: String,
-    val thumbnail: String?,
+    val thumbnail: String? = null,
 )

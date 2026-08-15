@@ -82,6 +82,7 @@ fun argbIntToColor(argb: Int): Color = Color(
 fun AppTheme(
     mode: ThemeMode,
     accent: Color,
+    pureBlack: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val useDark = when (mode) {
@@ -97,15 +98,21 @@ fun AppTheme(
         specVersion = ColorSpec.SpecVersion.SPEC_2025,
         style = PaletteStyle.TonalSpot,
     )
-    MaterialTheme(colorScheme = colorScheme) {
+    // "Pure black" replaces the tonal dark surfaces with a true black background.
+    val effective = if (pureBlack && useDark) {
+        colorScheme.copy(background = Color.Black, surface = Color.Black)
+    } else {
+        colorScheme
+    }
+    MaterialTheme(colorScheme = effective) {
         // Material3's MaterialTheme does NOT set LocalContentColor, so any Text
         // without an explicit color would fall back to the default (black) and
         // never adapt to the theme. Provide it explicitly so text follows the
         // onBackground color, then paint the whole window with the theme
         // background (otherwise the native light window shows through in dark
         // mode).
-        CompositionLocalProvider(LocalContentColor provides colorScheme.onBackground) {
-            Box(Modifier.fillMaxSize().background(colorScheme.background)) {
+        CompositionLocalProvider(LocalContentColor provides effective.onBackground) {
+            Box(Modifier.fillMaxSize().background(effective.background)) {
                 content()
             }
         }
@@ -140,6 +147,8 @@ fun AppearanceSection(
     accent: Color,
     onModeChange: (ThemeMode) -> Unit,
     onAccentChange: (Color) -> Unit,
+    pureBlack: Boolean = false,
+    onPureBlackChange: (Boolean) -> Unit = {},
 ) {
     Text(Localization.get(language, "appearance"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -189,5 +198,15 @@ fun AppearanceSection(
                 onClick = { onAccentChange(entry.color) },
             )
         }
+    }
+
+    // Pure black background in dark mode.
+    Row(
+        Modifier.fillMaxWidth().padding(top = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        androidx.compose.material3.Switch(checked = pureBlack, onCheckedChange = onPureBlackChange)
+        Text(Localization.get(language, "pure_black"))
     }
 }

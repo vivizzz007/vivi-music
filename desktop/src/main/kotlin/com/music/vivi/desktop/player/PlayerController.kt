@@ -1,5 +1,6 @@
 package com.music.vivi.desktop.player
 
+import com.music.vivi.desktop.DesktopSettings
 import com.music.vivi.desktop.NowPlaying
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +46,17 @@ class PlayerController {
 
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
+
+    init {
+        // Restore the saved shuffle/repeat state when "remember" is enabled.
+        val s = DesktopSettings.load()
+        if (s.rememberShuffleRepeat) {
+            _state.value = PlayerState(
+                isShuffle = s.isShuffle,
+                repeatMode = repeatModeFromKey(s.repeatModeKey),
+            )
+        }
+    }
 
     /** Monotonic token identifying the active play session. */
     private var playToken = 0
@@ -184,6 +196,7 @@ class PlayerController {
         val newShuffle = !s.isShuffle
         if (!newShuffle) previousStack.clear()
         _state.update { it.copy(isShuffle = newShuffle) }
+        persistShuffleRepeat()
     }
 
     fun cycleRepeatMode() {
@@ -194,6 +207,22 @@ class PlayerController {
             RepeatMode.ONE -> RepeatMode.OFF
         }
         _state.update { it.copy(repeatMode = next) }
+        persistShuffleRepeat()
+    }
+
+    /** Restores a saved queue without starting playback (persistent queue). */
+    fun restoreQueue(tracks: List<NowPlaying>, index: Int) {
+        if (tracks.isEmpty()) return
+        playToken++
+        player.stop()
+        _state.update {
+            it.copy(
+                queue = tracks,
+                index = index.coerceIn(0, tracks.lastIndex),
+                isPlaying = false,
+                positionMs = 0L,
+            )
+        }
     }
 
     /**
@@ -226,7 +255,10 @@ class PlayerController {
                 repeatMode = _state.value.repeatMode,
             )
 
-            val stream = StreamResolver.resolveAacStream(track.videoId)
+            val stream = StreamResolver.resolveAacStream(
+                track.videoId,
+                StreamResolver.AudioQuality.from(DesktopSettings.load().audioQuality),
+            )
             if (stream == null) {
                 _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
                 return@launch
@@ -301,4 +333,19 @@ class PlayerController {
         while (idx == exclude) idx = Random.nextInt(size)
         return idx
     }
+
+    private fun persistShuffleRepeat() {
+        val s = DesktopSettings.load()
+        if (s.rememberShuffleRepeat) {
+            DesktopSettings.save(
+                s.copy(
+                    isShuffle = _state.value.isShuffle,
+                    repeatModeKey = _state.value.repeatMode.name,
+                )
+            )
+        }
+    }
+
+    private fun repeatModeFromKey(key: String): RepeatMode =
+        runCatching { RepeatMode.valueOf(key) }.getOrDefault(RepeatMode.OFF)
 }
