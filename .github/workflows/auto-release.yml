@@ -39,13 +39,21 @@ jobs:
     uses: ./.github/workflows/build-desktop-macos.yml
     secrets: inherit
 
+  build-android:
+    name: Android APK
+    # Best-effort: builds the APK from this branch so it always ships with the
+    # desktop release, regardless of whether the mobile CI (release.yml on
+    # `main`) has already published a matching v<mobile> release.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-android.yml
+    secrets: inherit
+
   release:
     name: Publish GitHub Release
-    needs: [ build-windows, build-linux, build-macos ]
-    # Only the three desktop builds are required. The mobile APKs are attached
-    # best-effort by downloading them from the mobile CI release (see the
-    # "Attach mobile APKs" step), so a missing mobile release never blocks
-    # this desktop release.
+    needs: [ build-windows, build-linux, build-macos, build-android ]
+    # Only the three desktop builds are required. The Android APK is built
+    # best-effort from this branch (build-android.yml), so a missing/failed
+    # APK build never blocks this desktop release.
     if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
@@ -157,32 +165,6 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
-
-      - name: Attach mobile APKs from CI release (best-effort)
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -uo pipefail
-          MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          TAG="v${MOBILE}"
-          mkdir -p mobile-apks
-          # Grab the APKs produced by the mobile CI (release.yml) instead of
-          # rebuilding them here. If that release does not exist yet, skip.
-          if ! gh release download "$TAG" --dir mobile-apks --pattern '*.apk' >/dev/null 2>&1; then
-            echo "Mobile release $TAG not found — skipping APK attachment."
-          else
-            shopt -s nullglob
-            for apk in mobile-apks/*.apk; do
-              base="$(basename "$apk")"
-              case "$base" in
-                *foss*) flavor="foss" ;;
-                *)       flavor="gms" ;;
-              esac
-              cp "$apk" "artifacts/VIVIMusic-${MOBILE}-${flavor}.apk"
-              echo "Attached ${base} -> VIVIMusic-${MOBILE}-${flavor}.apk"
-            done
-          fi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

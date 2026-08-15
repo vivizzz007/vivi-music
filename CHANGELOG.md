@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.19.1] - 2026-08-15
+
+### Changed
+
+- [APK] Bumped the mobile version to 6.2.1 (versionCode 77).
+- The desktop auto-release now builds and attaches the Android APK directly from
+  this branch instead of trying to download it from the mobile CI release
+  (`release.yml` runs on `main`, which had fallen out of sync), so the APK now
+  reliably appears among the release assets.
+
 ## [6.2.0_DE-1.19.1] - 2026-08-15
 
 ### Changed
