@@ -2,13 +2,22 @@ package com.music.vivi.desktop.player
 
 import net.sourceforge.jaad.aac.Decoder
 import net.sourceforge.jaad.aac.SampleBuffer
-import net.sourceforge.jaad.mp4.MP4Container
-import net.sourceforge.jaad.mp4.api.AudioTrack
+import org.jcodec.common.io.NIOUtils
+import org.jcodec.common.io.SeekableByteChannel
+import org.jcodec.containers.mp4.MP4Util
+import org.jcodec.containers.mp4.boxes.MovieFragmentBox
+import org.jcodec.containers.mp4.boxes.NodeBox
+import org.jcodec.containers.mp4.boxes.TrackFragmentBox
+import org.jcodec.containers.mp4.boxes.TrackFragmentHeaderBox
+import org.jcodec.containers.mp4.boxes.TrunBox
+import org.jcodec.containers.mp4.demuxer.AbstractMP4DemuxerTrack
+import org.jcodec.containers.mp4.demuxer.MP4Demuxer
+import org.jcodec.containers.mp4.demuxer.MP4DemuxerTrackMeta
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
+import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import javax.sound.sampled.AudioFormat
 import javax.sound.sampled.AudioSystem
@@ -16,12 +25,14 @@ import javax.sound.sampled.SourceDataLine
 
 /**
  * Self-contained AAC player: downloads the MP4 stream to a local cache file,
- * demuxes it with `jaad`, decodes AAC frames to PCM, and plays them through
+ * demuxes the (fragmented/DASH) MP4 container with `jcodec`, decodes the raw
+ * AAC frames to PCM with the bundled `jaad` decoder, and plays them through
  * Java Sound. No native libraries or external binaries are required.
  *
- * Caching to a seekable file is what unlocks duration reporting and seek:
- * `Movie.getDuration()` and re-reading from a random position both need a
- * `RandomAccessFile`-backed container (streaming `InputStream`s can't seek).
+ * YouTube serves its `audio/mp4` streams as *fragmented* MP4 (fMP4, `ftyp`
+ * brand "dash"): the `moov` sample table is empty and the real samples live in
+ * `moof`/`trun` boxes, which `jaad`'s own `MP4Container` demuxer does not
+ * understand. This player walks the `moof` fragments directly.
  *
  * Every failure stage reports a human-readable message through [onError]
  * instead of failing silently, so playback problems are visible in the UI.
@@ -171,24 +182,68 @@ class AudioPlayer {
         return file
     }
 
-    private fun decodeAndPlay(file: File, gen: Int, startAtMs: Long) {
-        RandomAccessFile(file, "r").use { raf ->
-            val container = MP4Container(raf)
-            val movie = container.movie ?: throw IOException("No MP4 movie found in audio file")
-            val track = movie.tracks.firstOrNull { it is AudioTrack } as? AudioTrack
-                ?: throw IOException("No AAC audio track found in file")
+    /**
+     * Walks the `moof`/`trun` boxes of a fragmented MP4 and returns the
+     * absolute file offset + size of every raw AAC sample of [trackId], in
+     * decode order. YouTube fMP4 sets `trun.data_offset` relative to the start
+     * of the enclosing `moof`, and stores the samples contiguously, so the
+     * sample offset is `moofOffset + dataOffset + sum(previous sizes)`.
+     */
+    private fun collectAacSamples(channel: SeekableByteChannel, trackId: Int): List<Pair<Long, Int>> {
+        val samples = mutableListOf<Pair<Long, Int>>()
+        for (atom in MP4Util.getRootAtoms(channel)) {
+            if (atom.header.fourcc != "moof") continue
+            val moof = atom.parseBox(channel) as MovieFragmentBox
+            for (traf in moof.tracks) {
+                val tfhd = NodeBox.findFirst(traf, TrackFragmentHeaderBox::class.java, "tfhd") ?: continue
+                if (tfhd.trackId != trackId) continue
+                val trun = NodeBox.findFirst(traf, TrunBox::class.java, "trun") ?: continue
+                val base = atom.offset + (if (trun.isDataOffsetAvailable) trun.dataOffset.toLong() else 0L)
+                var offset = base
+                for (size in trun.sampleSizes) {
+                    samples.add(offset to size)
+                    offset += size
+                }
+            }
+        }
+        return samples
+    }
 
-            runCatching { movie.getDuration() }
+    private fun decodeAndPlay(file: File, gen: Int, startAtMs: Long) {
+        NIOUtils.readableChannel(file).use { channel ->
+            val demuxer = MP4Demuxer.createMP4Demuxer(channel)
+            val track = demuxer.audioTracks.firstOrNull() as? AbstractMP4DemuxerTrack
+                ?: throw IOException("No audio track found in stream")
+
+            // Total duration in seconds (jcodec reads it from mvhd/mdhd, which
+            // is populated even for fragmented files).
+            runCatching { track.meta.totalDuration }
                 .getOrNull()
                 ?.takeIf { it > 0 }
                 ?.let { seconds -> if (gen == generation) onDuration?.invoke((seconds * 1000).toLong()) }
 
-            val decoder = Decoder(track.getDecoderSpecificInfo())
+            val dsi = MP4DemuxerTrackMeta.getCodecPrivate(track)
+                ?: throw IOException("No AAC decoder info found in stream")
+            val decoder = Decoder(NIOUtils.toArray(dsi))
             val buffer = SampleBuffer()
 
-            var frame = track.readNextFrame() ?: throw IOException("No audio frames to decode")
-            decoder.decodeFrame(frame.data, buffer)
+            val trackId = track.box.trackHeader.trackId
+            val samples = collectAacSamples(channel, trackId)
+            if (samples.isEmpty()) throw IOException("No audio frames to decode")
 
+            fun decodeAt(index: Int) {
+                val (offset, size) = samples[index]
+                channel.setPosition(offset)
+                val raw = ByteArray(size)
+                val bb = ByteBuffer.wrap(raw)
+                while (bb.hasRemaining()) {
+                    if (channel.read(bb) < 0) break
+                }
+                decoder.decodeFrame(raw, buffer)
+            }
+
+            // Decode the first frame to learn the PCM format and open the line.
+            decodeAt(0)
             val format = AudioFormat(
                 buffer.sampleRate.toFloat(),
                 buffer.bitsPerSample,
@@ -231,14 +286,14 @@ class AudioPlayer {
             }
             emit()
 
-            while (true) {
+            var index = 0
+            while (index < samples.size - 1) {
                 synchronized(lock) {
                     while (paused && !stopped) lock.wait()
                 }
                 if (stopped || gen != generation) break
-
-                frame = track.readNextFrame() ?: break
-                decoder.decodeFrame(frame.data, buffer)
+                index++
+                decodeAt(index)
                 emit()
             }
 

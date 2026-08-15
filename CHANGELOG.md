@@ -11,6 +11,28 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.20.0] - 2026-08-15
+
+### Fixed
+
+- [DE] Audio playback now works. YouTube serves its `audio/mp4` streams as
+  fragmented MP4 (DASH fMP4, `ftyp` brand "dash"), whose samples live in
+  `moof`/`trun` boxes instead of the `moov` sample table — which `jaad`'s
+  `MP4Container` demuxer does not understand, so every track failed with
+  "No audio frames to decode". The player now walks the fragments directly
+  with jcodec and decodes with the bundled jaad AAC decoder.
+- [DE] The stream resolver now prefers AAC-LC (codec `mp4a.40.2`, itag 140/141)
+  over HE-AAC/SBR (`mp4a.40.5`, itag 139), which jaad cannot decode ("FIL
+  element overread").
+- [DE] Language sync with the mobile app now maps the differing locale codes
+  (mobile `no`/`pt-PT`/`zh-CN`/`zh-TW` ↔ desktop `nb`/`pt`/`zh-rCN`/`zh-rTW`),
+  so changing the language on one device is correctly reflected on the other.
+
+### Added
+
+- [DE] All text (errors, options, settings, LAN server details, etc.) is now
+  selectable and copyable across the whole desktop app.
+
 ## [6.2.1_DE-1.19.3] - 2026-08-15
 
 ### Changed

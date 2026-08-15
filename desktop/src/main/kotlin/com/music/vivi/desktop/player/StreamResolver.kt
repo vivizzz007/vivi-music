@@ -101,9 +101,14 @@ object StreamResolver {
     /** Picks the best AAC format from a successful player response and resolves its URL. */
     private fun resolveFromResponse(response: PlayerResponse): String? {
         val adaptive = response.streamingData?.adaptiveFormats ?: return null
-        val audioFormats = adaptive.filter { it.isAudio && it.isOriginal }
-        val format = audioFormats.firstOrNull { it.mimeType.startsWith("audio/mp4") }
+        val audioFormats = adaptive.filter { it.isAudio && it.isOriginal && it.mimeType.startsWith("audio/mp4") }
+        // Prefer AAC-LC (codec mp4a.40.2, itags 140/141): the JAAD decoder handles
+        // AAC-LC, but fails on HE-AAC/SBR (mp4a.40.5, e.g. itag 139) with a
+        // "FIL element overread" error. Only fall back to other audio/mp4 codecs
+        // (HE-AAC) if no AAC-LC stream exists.
+        val format = audioFormats.firstOrNull { it.mimeType.contains("mp4a.40.2") }
             ?: audioFormats.firstOrNull()
+            ?: adaptive.filter { it.isAudio && it.isOriginal }.firstOrNull()
             ?: return null
 
         val raw = when {

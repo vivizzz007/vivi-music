@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.material.icons.Icons
@@ -104,29 +105,33 @@ fun main() = application {
 
     Window(onCloseRequest = ::exitApplication, title = "VIVI Music — desktop") {
         AppTheme(mode = themeMode, accent = accent) {
-            if (language.isBlank()) {
-                LanguageSelectionScreen { selected ->
-                    language = selected
-                    DesktopSettings.save(DesktopSettings.load().copy(language = selected))
-                }
-            } else {
-                App(
-                    language = language,
-                    onLanguageChange = { selected ->
+            // Make all text selectable (copyable) across the whole app:
+            // errors, options, settings, LAN server details, etc.
+            SelectionContainer {
+                if (language.isBlank()) {
+                    LanguageSelectionScreen { selected ->
                         language = selected
                         DesktopSettings.save(DesktopSettings.load().copy(language = selected))
-                    },
-                    themeMode = themeMode,
-                    accent = accent,
-                    onThemeModeChange = {
-                        themeMode = it
-                        saveTheme()
-                    },
-                    onAccentChange = {
-                        accent = it
-                        saveTheme()
-                    },
-                )
+                    }
+                } else {
+                    App(
+                        language = language,
+                        onLanguageChange = { selected ->
+                            language = selected
+                            DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                        },
+                        themeMode = themeMode,
+                        accent = accent,
+                        onThemeModeChange = {
+                            themeMode = it
+                            saveTheme()
+                        },
+                        onAccentChange = {
+                            accent = it
+                            saveTheme()
+                        },
+                    )
+                }
             }
         }
     }
@@ -246,8 +251,9 @@ fun App(
                 )
             }
             settings["appLanguage"]?.let { lang ->
-                if (lang != "SYSTEM_DEFAULT" && Languages.all.any { it.code == lang }) {
-                    onLanguageChange(lang)
+                val normalized = Languages.fromMobileCode(lang)
+                if (lang != "SYSTEM_DEFAULT" && Languages.all.any { it.code == normalized }) {
+                    onLanguageChange(normalized)
                 }
             }
             settings["selectedThemeColor"]?.toIntOrNull()?.let { argb ->
@@ -1096,7 +1102,7 @@ private data class PlaybackSyncKey(
 
 /** Maps the desktop theme/language/accent onto the Android shared-preference keys. */
 private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: Color): Map<String, String> = mapOf(
-    "appLanguage" to language.ifBlank { "SYSTEM_DEFAULT" },
+    "appLanguage" to Languages.toMobileCode(language).ifBlank { "SYSTEM_DEFAULT" },
     "darkMode" to when (themeMode) {
         ThemeMode.SYSTEM -> "AUTO"
         ThemeMode.LIGHT -> "OFF"

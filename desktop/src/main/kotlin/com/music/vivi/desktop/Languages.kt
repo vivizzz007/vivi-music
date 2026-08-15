@@ -60,4 +60,30 @@ object Languages {
     )
 
     fun name(code: String): String = all.firstOrNull { it.code == code }?.name ?: code
+
+    /**
+     * Maps an Android locale code (as stored by the mobile app's DataStore,
+     * e.g. "no", "pt-PT", "zh-CN") to the equivalent desktop code ("nb", "pt",
+     * "zh-rCN"). The two apps use slightly different locale tags for the same
+     * languages, which otherwise breaks settings sync (a language changed on
+     * one device would be silently ignored on the other).
+     */
+    fun fromMobileCode(code: String): String = when (code) {
+        "no" -> "nb"
+        "pt-PT", "pt-BR" -> "pt"
+        "zh-CN", "zh-Hans" -> "zh-rCN"
+        "zh-TW", "zh-HK", "zh-Hant" -> "zh-rTW"
+        "en-GB", "en-US" -> "en"
+        "es-419" -> "es"
+        "fr-CA" -> "fr"
+        else -> code
+    }
+
+    /** Inverse of [fromMobileCode]: desktop code -> Android locale code. */
+    fun toMobileCode(code: String): String = when (code) {
+        "nb" -> "no"
+        "zh-rCN" -> "zh-CN"
+        "zh-rTW" -> "zh-TW"
+        else -> code
+    }
 }
