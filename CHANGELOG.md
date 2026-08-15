@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.5_DE-1.30.2] - 2026-08-15
+
+### Changed
+
+- [DE] The About screen now shows real thumbnails: the developer's avatar
+  (`author.png`) instead of the `< >` icon, and the GitHub logo on the
+  GitHub Repository row (bundled from `[DE]_images/`).
+
 ## [6.2.5_DE-1.30.1] - 2026-08-15
 
 ### Changed

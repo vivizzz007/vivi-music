@@ -1,6 +1,7 @@
 package com.music.vivi.desktop
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -85,7 +86,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -1630,6 +1634,8 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
     val firstLaunchDate = remember { DesktopSettings.load().firstLaunchDate }
     var versionCodeTaps by remember { mutableStateOf(0) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
+    val authorImage = remember { loadResourceImage("author.png") }
+    val githubImage = remember { loadResourceImage("github.png") }
 
     Column(
         Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -1663,7 +1669,7 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
 
     AboutSectionHeader(Localization.get(language, "developer_section"))
     AboutInfoRow(
-        icon = Icons.Filled.Code,
+        image = authorImage,
         title = "PiBOH",
         description = Localization.get(language, "app_developer") + " (DE)",
         onClick = { openUrl("https://github.com/PiBOH") },
@@ -1676,7 +1682,7 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
 
     AboutSectionHeader(Localization.get(language, "community_section"))
     AboutInfoRow(
-        icon = Icons.Filled.Code,
+        image = githubImage,
         title = Localization.get(language, "github_repository"),
         onClick = { openUrl("https://github.com/PiBOH/vivi-music") },
     )
@@ -1738,7 +1744,8 @@ private fun AboutSectionHeader(text: String) {
 
 @Composable
 private fun AboutInfoRow(
-    icon: ImageVector,
+    icon: ImageVector? = null,
+    image: ImageBitmap? = null,
     title: String,
     description: String? = null,
     onClick: (() -> Unit)? = null,
@@ -1749,7 +1756,15 @@ private fun AboutInfoRow(
         rowModifier.padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        when {
+            image != null -> Image(
+                bitmap = image,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(28.dp).clip(CircleShape),
+            )
+            icon != null -> Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        }
         Spacer(Modifier.width(16.dp))
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
         if (description != null) {
@@ -1769,6 +1784,12 @@ private fun AboutInfoRow(
         }
     }
 }
+
+/** Loads a bundled classpath image from `desktop/src/main/resources/images`. */
+private fun loadResourceImage(name: String): ImageBitmap? = runCatching {
+    val stream = AppInfo::class.java.getResourceAsStream("/images/$name") ?: return null
+    stream.use { s -> javax.imageio.ImageIO.read(s)?.toComposeImageBitmap() }
+}.getOrNull()
 
 private fun formatInstalledDate(epochMs: Long, language: String): String {
     if (epochMs <= 0) return Localization.get(language, "unknown")
