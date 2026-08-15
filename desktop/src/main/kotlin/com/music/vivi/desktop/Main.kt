@@ -279,6 +279,8 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
+                        onPlayAll = playAll,
+                        onOpenBrowse = { browseId, params -> navigate(Screen.Browse(browseId, params)) },
                     )
                     is Screen.Search -> SearchScreen(
                         language = language,
@@ -362,6 +364,16 @@ fun App(
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                         onPlayAll = playAll,
+                    )
+                    is Screen.Browse -> BrowseScreen(
+                        browseId = current.browseId,
+                        params = current.params,
+                        language = language,
+                        onBack = goBack,
+                        onOpenAlbum = { navigate(Screen.Album(it)) },
+                        onOpenArtist = { navigate(Screen.Artist(it)) },
+                        onOpenPlaylist = { navigate(Screen.Playlist(it)) },
+                        onPlaySong = playSong,
                     )
                     is Screen.Player -> PlayerScreen(
                         queue = playerState.queue,

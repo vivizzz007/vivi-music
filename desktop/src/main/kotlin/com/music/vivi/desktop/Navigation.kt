@@ -13,6 +13,7 @@ sealed interface Screen {
     data class Album(val browseId: String) : Screen
     data class Artist(val browseId: String) : Screen
     data class Playlist(val playlistId: String) : Screen
+    data class Browse(val browseId: String, val params: String?) : Screen
     data object History : Screen
     data object Player : Screen
     data object Lyrics : Screen

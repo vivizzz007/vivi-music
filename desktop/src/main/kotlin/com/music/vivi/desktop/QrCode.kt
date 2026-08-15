@@ -1,10 +1,15 @@
 package com.music.vivi.desktop
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -28,20 +33,29 @@ fun QrCode(text: String, size: Dp = 180.dp) {
     }
     if (matrix == null) return
 
-    Canvas(Modifier.size(size)) {
-        val dim = matrix.width
-        val margin = size.toPx() * 0.04f
-        val qrSize = size.toPx() - 2 * margin
-        val cell = qrSize / dim
-        for (y in 0 until dim) {
-            for (x in 0 until dim) {
-                if (matrix.get(x, y)) {
-                    // Slightly oversized cells avoid anti-aliasing seams.
-                    drawRect(
-                        color = Color.Black,
-                        topLeft = Offset(margin + x * cell, margin + y * cell),
-                        size = Size(cell + 0.5f, cell + 0.5f),
-                    )
+    // The QR code always sits on a solid white card so scanners can read it
+    // reliably regardless of the current light/dark theme.
+    Box(
+        Modifier
+            .size(size)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White),
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val dim = matrix.width
+            val margin = size.toPx() * 0.04f
+            val qrSize = size.toPx() - 2 * margin
+            val cell = qrSize / dim
+            for (y in 0 until dim) {
+                for (x in 0 until dim) {
+                    if (matrix.get(x, y)) {
+                        // Slightly oversized cells avoid anti-aliasing seams.
+                        drawRect(
+                            color = Color.Black,
+                            topLeft = Offset(margin + x * cell, margin + y * cell),
+                            size = Size(cell + 0.5f, cell + 0.5f),
+                        )
+                    }
                 }
             }
         }

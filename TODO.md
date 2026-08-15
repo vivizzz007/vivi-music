@@ -48,11 +48,11 @@ The desktop should look exactly like the Android app, except:
 - the Devices (device sync) screen keeps its desktop-specific layout.
 
 - [x] Foundation: seed-based Material 3 palette (materialKolor TonalSpot) matching the mobile theme, and a collapsible/expandable sidebar with Material icons + labels (persisted).
-- [ ] Home screen port (sections, quick picks, mood/genres, card styles).
+- [x] Home screen port: filter chips, mobile-style section headers (label + bold primary title, Play all, chevron), songs-only sections rendered as horizontal song lists (Quick picks style), mixed sections as card carousels, and a Mood & genres section (buttons navigate to a generic Browse screen). QR code always rendered on a white background.
 - [ ] Search screen port (search bar, filter chips, result rows).
 - [ ] Library screen port (tabs, filters, grids).
-- [ ] Album / Artist / Playlist detail screens port.
-- [ ] Player + mini-player + queue + lyrics pixel-perfect.
+- [ ] Album / Artist / Playlist detail screens port (header artwork, play/shuffle buttons, track lists, related items).
+- [ ] Player + mini-player + queue + lyrics pixel-perfect (large artwork, canvas background, seek/volume, lyrics highlight — mostly done, to be refined).
 - [ ] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage…), keeping the custom Devices screen.
 - [ ] History / Changelog / Login screens port.
 - [ ] Song / album / artist / playlist context menus port.

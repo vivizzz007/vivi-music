@@ -125,6 +125,7 @@ MAPPING = {
     "not_logged_in": "not_logged_in",
     "shuffle": "shuffle",
     "volume": "volume",
+    "mood_and_genres": "mood_and_genres",
     # vivi_strings.xml
     "lyrics": "lyrics",
     "now_playing": "now_playing",
@@ -247,6 +248,7 @@ ENGLISH = {
     "volume": "Volume",
     "previous": "Previous",
     "next": "Next",
+    "mood_and_genres": "Mood & genres",
     "data_sync_id_label": "DATASYNC_ID (optional)",
     "visitor_data_label": "VISITOR_DATA (optional)",
     "advanced_login_hint": "Optional: if auto-detection fails, paste DATASYNC_ID and VISITOR_DATA from the music.youtube.com page source.",

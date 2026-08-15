@@ -11,6 +11,18 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.17.0] - 2026-08-15
+
+### Added
+
+- [DE] Ported the Home screen to the Android app's style: filter chips, mobile-style
+  section headers (label + bold primary title, "Play all" button, chevron), songs-only
+  sections rendered as horizontal song lists (Quick picks style), mixed sections as
+  card carousels, and a Mood & genres section whose buttons open a new generic
+  Browse screen.
+- [DE] The QR code in Device sync is now always rendered on a solid white card so it
+  scans reliably in both light and dark themes.
+
 ## [6.2.0_DE-1.16.2] - 2026-08-15
 
 ### Fixed
