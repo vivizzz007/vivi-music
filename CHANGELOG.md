@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.5] - 2026-08-15
+
+### Fixed
+
+- [DE] **Critical:** the packaged app still showed "Failed to launch JVM" at
+  startup even after bundling the management modules, because `SystemMonitor`
+  read a field before its initializer ran (a Kotlin forward-reference) and
+  threw a NullPointerException during `DeveloperOptions.load()`. Fixed the
+  declaration order and made dev-tools initialization non-fatal.
+
 ## [6.2.2_DE-1.28.4] - 2026-08-15
 
 ### Fixed

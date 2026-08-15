@@ -106,6 +106,14 @@ object SystemMonitor {
     private val runtimeBean = ManagementFactory.getRuntimeMXBean()
     private val runtime = Runtime.getRuntime()
 
+    // Declared before `_stats` on purpose: `emptyStats()` reads this during the
+    // object's initialization, and reading a Kotlin `val` before its initializer
+    // has run throws a NullPointerException at startup (the packaged launcher
+    // then reports it as "Failed to launch JVM").
+    val gpuDevice: String = runCatching {
+        GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.getIDstring()
+    }.getOrDefault("—")
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     private val _stats = MutableStateFlow(emptyStats())
@@ -116,10 +124,6 @@ object SystemMonitor {
     private var lastRx = -1L
     private var lastTx = -1L
     private var lastSampleMs = 0L
-
-    val gpuDevice: String = runCatching {
-        GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice.getIDstring()
-    }.getOrDefault("—")
 
     fun start() {
         if (job != null) return

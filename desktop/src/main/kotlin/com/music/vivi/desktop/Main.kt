@@ -123,7 +123,9 @@ fun main() = application {
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
     LoginManager.restore()
     DesktopSettings.ensureFirstLaunchDate()
-    DeveloperOptions.load()
+    // Dev tools are non-critical: never let their initialization crash the app
+    // at startup (which the jpackage launcher reports as "Failed to launch JVM").
+    runCatching { DeveloperOptions.load() }
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
     var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
