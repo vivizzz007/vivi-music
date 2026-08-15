@@ -77,8 +77,16 @@ object StreamResolver {
      * resolved. Callers should invoke this from a background coroutine: the
      * NewPipe path is blocking and the player path performs network I/O.
      */
-    suspend fun resolveAacStream(videoId: String, quality: AudioQuality = AudioQuality.AUTO): ResolvedStream? {
-        // 1) NewPipe — handles signature cipher and returns already-playable
+    /**
+     * Resolves an ordered list of candidate stream URLs (each with the
+     * User-Agent required to download it). The player tries them in order and
+     * falls through on failure, so a bot-blocked URL from one source never
+     * prevents playback when another source works.
+     */
+    suspend fun resolveAacStream(videoId: String, quality: AudioQuality = AudioQuality.AUTO): List<ResolvedStream> {
+        val candidates = mutableListOf<ResolvedStream>()
+
+        // 1) NewPipe — handles the signature cipher and returns already-playable
         //    stream URLs when its extractor is not bot-blocked. These URLs are
         //    served to NewPipe's Firefox UA, so keep that UA for the download.
         val newPipeUrl = withContext(Dispatchers.IO) {
@@ -88,14 +96,14 @@ object StreamResolver {
             }.getOrNull()
         }
         if (!newPipeUrl.isNullOrBlank()) {
-            return ResolvedStream(newPipeUrl, YouTubeClient.USER_AGENT_WEB)
+            candidates += ResolvedStream(newPipeUrl, YouTubeClient.USER_AGENT_WEB)
         }
 
-        // 2) Client chain: try the main client then the fallbacks until we get
-        //    a validated AAC URL. Keep the first resolved URL as a last-resort
-        //    fallback in case validation is flaky (googlevideo sometimes
-        //    rejects HEAD requests).
-        var firstResolved: ResolvedStream? = null
+        // 2) Client chain: collect every resolved AAC URL, preferring the ones
+        //    that pass HEAD validation. googlevideo sometimes rejects HEAD, so
+        //    unvalidated URLs are still kept as a last resort.
+        val validated = mutableListOf<ResolvedStream>()
+        val unvalidated = mutableListOf<ResolvedStream>()
         var signatureTimestamp: Int? = null
         var signatureFetched = false
 
@@ -114,11 +122,12 @@ object StreamResolver {
 
             val url = resolveFromResponse(response, quality.preferredItags) ?: continue
             val stream = ResolvedStream(url, ytClient.userAgent)
-            if (firstResolved == null) firstResolved = stream
-            if (validateUrl(url, ytClient.userAgent)) return stream
+            val seen = (candidates + validated + unvalidated).any { it.url == url }
+            if (seen) continue
+            if (validateUrl(url, ytClient.userAgent)) validated += stream else unvalidated += stream
         }
 
-        return firstResolved
+        return candidates + validated + unvalidated
     }
 
     /** Picks the best AAC format from a successful player response and resolves its URL. */

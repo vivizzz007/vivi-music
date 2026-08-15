@@ -255,19 +255,18 @@ class PlayerController {
                 repeatMode = _state.value.repeatMode,
             )
 
-            val stream = StreamResolver.resolveAacStream(
+            val streams = StreamResolver.resolveAacStream(
                 track.videoId,
                 StreamResolver.AudioQuality.from(DesktopSettings.load().audioQuality),
             )
-            if (stream == null) {
+            if (streams.isEmpty()) {
                 _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
                 return@launch
             }
             _state.update { it.copy(errorKey = null, errorDetail = null) }
 
             player.play(
-                url = stream.url,
-                userAgent = stream.userAgent,
+                streams = streams,
                 cacheKey = track.videoId,
                 startAtMs = startAtMs,
                 startPaused = startPaused,

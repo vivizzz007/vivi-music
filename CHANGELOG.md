@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.24.2] - 2026-08-15
+
+### Fixed
+
+- [DE] "HTTP 403 downloading audio" is now far more robust: the resolver
+  returns an ordered list of candidate stream URLs (NewPipe plus every
+  innerTube client), and the player tries them in order — retrying without the
+  `Range` header when a request is refused — instead of giving up after the
+  first URL. NewPipe URLs now use the decrypted `getUrl()` result with the
+  n-param transform applied.
+
 ## [6.2.1_DE-1.24.1] - 2026-08-15
 
 ### Changed
