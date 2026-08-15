@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.3] - 2026-08-15
+
+### Fixed
+
+- [DE] **Critical:** the packaged app no longer fails to start with
+  "Failed to launch JVM". The dev tools (CPU/RAM/thread stats) use
+  `java.lang.management` and `com.sun.management`, but jlink was bundling only
+  the default modules; those two modules are now declared so the packaged
+  runtime includes them.
+
 ## [6.2.2_DE-1.28.2] - 2026-08-15
 
 ### Fixed

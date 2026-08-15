@@ -101,6 +101,11 @@ compose.desktop {
                 TargetFormat.Pkg,
                 TargetFormat.Deb,
             )
+            // jlink bundles only a minimal set of modules by default. The dev
+            // tools (CPU/RAM/thread stats) use `java.lang.management` and the
+            // richer `com.sun.management` bean; without these modules the
+            // packaged launcher crashes on startup with "Failed to launch JVM".
+            modules("java.management", "jdk.management")
             packageName = "VIVIMusic"
             packageVersion = numericPackageVersion
             description = "VIVI Music — desktop client"
