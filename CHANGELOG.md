@@ -11,6 +11,22 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.18.0] - 2026-08-15
+
+### Added
+
+- [DE] The desktop pairing code now shows a live countdown until it expires
+  (5 minutes) and offers a "Generate new code" button to mint a fresh code.
+
+### Changed
+
+- [DE] The desktop Device sync section is now generate-only: it no longer shows
+  an "enter code" field. The desktop generates the 6-digit code, and the phone
+  enters it.
+- [APK] The Android Devices screen is now insert-only: the "Generate code"
+  button was removed, leaving just the "enter code" + Pair flow that reads the
+  code shown by the desktop.
+
 ## [6.2.0_DE-1.17.1] - 2026-08-15
 
 ### Fixed

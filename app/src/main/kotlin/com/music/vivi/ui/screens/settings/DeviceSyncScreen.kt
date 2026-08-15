@@ -169,15 +169,6 @@ fun DeviceSyncScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             if (!paired) {
-                Button(
-                    onClick = { viewModel.createPairingCode() },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.device_sync_generate_code))
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),

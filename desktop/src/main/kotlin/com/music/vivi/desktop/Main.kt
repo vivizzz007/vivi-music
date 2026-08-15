@@ -80,6 +80,7 @@ import java.awt.Desktop
 import java.io.File
 import java.net.URI
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -653,15 +654,26 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
         // hardcoded localhost placeholder as "not set" so it gets migrated.
         mutableStateOf(if (saved.isBlank() || saved == "wss://localhost:8080") SyncServer.DEFAULT_URL else saved)
     }
-    var joinCode by remember { mutableStateOf("") }
-
     val connectionState by syncManager.connectionState.collectAsState()
     val status by syncManager.status.collectAsState()
     val pairCode by syncManager.pairCode.collectAsState()
+    val pairCodeExpiresAt by syncManager.pairCodeExpiresAt.collectAsState()
     val paired by syncManager.paired.collectAsState()
     val lanRunning by syncManager.lanRunning.collectAsState()
     val lanAddress by syncManager.lanAddress.collectAsState()
     val syncedSettings by syncManager.syncedSettings.collectAsState()
+
+    // Ticking clock for the pairing-code expiry countdown.
+    var nowMs by remember { mutableStateOf(System.currentTimeMillis()) }
+    LaunchedEffect(pairCodeExpiresAt) {
+        while (pairCodeExpiresAt > 0L) {
+            nowMs = System.currentTimeMillis()
+            if (nowMs >= pairCodeExpiresAt) break
+            delay(1000)
+        }
+        nowMs = System.currentTimeMillis()
+    }
+    val remainingMs = (pairCodeExpiresAt - nowMs).coerceAtLeast(0L)
 
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -704,16 +716,12 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
         )
     }
 
-    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = { syncManager.requestPairingCode() }) { Text(Localization.get(language, "generate_code")) }
-        OutlinedTextField(
-            value = joinCode,
-            onValueChange = { joinCode = it },
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            placeholder = { Text(Localization.get(language, "code_placeholder")) },
-        )
-        Button(onClick = { syncManager.joinPair(joinCode) }) { Text(Localization.get(language, "pair")) }
+    // The desktop is the code generator: the phone only enters this code.
+    Button(
+        onClick = { syncManager.requestPairingCode() },
+        modifier = Modifier.padding(top = 8.dp),
+    ) {
+        Text(Localization.get(language, if (pairCode.isNotEmpty()) "generate_new_code" else "generate_code"))
     }
 
     if (pairCode.isNotEmpty()) {
@@ -721,6 +729,16 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
             "${Localization.get(language, "code_hint")}: $pairCode",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 8.dp),
+        )
+        Text(
+            if (remainingMs > 0L) {
+                "${Localization.get(language, "code_expires_in")} ${formatCountdown(remainingMs)}"
+            } else {
+                Localization.get(language, "code_expired")
+            },
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
         )
     }
 
@@ -989,6 +1007,12 @@ private fun openFile(file: File): Boolean {
 
 private fun formatSpeed(bps: Long): String =
     if (bps <= 0) "0 B/s" else "${formatBytes(bps)}/s"
+
+/** Formats a millisecond duration as `M:SS` for the pairing-code countdown. */
+private fun formatCountdown(ms: Long): String {
+    val totalSec = (ms / 1000).coerceAtLeast(0)
+    return "%d:%02d".format(totalSec / 60, totalSec % 60)
+}
 
 @Composable
 fun AboutSection(language: String, onOpenChangelog: () -> Unit) {

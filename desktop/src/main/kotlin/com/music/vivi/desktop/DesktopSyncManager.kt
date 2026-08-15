@@ -47,6 +47,10 @@ class DesktopSyncManager {
     private val _pairCode = MutableStateFlow("")
     val pairCode: StateFlow<String> = _pairCode.asStateFlow()
 
+    /** Epoch millis when the current pairing code expires (0 = no active code). */
+    private val _pairCodeExpiresAt = MutableStateFlow(0L)
+    val pairCodeExpiresAt: StateFlow<Long> = _pairCodeExpiresAt.asStateFlow()
+
     private val _paired = MutableStateFlow(false)
     val paired: StateFlow<Boolean> = _paired.asStateFlow()
 
@@ -135,6 +139,8 @@ class DesktopSyncManager {
         client?.unpair()
         DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
         _paired.value = false
+        _pairCode.value = ""
+        _pairCodeExpiresAt.value = 0L
     }
 
     /** Update the local playback snapshot and push it to the peer (if paired). */
@@ -194,10 +200,13 @@ class DesktopSyncManager {
             is SyncEvent.Disconnected -> _status.value = "Disconnected"
             is SyncEvent.PairCode -> {
                 _pairCode.value = event.code
+                _pairCodeExpiresAt.value = System.currentTimeMillis() + PAIR_CODE_TTL_MS
                 _status.value = event.code
             }
             is SyncEvent.Paired -> {
                 _paired.value = true
+                _pairCode.value = ""
+                _pairCodeExpiresAt.value = 0L
                 DesktopSettings.save(DesktopSettings.load().copy(pairId = event.pairId))
                 _status.value = "Paired with ${event.peerDeviceName}"
                 pushSnapshot()
@@ -227,5 +236,8 @@ class DesktopSyncManager {
 
     companion object {
         private const val ECHO_SUPPRESS_MS = 1500L
+
+        /** Pairing codes are valid for 5 minutes (matches the relay servers). */
+        const val PAIR_CODE_TTL_MS = 5 * 60 * 1000L
     }
 }
