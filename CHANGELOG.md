@@ -43,6 +43,15 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
   `CHANGELOG.md` plus the latest GitHub release notes.
 - [DE] Added Player & audio settings (autoplay next track) and a Storage
   section (cache size + clear cache) to Settings.
+- [DE] Wired device sync end-to-end: the desktop now pushes its playback
+  (track, queue, position, play/pause) and settings, and applies incoming
+  snapshots — remote playback starts on the desktop player and language /
+  theme / accent follow the phone. A persistent `DesktopSyncManager` owns the
+  client + LAN relay for the whole app lifetime (no more state loss when
+  leaving Settings), with echo suppression to avoid ping-pong loops.
+- Android now pushes its playback to the desktop and applies incoming playback
+  snapshots (desktop → phone), so starting a song on either device resumes on
+  the other.
 - [DE] Added the animated canvas to the Player: a blurred, slowly-zooming
   (Ken Burns) artwork background behind the track. Canvas artwork is resolved
   from the same providers as the Android app (Apple Music / Tidal / VIVI Music

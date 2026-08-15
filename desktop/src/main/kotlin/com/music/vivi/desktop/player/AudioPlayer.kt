@@ -62,6 +62,8 @@ class AudioPlayer {
     fun play(
         url: String,
         cacheKey: String,
+        startAtMs: Long = 0L,
+        startPaused: Boolean = false,
         onPosition: (Long) -> Unit,
         onDuration: (Long) -> Unit,
         onComplete: () -> Unit,
@@ -69,14 +71,14 @@ class AudioPlayer {
         this.onPosition = onPosition
         this.onDuration = onDuration
         this.onComplete = onComplete
-        startDecode(url, cacheKey, 0L)
+        startDecode(url, cacheKey, startAtMs, startPaused)
     }
 
     /** Seeks to [ms] by restarting decode from the cached file. */
     fun seekTo(ms: Long) {
         val url = currentUrl ?: return
         val key = currentCacheKey ?: return
-        startDecode(url, key, ms.coerceAtLeast(0L))
+        startDecode(url, key, ms.coerceAtLeast(0L), startPaused = false)
     }
 
     /** Sets playback volume in the 0f..1f range. */
@@ -104,7 +106,7 @@ class AudioPlayer {
         line = null
     }
 
-    private fun startDecode(url: String, cacheKey: String, startAtMs: Long) {
+    private fun startDecode(url: String, cacheKey: String, startAtMs: Long, startPaused: Boolean) {
         // Invalidate any running thread and reset the play flags.
         val gen = ++generation
         stopped = true
@@ -112,7 +114,7 @@ class AudioPlayer {
         runCatching { line?.stop() }
         runCatching { line?.close() }
         line = null
-        paused = false
+        paused = startPaused
         stopped = false
         currentUrl = url
         currentCacheKey = cacheKey
@@ -195,12 +197,14 @@ class AudioPlayer {
             fun emit() {
                 // Decode-and-discard frames until the seek target is reached.
                 if (elapsedSeconds + buffer.length >= targetSeconds) {
-                    val data = if (volume < 0.999f && bitsPerSample == 16) {
-                        scale16(buffer.data, volume, bigEndian)
-                    } else {
-                        buffer.data
+                    if (!paused) {
+                        val data = if (volume < 0.999f && bitsPerSample == 16) {
+                            scale16(buffer.data, volume, bigEndian)
+                        } else {
+                            buffer.data
+                        }
+                        out.write(data, 0, data.size)
                     }
-                    out.write(data, 0, data.size)
                     if (gen == generation) {
                         onPosition?.invoke(((elapsedSeconds + buffer.length) * 1000).toLong())
                     }

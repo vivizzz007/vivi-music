@@ -163,8 +163,13 @@ import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.models.PersistPlayerState
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.devicesync.DeviceSyncManager
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.sync.PlaybackSnapshot
+import com.music.vivi.sync.TrackRef
 import com.music.vivi.playback.audio.SilenceDetectorAudioProcessor
 import com.music.vivi.playback.queues.EmptyQueue
+import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
@@ -200,6 +205,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -249,6 +255,9 @@ class MusicService :
 
     @Inject
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
+
+    @Inject
+    lateinit var deviceSyncManager: DeviceSyncManager
 
     private lateinit var audioManager: AudioManager
     // Wi-Fi Lock: Prevents modern Wi-Fi 6/7 routers from putting the Wi-Fi chip into
@@ -712,6 +721,13 @@ class MusicService :
         currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
             updateWidgetUI(player.isPlaying)
+        }
+
+        // Apply playback pushed from the desktop edition (device sync).
+        scope.launch {
+            deviceSyncManager.pendingPlayback
+                .filterNotNull()
+                .collect { snapshot -> applyRemotePlayback(snapshot) }
         }
 
         combine(
@@ -1423,6 +1439,55 @@ class MusicService :
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Device sync (Android <-> desktop edition)
+    // ---------------------------------------------------------------------
+
+    /** Pushes the current queue + position to the paired desktop edition. */
+    private fun pushPlaybackToDesktop() {
+        val meta = player.currentMetadata ?: return
+        val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
+        val index = player.currentMediaItemIndex.coerceAtLeast(0)
+        deviceSyncManager.pushPlayback(
+            PlaybackSnapshot(
+                trackId = meta.id,
+                trackTitle = meta.title,
+                positionMs = player.currentPosition,
+                isPlaying = player.isPlaying,
+                queue = items.map { item ->
+                    item.metadata?.toTrackRef()
+                        ?: TrackRef(id = item.mediaId, title = item.mediaId)
+                },
+                queueIndex = index,
+                queueTitle = queueTitle,
+            )
+        )
+    }
+
+    /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
+    private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
+        val items = snapshot.queue.map { it.toMediaItem() }
+        if (items.isEmpty()) return
+        val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
+        val position = snapshot.positionMs.coerceAtLeast(0L)
+        if (!playerInitialized.value) {
+            scope.launch {
+                playerInitialized.first { it }
+                applyRemotePlayback(snapshot)
+            }
+            return
+        }
+        playQueue(
+            ListQueue(
+                title = snapshot.queueTitle,
+                items = items,
+                startIndex = index,
+                position = position,
+            ),
+            playWhenReady = snapshot.isPlaying,
+        )
+    }
+
     fun startRadioSeamlessly() {
         // Safety Check: Ensure Player is initilized
         if (!playerInitialized.value) {
@@ -1945,6 +2010,9 @@ class MusicService :
         }
         previousMediaItemIndex = player.currentMediaItemIndex
 
+        // Push the new track to the desktop edition (device sync).
+        pushPlaybackToDesktop()
+
         lastPlaybackSpeed = -1.0f // force update song
 
         setupLoudnessEnhancer()
@@ -2151,6 +2219,9 @@ class MusicService :
         if (playWhenReady) {
             setupLoudnessEnhancer()
         }
+
+        // Push play/pause state to the desktop edition (device sync).
+        pushPlaybackToDesktop()
     }
 
     override fun onEvents(
@@ -3532,4 +3603,25 @@ class MusicService :
         var isRunning = false
             private set
     }
+}
+
+private fun MediaMetadata.toTrackRef() = TrackRef(
+    id = id,
+    title = title,
+    artist = artists.joinToString(", ") { it.name },
+    album = album?.title,
+    thumbnail = thumbnailUrl,
+    durationMs = duration.toLong(),
+)
+
+private fun TrackRef.toMediaItem(): MediaItem {
+    val meta = MediaMetadata(
+        id = id,
+        title = title,
+        artists = listOf(MediaMetadata.Artist(null, artist.orEmpty())),
+        duration = durationMs.toInt(),
+        thumbnailUrl = thumbnail,
+        album = album?.let { MediaMetadata.Album("", it) },
+    )
+    return meta.toMediaItem()
 }

@@ -19,8 +19,8 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Mobile LAN discovery: NSD/mDNS "Find desktop" + QR scan in the Devices screen.
 
 ## Phase 2 — Sync: queue + playback position
-- [ ] Capture the queue and position from the Android player (`pushPlayback` is already exposed).
-- [ ] Resume on desktop: apply `pendingPlayback` (requires the desktop player, Phase 4).
+- [x] Capture the queue and position from the Android player (`pushPlayback` is wired from MusicService on track/play changes).
+- [x] Resume on desktop: apply `pendingPlayback`; the desktop also pushes its playback and applies incoming snapshots (bidirectional), with echo suppression.
 
 ## Phase 3 — Sync: library
 - [ ] Sync liked songs, albums, artists and playlists (`LibrarySnapshot` schema already present).

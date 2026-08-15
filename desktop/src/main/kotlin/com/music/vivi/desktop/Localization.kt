@@ -20,6 +20,7 @@ object Localization {
             "generate_code" to "Generate code",
             "code_placeholder" to "6-digit code",
             "pair" to "Pair",
+            "unpair" to "Unpair device",
             "code_hint" to "Code to enter on the other device",
             "lan_sync" to "LAN sync (same Wi-Fi)",
             "start_lan" to "Start LAN server",

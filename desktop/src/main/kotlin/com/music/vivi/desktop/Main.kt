@@ -57,15 +57,16 @@ import com.music.innertube.YouTube
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YouTubeLocale
-import com.music.vivi.sync.SyncClient
-import com.music.vivi.sync.SyncConnectionState
-import com.music.vivi.sync.SyncEvent
 import com.music.vivi.desktop.player.PlayerController
+import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncServer
+import com.music.vivi.sync.TrackRef
 import java.awt.Desktop
 import java.io.File
 import java.net.URI
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -167,6 +168,82 @@ fun App(
     // Automatic update check on startup.
     LaunchedEffect(Unit) { runUpdateCheck() }
 
+    // ---- Device sync (Android <-> desktop) ----
+    val syncManager = remember { DesktopSyncManager() }
+
+    // Push the local playback state to the peer when the track, play/pause
+    // state, or queue changes (position is sent as a best-effort snapshot).
+    LaunchedEffect(syncManager) {
+        player.state
+            .map { s ->
+                PlaybackSyncKey(
+                    trackId = s.current?.videoId,
+                    isPlaying = s.isPlaying,
+                    index = s.index,
+                    queue = s.queue.map { it.videoId },
+                )
+            }
+            .distinctUntilChanged()
+            .collect {
+                val s = player.state.value
+                val current = s.current
+                if (current != null) {
+                    syncManager.updatePlayback(
+                        PlaybackSnapshot(
+                            trackId = current.videoId,
+                            trackTitle = current.title,
+                            positionMs = s.positionMs,
+                            isPlaying = s.isPlaying,
+                            queue = s.queue.map { np ->
+                                TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
+                            },
+                            queueIndex = s.index,
+                        )
+                    )
+                }
+            }
+    }
+
+    // Apply incoming playback snapshots from the peer.
+    LaunchedEffect(syncManager) {
+        syncManager.incomingPlayback.collect { pb ->
+            val tracks = pb.queue.map { ref ->
+                NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
+            }
+            if (tracks.isNotEmpty()) {
+                player.applyRemotePlayback(tracks, pb.queueIndex, pb.positionMs, pb.isPlaying)
+            }
+        }
+    }
+
+    // Apply incoming settings snapshots from the peer.
+    LaunchedEffect(syncManager) {
+        syncManager.incomingSettings.collect { settings ->
+            settings["darkMode"]?.let { mode ->
+                onThemeModeChange(
+                    when (mode) {
+                        "ON" -> ThemeMode.DARK
+                        "OFF" -> ThemeMode.LIGHT
+                        else -> ThemeMode.SYSTEM
+                    }
+                )
+            }
+            settings["appLanguage"]?.let { lang ->
+                if (lang != "SYSTEM_DEFAULT" && Languages.all.any { it.code == lang }) {
+                    onLanguageChange(lang)
+                }
+            }
+            settings["selectedThemeColor"]?.toIntOrNull()?.let { argb ->
+                onAccentChange(argbIntToColor(argb))
+            }
+        }
+    }
+
+    // Push the local settings when they change (also once on startup).
+    LaunchedEffect(syncManager, language, themeMode, accent) {
+        syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent))
+    }
+
     Row(Modifier.fillMaxSize()) {
         Sidebar(language, current, openRoot)
         Column(Modifier.weight(1f).fillMaxHeight()) {
@@ -232,6 +309,7 @@ fun App(
                             isLoggedIn = false
                             accountName = ""
                         },
+                        syncManager = syncManager,
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
@@ -447,6 +525,7 @@ fun SettingsScreen(
     accountName: String,
     onOpenLogin: () -> Unit,
     onLogout: () -> Unit,
+    syncManager: DesktopSyncManager,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
@@ -461,7 +540,7 @@ fun SettingsScreen(
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         PlayerSection(language, autoPlayNext, onToggleAutoPlayNext)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        DeviceSyncSection(language)
+        DeviceSyncSection(language, syncManager)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
         UpdateSection(language, updateStatus, includePreReleases, onTogglePreReleases, onCheckUpdates)
         HorizontalDivider(Modifier.padding(vertical = 16.dp))
@@ -472,7 +551,7 @@ fun SettingsScreen(
 }
 
 @Composable
-fun DeviceSyncSection(language: String) {
+fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
     var serverUrl by remember {
         val saved = DesktopSettings.load().serverUrl
         // Default to the same relay the Android app uses; treat the old
@@ -480,91 +559,14 @@ fun DeviceSyncSection(language: String) {
         mutableStateOf(if (saved.isBlank() || saved == "wss://localhost:8080") SyncServer.DEFAULT_URL else saved)
     }
     var joinCode by remember { mutableStateOf("") }
-    var client by remember { mutableStateOf<SyncClient?>(null) }
-    var connectionState by remember { mutableStateOf(SyncConnectionState.DISCONNECTED) }
-    var status by remember { mutableStateOf("") }
-    var pairCode by remember { mutableStateOf("") }
-    var syncedSettings by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
 
-    fun connect() {
-        client?.disconnect()
-        val created = SyncClient(
-            serverUrl = serverUrl.trim(),
-            deviceId = DesktopSettings.newDeviceId(),
-            deviceName = "Desktop",
-        )
-        client = created
-        // Persist only real relay URLs; the ephemeral local LAN address must
-        // not become the saved default.
-        if (!serverUrl.startsWith("ws://localhost")) {
-            DesktopSettings.save(DesktopSettings.load().copy(serverUrl = serverUrl.trim()))
-        }
-    }
-
-    val lanRelay = remember { LanSyncRelay() }
-    var lanRunning by remember { mutableStateOf(false) }
-    var lanAddress by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-
-    DisposableEffect(Unit) {
-        onDispose { lanRelay.stop() }
-    }
-
-    fun startLan() {
-        scope.launch {
-            val p = lanRelay.start()
-            lanAddress = "ws://${lanIpAddress()}:$p"
-            lanRunning = true
-            serverUrl = "ws://localhost:$p"
-            connect()
-        }
-    }
-
-    fun stopLan() {
-        lanRelay.stop()
-        lanRunning = false
-        lanAddress = ""
-        client?.disconnect()
-        client = null
-    }
-
-    LaunchedEffect(client) {
-        val c = client ?: return@LaunchedEffect
-        c.connect()
-        c.connectionState.collect {
-            connectionState = it
-            if (it == SyncConnectionState.ERROR) {
-                status = Localization.get(language, "connection_failed")
-            }
-        }
-    }
-
-    LaunchedEffect(client) {
-        val c = client ?: return@LaunchedEffect
-        c.events.collect { event ->
-            when (event) {
-                is SyncEvent.Connected -> {
-                    status = Localization.get(language, "connected")
-                    if (DesktopSettings.load().pairId.isNotEmpty()) c.pullSnapshot()
-                }
-                is SyncEvent.Disconnected -> status = Localization.get(language, "disconnected")
-                is SyncEvent.PairCode -> {
-                    pairCode = event.code
-                    status = "${Localization.get(language, "code_generated")}: ${event.code}"
-                }
-                is SyncEvent.Paired -> {
-                    status = "${Localization.get(language, "paired_with")} ${event.peerDeviceName}"
-                    DesktopSettings.save(DesktopSettings.load().copy(pairId = event.pairId))
-                }
-                is SyncEvent.SnapshotReceived -> {
-                    status = "${Localization.get(language, "snapshot_received")} ${event.fromDeviceId}"
-                    syncedSettings = event.snapshot.settings
-                    DesktopSettings.save(DesktopSettings.load().copy(settings = event.snapshot.settings))
-                }
-                is SyncEvent.Error -> status = "${Localization.get(language, "error")}: ${event.message}"
-            }
-        }
-    }
+    val connectionState by syncManager.connectionState.collectAsState()
+    val status by syncManager.status.collectAsState()
+    val pairCode by syncManager.pairCode.collectAsState()
+    val paired by syncManager.paired.collectAsState()
+    val lanRunning by syncManager.lanRunning.collectAsState()
+    val lanAddress by syncManager.lanAddress.collectAsState()
+    val syncedSettings by syncManager.syncedSettings.collectAsState()
 
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -576,12 +578,12 @@ fun DeviceSyncSection(language: String) {
             singleLine = true,
             label = { Text(Localization.get(language, "relay_server")) },
         )
-        Button(onClick = { connect() }) { Text(Localization.get(language, "connect")) }
+        Button(onClick = { syncManager.connect(serverUrl) }) { Text(Localization.get(language, "connect")) }
     }
 
     Text(Localization.get(language, "lan_sync"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
     Button(
-        onClick = { if (lanRunning) stopLan() else startLan() },
+        onClick = { if (lanRunning) syncManager.stopLan() else syncManager.startLan() },
         modifier = Modifier.padding(top = 4.dp),
     ) {
         Text(Localization.get(language, if (lanRunning) "stop_lan" else "start_lan"))
@@ -608,10 +610,7 @@ fun DeviceSyncSection(language: String) {
     }
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        Button(onClick = {
-            if (client?.connectionState?.value != SyncConnectionState.CONNECTED) connect()
-            client?.requestPairingCode()
-        }) { Text(Localization.get(language, "generate_code")) }
+        Button(onClick = { syncManager.requestPairingCode() }) { Text(Localization.get(language, "generate_code")) }
         OutlinedTextField(
             value = joinCode,
             onValueChange = { joinCode = it },
@@ -619,10 +618,7 @@ fun DeviceSyncSection(language: String) {
             singleLine = true,
             placeholder = { Text(Localization.get(language, "code_placeholder")) },
         )
-        Button(onClick = {
-            if (client?.connectionState?.value != SyncConnectionState.CONNECTED) connect()
-            client?.joinPair(joinCode)
-        }) { Text(Localization.get(language, "pair")) }
+        Button(onClick = { syncManager.joinPair(joinCode) }) { Text(Localization.get(language, "pair")) }
     }
 
     if (pairCode.isNotEmpty()) {
@@ -631,6 +627,12 @@ fun DeviceSyncSection(language: String) {
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(top = 8.dp),
         )
+    }
+
+    if (paired) {
+        Button(onClick = { syncManager.unpair() }, modifier = Modifier.padding(top = 8.dp)) {
+            Text(Localization.get(language, "unpair"))
+        }
     }
 
     Text("${Localization.get(language, "status")}: $connectionState — $status", modifier = Modifier.padding(top = 8.dp))
@@ -958,3 +960,24 @@ fun StorageSection(language: String) {
         modifier = Modifier.padding(top = 8.dp),
     ) { Text(Localization.get(language, "clear_cache")) }
 }
+
+/** Key used to detect discrete playback changes worth syncing (no per-frame pushes). */
+private data class PlaybackSyncKey(
+    val trackId: String?,
+    val isPlaying: Boolean,
+    val index: Int,
+    val queue: List<String>,
+)
+
+/** Maps the desktop theme/language/accent onto the Android shared-preference keys. */
+private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: Color): Map<String, String> = mapOf(
+    "appLanguage" to language.ifBlank { "SYSTEM_DEFAULT" },
+    "darkMode" to when (themeMode) {
+        ThemeMode.SYSTEM -> "AUTO"
+        ThemeMode.LIGHT -> "OFF"
+        ThemeMode.DARK -> "ON"
+    },
+    "selectedThemeColor" to colorToArgbInt(accent).toString(),
+    "pureBlack" to "false",
+    "dynamicTheme" to "false",
+)

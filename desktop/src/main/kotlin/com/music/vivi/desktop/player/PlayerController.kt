@@ -194,7 +194,22 @@ class PlayerController {
         _state.update { it.copy(repeatMode = next) }
     }
 
-    private fun playAt(tracks: List<NowPlaying>, index: Int) {
+    /**
+     * Applies a remote playback snapshot (from device sync): replaces the
+     * queue, jumps to the given index and position, and starts/pauses.
+     */
+    fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean) {
+        if (tracks.isEmpty()) return
+        val idx = index.coerceIn(0, tracks.lastIndex)
+        playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying)
+    }
+
+    private fun playAt(
+        tracks: List<NowPlaying>,
+        index: Int,
+        startAtMs: Long = 0L,
+        startPaused: Boolean = false,
+    ) {
         val track = tracks[index]
         val token = ++playToken
         scope.launch {
@@ -202,8 +217,8 @@ class PlayerController {
             _state.value = PlayerState(
                 queue = tracks,
                 index = index,
-                isPlaying = true,
-                positionMs = 0L,
+                isPlaying = !startPaused,
+                positionMs = startAtMs,
                 volume = _state.value.volume,
                 isShuffle = _state.value.isShuffle,
                 repeatMode = _state.value.repeatMode,
@@ -219,6 +234,8 @@ class PlayerController {
             player.play(
                 url = url,
                 cacheKey = track.videoId,
+                startAtMs = startAtMs,
+                startPaused = startPaused,
                 onPosition = { pos ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {

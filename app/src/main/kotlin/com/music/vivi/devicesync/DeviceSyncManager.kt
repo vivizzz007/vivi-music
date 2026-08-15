@@ -93,6 +93,10 @@ class DeviceSyncManager @Inject constructor(
     @Volatile
     private var applyingRemote = false
 
+    /** While set, playback pushes are suppressed (avoids echoing a snapshot back). */
+    @Volatile
+    private var suppressPlaybackPushUntil = 0L
+
     private var lastPlayback: PlaybackSnapshot? = null
 
     private val _paired = MutableStateFlow(false)
@@ -142,6 +146,7 @@ class DeviceSyncManager @Inject constructor(
 
     /** Capture the current queue + position from the player and sync it. */
     fun pushPlayback(playback: PlaybackSnapshot) {
+        if (System.currentTimeMillis() < suppressPlaybackPushUntil) return
         lastPlayback = playback
         scope.launch { pushCurrentSnapshot() }
     }
@@ -242,7 +247,10 @@ class DeviceSyncManager @Inject constructor(
         applyingRemote = true
         try {
             snapshot.settings.forEach { (key, value) -> applySetting(key, value) }
-            if (snapshot.playback != null) _pendingPlayback.value = snapshot.playback
+            if (snapshot.playback != null) {
+                suppressPlaybackPushUntil = System.currentTimeMillis() + 1500L
+                _pendingPlayback.value = snapshot.playback
+            }
         } catch (e: Exception) {
             Timber.e(e, "DeviceSync: failed to apply snapshot")
         } finally {
