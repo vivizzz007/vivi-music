@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.5_DE-1.30.3] - 2026-08-15
+
+### Changed
+
+- [DE] The Changelog screen now uses a vertical version selector (left list of
+  version buttons, like the mobile chips but top-to-bottom) with the selected
+  version's details in a pane on the right, instead of stacking every version
+  in one long scroll.
+
 ## [6.2.5_DE-1.30.2] - 2026-08-15
 
 ### Changed

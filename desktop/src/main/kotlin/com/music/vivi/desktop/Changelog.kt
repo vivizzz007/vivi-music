@@ -1,17 +1,22 @@
 package com.music.vivi.desktop
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +29,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
@@ -144,9 +151,10 @@ private fun cleanInline(text: String): String =
 
 /**
  * About → Changelog: renders the repository `CHANGELOG.md` like the mobile app
- * — a horizontally scrollable row of version chips on top, and, for the
- * selected version, a bold title followed by its Added/Fixed/Changed sections
- * with bullet items. Falls back to the bundled copy when offline.
+ * — a version selector plus the selected version's Added/Fixed/Changed sections
+ * — but with the version buttons in a vertical list (mouse-friendly) instead of
+ * the mobile's horizontally scrollable chips. Falls back to the bundled copy
+ * when offline.
  */
 @Composable
 fun ChangelogScreen(language: String, onBack: () -> Unit) {
@@ -180,26 +188,70 @@ fun ChangelogScreen(language: String, onBack: () -> Unit) {
             return@Column
         }
 
-        // All versions stacked in one vertically scrollable list (newest first).
-        // The previous horizontally-scrolling version chips were unusable on
-        // desktop (no touch), so older versions were unreachable with the mouse.
-        Column(
-            Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
-                .padding(top = 8.dp),
+        var selectedVersion by remember(releases) { mutableStateOf(releases.first().version) }
+        val selected = releases.firstOrNull { it.version == selectedVersion } ?: releases.first()
+
+        Row(
+            Modifier.weight(1f).padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            releases.forEach { release ->
-                ReleaseSection(release)
+            // Vertical version selector (the mobile chips, listed top-to-bottom).
+            Column(
+                Modifier
+                    .width(260.dp)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                releases.forEach { release ->
+                    val isSelected = release.version == selected.version
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                else Color.Transparent
+                            )
+                            .clickable { selectedVersion = release.version }
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                    ) {
+                        Text(
+                            release.version,
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurface,
+                        )
+                        if (release.date.isNotBlank()) {
+                            Text(
+                                release.date,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
             }
-            Spacer(Modifier.height(32.dp))
+
+            // Selected release details.
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                ReleaseSection(selected)
+                Spacer(Modifier.height(32.dp))
+            }
         }
     }
 }
 
 @Composable
 private fun ReleaseSection(release: ChangelogRelease) {
-    Spacer(Modifier.height(16.dp))
     Text(
         release.version,
         style = MaterialTheme.typography.titleLarge,
