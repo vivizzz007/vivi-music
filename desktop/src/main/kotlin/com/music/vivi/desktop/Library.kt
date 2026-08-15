@@ -6,15 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,6 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.OutlinedButton
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.pages.LibraryPage
@@ -45,6 +53,7 @@ fun LibraryScreen(
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onShuffleAll: (List<SongItem>) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text(Localization.get(language, "library"), style = MaterialTheme.typography.headlineMedium)
@@ -86,25 +95,22 @@ fun LibraryScreen(
 
         Row(
             Modifier.fillMaxWidth().padding(top = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             tabs.forEachIndexed { i, key ->
-                val selected = i == selectedTab
-                Box(
-                    Modifier
-                        .clip(MaterialTheme.shapes.small)
-                        .background(
-                            if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        .clickable { selectedTab = i }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                ) {
-                    Text(
-                        Localization.get(language, key),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
+                FilterChip(
+                    selected = i == selectedTab,
+                    onClick = { selectedTab = i },
+                    label = { Text(Localization.get(language, key)) },
+                )
+                if (i != tabs.lastIndex) Spacer(Modifier.width(8.dp))
+            }
+            Spacer(Modifier.weight(1f))
+            if (selectedTab == 0 && page?.items?.isNotEmpty() == true) {
+                OutlinedButton(onClick = { onShuffleAll(page!!.items.filterIsInstance<SongItem>()) }) {
+                    Icon(Icons.Filled.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(Localization.get(language, "shuffle_all"))
                 }
             }
         }

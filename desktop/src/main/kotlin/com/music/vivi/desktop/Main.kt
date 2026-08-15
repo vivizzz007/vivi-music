@@ -190,6 +190,10 @@ fun App(
     val playSong: (SongItem) -> Unit = { song -> player.play(songToNowPlaying(song)) }
     val addToQueue: (SongItem) -> Unit = { song -> player.addToQueue(songToNowPlaying(song)) }
     val playAll: (List<SongItem>) -> Unit = { songs -> player.playAll(songs.map(::songToNowPlaying)) }
+    val shuffleAll: (List<SongItem>) -> Unit = { songs ->
+        if (!playerState.isShuffle) player.toggleShuffle()
+        player.playAll(songs.shuffled().map(::songToNowPlaying))
+    }
 
     val scope = rememberCoroutineScope()
     var includePreReleases by remember { mutableStateOf(DesktopSettings.load().includePreReleases) }
@@ -323,6 +327,7 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onShuffleAll = shuffleAll,
                     )
                     is Screen.History -> HistoryScreen(
                         language = language,
@@ -441,6 +446,7 @@ fun App(
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                         onPlayAll = playAll,
+                        onShuffleAll = shuffleAll,
                     )
                     is Screen.Artist -> ArtistScreen(
                         browseId = current.browseId,
@@ -460,6 +466,7 @@ fun App(
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                         onPlayAll = playAll,
+                        onShuffleAll = shuffleAll,
                     )
                     is Screen.Browse -> BrowseScreen(
                         browseId = current.browseId,

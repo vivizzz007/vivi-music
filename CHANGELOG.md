@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.22.0] - 2026-08-15
+
+### Added
+
+- [DE] Search now has mobile-style filter chips (All / Songs / Videos / Albums /
+  Artists / Playlists) backed by the innerTube filtered search, plus live query
+  suggestions as you type.
+- [DE] Library tabs now use Material 3 filter chips and the Songs tab gains a
+  "Shuffle all" action.
+- [DE] Album and Playlist screens gain a "Shuffle" action next to "Play all".
+
 ## [6.2.1_DE-1.21.0] - 2026-08-15
 
 ### Added

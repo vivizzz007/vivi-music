@@ -131,6 +131,14 @@ MAPPING = {
     "content_country": "content_country",
     "system_default": "system_default",
     "privacy": "privacy",
+    "filter_all": "filter_all",
+    "filter_songs": "filter_songs",
+    "filter_videos": "filter_videos",
+    "filter_albums": "filter_albums",
+    "filter_artists": "filter_artists",
+    "filter_playlists": "filter_featured_playlists",
+    "no_results_found": "no_results_found",
+    "suggestions": "suggestions",
     # vivi_strings.xml
     "lyrics": "lyrics",
     "now_playing": "now_playing",
@@ -272,6 +280,15 @@ ENGLISH = {
     "clear_session": "Clear session data",
     "cache_cleared": "Cache cleared",
     "installers_deleted": "Installers deleted",
+    "filter_all": "All",
+    "filter_songs": "Songs",
+    "filter_videos": "Videos",
+    "filter_albums": "Albums",
+    "filter_artists": "Artists",
+    "filter_playlists": "Playlists",
+    "no_results_found": "No results found",
+    "suggestions": "Suggestions",
+    "shuffle_all": "Shuffle all",
 }
 
 

@@ -13,10 +13,13 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,12 +28,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
+import com.music.innertube.models.YTItem
 import com.music.innertube.pages.BrowseResult
 import com.music.innertube.pages.HomePage
 import com.music.innertube.pages.MoodAndGenres
+import com.music.innertube.pages.SearchResult
 import com.music.innertube.pages.SearchSummary
 import com.music.innertube.pages.SearchSummaryPage
 
@@ -227,33 +233,103 @@ fun SearchScreen(
 ) {
     var query by remember { mutableStateOf("") }
     var page by remember { mutableStateOf<SearchSummaryPage?>(null) }
+    var filterItems by remember { mutableStateOf<List<YTItem>?>(null) }
+    var selectedFilter by remember { mutableStateOf<YouTube.SearchFilter?>(null) }
+    var suggestions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var focused by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(query) {
+    // Results: summary when "All", filtered results when a chip is selected.
+    LaunchedEffect(query, selectedFilter) {
         val q = query.trim()
         if (q.isEmpty()) {
             page = null
+            filterItems = null
             error = null
             loading = false
             return@LaunchedEffect
         }
         loading = true
-        YouTube.searchSummary(q).fold(
-            onSuccess = { page = it; error = null },
-            onFailure = { error = it.message },
-        )
+        val filter = selectedFilter
+        if (filter == null) {
+            YouTube.searchSummary(q).fold(
+                onSuccess = { page = it; filterItems = null; error = null },
+                onFailure = { error = it.message },
+            )
+        } else {
+            YouTube.search(q, filter).fold(
+                onSuccess = { page = null; filterItems = it.items.distinctBy { item -> item.id }; error = null },
+                onFailure = { error = it.message },
+            )
+        }
         loading = false
+    }
+
+    // Live suggestions while typing (hidden once results are shown).
+    LaunchedEffect(query, focused) {
+        val q = query.trim()
+        if (!focused || q.isEmpty() || page != null || filterItems != null) {
+            suggestions = emptyList()
+            return@LaunchedEffect
+        }
+        suggestions = YouTube.searchSuggestions(q).getOrNull()?.queries.orEmpty().take(6)
     }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
             singleLine = true,
             placeholder = { Text(Localization.get(language, "search_placeholder")) },
         )
+
+        // Filter chips (All / Songs / Videos / Albums / Artists / Playlists).
+        val filters = listOf(
+            null to Localization.get(language, "filter_all"),
+            YouTube.SearchFilter.FILTER_SONG to Localization.get(language, "filter_songs"),
+            YouTube.SearchFilter.FILTER_VIDEO to Localization.get(language, "filter_videos"),
+            YouTube.SearchFilter.FILTER_ALBUM to Localization.get(language, "filter_albums"),
+            YouTube.SearchFilter.FILTER_ARTIST to Localization.get(language, "filter_artists"),
+            YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST to Localization.get(language, "filter_playlists"),
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
+        ) {
+            items(filters.size) { i ->
+                val (filter, label) = filters[i]
+                val selected = selectedFilter == filter
+                FilterChip(
+                    selected = selected,
+                    onClick = { selectedFilter = if (selected) null else filter },
+                    label = { Text(label) },
+                )
+            }
+        }
+
+        // Suggestion list.
+        if (focused && query.isNotBlank() && suggestions.isNotEmpty() && page == null && filterItems == null) {
+            Surface(
+                tonalElevation = 3.dp,
+                shadowElevation = 8.dp,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column {
+                    suggestions.forEach { s ->
+                        Text(
+                            s,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { query = s; focused = false }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
+                    }
+                }
+            }
+        }
 
         val result = page
         when {
@@ -264,7 +340,7 @@ fun SearchScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 16.dp),
             )
-            loading && result == null -> LoadingBox(language)
+            loading && result == null && filterItems == null -> LoadingBox(language)
             result != null -> LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
                 result.summaries.forEach { summary ->
                     item(key = "header-${summary.title}") {
@@ -277,6 +353,49 @@ fun SearchScreen(
                     item(key = "body-${summary.title}") {
                         SummaryBody(summary, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong, onAddToQueue)
                     }
+                }
+                if (result.summaries.isEmpty()) {
+                    item {
+                        Text(
+                            Localization.get(language, "no_results_found"),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 16.dp),
+                        )
+                    }
+                }
+            }
+            filterItems != null -> {
+                val results = filterItems!!
+                if (results.all { it is SongItem }) {
+                    LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
+                        items(results.filterIsInstance<SongItem>(), key = { it.id }) { song ->
+                            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                        }
+                    }
+                } else {
+                    LazyVerticalGrid(
+                        columns = GridCells.Adaptive(160.dp),
+                        modifier = Modifier.fillMaxSize().padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        gridItems(results, key = { it.id }) { item ->
+                            YtItemCard(
+                                item = item,
+                                width = null,
+                                onClick = { onItemClick(item, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong) },
+                            )
+                        }
+                    }
+                }
+                if (results.isEmpty()) {
+                    Text(
+                        Localization.get(language, "no_results_found"),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 16.dp),
+                    )
                 }
             }
         }

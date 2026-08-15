@@ -13,8 +13,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +45,7 @@ fun AlbumScreen(
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
     onPlayAll: (List<SongItem>) -> Unit,
+    onShuffleAll: (List<SongItem>) -> Unit,
 ) {
     var page by remember { mutableStateOf<AlbumPage?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -80,6 +85,12 @@ fun AlbumScreen(
                     Text(Localization.get(language, "songs"), style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.weight(1f))
                     Button(onClick = { onPlayAll(page!!.songs) }) { Text(Localization.get(language, "play_all")) }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { onShuffleAll(page!!.songs) }) {
+                        Icon(Icons.Filled.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(Localization.get(language, "shuffle_all"))
+                    }
                 }
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
@@ -167,6 +178,7 @@ fun PlaylistScreen(
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
     onPlayAll: (List<SongItem>) -> Unit,
+    onShuffleAll: (List<SongItem>) -> Unit,
 ) {
     var page by remember { mutableStateOf<PlaylistPage?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -199,7 +211,15 @@ fun PlaylistScreen(
                     }
                 }
                 Spacer(Modifier.height(16.dp))
-                Button(onClick = { onPlayAll(page!!.songs) }) { Text(Localization.get(language, "play_all")) }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Button(onClick = { onPlayAll(page!!.songs) }) { Text(Localization.get(language, "play_all")) }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { onShuffleAll(page!!.songs) }) {
+                        Icon(Icons.Filled.Shuffle, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(Localization.get(language, "shuffle_all"))
+                    }
+                }
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
