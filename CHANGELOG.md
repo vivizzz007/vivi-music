@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.19.0] - 2026-08-15
+
+### Changed
+
+- [DE] The About → Changelog screen now matches the mobile app: a horizontally
+  scrollable row of version chips on top, and, for the selected version, a bold
+  primary title plus its Added/Fixed/Changed sections rendered as bullet items
+  (instead of a flat markdown dump of the whole file).
+
 ## [6.2.0_DE-1.18.0] - 2026-08-15
 
 ### Added
