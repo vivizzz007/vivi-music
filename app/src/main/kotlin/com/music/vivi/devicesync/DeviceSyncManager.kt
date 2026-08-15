@@ -111,6 +111,9 @@ class DeviceSyncManager @Inject constructor(
     private val _status = MutableStateFlow("")
     val status: StateFlow<String> = _status.asStateFlow()
 
+    private val _peerDeviceName = MutableStateFlow("")
+    val peerDeviceName: StateFlow<String> = _peerDeviceName.asStateFlow()
+
     private val _pendingPlayback = MutableStateFlow<PlaybackSnapshot?>(null)
     val pendingPlayback: StateFlow<PlaybackSnapshot?> = _pendingPlayback.asStateFlow()
 
@@ -151,6 +154,7 @@ class DeviceSyncManager @Inject constructor(
                 it[DeviceSyncEnabledKey] = false
             }
             _paired.value = false
+            _peerDeviceName.value = ""
         }
     }
 
@@ -282,6 +286,7 @@ class DeviceSyncManager @Inject constructor(
             is SyncEvent.PairCode -> _status.value = event.code
             is SyncEvent.Paired -> {
                 _paired.value = true
+                _peerDeviceName.value = event.peerDeviceName
                 context.dataStore.edit {
                     it[DeviceSyncPairIdKey] = event.pairId
                     it[DeviceSyncEnabledKey] = true
@@ -305,6 +310,7 @@ class DeviceSyncManager @Inject constructor(
                         it[DeviceSyncEnabledKey] = false
                     }
                     _paired.value = false
+                    _peerDeviceName.value = ""
                 }
             }
         }
@@ -317,6 +323,7 @@ class DeviceSyncManager @Inject constructor(
         applyingRemote = true
         try {
             snapshot.settings.forEach { (key, value) -> applySetting(key, value) }
+            snapshot.deviceName.takeIf { it.isNotBlank() }?.let { _peerDeviceName.value = it }
             if (snapshot.playback != null) {
                 suppressPlaybackPushUntil = System.currentTimeMillis() + 1500L
                 _pendingPlayback.value = snapshot.playback

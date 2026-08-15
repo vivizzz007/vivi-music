@@ -1033,6 +1033,7 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
     val pairCode by syncManager.pairCode.collectAsState()
     val pairCodeExpiresAt by syncManager.pairCodeExpiresAt.collectAsState()
     val paired by syncManager.paired.collectAsState()
+    val peerDeviceName by syncManager.peerDeviceName.collectAsState()
     val lanRunning by syncManager.lanRunning.collectAsState()
     val lanAddress by syncManager.lanAddress.collectAsState()
     val syncedSettings by syncManager.syncedSettings.collectAsState()
@@ -1125,6 +1126,14 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
         Button(onClick = { syncManager.unpair() }, modifier = Modifier.padding(top = 8.dp)) {
             Text(Localization.get(language, "unpair"))
         }
+    }
+
+    if (paired && peerDeviceName.isNotBlank()) {
+        Text(
+            "${Localization.get(language, "paired_device")}: $peerDeviceName",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 8.dp),
+        )
     }
 
     Text("${Localization.get(language, "status")}: $connectionState — $status", modifier = Modifier.padding(top = 8.dp))

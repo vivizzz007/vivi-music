@@ -52,6 +52,7 @@ fun DeviceSyncScreen(
     val viewModel: DeviceSyncViewModel = hiltViewModel()
     val paired by viewModel.paired.collectAsState()
     val status by viewModel.status.collectAsState()
+    val peerDeviceName by viewModel.peerDeviceName.collectAsState()
 
     val (serverUrl, onServerUrlChange) = rememberPreference(DeviceSyncServerUrlKey, SyncServer.DEFAULT_URL)
     var joinCode by remember { mutableStateOf("") }
@@ -158,6 +159,15 @@ fun DeviceSyncScreen(
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = if (paired) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            if (paired && peerDeviceName.isNotBlank()) {
+                Text(
+                    text = "${stringResource(R.string.device_sync_paired_device)}: $peerDeviceName",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
 
             if (status.isNotBlank()) {
                 Text(

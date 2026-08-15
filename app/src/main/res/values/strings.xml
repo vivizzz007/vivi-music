@@ -455,4 +455,5 @@
     <string name="device_sync_unpair">Unpair</string>
     <string name="device_sync_paired">Paired</string>
     <string name="device_sync_not_paired">Not paired</string>
+    <string name="device_sync_paired_device">Paired device</string>
 </resources>

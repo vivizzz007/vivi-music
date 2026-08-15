@@ -23,6 +23,7 @@ class DeviceSyncViewModel @Inject constructor(
 
     val paired: StateFlow<Boolean> = manager.paired
     val status: StateFlow<String> = manager.status
+    val peerDeviceName: StateFlow<String> = manager.peerDeviceName
     val pendingPlayback: StateFlow<PlaybackSnapshot?> = manager.pendingPlayback
 
     fun createPairingCode() = manager.createPairingCode()

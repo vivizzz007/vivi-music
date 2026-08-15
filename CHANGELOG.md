@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.4_DE-1.30.1] - 2026-08-15
+
+### Fixed
+
+- [DE+APK] Both sides now show the paired device's name: the Android Devices
+  screen displays the desktop's machine name, and the desktop Device sync
+  section displays the phone's make/model. The desktop now advertises its real
+  hostname instead of the generic "Desktop", and the peer name is restored from
+  the peer's snapshot on reconnect (not just at pairing time).
+
 ## [6.2.3_DE-1.30.0] - 2026-08-15
 
 ### Added

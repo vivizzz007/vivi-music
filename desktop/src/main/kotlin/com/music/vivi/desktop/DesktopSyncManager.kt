@@ -116,7 +116,7 @@ class DesktopSyncManager {
         val created = SyncClient(
             serverUrl = url,
             deviceId = DesktopSettings.newDeviceId(),
-            deviceName = "Desktop",
+            deviceName = desktopDeviceName(),
         )
         client = created
         scope.launch { created.connectionState.collect { _connectionState.value = it } }
@@ -255,7 +255,7 @@ class DesktopSyncManager {
         c.pushSnapshot(
             SyncSnapshot(
                 deviceId = c.deviceId,
-                deviceName = "Desktop",
+                deviceName = desktopDeviceName(),
                 updatedAt = System.currentTimeMillis(),
                 settings = lastSettings,
                 playback = lastPlayback,
@@ -294,6 +294,7 @@ class DesktopSyncManager {
             }
             is SyncEvent.SnapshotReceived -> {
                 _paired.value = true
+                event.snapshot.deviceName.takeIf { it.isNotBlank() }?.let { _peerDeviceName.value = it }
                 suppressPushUntil = System.currentTimeMillis() + ECHO_SUPPRESS_MS
                 _status.value = "Snapshot received"
                 if (event.snapshot.settings.isNotEmpty()) {
@@ -334,3 +335,9 @@ class DesktopSyncManager {
         const val PAIR_CODE_TTL_MS = 5 * 60 * 1000L
     }
 }
+
+/** Best-effort human-readable name for this desktop machine (shown on the phone). */
+private fun desktopDeviceName(): String = runCatching {
+    val env = System.getenv("COMPUTERNAME") ?: System.getenv("HOSTNAME")
+    if (!env.isNullOrBlank()) env else java.net.InetAddress.getLocalHost().hostName
+}.getOrDefault("Desktop").ifBlank { "Desktop" }
