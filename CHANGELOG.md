@@ -89,6 +89,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Fixed
 
+- [DE] Fixed the language selector always showing English: the desktop string
+  table now ships real translations for 45 languages (generated from the
+  Android app's `strings.xml` / `vivi_strings.xml` via
+  `scripts/generate_desktop_localization.py`). Keys without a translation
+  still fall back to English.
 - [DE] Fixed the update check picking the wrong release: it now selects the
   desktop release with the highest `_DE-<version>` tag instead of the first /
   "latest" entry (GitHub orders releases by publish date, not by version), so
