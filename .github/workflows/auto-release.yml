@@ -39,21 +39,17 @@ jobs:
     uses: ./.github/workflows/build-desktop-macos.yml
     secrets: inherit
 
-  build-android:
-    name: Android APK
-    # Best-effort: builds the APK from this branch so it always ships with the
-    # desktop release, regardless of whether the mobile CI (release.yml on
-    # `main`) has already published a matching v<mobile> release.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
-    uses: ./.github/workflows/build-android.yml
-    secrets: inherit
+  # The Android APK is no longer built here. A dedicated workflow
+  # (release-mobile.yml) builds + signs the APKs on this same branch and
+  # attaches them to the release created below, so the desktop release stays
+  # independent of the (slower) Android build.
 
   release:
     name: Publish GitHub Release
-    needs: [ build-windows, build-linux, build-macos, build-android ]
-    # Only the three desktop builds are required. The Android APK is built
-    # best-effort from this branch (build-android.yml), so a missing/failed
-    # APK build never blocks this desktop release.
+    needs: [ build-windows, build-linux, build-macos ]
+    # Only the three desktop builds are required. The Android APK is attached
+    # separately by release-mobile.yml, so a missing/failed APK never blocks
+    # this desktop release.
     if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:

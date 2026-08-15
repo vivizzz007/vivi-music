@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.19.3] - 2026-08-15
+
+### Changed
+
+- [DE] APK delivery for desktop releases: a dedicated workflow
+  (`release-mobile.yml`, a copy of the mobile CI adapted for `vivi-music-de`)
+  builds and signs the GMS + FOSS APKs on this branch and attaches them to the
+  release created by `auto-release.yml`. The in-pipeline `build-android` job was
+  removed from `auto-release.yml` to avoid building the APK twice.
+
 ## [6.2.1_DE-1.19.2] - 2026-08-15
 
 ### Fixed
