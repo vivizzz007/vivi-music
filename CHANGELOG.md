@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.19.2] - 2026-08-15
+
+### Fixed
+
+- [DE] Content now scales with the window: the Player artwork resizes with the
+  window width (180–360dp) instead of being fixed at 300dp, and Library cards
+  fill their adaptive grid cells instead of a fixed 140dp width.
+
 ## [6.2.1_DE-1.19.1] - 2026-08-15
 
 ### Changed

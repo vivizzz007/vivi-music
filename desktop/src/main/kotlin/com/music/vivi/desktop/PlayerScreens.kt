@@ -3,6 +3,7 @@ package com.music.vivi.desktop
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -180,9 +181,15 @@ private fun PlayerContent(
 
         Spacer(Modifier.height(28.dp))
 
-        // Artwork.
-        Box(Modifier.shadow(24.dp, RoundedCornerShape(12.dp))) {
-            Thumbnail(np.thumbnail, Modifier.size(300.dp))
+        // Artwork — scales with the window width so resizing the window resizes it.
+        BoxWithConstraints(
+            Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+        ) {
+            val artworkSize = (maxWidth * 0.45f).coerceIn(180.dp, 360.dp)
+            Box(Modifier.shadow(24.dp, RoundedCornerShape(12.dp))) {
+                Thumbnail(np.thumbnail, Modifier.size(artworkSize))
+            }
         }
 
         Spacer(Modifier.height(32.dp))

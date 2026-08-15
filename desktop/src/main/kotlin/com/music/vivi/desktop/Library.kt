@@ -138,6 +138,7 @@ fun LibraryScreen(
                             Box(Modifier.fillMaxWidth()) {
                                 YtItemCard(
                                     item = item,
+                                    width = null,
                                     onClick = { onItemClick(item, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong) },
                                 )
                             }
