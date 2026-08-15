@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.27.0] - 2026-08-15
+
+### Added
+
+- [DE] Developer options: tap the About "Version code" seven times to enable
+  them. Once enabled, a new "Developer options" settings screen lets you show
+  live CPU, RAM and network stats (download/upload speed + total traffic), the
+  GPU device, thread count, uptime, OS/Java info and the paired phone
+  name/model — either as a non-invasive collapsible overlay in the main window
+  or in a dedicated window.
+
 ## [6.2.2_DE-1.26.4] - 2026-08-15
 
 ### Fixed

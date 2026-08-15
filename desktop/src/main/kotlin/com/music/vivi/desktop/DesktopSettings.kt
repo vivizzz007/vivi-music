@@ -44,6 +44,8 @@ data class DesktopSyncState(
     val lyricsTextSize: Float = 18f,
     val library: LibrarySnapshot? = null,
     val firstLaunchDate: Long = 0L,
+    val developerOptions: Boolean = false,
+    val devToolsMode: String = "OVERLAY",
 )
 
 object DesktopSettings {

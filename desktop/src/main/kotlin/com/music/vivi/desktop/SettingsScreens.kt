@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -337,6 +338,11 @@ fun SettingsAboutScreen(language: String, onBack: () -> Unit, onOpenChangelog: (
 }
 
 @Composable
+fun SettingsDeveloperScreen(language: String, onBack: () -> Unit, syncManager: DesktopSyncManager) {
+    SettingsSubScreen(language, onBack) { DeveloperSection(language, syncManager) }
+}
+
+@Composable
 fun SettingsStorageScreen(language: String, onBack: () -> Unit) {
     SettingsSubScreen(language, onBack) { StorageSection(language) }
 }
@@ -529,5 +535,53 @@ fun PrivacySection(language: String, isLoggedIn: Boolean, onLogout: () -> Unit) 
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp),
         )
+    }
+}
+
+/** Developer options: enable/disable the live stats + choose overlay vs window. */
+@Composable
+fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
+    val enabled by DeveloperOptions.enabled.collectAsState()
+    val mode by DeveloperOptions.mode.collectAsState()
+
+    Text(
+        Localization.get(language, "developer_options"),
+        style = MaterialTheme.typography.titleLarge,
+        modifier = Modifier.padding(top = 12.dp),
+    )
+    Text(
+        Localization.get(language, "developer_options_desc"),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+
+    Row(
+        Modifier.fillMaxWidth().padding(top = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Switch(checked = enabled, onCheckedChange = { DeveloperOptions.setEnabled(it) })
+        Column(Modifier.clickable { DeveloperOptions.setEnabled(!enabled) }) {
+            Text(Localization.get(language, "developer_options_enabled"))
+        }
+    }
+
+    if (enabled) {
+        Text(
+            Localization.get(language, "dev_tools_mode"),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { DeveloperOptions.setMode(DevToolsMode.OVERLAY) },
+                enabled = mode != DevToolsMode.OVERLAY,
+            ) { Text(Localization.get(language, "dev_tools_overlay")) }
+            OutlinedButton(
+                onClick = { DeveloperOptions.setMode(DevToolsMode.WINDOW) },
+                enabled = mode != DevToolsMode.WINDOW,
+            ) { Text(Localization.get(language, "dev_tools_window")) }
+        }
     }
 }

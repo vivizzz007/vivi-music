@@ -50,6 +50,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.History
@@ -122,6 +123,7 @@ fun main() = application {
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
     LoginManager.restore()
     DesktopSettings.ensureFirstLaunchDate()
+    DeveloperOptions.load()
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
     var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
@@ -251,6 +253,8 @@ fun App(
     val scope = rememberCoroutineScope()
     var includePreReleases by remember { mutableStateOf(DesktopSettings.load().includePreReleases) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
+    val devEnabled by DeveloperOptions.enabled.collectAsState()
+    val devMode by DeveloperOptions.mode.collectAsState()
 
     fun runUpdateCheck() {
         updateStatus = UpdateStatus.Checking
@@ -524,6 +528,11 @@ fun App(
                         onBack = goBack,
                         onOpenChangelog = { navigate(Screen.Changelog) },
                     )
+                    is Screen.SettingsDeveloper -> SettingsDeveloperScreen(
+                        language = language,
+                        onBack = goBack,
+                        syncManager = syncManager,
+                    )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
                         language = language,
@@ -626,6 +635,13 @@ fun App(
                         onDone = { showUpdateNotification = false },
                     )
                 }
+                if (devEnabled && devMode == DevToolsMode.OVERLAY) {
+                    DevToolsOverlay(
+                        syncManager = syncManager,
+                        language = language,
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                    )
+                }
             }
             MiniPlayer(
                 nowPlaying = nowPlaying,
@@ -637,6 +653,20 @@ fun App(
                 onOpen = { navigate(Screen.Player) },
                 onOpenQueue = { navigate(Screen.Queue) },
             )
+        }
+    }
+
+    // Developer tools in a dedicated window (closing it falls back to overlay).
+    if (devEnabled && devMode == DevToolsMode.WINDOW) {
+        Window(
+            onCloseRequest = { DeveloperOptions.setMode(DevToolsMode.OVERLAY) },
+            title = "VIVI Music DE — Developer tools",
+        ) {
+            AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
+                SelectionContainer {
+                    DevToolsPanel(syncManager = syncManager, language = language)
+                }
+            }
         }
     }
 }
@@ -808,6 +838,7 @@ fun SettingsScreen(
     updateStatus: UpdateStatus,
     onOpen: (Screen) -> Unit,
 ) {
+    val devEnabled by DeveloperOptions.enabled.collectAsState()
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
@@ -886,6 +917,14 @@ fun SettingsScreen(
             title = Localization.get(language, "storage"),
             onClick = { onOpen(Screen.SettingsStorage) },
         )
+        if (devEnabled) {
+            SettingsEntryRow(
+                language = language,
+                icon = Icons.Filled.Build,
+                title = Localization.get(language, "developer_options"),
+                onClick = { onOpen(Screen.SettingsDeveloper) },
+            )
+        }
         SettingsEntryRow(
             language = language,
             icon = Icons.Filled.Info,
@@ -1435,6 +1474,8 @@ private fun formatCountdown(ms: Long): String {
 @Composable
 fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
     val firstLaunchDate = remember { DesktopSettings.load().firstLaunchDate }
+    var versionCodeTaps by remember { mutableStateOf(0) }
+    val devEnabled by DeveloperOptions.enabled.collectAsState()
 
     Column(
         Modifier.fillMaxWidth().padding(top = 16.dp),
@@ -1501,6 +1542,27 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
         icon = Icons.Filled.Info,
         title = Localization.get(language, "version_code"),
         description = AppInfo.VERSION_CODE.toString(),
+        onClick = {
+            if (!devEnabled) {
+                versionCodeTaps++
+                if (versionCodeTaps >= 7) {
+                    DeveloperOptions.setEnabled(true)
+                    versionCodeTaps = 0
+                }
+            }
+        },
+    )
+    Text(
+        if (devEnabled) {
+            Localization.get(language, "developer_options_enabled")
+        } else if (versionCodeTaps > 0) {
+            Localization.get(language, "tap_version_code_hint") + " (${7 - versionCodeTaps})"
+        } else {
+            ""
+        },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(vertical = 4.dp),
     )
     AboutInfoRow(
         icon = Icons.Filled.Description,

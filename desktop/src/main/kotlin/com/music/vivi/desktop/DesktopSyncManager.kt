@@ -55,6 +55,13 @@ class DesktopSyncManager {
     private val _paired = MutableStateFlow(false)
     val paired: StateFlow<Boolean> = _paired.asStateFlow()
 
+    /** Name/model of the paired peer device (e.g. the phone's manufacturer + model). */
+    private val _peerDeviceName = MutableStateFlow("")
+    val peerDeviceName: StateFlow<String> = _peerDeviceName.asStateFlow()
+
+    private val _peerDeviceId = MutableStateFlow("")
+    val peerDeviceId: StateFlow<String> = _peerDeviceId.asStateFlow()
+
     private val _lanRunning = MutableStateFlow(false)
     val lanRunning: StateFlow<Boolean> = _lanRunning.asStateFlow()
 
@@ -148,6 +155,8 @@ class DesktopSyncManager {
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
+        _peerDeviceName.value = ""
+        _peerDeviceId.value = ""
     }
 
     fun requestPairingCode() {
@@ -166,6 +175,8 @@ class DesktopSyncManager {
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
+        _peerDeviceName.value = ""
+        _peerDeviceId.value = ""
     }
 
     /** Update the local playback snapshot and push it to the peer (if paired). */
@@ -239,6 +250,8 @@ class DesktopSyncManager {
                 _paired.value = true
                 _pairCode.value = ""
                 _pairCodeExpiresAt.value = 0L
+                _peerDeviceName.value = event.peerDeviceName
+                _peerDeviceId.value = event.peerDeviceId
                 DesktopSettings.save(DesktopSettings.load().copy(pairId = event.pairId))
                 _status.value = "Paired with ${event.peerDeviceName}"
                 pushSnapshot()
@@ -276,6 +289,8 @@ class DesktopSyncManager {
                     _paired.value = false
                     _pairCode.value = ""
                     _pairCodeExpiresAt.value = 0L
+                    _peerDeviceName.value = ""
+                    _peerDeviceId.value = ""
                     DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
                 }
             }
