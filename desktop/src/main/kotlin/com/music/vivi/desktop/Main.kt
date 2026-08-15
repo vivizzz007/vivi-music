@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -75,6 +78,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -248,6 +252,17 @@ fun App(
 
     // Automatic update check on startup.
     LaunchedEffect(Unit) { runUpdateCheck() }
+
+    // Non-invasive update notification, shown once per new version.
+    var showUpdateNotification by remember { mutableStateOf(false) }
+    var updateNotifiedVersion by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(updateStatus) {
+        val available = updateStatus as? UpdateStatus.Available
+        if (available != null && available.version != updateNotifiedVersion) {
+            updateNotifiedVersion = available.version
+            showUpdateNotification = true
+        }
+    }
 
     // ---- Device sync (Android <-> desktop) ----
     val syncManager = remember { DesktopSyncManager() }
@@ -591,6 +606,14 @@ fun App(
                             isLoggedIn = true
                             accountName = DesktopSettings.load().accountName
                         },
+                    )
+                }
+                if (showUpdateNotification && updateStatus is UpdateStatus.Available) {
+                    UpdateNotification(
+                        status = updateStatus as UpdateStatus.Available,
+                        language = language,
+                        onDismiss = { showUpdateNotification = false },
+                        onDone = { showUpdateNotification = false },
                     )
                 }
             }
@@ -1087,6 +1110,88 @@ fun LanguageSelectionScreen(onSelect: (String) -> Unit) {
                         .clickable { onSelect(lang.code) }
                         .padding(vertical = 8.dp),
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Non-invasive banner shown when a newer desktop release is available, with
+ * "Install now" (download + launch the installer) and a dismiss button.
+ */
+@Composable
+fun BoxScope.UpdateNotification(
+    status: UpdateStatus.Available,
+    language: String,
+    onDismiss: () -> Unit,
+    onDone: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var downloading by remember { mutableStateOf(false) }
+    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
+
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(16.dp),
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.widthIn(max = 300.dp)) {
+                Text(
+                    Localization.get(language, "update_available"),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    status.version,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                progress?.let { p ->
+                    LinearProgressIndicator(
+                        progress = { p.percent / 100f },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    )
+                }
+            }
+            Button(
+                onClick = {
+                    if (downloading) return@Button
+                    val asset = status.asset
+                    if (asset == null) {
+                        openUrl(status.url)
+                        onDone()
+                    } else {
+                        scope.launch {
+                            downloading = true
+                            progress = DownloadProgress(0, asset.sizeBytes, 0)
+                            val file = withContext(Dispatchers.IO) {
+                                runCatching {
+                                    UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p }
+                                }.getOrNull()
+                            }
+                            progress = null
+                            downloading = false
+                            if (file != null && openFile(file)) {
+                                exitProcess(0)
+                            }
+                            onDone()
+                        }
+                    }
+                },
+                enabled = !downloading,
+                modifier = Modifier.padding(start = 12.dp),
+            ) {
+                Text(Localization.get(language, if (downloading) "downloading" else "install_now"))
+            }
+            IconButton(onClick = onDismiss) {
+                Icon(Icons.Filled.Close, contentDescription = Localization.get(language, "dismiss"))
             }
         }
     }

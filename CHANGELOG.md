@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.24.0] - 2026-08-15
+
+### Added
+
+- [DE] A non-invasive banner now appears when a newer release is available,
+  with "Install now" (downloads and launches the installer) and a dismiss
+  button. It is shown once per new version.
+
 ## [6.2.1_DE-1.23.0] - 2026-08-15
 
 ### Added

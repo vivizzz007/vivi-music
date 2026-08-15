@@ -305,6 +305,8 @@ ENGLISH = {
     "remember_shuffle_repeat": "Remember shuffle and repeat",
     "persistent_queue": "Persistent queue",
     "lyrics_text_size": "Lyrics text size",
+    "install_now": "Install now",
+    "dismiss": "Dismiss",
 }
 
 
