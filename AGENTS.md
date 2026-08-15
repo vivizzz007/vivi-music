@@ -58,6 +58,10 @@ dependencies there, or you break the desktop build.
 - **Commit style**: Conventional Commits (`feat:`, `fix:`, `ci:`, `refactor:`,
   `docs:`, `chore:`, `perf:`, …) with an optional scope, e.g.
   `feat(sync): …`.
+- **Short commit titles**: keep the subject line as short as possible (aim for
+  ~50 characters) and put the rest — what changed, why, and any extra notes —
+  in the commit **body** (a blank line after the subject, then one or more
+  lines/bullets). Do not cram the whole summary into the title.
 - Commit and push after making changes, when asked (and per the project's
   standing rule to commit+push after every modification).
 - **Release-triggering commits (`v` prefix)**: any change to program code or to
