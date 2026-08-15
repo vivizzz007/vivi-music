@@ -129,10 +129,21 @@ object UpdateChecker {
         releases: List<GitHubRelease>,
         includePreReleases: Boolean,
     ): Pair<String, GitHubRelease>? =
+        desktopReleases(releases, includePreReleases).firstOrNull()
+
+    /**
+     * All desktop releases (version -> release), newest DE version first.
+     * Pre-releases are included only when [includePreReleases] is true.
+     */
+    private fun desktopReleases(
+        releases: List<GitHubRelease>,
+        includePreReleases: Boolean,
+    ): List<Pair<String, GitHubRelease>> =
         releases.asSequence()
             .filter { !it.prerelease || includePreReleases }
             .mapNotNull { r -> deVersionFromTag(r.tagName)?.let { it to r } }
-            .maxWithOrNull { a, b -> compareVersions(a.first, b.first) }
+            .sortedWith { a, b -> compareVersions(b.first, a.first) }
+            .toList()
 
     /**
      * Fetches the live CHANGELOG.md straight from the repository (default
@@ -193,15 +204,28 @@ object UpdateChecker {
             val releases = json.decodeFromString<List<GitHubRelease>>(body)
 
             val current = AppInfo.DE_VERSION
-            val candidate = highestDesktopRelease(releases, includePreReleases)
-                ?: return UpdateStatus.Failed("No desktop release found")
+            val sorted = desktopReleases(releases, includePreReleases)
+            if (sorted.isEmpty()) return UpdateStatus.Failed("No desktop release found")
 
-            val (version, release) = candidate
-            if (compareVersions(version, current) > 0) {
-                UpdateStatus.Available(version, release.htmlUrl, selectAsset(release.assets))
-            } else {
-                UpdateStatus.UpToDate
+            val newest = sorted.first()
+            if (compareVersions(newest.first, current) <= 0) return UpdateStatus.UpToDate
+
+            // Prefer the newest release that actually ships an installer for
+            // this OS. If a release's build for this platform failed (so its
+            // MSI/EXE/DMG/… asset is missing), falling through to the next
+            // newest release with an asset avoids silently opening the browser.
+            val withAsset = sorted.asSequence()
+                .filter { (v, _) -> compareVersions(v, current) > 0 }
+                .mapNotNull { (v, r) -> selectAsset(r.assets)?.let { Triple(v, r, it) } }
+                .firstOrNull()
+
+            if (withAsset != null) {
+                return UpdateStatus.Available(withAsset.first, withAsset.second.htmlUrl, withAsset.third)
             }
+            // A newer release exists but none of them has an installer asset for
+            // this OS — surface the version anyway so the UI can offer the
+            // release page instead of a broken in-app download.
+            UpdateStatus.Available(newest.first, newest.second.htmlUrl, null)
         }
     } catch (e: Exception) {
         UpdateStatus.Failed(e.message ?: e::class.simpleName ?: "error")

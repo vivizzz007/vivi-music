@@ -18,6 +18,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -324,11 +325,23 @@ fun SettingsUpdatesScreen(
     onBack: () -> Unit,
     updateStatus: UpdateStatus,
     includePreReleases: Boolean,
+    updateIntervalHours: Int,
+    onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
 ) {
+    // Check for updates every time the section is opened.
+    LaunchedEffect(Unit) { onCheckUpdates() }
     SettingsSubScreen(language, onBack) {
-        UpdateSection(language, updateStatus, includePreReleases, onTogglePreReleases, onCheckUpdates)
+        UpdateSection(
+            language,
+            updateStatus,
+            includePreReleases,
+            updateIntervalHours,
+            onIntervalChange,
+            onTogglePreReleases,
+            onCheckUpdates,
+        )
     }
 }
 

@@ -11,6 +11,24 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.0] - 2026-08-15
+
+### Added
+
+- [DE] The Updates screen now checks for updates automatically every time it
+  is opened, and in the background at a configurable interval (manual only,
+  6 hours, 12 hours, 24 hours, 3 days or 7 days), selectable in
+  Settings → Updates.
+
+### Fixed
+
+- [DE] "Download" in the Updates screen no longer opens the browser instead of
+  downloading in-app: the updater now picks the newest release that actually
+  ships an installer for your OS (skipping releases whose build for your
+  platform is missing) and only falls back to the release page when no
+  installer exists. Nightly/alpha/beta/rc builds now include pre-releases by
+  default so they can see updates without toggling the option.
+
 ## [6.2.2_DE-1.27.1] - 2026-08-15
 
 ### Fixed

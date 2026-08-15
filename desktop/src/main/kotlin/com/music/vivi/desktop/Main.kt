@@ -251,7 +251,14 @@ fun App(
     }
 
     val scope = rememberCoroutineScope()
-    var includePreReleases by remember { mutableStateOf(DesktopSettings.load().includePreReleases) }
+    // Pre-releases are on by default for nightly/alpha/beta/rc builds (those
+    // channels only publish pre-releases), and off by default for stable.
+    var includePreReleases by remember {
+        mutableStateOf(
+            DesktopSettings.load().includePreReleases || AppInfo.CHANNEL.lowercase() != "stable"
+        )
+    }
+    var updateIntervalHours by remember { mutableStateOf(DesktopSettings.load().updateCheckIntervalHours) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
@@ -266,6 +273,15 @@ fun App(
 
     // Automatic update check on startup.
     LaunchedEffect(Unit) { runUpdateCheck() }
+
+    // Periodic update check, at the user-selected interval (0 = manual only).
+    LaunchedEffect(updateIntervalHours) {
+        if (updateIntervalHours <= 0) return@LaunchedEffect
+        while (true) {
+            delay(updateIntervalHours * 3_600_000L)
+            runUpdateCheck()
+        }
+    }
 
     // Non-invasive update notification, shown once per new version.
     var showUpdateNotification by remember { mutableStateOf(false) }
@@ -516,6 +532,11 @@ fun App(
                         onBack = goBack,
                         updateStatus = updateStatus,
                         includePreReleases = includePreReleases,
+                        updateIntervalHours = updateIntervalHours,
+                        onIntervalChange = { hours ->
+                            updateIntervalHours = hours
+                            DesktopSettings.save(DesktopSettings.load().copy(updateCheckIntervalHours = hours))
+                        },
                         onTogglePreReleases = { checked ->
                             includePreReleases = checked
                             DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
@@ -1308,6 +1329,8 @@ fun UpdateSection(
     language: String,
     status: UpdateStatus,
     includePreReleases: Boolean,
+    updateIntervalHours: Int,
+    onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
     onCheckUpdates: () -> Unit,
 ) {
@@ -1316,6 +1339,7 @@ fun UpdateSection(
     var downloadedFile by remember { mutableStateOf<File?>(null) }
     var installerCount by remember { mutableStateOf(UpdateDownloader.downloadedInstallers().size) }
     var openError by remember { mutableStateOf<String?>(null) }
+    var intervalMenuOpen by remember { mutableStateOf(false) }
 
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
@@ -1332,6 +1356,28 @@ fun UpdateSection(
         Text(Localization.get(language, "include_prereleases"))
     }
 
+    // Automatic check frequency.
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(Localization.get(language, "update_check_interval"), style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.weight(1f))
+        Box {
+            OutlinedButton(onClick = { intervalMenuOpen = true }) {
+                Text(intervalLabel(language, updateIntervalHours))
+            }
+            DropdownMenu(expanded = intervalMenuOpen, onDismissRequest = { intervalMenuOpen = false }) {
+                updateCheckIntervalOptions().forEach { hours ->
+                    DropdownMenuItem(
+                        text = { Text(intervalLabel(language, hours)) },
+                        onClick = {
+                            onIntervalChange(hours)
+                            intervalMenuOpen = false
+                        },
+                    )
+                }
+            }
+        }
+    }
+
     when (status) {
         is UpdateStatus.Checking -> Text(Localization.get(language, "checking"), modifier = Modifier.padding(top = 8.dp))
         is UpdateStatus.UpToDate -> Text(Localization.get(language, "up_to_date"), modifier = Modifier.padding(top = 8.dp))
@@ -1339,14 +1385,22 @@ fun UpdateSection(
             Text("${Localization.get(language, "update_available")}: ${status.version}", modifier = Modifier.padding(top = 8.dp))
             val asset = status.asset
             when {
-                asset == null -> Button(
-                    onClick = {
-                        openError = null
-                        if (!openUrl(status.url)) openError = Localization.get(language, "open_failed")
-                    },
-                    modifier = Modifier.padding(top = 4.dp),
-                ) {
-                    Text(Localization.get(language, "download"))
+                asset == null -> {
+                    Text(
+                        Localization.get(language, "no_installer"),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                    Button(
+                        onClick = {
+                            openError = null
+                            if (!openUrl(status.url)) openError = Localization.get(language, "open_failed")
+                        },
+                        modifier = Modifier.padding(top = 4.dp),
+                    ) {
+                        Text(Localization.get(language, "open_release_page"))
+                    }
                 }
                 downloadedFile != null -> {
                     Text(
@@ -1469,6 +1523,20 @@ private fun openFile(file: File): Boolean {
 
 private fun formatSpeed(bps: Long): String =
     if (bps <= 0) "0 B/s" else "${formatBytes(bps)}/s"
+
+/** Available update-check intervals, in hours (0 = manual only). */
+private fun updateCheckIntervalOptions(): List<Int> = listOf(0, 6, 12, 24, 72, 168)
+
+/** Localized label for an update-check interval. */
+private fun intervalLabel(language: String, hours: Int): String = when (hours) {
+    0 -> Localization.get(language, "interval_manual")
+    6 -> Localization.get(language, "interval_6h")
+    12 -> Localization.get(language, "interval_12h")
+    24 -> Localization.get(language, "interval_24h")
+    72 -> Localization.get(language, "interval_3d")
+    168 -> Localization.get(language, "interval_7d")
+    else -> "$hours h"
+}
 
 /** Formats a millisecond duration as `M:SS` for the pairing-code countdown. */
 private fun formatCountdown(ms: Long): String {
