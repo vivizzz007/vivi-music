@@ -1,5 +1,6 @@
 package com.music.vivi.desktop
 
+import com.music.vivi.sync.LibrarySnapshot
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -41,6 +42,7 @@ data class DesktopSyncState(
     val queueJson: String = "",
     val queueIndex: Int = 0,
     val lyricsTextSize: Float = 18f,
+    val library: LibrarySnapshot? = null,
 )
 
 object DesktopSettings {

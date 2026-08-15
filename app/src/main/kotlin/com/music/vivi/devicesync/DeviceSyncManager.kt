@@ -47,6 +47,8 @@ import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.SuggestionRegionKey
 import com.music.vivi.constants.TranslateLanguageKey
 import com.music.vivi.constants.TranslateLyricsKey
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncClient
 import com.music.vivi.sync.SyncConnectionState
@@ -61,6 +63,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -83,6 +86,7 @@ import javax.inject.Singleton
 @Singleton
 class DeviceSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val database: MusicDatabase,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -99,6 +103,8 @@ class DeviceSyncManager @Inject constructor(
 
     private var lastPlayback: PlaybackSnapshot? = null
 
+    private var lastLibrary: LibrarySnapshot? = null
+
     private val _paired = MutableStateFlow(false)
     val paired: StateFlow<Boolean> = _paired.asStateFlow()
 
@@ -108,11 +114,15 @@ class DeviceSyncManager @Inject constructor(
     private val _pendingPlayback = MutableStateFlow<PlaybackSnapshot?>(null)
     val pendingPlayback: StateFlow<PlaybackSnapshot?> = _pendingPlayback.asStateFlow()
 
+    private val _syncedLibrary = MutableStateFlow<LibrarySnapshot?>(null)
+    val syncedLibrary: StateFlow<LibrarySnapshot?> = _syncedLibrary.asStateFlow()
+
     fun start() {
         if (started) return
         started = true
         scope.launch { observeLifecycle() }
         scope.launch { observeSettingsAndPush() }
+        scope.launch { observeLibraryAndPush() }
     }
 
     // ---------------------------------------------------------------------
@@ -180,6 +190,28 @@ class DeviceSyncManager @Inject constructor(
             .collect { settings ->
                 if (applyingRemote || !_paired.value) return@collect
                 pushCurrentSnapshot(settings)
+            }
+    }
+
+    /** Observe the local library (liked songs / albums / artists / playlists) and push it. */
+    private suspend fun observeLibraryAndPush() {
+        combine(
+            database.likedSongsByCreateDateAsc(),
+            database.albumsLikedByCreateDateAsc(),
+            database.artistsBookmarkedByCreateDateAsc(),
+            database.playlistsByCreateDateAsc(),
+        ) { songs, albums, artists, playlists ->
+            LibrarySnapshot(
+                songIds = songs.map { it.song.id },
+                albumIds = albums.map { it.album.id },
+                artistIds = artists.map { it.artist.id },
+                playlistIds = playlists.map { it.playlist.id },
+            )
+        }
+            .distinctUntilChanged()
+            .collect { library ->
+                lastLibrary = library
+                if (!applyingRemote && _paired.value) pushCurrentSnapshot()
             }
     }
 
@@ -251,6 +283,7 @@ class DeviceSyncManager @Inject constructor(
                 suppressPlaybackPushUntil = System.currentTimeMillis() + 1500L
                 _pendingPlayback.value = snapshot.playback
             }
+            snapshot.library?.let { _syncedLibrary.value = it }
         } catch (e: Exception) {
             Timber.e(e, "DeviceSync: failed to apply snapshot")
         } finally {
@@ -270,6 +303,7 @@ class DeviceSyncManager @Inject constructor(
                 updatedAt = System.currentTimeMillis(),
                 settings = settings ?: readSettings(prefs),
                 playback = lastPlayback,
+                library = lastLibrary,
             )
         )
     }

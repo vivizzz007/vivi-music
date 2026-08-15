@@ -1,5 +1,6 @@
 package com.music.vivi.desktop
 
+import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncClient
 import com.music.vivi.sync.SyncConnectionState
@@ -71,13 +72,25 @@ class DesktopSyncManager {
     private val _incomingSettings = MutableSharedFlow<Map<String, String>>(extraBufferCapacity = 8)
     val incomingSettings: SharedFlow<Map<String, String>> = _incomingSettings.asSharedFlow()
 
+    /** Incoming library snapshots to apply to the local library. */
+    private val _incomingLibrary = MutableSharedFlow<LibrarySnapshot?>(extraBufferCapacity = 8)
+    val incomingLibrary: SharedFlow<LibrarySnapshot?> = _incomingLibrary.asSharedFlow()
+
+    private val _syncedLibrary = MutableStateFlow<LibrarySnapshot?>(null)
+    val syncedLibrary: StateFlow<LibrarySnapshot?> = _syncedLibrary.asStateFlow()
+
     private var client: SyncClient? = null
 
     private var lastPlayback: PlaybackSnapshot? = null
     private var lastSettings: Map<String, String> = emptyMap()
+    private var lastLibrary: LibrarySnapshot? = null
 
     @Volatile
     private var suppressPushUntil = 0L
+
+    init {
+        lastLibrary = DesktopSettings.load().library
+    }
 
     // ---------------------------------------------------------------------
     // Public API
@@ -155,6 +168,12 @@ class DesktopSyncManager {
         pushSnapshot()
     }
 
+    /** Update the local library snapshot and push it to the peer (if paired). */
+    fun updateLibrary(library: LibrarySnapshot?) {
+        lastLibrary = library
+        pushSnapshot()
+    }
+
     // ---------------------------------------------------------------------
     // Internals
     // ---------------------------------------------------------------------
@@ -187,6 +206,7 @@ class DesktopSyncManager {
                 updatedAt = System.currentTimeMillis(),
                 settings = lastSettings,
                 playback = lastPlayback,
+                library = lastLibrary,
             )
         )
     }
@@ -221,6 +241,11 @@ class DesktopSyncManager {
                 }
                 event.snapshot.playback?.let { pb ->
                     scope.launch { _incomingPlayback.emit(pb) }
+                }
+                event.snapshot.library?.let { lib ->
+                    _syncedLibrary.value = lib
+                    DesktopSettings.save(DesktopSettings.load().copy(library = lib))
+                    scope.launch { _incomingLibrary.emit(lib) }
                 }
             }
             is SyncEvent.Error -> {

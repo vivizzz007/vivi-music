@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.25.0] - 2026-08-15
+
+### Added
+
+- [DE+APK] Library sync over the device-sync channel: the mobile app now
+  observes its library (liked songs, bookmarked albums/artists/playlists) and
+  pushes a `LibrarySnapshot` whenever it changes; the desktop receives,
+  persists and exposes it (and pushes its own).
+
 ## [6.2.1_DE-1.24.2] - 2026-08-15
 
 ### Fixed

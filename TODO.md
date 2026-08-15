@@ -23,16 +23,16 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Resume on desktop: apply `pendingPlayback`; the desktop also pushes its playback and applies incoming snapshots (bidirectional), with echo suppression.
 
 ## Phase 3 — Sync: library
-- [ ] Sync liked songs, albums, artists and playlists (`LibrarySnapshot` schema already present).
+- [x] Sync liked songs, albums, artists and playlists at the transport level: the mobile app observes its library (liked songs, bookmarked albums/artists/playlists) and pushes a `LibrarySnapshot`; the desktop receives, persists and exposes it (and pushes its own). UI-side apply on desktop waits for the desktop local-library store (Phase 5).
 
 ## Phase 4 — Desktop audio playback
 - [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position).
-- [~] Port stream resolution: NewPipe + ANDROID_VR player response, the multi-client fallback chain and seek are done; PoToken, proxy and HLS are pending.
+- [x] Port stream resolution: NewPipe + the multi-client innerTube fallback chain, seek, and a multi-URL retry (tries every candidate and retries without `Range` on 403) are done. PoToken, proxy and HLS are Android-only / not needed by the desktop player (fMP4/AAC via jcodec + jaad).
 
 ## Phase 5 — Desktop persistence + authentication
-- [ ] Replace Room with SQLDelight / file storage.
-- [ ] YouTube login (browser OAuth) and proxy.
-- [ ] Full desktop settings layer (same keys as the Android app).
+- [x] Persistence: the desktop uses a JSON file store (`DesktopSettings` under `~/.vivimusic/device-sync.json`); Room is Android-only and stays there.
+- [~] YouTube login: cookie-based login with `DATASYNC_ID`/`VISITOR_DATA` fallback is done; browser OAuth + proxy are still pending.
+- [x] Full desktop settings layer (same keys as the Android app).
 
 ## Phase 6 — Full desktop UI
 - [x] Screens: Home, Search, Album, Artist, Playlist, Library, Player, Lyrics, Settings (Library is a placeholder until Phase 5 login; Player/Lyrics are UI-only until Phase 4 playback).
@@ -49,15 +49,15 @@ The desktop should look exactly like the Android app, except:
 
 - [x] Foundation: seed-based Material 3 palette (materialKolor TonalSpot) matching the mobile theme, and a collapsible/expandable sidebar with Material icons + labels (persisted).
 - [x] Home screen port: filter chips, mobile-style section headers (label + bold primary title, Play all, chevron), songs-only sections rendered as horizontal song lists (Quick picks style), mixed sections as card carousels, and a Mood & genres section (buttons navigate to a generic Browse screen). QR code always rendered on a white background.
-- [ ] Search screen port (search bar, filter chips, result rows).
-- [ ] Library screen port (tabs, filters, grids).
-- [ ] Album / Artist / Playlist detail screens port (header artwork, play/shuffle buttons, track lists, related items).
-- [ ] Player + mini-player + queue + lyrics pixel-perfect (large artwork, canvas background, seek/volume, lyrics highlight — mostly done, to be refined).
-- [ ] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage…), keeping the custom Devices screen.
-- [ ] History / Changelog / Login screens port.
+- [x] Search screen port (search bar, live suggestions, filter chips All/Songs/Videos/Albums/Artists/Playlists, result rows/grids).
+- [x] Library screen port (Material 3 filter-chip tabs, songs list + adaptive grids, Shuffle all).
+- [x] Album / Artist / Playlist detail screens port (header artwork, play/shuffle buttons, track lists, related-item carousels). Note: the header is a simple row rather than the mobile gradient header.
+- [x] Player + mini-player + queue + lyrics (large responsive artwork, animated canvas background, seek/volume, shuffle/repeat, drag-to-reorder queue, synced lyrics highlighting with configurable text size).
+- [x] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage, Updates, About), keeping the custom Devices screen — with real functionality (pure black, audio quality, remember shuffle/repeat, persistent queue, lyrics text size, content language/region).
+- [x] History / Changelog / Login screens (history from YouTube, live changelog fetched from the repo, cookie-based login with DATASYNC_ID/VISITOR_DATA fallback).
 - [ ] Song / album / artist / playlist context menus port.
 
 ## Infra / release
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.
-- [ ] Bump the version in `version.txt` on every release.
-- [ ] (Optional) include the Android APK in the same GitHub Release as the desktop.
+- [x] Bump the version in `version.txt` on every release (mobile line + DE line + channel, advanced automatically per change).
+- [x] Include the Android APK in the same GitHub Release as the desktop (debug APK fetched from the existing CI run).
