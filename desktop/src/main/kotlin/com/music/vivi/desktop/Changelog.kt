@@ -47,6 +47,12 @@ fun ChangelogScreen(language: String, onBack: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
         Text(Localization.get(language, "changelog"), style = MaterialTheme.typography.headlineMedium)
+        Text(
+            "VIVI Music DE ${AppInfo.FULL_VERSION} ${AppInfo.CHANNEL.uppercase()}",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
         Column(
             Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 8.dp),
         ) {

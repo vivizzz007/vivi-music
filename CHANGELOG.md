@@ -11,6 +11,17 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.16.2] - 2026-08-15
+
+### Fixed
+
+- [DE] Fixed the changelog being unclear about desktop versions: releases are
+  now versioned as `<mobile>_DE-<de>` sections in `CHANGELOG.md` (instead of
+  everything accumulating under "Unreleased"), and the changelog screen shows
+  the current DE version and channel at the top.
+
+## [6.2.0_DE-1.16.1] - 2026-08-15
+
 ### Added
 
 - [DE] Started the pixel-perfect UI port from the Android app: the theme now
