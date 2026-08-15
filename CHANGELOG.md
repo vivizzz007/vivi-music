@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.2] - 2026-08-15
+
+### Fixed
+
+- [DE] The Changelog screen now lists every version vertically (newest first)
+  in a single scrollable list, so older versions are reachable with the mouse
+  wheel — the previous horizontally-scrolling version chips were unusable on
+  desktop.
+
 ## [6.2.2_DE-1.28.1] - 2026-08-15
 
 ### Fixed

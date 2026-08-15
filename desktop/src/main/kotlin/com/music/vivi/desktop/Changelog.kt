@@ -1,21 +1,19 @@
 package com.music.vivi.desktop
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -161,12 +159,6 @@ fun ChangelogScreen(language: String, onBack: () -> Unit) {
 
     val markdown = (repoChangelog ?: bundled).orEmpty()
     val releases = remember(markdown) { ChangelogLoader.parse(markdown) }
-    var selectedVersion by remember(releases) {
-        mutableStateOf(
-            releases.firstOrNull { it.version == AppInfo.FULL_VERSION }?.version
-                ?: releases.firstOrNull()?.version,
-        )
-    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
@@ -188,78 +180,71 @@ fun ChangelogScreen(language: String, onBack: () -> Unit) {
             return@Column
         }
 
-        // Version chips (mobile-style).
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            releases.forEach { release ->
-                FilterChip(
-                    selected = release.version == selectedVersion,
-                    onClick = { selectedVersion = release.version },
-                    label = { Text(release.version) },
-                )
-            }
-        }
-
-        val release = releases.firstOrNull { it.version == selectedVersion } ?: releases.first()
-
+        // All versions stacked in one vertically scrollable list (newest first).
+        // The previous horizontally-scrolling version chips were unusable on
+        // desktop (no touch), so older versions were unreachable with the mouse.
         Column(
             Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
                 .padding(top = 8.dp),
         ) {
-            Text(
-                release.version,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            if (release.date.isNotBlank()) {
-                Text(
-                    release.date,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+            releases.forEach { release ->
+                ReleaseSection(release)
             }
-
-            release.sections.forEach { section ->
-                Spacer(Modifier.height(16.dp))
-                if (section.title.isNotBlank()) {
-                    Text(
-                        section.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
-                section.items.forEach { item ->
-                    Row(
-                        Modifier.padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Box(
-                            Modifier
-                                .padding(top = 8.dp)
-                                .size(6.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape),
-                        )
-                        Text(
-                            cleanInline(item),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
-            }
-
             Spacer(Modifier.height(32.dp))
         }
     }
+}
+
+@Composable
+private fun ReleaseSection(release: ChangelogRelease) {
+    Spacer(Modifier.height(16.dp))
+    Text(
+        release.version,
+        style = MaterialTheme.typography.titleLarge,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary,
+    )
+    if (release.date.isNotBlank()) {
+        Text(
+            release.date,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+
+    release.sections.forEach { section ->
+        Spacer(Modifier.height(12.dp))
+        if (section.title.isNotBlank()) {
+            Text(
+                section.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(4.dp))
+        }
+        section.items.forEach { item ->
+            Row(
+                Modifier.padding(vertical = 4.dp),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    Modifier
+                        .padding(top = 8.dp)
+                        .size(6.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                )
+                Text(
+                    cleanInline(item),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+    }
+
+    HorizontalDivider(Modifier.padding(top = 16.dp))
 }
