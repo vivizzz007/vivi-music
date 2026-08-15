@@ -25,6 +25,9 @@ import java.util.concurrent.TimeUnit
  */
 object StreamResolver {
 
+    /** A resolved stream URL plus the User-Agent required to download it. */
+    data class ResolvedStream(val url: String, val userAgent: String)
+
     /** Fast, PoToken-free main client (same as the mobile app). */
     private val MAIN_CLIENT: YouTubeClient = YouTubeClient.ANDROID_VR_1_43_32
 
@@ -57,9 +60,10 @@ object StreamResolver {
      * resolved. Callers should invoke this from a background coroutine: the
      * NewPipe path is blocking and the player path performs network I/O.
      */
-    suspend fun resolveAacUrl(videoId: String): String? {
+    suspend fun resolveAacStream(videoId: String): ResolvedStream? {
         // 1) NewPipe — handles signature cipher and returns already-playable
-        //    stream URLs when its extractor is not bot-blocked.
+        //    stream URLs when its extractor is not bot-blocked. These URLs are
+        //    served to NewPipe's Firefox UA, so keep that UA for the download.
         val newPipeUrl = withContext(Dispatchers.IO) {
             runCatching {
                 YouTube.getNewPipeStreamUrls(videoId)
@@ -67,13 +71,15 @@ object StreamResolver {
                     ?.second
             }.getOrNull()
         }
-        if (!newPipeUrl.isNullOrBlank()) return newPipeUrl
+        if (!newPipeUrl.isNullOrBlank()) {
+            return ResolvedStream(newPipeUrl, YouTubeClient.USER_AGENT_WEB)
+        }
 
         // 2) Client chain: try the main client then the fallbacks until we get
         //    a validated AAC URL. Keep the first resolved URL as a last-resort
         //    fallback in case validation is flaky (googlevideo sometimes
         //    rejects HEAD requests).
-        var firstResolved: String? = null
+        var firstResolved: ResolvedStream? = null
         var signatureTimestamp: Int? = null
         var signatureFetched = false
 
@@ -91,8 +97,9 @@ object StreamResolver {
             if (response.playabilityStatus.status != "OK") continue
 
             val url = resolveFromResponse(response) ?: continue
-            if (firstResolved == null) firstResolved = url
-            if (validateUrl(url)) return url
+            val stream = ResolvedStream(url, ytClient.userAgent)
+            if (firstResolved == null) firstResolved = stream
+            if (validateUrl(url, ytClient.userAgent)) return stream
         }
 
         return firstResolved
@@ -124,11 +131,11 @@ object StreamResolver {
     }
 
     /** Best-effort HEAD validation of a resolved stream URL. */
-    private fun validateUrl(url: String): Boolean = runCatching {
+    private fun validateUrl(url: String, userAgent: String): Boolean = runCatching {
         val request = Request.Builder()
             .head()
             .url(url)
-            .header("User-Agent", YouTubeClient.USER_AGENT_WEB)
+            .header("User-Agent", userAgent)
             .build()
         client.newCall(request).execute().use { it.isSuccessful }
     }.getOrDefault(false)

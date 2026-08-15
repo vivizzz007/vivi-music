@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.22.1] - 2026-08-15
+
+### Fixed
+
+- [DE] Audio download no longer fails with "HTTP 403 downloading audio".
+  googlevideo ties a stream URL to the client that requested it, so the player
+  now downloads with the same User-Agent used to resolve the URL (and a
+  `Range: bytes=0-` header), instead of a fixed browser UA that YouTube
+  rejected.
+
 ## [6.2.1_DE-1.22.0] - 2026-08-15
 
 ### Added

@@ -65,6 +65,7 @@ class AudioPlayer {
 
     private var currentUrl: String? = null
     private var currentCacheKey: String? = null
+    private var currentUserAgent: String? = null
 
     /**
      * Starts playing [url] on a background thread. [cacheKey] names the local
@@ -75,6 +76,7 @@ class AudioPlayer {
      */
     fun play(
         url: String,
+        userAgent: String,
         cacheKey: String,
         startAtMs: Long = 0L,
         startPaused: Boolean = false,
@@ -87,14 +89,15 @@ class AudioPlayer {
         this.onDuration = onDuration
         this.onError = onError
         this.onComplete = onComplete
-        startDecode(url, cacheKey, startAtMs, startPaused)
+        startDecode(url, userAgent, cacheKey, startAtMs, startPaused)
     }
 
     /** Seeks to [ms] by restarting decode from the cached file. */
     fun seekTo(ms: Long) {
         val url = currentUrl ?: return
         val key = currentCacheKey ?: return
-        startDecode(url, key, ms.coerceAtLeast(0L), startPaused = false)
+        val ua = currentUserAgent ?: return
+        startDecode(url, ua, key, ms.coerceAtLeast(0L), startPaused = false)
     }
 
     /** Sets playback volume in the 0f..1f range. */
@@ -122,7 +125,7 @@ class AudioPlayer {
         line = null
     }
 
-    private fun startDecode(url: String, cacheKey: String, startAtMs: Long, startPaused: Boolean) {
+    private fun startDecode(url: String, userAgent: String, cacheKey: String, startAtMs: Long, startPaused: Boolean) {
         // Invalidate any running thread and reset the play flags.
         val gen = ++generation
         stopped = true
@@ -134,10 +137,11 @@ class AudioPlayer {
         stopped = false
         currentUrl = url
         currentCacheKey = cacheKey
+        currentUserAgent = userAgent
 
         thread = Thread {
             try {
-                val file = ensureDownloaded(url, cacheKey)
+                val file = ensureDownloaded(url, cacheKey, userAgent)
                 decodeAndPlay(file, gen, startAtMs)
             } catch (e: Exception) {
                 if (gen == generation) {
@@ -153,16 +157,20 @@ class AudioPlayer {
         }
     }
 
-    private fun ensureDownloaded(url: String, cacheKey: String): File {
+    private fun ensureDownloaded(url: String, cacheKey: String, userAgent: String): File {
         val safe = cacheKey.replace(Regex("[^A-Za-z0-9._-]"), "_")
         val file = File(cacheDir, "$safe.m4a")
         if (file.exists() && file.length() > 0) return file
         val part = File(cacheDir, "$safe.m4a.part")
         if (part.exists()) part.delete()
 
+        // googlevideo ties a stream URL to the client that requested it, so the
+        // download MUST use the same User-Agent (otherwise it answers 403). The
+        // Range header mirrors what ExoPlayer/NewPipe send when streaming.
         val request = Request.Builder()
             .url(url)
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("User-Agent", userAgent)
+            .header("Range", "bytes=0-")
             .build()
 
         client.newCall(request).execute().use { response ->
