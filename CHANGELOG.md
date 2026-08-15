@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.5_DE-1.30.1] - 2026-08-15
+
+### Changed
+
+- [APK] The Devices entry in Settings now uses the same phone+monitor
+  "devices" icon as the desktop edition, instead of the circular sync arrows.
+
 ## [6.2.4_DE-1.30.1] - 2026-08-15
 
 ### Fixed
