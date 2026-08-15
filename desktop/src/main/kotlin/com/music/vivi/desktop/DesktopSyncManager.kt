@@ -181,7 +181,9 @@ class DesktopSyncManager {
 
     /** Update the local playback snapshot and push it to the peer (if paired). */
     fun updatePlayback(playback: PlaybackSnapshot?) {
-        lastPlayback = playback
+        lastPlayback = playback?.let { p ->
+            if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
+        }
         pushSnapshot()
     }
 
@@ -195,6 +197,25 @@ class DesktopSyncManager {
     fun updateLibrary(library: LibrarySnapshot?) {
         lastLibrary = library
         pushSnapshot()
+    }
+
+    /** Estimated clock offset to the relay server (see [SyncClient.serverOffsetMs]). */
+    val serverOffsetMs: Long get() = client?.serverOffsetMs ?: 0L
+
+    /** Current epoch millis in the shared relay-time reference frame. */
+    fun serverNowMs(): Long = System.currentTimeMillis() + serverOffsetMs
+
+    /**
+     * Resolves the live playback position of a received snapshot: if it carries
+     * a [PlaybackSnapshot.positionAtMs] timestamp and the peer is playing,
+     * extrapolate `positionMs + elapsed`; otherwise return the raw position.
+     */
+    fun effectivePosition(snapshot: PlaybackSnapshot): Long {
+        val base = snapshot.positionMs.coerceAtLeast(0L)
+        val at = snapshot.positionAtMs
+        if (at <= 0L || !snapshot.isPlaying) return base
+        val elapsed = (serverNowMs() - at).coerceAtLeast(0L)
+        return (base + elapsed).coerceAtLeast(0L)
     }
 
     // ---------------------------------------------------------------------

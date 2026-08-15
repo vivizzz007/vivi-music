@@ -11,6 +11,18 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.3_DE-1.29.0] - 2026-08-15
+
+### Added
+
+- [DE+APK] Precise, instant player sync between the desktop and the phone.
+  Seeking now pushes the new position immediately (both directions) and the
+  receiver applies it as a lightweight in-place seek instead of restarting the
+  stream, so the two players stay aligned to the second. Playback positions
+  now carry a timestamp and both devices estimate their clock offset to the
+  relay (PING/PONG), so the live position is extrapolated during playback
+  without clock-skew drift.
+
 ## [6.2.2_DE-1.28.6] - 2026-08-15
 
 ### Fixed

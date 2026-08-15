@@ -79,6 +79,18 @@ class SyncClient(
 
     private val pending = ArrayDeque<String>()
 
+    /**
+     * Estimated offset of this device's clock relative to the relay server's
+     * clock (i.e. `localNow + offset ≈ serverNow`), measured from PING/PONG
+     * round-trips and smoothed with an exponential moving average. Used to put
+     * playback position timestamps in a shared reference frame so the two
+     * devices stay in sync regardless of their local clock skew.
+     */
+    @Volatile
+    private var serverOffsetMsEstimate = 0L
+
+    val serverOffsetMs: Long get() = serverOffsetMsEstimate
+
     private val listener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
             reconnectAttempts = 0
@@ -201,6 +213,19 @@ class SyncClient(
             SyncMessageTypes.PAIR_ERROR -> {
                 envelope.message?.let { scope.launch { _events.emit(SyncEvent.Error(it)) } }
             }
+            SyncMessageTypes.PONG -> {
+                // Only the relay echoes the PING timestamps; older relays reply
+                // with a bare `pong`, in which case the offset stays 0.
+                val sentAt = envelope.echoTimestampMs
+                val serverAt = envelope.timestampMs
+                if (sentAt != null && serverAt != null) {
+                    val rtt = System.currentTimeMillis() - sentAt
+                    if (rtt >= 0) {
+                        val offset = serverAt - (sentAt + rtt / 2)
+                        serverOffsetMsEstimate = (serverOffsetMsEstimate * 3 + offset) / 4
+                    }
+                }
+            }
             SyncMessageTypes.SYNC -> {
                 envelope.snapshot?.let { snapshot ->
                     scope.launch {
@@ -248,7 +273,16 @@ class SyncClient(
                 delay(25_000L)
                 val ws = webSocket
                 if (_connectionState.value == SyncConnectionState.CONNECTED && ws != null) {
-                    ws.send(json.encodeToString(SyncEnvelope.serializer(), SyncEnvelope(type = SyncMessageTypes.PING, deviceId = deviceId)))
+                    ws.send(
+                        json.encodeToString(
+                            SyncEnvelope.serializer(),
+                            SyncEnvelope(
+                                type = SyncMessageTypes.PING,
+                                deviceId = deviceId,
+                                timestampMs = System.currentTimeMillis(),
+                            ),
+                        )
+                    )
                 }
             }
         }

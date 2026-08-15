@@ -95,7 +95,7 @@ function onMessage(ws, raw) {
   }
 
   switch (msg.type) {
-    case 'ping':        return send(ws, { type: 'pong' });
+    case 'ping':        return send(ws, { type: 'pong', timestampMs: Date.now(), echoTimestampMs: msg.timestampMs || null });
     case 'pair_request': return handlePairRequest(ws, msg);
     case 'pair_join':    return handlePairJoin(ws, msg);
     case 'sync_push':    return handleSyncPush(ws, msg);

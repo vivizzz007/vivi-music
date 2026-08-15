@@ -5,8 +5,11 @@ import com.music.vivi.desktop.NowPlaying
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -46,6 +49,10 @@ class PlayerController {
 
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
+
+    /** User-initiated seeks (emitted so the sync layer can push them instantly). */
+    private val _seekEvents = MutableSharedFlow<Long>(extraBufferCapacity = 16)
+    val seekEvents: SharedFlow<Long> = _seekEvents.asSharedFlow()
 
     init {
         // Restore the saved shuffle/repeat state when "remember" is enabled.
@@ -179,11 +186,38 @@ class PlayerController {
     }
 
     fun seekTo(ms: Long) {
+        seekInternal(ms)?.let { _seekEvents.tryEmit(it) }
+    }
+
+    /**
+     * Applies a remote seek in place (same track) without emitting a seek event
+     * and without restarting the stream, then matches the peer's play/pause.
+     */
+    fun seekRemote(positionMs: Long, isPlaying: Boolean) {
+        if (_state.value.current == null) return
+        seekInternal(positionMs)
+        setPlaying(isPlaying)
+    }
+
+    private fun seekInternal(ms: Long): Long? {
         val s = _state.value
-        if (s.current == null) return
+        if (s.current == null) return null
         val target = ms.coerceIn(0L, if (s.durationMs > 0) s.durationMs else ms)
         player.seekTo(target)
         _state.update { it.copy(positionMs = target) }
+        return target
+    }
+
+    private fun setPlaying(playing: Boolean) {
+        val s = _state.value
+        if (s.isPlaying == playing) return
+        if (playing) {
+            player.resume()
+            _state.update { it.copy(isPlaying = true) }
+        } else {
+            player.pause()
+            _state.update { it.copy(isPlaying = false) }
+        }
     }
 
     fun setVolume(v: Float) {

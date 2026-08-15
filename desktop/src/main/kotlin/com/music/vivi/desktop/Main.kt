@@ -316,34 +316,28 @@ fun App(
                 )
             }
             .distinctUntilChanged()
-            .collect {
-                val s = player.state.value
-                val current = s.current
-                if (current != null) {
-                    syncManager.updatePlayback(
-                        PlaybackSnapshot(
-                            trackId = current.videoId,
-                            trackTitle = current.title,
-                            positionMs = s.positionMs,
-                            isPlaying = s.isPlaying,
-                            queue = s.queue.map { np ->
-                                TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
-                            },
-                            queueIndex = s.index,
-                        )
-                    )
-                }
-            }
+            .collect { player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) } }
+    }
+
+    // Push immediately on user seeks so the peer follows to the same position.
+    LaunchedEffect(syncManager) {
+        player.seekEvents.collect { player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) } }
     }
 
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
-            val tracks = pb.queue.map { ref ->
-                NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
-            }
-            if (tracks.isNotEmpty()) {
-                player.applyRemotePlayback(tracks, pb.queueIndex, pb.positionMs, pb.isPlaying)
+            val currentId = player.state.value.current?.videoId
+            if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
+                // Same track: lightweight seek (instant + precise), no restart.
+                player.seekRemote(syncManager.effectivePosition(pb), pb.isPlaying)
+            } else {
+                val tracks = pb.queue.map { ref ->
+                    NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
+                }
+                if (tracks.isNotEmpty()) {
+                    player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+                }
             }
         }
     }
@@ -1809,6 +1803,22 @@ private data class PlaybackSyncKey(
     val index: Int,
     val queue: List<String>,
 )
+
+/** Builds a [PlaybackSnapshot] from the current player state (null if nothing plays). */
+private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
+    val s = state.value
+    val current = s.current ?: return null
+    return PlaybackSnapshot(
+        trackId = current.videoId,
+        trackTitle = current.title,
+        positionMs = s.positionMs,
+        isPlaying = s.isPlaying,
+        queue = s.queue.map { np ->
+            TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
+        },
+        queueIndex = s.index,
+    )
+}
 
 /** Maps the desktop theme/language/accent onto the Android shared-preference keys. */
 private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: Color): Map<String, String> = mapOf(

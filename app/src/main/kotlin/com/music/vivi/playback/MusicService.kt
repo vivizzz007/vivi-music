@@ -1464,17 +1464,25 @@ class MusicService :
         )
     }
 
+
     /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
     private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
         val items = snapshot.queue.map { it.toMediaItem() }
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
-        val position = snapshot.positionMs.coerceAtLeast(0L)
+        val position = deviceSyncManager.effectivePosition(snapshot)
         if (!playerInitialized.value) {
             scope.launch {
                 playerInitialized.first { it }
                 applyRemotePlayback(snapshot)
             }
+            return
+        }
+        // Same track already loaded: lightweight seek (instant + precise).
+        val currentId = player.currentMetadata?.id
+        if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
+            player.seekTo(position)
+            player.playWhenReady = snapshot.isPlaying
             return
         }
         playQueue(
@@ -3412,6 +3420,8 @@ class MusicService :
     ) {
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             scheduleCrossfade()
+            // Push the seek to the desktop immediately so both players stay aligned.
+            pushPlaybackToDesktop()
         }
     }
 

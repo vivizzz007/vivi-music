@@ -157,8 +157,31 @@ class DeviceSyncManager @Inject constructor(
     /** Capture the current queue + position from the player and sync it. */
     fun pushPlayback(playback: PlaybackSnapshot) {
         if (System.currentTimeMillis() < suppressPlaybackPushUntil) return
-        lastPlayback = playback
+        lastPlayback = if (playback.positionAtMs == 0L) {
+            playback.copy(positionAtMs = serverNowMs())
+        } else {
+            playback
+        }
         scope.launch { pushCurrentSnapshot() }
+    }
+
+    /** Estimated clock offset to the relay server (see [SyncClient.serverOffsetMs]). */
+    val serverOffsetMs: Long get() = client?.serverOffsetMs ?: 0L
+
+    /** Current epoch millis in the shared relay-time reference frame. */
+    private fun serverNowMs(): Long = System.currentTimeMillis() + serverOffsetMs
+
+    /**
+     * Live position of a received snapshot: extrapolates `positionMs + elapsed`
+     * while the peer is playing, using the timestamp and the shared clock
+     * reference frame (falls back to the raw position otherwise).
+     */
+    fun effectivePosition(snapshot: PlaybackSnapshot): Long {
+        val base = snapshot.positionMs.coerceAtLeast(0L)
+        val at = snapshot.positionAtMs
+        if (at <= 0L || !snapshot.isPlaying) return base
+        val elapsed = (serverNowMs() - at).coerceAtLeast(0L)
+        return (base + elapsed).coerceAtLeast(0L)
     }
 
     // ---------------------------------------------------------------------

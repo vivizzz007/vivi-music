@@ -42,6 +42,10 @@ data class SyncEnvelope(
     val fromDeviceId: String? = null,
     val snapshot: SyncSnapshot? = null,
     val message: String? = null,
+    /** Sender's clock (epoch millis) when this envelope was produced (PING/PONG). */
+    val timestampMs: Long? = null,
+    /** Echo of the PING's [timestampMs] back to the client, so it can measure RTT. */
+    val echoTimestampMs: Long? = null,
 )
 
 /**
@@ -68,6 +72,15 @@ data class PlaybackSnapshot(
     val trackId: String? = null,
     val trackTitle: String? = null,
     val positionMs: Long = 0L,
+    /**
+     * The sender's clock (epoch millis, expressed in the shared relay-time
+     * reference frame via the estimated clock offset) at the moment [positionMs]
+     * was sampled. The receiver uses it to extrapolate the live position while
+     * playing (`positionMs + elapsed`), so a seek/play event stays accurate even
+     * after the network latency. `0` means unknown (older peer): fall back to
+     * [positionMs] directly.
+     */
+    val positionAtMs: Long = 0L,
     val isPlaying: Boolean = false,
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,

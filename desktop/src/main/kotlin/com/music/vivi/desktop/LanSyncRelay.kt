@@ -149,7 +149,14 @@ class LanSyncRelay {
 
     private suspend fun handle(msg: SyncEnvelope, session: WebSocketSession) {
         when (msg.type) {
-            SyncMessageTypes.PING -> send(session, SyncEnvelope(type = SyncMessageTypes.PONG))
+            SyncMessageTypes.PING -> send(
+                session,
+                SyncEnvelope(
+                    type = SyncMessageTypes.PONG,
+                    timestampMs = System.currentTimeMillis(),
+                    echoTimestampMs = msg.timestampMs,
+                ),
+            )
             SyncMessageTypes.PAIR_REQUEST -> handlePairRequest(session, msg)
             SyncMessageTypes.PAIR_JOIN -> handlePairJoin(session, msg)
             SyncMessageTypes.SYNC_PUSH -> handleSyncPush(msg)
