@@ -125,13 +125,15 @@ class DesktopSyncManager {
         _status.value = ""
     }
 
-    /** Starts the local LAN relay and connects the desktop to it. */
+    /** Starts the local LAN relay, connects the desktop to it, and generates
+     *  a pairing code so the phone can pair right away. */
     fun startLan() {
         scope.launch {
             val port = relay.start()
             _lanRunning.value = true
             _lanAddress.value = "ws://${lanIpAddress()}:$port"
             connect("ws://localhost:$port")
+            requestPairingCode()
         }
     }
 

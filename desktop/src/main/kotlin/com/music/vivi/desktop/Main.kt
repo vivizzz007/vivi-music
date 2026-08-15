@@ -980,49 +980,49 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
         Text(Localization.get(language, if (lanRunning) "stop_lan" else "start_lan"))
     }
     if (lanRunning && lanAddress.isNotEmpty()) {
-        Text(
-            "${Localization.get(language, "lan_address")}: $lanAddress",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        Text(
-            Localization.get(language, "scan_qr"),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
-        )
-        QrCode(lanAddress, size = 180.dp)
+        Row(
+            Modifier.fillMaxWidth().padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                QrCode(lanAddress, size = 180.dp)
+                Text(
+                    "${Localization.get(language, "lan_address")}: $lanAddress",
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+                Text(
+                    Localization.get(language, "scan_qr"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+            // Pairing code + generate button sit to the right of the QR code.
+            PairingCodePanel(
+                language = language,
+                pairCode = pairCode,
+                remainingMs = remainingMs,
+                onGenerate = { syncManager.requestPairingCode() },
+                modifier = Modifier.weight(1f),
+            )
+        }
         Text(
             Localization.get(language, "lan_hint"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp),
         )
-    }
-
-    // The desktop is the code generator: the phone only enters this code.
-    Button(
-        onClick = { syncManager.requestPairingCode() },
-        modifier = Modifier.padding(top = 8.dp),
-    ) {
-        Text(Localization.get(language, if (pairCode.isNotEmpty()) "generate_new_code" else "generate_code"))
-    }
-
-    if (pairCode.isNotEmpty()) {
-        Text(
-            "${Localization.get(language, "code_hint")}: $pairCode",
-            style = MaterialTheme.typography.titleMedium,
+    } else {
+        // When the LAN server is off, the code can still be generated against
+        // the relay configured in the field above.
+        PairingCodePanel(
+            language = language,
+            pairCode = pairCode,
+            remainingMs = remainingMs,
+            onGenerate = { syncManager.requestPairingCode() },
             modifier = Modifier.padding(top = 8.dp),
-        )
-        Text(
-            if (remainingMs > 0L) {
-                "${Localization.get(language, "code_expires_in")} ${formatCountdown(remainingMs)}"
-            } else {
-                Localization.get(language, "code_expired")
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 4.dp),
         )
     }
 
@@ -1040,6 +1040,39 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
             syncedSettings.entries.sortedBy { it.key }.forEach { (k, v) ->
                 Text("$k = $v", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(vertical = 1.dp))
             }
+        }
+    }
+}
+
+@Composable
+private fun PairingCodePanel(
+    language: String,
+    pairCode: String,
+    remainingMs: Long,
+    onGenerate: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        // The desktop is the code generator: the phone only enters this code.
+        Button(onClick = onGenerate) {
+            Text(Localization.get(language, if (pairCode.isNotEmpty()) "generate_new_code" else "generate_code"))
+        }
+        if (pairCode.isNotEmpty()) {
+            Text(
+                "${Localization.get(language, "code_hint")}: $pairCode",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Text(
+                if (remainingMs > 0L) {
+                    "${Localization.get(language, "code_expires_in")} ${formatCountdown(remainingMs)}"
+                } else {
+                    Localization.get(language, "code_expired")
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
     }
 }

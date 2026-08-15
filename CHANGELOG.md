@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.26.2] - 2026-08-15
+
+### Changed
+
+- [DE] Starting the LAN server now automatically generates a pairing code, and
+  the code + "Generate code" button are shown to the right of the QR code
+  instead of below it.
+
 ## [6.2.2_DE-1.26.1] - 2026-08-15
 
 ### Fixed
