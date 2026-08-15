@@ -13,7 +13,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] `sync-server/` relay (Node.js): 6-digit pairing + mailbox for offline devices.
 - [x] Android `DeviceSyncManager` (Hilt): push/pull of the shared settings subset.
 - [x] Desktop pairing UI + JSON settings store (`~/.vivimusic/`).
-- [ ] Deploy the relay on Render/Hugging Face and set the real URL (`deviceSyncServerUrl` / desktop). The placeholder `wss://vivimusic-device-sync.onrender.com` currently returns `x-render-routing: no-server` from Render — the service is NOT deployed yet.
+- [~] Cloud relay: `wss://vivimusic-device-sync.onrender.com` is set as the default URL on both mobile and desktop. The relay still needs a (re)deploy of the updated `sync-server/server.js` (PING/PONG timestamp echo used for clock-synced playback position) — until then, cloud sync falls back to raw local clocks (LAN is already exact).
 - [x] Pairing screen in the Android app (Settings).
 - [x] Offline LAN (same Wi-Fi) pairing via a local desktop WebSocket relay (desktop hosts, Android connects by setting the relay URL to `ws://<lan-ip>:<port>`).
 - [x] Mobile LAN discovery: NSD/mDNS "Find desktop" + QR scan in the Devices screen.
@@ -21,6 +21,8 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 ## Phase 2 — Sync: queue + playback position
 - [x] Capture the queue and position from the Android player (`pushPlayback` is wired from MusicService on track/play changes).
 - [x] Resume on desktop: apply `pendingPlayback`; the desktop also pushes its playback and applies incoming snapshots (bidirectional), with echo suppression.
+- [x] Precise sync: seek is pushed instantly (both sides), same-track commands apply as a lightweight in-place seek (no restart), and positions carry a timestamp (`positionAtMs`) so receivers extrapolate while playing; PING/PONG clock-sync (relay + `server.js`) removes clock skew between phone and PC.
+- [x] Paired device names shown on both sides (desktop announces its real hostname, mobile shows the paired desktop name and vice versa).
 
 ## Phase 3 — Sync: library
 - [x] Sync liked songs, albums, artists and playlists at the transport level: the mobile app observes its library (liked songs, bookmarked albums/artists/playlists) and pushes a `LibrarySnapshot`; the desktop receives, persists and exposes it (and pushes its own). UI-side apply on desktop waits for the desktop local-library store (Phase 5).
@@ -56,6 +58,14 @@ The desktop should look exactly like the Android app, except:
 - [x] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage, Updates, About), keeping the custom Devices screen — with real functionality (pure black, audio quality, remember shuffle/repeat, persistent queue, lyrics text size, content language/region).
 - [x] History / Changelog / Login screens (history from YouTube, live changelog fetched from the repo, cookie-based login with DATASYNC_ID/VISITOR_DATA fallback).
 - [ ] Song / album / artist / playlist context menus port.
+
+## Phase 9 — In-app updater + developer options (completed)
+- [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels).
+- [x] Robust asset selection: scans releases newest→oldest and picks the first that actually ships an installer for the host OS; falls back to a clear "open release page" message instead of a fake Download that opens the browser.
+- [x] In-app download (progress + speed), "open installer" closes the app after launching, and a "Delete installers" option to clear downloaded update files.
+- [x] Non-invasive update notification (Install now / Dismiss) when an update is available.
+- [x] Developer options: Settings entry always visible but disabled by default; unlockable via 7 taps on the version code or the dedicated toggle; unlock notification pointing to Settings → Developer options.
+- [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar.
 
 ## Infra / release
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.

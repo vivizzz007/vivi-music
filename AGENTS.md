@@ -73,6 +73,10 @@ dependencies there, or you break the desktop build.
   runs and the result can be verified. Documentation-only changes (README,
   AGENTS.md, CHANGELOG.md, TODO.md) do **not** need the `v` prefix.
 - Do not commit unrelated files (stray artifacts, debug dumps) unless relevant.
+- **Keep `TODO.md` up to date**: every time you change the program (feature,
+  fix, ported screen, workflow change), reflect it in `TODO.md` — mark done
+  items `[x]`, in-progress `[~]`, and add new items as needed. Do not leave
+  `TODO.md` stale after a change.
 - Match the existing conventions of the file you edit (naming, formatting,
   KDoc style). Do not reformat untouched code.
 - Kotlin formatting: keep to the project's existing style; do not run a global
