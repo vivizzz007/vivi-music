@@ -16,6 +16,7 @@
  */
 
 const { WebSocketServer, WebSocket } = require('ws');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -202,8 +203,24 @@ function handleUnpair(ws, msg) {
 // Bootstrap
 // ---------------------------------------------------------------------------
 
-const wss = new WebSocketServer({ port: PORT });
+// A plain HTTP server answers health checks (Render pings `/health` to decide
+// whether the deploy is live); the WebSocket server is attached to it so the
+// same port serves both `GET /health` and `wss://` upgrades.
+const server = http.createServer((req, res) => {
+  if (req.method === 'GET' && (req.url === '/' || req.url === '/health')) {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('ok');
+    return;
+  }
+  res.writeHead(404, { 'Content-Type': 'text/plain' });
+  res.end('Not Found');
+});
+
+const wss = new WebSocketServer({ server });
 wss.on('connection', (ws) => {
   ws.on('message', (raw) => onMessage(ws, raw.toString()));
 });
-console.log(`VIVI Music sync relay listening on :${PORT}`);
+
+server.listen(PORT, () => {
+  console.log(`VIVI Music sync relay listening on :${PORT} (http + ws)`);
+});

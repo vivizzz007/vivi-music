@@ -67,11 +67,13 @@ dependencies there, or you break the desktop build.
 - **Release-triggering commits (`v` prefix)**: any change to program code or to
   anything that affects the release assets (the `desktop` module,
   `.github/workflows/`, `installer/`, `version.txt`, `desktop/build.gradle.kts`,
-  icons, the shared JVM modules, the `sync-server`) MUST be committed and
+  icons, the shared JVM modules) MUST be committed and
   pushed with a commit message starting with `v` (e.g. `v6.0.5_DE-1.0.0`,
   optionally followed by a short description after `:`), so the auto-release
-  runs and the result can be verified. Documentation-only changes (README,
-  AGENTS.md, CHANGELOG.md, TODO.md) do **not** need the `v` prefix.
+  runs and the result can be verified. The `sync-server/` relay is deployed
+  **separately** (Render Blueprint `render.yaml`) and does **not** trigger the
+  auto-release. Documentation-only changes (README, AGENTS.md, CHANGELOG.md,
+  TODO.md) do **not** need the `v` prefix.
 - Do not commit unrelated files (stray artifacts, debug dumps) unless relevant.
 - **Keep `TODO.md` up to date**: every time you change the program (feature,
   fix, ported screen, workflow change), reflect it in `TODO.md` — mark done

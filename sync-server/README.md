@@ -63,6 +63,15 @@ Per testare il pairing usa due client (o un tool come `wscat`) collegati a
 
 ## Deploy su Render (consigliato)
 
+**Opzione rapida (Blueprint):** il repo include un `render.yaml` nella root. Su
+[render.com](https://render.com) vai in **New → Blueprint**, seleziona il repo
+(branch `vivi-music-de`): Render crea da solo il servizio
+`vivimusic-device-sync` (root `sync-server`, build `npm install`, start
+`npm start`, health check su `/health`). Dopo il primo deploy usa
+`wss://vivimusic-device-sync.onrender.com`.
+
+**Deploy manuale:**
+
 1. Crea un nuovo **Web Service** su [render.com](https://render.com).
 2. **Repository**: punta al tuo fork di `vivi-music`, branch `vivi-music-de`.
 3. **Root Directory**: `sync-server`.
