@@ -147,6 +147,18 @@ MAPPING = {
     "remember_shuffle_repeat": "remember_shuffle_and_repeat",
     "persistent_queue": "persistent_queue",
     "lyrics_text_size": "lyrics_text_size",
+    # About screen
+    "developer_section": "developer_section",
+    "app_developer": "app_developer",
+    "website": "website",
+    "community_section": "community_section",
+    "github_repository": "github_repository",
+    "telegram_channel": "telegram_channel",
+    "app_info_section": "app_info_section",
+    "installed_date_title": "installed_date_title",
+    "version_code": "version_code",
+    "license": "license",
+    "unknown": "unknown",
     # vivi_strings.xml
     "lyrics": "lyrics",
     "now_playing": "now_playing",
@@ -336,9 +348,9 @@ def kt_escape(s):
 
 
 def read_lang_files(dirpath):
-    """Merge strings.xml + vivi_strings.xml (when present) into one dict."""
+    """Merge strings.xml + vivi_strings.xml + updater_strings.xml (when present)."""
     merged = {}
-    for name in ("strings.xml", "vivi_strings.xml"):
+    for name in ("strings.xml", "vivi_strings.xml", "updater_strings.xml"):
         merged.update(read_strings(os.path.join(dirpath, name)))
     return merged
 

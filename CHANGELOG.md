@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.26.0] - 2026-08-15
+
+### Added
+
+- [DE] Redesigned the About screen to mirror the mobile layout: centered
+  title + version/channel badge, a Developer section (PiBOH — lead developer
+  of the DE edition — with website link), a Community section (GitHub repo +
+  Telegram), and an App info section showing the first-launch date (not the
+  last-update install date), the numeric version code and the GPL-3.0 license
+  link.
+
 ## [6.2.1_DE-1.25.0] - 2026-08-15
 
 ### Added

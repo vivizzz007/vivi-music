@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +47,11 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -95,6 +101,9 @@ import com.music.vivi.sync.TrackRef
 import java.awt.Desktop
 import java.io.File
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -112,6 +121,7 @@ fun main() = application {
     YouTube.locale = resolveYouTubeLocale(initialSettings.contentLanguage, initialSettings.contentCountry)
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
     LoginManager.restore()
+    DesktopSettings.ensureFirstLaunchDate()
 
     var language by remember { mutableStateOf(DesktopSettings.load().language) }
     var themeMode by remember { mutableStateOf(ThemeMode.from(DesktopSettings.load().darkMode)) }
@@ -1391,19 +1401,132 @@ private fun formatCountdown(ms: Long): String {
 
 @Composable
 fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
-    Text(Localization.get(language, "about"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
-    Text(
-        "${AppInfo.FULL_VERSION} ${AppInfo.CHANNEL.uppercase()}",
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(top = 4.dp),
-    )
-    Text(
-        "${Localization.get(language, "mobile")} ${AppInfo.MOBILE_VERSION} · ${Localization.get(language, "de")} ${AppInfo.DE_VERSION}",
-        style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.padding(top = 2.dp),
-    )
-    Button(onClick = onOpenChangelog, modifier = Modifier.padding(top = 8.dp)) {
+    val firstLaunchDate = remember { DesktopSettings.load().firstLaunchDate }
+
+    Column(
+        Modifier.fillMaxWidth().padding(top = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "VIVI MUSIC DE",
+            style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.height(12.dp))
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+        ) {
+            Text(
+                "v${AppInfo.FULL_VERSION} • ${AppInfo.CHANNEL.uppercase()}",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+        }
+    }
+
+    Button(
+        onClick = onOpenChangelog,
+        modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+    ) {
         Text(Localization.get(language, "changelog"))
+    }
+
+    AboutSectionHeader(Localization.get(language, "developer_section"))
+    AboutInfoRow(
+        icon = Icons.Filled.Code,
+        title = "PiBOH",
+        description = Localization.get(language, "app_developer") + " (DE)",
+        onClick = { openUrl("https://github.com/PiBOH") },
+    )
+    AboutInfoRow(
+        icon = Icons.Filled.Public,
+        title = Localization.get(language, "website"),
+        onClick = { openUrl("https://piboh.github.io/") },
+    )
+
+    AboutSectionHeader(Localization.get(language, "community_section"))
+    AboutInfoRow(
+        icon = Icons.Filled.Code,
+        title = Localization.get(language, "github_repository"),
+        onClick = { openUrl("https://github.com/PiBOH/vivi-music") },
+    )
+    AboutInfoRow(
+        icon = Icons.Filled.Send,
+        title = Localization.get(language, "telegram_channel"),
+        onClick = { openUrl("https://t.me/vivimusicapp") },
+    )
+
+    AboutSectionHeader(Localization.get(language, "app_info_section"))
+    AboutInfoRow(
+        icon = Icons.Filled.DateRange,
+        title = Localization.get(language, "installed_date_title"),
+        description = formatInstalledDate(firstLaunchDate, language),
+    )
+    AboutInfoRow(
+        icon = Icons.Filled.Info,
+        title = Localization.get(language, "version_code"),
+        description = AppInfo.VERSION_CODE.toString(),
+    )
+    AboutInfoRow(
+        icon = Icons.Filled.Description,
+        title = Localization.get(language, "license"),
+        onClick = { openUrl("https://github.com/PiBOH/vivi-music/blob/main/LICENSE") },
+    )
+}
+
+@Composable
+private fun AboutSectionHeader(text: String) {
+    Text(
+        text,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(top = 24.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun AboutInfoRow(
+    icon: ImageVector,
+    title: String,
+    description: String? = null,
+    onClick: (() -> Unit)? = null,
+) {
+    val base = Modifier.fillMaxWidth()
+    val rowModifier = if (onClick != null) base.clickable(onClick = onClick) else base
+    Row(
+        rowModifier.padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(16.dp))
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (description != null) {
+            Text(
+                description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        if (onClick != null) {
+            Spacer(Modifier.width(8.dp))
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+private fun formatInstalledDate(epochMs: Long, language: String): String {
+    if (epochMs <= 0) return Localization.get(language, "unknown")
+    return try {
+        SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(epochMs))
+    } catch (_: Exception) {
+        "—"
     }
 }
 

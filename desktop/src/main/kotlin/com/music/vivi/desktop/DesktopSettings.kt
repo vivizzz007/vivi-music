@@ -43,6 +43,7 @@ data class DesktopSyncState(
     val queueIndex: Int = 0,
     val lyricsTextSize: Float = 18f,
     val library: LibrarySnapshot? = null,
+    val firstLaunchDate: Long = 0L,
 )
 
 object DesktopSettings {
@@ -75,5 +76,18 @@ object DesktopSettings {
         val id = UUID.randomUUID().toString()
         save(load().copy(deviceId = id))
         return id
+    }
+
+    /**
+     * Returns the first-launch timestamp (epoch millis), recording "now" on the
+     * very first call so the About screen shows the first-launch date rather than
+     * the last-update install date.
+     */
+    fun ensureFirstLaunchDate(): Long {
+        val state = load()
+        if (state.firstLaunchDate > 0) return state.firstLaunchDate
+        val now = System.currentTimeMillis()
+        save(state.copy(firstLaunchDate = now))
+        return now
     }
 }

@@ -12,6 +12,7 @@ object AppInfo {
     val DE_VERSION: String
     val FULL_VERSION: String
     val CHANNEL: String
+    val VERSION_CODE: Int
 
     init {
         val lines = runCatching {
@@ -28,5 +29,9 @@ object AppInfo {
         DE_VERSION = de.ifEmpty { "0.0.0" }
         FULL_VERSION = "${MOBILE_VERSION}_DE-${DE_VERSION}"
         CHANNEL = channel.ifEmpty { "stable" }
+        VERSION_CODE = runCatching {
+            val parts = DE_VERSION.split(".").map { it.toIntOrNull() ?: 0 }
+            (parts.getOrNull(0) ?: 0) * 10000 + (parts.getOrNull(1) ?: 0) * 100 + (parts.getOrNull(2) ?: 0)
+        }.getOrDefault(0)
     }
 }
