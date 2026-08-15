@@ -16,10 +16,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -88,11 +89,14 @@ fun AppTheme(
         ThemeMode.LIGHT -> false
         ThemeMode.DARK -> true
     }
-    val colorScheme = if (useDark) {
-        darkColorScheme(primary = accent)
-    } else {
-        lightColorScheme(primary = accent)
-    }
+    // Same seed-based tonal palette as the Android app (TonalSpot + SPEC_2025),
+    // so the desktop colors match the mobile app pixel-perfectly.
+    val colorScheme = rememberDynamicColorScheme(
+        seedColor = accent,
+        isDark = useDark,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+        style = PaletteStyle.TonalSpot,
+    )
     MaterialTheme(colorScheme = colorScheme) {
         // Material3's MaterialTheme does NOT set LocalContentColor, so any Text
         // without an explicit color would fall back to the default (black) and

@@ -13,6 +13,10 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Added
 
+- [DE] Started the pixel-perfect UI port from the Android app: the theme now
+  uses the same seed-based Material 3 palette (materialKolor TonalSpot, seed =
+  accent color) as the mobile app, and the fixed text sidebar was replaced with
+  a collapsible/expandable sidebar with Material icons + labels (persisted).
 - Added LAN discovery to the Android Devices screen: "Find desktop" (mDNS/NSD
   `_vivimusic._tcp`) and "Scan QR code" auto-fill the relay server URL when
   pairing with VIVI Music DE over the same Wi-Fi.

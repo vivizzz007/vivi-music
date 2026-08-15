@@ -17,11 +17,24 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.outlined.History
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.LibraryMusic
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -48,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -136,6 +150,7 @@ fun App(
 
     var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
     var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
+    var sidebarCollapsed by remember { mutableStateOf(DesktopSettings.load().sidebarCollapsed) }
 
     val current = backStack.last()
 
@@ -245,7 +260,16 @@ fun App(
     }
 
     Row(Modifier.fillMaxSize()) {
-        Sidebar(language, current, openRoot)
+        Sidebar(
+            language = language,
+            current = current,
+            collapsed = sidebarCollapsed,
+            onToggleCollapsed = {
+                sidebarCollapsed = !sidebarCollapsed
+                DesktopSettings.save(DesktopSettings.load().copy(sidebarCollapsed = sidebarCollapsed))
+            },
+            onSelect = openRoot,
+        )
         Column(Modifier.weight(1f).fillMaxHeight()) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 when (current) {
@@ -405,37 +429,94 @@ fun App(
     }
 }
 
+private data class SidebarEntry(
+    val screen: Screen,
+    val key: String,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+)
+
+/**
+ * Collapsible / expandable navigation sidebar (the desktop counterpart of the
+ * mobile bottom navigation bar). Selected items use the Material 3 pill style
+ * (`secondaryContainer`), matching the mobile `NavigationBarItem` look.
+ */
 @Composable
-fun Sidebar(language: String, current: Screen, onSelect: (Screen) -> Unit) {
+fun Sidebar(
+    language: String,
+    current: Screen,
+    collapsed: Boolean,
+    onToggleCollapsed: () -> Unit,
+    onSelect: (Screen) -> Unit,
+) {
     val entries = listOf(
-        Screen.Home to "home",
-        Screen.Search to "search",
-        Screen.Library to "library",
-        Screen.History to "history",
-        Screen.Settings to "settings",
+        SidebarEntry(Screen.Home, "home", Icons.Outlined.Home, Icons.Filled.Home),
+        SidebarEntry(Screen.Search, "search", Icons.Outlined.Search, Icons.Filled.Search),
+        SidebarEntry(Screen.Library, "library", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
+        SidebarEntry(Screen.History, "history", Icons.Outlined.History, Icons.Filled.History),
+        SidebarEntry(Screen.Settings, "settings", Icons.Outlined.Settings, Icons.Filled.Settings),
     )
-    Column(Modifier.width(200.dp).fillMaxHeight().padding(12.dp)) {
-        Text(
-            "VIVI Music",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-        )
-        Spacer(Modifier.height(12.dp))
-        entries.forEach { (screen, key) ->
-            val selected = current == screen
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)
-                    .clickable { onSelect(screen) }
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-            ) {
-                Text(
-                    Localization.get(language, key),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
-                )
+
+    val width by animateDpAsState(if (collapsed) 72.dp else 224.dp, label = "sidebarWidth")
+
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+        Column(
+            Modifier
+                .width(width)
+                .fillMaxHeight()
+                .padding(horizontal = if (collapsed) 8.dp else 12.dp, vertical = 12.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onToggleCollapsed) {
+                    Icon(
+                        if (collapsed) Icons.Filled.Menu else Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                    )
+                }
+                if (!collapsed) {
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "VIVI Music",
+                        style = MaterialTheme.typography.titleLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            Spacer(Modifier.height(12.dp))
+            entries.forEach { entry ->
+                val selected = current == entry.screen
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent
+                        )
+                        .clickable { onSelect(entry.screen) }
+                        .padding(horizontal = if (collapsed) 0.dp else 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = if (collapsed) Arrangement.Center else Arrangement.Start,
+                ) {
+                    Icon(
+                        if (selected) entry.selectedIcon else entry.icon,
+                        contentDescription = Localization.get(language, entry.key),
+                        tint = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (!collapsed) {
+                        Spacer(Modifier.width(16.dp))
+                        Text(
+                            Localization.get(language, entry.key),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+                            else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
             }
         }
     }

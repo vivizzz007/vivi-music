@@ -22,6 +22,7 @@ data class DesktopSyncState(
     val darkMode: String = "system",
     val accentColor: Int = 0xFFED5564.toInt(),
     val autoPlayNext: Boolean = true,
+    val sidebarCollapsed: Boolean = false,
     val cookie: String = "",
     val dataSyncId: String = "",
     val visitorData: String = "",

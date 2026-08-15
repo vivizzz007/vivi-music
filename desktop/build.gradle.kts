@@ -44,6 +44,9 @@ dependencies {
     implementation(compose.material3)
     implementation(compose.materialIconsExtended)
 
+    // Material 3 tonal color palette (same seed-based scheme as the Android app)
+    implementation(libs.materialKolor)
+
     // Reused JVM-pure network/parsing modules (same code as the Android app)
     implementation(project(":innertube"))
     implementation(project(":spotify"))

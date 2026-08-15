@@ -42,6 +42,21 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [ ] Per-pair key exchanged during pairing.
 - [ ] Snapshots encrypted before sending (the relay no longer reads the data).
 
+## Phase 8 — Pixel-perfect UI port (mobile → desktop)
+The desktop should look exactly like the Android app, except:
+- the bottom navigation bar becomes a collapsible/expandable sidebar;
+- the Devices (device sync) screen keeps its desktop-specific layout.
+
+- [x] Foundation: seed-based Material 3 palette (materialKolor TonalSpot) matching the mobile theme, and a collapsible/expandable sidebar with Material icons + labels (persisted).
+- [ ] Home screen port (sections, quick picks, mood/genres, card styles).
+- [ ] Search screen port (search bar, filter chips, result rows).
+- [ ] Library screen port (tabs, filters, grids).
+- [ ] Album / Artist / Playlist detail screens port.
+- [ ] Player + mini-player + queue + lyrics pixel-perfect.
+- [ ] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage…), keeping the custom Devices screen.
+- [ ] History / Changelog / Login screens port.
+- [ ] Song / album / artist / playlist context menus port.
+
 ## Infra / release
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.
 - [ ] Bump the version in `version.txt` on every release.
