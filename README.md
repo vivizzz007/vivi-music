@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/PiBOH/vivi-music">
-    <img src="desktop/icons/logo_vmde.png" alt="VIVI Music DE Logo" style="display: block; margin: 0 auto; max-width: 150px"/>
+    <img src="desktop/icons/logo_vmde.png" alt="VIVI Music DE Logo" width="150"/>
   </a>
   <br>
   <h1>VIVI Music DE</h1>
