@@ -119,6 +119,20 @@ keep them in sync:
 When in doubt about which segment to bump, prefer PATCH for fixes and MINOR for
 features; only use MAJOR for genuinely breaking changes.
 
+**Which version to bump depends on what changed** (this is the rule the user
+considers obvious):
+
+- A change to the **Android app** (`app/`, or an Android-only module/behavior)
+  bumps the **mobile** version: `version.txt` line 1 **and**
+  `app/build.gradle.kts` `versionName` (+ `versionCode`).
+- A change to the **desktop edition** (`desktop/`, its build/installer, the
+  `.github/workflows/` release pipeline, or a desktop-only behavior) bumps the
+  **DE** version: `version.txt` line 2.
+- A change that affects **both** editions bumps **both** versions.
+
+Never bump the DE version for a mobile-only change, and never bump the mobile
+version for a DE-only change.
+
 #### Desktop versioning (`<mobile>_DE-<de>` + channel)
 
 Desktop releases are distinguished from Android releases with a combined
