@@ -5,7 +5,8 @@ package com.music.vivi.desktop
  * bundled as a classpath resource (copied by `processResources`).
  *
  * version.txt layout:
- *   line 1 = mobile version, line 2 = DE version, line 3 = release channel.
+ *   line 1 = mobile version, line 2 = DE version, line 3 = release channel,
+ *   line 4 = desktop version code (monotonic counter, bumped each release).
  */
 object AppInfo {
     val MOBILE_VERSION: String
@@ -29,9 +30,13 @@ object AppInfo {
         DE_VERSION = de.ifEmpty { "0.0.0" }
         FULL_VERSION = "${MOBILE_VERSION}_DE-${DE_VERSION}"
         CHANNEL = channel.ifEmpty { "stable" }
-        VERSION_CODE = runCatching {
-            val parts = DE_VERSION.split(".").map { it.toIntOrNull() ?: 0 }
-            (parts.getOrNull(0) ?: 0) * 10000 + (parts.getOrNull(1) ?: 0) * 100 + (parts.getOrNull(2) ?: 0)
-        }.getOrDefault(0)
+        // Line 4 is the explicit desktop version code (a small, monotonic
+        // counter that matches the number of DE releases — not derived from the
+        // SemVer). Fall back to the old formula only if line 4 is missing.
+        VERSION_CODE = lines.getOrNull(3)?.trim()?.toIntOrNull()
+            ?: runCatching {
+                val parts = DE_VERSION.split(".").map { it.toIntOrNull() ?: 0 }
+                (parts.getOrNull(0) ?: 0) * 10000 + (parts.getOrNull(1) ?: 0) * 100 + (parts.getOrNull(2) ?: 0)
+            }.getOrDefault(0)
     }
 }

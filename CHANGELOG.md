@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.26.3] - 2026-08-15
+
+### Fixed
+
+- [DE] The About screen "Version code" was derived from the SemVer
+  (`1.26.0` → `12600`), which looked like a huge number. It is now an explicit
+  monotonic counter stored in `version.txt` (line 4) that tracks the number of
+  DE releases (currently 57).
+
 ## [6.2.2_DE-1.26.2] - 2026-08-15
 
 ### Changed

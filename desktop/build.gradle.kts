@@ -4,6 +4,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 //   line 1 = mobile (Android) version, e.g. 6.0.5
 //   line 2 = desktop ("DE") version, e.g. 1.0.0  (the program's own SemVer)
 //   line 3 = release channel: stable / rc / beta / alpha / nightly
+//   line 4 = desktop version code (monotonic counter, e.g. 57)
 // The human-readable desktop version is "<mobile>_DE-<de>", e.g. 6.0.5_DE-1.0.0.
 val versionLines: List<String> = rootProject.file("version.txt")
     .takeIf { it.exists() }

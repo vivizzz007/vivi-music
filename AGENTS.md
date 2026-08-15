@@ -127,7 +127,7 @@ considers obvious):
   `app/build.gradle.kts` `versionName` (+ `versionCode`).
 - A change to the **desktop edition** (`desktop/`, its build/installer, the
   `.github/workflows/` release pipeline, or a desktop-only behavior) bumps the
-  **DE** version: `version.txt` line 2.
+  **DE** version: `version.txt` line 2 (+ line 4 version code by 1).
 - A change that affects **both** editions bumps **both** versions.
 
 Never bump the DE version for a mobile-only change, and never bump the mobile
@@ -140,9 +140,12 @@ version of the form `<mobile>_DE-<de>` (e.g. `6.0.5_DE-1.0.0`):
 
 - `6.0.5` is the Android (mobile) version the desktop is paired with; `1.0.0`
   is the desktop ("DE") version — the program's own SemVer.
-- `version.txt` holds the release metadata on **three lines**: line 1 = mobile
-  version, line 2 = DE version, line 3 = release channel. The Android app
-  version stays numeric in `app/build.gradle.kts` (e.g. `6.0.5`).
+- `version.txt` holds the release metadata on **four lines**: line 1 = mobile
+  version, line 2 = DE version, line 3 = release channel, line 4 = the desktop
+  **version code** (a small monotonic counter matching the number of DE
+  releases, e.g. `57` — shown in the About screen, and bumped by 1 on every DE
+  release). The Android app version stays numeric in `app/build.gradle.kts`
+  (e.g. `6.0.5`).
 - Release channel (line 3): `stable` (or empty) publishes a stable GitHub
   release; any other value (`rc`, `beta`, `alpha`, `nightly`, …) publishes a
   pre-release. The channel is shown (uppercased) in the About screen.
