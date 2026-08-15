@@ -268,7 +268,22 @@ class DeviceSyncManager @Inject constructor(
             }
             is SyncEvent.SnapshotReceived -> applySnapshot(event.snapshot)
             is SyncEvent.Disconnected -> _status.value = "Disconnected"
-            is SyncEvent.Error -> _status.value = event.message
+            is SyncEvent.NoSnapshot -> Unit
+            is SyncEvent.Error -> {
+                _status.value = event.message
+                // The peer unpaired us, or the relay no longer knows about this
+                // pair (e.g. the desktop's LAN relay was stopped/restarted). Drop
+                // the local pairing so the UI stops claiming we are paired.
+                if (event.message.contains("unpaired", ignoreCase = true) ||
+                    event.message.contains("not paired", ignoreCase = true)
+                ) {
+                    context.dataStore.edit {
+                        it.remove(DeviceSyncPairIdKey)
+                        it[DeviceSyncEnabledKey] = false
+                    }
+                    _paired.value = false
+                }
+            }
         }
     }
 

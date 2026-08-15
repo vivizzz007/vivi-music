@@ -90,6 +90,10 @@ class DesktopSyncManager {
 
     init {
         lastLibrary = DesktopSettings.load().library
+        // Best-effort: when the desktop window is closed while the LAN relay is
+        // running, tell any connected phone it is no longer paired (so the phone
+        // does not keep showing "paired" for a relay that no longer exists).
+        Runtime.getRuntime().addShutdownHook(Thread { runCatching { relay.shutdownNotify() } })
     }
 
     // ---------------------------------------------------------------------
@@ -132,10 +136,16 @@ class DesktopSyncManager {
     }
 
     fun stopLan() {
-        relay.stop()
+        // Notify the phone it is unpaired, then tear down the relay.
+        scope.launch { relay.stop() }
         _lanRunning.value = false
         _lanAddress.value = ""
         teardownClient()
+        // Stopping the LAN server unpairs both sides.
+        DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+        _paired.value = false
+        _pairCode.value = ""
+        _pairCodeExpiresAt.value = 0L
     }
 
     fun requestPairingCode() {
@@ -231,7 +241,14 @@ class DesktopSyncManager {
                 _status.value = "Paired with ${event.peerDeviceName}"
                 pushSnapshot()
             }
+            is SyncEvent.NoSnapshot -> {
+                // Reconnect with a persisted pairId: the relay confirms we are
+                // still paired (just no mailbox snapshot yet).
+                _paired.value = true
+                _status.value = "Paired"
+            }
             is SyncEvent.SnapshotReceived -> {
+                _paired.value = true
                 suppressPushUntil = System.currentTimeMillis() + ECHO_SUPPRESS_MS
                 _status.value = "Snapshot received"
                 if (event.snapshot.settings.isNotEmpty()) {
@@ -253,7 +270,11 @@ class DesktopSyncManager {
                 if (event.message.contains("unpaired", ignoreCase = true) ||
                     event.message.contains("not paired", ignoreCase = true)
                 ) {
+                    // The peer unpaired us, or the relay no longer knows this pair.
                     _paired.value = false
+                    _pairCode.value = ""
+                    _pairCodeExpiresAt.value = 0L
+                    DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
                 }
             }
         }

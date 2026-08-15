@@ -14,6 +14,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import java.net.Inet4Address
@@ -85,8 +86,11 @@ class LanSyncRelay {
         return port
     }
 
-    fun stop() {
+    suspend fun stop() {
         val s = server ?: return
+        // Tell any connected peers they are no longer paired before the socket
+        // closes, so the phone clears its local pairing state.
+        broadcastUnpaired()
         server = null
         sockets.clear()
         deviceNames.clear()
@@ -97,6 +101,30 @@ class LanSyncRelay {
         runCatching { s.stop(500, 1000) }
         stopMdns()
         port = 0
+    }
+
+    private suspend fun broadcastUnpaired() {
+        val envelope = SyncEnvelope(type = SyncMessageTypes.PAIR_ERROR, message = "Device was unpaired")
+        for (session in sockets.values) {
+            send(session, envelope)
+        }
+    }
+
+    /**
+     * Best-effort notification for JVM shutdown (desktop window closed). Runs on
+     * the shutdown-hook thread, so it blocks until the frames are flushed or fail.
+     */
+    fun shutdownNotify() {
+        if (server == null) return
+        val sessions = sockets.values.toList()
+        if (sessions.isEmpty()) return
+        val text = json.encodeToString(
+            SyncEnvelope.serializer(),
+            SyncEnvelope(type = SyncMessageTypes.PAIR_ERROR, message = "Device was unpaired"),
+        )
+        runBlocking {
+            sessions.forEach { session -> runCatching { session.send(Frame.Text(text)) } }
+        }
     }
 
     private suspend fun handleSession(session: WebSocketSession) {

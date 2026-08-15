@@ -36,6 +36,9 @@ sealed class SyncEvent {
     data class PairCode(val code: String) : SyncEvent()
     data class Paired(val pairId: String, val peerDeviceId: String, val peerDeviceName: String) : SyncEvent()
     data class SnapshotReceived(val fromDeviceId: String, val snapshot: SyncSnapshot) : SyncEvent()
+
+    /** Server confirmed the device is paired but the peer has not pushed a snapshot yet. */
+    data object NoSnapshot : SyncEvent()
     data class Error(val message: String) : SyncEvent()
 }
 
@@ -204,6 +207,9 @@ class SyncClient(
                         _events.emit(SyncEvent.SnapshotReceived(envelope.fromDeviceId ?: "", snapshot))
                     }
                 }
+            }
+            SyncMessageTypes.NO_SNAPSHOT -> {
+                scope.launch { _events.emit(SyncEvent.NoSnapshot) }
             }
             else -> Unit
         }

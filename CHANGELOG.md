@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.26.1] - 2026-08-15
+
+### Fixed
+
+- [DE+APK] Device pairing is now kept in sync across both devices: unpairing
+  from the phone or the desktop unpairs the other side, and stopping the LAN
+  server notifies the phone to unpair too. Reconnecting to a relay that no
+  longer knows the pair (for example after the desktop is restarted) now clears
+  the stale "paired" state instead of leaving it stuck.
+
 ## [6.2.1_DE-1.26.0] - 2026-08-15
 
 ### Added
