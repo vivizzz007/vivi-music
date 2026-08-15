@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.20.1] - 2026-08-15
+
+### Changed
+
+- [DE] The auto-release no longer builds the APK itself: it waits for the
+  existing "CI & Debug Build" (`build.yml`) run on the same commit and attaches
+  its debug APK artifact to the desktop release. The dedicated
+  `release-mobile.yml` build workflow was removed.
+
 ## [6.2.1_DE-1.20.0] - 2026-08-15
 
 ### Fixed

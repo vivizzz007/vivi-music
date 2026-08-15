@@ -39,21 +39,22 @@ jobs:
     uses: ./.github/workflows/build-desktop-macos.yml
     secrets: inherit
 
-  # The Android APK is no longer built here. A dedicated workflow
-  # (release-mobile.yml) builds + signs the APKs on this same branch and
-  # attaches them to the release created below, so the desktop release stays
-  # independent of the (slower) Android build.
+  # The Android APK is not built here: the existing "CI & Debug Build"
+  # workflow (build.yml) already produces it on every push. The release job
+  # below waits for that run and downloads its artifact, so the APK ships with
+  # the desktop release without a second build workflow.
 
   release:
     name: Publish GitHub Release
     needs: [ build-windows, build-linux, build-macos ]
-    # Only the three desktop builds are required. The Android APK is attached
-    # separately by release-mobile.yml, so a missing/failed APK never blocks
+    # Only the three desktop builds are required. The Android APK is fetched
+    # best-effort from the existing CI, so a missing/failed CI run never blocks
     # this desktop release.
     if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -161,6 +162,43 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+
+      - name: Wait for CI and fetch the APK
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          # Best-effort: the APK comes from the existing "CI & Debug Build"
+          # (build.yml) run for this commit. If it can't be found or fails,
+          # release the desktop installers without it.
+          RUN_ID="$(gh run list --workflow "CI & Debug Build" --commit "$GITHUB_SHA" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID="$(gh run list --workflow build.yml --commit "$GITHUB_SHA" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+          fi
+          if [ -z "$RUN_ID" ]; then
+            echo "No CI run found for this commit; releasing without the APK."
+            exit 0
+          fi
+          echo "Waiting for CI run $RUN_ID to finish..."
+          if ! gh run watch "$RUN_ID" --exit-status --interval 15; then
+            echo "CI run $RUN_ID did not succeed; releasing without the APK."
+            exit 0
+          fi
+          mkdir -p apk_dist artifacts
+          if gh run download "$RUN_ID" -n app-universal-gms-debug -D apk_dist; then
+            MOBILE_VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+            APK="$(find apk_dist -name '*.apk' -print -quit)"
+            if [ -n "$APK" ]; then
+              cp "$APK" "artifacts/VIVIMusic-${MOBILE_VERSION}-debug.apk"
+              echo "APK added to release assets: VIVIMusic-${MOBILE_VERSION}-debug.apk"
+              ls -la artifacts
+            else
+              echo "No APK inside the CI artifact; releasing without it."
+            fi
+          else
+            echo "Could not download the APK artifact; releasing without it."
+          fi
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
