@@ -119,19 +119,37 @@ object UpdateChecker {
     }
 
     /**
+     * Returns the desktop release with the highest DE version, instead of the
+     * first / "latest" entry in GitHub's list (which is ordered by publish
+     * date, not by version — so an older tag can show up first). Returns null
+     * when there are no matching desktop releases.
+     */
+    private fun highestDesktopRelease(
+        releases: List<GitHubRelease>,
+        includePreReleases: Boolean,
+    ): Pair<String, GitHubRelease>? =
+        releases.asSequence()
+            .filter { !it.prerelease || includePreReleases }
+            .mapNotNull { r -> deVersionFromTag(r.tagName)?.let { it to r } }
+            .maxWithOrNull { a, b -> compareVersions(a.first, b.first) }
+
+    /**
      * Fetches the release notes (body) of the latest GitHub release, used by
      * the About → Changelog screen. Returns null on any failure.
      */
     fun latestReleaseNotes(): String? = try {
         val request = Request.Builder()
-            .url("https://api.github.com/repos/$REPO/releases/latest")
+            .url("$API_URL?per_page=100")
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "VIVIMusic-Desktop-Updater")
             .build()
         client.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return null
-            json.decodeFromString<GitHubRelease>(response.body.string()).body
-                .takeIf { it.isNotBlank() }
+            val releases = json.decodeFromString<List<GitHubRelease>>(response.body.string())
+            highestDesktopRelease(releases, includePreReleases = true)
+                ?.second
+                ?.body
+                ?.takeIf { it.isNotBlank() }
         }
     } catch (_: Exception) {
         null
@@ -144,7 +162,7 @@ object UpdateChecker {
      */
     fun check(includePreReleases: Boolean): UpdateStatus = try {
         val request = Request.Builder()
-            .url("$API_URL?per_page=20")
+            .url("$API_URL?per_page=100")
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "VIVIMusic-Desktop-Updater")
             .build()
@@ -155,10 +173,7 @@ object UpdateChecker {
             val releases = json.decodeFromString<List<GitHubRelease>>(body)
 
             val current = AppInfo.DE_VERSION
-            val candidate = releases.asSequence()
-                .filter { !it.prerelease || includePreReleases }
-                .mapNotNull { r -> deVersionFromTag(r.tagName)?.let { it to r } }
-                .firstOrNull()
+            val candidate = highestDesktopRelease(releases, includePreReleases)
                 ?: return UpdateStatus.Failed("No desktop release found")
 
             val (version, release) = candidate

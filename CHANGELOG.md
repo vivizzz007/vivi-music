@@ -85,6 +85,11 @@ feature.`). Desktop releases use a combined version `<mobile>_DE-<desktop>`
 
 ### Fixed
 
+- [DE] Fixed the update check picking the wrong release: it now selects the
+  desktop release with the highest `_DE-<version>` tag instead of the first /
+  "latest" entry (GitHub orders releases by publish date, not by version), so
+  an older tag no longer masks a newer one. The release list window was also
+  raised to 100 and the changelog notes follow the same highest-version rule.
 - [DE] Fixed dark mode not repainting the page background: the app root now
   paints the theme's `background` color, so switching to dark converts the
   whole window instead of leaving the native light background showing through.
