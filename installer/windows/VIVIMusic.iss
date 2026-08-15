@@ -80,6 +80,46 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 Filename: "{app}\{#AppExe}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent; Tasks: launchafterinstall
 
 [Code]
+// Uninstall any previously-installed jpackage MSI of this app. The MSI and this
+// Inno Setup installer are two different installer technologies, so each
+// registers its own entry under "Apps & features". Removing the MSI here keeps
+// a single uninstall entry when the user installs the .exe after the .msi.
+procedure UninstallExistingMsi();
+var
+  RootKeys: array of String;
+  Names: TArrayOfString;
+  I, J: Integer;
+  DisplayName, UninstallString: String;
+  ResultCode: Integer;
+begin
+  SetArrayLength(RootKeys, 2);
+  RootKeys[0] := 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall';
+  RootKeys[1] := 'SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall';
+  for J := 0 to GetArrayLength(RootKeys) - 1 do
+  begin
+    if RegGetSubkeyNames(HKLM, RootKeys[J], Names) then
+    begin
+      for I := 0 to GetArrayLength(Names) - 1 do
+      begin
+        if RegQueryStringValue(HKLM, RootKeys[J] + '\' + Names[I], 'DisplayName', DisplayName) and
+           RegQueryStringValue(HKLM, RootKeys[J] + '\' + Names[I], 'UninstallString', UninstallString) then
+        begin
+          if (Pos('VIVI', Uppercase(DisplayName)) > 0) and (Pos('MSIEXEC', Uppercase(UninstallString)) > 0) then
+          begin
+            Exec('msiexec.exe', '/x ' + Names[I] + ' /qn /norestart', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then
+    UninstallExistingMsi();
+end;
+
 // Show a confirmation once the uninstaller has finished removing the app.
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin

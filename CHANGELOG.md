@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.6] - 2026-08-15
+
+### Fixed
+
+- [DE] Installing both the MSI and the Inno Setup EXE no longer leaves two
+  "VIVI Music" entries in "Apps & features": the Inno Setup installer now
+  uninstalls any previously-installed jpackage MSI of the app before copying
+  its files, so a single uninstall entry remains.
+
 ## [6.2.2_DE-1.28.5] - 2026-08-15
 
 ### Fixed
