@@ -11,6 +11,20 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.21.0] - 2026-08-15
+
+### Added
+
+- [DE] Settings are now organized into mobile-style sub-screens (Language,
+  Updates, Appearance, Player & audio, Account, Devices, Content, Lyrics,
+  Privacy, Storage, About) instead of one long scrollable page.
+- [DE] New Content sub-screen: pick the YouTube content language and region
+  (innerTube `hl`/`gl`), applied live and persisted across restarts.
+- [DE] New Lyrics sub-screen with a "synced lyrics" toggle that enables or
+  disables line-by-line highlighting.
+- [DE] New Privacy sub-screen to clear the session, cache and downloaded
+  installers.
+
 ## [6.2.1_DE-1.20.1] - 2026-08-15
 
 ### Changed

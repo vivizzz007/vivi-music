@@ -20,6 +20,19 @@ sealed interface Screen {
     data object Queue : Screen
     data object Changelog : Screen
     data object Login : Screen
+
+    // Settings sub-screens (ported from the mobile settings structure).
+    data object SettingsLanguage : Screen
+    data object SettingsAppearance : Screen
+    data object SettingsPlayer : Screen
+    data object SettingsAccount : Screen
+    data object SettingsDevices : Screen
+    data object SettingsContent : Screen
+    data object SettingsLyrics : Screen
+    data object SettingsPrivacy : Screen
+    data object SettingsStorage : Screen
+    data object SettingsUpdates : Screen
+    data object SettingsAbout : Screen
 }
 
 /**

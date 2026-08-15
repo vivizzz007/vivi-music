@@ -21,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
@@ -31,6 +32,17 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lyrics
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
@@ -72,7 +84,6 @@ import com.music.innertube.YouTube
 import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
-import com.music.innertube.models.YouTubeLocale
 import com.music.vivi.desktop.player.PlayerController
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncServer
@@ -88,8 +99,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 fun main() = application {
-    // Configure the shared YouTube client exactly like the Android App.onCreate() does.
-    YouTube.locale = YouTubeLocale(gl = "US", hl = "en")
+    // Configure the shared YouTube client exactly like the Android App.onCreate() does,
+    // honouring the saved content language/region (or the OS default).
+    val initialSettings = DesktopSettings.load()
+    YouTube.locale = resolveYouTubeLocale(initialSettings.contentLanguage, initialSettings.contentCountry)
     YouTubeExtractor.cacheDir = File(System.getProperty("user.home"), ".vivimusic/cache").apply { mkdirs() }
     LoginManager.restore()
 
@@ -158,6 +171,9 @@ fun App(
     var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
     var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
     var sidebarCollapsed by remember { mutableStateOf(DesktopSettings.load().sidebarCollapsed) }
+    var contentLanguage by remember { mutableStateOf(DesktopSettings.load().contentLanguage) }
+    var contentCountry by remember { mutableStateOf(DesktopSettings.load().contentCountry) }
+    var syncedLyrics by remember { mutableStateOf(DesktopSettings.load().syncedLyrics) }
 
     val current = backStack.last()
 
@@ -316,25 +332,37 @@ fun App(
                     )
                     is Screen.Settings -> SettingsScreen(
                         language = language,
+                        themeMode = themeMode,
+                        isLoggedIn = isLoggedIn,
+                        accountName = accountName,
+                        updateStatus = updateStatus,
+                        onOpen = navigate,
+                    )
+                    is Screen.SettingsLanguage -> SettingsLanguageScreen(
+                        language = language,
+                        onBack = goBack,
                         onLanguageChange = onLanguageChange,
+                    )
+                    is Screen.SettingsAppearance -> SettingsAppearanceScreen(
+                        language = language,
+                        onBack = goBack,
                         themeMode = themeMode,
                         accent = accent,
                         onThemeModeChange = onThemeModeChange,
                         onAccentChange = onAccentChange,
+                    )
+                    is Screen.SettingsPlayer -> SettingsPlayerScreen(
+                        language = language,
+                        onBack = goBack,
                         autoPlayNext = autoPlayNext,
                         onToggleAutoPlayNext = { checked ->
                             autoPlayNext = checked
                             DesktopSettings.save(DesktopSettings.load().copy(autoPlayNext = checked))
                         },
-                        updateStatus = updateStatus,
-                        includePreReleases = includePreReleases,
-                        onTogglePreReleases = { checked ->
-                            includePreReleases = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
-                            runUpdateCheck()
-                        },
-                        onCheckUpdates = { runUpdateCheck() },
-                        onOpenChangelog = { navigate(Screen.Changelog) },
+                    )
+                    is Screen.SettingsAccount -> SettingsAccountScreen(
+                        language = language,
+                        onBack = goBack,
                         isLoggedIn = isLoggedIn,
                         accountName = accountName,
                         onOpenLogin = { navigate(Screen.Login) },
@@ -343,7 +371,67 @@ fun App(
                             isLoggedIn = false
                             accountName = ""
                         },
+                    )
+                    is Screen.SettingsDevices -> SettingsDevicesScreen(
+                        language = language,
+                        onBack = goBack,
                         syncManager = syncManager,
+                    )
+                    is Screen.SettingsContent -> SettingsContentScreen(
+                        language = language,
+                        onBack = goBack,
+                        contentLanguage = contentLanguage,
+                        contentCountry = contentCountry,
+                        onContentLanguageChange = { code ->
+                            contentLanguage = code
+                            DesktopSettings.save(DesktopSettings.load().copy(contentLanguage = code))
+                            YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
+                        },
+                        onContentCountryChange = { code ->
+                            contentCountry = code
+                            DesktopSettings.save(DesktopSettings.load().copy(contentCountry = code))
+                            YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
+                        },
+                    )
+                    is Screen.SettingsLyrics -> SettingsLyricsScreen(
+                        language = language,
+                        onBack = goBack,
+                        syncedLyrics = syncedLyrics,
+                        onToggleSyncedLyrics = { checked ->
+                            syncedLyrics = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(syncedLyrics = checked))
+                        },
+                    )
+                    is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
+                        language = language,
+                        onBack = goBack,
+                        isLoggedIn = isLoggedIn,
+                        onLogout = {
+                            LoginManager.logout()
+                            isLoggedIn = false
+                            accountName = ""
+                        },
+                    )
+                    is Screen.SettingsStorage -> SettingsStorageScreen(
+                        language = language,
+                        onBack = goBack,
+                    )
+                    is Screen.SettingsUpdates -> SettingsUpdatesScreen(
+                        language = language,
+                        onBack = goBack,
+                        updateStatus = updateStatus,
+                        includePreReleases = includePreReleases,
+                        onTogglePreReleases = { checked ->
+                            includePreReleases = checked
+                            DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
+                            runUpdateCheck()
+                        },
+                        onCheckUpdates = { runUpdateCheck() },
+                    )
+                    is Screen.SettingsAbout -> SettingsAboutScreen(
+                        language = language,
+                        onBack = goBack,
+                        onOpenChangelog = { navigate(Screen.Changelog) },
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
@@ -410,6 +498,7 @@ fun App(
                         positionMs = playerState.positionMs,
                         isPlaying = isPlaying,
                         language = language,
+                        synced = syncedLyrics,
                         onBack = goBack,
                     )
                     is Screen.Queue -> QueueScreen(
@@ -611,44 +700,131 @@ fun MiniPlayer(
 @Composable
 fun SettingsScreen(
     language: String,
-    onLanguageChange: (String) -> Unit,
     themeMode: ThemeMode,
-    accent: Color,
-    onThemeModeChange: (ThemeMode) -> Unit,
-    onAccentChange: (Color) -> Unit,
-    autoPlayNext: Boolean,
-    onToggleAutoPlayNext: (Boolean) -> Unit,
-    updateStatus: UpdateStatus,
-    includePreReleases: Boolean,
-    onTogglePreReleases: (Boolean) -> Unit,
-    onCheckUpdates: () -> Unit,
-    onOpenChangelog: () -> Unit,
     isLoggedIn: Boolean,
     accountName: String,
-    onOpenLogin: () -> Unit,
-    onLogout: () -> Unit,
-    syncManager: DesktopSyncManager,
+    updateStatus: UpdateStatus,
+    onOpen: (Screen) -> Unit,
 ) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp)
     ) {
         Text(Localization.get(language, "settings"), style = MaterialTheme.typography.headlineMedium)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        LanguageSection(language, onLanguageChange)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        AccountSection(language, isLoggedIn, accountName, onOpenLogin, onLogout)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        PlayerSection(language, autoPlayNext, onToggleAutoPlayNext)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        DeviceSyncSection(language, syncManager)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        UpdateSection(language, updateStatus, includePreReleases, onTogglePreReleases, onCheckUpdates)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        AboutSection(language, onOpenChangelog)
-        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-        StorageSection(language)
+        HorizontalDivider(Modifier.padding(vertical = 12.dp))
+
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Translate,
+            title = Localization.get(language, "language"),
+            subtitle = Languages.name(language),
+            onClick = { onOpen(Screen.SettingsLanguage) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Refresh,
+            title = Localization.get(language, "updates"),
+            subtitle = if (updateStatus is UpdateStatus.Available) {
+                Localization.get(language, "update_available")
+            } else {
+                AppInfo.FULL_VERSION
+            },
+            onClick = { onOpen(Screen.SettingsUpdates) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Palette,
+            title = Localization.get(language, "appearance"),
+            subtitle = when (themeMode) {
+                ThemeMode.SYSTEM -> Localization.get(language, "theme_system")
+                ThemeMode.LIGHT -> Localization.get(language, "theme_light")
+                ThemeMode.DARK -> Localization.get(language, "theme_dark")
+            },
+            onClick = { onOpen(Screen.SettingsAppearance) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.GraphicEq,
+            title = Localization.get(language, "player_audio"),
+            onClick = { onOpen(Screen.SettingsPlayer) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Person,
+            title = Localization.get(language, "account"),
+            subtitle = if (isLoggedIn) accountName.ifBlank { "YouTube" } else Localization.get(language, "not_logged_in"),
+            onClick = { onOpen(Screen.SettingsAccount) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Devices,
+            title = Localization.get(language, "device_sync"),
+            onClick = { onOpen(Screen.SettingsDevices) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Language,
+            title = Localization.get(language, "content"),
+            onClick = { onOpen(Screen.SettingsContent) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Lyrics,
+            title = Localization.get(language, "lyrics"),
+            onClick = { onOpen(Screen.SettingsLyrics) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Security,
+            title = Localization.get(language, "privacy"),
+            onClick = { onOpen(Screen.SettingsPrivacy) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Storage,
+            title = Localization.get(language, "storage"),
+            onClick = { onOpen(Screen.SettingsStorage) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Info,
+            title = Localization.get(language, "about"),
+            onClick = { onOpen(Screen.SettingsAbout) },
+        )
+    }
+}
+
+@Composable
+private fun SettingsEntryRow(
+    language: String,
+    icon: ImageVector,
+    title: String,
+    subtitle: String? = null,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (subtitle != null) {
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Icon(
+            Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

@@ -126,6 +126,11 @@ MAPPING = {
     "shuffle": "shuffle",
     "volume": "volume",
     "mood_and_genres": "mood_and_genres",
+    "content": "content",
+    "content_language": "content_language",
+    "content_country": "content_country",
+    "system_default": "system_default",
+    "privacy": "privacy",
     # vivi_strings.xml
     "lyrics": "lyrics",
     "now_playing": "now_playing",
@@ -256,6 +261,17 @@ ENGLISH = {
     "visitor_data_label": "VISITOR_DATA (optional)",
     "advanced_login_hint": "Optional: if auto-detection fails, paste DATASYNC_ID and VISITOR_DATA from the music.youtube.com page source.",
     "open_failed": "Could not open the installer. Find it in ~/.vivimusic/updates and open it manually.",
+    "content": "Content",
+    "content_language": "Content language",
+    "content_country": "Content region",
+    "system_default": "System default",
+    "privacy": "Privacy",
+    "privacy_desc": "Session cookies, cached audio and downloaded installers are stored only on this device. You can remove them here.",
+    "synced_lyrics": "Synced lyrics",
+    "synced_lyrics_desc": "Highlight the current line as the song plays",
+    "clear_session": "Clear session data",
+    "cache_cleared": "Cache cleared",
+    "installers_deleted": "Installers deleted",
 }
 
 

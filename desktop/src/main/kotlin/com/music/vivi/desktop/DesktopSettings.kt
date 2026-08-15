@@ -29,6 +29,9 @@ data class DesktopSyncState(
     val accountName: String = "",
     val accountEmail: String = "",
     val accountChannelHandle: String = "",
+    val contentLanguage: String = "",
+    val contentCountry: String = "",
+    val syncedLyrics: Boolean = true,
 )
 
 object DesktopSettings {

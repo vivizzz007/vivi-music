@@ -535,6 +535,7 @@ fun LyricsScreen(
     positionMs: Long,
     isPlaying: Boolean,
     language: String,
+    synced: Boolean = true,
     onBack: () -> Unit,
 ) {
     var lyrics by remember { mutableStateOf<String?>(null) }
@@ -573,7 +574,7 @@ fun LyricsScreen(
             )
             else -> {
                 val lines = remember(lyrics) { parseLrc(lyrics.orEmpty()) }
-                if (lines.isNullOrEmpty()) {
+                if (!synced || lines.isNullOrEmpty()) {
                     // Plain (non-synced) lyrics fallback.
                     Column(
                         Modifier.verticalScroll(rememberScrollState()).padding(top = 8.dp),
