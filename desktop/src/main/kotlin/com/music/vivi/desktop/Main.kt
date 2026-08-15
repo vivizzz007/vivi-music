@@ -1129,6 +1129,11 @@ fun BoxScope.UpdateNotification(
     val scope = rememberCoroutineScope()
     var downloading by remember { mutableStateOf(false) }
     var progress by remember { mutableStateOf<DownloadProgress?>(null) }
+    // If the installer for this exact version is already downloaded, offer to
+    // open it directly instead of downloading it again.
+    val existingInstaller = remember(status) {
+        status.asset?.let { UpdateDownloader.downloadedInstaller(it.fileName) }
+    }
 
     Surface(
         tonalElevation = 6.dp,
@@ -1163,6 +1168,11 @@ fun BoxScope.UpdateNotification(
             Button(
                 onClick = {
                     if (downloading) return@Button
+                    existingInstaller?.let { file ->
+                        if (openFile(file)) exitProcess(0)
+                        onDone()
+                        return@Button
+                    }
                     val asset = status.asset
                     if (asset == null) {
                         openUrl(status.url)
@@ -1188,7 +1198,16 @@ fun BoxScope.UpdateNotification(
                 enabled = !downloading,
                 modifier = Modifier.padding(start = 12.dp),
             ) {
-                Text(Localization.get(language, if (downloading) "downloading" else "install_now"))
+                Text(
+                    Localization.get(
+                        language,
+                        when {
+                            existingInstaller != null -> "open_installer"
+                            downloading -> "downloading"
+                            else -> "install_now"
+                        },
+                    )
+                )
             }
             IconButton(onClick = onDismiss) {
                 Icon(Icons.Filled.Close, contentDescription = Localization.get(language, "dismiss"))

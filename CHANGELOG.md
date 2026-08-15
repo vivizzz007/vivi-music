@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.1_DE-1.24.1] - 2026-08-15
+
+### Changed
+
+- [DE] The update notification now offers "Open installer" (instead of
+  downloading again) when the installer for that version is already present
+  in the downloads folder.
+
 ## [6.2.1_DE-1.24.0] - 2026-08-15
 
 ### Added

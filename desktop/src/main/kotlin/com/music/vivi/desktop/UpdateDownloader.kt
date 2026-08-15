@@ -36,6 +36,10 @@ object UpdateDownloader {
         updatesDir.listFiles()?.filter { it.isFile }?.sortedByDescending { it.lastModified() }
             ?: emptyList()
 
+    /** The already-downloaded installer for [fileName], if present. */
+    fun downloadedInstaller(fileName: String): File? =
+        File(updatesDir, fileName).takeIf { it.isFile }
+
     fun deleteAll() {
         updatesDir.listFiles()?.forEach { it.delete() }
     }
