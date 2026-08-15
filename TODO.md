@@ -22,6 +22,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Capture the queue and position from the Android player (`pushPlayback` is wired from MusicService on track/play changes).
 - [x] Resume on desktop: apply `pendingPlayback`; the desktop also pushes its playback and applies incoming snapshots (bidirectional), with echo suppression.
 - [x] Precise sync: seek is pushed instantly (both sides), same-track commands apply as a lightweight in-place seek (no restart), and positions carry a timestamp (`positionAtMs`) so receivers extrapolate while playing; PING/PONG clock-sync (relay + `server.js`) removes clock skew between phone and PC.
+- [x] Drift auto-correction: while playing, the position is re-pushed every 5s (`SyncServer.RESYNC_TICK_MS`) so players re-align continuously; a 250 ms tolerance (`RESYNC_TOLERANCE_MS`) skips near-no-op seeks to avoid audio glitches.
 - [x] Paired device names shown on both sides (desktop announces its real hostname, mobile shows the paired desktop name and vice versa).
 
 ## Phase 3 — Sync: library

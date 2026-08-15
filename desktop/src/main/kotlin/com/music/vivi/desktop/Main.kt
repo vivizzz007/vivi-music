@@ -97,6 +97,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.music.innertube.YouTube
+import kotlin.math.abs
 import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
@@ -345,13 +346,31 @@ fun App(
         player.seekEvents.collect { player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) } }
     }
 
+    // Periodic re-sync: while playing, re-push the position every few seconds so
+    // the peer auto-corrects drift (buffering / clock skew) instead of waiting
+    // for the next discrete seek/play/track event.
+    LaunchedEffect(syncManager) {
+        while (true) {
+            delay(SyncServer.RESYNC_TICK_MS)
+            if (player.state.value.isPlaying) {
+                player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) }
+            }
+        }
+    }
+
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
-                player.seekRemote(syncManager.effectivePosition(pb), pb.isPlaying)
+                // Periodic ticks re-send the position; skip the seek when the
+                // drift is within tolerance so it doesn't glitch the audio.
+                player.seekRemote(
+                    syncManager.effectivePosition(pb),
+                    pb.isPlaying,
+                    SyncServer.RESYNC_TOLERANCE_MS,
+                )
             } else {
                 val tracks = pb.queue.map { ref ->
                     NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)

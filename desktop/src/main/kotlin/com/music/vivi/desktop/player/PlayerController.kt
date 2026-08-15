@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.random.Random
 
 enum class RepeatMode { OFF, ALL, ONE }
@@ -192,9 +193,19 @@ class PlayerController {
     /**
      * Applies a remote seek in place (same track) without emitting a seek event
      * and without restarting the stream, then matches the peer's play/pause.
+     *
+     * When [toleranceMs] > 0 and the requested position is already within that
+     * tolerance while playing, the seek is skipped (only play/pause is matched)
+     * so periodic re-sync ticks don't cause audible seek glitches.
      */
-    fun seekRemote(positionMs: Long, isPlaying: Boolean) {
+    fun seekRemote(positionMs: Long, isPlaying: Boolean, toleranceMs: Long = 0L) {
         if (_state.value.current == null) return
+        if (toleranceMs > 0 && isPlaying &&
+            abs(positionMs - _state.value.positionMs) <= toleranceMs
+        ) {
+            setPlaying(isPlaying)
+            return
+        }
         seekInternal(positionMs)
         setPlaying(isPlaying)
     }

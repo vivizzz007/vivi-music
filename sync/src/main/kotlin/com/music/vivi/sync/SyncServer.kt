@@ -17,4 +17,18 @@ package com.music.vivi.sync
  */
 object SyncServer {
     const val DEFAULT_URL = "wss://vivimusic-device-sync.onrender.com"
+
+    /**
+     * While a player is playing, re-push its position every this many millis so
+     * the paired device auto-corrects drift (buffering / clock skew) instead of
+     * waiting for the next discrete seek/play/track event.
+     */
+    const val RESYNC_TICK_MS = 5_000L
+
+    /**
+     * A received position within this tolerance of the local position is
+     * treated as already in-sync: the seek is skipped (only play/pause is
+     * applied) so periodic re-sync ticks don't cause audible seek glitches.
+     */
+    const val RESYNC_TOLERANCE_MS = 250L
 }

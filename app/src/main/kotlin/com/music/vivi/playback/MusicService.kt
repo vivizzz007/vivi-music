@@ -166,6 +166,7 @@ import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.devicesync.DeviceSyncManager
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.sync.PlaybackSnapshot
+import com.music.vivi.sync.SyncServer
 import com.music.vivi.sync.TrackRef
 import com.music.vivi.playback.audio.SilenceDetectorAudioProcessor
 import com.music.vivi.playback.queues.EmptyQueue
@@ -190,6 +191,7 @@ import com.music.vivi.utils.reportException
 import com.music.vivi.widget.vivimusicWidgetManager
 import com.music.vivi.widget.MusicWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -728,6 +730,17 @@ class MusicService :
             deviceSyncManager.pendingPlayback
                 .filterNotNull()
                 .collect { snapshot -> applyRemotePlayback(snapshot) }
+        }
+
+        // Periodic re-sync: while playing, re-push the position every few seconds
+        // so the paired desktop auto-corrects drift (buffering / clock skew).
+        scope.launch {
+            while (true) {
+                delay(SyncServer.RESYNC_TICK_MS)
+                if (playerInitialized.value && player.isPlaying) {
+                    pushPlaybackToDesktop()
+                }
+            }
         }
 
         combine(
@@ -1479,10 +1492,17 @@ class MusicService :
             return
         }
         // Same track already loaded: lightweight seek (instant + precise).
+        // Periodic ticks re-send the position; skip the seek when the drift is
+        // within tolerance so it doesn't glitch the audio.
         val currentId = player.currentMetadata?.id
         if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
-            player.seekTo(position)
-            player.playWhenReady = snapshot.isPlaying
+            val local = player.currentPosition
+            if (snapshot.isPlaying && abs(position - local) <= SyncServer.RESYNC_TOLERANCE_MS) {
+                player.playWhenReady = snapshot.isPlaying
+            } else {
+                player.seekTo(position)
+                player.playWhenReady = snapshot.isPlaying
+            }
             return
         }
         playQueue(

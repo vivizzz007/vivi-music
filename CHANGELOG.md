@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.3.0_DE-1.31.0] - 2026-08-15
+
+### Added
+
+- [DE+APK] Periodic re-sync tick: while a track is playing, the position is
+  re-pushed every 5 seconds so the paired device auto-corrects drift
+  (buffering / clock skew) instead of waiting for the next seek/play/track
+  event. A 250 ms tolerance skips near-no-op seeks so the correction doesn't
+  glitch the audio.
+
 ## [6.2.5_DE-1.30.3] - 2026-08-15
 
 ### Changed
