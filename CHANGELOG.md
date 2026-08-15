@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.26.4] - 2026-08-15
+
+### Fixed
+
+- [DE] Audio playback no longer fails with "HTTP 403 downloading audio": the
+  desktop resolver stopped using the `WEB`/`WEB_REMIX` clients (their
+  googlevideo URLs require a PoToken the desktop cannot generate) and now uses
+  only PoToken-free clients (added `VISIONOS` and `IOS_MUSIC`). It also only
+  applies the n-parameter throttle transform to web clients, so
+  Android/iOS/VisionOS stream URLs are no longer corrupted into a 403.
+
 ## [6.2.2_DE-1.26.3] - 2026-08-15
 
 ### Fixed

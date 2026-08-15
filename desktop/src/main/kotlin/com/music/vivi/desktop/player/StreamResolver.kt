@@ -49,22 +49,23 @@ object StreamResolver {
     private val MAIN_CLIENT: YouTubeClient = YouTubeClient.ANDROID_VR_1_43_32
 
     /**
-     * Ordered fallback clients. Non-PoToken, non-login clients come first;
-     * PoToken clients (WEB_REMIX) are the last resort since the desktop does
-     * not generate PoTokens.
+     * Ordered fallback clients. Only non-PoToken clients are used: `WEB` and
+     * `WEB_REMIX` are deliberately excluded because their googlevideo URLs are
+     * signed for the YouTube-Music web client and answer 403 without a PoToken,
+     * which the desktop cannot generate.
      */
     private val FALLBACK_CLIENTS: List<YouTubeClient> = listOf(
         YouTubeClient.ANDROID_VR_1_61_48,
         YouTubeClient.ANDROID_VR_NO_AUTH,
+        YouTubeClient.VISIONOS,
         YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         YouTubeClient.ANDROID_CREATOR,
         YouTubeClient.IPADOS,
         YouTubeClient.IOS,
+        YouTubeClient.IOS_MUSIC,
         YouTubeClient.MOBILE,
         YouTubeClient.ANDROID_MUSIC,
         YouTubeClient.ANDROID_NO_SDK,
-        YouTubeClient.WEB,
-        YouTubeClient.WEB_REMIX,
     )
 
     private val client = OkHttpClient.Builder()
@@ -120,7 +121,7 @@ object StreamResolver {
                 ?: continue
             if (response.playabilityStatus.status != "OK") continue
 
-            val url = resolveFromResponse(response, quality.preferredItags) ?: continue
+            val url = resolveFromResponse(response, quality.preferredItags, ytClient) ?: continue
             val stream = ResolvedStream(url, ytClient.userAgent)
             val seen = (candidates + validated + unvalidated).any { it.url == url }
             if (seen) continue
@@ -131,7 +132,7 @@ object StreamResolver {
     }
 
     /** Picks the best AAC format from a successful player response and resolves its URL. */
-    private fun resolveFromResponse(response: PlayerResponse, preferredItags: List<Int>): String? {
+    private fun resolveFromResponse(response: PlayerResponse, preferredItags: List<Int>, ytClient: YouTubeClient): String? {
         val adaptive = response.streamingData?.adaptiveFormats ?: return null
         // Only AAC-LC (codec mp4a.40.2, itags 140/141): the JAAD decoder handles
         // AAC-LC, but fails on HE-AAC/SBR (mp4a.40.5, e.g. itag 139) with a
@@ -149,8 +150,15 @@ object StreamResolver {
         val url = if (raw.startsWith("http")) raw else YouTubeExtractor.decryptUrl(raw)
         if (url.isNullOrBlank()) return null
 
-        // Apply the n-parameter transform (no-op when there is no `n=` param).
-        return runCatching { YouTubeExtractor.deobfuscateUrlNParam(url) }.getOrDefault(url)
+        // Apply the n-parameter transform only for web clients, matching the
+        // mobile app. Transforming Android/iOS/VisionOS URLs with the web
+        // player's throttle deobfuscator corrupts their `n` param and googlevideo
+        // then answers 403.
+        return if (ytClient.useWebPoTokens) {
+            runCatching { YouTubeExtractor.deobfuscateUrlNParam(url) }.getOrDefault(url)
+        } else {
+            url
+        }
     }
 
     /** Best-effort HEAD validation of a resolved stream URL. */
