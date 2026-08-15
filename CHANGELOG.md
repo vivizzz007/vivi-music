@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.28.4] - 2026-08-15
+
+### Fixed
+
+- [APK] The Android APK now reports version `6.2.2` (it was still showing
+  `6.2.1`): `app/build.gradle.kts` `versionName`/`versionCode` were out of
+  sync with `version.txt`.
+
 ## [6.2.2_DE-1.28.3] - 2026-08-15
 
 ### Fixed
