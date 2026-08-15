@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
@@ -67,14 +68,21 @@ fun AlbumScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Thumbnail(album.thumbnail, Modifier.size(128.dp))
                     Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(album.title, style = MaterialTheme.typography.headlineMedium)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            album.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                         val artists = album.artists?.joinToString(", ") { it.name }.orEmpty()
                         if (artists.isNotBlank()) {
                             Text(
                                 artists,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                         album.year?.let { Text(it.toString(), style = MaterialTheme.typography.bodyMedium) }
@@ -133,10 +141,21 @@ fun ArtistScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Thumbnail(artist.thumbnail, Modifier.size(128.dp))
                     Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(artist.title, style = MaterialTheme.typography.headlineMedium)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            artist.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                         page!!.subscriberCountText?.let {
-                            Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                it,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                 }
@@ -200,10 +219,21 @@ fun PlaylistScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Thumbnail(playlist.thumbnail, Modifier.size(128.dp))
                     Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(playlist.title, style = MaterialTheme.typography.headlineMedium)
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            playlist.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
                         playlist.author?.let {
-                            Text(it.name, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                it.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
                         }
                         playlist.songCountText?.let {
                             Text(it, style = MaterialTheme.typography.bodyMedium)

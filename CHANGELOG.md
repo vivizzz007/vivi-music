@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.2_DE-1.27.1] - 2026-08-15
+
+### Fixed
+
+- [DE] Content no longer gets clipped when the window is resized smaller: the
+  Album/Artist/Playlist headers now shrink their title/artist text (ellipsis)
+  instead of overflowing, and the LAN pairing screen ellipsizes and constrains
+  the relay address next to the QR code.
+
 ## [6.2.2_DE-1.27.0] - 2026-08-15
 
 ### Added

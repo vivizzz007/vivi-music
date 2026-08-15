@@ -1024,11 +1024,16 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                Modifier.widthIn(max = 200.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 QrCode(lanAddress, size = 180.dp)
                 Text(
                     "${Localization.get(language, "lan_address")}: $lanAddress",
                     style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.padding(top = 8.dp),
                 )
                 Text(
