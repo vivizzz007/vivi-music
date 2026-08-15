@@ -11,6 +11,25 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.3_DE-1.30.0] - 2026-08-15
+
+### Added
+
+- [DE] Developer options improvements: the "Developer options" entry is now
+  always visible in Settings (showing "Disabled" until enabled), and can be
+  unlocked either by tapping the About "Version code" seven times or from that
+  screen. Once unlocked, a non-invasive banner points to the settings screen.
+  New options: a display profile (Full vs Performance — CPU/RAM/GPU only), a
+  "movable overlay" toggle (drag the overlay anywhere on the main window,
+  on by default), and a "show in title bar" toggle that puts live CPU/RAM
+  usage in the window title.
+
+### Fixed
+
+- [DE] Starting the LAN server now reliably auto-generates the pairing code:
+  the code request waits for the local relay connection to be established
+  instead of racing the relay startup (which could leave the code ungenerated).
+
 ## [6.2.3_DE-1.29.0] - 2026-08-15
 
 ### Added

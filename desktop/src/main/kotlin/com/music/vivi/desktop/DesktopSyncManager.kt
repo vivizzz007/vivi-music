@@ -15,7 +15,9 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * Persistent device-sync bridge for the desktop edition.
@@ -140,7 +142,14 @@ class DesktopSyncManager {
             _lanRunning.value = true
             _lanAddress.value = "ws://${lanIpAddress()}:$port"
             connect("ws://localhost:$port")
-            requestPairingCode()
+            // Wait for the local client to actually connect before requesting the
+            // code: requesting earlier races the relay startup and can leave the
+            // code never generated.
+            val c = client ?: return@launch
+            val connected = withTimeoutOrNull(15_000L) {
+                c.connectionState.first { it == SyncConnectionState.CONNECTED }
+            }
+            if (connected != null) requestPairingCode()
         }
     }
 

@@ -551,11 +551,14 @@ fun PrivacySection(language: String, isLoggedIn: Boolean, onLogout: () -> Unit) 
     }
 }
 
-/** Developer options: enable/disable the live stats + choose overlay vs window. */
+/** Developer options: enable/disable the live stats, pick a profile and placement. */
 @Composable
 fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
     val enabled by DeveloperOptions.enabled.collectAsState()
     val mode by DeveloperOptions.mode.collectAsState()
+    val profile by DeveloperOptions.profile.collectAsState()
+    val movable by DeveloperOptions.overlayMovable.collectAsState()
+    val titleBar by DeveloperOptions.showInTitleBar.collectAsState()
 
     Text(
         Localization.get(language, "developer_options"),
@@ -595,6 +598,54 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
                 onClick = { DeveloperOptions.setMode(DevToolsMode.WINDOW) },
                 enabled = mode != DevToolsMode.WINDOW,
             ) { Text(Localization.get(language, "dev_tools_window")) }
+        }
+
+        Text(
+            Localization.get(language, "dev_tools_profile"),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { DeveloperOptions.setProfile(DevToolsProfile.FULL) },
+                enabled = profile != DevToolsProfile.FULL,
+            ) { Text(Localization.get(language, "dev_tools_profile_full")) }
+            OutlinedButton(
+                onClick = { DeveloperOptions.setProfile(DevToolsProfile.PERFORMANCE) },
+                enabled = profile != DevToolsProfile.PERFORMANCE,
+            ) { Text(Localization.get(language, "dev_tools_profile_performance")) }
+        }
+
+        Row(
+            Modifier.fillMaxWidth().padding(top = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Switch(checked = movable, onCheckedChange = { DeveloperOptions.setOverlayMovable(it) })
+            Column(Modifier.clickable { DeveloperOptions.setOverlayMovable(!movable) }) {
+                Text(Localization.get(language, "dev_tools_movable"))
+                Text(
+                    Localization.get(language, "dev_tools_movable_desc"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        Row(
+            Modifier.fillMaxWidth().padding(top = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Switch(checked = titleBar, onCheckedChange = { DeveloperOptions.setShowInTitleBar(it) })
+            Column(Modifier.clickable { DeveloperOptions.setShowInTitleBar(!titleBar) }) {
+                Text(Localization.get(language, "dev_tools_title_bar"))
+                Text(
+                    Localization.get(language, "dev_tools_title_bar_desc"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

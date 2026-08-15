@@ -348,6 +348,17 @@ ENGLISH = {
     "process": "Process",
     "system": "System",
     "heap": "Heap",
+    "dev_tools_profile": "Display profile",
+    "dev_tools_profile_full": "Full",
+    "dev_tools_profile_performance": "Performance",
+    "dev_tools_movable": "Movable overlay",
+    "dev_tools_movable_desc": "Drag the overlay to move it anywhere on the main screen",
+    "dev_tools_title_bar": "Show in title bar",
+    "dev_tools_title_bar_desc": "Show CPU and memory usage in the window title",
+    "dev_tools_disabled": "Disabled",
+    "dev_unlocked_title": "Developer options enabled",
+    "dev_unlocked_desc": "Configure them in Settings → Developer options",
+    "dev_unlocked_open": "Open",
 }
 
 

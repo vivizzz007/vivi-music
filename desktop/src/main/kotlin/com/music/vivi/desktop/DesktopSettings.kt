@@ -46,6 +46,9 @@ data class DesktopSyncState(
     val firstLaunchDate: Long = 0L,
     val developerOptions: Boolean = false,
     val devToolsMode: String = "OVERLAY",
+    val devOverlayMovable: Boolean = true,
+    val devShowInTitleBar: Boolean = false,
+    val devProfile: String = "FULL",
     val updateCheckIntervalHours: Int = 24,
 )
 

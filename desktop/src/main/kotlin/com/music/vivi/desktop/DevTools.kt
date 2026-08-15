@@ -2,12 +2,15 @@ package com.music.vivi.desktop
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,27 +27,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.awt.GraphicsEnvironment
 import java.io.File
 import java.lang.management.ManagementFactory
+import kotlin.math.roundToInt
 
 /** Where the live dev-tools stats are shown. */
 enum class DevToolsMode { OVERLAY, WINDOW }
 
+/** How much detail the dev tools show. */
+enum class DevToolsProfile { FULL, PERFORMANCE }
+
 /**
  * Developer options gate (enabled by tapping the About "version code" seven
- * times). Persisted in [DesktopSettings] and shared across the whole app so
- * both the overlay (main window) and the dedicated window can react to it.
+ * times, or via the always-visible "Developer options" settings screen).
+ * Persisted in [DesktopSettings] and shared across the whole app so both the
+ * overlay (main window) and the dedicated window can react to it.
  */
 object DeveloperOptions {
     private val _enabled = MutableStateFlow(false)
@@ -53,22 +66,55 @@ object DeveloperOptions {
     private val _mode = MutableStateFlow(DevToolsMode.OVERLAY)
     val mode: StateFlow<DevToolsMode> = _mode.asStateFlow()
 
+    private val _profile = MutableStateFlow(DevToolsProfile.FULL)
+    val profile: StateFlow<DevToolsProfile> = _profile.asStateFlow()
+
+    private val _overlayMovable = MutableStateFlow(true)
+    val overlayMovable: StateFlow<Boolean> = _overlayMovable.asStateFlow()
+
+    private val _showInTitleBar = MutableStateFlow(false)
+    val showInTitleBar: StateFlow<Boolean> = _showInTitleBar.asStateFlow()
+
+    /** Emitted when the options transition from disabled to enabled (unlock notification). */
+    private val _unlocked = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val unlocked: SharedFlow<Unit> = _unlocked.asSharedFlow()
+
     fun load() {
         val s = DesktopSettings.load()
         _enabled.value = s.developerOptions
         _mode.value = runCatching { DevToolsMode.valueOf(s.devToolsMode) }.getOrDefault(DevToolsMode.OVERLAY)
+        _profile.value = runCatching { DevToolsProfile.valueOf(s.devProfile) }.getOrDefault(DevToolsProfile.FULL)
+        _overlayMovable.value = s.devOverlayMovable
+        _showInTitleBar.value = s.devShowInTitleBar
         if (_enabled.value) SystemMonitor.start() else SystemMonitor.stop()
     }
 
     fun setEnabled(value: Boolean) {
+        val was = _enabled.value
         _enabled.value = value
         DesktopSettings.save(DesktopSettings.load().copy(developerOptions = value))
         if (value) SystemMonitor.start() else SystemMonitor.stop()
+        if (value && !was) _unlocked.tryEmit(Unit)
     }
 
     fun setMode(value: DevToolsMode) {
         _mode.value = value
         DesktopSettings.save(DesktopSettings.load().copy(devToolsMode = value.name))
+    }
+
+    fun setProfile(value: DevToolsProfile) {
+        _profile.value = value
+        DesktopSettings.save(DesktopSettings.load().copy(devProfile = value.name))
+    }
+
+    fun setOverlayMovable(value: Boolean) {
+        _overlayMovable.value = value
+        DesktopSettings.save(DesktopSettings.load().copy(devOverlayMovable = value))
+    }
+
+    fun setShowInTitleBar(value: Boolean) {
+        _showInTitleBar.value = value
+        DesktopSettings.save(DesktopSettings.load().copy(devShowInTitleBar = value))
     }
 }
 
@@ -292,6 +338,9 @@ private fun formatUptime(ms: Long): String {
     return if (d > 0) "${d}d ${h}h" else if (h > 0) "${h}h ${m}m" else "${m}m ${s}s"
 }
 
+/** Compact, title-bar friendly suffix with the most important live stats. */
+internal fun SystemStats.titleBarText(): String = " · CPU ${pct(cpuProcess)} · RAM ${formatBytes(heapUsedBytes)}"
+
 @Composable
 private fun StatRow(label: String, value: String) {
     Row(Modifier.fillMaxWidth().padding(vertical = 1.dp)) {
@@ -311,6 +360,8 @@ fun DevToolsPanel(syncManager: DesktopSyncManager?, language: String) {
     val stats by SystemMonitor.stats.collectAsState()
     val peerName = syncManager?.peerDeviceName?.collectAsState()?.value.orEmpty()
     val paired = syncManager?.paired?.collectAsState()?.value == true
+    val profile by DeveloperOptions.profile.collectAsState()
+    val performance = profile == DevToolsProfile.PERFORMANCE
 
     Column(Modifier.padding(12.dp)) {
         Text(Localization.get(language, "developer_options"), style = MaterialTheme.typography.titleMedium)
@@ -338,42 +389,63 @@ fun DevToolsPanel(syncManager: DesktopSyncManager?, language: String) {
             Localization.get(language, "gpu"),
             stats.gpuDevice.ifBlank { "—" },
         )
-        StatRow(
-            "${Localization.get(language, "network")} ↓",
-            formatSpeed(stats.netDownBps),
-        )
-        StatRow(
-            "${Localization.get(language, "network")} ↑",
-            formatSpeed(stats.netUpBps),
-        )
-        StatRow(
-            Localization.get(language, "total_traffic"),
-            "↓ ${formatBytes(stats.netDownTotalBytes)} · ↑ ${formatBytes(stats.netUpTotalBytes)}",
-        )
-        StatRow(
-            Localization.get(language, "paired_device"),
-            if (paired && peerName.isNotBlank()) peerName else Localization.get(language, "no_paired_device"),
-        )
-        StatRow(Localization.get(language, "threads"), stats.threadCount.toString())
-        StatRow(Localization.get(language, "uptime"), formatUptime(stats.uptimeMs))
-        StatRow(
-            Localization.get(language, "system_info"),
-            "${stats.osName} · Java ${stats.javaVersion} · ${stats.availableProcessors} cores",
-        )
+        if (!performance) {
+            StatRow(
+                "${Localization.get(language, "network")} ↓",
+                formatSpeed(stats.netDownBps),
+            )
+            StatRow(
+                "${Localization.get(language, "network")} ↑",
+                formatSpeed(stats.netUpBps),
+            )
+            StatRow(
+                Localization.get(language, "total_traffic"),
+                "↓ ${formatBytes(stats.netDownTotalBytes)} · ↑ ${formatBytes(stats.netUpTotalBytes)}",
+            )
+            StatRow(
+                Localization.get(language, "paired_device"),
+                if (paired && peerName.isNotBlank()) peerName else Localization.get(language, "no_paired_device"),
+            )
+            StatRow(Localization.get(language, "threads"), stats.threadCount.toString())
+            StatRow(Localization.get(language, "uptime"), formatUptime(stats.uptimeMs))
+            StatRow(
+                Localization.get(language, "system_info"),
+                "${stats.osName} · Java ${stats.javaVersion} · ${stats.availableProcessors} cores",
+            )
+        }
     }
 }
 
 /**
- * Compact, non-invasive overlay shown in a corner of the main window. Collapses
- * to a small pill and can be expanded to reveal the full [DevToolsPanel].
+ * Compact, non-invasive overlay shown in the bottom-end corner of the main
+ * window. Collapses to a small pill, expands to reveal [DevToolsPanel], and —
+ * when [movable] — can be dragged anywhere with the mouse.
  */
 @Composable
-fun DevToolsOverlay(syncManager: DesktopSyncManager?, language: String, modifier: Modifier = Modifier) {
+fun BoxScope.DevToolsOverlay(syncManager: DesktopSyncManager?, language: String, movable: Boolean) {
     var expanded by remember { mutableStateOf(false) }
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
     val stats by SystemMonitor.stats.collectAsState()
 
     Surface(
-        modifier = modifier,
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(12.dp)
+            .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+            .then(
+                if (movable) {
+                    Modifier.pointerInput(Unit) {
+                        detectDragGestures { change, dragAmount ->
+                            change.consume()
+                            offsetX += dragAmount.x
+                            offsetY += dragAmount.y
+                        }
+                    }
+                } else {
+                    Modifier
+                }
+            ),
         shape = RoundedCornerShape(10.dp),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
         tonalElevation = 4.dp,

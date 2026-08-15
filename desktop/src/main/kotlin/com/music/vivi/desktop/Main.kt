@@ -71,6 +71,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -142,7 +143,16 @@ fun main() = application {
         )
     }
 
-    Window(onCloseRequest = ::exitApplication, title = "VIVI Music — desktop") {
+    // Live window title: shows CPU/RAM when dev options + title-bar stats are on.
+    val devTitleEnabled by DeveloperOptions.enabled.collectAsState()
+    val devTitleVisible by DeveloperOptions.showInTitleBar.collectAsState()
+    val titleStats by SystemMonitor.stats.collectAsState()
+    val windowTitle = buildString {
+        append("VIVI Music — desktop")
+        if (devTitleEnabled && devTitleVisible) append(titleStats.titleBarText())
+    }
+
+    Window(onCloseRequest = ::exitApplication, title = windowTitle) {
         AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
             // Make all text selectable (copyable) across the whole app:
             // errors, options, settings, LAN server details, etc.
@@ -268,6 +278,13 @@ fun App(
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
+    val overlayMovable by DeveloperOptions.overlayMovable.collectAsState()
+
+    // One-off hint when the developer options get unlocked.
+    var showDevNotification by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        DeveloperOptions.unlocked.collect { showDevNotification = true }
+    }
 
     fun runUpdateCheck() {
         updateStatus = UpdateStatus.Checking
@@ -656,11 +673,21 @@ fun App(
                         onDone = { showUpdateNotification = false },
                     )
                 }
+                if (showDevNotification) {
+                    DevUnlockedNotification(
+                        language = language,
+                        onOpen = {
+                            showDevNotification = false
+                            navigate(Screen.SettingsDeveloper)
+                        },
+                        onDismiss = { showDevNotification = false },
+                    )
+                }
                 if (devEnabled && devMode == DevToolsMode.OVERLAY) {
                     DevToolsOverlay(
                         syncManager = syncManager,
                         language = language,
-                        modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                        movable = overlayMovable,
                     )
                 }
             }
@@ -938,14 +965,17 @@ fun SettingsScreen(
             title = Localization.get(language, "storage"),
             onClick = { onOpen(Screen.SettingsStorage) },
         )
-        if (devEnabled) {
-            SettingsEntryRow(
-                language = language,
-                icon = Icons.Filled.Build,
-                title = Localization.get(language, "developer_options"),
-                onClick = { onOpen(Screen.SettingsDeveloper) },
-            )
-        }
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Build,
+            title = Localization.get(language, "developer_options"),
+            subtitle = if (devEnabled) {
+                Localization.get(language, "developer_options_enabled")
+            } else {
+                Localization.get(language, "dev_tools_disabled")
+            },
+            onClick = { onOpen(Screen.SettingsDeveloper) },
+        )
         SettingsEntryRow(
             language = language,
             icon = Icons.Filled.Info,
@@ -1218,6 +1248,48 @@ fun LanguageSelectionScreen(onSelect: (String) -> Unit) {
                         .clickable { onSelect(lang.code) }
                         .padding(vertical = 8.dp),
                 )
+            }
+        }
+    }
+}
+
+/**
+ * One-off banner shown right after the developer options are unlocked,
+ * pointing the user to the settings screen where they can configure them.
+ */
+@Composable
+fun BoxScope.DevUnlockedNotification(
+    language: String,
+    onOpen: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.widthIn(max = 300.dp)) {
+                Text(
+                    Localization.get(language, "dev_unlocked_title"),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    Localization.get(language, "dev_unlocked_desc"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Button(onClick = onOpen, modifier = Modifier.padding(start = 12.dp)) {
+                Text(Localization.get(language, "dev_unlocked_open"))
+            }
+            TextButton(onClick = onDismiss) {
+                Text(Localization.get(language, "dismiss"))
             }
         }
     }
