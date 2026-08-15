@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -175,9 +177,10 @@ fun DeviceSyncScreen(
                 ) {
                     OutlinedTextField(
                         value = joinCode,
-                        onValueChange = { joinCode = it },
+                        onValueChange = { raw -> joinCode = raw.filter { it.isDigit() }.take(6) },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         label = { Text(stringResource(R.string.device_sync_join_code)) },
                     )
                     Button(

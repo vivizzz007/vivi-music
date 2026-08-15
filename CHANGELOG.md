@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.2.0_DE-1.19.1] - 2026-08-15
+
+### Changed
+
+- [APK] The pairing-code field on Android now opens the numeric keypad and only
+  accepts the 6 digits of the code shown by the desktop.
+
 ## [6.2.0_DE-1.19.0] - 2026-08-15
 
 ### Changed
