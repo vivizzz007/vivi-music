@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.15] - 2026-08-16
+
+### Fixed
+
+- [DE] Crash ("layouts are not part of the same hierarchy") when interacting
+  with any dropdown or dialog (update-check frequency, playlist delete, …).
+  Root cause was the global `SelectionContainer`: popup components
+  (`DropdownMenu`, `AlertDialog`) inherit its selection registrar and crash on
+  pointer events (Compose CMP-2326). The global wrapper is removed; targeted
+  selectable text is kept for the player error detail and the pairing code.
+
 ## [6.4.3_DE-1.33.14] - 2026-08-16
 
 ### Fixed

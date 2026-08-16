@@ -176,38 +176,39 @@ fun main() = application {
 
     Window(onCloseRequest = ::exitApplication, title = windowTitle) {
         AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
-            // Make all text selectable (copyable) across the whole app:
-            // errors, options, settings, LAN server details, etc.
-            SelectionContainer {
-                if (language.isBlank()) {
-                    LanguageSelectionScreen { selected ->
+            // NOTE: do NOT wrap this in a global SelectionContainer. Popup-based
+            // components (DropdownMenu, AlertDialog) inherit the selection
+            // registrar and crash with "layouts are not part of the same
+            // hierarchy" on pointer events (see Compose CMP-2326). Use targeted
+            // SelectionContainer wrappers on individual text instead.
+            if (language.isBlank()) {
+                LanguageSelectionScreen { selected ->
+                    language = selected
+                    DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                }
+            } else {
+                App(
+                    language = language,
+                    onLanguageChange = { selected ->
                         language = selected
                         DesktopSettings.save(DesktopSettings.load().copy(language = selected))
-                    }
-                } else {
-                    App(
-                        language = language,
-                        onLanguageChange = { selected ->
-                            language = selected
-                            DesktopSettings.save(DesktopSettings.load().copy(language = selected))
-                        },
-                        themeMode = themeMode,
-                        accent = accent,
-                        onThemeModeChange = {
-                            themeMode = it
-                            saveTheme()
-                        },
-                        onAccentChange = {
-                            accent = it
-                            saveTheme()
-                        },
-                        pureBlack = pureBlack,
-                        onPureBlackChange = {
-                            pureBlack = it
-                            saveTheme()
-                        },
-                    )
-                }
+                    },
+                    themeMode = themeMode,
+                    accent = accent,
+                    onThemeModeChange = {
+                        themeMode = it
+                        saveTheme()
+                    },
+                    onAccentChange = {
+                        accent = it
+                        saveTheme()
+                    },
+                    pureBlack = pureBlack,
+                    onPureBlackChange = {
+                        pureBlack = it
+                        saveTheme()
+                    },
+                )
             }
         }
     }
@@ -1289,11 +1290,14 @@ private fun PairingCodePanel(
             Text(Localization.get(language, if (pairCode.isNotEmpty()) "generate_new_code" else "generate_code"))
         }
         if (pairCode.isNotEmpty()) {
-            Text(
-                "${Localization.get(language, "code_hint")}: $pairCode",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            // Selectable so the user can copy the code if the QR scan fails.
+            SelectionContainer {
+                Text(
+                    "${Localization.get(language, "code_hint")}: $pairCode",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             Text(
                 if (remainingMs > 0L) {
                     "${Localization.get(language, "code_expires_in")} ${formatCountdown(remainingMs)}"
