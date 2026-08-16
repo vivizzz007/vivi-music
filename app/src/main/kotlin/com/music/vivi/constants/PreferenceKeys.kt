@@ -270,6 +270,13 @@ val LastFullSyncKey = longPreferencesKey("last_full_sync")
 // Sync cooldown in seconds (30 minutes)
 const val SYNC_COOLDOWN = 30 * 60L
 
+// Device sync (Android <-> Desktop edition, via pairing)
+val DeviceSyncEnabledKey = booleanPreferencesKey("deviceSyncEnabled")
+val DeviceSyncServerUrlKey = stringPreferencesKey("deviceSyncServerUrl")
+val DeviceSyncPairIdKey = stringPreferencesKey("deviceSyncPairId")
+val DeviceSyncDeviceIdKey = stringPreferencesKey("deviceSyncDeviceId")
+val DeviceSyncDeviceNameKey = stringPreferencesKey("deviceSyncDeviceName")
+
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")

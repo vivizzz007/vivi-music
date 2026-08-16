@@ -1,21 +1,6 @@
 plugins {
-    id("com.android.library")
+    kotlin("jvm")
     alias(libs.plugins.kotlin.serialization)
-}
-
-android {
-    namespace = "com.music.lyricsprovider"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 26
-    }
-
-    compileOptions {
-        isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
 }
 
 kotlin {
@@ -23,7 +8,6 @@ kotlin {
 }
 
 dependencies {
-    // Ktor (superset of all 7 old modules)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.cio)
@@ -31,10 +15,5 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
 
-    // Logging (required by Paxsenix)
-    implementation(libs.timber)
-
     testImplementation(libs.junit)
-
-    coreLibraryDesugaring(libs.desugaring)
 }

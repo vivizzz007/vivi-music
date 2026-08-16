@@ -13,8 +13,7 @@
 
 package com.music.jiosaavn
 
-import android.util.Base64
-import android.util.Log
+import java.util.Base64
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -152,11 +151,26 @@ data class RawSongsResponse(
 
 // ─── Service ─────────────────────────────────────────────────────────────────
 
+/**
+ * Minimal JVM-compatible logging shim that mirrors the android.util.Log API used
+ * in this file, so the module can compile on desktop JVM as well as Android.
+ */
+private object Log {
+    fun d(tag: String, msg: String) = println("D/$tag: $msg")
+    fun i(tag: String, msg: String) = println("I/$tag: $msg")
+    fun w(tag: String, msg: String) = println("W/$tag: $msg")
+    fun e(tag: String, msg: String) = System.err.println("E/$tag: $msg")
+    fun e(tag: String, msg: String, tr: Throwable?) {
+        System.err.println("E/$tag: $msg")
+        tr?.printStackTrace()
+    }
+}
+
 object SaavnService {
 
     private const val TAG = "SaavnService"
 
-    private val BASE_URL = String(Base64.decode("aHR0cHM6Ly93d3cuamlvc2Fhdm4uY29tL2FwaS5waHA=", Base64.DEFAULT), Charsets.UTF_8)
+    private val BASE_URL = String(Base64.getDecoder().decode("aHR0cHM6Ly93d3cuamlvc2Fhdm4uY29tL2FwaS5waHA="), Charsets.UTF_8)
 
     private val json = Json {
         isLenient         = true
@@ -199,7 +213,7 @@ object SaavnService {
             val secretKey = SecretKeySpec(key.toByteArray(Charsets.UTF_8), "DES")
             val cipher = Cipher.getInstance("DES/ECB/PKCS5Padding")
             cipher.init(Cipher.DECRYPT_MODE, secretKey)
-            val decodedBytes = Base64.decode(encryptedUrl, Base64.DEFAULT)
+            val decodedBytes = Base64.getDecoder().decode(encryptedUrl)
             val decryptedBytes = cipher.doFinal(decodedBytes)
             val decryptedUrl = String(decryptedBytes, Charsets.UTF_8).trim()
             Log.d(TAG, "decryptUrl: successfully decrypted: $decryptedUrl")

@@ -1,0 +1,5 @@
+# Installed dependencies (recreated by `npm install` on deploy)
+node_modules/
+
+# Runtime state (device/pair/mailbox data — must never be committed)
+data.json

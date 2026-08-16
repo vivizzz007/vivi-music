@@ -176,6 +176,7 @@ import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
+import com.music.vivi.devicesync.DeviceSyncManager
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.DownloadUtil
@@ -247,6 +248,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
+
+    @Inject
+    lateinit var deviceSyncManager: DeviceSyncManager
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
@@ -340,6 +344,9 @@ class MainActivity : ComponentActivity() {
 
         // Initialize Listen Together manager
         listenTogetherManager.initialize()
+
+        // Initialize device sync (Android <-> Desktop edition)
+        deviceSyncManager.start()
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale = dataStore[AppLanguageKey]

@@ -1,0 +1,227 @@
+name: Auto Release (Desktop)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (leave empty to use version.txt)'
+        required: false
+        type: string
+        default: ''
+  push:
+    branches: [ vivi-music-de, main, beta ]
+    tags-ignore: [ '**' ]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  # Builds are delegated to the per-OS reusable workflows. This workflow only
+  # collects their artifacts and publishes the release. They run on manual
+  # dispatch, or on push when the commit message starts with "v" (our release
+  # signal), mirroring the old vivi-music-de release pipeline.
+  build-windows:
+    name: Windows
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-windows.yml
+    secrets: inherit
+
+  build-linux:
+    name: Linux
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-linux.yml
+    secrets: inherit
+
+  build-macos:
+    name: macOS
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'v'))
+    uses: ./.github/workflows/build-desktop-macos.yml
+    secrets: inherit
+
+  # The Android APK is not built here: the existing "CI & Debug Build"
+  # workflow (build.yml) already produces it on every push. The release job
+  # below waits for that run and downloads its artifact, so the APK ships with
+  # the desktop release without a second build workflow.
+
+  release:
+    name: Publish GitHub Release
+    needs: [ build-windows, build-linux, build-macos ]
+    # Only the three desktop builds are required. The Android APK is fetched
+    # best-effort from the existing CI, so a missing/failed CI run never blocks
+    # this desktop release.
+    if: ${{ always() && needs.build-windows.result == 'success' && needs.build-linux.result == 'success' && needs.build-macos.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        env:
+          VERSION_INPUT: ${{ inputs.version }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          MOBILE_VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+          DE_VERSION="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$VERSION_INPUT" ]]; then
+            FULL_VERSION="$VERSION_INPUT"
+          else
+            FULL_VERSION="${MOBILE_VERSION}_DE-${DE_VERSION}"
+          fi
+          FULL_VERSION="${FULL_VERSION#v}"
+          FULL_VERSION="${FULL_VERSION// /-}"
+          # Channel: "stable" (or empty) => stable release, anything else => pre-release.
+          CHANNEL="$(sed -n '3p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
+          if [[ "$CHANNEL" == "stable" || -z "$CHANNEL" ]]; then
+            PRERELEASE=false
+            CHANNEL="stable"
+          else
+            PRERELEASE=true
+          fi
+          # Tags carry NO "v" prefix. Stable releases use the bare version;
+          # non-stable releases append the channel (e.g. 6.0.5_DE-1.0.0-nightly).
+          if [[ "$CHANNEL" == "stable" ]]; then
+            TAG="$FULL_VERSION"
+          else
+            TAG="$FULL_VERSION-$CHANNEL"
+          fi
+          # Release display name: "Vivi Music <mobile>_DE <de_version>"
+          # (e.g. "Vivi Music 6.4.3_DE 1.33.6" — no "v" prefix, no hyphen after DE).
+          TITLE_VERSION="${FULL_VERSION//_DE-/_DE }"
+          echo "version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "de_version=$DE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "title_version=$TITLE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "name=Vivi Music $TITLE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+          echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $FULL_VERSION (title: Vivi Music $TITLE_VERSION, tag: $TAG, channel: $CHANNEL, prerelease: $PRERELEASE)"
+
+      - name: Extract changelog section
+        id: changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          DE_VERSION="${{ steps.version.outputs.de_version }}"
+          SECTION=""
+          if [[ -f CHANGELOG.md ]]; then
+            for v in "$VERSION" "$DE_VERSION"; do
+              [[ -z "$v" ]] && continue
+              SECTION="$(awk -v v="$v" '
+                index($0, "## [" v "]") == 1 { found = 1; print; next }
+                found && /^## / { exit }
+                found { print }
+              ' CHANGELOG.md)"
+              [[ -n "$SECTION" ]] && break
+            done
+          fi
+          if [[ -z "$SECTION" ]]; then
+            SECTION="*No changelog entry found for version $VERSION.*"
+          fi
+          {
+            echo "section<<CHANGELOG_EOF"
+            echo "$SECTION"
+            echo "CHANGELOG_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Collect commits
+        id: commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          PREV_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+          if [[ -n "$PREV_TAG" ]]; then
+            COMMITS="$(git log "$PREV_TAG..HEAD" --pretty=format:'- %s' --no-merges 2>/dev/null || true)"
+          else
+            COMMITS="$(git log --pretty=format:'- %s' --no-merges 2>/dev/null || true)"
+          fi
+          if [[ -z "$COMMITS" ]]; then
+            COMMITS="- Initial release"
+          fi
+          # If there are many commits, collapse the whole list into an
+          # expandable <details> block (a "cascading menu") so the release body
+          # stays readable.
+          COMMIT_COUNT="$(printf '%s\n' "$COMMITS" | grep -c . || true)"
+          if [[ "$COMMIT_COUNT" -gt 7 ]]; then
+            COMMITS="$(printf '<details>\n<summary>Show all %s commits</summary>\n\n%s\n</details>' "$COMMIT_COUNT" "$COMMITS")"
+          fi
+          {
+            echo "commits<<COMMITS_EOF"
+            echo "$COMMITS"
+            echo "COMMITS_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Wait for CI and fetch the APK
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -uo pipefail
+          # Best-effort: the APK comes from the existing "CI & Debug Build"
+          # (build.yml) run for this commit. If it can't be found or fails,
+          # release the desktop installers without it.
+          RUN_ID="$(gh run list --workflow "CI & Debug Build" --commit "$GITHUB_SHA" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+          if [ -z "$RUN_ID" ]; then
+            RUN_ID="$(gh run list --workflow build.yml --commit "$GITHUB_SHA" --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)"
+          fi
+          if [ -z "$RUN_ID" ]; then
+            echo "No CI run found for this commit; releasing without the APK."
+            exit 0
+          fi
+          echo "Waiting for CI run $RUN_ID to finish..."
+          if ! gh run watch "$RUN_ID" --exit-status --interval 15; then
+            echo "CI run $RUN_ID did not succeed; releasing without the APK."
+            exit 0
+          fi
+          mkdir -p apk_dist artifacts
+          if gh run download "$RUN_ID" -n app-universal-gms-debug -D apk_dist; then
+            MOBILE_VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
+            APK="$(find apk_dist -name '*.apk' -print -quit)"
+            if [ -n "$APK" ]; then
+              cp "$APK" "artifacts/VIVIMusic-${MOBILE_VERSION}-debug.apk"
+              echo "APK added to release assets: VIVIMusic-${MOBILE_VERSION}-debug.apk"
+              ls -la artifacts
+            else
+              echo "No APK inside the CI artifact; releasing without it."
+            fi
+          else
+            echo "Could not download the APK artifact; releasing without it."
+          fi
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.name }}
+          target_commitish: ${{ github.sha }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: artifacts/*
+          fail_on_unmatched_files: true
+          body: |
+            ## Vivi Music ${{ steps.version.outputs.title_version }}
+            **Release channel:** `${{ steps.version.outputs.channel }}`
+
+            ${{ steps.changelog.outputs.section }}
+
+            ### Commits
+            ${{ steps.commits.outputs.commits }}
+            ---
+            This release was built automatically from commit `${{ github.sha }}`.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

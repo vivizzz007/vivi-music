@@ -7,6 +7,7 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import com.music.paxsenix.Paxsenix
+import com.music.vivi.BuildConfig
 import com.music.vivi.constants.EnablePaxsenixKey
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -21,7 +22,7 @@ object PaxSenixLyricsProvider : LyricsProvider {
         // Also initializes the client lazily on first enable check
         val enabled = context.dataStore[EnablePaxsenixKey] ?: true
         if (enabled) {
-            Paxsenix.init(context)
+            Paxsenix.init(BuildConfig.VERSION_NAME)
         }
         return enabled
     }

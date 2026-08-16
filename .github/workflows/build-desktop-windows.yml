@@ -1,0 +1,118 @@
+name: Build Desktop (Windows)
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Windows installers (Inno Setup + MSI)
+    runs-on: windows-latest
+    timeout-minutes: 40
+    env:
+      WINDOWS_SIGNING_CERT: ${{ secrets.WINDOWS_SIGNING_CERT }}
+      WINDOWS_SIGNING_PASSWORD: ${{ secrets.WINDOWS_SIGNING_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        shell: bash
+        run: chmod +x gradlew
+
+      - name: Package desktop app image
+        shell: bash
+        run: ./gradlew :desktop:createDistributable --no-daemon
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Compile branded installer
+        id: custom_setup
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          $mobileVersion = (Get-Content version.txt)[0].Trim()
+          $deVersion = (Get-Content version.txt)[1].Trim()
+          $fullVersion = "${mobileVersion}_DE-$deVersion"
+          $installerVersion = $deVersion
+          $source = Join-Path $env:GITHUB_WORKSPACE 'desktop\build\compose\binaries\main\app\VIVIMusic'
+          $output = Join-Path $env:GITHUB_WORKSPACE 'dist'
+          New-Item -ItemType Directory -Force -Path $output | Out-Null
+          $mainExecutable = Join-Path $source 'VIVIMusic.exe'
+          if (-not (Test-Path $mainExecutable)) { throw "jpackage app image is incomplete: $mainExecutable was not found" }
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) { throw "Inno Setup compiler not found at $iscc" }
+          $compileLog = Join-Path $output 'innosetup.log'
+          & $iscc `
+            "/DAppVersion=$fullVersion" `
+            "/DInstallerVersion=$installerVersion" `
+            "/DSourceDir=$source" `
+            "/DOutputDir=$output" `
+            "/DIconFile=$env:GITHUB_WORKSPACE\desktop\icons\logo_vmde.ico" `
+            "$env:GITHUB_WORKSPACE\installer\windows\VIVIMusic.iss" 2>&1 |
+            Tee-Object -FilePath $compileLog
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host 'Inno Setup compiler log:'
+            Get-Content $compileLog
+            throw "Inno Setup compilation failed (exit $LASTEXITCODE)"
+          }
+
+      - name: Install WiX Toolset
+        shell: pwsh
+        run: choco install wixtoolset --no-progress -y
+
+      - name: Build MSI installer (best-effort)
+        continue-on-error: true
+        shell: bash
+        run: ./gradlew :desktop:packageMsi --no-daemon
+
+      - name: Collect packages
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)_DE-$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          # The MSI is best-effort; copy it only if jpackage produced one.
+          if ls desktop/build/compose/binaries/main/msi/*.msi >/dev/null 2>&1; then
+            cp desktop/build/compose/binaries/main/msi/*.msi "dist/VIVIMusic-${VERSION}.msi"
+          fi
+          ls -la dist
+
+      - name: Sign packages
+        if: ${{ env.WINDOWS_SIGNING_CERT != '' }}
+        shell: pwsh
+        run: |
+          $signtool = Get-ChildItem "C:\Program Files (x86)\Windows Kits\10\bin\*\x64\signtool.exe" -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+          if (-not $signtool) { throw "signtool.exe not found" }
+          $pfx = Join-Path $env:RUNNER_TEMP 'signing-cert.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_SIGNING_CERT))
+          Get-ChildItem dist -Recurse -Include *.msi,*.exe | ForEach-Object {
+            Write-Host "Signing $($_.FullName)"
+            & $signtool sign /f $pfx /p $env:WINDOWS_SIGNING_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 $_.FullName
+            if ($LASTEXITCODE -ne 0) { throw "signtool failed for $($_.FullName) (exit $LASTEXITCODE)" }
+          }
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: dist/*
+          if-no-files-found: error

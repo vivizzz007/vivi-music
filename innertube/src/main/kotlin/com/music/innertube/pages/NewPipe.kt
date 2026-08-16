@@ -108,7 +108,12 @@ object NewPipeExtractor {
             val streamsList = streamInfo.audioStreams + streamInfo.videoStreams + streamInfo.videoOnlyStreams
             println("[NewPipeExtractor] Successfully fetched ${streamsList.size} streams via fallback")
             streamsList.mapNotNull {
-                (it.itagItem?.id ?: return@mapNotNull null) to it.content
+                val id = it.itagItem?.id ?: return@mapNotNull null
+                // `getUrl()` returns the decrypted/playable URL (handles the
+                // signature cipher), unlike the raw `content` field. The n-param
+                // transform is applied too so throttled URLs stay playable.
+                val url = it.url ?: return@mapNotNull null
+                id to runCatching { YouTubeExtractor.deobfuscateUrlNParam(url) }.getOrDefault(url)
             }
         } catch (e: Exception) {
             println("[NewPipeExtractor] Fallback stream extraction failed: ${e.message}")

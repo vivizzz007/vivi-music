@@ -163,8 +163,14 @@ import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.models.PersistPlayerState
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.devicesync.DeviceSyncManager
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.sync.PlaybackSnapshot
+import com.music.vivi.sync.SyncServer
+import com.music.vivi.sync.TrackRef
 import com.music.vivi.playback.audio.SilenceDetectorAudioProcessor
 import com.music.vivi.playback.queues.EmptyQueue
+import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
@@ -185,6 +191,7 @@ import com.music.vivi.utils.reportException
 import com.music.vivi.widget.vivimusicWidgetManager
 import com.music.vivi.widget.MusicWidgetReceiver
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -200,6 +207,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
@@ -250,6 +258,9 @@ class MusicService :
     @Inject
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
 
+    @Inject
+    lateinit var deviceSyncManager: DeviceSyncManager
+
     private lateinit var audioManager: AudioManager
     // Wi-Fi Lock: Prevents modern Wi-Fi 6/7 routers from putting the Wi-Fi chip into
     // low-power sleep mode while music is actively streaming in the background.
@@ -263,6 +274,9 @@ class MusicService :
     private var reentrantFocusGain = false
     private var wasPlayingBeforeVolumeMute = false
     private var isPausedByVolumeMute = false
+    // Suppress the echo push right after we apply a remote volume change, so
+    // the resulting system VOLUME_CHANGED broadcast doesn't bounce back.
+    private var suppressVolumePushUntil = 0L
     var preferredDeviceId: Int? = null //added for audio device switching
         private set//improvement
 
@@ -444,6 +458,16 @@ class MusicService :
         }
     }
 
+    private val volumeChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != "android.media.VOLUME_CHANGED_ACTION") return
+            val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+            if (streamType != AudioManager.STREAM_MUSIC) return
+            if (System.currentTimeMillis() < suppressVolumePushUntil) return
+            scope.launch { pushPlaybackToDesktop() }
+        }
+    }
+
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
             super.onAudioDevicesAdded(addedDevices)
@@ -560,6 +584,7 @@ class MusicService :
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenStateReceiver, screenStateFilter)
+        registerReceiver(volumeChangeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
@@ -709,9 +734,30 @@ class MusicService :
             }
         }
 
+        // Push in-app volume-slider changes to the paired desktop edition.
+        playerVolume.debounce(300).collect(scope) { pushPlaybackToDesktop() }
+
         currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
             updateWidgetUI(player.isPlaying)
+        }
+
+        // Apply playback pushed from the desktop edition (device sync).
+        scope.launch {
+            deviceSyncManager.pendingPlayback
+                .filterNotNull()
+                .collect { snapshot -> applyRemotePlayback(snapshot) }
+        }
+
+        // Periodic re-sync: while playing, re-push the position every few seconds
+        // so the paired desktop auto-corrects drift (buffering / clock skew).
+        scope.launch {
+            while (true) {
+                delay(SyncServer.RESYNC_TICK_MS)
+                if (playerInitialized.value && player.isPlaying) {
+                    pushPlaybackToDesktop()
+                }
+            }
         }
 
         combine(
@@ -1423,6 +1469,94 @@ class MusicService :
         }
     }
 
+    // ---------------------------------------------------------------------
+    // Device sync (Android <-> desktop edition)
+    // ---------------------------------------------------------------------
+
+    /** Normalized system music volume (0..1) used for cross-device sync. */
+    private fun systemVolume(): Float {
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        if (max <= 0) return 1f
+        return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / max
+    }
+
+    /** Applies a 0..1 volume to the system music stream (mirrors the desktop). */
+    private fun setSystemVolume(v: Float) {
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        if (max <= 0) return
+        val index = Math.round(v.coerceIn(0f, 1f) * max).toInt().coerceIn(0, max)
+        // Suppress the echo push from the resulting VOLUME_CHANGED broadcast.
+        suppressVolumePushUntil = System.currentTimeMillis() + 1500L
+        runCatching { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0) }
+    }
+
+    /** Pushes the current queue + position to the paired desktop edition. */
+    private fun pushPlaybackToDesktop() {
+        val meta = player.currentMetadata
+        val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
+        val index = player.currentMediaItemIndex.coerceAtLeast(0)
+        deviceSyncManager.pushPlayback(
+            PlaybackSnapshot(
+                trackId = meta?.id,
+                trackTitle = meta?.title,
+                positionMs = player.currentPosition,
+                isPlaying = player.isPlaying,
+                volume = playerVolume.value,
+                systemVolume = systemVolume(),
+                queue = items.map { item ->
+                    item.metadata?.toTrackRef()
+                        ?: TrackRef(id = item.mediaId, title = item.mediaId)
+                },
+                queueIndex = index,
+                queueTitle = queueTitle,
+            )
+        )
+    }
+
+
+    /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
+    private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
+        // Volume sync first, even if the snapshot has no track/queue:
+        // - `volume` mirrors the desktop's in-app (player) volume slider.
+        // - `systemVolume` mirrors the desktop's native OS volume.
+        snapshot.volume?.let { v -> playerVolume.value = v.coerceIn(0f, 1f) }
+        snapshot.systemVolume?.let { v -> setSystemVolume(v) }
+        val items = snapshot.queue.map { it.toMediaItem() }
+        if (items.isEmpty()) return
+        val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
+        val position = deviceSyncManager.effectivePosition(snapshot)
+        if (!playerInitialized.value) {
+            scope.launch {
+                playerInitialized.first { it }
+                applyRemotePlayback(snapshot)
+            }
+            return
+        }
+        // Same track already loaded: lightweight seek (instant + precise).
+        // Periodic ticks re-send the position; skip the seek when the drift is
+        // within tolerance so it doesn't glitch the audio.
+        val currentId = player.currentMetadata?.id
+        if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
+            val local = player.currentPosition
+            if (snapshot.isPlaying && abs(position - local) <= SyncServer.RESYNC_TOLERANCE_MS) {
+                player.playWhenReady = snapshot.isPlaying
+            } else {
+                player.seekTo(position)
+                player.playWhenReady = snapshot.isPlaying
+            }
+            return
+        }
+        playQueue(
+            ListQueue(
+                title = snapshot.queueTitle,
+                items = items,
+                startIndex = index,
+                position = position,
+            ),
+            playWhenReady = snapshot.isPlaying,
+        )
+    }
+
     fun startRadioSeamlessly() {
         // Safety Check: Ensure Player is initilized
         if (!playerInitialized.value) {
@@ -1945,6 +2079,9 @@ class MusicService :
         }
         previousMediaItemIndex = player.currentMediaItemIndex
 
+        // Push the new track to the desktop edition (device sync).
+        pushPlaybackToDesktop()
+
         lastPlaybackSpeed = -1.0f // force update song
 
         setupLoudnessEnhancer()
@@ -2151,6 +2288,9 @@ class MusicService :
         if (playWhenReady) {
             setupLoudnessEnhancer()
         }
+
+        // Push play/pause state to the desktop edition (device sync).
+        pushPlaybackToDesktop()
     }
 
     override fun onEvents(
@@ -3179,6 +3319,11 @@ class MusicService :
         } catch (e: Exception) {
             // Ignore
         }
+        try {
+            unregisterReceiver(volumeChangeReceiver)
+        } catch (e: Exception) {
+            // Ignore
+        }
         audioManager.unregisterAudioDeviceCallback(audioDeviceCallback)
         castConnectionHandler?.release()
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -3341,6 +3486,8 @@ class MusicService :
     ) {
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             scheduleCrossfade()
+            // Push the seek to the desktop immediately so both players stay aligned.
+            pushPlaybackToDesktop()
         }
     }
 
@@ -3532,4 +3679,25 @@ class MusicService :
         var isRunning = false
             private set
     }
+}
+
+private fun MediaMetadata.toTrackRef() = TrackRef(
+    id = id,
+    title = title,
+    artist = artists.joinToString(", ") { it.name },
+    album = album?.title,
+    thumbnail = thumbnailUrl,
+    durationMs = duration.toLong(),
+)
+
+private fun TrackRef.toMediaItem(): MediaItem {
+    val meta = MediaMetadata(
+        id = id,
+        title = title,
+        artists = listOf(MediaMetadata.Artist(null, artist.orEmpty())),
+        duration = durationMs.toInt(),
+        thumbnailUrl = thumbnail,
+        album = album?.let { MediaMetadata.Album("", it) },
+    )
+    return meta.toMediaItem()
 }

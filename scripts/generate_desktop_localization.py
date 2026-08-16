@@ -1,0 +1,1103 @@
+#!/usr/bin/env python3
+"""
+Generate the desktop `Localization.kt` from the Android app's string resources.
+
+The desktop string table uses its own keys (e.g. "relay_server", "autoplay_next")
+that don't exist verbatim in the Android `strings.xml`. A `MAPPING` table maps
+the desktop keys onto the Android resource names where the meaning matches; the
+Android translations (values-XX/strings.xml) are then used for every language.
+
+Desktop keys without a mapping fall back to English at runtime, so only the
+mapped keys are emitted per language. English stays the full source table.
+
+Run from the repo root:  python3 scripts/generate_desktop_localization.py
+"""
+
+import os
+import xml.etree.ElementTree as ET
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RES = os.path.join(REPO, "app", "src", "main", "res")
+OUT = os.path.join(
+    REPO,
+    "desktop",
+    "src",
+    "main",
+    "kotlin",
+    "com",
+    "music",
+    "vivi",
+    "desktop",
+    "Localization.kt",
+)
+
+# Android resource directory suffix -> desktop language code (the ones the
+# desktop edition actually supports; regional variants are skipped).
+DIR_TO_LANG = {
+    "": "en",
+    "-ar": "ar",
+    "-as": "as",
+    "-az": "az",
+    "-b+sr+Latn": "sr",
+    "-be": "be",
+    "-bg": "bg",
+    "-bn": "bn",
+    "-bs": "bs",
+    "-ca": "ca",
+    "-cs": "cs",
+    "-de": "de",
+    "-el": "el",
+    "-es": "es",
+    "-et": "et",
+    "-eu": "eu",
+    "-fi": "fi",
+    "-fil": "fil",
+    "-fr": "fr",
+    "-hi": "hi",
+    "-hr": "hr",
+    "-hu": "hu",
+    "-in": "id",
+    "-it": "it",
+    "-ja": "ja",
+    "-km": "km",
+    "-ko": "ko",
+    "-lt": "lt",
+    "-ml": "ml",
+    "-ms": "ms",
+    "-nb-rNO": "nb",
+    "-nl": "nl",
+    "-pa": "pa",
+    "-pl": "pl",
+    "-pt": "pt",
+    "-ro": "ro",
+    "-ru": "ru",
+    "-sk": "sk",
+    "-sl": "sl",
+    "-sv": "sv",
+    "-ta": "ta",
+    "-te": "te",
+    "-th": "th",
+    "-tr": "tr",
+    "-uk": "uk",
+    "-vi": "vi",
+    "-zh-rCN": "zh-rCN",
+    "-zh-rTW": "zh-rTW",
+}
+
+# desktop key -> Android string resource name (only where the meaning matches).
+# Values come from either strings.xml (base ViMusic strings) or vivi_strings.xml
+# (VIVI-specific strings).
+MAPPING = {
+    # strings.xml
+    "search": "search",
+    "search_button": "search",
+    "search_placeholder": "search_yt_music",
+    "error": "error_unknown",
+    "device_sync": "device_sync",
+    "relay_server": "device_sync_server",
+    "generate_code": "device_sync_generate_code",
+    "pair": "device_sync_pair",
+    "unpair": "device_sync_unpair",
+    "home": "home",
+    "library": "filter_library",
+    "settings": "settings",
+    "albums": "albums",
+    "artists": "artists",
+    "playlists": "playlists",
+    "songs": "songs",
+    "play": "play",
+    "pause": "pause",
+    "no_lyrics": "lyrics_not_found",
+    "stream_error": "error_no_stream",
+    "about": "about",
+    "download": "action_download",
+    "appearance": "appearance",
+    "theme_mode": "theme_mode",
+    "player_audio": "player_and_audio",
+    "queue": "queue",
+    "history": "history",
+    "storage": "storage",
+    "downloading": "downloading",
+    "delete_installers": "clear_downloaded_updates",
+    "account": "account",
+    "login": "login",
+    "logout": "action_logout",
+    "not_logged_in": "not_logged_in",
+    "shuffle": "shuffle",
+    "volume": "volume",
+    "mood_and_genres": "mood_and_genres",
+    "content": "content",
+    "content_language": "content_language",
+    "content_country": "content_country",
+    "system_default": "system_default",
+    "privacy": "privacy",
+    "filter_all": "filter_all",
+    "filter_songs": "filter_songs",
+    "filter_videos": "filter_videos",
+    "filter_albums": "filter_albums",
+    "filter_artists": "filter_artists",
+    "filter_playlists": "filter_featured_playlists",
+    "no_results_found": "no_results_found",
+    "suggestions": "suggestions",
+    "pure_black": "pure_black",
+    "audio_quality": "audio_quality",
+    "audio_quality_auto": "audio_quality_auto",
+    "audio_quality_high": "audio_quality_high",
+    "audio_quality_low": "audio_quality_low",
+    "remember_shuffle_repeat": "remember_shuffle_and_repeat",
+    "persistent_queue": "persistent_queue",
+    "lyrics_text_size": "lyrics_text_size",
+    # About screen
+    "developer_section": "developer_section",
+    "app_developer": "app_developer",
+    "website": "website",
+    "community_section": "community_section",
+    "github_repository": "github_repository",
+    "telegram_channel": "telegram_channel",
+    "app_info_section": "app_info_section",
+    "installed_date_title": "installed_date_title",
+    "version_code": "version_code",
+    "license": "license",
+    "unknown": "unknown",
+    # vivi_strings.xml
+    "lyrics": "lyrics",
+    "now_playing": "now_playing",
+    "next": "next",
+    "previous": "previous",
+    "play_all": "play_all",
+    "repeat": "repeat",
+    "changelog": "changelog_title",
+    "connect": "connect",
+    "disconnect": "disconnect",
+    "logging_in": "logging_in",
+    "update_available": "update_available_title",
+    "language": "app_language",
+    "theme_light": "cd_light_mode",
+    "theme_dark": "cd_dark_mode",
+    "theme_system": "cd_system_mode",
+    "new_playlist": "create_playlist",
+    "add_to_playlist": "add_to_playlist",
+    "create": "create",
+    "save": "save",
+    "cancel": "cancel",
+    "delete": "delete",
+    "playlist_name": "playlist_name",
+    "empty_playlist": "empty_playlist",
+    "playlist_not_found": "playlist_not_found",
+    "like": "like",
+    "add_to_library": "add_to_library",
+    "remove_from_library": "remove_from_library",
+    "share": "share",
+    "copied_to_clipboard": "copied_to_clipboard",
+    # Backup & restore
+    "backup_restore": "backup_restore",
+    "action_backup": "action_backup",
+    "action_restore": "action_restore",
+    "backup_create_success": "backup_create_success",
+    "backup_create_failed": "backup_create_failed",
+    "restore_failed": "restore_failed",
+}
+
+# Full desktop English table (source language).
+ENGLISH = {
+    "header": "VIVI Music (desktop)",
+    "search": "Search",
+    "search_placeholder": "Search YouTube Music",
+    "search_button": "Search",
+    "loading": "Loading…",
+    "error": "Error",
+    "device_sync": "Device sync",
+    "relay_server": "Relay server (wss://)",
+    "connect": "Connect",
+    "generate_code": "Generate code",
+    "generate_new_code": "Generate new code",
+    "code_expires_in": "Expires in",
+    "code_expired": "Code expired",
+    "code_placeholder": "6-digit code",
+    "pair": "Pair",
+    "unpair": "Unpair device",
+    "code_hint": "Enter this code on your phone",
+    "lan_sync": "LAN sync (same Wi-Fi)",
+    "start_lan": "Start LAN server",
+    "stop_lan": "Stop LAN server",
+    "lan_address": "Phone connects to",
+    "scan_qr": "Scan to connect",
+    "lan_hint": "On your phone, open Settings → Devices, set the relay server to the address above, then enter the code.",
+    "status": "Status",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connection_failed": "Connection failed — check the relay server URL",
+    "paired_with": "Paired with",
+    "code_generated": "Code generated",
+    "snapshot_received": "Snapshot received from",
+    "synced_settings": "Synced settings",
+    "home": "Home",
+    "library": "Library",
+    "settings": "Settings",
+    "albums": "Albums",
+    "artists": "Artists",
+    "playlists": "Playlists",
+    "songs": "Songs",
+    "top_results": "Top results",
+    "play": "Play",
+    "pause": "Pause",
+    "lyrics": "Lyrics",
+    "no_lyrics": "Lyrics not found",
+    "nothing_playing": "Nothing playing",
+    "library_placeholder": "Your library will appear here once YouTube login is available (coming in a later phase).",
+    "playback_soon": "Audio playback is coming soon — pick a song to see it here.",
+    "stream_error": "Could not resolve the audio stream for this track",
+    "resolving": "Resolving audio…",
+    "back": "Back",
+    "about": "About",
+    "language": "Language",
+    "choose_language": "Choose your language",
+    "mobile": "Mobile",
+    "de": "DE",
+    "updates": "Updates",
+    "check_updates": "Check for updates",
+    "checking": "Checking…",
+    "up_to_date": "You're up to date",
+    "update_available": "Update available",
+    "notifications": "Notifications",
+    "notification_mode_desc": "Where to show update notifications.",
+    "notification_main_window": "Main window",
+    "notification_native": "Native system notification",
+    "download": "Download",
+    "include_prereleases": "Include pre-releases",
+    "update_failed": "Update check failed",
+    "current_version": "Current version",
+    "update_check_interval": "Update check interval",
+    "interval_manual": "Manual only",
+    "interval_6h": "Every 6 hours",
+    "interval_12h": "Every 12 hours",
+    "interval_24h": "Every 24 hours",
+    "interval_3d": "Every 3 days",
+    "interval_7d": "Every 7 days",
+    "no_installer": "No installer available for your system yet — open the release page to download it manually.",
+    "open_release_page": "Open release page",
+    "appearance": "Appearance",
+    "theme_mode": "Theme mode",
+    "theme_system": "System",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "accent_color": "Accent color",
+    "play_all": "Play all",
+    "queue": "Queue",
+    "queue_empty": "Queue is empty",
+    "clear_queue": "Clear queue",
+    "history": "History",
+    "history_empty": "No history yet",
+    "player_audio": "Player & audio",
+    "autoplay_next": "Autoplay next track",
+    "storage": "Storage",
+    "cache_size": "Cache size",
+    "clear_cache": "Clear cache",
+    "changelog": "Changelog",
+    "latest_release": "Latest release notes",
+    "changelog_unavailable": "Changelog not available",
+    "downloading": "Downloading",
+    "downloaded": "Downloaded",
+    "open_installer": "Open installer",
+    "installers_downloaded": "Downloaded installers",
+    "delete_installers": "Delete installers",
+    "account": "Account",
+    "login": "Log in",
+    "logout": "Log out",
+    "not_logged_in": "Not logged in",
+    "logged_in_as": "Logged in as",
+    "logging_in": "Logging in…",
+    "cookie_label": "Cookie header (from music.youtube.com)",
+    "login_instructions": "Log in to music.youtube.com in your browser, then open DevTools → Network, reload, click any music.youtube.com request and copy the full value of its 'Cookie' request header. Paste it below. Your cookie is stored only on this device.",
+    "library_login_prompt": "Log in to see your library",
+    "library_empty": "Nothing here yet",
+    "drag_to_reorder": "Drag the ⠿ handle to reorder",
+    "now_playing": "Now playing",
+    "shuffle": "Shuffle",
+    "repeat": "Repeat",
+    "volume": "Volume",
+    "previous": "Previous",
+    "next": "Next",
+    "mood_and_genres": "Mood & genres",
+    "data_sync_id_label": "DATASYNC_ID (optional)",
+    "visitor_data_label": "VISITOR_DATA (optional)",
+    "advanced_login_hint": "Optional: if auto-detection fails, paste DATASYNC_ID and VISITOR_DATA from the music.youtube.com page source.",
+    "open_failed": "Could not open the installer. Find it in ~/.vivimusic/updates and open it manually.",
+    "content": "Content",
+    "content_language": "Content language",
+    "content_country": "Content region",
+    "system_default": "System default",
+    "privacy": "Privacy",
+    "privacy_desc": "Session cookies, cached audio and downloaded installers are stored only on this device. You can remove them here.",
+    "synced_lyrics": "Synced lyrics",
+    "synced_lyrics_desc": "Highlight the current line as the song plays",
+    "clear_session": "Clear session data",
+    "cache_cleared": "Cache cleared",
+    "installers_deleted": "Installers deleted",
+    "filter_all": "All",
+    "filter_songs": "Songs",
+    "filter_videos": "Videos",
+    "filter_albums": "Albums",
+    "filter_artists": "Artists",
+    "filter_playlists": "Playlists",
+    "no_results_found": "No results found",
+    "suggestions": "Suggestions",
+    "shuffle_all": "Shuffle all",
+    "pure_black": "Pure black",
+    "audio_quality": "Audio quality",
+    "audio_quality_auto": "Auto",
+    "audio_quality_high": "High",
+    "audio_quality_low": "Low",
+    "remember_shuffle_repeat": "Remember shuffle and repeat",
+    "persistent_queue": "Persistent queue",
+    "lyrics_text_size": "Lyrics text size",
+    "install_now": "Install now",
+    "dismiss": "Dismiss",
+    "developer_options": "Developer options",
+    "developer_options_enabled": "Developer options enabled",
+    "developer_options_desc": "Live CPU, RAM, GPU and network usage of VIVI Music DE.",
+    "dev_tools_mode": "Display mode",
+    "dev_tools_overlay": "Overlay in main window",
+    "dev_tools_window": "Dedicated window",
+    "dev_tools_title_bar_only": "Title bar only",
+    "tap_version_code_hint": "Tap the version code 7 times to enable developer options",
+    "cpu": "CPU",
+    "memory": "Memory",
+    "gpu": "GPU",
+    "network": "Network",
+    "total_traffic": "Total traffic",
+    "paired_device": "Paired device",
+    "no_paired_device": "No paired device",
+    "threads": "Threads",
+    "uptime": "Uptime",
+    "system_info": "System",
+    "process": "Process",
+    "system": "System",
+    "heap": "Heap",
+    "dev_tools_profile": "Display profile",
+    "dev_tools_profile_full": "Full",
+    "dev_tools_profile_performance": "Performance",
+    "dev_tools_movable": "Movable overlay",
+    "dev_tools_movable_desc": "Drag the overlay to move it anywhere on the main screen",
+    "dev_tools_title_bar": "Show in title bar",
+    "dev_tools_title_bar_desc": "Show CPU and memory usage in the window title",
+    "dev_tools_disabled": "Disabled",
+    "dev_unlocked_title": "Developer options enabled",
+    "dev_unlocked_desc": "Configure them in Settings → Developer options",
+    "dev_unlocked_open": "Open",
+    "new_playlist": "New playlist",
+    "no_playlists": "No playlists yet",
+    "song_count": "%d songs",
+    "rename": "Rename",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete_playlist": "Delete playlist",
+    "delete_playlist_confirm": "This will permanently delete the playlist. This cannot be undone.",
+    "playlist_name": "Playlist name",
+    "playlist_not_found": "Playlist not found",
+    "empty_playlist": "This playlist is empty",
+    "add_to_playlist": "Add to playlist",
+    "more": "More",
+    "like": "Like",
+    "unlike": "Unlike",
+    "add_to_library": "Add to library",
+    "remove_from_library": "Remove from library",
+    "share": "Share",
+    "copied_to_clipboard": "Copied to clipboard",
+    "backup_restore": "Backup and restore",
+    "action_backup": "Backup",
+    "action_restore": "Restore",
+    "backup_create_success": "Backup created successfully",
+    "backup_create_failed": "Couldn't create backup",
+    "restore_failed": "Failed to restore backup",
+    "backup_restore_desc": "Export your settings to a backup file, or restore them from a previous backup.",
+    "backup_desc": "Save your current settings to a file.",
+    "restore_desc": "Load settings from a backup file. The app restarts to apply them.",
+    "restore_success_title": "Settings imported",
+    "restore_success": "Your settings were imported. Restart VIVI Music DE to apply them.",
+    "restart_now": "Restart now",
+    "later": "Later",
+}
+
+# Desktop-only translations (keys with no Android source string) plus gap-fills
+# for languages that don't yet have the mapped Android string. Applied on top of
+# the MAPPING-derived values, so an existing Android translation always wins.
+# Key -> {desktop language code -> translation}.
+TRANSLATIONS = {
+    "add_to_playlist": {
+        "as": "প্লে'লিষ্টত যোগ কৰক",
+        "az": "Pleylistə əlavə et",
+        "eu": "Gehitu zerrendara",
+        "fil": "Idagdag sa playlist",
+        "km": "បន្ថែមទៅបញ្ជីចាក់",
+        "lt": "Pridėti į grojaraštį",
+        "ms": "Tambah ke senarai main",
+        "sl": "Dodaj na seznam predvajanja",
+        "sv": "Lägg till i spellista",
+        "th": "เพิ่มลงในเพลย์ลิสต์",
+    },
+    "notifications": {
+        "it": "Notifiche",
+        "es": "Notificaciones",
+        "fr": "Notifications",
+        "de": "Benachrichtigungen",
+        "pt": "Notificações",
+    },
+    "notification_mode_desc": {
+        "it": "Dove mostrare le notifiche di aggiornamento.",
+        "es": "Dónde mostrar las notificaciones de actualización.",
+        "fr": "Où afficher les notifications de mise à jour.",
+        "de": "Wo Update-Benachrichtigungen angezeigt werden.",
+        "pt": "Onde mostrar as notificações de atualização.",
+    },
+    "notification_main_window": {
+        "it": "Finestra principale",
+        "es": "Ventana principal",
+        "fr": "Fenêtre principale",
+        "de": "Hauptfenster",
+        "pt": "Janela principal",
+    },
+    "notification_native": {
+        "it": "Notifica di sistema nativa",
+        "es": "Notificación nativa del sistema",
+        "fr": "Notification système native",
+        "de": "Native Systembenachrichtigung",
+        "pt": "Notificação nativa do sistema",
+    },
+    "cancel": {
+        "fi": "Peruuta",
+        "hi": "रद्द करें",
+        "km": "បោះបង់",
+        "ml": "റദ്ദാക്കുക",
+        "pa": "ਰੱਦ ਕਰੋ",
+        "ta": "ரத்து செய்",
+    },
+    "create": {
+        "as": "সৃষ্টি কৰক",
+        "az": "Yarat",
+        "sr": "Napravi",
+        "be": "Стварыць",
+        "bg": "Създай",
+        "bn": "তৈরি করুন",
+        "bs": "Kreiraj",
+        "el": "Δημιουργία",
+        "et": "Loo",
+        "eu": "Sortu",
+        "fi": "Luo",
+        "fil": "Gumawa",
+        "hi": "बनाएं",
+        "hr": "Stvori",
+        "hu": "Létrehozás",
+        "km": "បង្កើត",
+        "ko": "만들기",
+        "lt": "Sukurti",
+        "ml": "സൃഷ്ടിക്കുക",
+        "ms": "Cipta",
+        "nb": "Opprett",
+        "nl": "Aanmaken",
+        "pa": "ਬਣਾਓ",
+        "pl": "Utwórz",
+        "pt": "Criar",
+        "sk": "Vytvoriť",
+        "sl": "Ustvari",
+        "sv": "Skapa",
+        "ta": "உருவாக்கு",
+        "te": "సృష్టించు",
+        "th": "สร้าง",
+        "uk": "Створити",
+        "zh-rTW": "建立",
+    },
+    "delete": {
+        "as": "মচি দিয়ক",
+        "az": "Sil",
+        "eu": "Ezabatu",
+        "fil": "Burahin",
+        "km": "លុប",
+        "lt": "Ištrinti",
+        "ms": "Padam",
+        "sl": "Izbriši",
+        "sv": "Radera",
+        "th": "ลบ",
+    },
+    "delete_playlist": {
+        "ar": "حذف قائمة التشغيل",
+        "as": "প্লে'লিষ্ট মচি দিয়ক",
+        "az": "Pleylisti sil",
+        "sr": "Obriši plejlistu",
+        "be": "Выдаліць спіс прайгравання",
+        "bg": "Изтриване на плейлистата",
+        "bn": "প্লেলিস্ট মুছুন",
+        "bs": "Obriši plejlistu",
+        "ca": "Elimina la llista de reproducció",
+        "cs": "Smazat playlist",
+        "de": "Playlist löschen",
+        "el": "Διαγραφή λίστας αναπαραγωγής",
+        "es": "Eliminar lista de reproducción",
+        "et": "Kustuta esitusloend",
+        "eu": "Ezabatu zerrenda",
+        "fi": "Poista soittolista",
+        "fil": "Burahin ang playlist",
+        "fr": "Supprimer la playlist",
+        "hi": "प्लेलिस्ट हटाएं",
+        "hr": "Obriši popis za reprodukciju",
+        "hu": "Lejátszási lista törlése",
+        "id": "Hapus playlist",
+        "it": "Elimina playlist",
+        "ja": "プレイリストを削除",
+        "km": "លុបបញ្ជីចាក់",
+        "ko": "재생목록 삭제",
+        "lt": "Ištrinti grojaraštį",
+        "ml": "പ്ലേലിസ്റ്റ് ഇല്ലാതാക്കുക",
+        "ms": "Padam senarai main",
+        "nb": "Slett spilleliste",
+        "nl": "Afspeellijst verwijderen",
+        "pa": "ਪਲੇਲਿਸਟ ਮਿਟਾਓ",
+        "pl": "Usuń playlistę",
+        "pt": "Excluir playlist",
+        "ro": "Șterge lista de redare",
+        "ru": "Удалить плейлист",
+        "sk": "Odstrániť zoznam skladieb",
+        "sl": "Izbriši seznam predvajanja",
+        "sv": "Ta bort spellista",
+        "ta": "பிளேலிஸ்ட்டை நீக்கு",
+        "te": "ప్లేలిస్ట్ తొలగించు",
+        "th": "ลบเพลย์ลิสต์",
+        "tr": "Çalma listesini sil",
+        "uk": "Видалити список відтворення",
+        "vi": "Xóa danh sách phát",
+        "zh-rCN": "删除播放列表",
+        "zh-rTW": "刪除播放清單",
+    },
+    "delete_playlist_confirm": {
+        "ar": "سيؤدي هذا إلى حذف قائمة التشغيل نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+        "as": "এইটোৱে প্লে'লিষ্টটো স্থায়ীভাৱে মচি পেলাব। এই কাৰ্য ঘূৰাই আনিব নোৱাৰি।",
+        "az": "Bu, pleylisti qalıcı olaraq siləcək. Bu əməliyyat geri qaytarıla bilməz.",
+        "sr": "Ovo će trajno obrisati plejlistu. Ova radnja se ne može poništiti.",
+        "be": "Гэта назаўсёды выдаліць спіс прайгравання. Гэта дзеянне нельга адмяніць.",
+        "bg": "Това ще изтрие плейлистата за постоянно. Това действие не може да бъде отменено.",
+        "bn": "এটি প্লেলিস্টটি স্থায়ীভাবে মুছে ফেলবে। এটি ফিরিয়ে আনা যাবে না।",
+        "bs": "Ovo će trajno obrisati plejlistu. Ova radnja se ne može poništiti.",
+        "ca": "Això suprimirà permanentment la llista de reproducció. No es pot desfer.",
+        "cs": "Tímto se seznam skladeb trvale odstraní. Tuto akci nelze vrátit zpět.",
+        "de": "Dadurch wird die Playlist dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "el": "Αυτό θα διαγράψει οριστικά τη λίστα αναπαραγωγής. Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.",
+        "es": "Esto eliminará la lista de reproducción de forma permanente. Esta acción no se puede deshacer.",
+        "et": "See kustutab esitusloendi jäädavalt. Seda toimingut ei saa tagasi võtta.",
+        "eu": "Honek zerrenda betiko ezabatuko du. Ekintza hau ezin da desegin.",
+        "fi": "Tämä poistaa soittolistan pysyvästi. Tätä toimintoa ei voi kumota.",
+        "fil": "Permanente nitong tatanggalin ang playlist. Hindi na ito maaaring maibalik.",
+        "fr": "Cela supprimera définitivement la playlist. Cette action ne peut pas être annulée.",
+        "hi": "यह प्लेलिस्ट को स्थायी रूप से हटा देगा। इसे पूर्ववत नहीं किया जा सकता।",
+        "hr": "Ovo će trajno izbrisati popis za reprodukciju. Ova radnja se ne može poništiti.",
+        "hu": "Ezzel véglegesen törli a lejátszási listát. Ezt a műveletet nem lehet visszavonni.",
+        "id": "Ini akan menghapus playlist secara permanen. Tindakan ini tidak dapat dibatalkan.",
+        "it": "Questa operazione eliminerà definitivamente la playlist. Non può essere annullata.",
+        "ja": "プレイリストを完全に削除します。この操作は元に戻せません。",
+        "km": "វានឹងលុបបញ្ជីចាក់ជាអចិន្ត្រៃយ៍។ សកម្មភាពនេះមិនអាចត្រឡប់វិញបានទេ។",
+        "ko": "재생목록이 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다.",
+        "lt": "Tai visam laikui ištrins grojaraštį. Šio veiksmo atšaukti nebegalima.",
+        "ml": "ഇത് പ്ലേലിസ്റ്റ് സ്ഥിരമായി ഇല്ലാതാക്കും. ഈ പ്രവർത്തനം പഴയപടിയാക്കാൻ കഴിയില്ല.",
+        "ms": "Ini akan memadamkan senarai main secara kekal. Tindakan ini tidak boleh dibuat asal.",
+        "nb": "Dette sletter spillelisten permanent. Dette kan ikke angres.",
+        "nl": "Hiermee wordt de afspeellijst permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
+        "pa": "ਇਹ ਪਲੇਲਿਸਟ ਨੂੰ ਪੱਕੇ ਤੌਰ 'ਤੇ ਮਿਟਾ ਦੇਵੇਗਾ। ਇਸ ਨੂੰ ਵਾਪਸ ਨਹੀਂ ਕੀਤਾ ਜਾ ਸਕਦਾ।",
+        "pl": "Spowoduje to trwałe usunięcie playlisty. Tej czynności nie można cofnąć.",
+        "pt": "Isto eliminará permanentemente a playlist. Esta ação não pode ser desfeita.",
+        "ro": "Aceasta va șterge definitiv lista de redare. Această acțiune nu poate fi anulată.",
+        "ru": "Это навсегда удалит плейлист. Это действие нельзя отменить.",
+        "sk": "Týmto sa zoznam skladieb natrvalo odstráni. Túto akciu nemožno vrátiť späť.",
+        "sl": "To bo trajno izbrisalo seznam predvajanja. Tega dejanja ni mogoče razveljaviti.",
+        "sv": "Detta raderar spellistan permanent. Det går inte att ångra.",
+        "ta": "இது பிளேலிஸ்ட்டை நிரந்தரமாக நீக்கும். இதை மீட்டெடுக்க முடியாது.",
+        "te": "ఇది ప్లేలిస్ట్ను శాశ్వతంగా తొలగిస్తుంది. దీన్ని తిరిగి పొందలేరు.",
+        "th": "การดำเนินการนี้จะลบเพลย์ลิสต์อย่างถาวรและไม่สามารถย้อนกลับได้",
+        "tr": "Bu işlem çalma listesini kalıcı olarak siler. Bu işlem geri alınamaz.",
+        "uk": "Це назавжди видалить список відтворення. Цю дію не можна скасувати.",
+        "vi": "Thao tác này sẽ xóa vĩnh viễn danh sách phát. Không thể hoàn tác.",
+        "zh-rCN": "这将永久删除该播放列表，且无法撤销。",
+        "zh-rTW": "這將永久刪除該播放清單，且無法復原。",
+    },
+    "empty_playlist": {
+        "as": "এই প্লে'লিষ্টটো খালি",
+        "az": "Bu pleylist boşdur",
+        "sr": "Ova plejlista je prazna",
+        "be": "Гэты спіс прайгравання пусты",
+        "bs": "Ova plejlista je prazna",
+        "fi": "Tämä soittolista on tyhjä",
+        "fil": "Walang laman ang playlist na ito",
+        "hi": "यह प्लेलिस्ट खाली है",
+        "km": "បញ្ជីចាក់នេះទទេ",
+        "ko": "이 재생목록은 비어 있습니다",
+        "ml": "ഈ പ്ലേലിസ്റ്റ് ശൂന്യമാണ്",
+        "ms": "Senarai main ini kosong",
+        "nb": "Denne spillelisten er tom",
+        "pa": "ਇਹ ਪਲੇਲਿਸਟ ਖਾਲੀ ਹੈ",
+        "sl": "Ta seznam predvajanja je prazen",
+        "sv": "Den här spellistan är tom",
+        "ta": "இந்த பிளேலிஸ்ட் காலியாக உள்ளது",
+        "te": "ఈ ప్లేలిస్ట్ ఖాళీగా ఉంది",
+        "th": "เพลย์ลิสต์นี้ว่างเปล่า",
+    },
+    "more": {
+        "ar": "المزيد",
+        "as": "অধিক",
+        "az": "Daha çox",
+        "sr": "Još",
+        "be": "Яшчэ",
+        "bg": "Още",
+        "bn": "আরও",
+        "bs": "Više",
+        "ca": "Més",
+        "cs": "Další",
+        "de": "Mehr",
+        "el": "Περισσότερα",
+        "es": "Más",
+        "et": "Rohkem",
+        "eu": "Gehiago",
+        "fi": "Lisää",
+        "fil": "Higit pa",
+        "fr": "Plus",
+        "hi": "अधिक",
+        "hr": "Više",
+        "hu": "Több",
+        "id": "Lainnya",
+        "it": "Altro",
+        "ja": "その他",
+        "km": "ច្រើនទៀត",
+        "ko": "더보기",
+        "lt": "Daugiau",
+        "ml": "കൂടുതൽ",
+        "ms": "Lagi",
+        "nb": "Mer",
+        "nl": "Meer",
+        "pa": "ਹੋਰ",
+        "pl": "Więcej",
+        "pt": "Mais",
+        "ro": "Mai mult",
+        "ru": "Ещё",
+        "sk": "Viac",
+        "sl": "Več",
+        "sv": "Mer",
+        "ta": "மேலும்",
+        "te": "మరిన్ని",
+        "th": "เพิ่มเติม",
+        "tr": "Daha fazla",
+        "uk": "Більше",
+        "vi": "Thêm",
+        "zh-rCN": "更多",
+        "zh-rTW": "更多",
+    },
+    "new_playlist": {
+        "as": "নতুন প্লে'লিষ্ট",
+        "az": "Yeni pleylist",
+        "eu": "Erreprodukzio-zerrenda berria",
+        "fil": "Bagong playlist",
+        "km": "បញ្ជីចាក់ថ្មី",
+        "lt": "Naujas grojaraštis",
+        "ms": "Senarai main baharu",
+        "sl": "Nov seznam predvajanja",
+        "sv": "Ny spellista",
+        "th": "เพลย์ลิสต์ใหม่",
+    },
+    "no_playlists": {
+        "ar": "لا توجد قوائم تشغيل بعد",
+        "as": "এতিয়াও কোনো প্লে'লিষ্ট নাই",
+        "az": "Hələ pleylist yoxdur",
+        "sr": "Još uvek nema plejlista",
+        "be": "Пакуль няма спісаў прайгравання",
+        "bg": "Все още няма плейлисти",
+        "bn": "এখনও কোনো প্লেলিস্ট নেই",
+        "bs": "Još nema plejlista",
+        "ca": "Encara no hi ha llistes de reproducció",
+        "cs": "Zatím žádné playlisty",
+        "de": "Noch keine Playlists",
+        "el": "Δεν υπάρχουν ακόμα λίστες αναπαραγωγής",
+        "es": "Aún no hay listas de reproducción",
+        "et": "Esitusloendeid veel pole",
+        "eu": "Oraindik ez dago zerrendarik",
+        "fi": "Ei vielä soittolistoja",
+        "fil": "Wala pang mga playlist",
+        "fr": "Aucune playlist pour l'instant",
+        "hi": "अभी तक कोई प्लेलिस्ट नहीं",
+        "hr": "Još nema popisa za reprodukciju",
+        "hu": "Még nincsenek lejátszási listák",
+        "id": "Belum ada playlist",
+        "it": "Ancora nessuna playlist",
+        "ja": "まだプレイリストがありません",
+        "km": "មិនទាន់មានបញ្ជីចាក់នៅឡើយ",
+        "ko": "아직 재생목록이 없습니다",
+        "lt": "Dar nėra grojaraščių",
+        "ml": "ഇതുവരെ പ്ലേലിസ്റ്റുകളൊന്നുമില്ല",
+        "ms": "Belum ada senarai main",
+        "nb": "Ingen spillelister ennå",
+        "nl": "Nog geen afspeellijsten",
+        "pa": "ਹਾਲੇ ਕੋਈ ਪਲੇਲਿਸਟ ਨਹੀਂ",
+        "pl": "Nie ma jeszcze playlist",
+        "pt": "Ainda não há playlists",
+        "ro": "Nicio listă de redare încă",
+        "ru": "Пока нет плейлистов",
+        "sk": "Zatiaľ žiadne zoznamy skladieb",
+        "sl": "Še ni seznamov predvajanja",
+        "sv": "Inga spellistor ännu",
+        "ta": "இன்னும் பிளேலிஸ்ட்கள் இல்லை",
+        "te": "ఇంకా ప్లేలిస్ట్లు లేవు",
+        "th": "ยังไม่มีเพลย์ลิสต์",
+        "tr": "Henüz çalma listesi yok",
+        "uk": "Ще немає списків відтворення",
+        "vi": "Chưa có danh sách phát",
+        "zh-rCN": "还没有播放列表",
+        "zh-rTW": "尚無播放清單",
+    },
+    "playlist_name": {
+        "as": "প্লে'লিষ্টৰ নাম",
+        "az": "Pleylistin adı",
+        "eu": "Zerrendaren izena",
+        "fil": "Pangalan ng playlist",
+        "km": "ឈ្មោះបញ្ជីចាក់",
+        "lt": "Grojaraščio pavadinimas",
+        "ms": "Nama senarai main",
+        "sl": "Ime seznama predvajanja",
+        "sv": "Spellistans namn",
+        "th": "ชื่อเพลย์ลิสต์",
+    },
+    "playlist_not_found": {
+        "as": "প্লে'লিষ্ট পোৱা নগ'ল",
+        "az": "Pleylist tapılmadı",
+        "sr": "Plejlista nije pronađena",
+        "be": "Спіс прайгравання не знойдзены",
+        "bn": "প্লেলিস্ট পাওয়া যায়নি",
+        "bs": "Plejlista nije pronađena",
+        "et": "Esitusloendit ei leitud",
+        "fi": "Soittolistaa ei löytynyt",
+        "fil": "Hindi nahanap ang playlist",
+        "hi": "प्लेलिस्ट नहीं मिली",
+        "km": "រកមិនឃើញបញ្ជីចាក់",
+        "ko": "재생목록을 찾을 수 없음",
+        "ml": "പ്ലേലിസ്റ്റ് കണ്ടെത്തിയില്ല",
+        "ms": "Senarai main tidak ditemui",
+        "nb": "Spillelisten ble ikke funnet",
+        "pa": "ਪਲੇਲਿਸਟ ਨਹੀਂ ਮਿਲੀ",
+        "sl": "Seznama predvajanja ni mogoče najti",
+        "sv": "Spellistan hittades inte",
+        "ta": "பிளேலிஸ்ட் கிடைக்கவில்லை",
+        "te": "ప్లేలిస్ట్ కనుగొనబడలేదు",
+        "th": "ไม่พบเพลย์ลิสต์",
+    },
+    "rename": {
+        "ar": "إعادة تسمية",
+        "as": "নাম সলনি কৰক",
+        "az": "Adını dəyiş",
+        "sr": "Preimenuj",
+        "be": "Перайменаваць",
+        "bg": "Преименуване",
+        "bn": "নাম পরিবর্তন করুন",
+        "bs": "Preimenuj",
+        "ca": "Canvia el nom",
+        "cs": "Přejmenovat",
+        "de": "Umbenennen",
+        "el": "Μετονομασία",
+        "es": "Renombrar",
+        "et": "Nimeta ümber",
+        "eu": "Berrizendatu",
+        "fi": "Nimeä uudelleen",
+        "fil": "Palitan ang pangalan",
+        "fr": "Renommer",
+        "hi": "नाम बदलें",
+        "hr": "Preimenuj",
+        "hu": "Átnevezés",
+        "id": "Ganti nama",
+        "it": "Rinomina",
+        "ja": "名前を変更",
+        "km": "ប្តូរឈ្មោះ",
+        "ko": "이름 바꾸기",
+        "lt": "Pervadinti",
+        "ml": "പേരുമാറ്റുക",
+        "ms": "Namakan semula",
+        "nb": "Gi nytt navn",
+        "nl": "Hernoemen",
+        "pa": "ਨਾਮ ਬਦਲੋ",
+        "pl": "Zmień nazwę",
+        "pt": "Renomear",
+        "ro": "Redenumește",
+        "ru": "Переименовать",
+        "sk": "Premenovať",
+        "sl": "Preimenuj",
+        "sv": "Byt namn",
+        "ta": "பெயரை மாற்று",
+        "te": "పేరు మార్చు",
+        "th": "เปลี่ยนชื่อ",
+        "tr": "Yeniden adlandır",
+        "uk": "Перейменувати",
+        "vi": "Đổi tên",
+        "zh-rCN": "重命名",
+        "zh-rTW": "重新命名",
+    },
+    "save": {
+        "as": "সংৰক্ষণ কৰক",
+        "az": "Yadda saxla",
+        "eu": "Gorde",
+        "fil": "I-save",
+        "km": "រក្សាទុក",
+        "lt": "Išsaugoti",
+        "ms": "Simpan",
+        "sl": "Shrani",
+        "sv": "Spara",
+        "th": "บันทึก",
+    },
+    "song_count": {
+        "ar": "%d أغنية",
+        "as": "%dটা গান",
+        "az": "%d mahnı",
+        "sr": "%d pesama",
+        "be": "%d песень",
+        "bg": "%d песни",
+        "bn": "%dটি গান",
+        "bs": "%d pjesama",
+        "ca": "%d cançons",
+        "cs": "%d skladeb",
+        "de": "%d Songs",
+        "el": "%d τραγούδια",
+        "es": "%d canciones",
+        "et": "%d lugu",
+        "eu": "%d abesti",
+        "fi": "%d kappaletta",
+        "fil": "%d na kanta",
+        "fr": "%d titres",
+        "hi": "%d गाने",
+        "hr": "%d pjesama",
+        "hu": "%d dal",
+        "id": "%d lagu",
+        "it": "%d brani",
+        "ja": "%d曲",
+        "km": "%d បទ",
+        "ko": "%d곡",
+        "lt": "%d dainos",
+        "ml": "%d ഗാനങ്ങൾ",
+        "ms": "%d lagu",
+        "nb": "%d sanger",
+        "nl": "%d nummers",
+        "pa": "%d ਗੀਤ",
+        "pl": "%d utworów",
+        "pt": "%d músicas",
+        "ro": "%d melodii",
+        "ru": "%d песен",
+        "sk": "%d skladieb",
+        "sl": "%d skladb",
+        "sv": "%d låtar",
+        "ta": "%d பாடல்கள்",
+        "te": "%d పాటలు",
+        "th": "%d เพลง",
+        "tr": "%d şarkı",
+        "uk": "%d пісень",
+        "vi": "%d bài hát",
+        "zh-rCN": "%d 首歌曲",
+        "zh-rTW": "%d 首歌曲",
+    },
+    "unlike": {
+        "ar": "إلغاء الإعجاب",
+        "as": "পছন্দ নহয়",
+        "az": "Bəyənməni geri al",
+        "sr": "Ukloni sviđanje",
+        "be": "Прыбраць лайк",
+        "bg": "Премахване на харесването",
+        "bn": "পছন্দ সরান",
+        "bs": "Ukloni sviđanje",
+        "ca": "Deixa de m'agradar",
+        "cs": "Zrušit líbí se mi",
+        "de": "Gefällt mir nicht mehr",
+        "el": "Ακύρωση «Μου αρέσει»",
+        "es": "Ya no me gusta",
+        "et": "Eemalda meeldimine",
+        "eu": "Gustatu gabe utzi",
+        "fi": "Poista tykkäys",
+        "fil": "I-unlike",
+        "fr": "Je n'aime plus",
+        "hi": "पसंद हटाएं",
+        "hr": "Ukloni sviđanje",
+        "hu": "Tetszik visszavonása",
+        "id": "Batalkan suka",
+        "it": "Non mi piace più",
+        "ja": "いいねを取り消す",
+        "km": "មិនចូលចិត្ត",
+        "ko": "좋아요 취소",
+        "lt": "Nebepatinka",
+        "ml": "ഇഷ്ടം നീക്കുക",
+        "ms": "Nyahsuka",
+        "nb": "Fjern liker",
+        "nl": "Vind ik niet meer leuk",
+        "pa": "ਪਸੰਦ ਹਟਾਓ",
+        "pl": "Cofnij polubienie",
+        "pt": "Deixar de gostar",
+        "ro": "Nu mai apreciez",
+        "ru": "Убрать лайк",
+        "sk": "Zrušiť páči sa mi",
+        "sl": "Odstrani všeček",
+        "sv": "Ta bort gilla",
+        "ta": "விருப்பத்தை நீக்கு",
+        "te": "ఇష్టం తొలగించు",
+        "th": "เลิกถูกใจ",
+        "tr": "Beğenmeyi geri al",
+        "uk": "Прибрати вподобання",
+        "vi": "Bỏ thích",
+        "zh-rCN": "取消喜欢",
+        "zh-rTW": "取消喜歡",
+    },
+}
+
+
+def android_unescape(s):
+    """Decode Android resource string escapes (aapt-style) to real chars.
+
+    ElementTree leaves `\\'`, `\\n`, etc. verbatim in the text, but Android's
+    resource compiler turns them into the real characters. We mirror that so
+    the Kotlin table holds real apostrophes/newlines, which `kt_escape` then
+    re-encodes into valid Kotlin string literals (a `\\'` left as-is would
+    render as a literal backslash-apostrophe in the desktop UI).
+    """
+    if "\\" not in s:
+        return s
+    out = []
+    i = 0
+    n = len(s)
+    while i < n:
+        c = s[i]
+        if c == "\\" and i + 1 < n:
+            nxt = s[i + 1]
+            if nxt == "n":
+                out.append("\n")
+            elif nxt == "t":
+                out.append("\t")
+            elif nxt == "r":
+                out.append("\r")
+            elif nxt == "'":
+                out.append("'")
+            elif nxt == '"':
+                out.append('"')
+            elif nxt == "\\":
+                out.append("\\")
+            else:
+                # Unknown escape: keep the backslash literally.
+                out.append(c)
+                i += 1
+                continue
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
+def read_strings(path):
+    """Return {name: value} from an Android strings.xml file."""
+    out = {}
+    try:
+        tree = ET.parse(path)
+    except (ET.ParseError, OSError):
+        return out
+    for node in tree.getroot().iter("string"):
+        name = node.get("name")
+        if name is None:
+            continue
+        out[name] = android_unescape(node.text or "")
+    return out
+
+
+def kt_escape(s):
+    return (
+        s.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("$", "\\$")
+        .replace("\n", "\\n")
+        .replace("\t", "\\t")
+    )
+
+
+def read_lang_files(dirpath):
+    """Merge strings.xml + vivi_strings.xml + updater_strings.xml (when present)."""
+    merged = {}
+    for name in ("strings.xml", "vivi_strings.xml", "updater_strings.xml"):
+        merged.update(read_strings(os.path.join(dirpath, name)))
+    return merged
+
+
+def main():
+    default = read_lang_files(os.path.join(RES, "values"))
+
+    languages = {}
+    for entry in os.listdir(RES):
+        if not entry.startswith("values"):
+            continue
+        suffix = entry[len("values"):]
+        lang = DIR_TO_LANG.get(suffix)
+        if lang is None or lang == "en":
+            continue
+        strings = read_lang_files(os.path.join(RES, entry))
+        if not strings:
+            continue
+        # Only keep the mapped keys that are actually translated here.
+        mapped = {}
+        for key, android_name in MAPPING.items():
+            val = strings.get(android_name)
+            if val:
+                mapped[key] = val
+        if mapped:
+            languages[lang] = mapped
+
+    # Fill in desktop-only translations and gap-fills on top of the Android
+    # mappings (applied last so it can also add keys for languages that have no
+    # matching Android string, e.g. as/az/eu/km/...).
+    for key, langmap in TRANSLATIONS.items():
+        for lang, text in langmap.items():
+            if lang == "en":
+                continue
+            languages.setdefault(lang, {})[key] = text
+
+    # Ensure the default also contributes any translated fallback values, so
+    # the "en" table uses the Android English wording for the mapped keys.
+    for key, android_name in MAPPING.items():
+        val = default.get(android_name)
+        if val and key not in ENGLISH:
+            ENGLISH[key] = val
+
+    def emit_map(entries, indent):
+        pad = " " * indent
+        lines = [pad + 'mapOf(']
+        for key in sorted(entries):
+            lines.append(
+                pad + '    "%s" to "%s",' % (key, kt_escape(entries[key]))
+            )
+        lines.append(pad + ')')
+        return "\n".join(lines)
+
+    parts = []
+    parts.append("package com.music.vivi.desktop\n")
+    parts.append("/**")
+    parts.append(" * Desktop string table. English is the primary (source) language; other")
+    parts.append(" * languages fall back to English until their translations are added under")
+    parts.append(" * the matching locale tag (e.g. `\"it\" to mapOf(\"search\" to \"Cerca\", ...)`).")
+    parts.append(" *")
+    parts.append(" * This file is GENERATED by `scripts/generate_desktop_localization.py` from")
+    parts.append(" * the Android app's `strings.xml` resources — do not edit by hand.")
+    parts.append(" */")
+    parts.append("object Localization {\n")
+    parts.append("    private val strings: Map<String, Map<String, String>> = mapOf(")
+    parts.append('        "en" to ' + emit_map(ENGLISH, 8).lstrip() + ",")
+    for lang in sorted(languages):
+        parts.append(
+            '        "%s" to %s,' % (lang, emit_map(languages[lang], 8).lstrip())
+        )
+    parts.append("    )\n")
+    parts.append("    fun get(language: String, key: String): String =")
+    parts.append('        strings[language]?.get(key) ?: strings["en"]?.get(key) ?: key')
+    parts.append("}\n")
+
+    with open(OUT, "w", encoding="utf-8") as f:
+        f.write("\n".join(parts))
+
+    print("Wrote %s (%d languages + English)" % (OUT, len(languages)))
+
+
+if __name__ == "__main__":
+    main()
