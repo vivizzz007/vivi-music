@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.9_DE-1.33.42] - 2026-08-16
+
+### Added
+
+- [DE] The crash/error dialog now has a "Copy error" button alongside "OK":
+  it copies the full message + stack trace to the clipboard. A global
+  uncaught-exception handler replaces the default AWT "Error" dialog (OK only).
+
 ## [6.4.9_DE-1.33.41] - 2026-08-16
 
 ### Changed

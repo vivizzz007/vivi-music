@@ -141,6 +141,10 @@ fun main() {
     // starting), exit immediately and keep the first one that started.
     if (!SingleInstance.acquire()) return
 
+    // Replace the default AWT "Error" dialog (OK only) with one that also
+    // offers "Copy error", so crash details are easy to report.
+    installGlobalErrorDialog()
+
     application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does,
     // honouring the saved content language/region (or the OS default).
