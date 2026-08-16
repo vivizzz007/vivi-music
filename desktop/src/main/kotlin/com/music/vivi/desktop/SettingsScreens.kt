@@ -340,8 +340,10 @@ fun SettingsUpdatesScreen(
     updateStatus: UpdateStatus,
     includePreReleases: Boolean,
     updateIntervalHours: Int,
+    updateSource: String,
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
+    onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
 ) {
@@ -353,8 +355,10 @@ fun SettingsUpdatesScreen(
             updateStatus,
             includePreReleases,
             updateIntervalHours,
+            updateSource,
             onIntervalChange,
             onTogglePreReleases,
+            onUpdateSourceChange,
             onCheckUpdates,
             onOpenChangelog,
         )

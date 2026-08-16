@@ -345,6 +345,7 @@ fun App(
         )
     }
     var updateIntervalHours by remember { mutableStateOf(DesktopSettings.load().updateCheckIntervalHours) }
+    var updateSource by remember { mutableStateOf(DesktopSettings.load().updateSource) }
     var notificationMode by remember { mutableStateOf(DesktopSettings.load().notificationMode) }
     var notificationDurationSeconds by remember { mutableStateOf(DesktopSettings.load().inAppNotificationDurationSeconds) }
     var saveNotificationHistory by remember { mutableStateOf(DesktopSettings.load().saveNotificationHistory) }
@@ -785,6 +786,7 @@ fun App(
                         updateStatus = updateStatus,
                         includePreReleases = includePreReleases,
                         updateIntervalHours = updateIntervalHours,
+                        updateSource = updateSource,
                         onIntervalChange = { hours ->
                             updateIntervalHours = hours
                             DesktopSettings.update { it.copy(updateCheckIntervalHours = hours) }
@@ -792,6 +794,11 @@ fun App(
                         onTogglePreReleases = { checked ->
                             includePreReleases = checked
                             DesktopSettings.update { it.copy(includePreReleases = checked) }
+                            runUpdateCheck()
+                        },
+                        onUpdateSourceChange = { source ->
+                            updateSource = source
+                            DesktopSettings.update { it.copy(updateSource = source) }
                             runUpdateCheck()
                         },
                         onCheckUpdates = { runUpdateCheck() },
@@ -1779,8 +1786,10 @@ fun UpdateSection(
     status: UpdateStatus,
     includePreReleases: Boolean,
     updateIntervalHours: Int,
+    updateSource: String,
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
+    onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
 ) {
@@ -1792,6 +1801,7 @@ fun UpdateSection(
     val installerCount by UpdateState.installerCount.collectAsState()
     var openError by remember { mutableStateOf<String?>(null) }
     var intervalMenuOpen by remember { mutableStateOf(false) }
+    var sourceMenuOpen by remember { mutableStateOf(false) }
 
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
@@ -1810,6 +1820,28 @@ fun UpdateSection(
         }
         Switch(checked = includePreReleases, onCheckedChange = onTogglePreReleases)
         Text(Localization.get(language, "include_prereleases"))
+    }
+
+    // Update source (fork vs original repo).
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(Localization.get(language, "update_source"), style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.weight(1f))
+        Box {
+            OutlinedButton(onClick = { sourceMenuOpen = true }) {
+                Text(UpdateSource.repoFor(updateSource))
+            }
+            DropdownMenu(expanded = sourceMenuOpen, onDismissRequest = { sourceMenuOpen = false }) {
+                listOf(UpdateSource.FORK, UpdateSource.ORIGINAL).forEach { source ->
+                    DropdownMenuItem(
+                        text = { Text(UpdateSource.repoFor(source)) },
+                        onClick = {
+                            sourceMenuOpen = false
+                            onUpdateSourceChange(source)
+                        },
+                    )
+                }
+            }
+        }
     }
 
     // Automatic check frequency.

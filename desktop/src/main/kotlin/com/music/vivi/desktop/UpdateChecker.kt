@@ -42,16 +42,33 @@ sealed interface UpdateStatus {
 }
 
 /**
+ * Selectable update source: the user's fork (default) or the original repo.
+ * Resolves to the GitHub owner/name and default branch used by the update
+ * checker and the live-changelog fetch.
+ */
+object UpdateSource {
+    const val FORK = "fork"
+    const val ORIGINAL = "original"
+
+    fun current(): String = DesktopSettings.load().updateSource
+
+    /** GitHub owner/name for a given source key (fork vs original). */
+    fun repoFor(source: String): String =
+        if (source == ORIGINAL) "vivizzz007/vivi-music" else "PiBOH/vivi-music"
+
+    fun repo(): String = repoFor(current())
+
+    fun branch(): String =
+        if (current() == ORIGINAL) "main" else "vivi-music-de"
+}
+
+/**
  * Compares the locally installed DE version against the newest desktop release
  * on GitHub. Desktop releases are identified by a tag containing `_DE-`
  * (e.g. `6.1.0_DE-1.2.1` or `6.1.0_DE-1.2.1-nightly`); the mobile releases
  * (tags like `6.1.0`) are ignored.
  */
 object UpdateChecker {
-    private const val REPO = "PiBOH/vivi-music"
-    private const val DEFAULT_BRANCH = "vivi-music-de"
-    private const val API_URL = "https://api.github.com/repos/$REPO/releases"
-
     private val json = Json { ignoreUnknownKeys = true }
     private val client = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -154,7 +171,7 @@ object UpdateChecker {
      */
     fun fetchChangelogFromRepo(): String? = try {
         val request = Request.Builder()
-            .url("https://raw.githubusercontent.com/$REPO/$DEFAULT_BRANCH/CHANGELOG.md")
+            .url("https://raw.githubusercontent.com/${UpdateSource.repo()}/${UpdateSource.branch()}/CHANGELOG.md")
             .header("User-Agent", "VIVIMusic-Desktop-Updater")
             .build()
         client.newCall(request).execute().use { response ->
@@ -171,7 +188,7 @@ object UpdateChecker {
      */
     fun latestReleaseNotes(): String? = try {
         val request = Request.Builder()
-            .url("$API_URL?per_page=100")
+            .url("https://api.github.com/repos/${UpdateSource.repo()}/releases?per_page=100")
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "VIVIMusic-Desktop-Updater")
             .build()
@@ -194,7 +211,7 @@ object UpdateChecker {
      */
     fun check(includePreReleases: Boolean): UpdateStatus = try {
         val request = Request.Builder()
-            .url("$API_URL?per_page=100")
+            .url("https://api.github.com/repos/${UpdateSource.repo()}/releases?per_page=100")
             .header("Accept", "application/vnd.github+json")
             .header("User-Agent", "VIVIMusic-Desktop-Updater")
             .build()

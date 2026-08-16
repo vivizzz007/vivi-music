@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.10_DE-1.33.43] - 2026-08-16
+
+### Added
+
+- [DE+APK] Selectable update source: pick whether update checks read from the
+  original repo (`vivizzz007/vivi-music`) or the PiBOH fork
+  (`PiBOH/vivi-music`). Desktop defaults to the fork, mobile defaults to the
+  original. The source is also used for the download/notification URLs.
+
 ## [6.4.9_DE-1.33.42] - 2026-08-16
 
 ### Added

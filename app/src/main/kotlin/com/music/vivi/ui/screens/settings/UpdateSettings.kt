@@ -48,6 +48,13 @@ import com.music.vivi.vivimusic.updater.clearDownloadedApks
 import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.saveBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.autoClearOldApks
+import com.music.vivi.vivimusic.updater.getUpdateSource
+import com.music.vivi.vivimusic.updater.saveUpdateSource
+import com.music.vivi.vivimusic.updater.updateRepo
+import com.music.vivi.vivimusic.updater.UPDATE_SOURCE_FORK
+import com.music.vivi.vivimusic.updater.UPDATE_SOURCE_ORIGINAL
+import com.music.vivi.vivimusic.updater.REPO_FORK
+import com.music.vivi.vivimusic.updater.REPO_ORIGINAL
 import androidx.compose.material3.MaterialTheme
 import com.music.vivi.BuildConfig
 import com.music.vivi.utils.rememberPreference
@@ -80,6 +87,7 @@ fun UpdateSettings(
     val context = LocalContext.current
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
+    var updateSource by remember { mutableStateOf(getUpdateSource(context)) }
     var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context)) }
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
@@ -178,7 +186,7 @@ fun UpdateSettings(
                     onClick = {
                         val isFoss = !BuildConfig.CAST_AVAILABLE
                         if (isFoss) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest"))
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/${updateRepo(context)}/releases/latest"))
                             context.startActivity(intent)
                         } else {
                             navController.navigate("update")
@@ -259,6 +267,34 @@ fun UpdateSettings(
                     onClick = {
                         betaUpdatesEnabled = !betaUpdatesEnabled
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
+                    },
+                    isExpressive = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.github),
+                    title = { Text(stringResource(R.string.update_source)) },
+                    description = { Text(if (updateSource == UPDATE_SOURCE_FORK) REPO_FORK else REPO_ORIGINAL) },
+                    trailingContent = {
+                        Switch(
+                            checked = updateSource == UPDATE_SOURCE_FORK,
+                            onCheckedChange = { isFork ->
+                                updateSource = if (isFork) UPDATE_SOURCE_FORK else UPDATE_SOURCE_ORIGINAL
+                                saveUpdateSource(context, updateSource)
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (updateSource == UPDATE_SOURCE_FORK) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        updateSource = if (updateSource == UPDATE_SOURCE_FORK) UPDATE_SOURCE_ORIGINAL else UPDATE_SOURCE_FORK
+                        saveUpdateSource(context, updateSource)
                     },
                     isExpressive = true
                 ),

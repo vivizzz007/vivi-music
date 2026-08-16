@@ -304,6 +304,7 @@ ENGLISH = {
     "update_failed": "Update check failed",
     "current_version": "Current version",
     "update_check_interval": "Update check interval",
+    "update_source": "Update source",
     "interval_manual": "Manual only",
     "interval_6h": "Every 6 hours",
     "interval_12h": "Every 12 hours",

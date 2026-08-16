@@ -71,5 +71,6 @@
     <string name="donate">Bağış Yap</string>
     <string name="support_development">Geliştirmeyi Destekle</string>
     <string name="beta_updates">Beta Güncellemeleri</string>
+    <string name="update_source">Güncelleme kaynağı</string>
     <string name="beta_updates_subtitle">Beta güncellemeleri almak istiyorsanız bunu etkinleştirin (örn. b5.0.1)</string>
 </resources>

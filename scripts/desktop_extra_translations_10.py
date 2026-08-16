@@ -122,4 +122,18 @@ EXTRA_TRANSLATIONS = {
         "tr": "Uygulama içi bildirim kaybolmadan önce ekranda ne kadar kalır.", "uk": "Скільки часу сповіщення залишається на екрані перед зникненням.",
         "vi": "Thông báo trong ứng dụng hiển thị bao lâu trên màn hình trước khi biến mất.", "zh-rCN": "应用内通知在消失前在屏幕上停留的时间。", "zh-rTW": "應用內通知在消失前於畫面上停留的時間。",
     },
+    "update_source": {
+        "ar": "مصدر التحديث", "as": "আপডেট উৎস", "az": "Yeniləmə mənbəyi", "be": "Крыніца абнаўленняў",
+        "bg": "Източник на актуализации", "bn": "আপডেটের উৎস", "bs": "Izvor ažuriranja", "ca": "Font d'actualitzacions",
+        "cs": "Zdroj aktualizací", "de": "Update-Quelle", "el": "Πηγή ενημερώσεων", "es": "Fuente de actualizaciones",
+        "et": "Värskenduse allikas", "eu": "Eguneratze-iturria", "fi": "Päivityslähde", "fil": "Pinagmulan ng update",
+        "fr": "Source de mise à jour", "hi": "अपडेट स्रोत", "hr": "Izvor ažuriranja", "hu": "Frissítés forrása",
+        "id": "Sumber pembaruan", "it": "Origine aggiornamenti", "ja": "更新ソース", "km": "ប្រភពនៃការធ្វើបច្ចុប្បន្នភាព",
+        "ko": "업데이트 소스", "lt": "Atnaujinimo šaltinis", "ml": "അപ്ഡേറ്റ് ഉറവിടം", "ms": "Sumber kemas kini",
+        "nb": "Oppdateringskilde", "nl": "Updatebron", "pa": "ਅੱਪਡੇਟ ਸਰੋਤ", "pl": "Źródło aktualizacji",
+        "pt": "Origem de atualizações", "ro": "Sursă de actualizare", "ru": "Источник обновлений", "sk": "Zdroj aktualizácií",
+        "sl": "Vir posodobitev", "sr": "Izvor ažuriranja", "sv": "Uppdateringskälla", "ta": "புதுப்பிப்பு மூலம்",
+        "te": "అప్డేట్ మూలం", "th": "แหล่งที่มาของการอัปเดต", "tr": "Güncelleme kaynağı", "uk": "Джерело оновлень",
+        "vi": "Nguồn cập nhật", "zh-rCN": "更新来源", "zh-rTW": "更新來源",
+    },
 }

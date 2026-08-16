@@ -50,6 +50,8 @@ data class DesktopSyncState(
     val devShowInTitleBar: Boolean = false,
     val devProfile: String = "FULL",
     val updateCheckIntervalHours: Int = 24,
+    /** Update source: "fork" (PiBOH/vivi-music, default) or "original" (vivizzz007/vivi-music). */
+    val updateSource: String = "fork",
     /** Where update notifications are shown: "in_app" (default) or "native". */
     val notificationMode: String = "in_app",
     /** Record every notification (in-app and native) for the history screen. */
