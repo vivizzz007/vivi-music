@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.8] - 2026-08-16
+
+### Changed
+
+- [DE] The GitHub logo in About → Community is now a vector icon (ported from
+  the mobile app) instead of a static PNG, so it tints with the accent color
+  and adapts to dark/light mode.
+
 ## [6.4.3_DE-1.33.7] - 2026-08-16
 
 ### Changed
