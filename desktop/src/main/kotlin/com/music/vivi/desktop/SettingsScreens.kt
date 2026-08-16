@@ -20,12 +20,14 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,12 +42,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.innertube.models.YouTubeLocale
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlin.system.exitProcess
 
 /** YouTube host-language codes (mirrors the Android app's `LanguageCodeToName`). */
@@ -376,12 +377,50 @@ fun SettingsStorageScreen(language: String, onBack: () -> Unit) {
     SettingsSubScreen(language, onBack) { StorageSection(language) }
 }
 
-/** Backup & restore: export the desktop settings to a file and import them back. */
+/**
+ * Backup & restore: exports/imports a full backup (settings, playlists, account
+ * and library) via [BackupManager], plus the automatic-backup preferences and
+ * the list of stored automatic backups.
+ */
 @Composable
 fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var showRestartDialog by remember { mutableStateOf(false) }
+
+    var autoBackupEnabled by remember { mutableStateOf(DesktopSettings.load().autoBackupEnabled) }
+    var autoBackupWeekly by remember { mutableStateOf(DesktopSettings.load().autoBackupWeekly) }
+    var autoBackupBeforeUpdate by remember { mutableStateOf(DesktopSettings.load().autoBackupBeforeUpdate) }
+
+    var backups by remember { mutableStateOf<List<File>>(emptyList()) }
+    var restoreTarget by remember { mutableStateOf<File?>(null) }
+    var deleteTarget by remember { mutableStateOf<File?>(null) }
+    var pendingRestore by remember { mutableStateOf<File?>(null) }
+    var pendingDelete by remember { mutableStateOf<File?>(null) }
+
+    fun reloadBackups() { backups = BackupManager.listAuto() }
+
+    LaunchedEffect(Unit) { reloadBackups() }
+
+    // Defer destructive actions until the dialog is dismissed, so the list
+    // reflows after the popup window is torn down (avoids the Compose
+    // "layouts are not part of the same hierarchy" crash).
+    LaunchedEffect(restoreTarget) {
+        val f = pendingRestore
+        if (restoreTarget == null && f != null) {
+            pendingRestore = null
+            withContext(Dispatchers.IO) { BackupManager.import(f) }
+            showRestartDialog = true
+        }
+    }
+    LaunchedEffect(deleteTarget) {
+        val f = pendingDelete
+        if (deleteTarget == null && f != null) {
+            pendingDelete = null
+            withContext(Dispatchers.IO) { BackupManager.deleteAuto(f) }
+            reloadBackups()
+        }
+    }
 
     SettingsSubScreen(language, onBack) {
         Text(
@@ -403,7 +442,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
                 busy = true
                 scope.launch {
                     val file = withContext(Dispatchers.IO) { chooseBackupFile(save = true) }
-                    val ok = file != null && withContext(Dispatchers.IO) { exportSettings(file) }
+                    val ok = file != null && withContext(Dispatchers.IO) { BackupManager.export(file) }
                     busy = false
                     DesktopSnackbar.show(Localization.get(language, if (ok) "backup_create_success" else "backup_create_failed"))
                 }
@@ -428,7 +467,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
                 busy = true
                 scope.launch {
                     val file = withContext(Dispatchers.IO) { chooseBackupFile(save = false) }
-                    val ok = file != null && withContext(Dispatchers.IO) { importSettings(file) }
+                    val ok = file != null && withContext(Dispatchers.IO) { BackupManager.import(file) }
                     busy = false
                     if (ok) showRestartDialog = true
                     else DesktopSnackbar.show(Localization.get(language, "restore_failed"))
@@ -445,6 +484,97 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp),
         )
+
+        HorizontalDivider(Modifier.padding(vertical = 20.dp))
+
+        // Automatic backups
+        Text(Localization.get(language, "auto_backup"), style = MaterialTheme.typography.titleMedium)
+        Text(
+            Localization.get(language, "automatic_backup_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+
+        BackupToggleRow(
+            language = language,
+            titleKey = "enable_automatic_backup",
+            checked = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupEnabled = it
+                DesktopSettings.update { s -> s.copy(autoBackupEnabled = it) }
+            },
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "weekly_backup",
+            descKey = "weekly_backup_desc",
+            checked = autoBackupWeekly,
+            enabled = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupWeekly = it
+                DesktopSettings.update { s -> s.copy(autoBackupWeekly = it) }
+            },
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "backup_before_update",
+            descKey = "backup_before_update_desc",
+            checked = autoBackupBeforeUpdate,
+            enabled = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupBeforeUpdate = it
+                DesktopSettings.update { s -> s.copy(autoBackupBeforeUpdate = it) }
+            },
+        )
+
+        // Stored automatic backups
+        Text(
+            Localization.get(language, "stored_backups"),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 20.dp),
+        )
+        if (backups.isEmpty()) {
+            Text(
+                Localization.get(language, "backups_empty"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        } else {
+            backups.forEach { file ->
+                val (date, type) = parseAutoBackupName(file.name)
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(date, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            Localization.get(language, type),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    TextButton(
+                        onClick = {
+                            pendingRestore = file
+                            restoreTarget = file
+                        },
+                    ) {
+                        Text(Localization.get(language, "action_restore"))
+                    }
+                    TextButton(
+                        onClick = {
+                            pendingDelete = file
+                            deleteTarget = file
+                        },
+                    ) {
+                        Text(Localization.get(language, "delete"), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
     }
 
     if (showRestartDialog) {
@@ -464,6 +594,89 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             },
         )
     }
+
+    restoreTarget?.let { file ->
+        AlertDialog(
+            onDismissRequest = { restoreTarget = null; pendingRestore = null },
+            title = { Text(Localization.get(language, "action_restore")) },
+            text = { Text(Localization.get(language, "restore_backup_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { restoreTarget = null }) {
+                    Text(Localization.get(language, "action_restore"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { restoreTarget = null; pendingRestore = null }) {
+                    Text(Localization.get(language, "later"))
+                }
+            },
+        )
+    }
+
+    deleteTarget?.let { file ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null; pendingDelete = null },
+            title = { Text(Localization.get(language, "delete")) },
+            text = { Text(Localization.get(language, "delete_backup_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text(Localization.get(language, "delete"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null; pendingDelete = null }) {
+                    Text(Localization.get(language, "later"))
+                }
+            },
+        )
+    }
+}
+
+/** A labelled switch row used by the backup screen (title + optional description). */
+@Composable
+private fun BackupToggleRow(
+    language: String,
+    titleKey: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+    descKey: String? = null,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Column(Modifier.weight(1f)) {
+            Text(Localization.get(language, titleKey))
+            if (descKey != null) {
+                Text(
+                    Localization.get(language, descKey),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/** Extracts a display date + a type key (`backup_type_weekly`/`backup_type_before_update`) from a backup filename. */
+private fun parseAutoBackupName(name: String): Pair<String, String> {
+    val ts = Regex("""(\d{8}_\d{6})\.backup$""").find(name)?.groupValues?.getOrNull(1)
+    val date = if (ts != null) {
+        runCatching {
+            LocalDateTime.parse(ts, DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        }.getOrDefault(ts)
+    } else {
+        name
+    }
+    val type = if (name.contains("before_update")) "backup_type_before_update" else "backup_type_weekly"
+    return date to type
 }
 
 /** Native save/open dialog for the backup file (blocks; call on Dispatchers.IO). */
@@ -480,29 +693,6 @@ private fun chooseBackupFile(save: Boolean): File? = runCatching {
     dialog.dispose()
     if (dir != null && name != null) File(dir, name) else null
 }.getOrNull()
-
-/** Writes the current settings to [file] as JSON. */
-private fun exportSettings(file: File): Boolean = runCatching {
-    val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
-    file.writeText(json.encodeToString(DesktopSyncState.serializer(), DesktopSettings.load()))
-}.isSuccess
-
-/**
- * Imports settings from [file]. Preserves this machine's device id and its
- * first-launch date, and drops any stale pairing, so importing a backup from
- * another machine can't leave the app claiming it is still paired.
- */
-private fun importSettings(file: File): Boolean = runCatching {
-    val json = Json { ignoreUnknownKeys = true }
-    val imported = json.decodeFromString(DesktopSyncState.serializer(), file.readText())
-    DesktopSettings.update { current ->
-        imported.copy(
-            deviceId = current.deviceId,
-            firstLaunchDate = current.firstLaunchDate,
-            pairId = "",
-        )
-    }
-}.isSuccess
 
 @Composable
 fun SettingsContentScreen(
@@ -716,6 +906,7 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
         modifier = Modifier.padding(top = 8.dp),
     )
 
+    // Master switch, always visible (unlock is also available from About).
     Row(
         Modifier.fillMaxWidth().padding(top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -728,11 +919,10 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
     }
 
     if (enabled) {
-        Text(
-            Localization.get(language, "dev_tools_mode"),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp),
-        )
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Display: where the live stats are shown ----
+        DevSectionHeader(language, "dev_tools_mode")
         Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
@@ -752,11 +942,10 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             }
         }
 
-        Text(
-            Localization.get(language, "dev_tools_profile"),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp),
-        )
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Monitoring: how much detail is shown ----
+        DevSectionHeader(language, "dev_tools_profile")
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = { DeveloperOptions.setProfile(DevToolsProfile.FULL) },
@@ -768,14 +957,17 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             ) { Text(Localization.get(language, "dev_tools_profile_performance")) }
         }
 
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Overlay behaviour ----
+        DevSectionHeader(language, "dev_tools_movable")
         Row(
-            Modifier.fillMaxWidth().padding(top = 16.dp),
+            Modifier.fillMaxWidth().padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Switch(checked = movable, onCheckedChange = { DeveloperOptions.setOverlayMovable(it) })
             Column(Modifier.clickable { DeveloperOptions.setOverlayMovable(!movable) }) {
-                Text(Localization.get(language, "dev_tools_movable"))
                 Text(
                     Localization.get(language, "dev_tools_movable_desc"),
                     style = MaterialTheme.typography.bodySmall,
@@ -784,14 +976,17 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             }
         }
 
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Title bar ----
+        DevSectionHeader(language, "dev_tools_title_bar")
         Row(
-            Modifier.fillMaxWidth().padding(top = 16.dp),
+            Modifier.fillMaxWidth().padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Switch(checked = titleBar, onCheckedChange = { DeveloperOptions.setShowInTitleBar(it) })
             Column(Modifier.clickable { DeveloperOptions.setShowInTitleBar(!titleBar) }) {
-                Text(Localization.get(language, "dev_tools_title_bar"))
                 Text(
                     Localization.get(language, "dev_tools_title_bar_desc"),
                     style = MaterialTheme.typography.bodySmall,
@@ -800,6 +995,16 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             }
         }
     }
+}
+
+/** Section heading inside the (reorganized) developer options screen. */
+@Composable
+private fun DevSectionHeader(language: String, key: String) {
+    Text(
+        Localization.get(language, key),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+    )
 }
 
 /** Notification preferences: where update notifications are shown. */

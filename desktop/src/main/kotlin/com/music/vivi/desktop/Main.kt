@@ -245,6 +245,14 @@ fun App(
     // the requests as bots and 403s audio playback.
     LaunchedEffect(Unit) { GuestSession.ensure() }
 
+    // Scheduled automatic backups (weekly): check on startup, then hourly.
+    LaunchedEffect(Unit) {
+        while (true) {
+            runCatching { BackupManager.maybeRunScheduled() }
+            delay(3600_000L)
+        }
+    }
+
     var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
     var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
     var sidebarCollapsed by remember { mutableStateOf(DesktopSettings.load().sidebarCollapsed) }
@@ -1858,12 +1866,20 @@ fun UpdateSection(
                     Button(
                         onClick = {
                             openError = null
-                            if (openFile(downloadedFile!!)) {
-                                // The app must close so the installer can replace
-                                // the running files (updates cannot install otherwise).
-                                exitProcess(0)
-                            } else {
-                                openError = Localization.get(language, "open_failed")
+                            scope.launch {
+                                // Automatic backup right before applying the
+                                // update (if the user enabled it).
+                                val s = DesktopSettings.load()
+                                if (s.autoBackupEnabled && s.autoBackupBeforeUpdate) {
+                                    withContext(Dispatchers.IO) { BackupManager.autoBackup("before_update") }
+                                }
+                                if (openFile(downloadedFile!!)) {
+                                    // The app must close so the installer can replace
+                                    // the running files (updates cannot install otherwise).
+                                    exitProcess(0)
+                                } else {
+                                    openError = Localization.get(language, "open_failed")
+                                }
                             }
                         },
                         modifier = Modifier.padding(top = 4.dp),

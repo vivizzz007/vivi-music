@@ -58,6 +58,12 @@ data class DesktopSyncState(
     val inAppNotificationDurationSeconds: Int = 5,
     /** Recent notifications (newest first), capped at a small number. */
     val notificationHistory: List<NotificationRecord> = emptyList(),
+    /** Master toggle for automatic backups. */
+    val autoBackupEnabled: Boolean = false,
+    /** Run an automatic backup once a week. */
+    val autoBackupWeekly: Boolean = false,
+    /** Run an automatic backup before installing an update. */
+    val autoBackupBeforeUpdate: Boolean = true,
 )
 
 object DesktopSettings {

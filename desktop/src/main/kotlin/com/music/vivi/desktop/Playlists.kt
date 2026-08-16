@@ -155,6 +155,12 @@ object PlaylistStore {
         return _all.value.filterNot { it.deleted && it.updatedAt < cutoff }
     }
 
+    /** Replaces the whole store (used when restoring a backup) and persists. */
+    fun replaceAll(playlists: List<SyncedPlaylist>) {
+        _all.value = playlists
+        persist()
+    }
+
     private fun newId(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         val suffix = (1..8).map { chars.random() }.joinToString("")

@@ -11,6 +11,23 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.7_DE-1.33.36] - 2026-08-16
+
+### Added
+
+- [DE] Full backup & restore, ported from mobile: a backup now includes
+  settings, playlists, account/login and library (ZIP with `settings.json` +
+  `playlists.json`), and old single-JSON `.backup` files are still importable.
+- [DE] Automatic backups: optional weekly backup and an optional "backup before
+  update" that runs automatically before opening the installer. Automatic
+  backups are stored under `~/.vivimusic/backups/` and can be restored or
+  deleted from Settings → Backup.
+
+### Changed
+
+- [DE] Developer options screen reorganized into clear sections (display,
+  monitoring profile, overlay behaviour, title bar) separated by dividers.
+
 ## [6.4.7_DE-1.33.35] - 2026-08-16
 
 ### Fixed
