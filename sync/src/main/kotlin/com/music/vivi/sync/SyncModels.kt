@@ -82,8 +82,12 @@ data class PlaybackSnapshot(
      */
     val positionAtMs: Long = 0L,
     val isPlaying: Boolean = false,
-    /** Player volume (0f..1f). Syncs the volume slider between the two devices. */
+    /** In-app player volume (0f..1f): syncs the VIVI volume slider between the
+     *  two devices (mobile playerVolume <-> desktop player volume). */
     val volume: Float? = null,
+    /** Native OS system volume (0f..1f): Android STREAM_MUSIC <-> desktop OS
+     *  master volume. Null when the sender can't read its system volume. */
+    val systemVolume: Float? = null,
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,
     val queueTitle: String? = null,

@@ -11,6 +11,23 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.16] - 2026-08-16
+
+### Fixed
+
+- [DE] Seek slider couldn't be dragged to the middle: the track duration is now
+  taken from the player response (`videoDetails.lengthSeconds`) and reported
+  immediately, so the slider has a correct range (previously the AAC-derived
+  fallback could be 0/wrong and the slider only landed on start or end).
+
+### Changed
+
+- [DE+APK] Device-sync volume now uses two separate channels: the in-app player
+  volume (mobile slider <-> desktop slider, pixel-synced) and the native OS
+  system volume (Android STREAM_MUSIC <-> desktop OS volume). The desktop reads
+  and writes its OS volume via WinMM (Windows), `pactl`/`amixer` (Linux) and
+  `osascript` (macOS), all best-effort and guarded.
+
 ## [6.4.3_DE-1.33.15] - 2026-08-16
 
 ### Fixed

@@ -44,8 +44,10 @@ object StreamResolver {
         }
     }
 
-    /** A resolved stream URL plus the User-Agent required to download it. */
-    data class ResolvedStream(val url: String, val userAgent: String)
+    /** A resolved stream URL plus the User-Agent required to download it, and
+     *  the authoritative track length (from `videoDetails.lengthSeconds`) when
+     *  known — used to give the seek slider a correct range immediately. */
+    data class ResolvedStream(val url: String, val userAgent: String, val durationMs: Long? = null)
 
     /** Fast, PoToken-free main client (same as the mobile app). */
     private val MAIN_CLIENT: YouTubeClient = YouTubeClient.ANDROID_VR_1_43_32
@@ -147,7 +149,8 @@ object StreamResolver {
             if (response.playabilityStatus.status != "OK") continue
 
             val url = resolveFromResponse(response, quality.preferredItags, ytClient) ?: continue
-            val stream = ResolvedStream(url, ytClient.userAgent)
+            val durationMs = response.videoDetails?.lengthSeconds?.toDoubleOrNull()?.times(1000)?.toLong()
+            val stream = ResolvedStream(url, ytClient.userAgent, durationMs)
             val seen = (candidates + validated + unvalidated).any { it.url == url }
             if (seen) continue
             if (validateUrl(url, ytClient.userAgent)) validated += stream else unvalidated += stream

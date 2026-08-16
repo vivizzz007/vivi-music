@@ -734,6 +734,9 @@ class MusicService :
             }
         }
 
+        // Push in-app volume-slider changes to the paired desktop edition.
+        playerVolume.debounce(300).collect(scope) { pushPlaybackToDesktop() }
+
         currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
             updateWidgetUI(player.isPlaying)
@@ -1498,7 +1501,8 @@ class MusicService :
                 trackTitle = meta?.title,
                 positionMs = player.currentPosition,
                 isPlaying = player.isPlaying,
-                volume = systemVolume(),
+                volume = playerVolume.value,
+                systemVolume = systemVolume(),
                 queue = items.map { item ->
                     item.metadata?.toTrackRef()
                         ?: TrackRef(id = item.mediaId, title = item.mediaId)
@@ -1512,9 +1516,11 @@ class MusicService :
 
     /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
     private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
-        // Volume sync first: mirror the desktop's volume on the system music
-        // stream even if the snapshot has no track/queue (volume-only updates).
-        snapshot.volume?.let { v -> setSystemVolume(v) }
+        // Volume sync first, even if the snapshot has no track/queue:
+        // - `volume` mirrors the desktop's in-app (player) volume slider.
+        // - `systemVolume` mirrors the desktop's native OS volume.
+        snapshot.volume?.let { v -> playerVolume.value = v.coerceIn(0f, 1f) }
+        snapshot.systemVolume?.let { v -> setSystemVolume(v) }
         val items = snapshot.queue.map { it.toMediaItem() }
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)

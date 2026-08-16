@@ -136,10 +136,16 @@ class AudioPlayer {
         currentStreams = streams
         currentCacheKey = cacheKey
 
+        // Report the authoritative duration (from the player response) right
+        // away so the seek slider has a correct range even before the first
+        // frame is decoded. The AAC-derived duration is only a fallback.
+        val knownDurationMs = streams.firstNotNullOfOrNull { it.durationMs }?.takeIf { it > 0 } ?: 0L
+        if (knownDurationMs > 0) onDuration?.invoke(knownDurationMs)
+
         thread = Thread {
             try {
                 val file = ensureDownloaded(streams, cacheKey)
-                decodeAndPlay(file, gen, startAtMs)
+                decodeAndPlay(file, gen, startAtMs, knownDurationMs)
             } catch (e: Exception) {
                 if (gen == generation) {
                     onError?.invoke(e.message ?: e::class.simpleName ?: "Unknown playback error")
@@ -249,7 +255,7 @@ class AudioPlayer {
         return samples
     }
 
-    private fun decodeAndPlay(file: File, gen: Int, startAtMs: Long) {
+    private fun decodeAndPlay(file: File, gen: Int, startAtMs: Long, knownDurationMs: Long = 0L) {
         NIOUtils.readableChannel(file).use { channel ->
             val demuxer = MP4Demuxer.createMP4Demuxer(channel)
             val track = demuxer.audioTracks.firstOrNull() as? AbstractMP4DemuxerTrack
@@ -286,7 +292,11 @@ class AudioPlayer {
         val metaDurationMs = runCatching { track.meta.totalDuration }
             .getOrNull()?.takeIf { it > 0 }?.let { (it * 1000).toLong() } ?: 0L
         val derivedDurationMs = (firstFrameSeconds * samples.size * 1000).toLong()
-        if (gen == generation) onDuration?.invoke(maxOf(derivedDurationMs, metaDurationMs))
+        // Prefer the player-response duration (accurate); the AAC derivation is
+        // only a fallback for streams that didn't carry a lengthSeconds value.
+        val durationMs = if (knownDurationMs > 0) knownDurationMs
+            else maxOf(derivedDurationMs, metaDurationMs)
+        if (gen == generation) onDuration?.invoke(durationMs)
 
         val format = AudioFormat(
                 buffer.sampleRate.toFloat(),

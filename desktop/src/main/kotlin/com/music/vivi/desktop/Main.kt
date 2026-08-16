@@ -352,6 +352,10 @@ fun App(
     // ---- Device sync (Android <-> desktop) ----
     val syncManager = remember { DesktopSyncManager() }
 
+    // Echo guard for the OS system volume: when we apply a remote value, we
+    // must not push the resulting local OS change straight back to the peer.
+    val systemVolumeGuard = remember { SystemVolumeGuard() }
+
     // Push the local playback state to the peer when the track, play/pause
     // state, or queue changes (position is sent as a best-effort snapshot).
     LaunchedEffect(syncManager) {
@@ -386,12 +390,41 @@ fun App(
         }
     }
 
+    // Poll the OS system volume and push changes to the peer (so changing the
+    // Windows/Linux/mac volume controls the phone's system volume, and vice
+    // versa). Echo-suppressed so a locally-applied remote value isn't bounced.
+    LaunchedEffect(syncManager) {
+        while (true) {
+            val sv = SystemVolume.get()
+            if (sv != null) {
+                val isEcho = System.currentTimeMillis() < systemVolumeGuard.echoUntil &&
+                    abs(sv - systemVolumeGuard.echoValue) < 0.02f
+                val changed = systemVolumeGuard.lastPushed == null ||
+                    abs(sv - systemVolumeGuard.lastPushed!!) > 0.01f
+                if (!isEcho && changed) {
+                    systemVolumeGuard.lastPushed = sv
+                    val s = player.state.value
+                    val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
+                    syncManager.updatePlayback(snapshot.copy(systemVolume = sv))
+                }
+            }
+            delay(800L)
+        }
+    }
+
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
-            // Volume sync: mirror the peer's volume slider.
+            // App (player) volume sync: mirror the peer's in-app volume slider.
             pb.volume?.let { v ->
                 if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+            }
+            // Native OS system volume sync: mirror the peer's system volume.
+            pb.systemVolume?.let { v ->
+                systemVolumeGuard.echoUntil = System.currentTimeMillis() + 1500L
+                systemVolumeGuard.echoValue = v
+                systemVolumeGuard.lastPushed = v
+                SystemVolume.set(v)
             }
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
@@ -2061,6 +2094,13 @@ private data class PlaybackSyncKey(
     val volume: Float,
 )
 
+/** Mutable echo-suppression state for the OS system-volume sync loop. */
+private class SystemVolumeGuard {
+    var echoUntil = 0L
+    var echoValue = -1f
+    var lastPushed: Float? = null
+}
+
 private fun SongItem.toSyncedSong() = SyncedSong(
     id = id,
     title = title,
@@ -2078,6 +2118,7 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         positionMs = s.positionMs,
         isPlaying = s.isPlaying,
         volume = s.volume,
+        systemVolume = SystemVolume.get(),
         queue = s.queue.map { np ->
             TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
         },

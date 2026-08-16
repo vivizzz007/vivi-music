@@ -71,6 +71,10 @@ dependencies {
     // for self-contained desktop audio playback.
     implementation("org.jcodec:jcodec:0.2.5")
 
+    // Native OS system-volume access (WinMM wave output on Windows) so the
+    // Android system volume can be mirrored on the desktop and vice versa.
+    implementation("net.java.dev.jna:jna:5.14.0")
+
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
