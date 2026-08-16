@@ -548,11 +548,18 @@ fun App(
                     SyncServer.RESYNC_TOLERANCE_MS,
                 )
             } else {
-                val tracks = pb.queue.map { ref ->
-                    NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
-                }
-                if (tracks.isNotEmpty()) {
-                    player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+                // Last-write-wins for the queue: only replace the local queue if
+                // the remote edit is newer (or unknown, from an older peer).
+                // Volume/position sync above still runs regardless.
+                val newerQueue = pb.queueUpdatedAt <= 0L || pb.queueUpdatedAt >= syncManager.queueUpdatedAt()
+                if (newerQueue) {
+                    val tracks = pb.queue.map { ref ->
+                        NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
+                    }
+                    if (tracks.isNotEmpty()) {
+                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+                        syncManager.noteQueueApplied(pb)
+                    }
                 }
             }
         }

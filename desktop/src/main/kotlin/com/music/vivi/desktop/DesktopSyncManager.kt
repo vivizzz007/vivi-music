@@ -95,6 +95,10 @@ class DesktopSyncManager {
     private var lastSettings: Map<String, String> = emptyMap()
     private var lastLibrary: LibrarySnapshot? = null
 
+    /** Queue fingerprint + last-write-wins timestamp (shared relay-time frame). */
+    private var lastQueueFingerprint: String = ""
+    private var queueUpdatedAt: Long = 0L
+
     @Volatile
     private var suppressPushUntil = 0L
 
@@ -205,10 +209,33 @@ class DesktopSyncManager {
      */
     fun updatePlayback(playback: PlaybackSnapshot?): Boolean {
         lastPlayback = playback?.let { p ->
-            if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
+            var snap = if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
+            val fp = queueFingerprint(snap)
+            if (fp.isNotEmpty() && fp != lastQueueFingerprint) {
+                // The queue/index changed locally: stamp a fresh LWW timestamp
+                // (shared relay frame) so the peer can compare it with its own.
+                lastQueueFingerprint = fp
+                queueUpdatedAt = serverNowMs()
+            }
+            snap.copy(queueUpdatedAt = queueUpdatedAt)
         }
         return pushSnapshot()
     }
+
+    /** Last-write-wins timestamp of the local queue (relay frame); 0 = none. */
+    fun queueUpdatedAt(): Long = queueUpdatedAt
+
+    /** Adopts the remote queue's fingerprint + timestamp right after applying it. */
+    fun noteQueueApplied(snapshot: PlaybackSnapshot) {
+        val fp = queueFingerprint(snapshot)
+        if (fp.isNotEmpty()) {
+            lastQueueFingerprint = fp
+            if (snapshot.queueUpdatedAt > 0L) queueUpdatedAt = snapshot.queueUpdatedAt
+        }
+    }
+
+    private fun queueFingerprint(p: PlaybackSnapshot): String =
+        if (p.queue.isEmpty()) "" else p.queue.joinToString("|") { it.id } + "@" + p.queueIndex
 
     /** Update the local settings snapshot and push it to the peer (if paired). */
     fun updateSettings(settings: Map<String, String>) {

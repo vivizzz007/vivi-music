@@ -91,6 +91,13 @@ data class PlaybackSnapshot(
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,
     val queueTitle: String? = null,
+    /**
+     * Epoch millis (shared relay-time reference frame) when the queue/index was
+     * last changed locally. `0` means unknown (older peer) and the queue is then
+     * applied unconditionally. Used for last-write-wins queue merging, mirroring
+     * the playlists' [SyncedPlaylist.updatedAt].
+     */
+    val queueUpdatedAt: Long = 0L,
 )
 
 @Serializable

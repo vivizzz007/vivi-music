@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.8_DE-1.33.38] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] Queue sync now follows last-write-wins like playlists: `PlaybackSnapshot`
+  carries a `queueUpdatedAt` timestamp (shared relay-time frame) and each side
+  only replaces its queue when the remote edit is newer, so a mobile edit can't
+  be overwritten by an older desktop queue (and vice versa). Older peers
+  (`queueUpdatedAt = 0`) still apply unconditionally for compatibility.
+
 ## [6.4.7_DE-1.33.37] - 2026-08-16
 
 ### Fixed

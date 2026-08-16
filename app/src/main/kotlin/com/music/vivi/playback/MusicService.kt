@@ -1582,6 +1582,13 @@ class MusicService :
             }
             return
         }
+        // Last-write-wins for the queue: only replace the local queue if the
+        // remote edit is newer (or unknown, from an older peer). Position and
+        // volume sync above still run regardless.
+        val newerQueue = snapshot.queueUpdatedAt <= 0L ||
+            snapshot.queueUpdatedAt >= deviceSyncManager.queueUpdatedAt()
+        if (!newerQueue) return
+        deviceSyncManager.noteQueueApplied(snapshot)
         playQueue(
             ListQueue(
                 title = snapshot.queueTitle,

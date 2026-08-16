@@ -117,6 +117,10 @@ class DeviceSyncManager @Inject constructor(
 
     private var lastLibrary: LibrarySnapshot? = null
 
+    /** Queue fingerprint + last-write-wins timestamp (shared relay-time frame). */
+    private var lastQueueFingerprint = ""
+    private var queueUpdatedAt = 0L
+
     private val _paired = MutableStateFlow(false)
     val paired: StateFlow<Boolean> = _paired.asStateFlow()
 
@@ -178,17 +182,39 @@ class DeviceSyncManager @Inject constructor(
      * callers that care (the volume poll) can retry.
      */
     fun pushPlayback(playback: PlaybackSnapshot): Boolean {
-        lastPlayback = if (playback.positionAtMs == 0L) {
+        var snap = if (playback.positionAtMs == 0L) {
             playback.copy(positionAtMs = serverNowMs())
         } else {
             playback
         }
+        val fp = queueFingerprint(snap)
+        if (fp.isNotEmpty() && fp != lastQueueFingerprint) {
+            // The queue/index changed locally: stamp a fresh LWW timestamp.
+            lastQueueFingerprint = fp
+            queueUpdatedAt = serverNowMs()
+        }
+        lastPlayback = snap.copy(queueUpdatedAt = queueUpdatedAt)
         if (System.currentTimeMillis() < suppressPlaybackPushUntil) return false
         val c = client ?: return false
         if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
         scope.launch { pushCurrentSnapshot() }
         return true
     }
+
+    /** Last-write-wins timestamp of the local queue (relay frame); 0 = none. */
+    fun queueUpdatedAt(): Long = queueUpdatedAt
+
+    /** Adopts the remote queue's fingerprint + timestamp right after applying it. */
+    fun noteQueueApplied(snapshot: PlaybackSnapshot) {
+        val fp = queueFingerprint(snapshot)
+        if (fp.isNotEmpty()) {
+            lastQueueFingerprint = fp
+            if (snapshot.queueUpdatedAt > 0L) queueUpdatedAt = snapshot.queueUpdatedAt
+        }
+    }
+
+    private fun queueFingerprint(p: PlaybackSnapshot): String =
+        if (p.queue.isEmpty()) "" else p.queue.joinToString("|") { it.id } + "@" + p.queueIndex
 
     /** Estimated clock offset to the relay server (see [SyncClient.serverOffsetMs]). */
     val serverOffsetMs: Long get() = client?.serverOffsetMs ?: 0L
