@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.4] - 2026-08-16
+
+### Fixed
+
+- [DE] Playback now retries automatically: when the stream fails to resolve or
+  download (e.g. a stale googlevideo 403), the player rotates the guest
+  identity, re-resolves a fresh stream URL and retries up to 3 attempts before
+  surfacing the error.
+
 ## [6.4.1_DE-1.33.3] - 2026-08-16
 
 ### Changed

@@ -1,6 +1,7 @@
 package com.music.vivi.desktop.player
 
 import com.music.vivi.desktop.DesktopSettings
+import com.music.vivi.desktop.GuestSession
 import com.music.vivi.desktop.NowPlaying
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,11 @@ class PlayerController {
 
     /** Whether to automatically play the next queued track when one ends. */
     @Volatile var autoPlayNext: Boolean = true
+
+    private companion object {
+        /** Total resolution/playback attempts before an error is surfaced. */
+        const val MAX_PLAY_ATTEMPTS = 3
+    }
 
     private val _state = MutableStateFlow(PlayerState())
     val state: StateFlow<PlayerState> = _state.asStateFlow()
@@ -285,6 +291,14 @@ class PlayerController {
         index: Int,
         startAtMs: Long = 0L,
         startPaused: Boolean = false,
+    ) = playAtAttempt(tracks, index, startAtMs, startPaused, attempt = 0)
+
+    private fun playAtAttempt(
+        tracks: List<NowPlaying>,
+        index: Int,
+        startAtMs: Long,
+        startPaused: Boolean,
+        attempt: Int,
     ) {
         val track = tracks[index]
         val token = ++playToken
@@ -305,7 +319,14 @@ class PlayerController {
                 StreamResolver.AudioQuality.from(DesktopSettings.load().audioQuality),
             )
             if (streams.isEmpty()) {
-                _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
+                if (attempt + 1 < MAX_PLAY_ATTEMPTS) {
+                    // Bot detection / transient resolution failure: rotate the
+                    // guest identity and try a fresh resolution.
+                    GuestSession.rotate()
+                    playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
+                } else {
+                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
+                }
                 return@launch
             }
             _state.update { it.copy(errorKey = null, errorDetail = null) }
@@ -316,10 +337,19 @@ class PlayerController {
                 startAtMs = startAtMs,
                 startPaused = startPaused,
                 onError = { msg ->
-                    _state.update { s ->
-                        if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                            s.copy(isPlaying = false, errorDetail = msg)
-                        } else s
+                    if (attempt + 1 < MAX_PLAY_ATTEMPTS) {
+                        // Download/decode failure (e.g. stale googlevideo 403):
+                        // rotate the guest identity and re-resolve, then retry.
+                        scope.launch {
+                            GuestSession.rotate()
+                            playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
+                        }
+                    } else {
+                        _state.update { s ->
+                            if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
+                                s.copy(isPlaying = false, errorDetail = msg)
+                            } else s
+                        }
                     }
                 },
                 onPosition = { pos ->
