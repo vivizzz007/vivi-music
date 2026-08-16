@@ -19,6 +19,9 @@ import kotlin.random.Random
 
 enum class RepeatMode { OFF, ALL, ONE }
 
+/** Loading state shown in the player while a track is being resolved/downloaded. */
+enum class LoadPhase { NONE, RESOLVING, DOWNLOADING }
+
 data class PlayerState(
     val queue: List<NowPlaying> = emptyList(),
     val index: Int = -1,
@@ -32,8 +35,11 @@ data class PlayerState(
     val errorKey: String? = null,
     /** Human-readable technical detail for playback failures. */
     val errorDetail: String? = null,
+    /** Current load phase (resolving / downloading / none). */
+    val loadPhase: LoadPhase = LoadPhase.NONE,
 ) {
     val current: NowPlaying? get() = queue.getOrNull(index)
+    val isLoading: Boolean get() = loadPhase != LoadPhase.NONE
 }
 
 /**
@@ -312,6 +318,7 @@ class PlayerController {
                 volume = _state.value.volume,
                 isShuffle = _state.value.isShuffle,
                 repeatMode = _state.value.repeatMode,
+                loadPhase = LoadPhase.RESOLVING,
             )
 
             val streams = StreamResolver.resolveAacStream(
@@ -325,11 +332,11 @@ class PlayerController {
                     GuestSession.rotate()
                     playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                 } else {
-                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null) }
+                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE) }
                 }
                 return@launch
             }
-            _state.update { it.copy(errorKey = null, errorDetail = null) }
+            _state.update { it.copy(errorKey = null, errorDetail = null, loadPhase = LoadPhase.DOWNLOADING) }
 
             player.play(
                 streams = streams,
@@ -347,7 +354,7 @@ class PlayerController {
                     } else {
                         _state.update { s ->
                             if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                                s.copy(isPlaying = false, errorDetail = msg)
+                                s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE)
                             } else s
                         }
                     }
@@ -362,7 +369,7 @@ class PlayerController {
                 onDuration = { dur ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                            s.copy(durationMs = dur)
+                            s.copy(durationMs = dur, loadPhase = LoadPhase.NONE)
                         } else s
                     }
                 },

@@ -32,6 +32,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 ## Phase 4 — Desktop audio playback
 - [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position). The seek slider now reports a correct track duration (derived from the decoded AAC sample count when the container's `mdhd` duration is 0, as in YouTube fMP4), seeking preserves the pause state, and stale/truncated cached audio files are detected and re-downloaded.
 - [x] Port stream resolution: NewPipe + the multi-client innerTube fallback chain, seek, and a multi-URL retry (tries every candidate and retries without `Range` on 403) are done. On a resolution/download failure the player rotates the guest identity, re-resolves a fresh stream URL and retries automatically (up to 3 attempts). PoToken, proxy and HLS are Android-only / not needed by the desktop player (fMP4/AAC via jcodec + jaad).
+- [x] Load feedback: the full player and mini-player show "Resolving audio…" / "Downloading…" (with a spinner) while the stream is resolved and downloaded.
 
 ## Phase 5 — Desktop persistence + authentication
 - [x] Persistence: the desktop uses a JSON file store (`DesktopSettings` under `~/.vivimusic/device-sync.json`); Room is Android-only and stays there.

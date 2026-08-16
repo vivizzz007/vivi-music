@@ -63,6 +63,7 @@ import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -704,6 +705,7 @@ fun App(
                         repeatMode = playerState.repeatMode,
                         errorKey = playerState.errorKey,
                         errorDetail = playerState.errorDetail,
+                        loadPhase = playerState.loadPhase,
                         onTogglePlay = { player.toggle() },
                         onNext = { player.next() },
                         onPrevious = { player.previous() },
@@ -787,6 +789,7 @@ fun App(
             MiniPlayer(
                 nowPlaying = nowPlaying,
                 isPlaying = isPlaying,
+                isLoading = playerState.isLoading,
                 positionMs = playerState.positionMs,
                 durationMs = playerState.durationMs,
                 onTogglePlay = { player.toggle() },
@@ -912,6 +915,7 @@ fun Sidebar(
 fun MiniPlayer(
     nowPlaying: NowPlaying?,
     isPlaying: Boolean,
+    isLoading: Boolean,
     positionMs: Long,
     durationMs: Long,
     onTogglePlay: () -> Unit,
@@ -948,11 +952,15 @@ fun MiniPlayer(
                     )
                 }
                 IconButton(onClick = onTogglePlay) {
-                    Icon(
-                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else {
+                        Icon(
+                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
                 IconButton(onClick = onNext) {
                     Icon(

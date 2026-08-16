@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.5] - 2026-08-16
+
+### Added
+
+- [DE] The player now shows its load state while a track starts: "Resolving
+  audio…" then "Downloading…" with a spinner, in both the full player and the
+  mini-player, so you can tell it's working instead of appearing frozen.
+
 ## [6.4.1_DE-1.33.4] - 2026-08-16
 
 ### Fixed

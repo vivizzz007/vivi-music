@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeDown
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
 import com.music.vivi.canvas.CanvasArtwork
+import com.music.vivi.desktop.player.LoadPhase
 import com.music.vivi.desktop.player.RepeatMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -78,6 +80,7 @@ fun PlayerScreen(
     repeatMode: RepeatMode,
     errorKey: String?,
     errorDetail: String?,
+    loadPhase: LoadPhase,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -118,6 +121,7 @@ fun PlayerScreen(
                 repeatMode = repeatMode,
                 errorKey = errorKey,
                 errorDetail = errorDetail,
+                loadPhase = loadPhase,
                 onTogglePlay = onTogglePlay,
                 onNext = onNext,
                 onPrevious = onPrevious,
@@ -145,6 +149,7 @@ private fun PlayerContent(
     repeatMode: RepeatMode,
     errorKey: String?,
     errorDetail: String?,
+    loadPhase: LoadPhase,
     onTogglePlay: () -> Unit,
     onNext: () -> Unit,
     onPrevious: () -> Unit,
@@ -244,6 +249,23 @@ private fun PlayerContent(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
+                }
+
+                if (loadPhase != LoadPhase.NONE) {
+                    Spacer(Modifier.height(12.dp))
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            Localization.get(language, if (loadPhase == LoadPhase.RESOLVING) "resolving" else "downloading"),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(16.dp))
