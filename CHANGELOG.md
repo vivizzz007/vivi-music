@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.6_DE-1.33.32] - 2026-08-16
+
+### Changed
+
+- [DE] The CI debug build now restores a persistent debug keystore from the
+  `DEBUG_KEYSTORE` GitHub secret instead of generating a fresh key on every
+  run, so the debug APK keeps the same signature and can be installed over the
+  previous build without uninstalling first. When the secret is absent the
+  workflow still falls back to generating a fresh key, so CI never breaks.
+
 ## [6.4.6_DE-1.33.31] - 2026-08-16
 
 ### Fixed

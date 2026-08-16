@@ -56,6 +56,7 @@ captures/
 #*.jks
 #*.keystore
 app/persistent-debug.keystore
+scripts/debug-keystore.b64
 # ^^^ think twice before removing this gitignore, it became so FUCKING
 # annoying to unstage this file every time i want to commit stuff
 
