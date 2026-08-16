@@ -970,8 +970,10 @@ from desktop_extra_translations_4 import EXTRA_TRANSLATIONS as _EXTRA_4
 from desktop_extra_translations_5 import EXTRA_TRANSLATIONS as _EXTRA_5
 from desktop_extra_translations_6 import EXTRA_TRANSLATIONS as _EXTRA_6
 from desktop_extra_translations_7 import EXTRA_TRANSLATIONS as _EXTRA_7
+from desktop_extra_translations_8 import EXTRA_TRANSLATIONS as _EXTRA_8
+from desktop_extra_translations_9 import EXTRA_TRANSLATIONS as _EXTRA_9
 
-for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7):
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9):
     TRANSLATIONS.update(_extra)
 
 

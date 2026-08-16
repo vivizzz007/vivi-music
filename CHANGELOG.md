@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.24] - 2026-08-16
+
+### Changed
+
+- [DE] Translation quality pass: filled in the remaining desktop-only keys
+  (device sync, updates, player basics) that were still falling back to
+  English, and corrected translations whose Android mapping had a different
+  (longer or wrong-context) meaning — e.g. "Check for updates" is now a short
+  button label instead of "check automatically…", "Error" no longer reads
+  "unknown error", and CPU/GPU keep their short technical form.
+
 ## [6.4.5_DE-1.33.23] - 2026-08-16
 
 ### Fixed
