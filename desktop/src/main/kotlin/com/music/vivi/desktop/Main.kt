@@ -113,6 +113,7 @@ import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.vivi.desktop.player.PlayerController
+import com.music.vivi.desktop.player.RepeatMode
 import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncServer
@@ -451,6 +452,8 @@ fun App(
                     isPlaying = s.isPlaying,
                     index = s.index,
                     queue = s.queue.map { it.videoId },
+                    repeatMode = s.repeatMode.name,
+                    isShuffle = s.isShuffle,
                 )
             }
             .distinctUntilChanged()
@@ -537,6 +540,11 @@ fun App(
                 systemVolumeGuard.lastPushed = v
                 SystemVolume.set(v)
             }
+            // Repeat mode + shuffle sync (independent of the queue/position).
+            pb.repeatMode?.let { mode ->
+                runCatching { RepeatMode.valueOf(mode) }.getOrNull()?.let { player.setRepeatMode(it) }
+            }
+            pb.isShuffle?.let { player.setShuffle(it) }
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
@@ -2285,6 +2293,8 @@ private data class PlaybackSyncKey(
     val isPlaying: Boolean,
     val index: Int,
     val queue: List<String>,
+    val repeatMode: String,
+    val isShuffle: Boolean,
 )
 
 /** Mutable echo-suppression state for a volume sync loop. */
@@ -2312,6 +2322,8 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         isPlaying = s.isPlaying,
         volume = s.volume,
         systemVolume = SystemVolume.get(),
+        repeatMode = s.repeatMode.name,
+        isShuffle = s.isShuffle,
         queue = s.queue.map { np ->
             TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
         },

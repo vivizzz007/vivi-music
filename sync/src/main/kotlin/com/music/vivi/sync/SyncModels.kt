@@ -88,6 +88,10 @@ data class PlaybackSnapshot(
     /** Native OS system volume (0f..1f): Android STREAM_MUSIC <-> desktop OS
      *  master volume. Null when the sender can't read its system volume. */
     val systemVolume: Float? = null,
+    /** Repeat mode: "OFF" / "ALL" / "ONE". Null = not set (older peer). */
+    val repeatMode: String? = null,
+    /** Shuffle enabled. Null = not set (older peer). */
+    val isShuffle: Boolean? = null,
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,
     val queueTitle: String? = null,

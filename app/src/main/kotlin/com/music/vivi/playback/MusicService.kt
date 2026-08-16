@@ -1513,6 +1513,20 @@ class MusicService :
         runCatching { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0) }
     }
 
+    /** Maps ExoPlayer's repeat mode int to the shared sync string ("OFF"/"ALL"/"ONE"). */
+    private fun repeatModeString(mode: Int): String = when (mode) {
+        REPEAT_MODE_ONE -> "ONE"
+        REPEAT_MODE_ALL -> "ALL"
+        else -> "OFF"
+    }
+
+    /** Maps the shared sync string back to ExoPlayer's repeat mode int. */
+    private fun repeatModeFromString(s: String): Int = when (s.uppercase()) {
+        "ONE" -> REPEAT_MODE_ONE
+        "ALL" -> REPEAT_MODE_ALL
+        else -> REPEAT_MODE_OFF
+    }
+
     /**
      * Pushes the current queue + position to the paired desktop edition.
      *
@@ -1531,6 +1545,8 @@ class MusicService :
                 isPlaying = player.isPlaying,
                 volume = playerVolume.value,
                 systemVolume = systemVolume(),
+                repeatMode = repeatModeString(player.repeatMode),
+                isShuffle = player.shuffleModeEnabled,
                 queue = items.map { item ->
                     item.metadata?.toTrackRef()
                         ?: TrackRef(id = item.mediaId, title = item.mediaId)
@@ -1544,6 +1560,9 @@ class MusicService :
 
     /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
     private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
+        // Repeat mode + shuffle sync first (independent of queue/position).
+        snapshot.repeatMode?.let { player.repeatMode = repeatModeFromString(it) }
+        snapshot.isShuffle?.let { player.shuffleModeEnabled = it }
         // Volume sync first, even if the snapshot has no track/queue:
         // - `volume` mirrors the desktop's in-app (player) volume slider.
         // - `systemVolume` mirrors the desktop's native OS volume.
@@ -2400,6 +2419,7 @@ class MusicService :
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
+        pushPlaybackToDesktop()
         if (shuffleModeEnabled) {
             // If queue is empty, don't shuffle
             if (player.mediaItemCount == 0) return
@@ -2428,6 +2448,7 @@ class MusicService :
 
     override fun onRepeatModeChanged(repeatMode: Int) {
         updateNotification()
+        pushPlaybackToDesktop()
         scope.launch {
             dataStore.edit { settings ->
                 settings[RepeatModeKey] = repeatMode

@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.9_DE-1.33.39] - 2026-08-16
+
+### Added
+
+- [DE+APK] Repeat mode (off / all / one) and shuffle now sync in real time
+  between the phone and the desktop, both ways, like the rest of the playback
+  state. `PlaybackSnapshot` carries `repeatMode` ("OFF"/"ALL"/"ONE") and
+  `isShuffle`; each side applies them on receive and pushes them on change.
+
 ## [6.4.8_DE-1.33.38] - 2026-08-16
 
 ### Fixed

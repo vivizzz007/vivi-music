@@ -267,6 +267,23 @@ class PlayerController {
         persistShuffleRepeat()
     }
 
+    /** Sets the shuffle state (used when applying a remote device-sync snapshot). */
+    fun setShuffle(enabled: Boolean) {
+        val s = _state.value
+        if (s.isShuffle == enabled) return
+        if (!enabled) previousStack.clear()
+        _state.update { it.copy(isShuffle = enabled) }
+        persistShuffleRepeat()
+    }
+
+    /** Sets the repeat mode (used when applying a remote device-sync snapshot). */
+    fun setRepeatMode(mode: RepeatMode) {
+        val s = _state.value
+        if (s.repeatMode == mode) return
+        _state.update { it.copy(repeatMode = mode) }
+        persistShuffleRepeat()
+    }
+
     /** Restores a saved queue without starting playback (persistent queue). */
     fun restoreQueue(tracks: List<NowPlaying>, index: Int) {
         if (tracks.isEmpty()) return
