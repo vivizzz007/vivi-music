@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.12] - 2026-08-16
+
+### Changed
+
+- [DE] GitHub release titles now use the `Vivi Music <mobile>_DE <desktop>`
+  format (e.g. `Vivi Music 6.4.3_DE 1.33.12`) instead of `Vivi Music DE
+  <mobile>_DE-<desktop>`. Tags remain unchanged.
+
 ## [6.4.3_DE-1.33.11] - 2026-08-16
 
 ### Fixed

@@ -94,13 +94,17 @@ jobs:
           else
             TAG="$FULL_VERSION-$CHANNEL"
           fi
+          # Release display name: "Vivi Music <mobile>_DE <de_version>"
+          # (e.g. "Vivi Music 6.4.3_DE 1.33.6" — no "v" prefix, no hyphen after DE).
+          TITLE_VERSION="${FULL_VERSION//_DE-/_DE }"
           echo "version=$FULL_VERSION" >> "$GITHUB_OUTPUT"
           echo "de_version=$DE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "title_version=$TITLE_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "name=Vivi Music DE $FULL_VERSION" >> "$GITHUB_OUTPUT"
+          echo "name=Vivi Music $TITLE_VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
           echo "channel=$CHANNEL" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: $FULL_VERSION (tag: $TAG, channel: $CHANNEL, prerelease: $PRERELEASE)"
+          echo "Resolved version: $FULL_VERSION (title: Vivi Music $TITLE_VERSION, tag: $TAG, channel: $CHANNEL, prerelease: $PRERELEASE)"
 
       - name: Extract changelog section
         id: changelog
@@ -210,7 +214,7 @@ jobs:
           files: artifacts/*
           fail_on_unmatched_files: true
           body: |
-            ## Vivi Music DE ${{ steps.version.outputs.version }}
+            ## Vivi Music ${{ steps.version.outputs.title_version }}
             **Release channel:** `${{ steps.version.outputs.channel }}`
 
             ${{ steps.changelog.outputs.section }}
