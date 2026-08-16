@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.7_DE-1.33.34] - 2026-08-16
+
+### Fixed
+
+- [DE] The player seek slider no longer snaps to the start or the end: it is
+  disabled until the track duration is known (so it can't degenerate into a
+  0..1 range) and, while dragging, the live playback position is ignored so it
+  can't fight the drag and yank the thumb back.
+
 ## [6.4.7_DE-1.33.33] - 2026-08-16
 
 ### Fixed

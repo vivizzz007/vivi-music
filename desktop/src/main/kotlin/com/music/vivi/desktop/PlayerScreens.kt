@@ -228,23 +228,36 @@ private fun PlayerContent(
 
             // Right: seek bar + transport controls + volume + secondary actions.
             Column(Modifier.weight(1f)) {
-                // Seek slider (position / duration).
-                var sliderPosition by remember(np.videoId) { mutableStateOf<Long?>(null) }
-                val effectivePosition = sliderPosition ?: positionMs
+                // Seek slider (position / duration). Disabled until the duration
+                // is known so the slider can never degenerate into a 0..1 range
+                // (which made the thumb snap to the start or the end). While the
+                // user drags, the live position is ignored so it can't fight the
+                // drag and yank the thumb back.
+                var isSeeking by remember(np.videoId) { mutableStateOf(false) }
+                var seekValue by remember(np.videoId) { mutableStateOf(0f) }
                 val sliderMax = durationMs.coerceAtLeast(1L)
+                val displayPosition = if (isSeeking) {
+                    seekValue
+                } else {
+                    positionMs.toFloat().coerceIn(0f, sliderMax.toFloat())
+                }
                 Slider(
-                    value = effectivePosition.toFloat().coerceIn(0f, sliderMax.toFloat()),
-                    onValueChange = { sliderPosition = it.toLong() },
-                    onValueChangeFinished = {
-                        sliderPosition?.let { onSeek(it) }
-                        sliderPosition = null
+                    value = displayPosition.coerceIn(0f, sliderMax.toFloat()),
+                    onValueChange = {
+                        seekValue = it.coerceIn(0f, sliderMax.toFloat())
+                        isSeeking = true
                     },
+                    onValueChangeFinished = {
+                        if (durationMs > 0) onSeek(seekValue.toLong())
+                        isSeeking = false
+                    },
+                    enabled = durationMs > 0,
                     valueRange = 0f..sliderMax.toFloat(),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(Modifier.fillMaxWidth()) {
                     Text(
-                        formatTime(effectivePosition),
+                        formatTime(displayPosition.toLong()),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
