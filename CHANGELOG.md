@@ -11,6 +11,20 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.9_DE-1.33.41] - 2026-08-16
+
+### Changed
+
+- [DE] Backups (manual and automatic) now use a single `.vivide.backup` file
+  that contains everything (settings + playlists + account + library). Old
+  `.backup` files are still importable.
+
+### Fixed
+
+- [DE] "Restart now" after restoring a backup now actually relaunches the app:
+  it releases the single-instance lock, starts a new instance (the jpackage
+  launcher when packaged, `java -cp … MainKt` in dev), and then exits.
+
 ## [6.4.9_DE-1.33.40] - 2026-08-16
 
 ### Fixed

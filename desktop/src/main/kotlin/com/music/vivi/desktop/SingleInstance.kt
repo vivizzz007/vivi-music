@@ -42,4 +42,38 @@ object SingleInstance {
             true
         }
     }
+
+    /** Releases the held lock so a restarting instance can acquire it. */
+    fun release() {
+        runCatching { lock?.release() }
+        runCatching { raf?.close() }
+        lock = null
+        raf = null
+    }
+}
+
+/**
+ * Relaunches the app and exits the current process (used by "Restart now"
+ * after restoring a backup). The single-instance lock is released first so the
+ * new process isn't rejected as a duplicate of the still-running one.
+ */
+fun restartApplication() {
+    val command = relaunchCommand()
+    SingleInstance.release()
+    if (command.isNotEmpty()) {
+        runCatching { ProcessBuilder(command).start() }
+    }
+    kotlin.system.exitProcess(0)
+}
+
+private fun relaunchCommand(): List<String> {
+    // Packaged (jpackage) app: the launcher exposes its own executable path via
+    // jpackage.app-path — relaunch it directly.
+    val appPath = System.getProperty("jpackage.app-path").orEmpty()
+    if (appPath.isNotBlank()) return listOf(appPath)
+    // Dev / IDE run: fall back to a fresh JVM with the same classpath.
+    val javaBin = File(System.getProperty("java.home"), "bin/java").absolutePath
+    val classpath = System.getProperty("java.class.path").orEmpty()
+    if (classpath.isBlank()) return emptyList()
+    return listOf(javaBin, "-cp", classpath, "com.music.vivi.desktop.MainKt")
 }

@@ -21,8 +21,8 @@ import java.util.zip.ZipOutputStream
  *   - `playlists.json` -> the local playlists ([SyncedPlaylist] list).
  *
  * This mirrors the mobile app's approach (which zips its datastore + Room DB).
- * Old single-JSON backups produced by the previous `exportSettings` are still
- * recognized on import so existing `.backup` files keep working.
+ * Backups use the `.vivide.backup` extension. Old single-JSON backups produced
+ * by the previous `exportSettings` (`.backup`) are still recognized on import.
  */
 object BackupManager {
     private const val SETTINGS_ENTRY = "settings.json"
@@ -118,7 +118,7 @@ object BackupManager {
 
     /** Runs an automatic backup of [type] (`weekly` / `before_update` / …). */
     fun autoBackup(type: String): File? = runCatching {
-        val file = File(autoDir, "auto_backup_${type}_$timestamp.backup")
+        val file = File(autoDir, "auto_backup_${type}_$timestamp.vivide.backup")
         if (export(file)) {
             cleanup(type)
             file
@@ -129,7 +129,7 @@ object BackupManager {
 
     /** Lists automatic backups, newest first. */
     fun listAuto(): List<File> = autoDir.listFiles { f ->
-        f.isFile && f.name.startsWith("auto_backup_") && f.name.endsWith(".backup")
+        f.isFile && f.name.startsWith("auto_backup_") && f.name.endsWith(".vivide.backup")
     }?.sortedByDescending { it.lastModified() } ?: emptyList()
 
     fun deleteAuto(file: File): Boolean = runCatching { file.delete() }.getOrDefault(false)

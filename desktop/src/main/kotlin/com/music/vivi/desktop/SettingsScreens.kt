@@ -47,7 +47,6 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.system.exitProcess
 
 /** YouTube host-language codes (mirrors the Android app's `LanguageCodeToName`). */
 val LanguageCodeToName: Map<String, String> = mapOf(
@@ -583,7 +582,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             title = { Text(Localization.get(language, "restore_success_title")) },
             text = { Text(Localization.get(language, "restore_success")) },
             confirmButton = {
-                Button(onClick = { exitProcess(0) }) {
+                Button(onClick = { restartApplication() }) {
                     Text(Localization.get(language, "restart_now"))
                 }
             },
@@ -666,7 +665,7 @@ private fun BackupToggleRow(
 
 /** Extracts a display date + a type key (`backup_type_weekly`/`backup_type_before_update`) from a backup filename. */
 private fun parseAutoBackupName(name: String): Pair<String, String> {
-    val ts = Regex("""(\d{8}_\d{6})\.backup$""").find(name)?.groupValues?.getOrNull(1)
+    val ts = Regex("""(\d{8}_\d{6})\.vivide\.backup$""").find(name)?.groupValues?.getOrNull(1)
     val date = if (ts != null) {
         runCatching {
             LocalDateTime.parse(ts, DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
@@ -686,7 +685,7 @@ private fun chooseBackupFile(save: Boolean): File? = runCatching {
         if (save) "Backup settings" else "Restore settings",
         if (save) java.awt.FileDialog.SAVE else java.awt.FileDialog.LOAD,
     )
-    if (save) dialog.file = "vivi-music-de-settings.backup"
+    if (save) dialog.file = "vivimusic-de.vivide.backup"
     dialog.isVisible = true
     val dir = dialog.directory
     val name = dialog.file
