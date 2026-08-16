@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.6_DE-1.33.31] - 2026-08-16
+
+### Fixed
+
+- [APK] Scanning a QR code now first disconnects and un-pairs an existing
+  desktop connection, so the new code can pair to a (possibly different)
+  desktop from a clean slate.
+
 ## [6.4.5_DE-1.33.31] - 2026-08-16
 
 ### Changed

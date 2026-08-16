@@ -154,6 +154,10 @@ fun DeviceSyncScreen(
                 }
                 OutlinedButton(
                     onClick = {
+                        // If we're already paired/connected, drop that first so
+                        // scanning a new QR starts from a clean slate and can
+                        // pair to a (possibly different) desktop.
+                        viewModel.unpair()
                         scanLauncher.launch(
                             ScanOptions()
                                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)
