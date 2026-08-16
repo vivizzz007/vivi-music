@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.23] - 2026-08-16
+
+### Fixed
+
+- [DE] Windows Inno Setup installer now always shows the "Select Destination
+  Location" page so the install path is visible (and editable), matching the
+  MSI installer.
+
 ## [6.4.5_DE-1.33.22] - 2026-08-16
 
 ### Fixed

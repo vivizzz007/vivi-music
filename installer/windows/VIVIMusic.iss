@@ -40,6 +40,10 @@ AppUpdatesURL=https://github.com/PiBOH/vivi-music/releases
 DefaultDirName={autopf}\VIVIMusic
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
+; Always show the "Select Destination Location" page so the user can see (and
+; change) the folder the app will install into — matching the MSI installer,
+; which shows the destination path.
+DisableDirPage=no
 OutputDir={#OutputDir}
 OutputBaseFilename=VIVIMusic-{#AppVersion}-setup
 SetupIconFile={#IconFile}
