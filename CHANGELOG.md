@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.3] - 2026-08-16
+
+### Changed
+
+- [DE] Completed the translations for the playlist and song-menu strings
+  (rename / delete playlist / confirmation / empty / not-found / song count /
+  like / library / share, …) across all 47 supported languages. The
+  delete-playlist confirmation now shows the desktop message instead of the
+  Android "Really delete … %s" template.
+
 ## [6.4.1_DE-1.33.2] - 2026-08-16
 
 ### Added

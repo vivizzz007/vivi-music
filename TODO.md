@@ -61,6 +61,7 @@ The desktop should look exactly like the Android app, except:
 - [x] History / Changelog / Login screens (history from YouTube, live changelog fetched from the repo, cookie-based login with DATASYNC_ID/VISITOR_DATA fallback).
 - [~] Song / album / artist / playlist context menus port. The full song context menu (like / library / add-to-playlist / share) is done; album / artist / playlist context menus are still pending.
 - [x] Local playlist system port: create/rename/delete playlists, add/remove/reorder songs (drag-to-reorder in the detail screen), a "Playlists" screen + per-playlist detail, and cross-device playlist sync with last-write-wins (the library snapshot now carries the full playlist name + ordered songs + edit timestamp, plus deletion tombstones).
+- [x] Desktop localization: the playlist and song-menu strings (rename / delete playlist / confirmation / empty / not-found / song count / like / library / share, …) are fully translated across all 47 supported languages (desktop-only keys added via a `TRANSLATIONS` table in the generator).
 
 ## Phase 9 — In-app updater + developer options (completed)
 - [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels).
