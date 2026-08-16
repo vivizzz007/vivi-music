@@ -45,6 +45,7 @@ fun AlbumScreen(
     onOpenArtist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onAddToPlaylist: (SongItem) -> Unit,
     onPlayAll: (List<SongItem>) -> Unit,
     onShuffleAll: (List<SongItem>) -> Unit,
 ) {
@@ -102,7 +103,7 @@ fun AlbumScreen(
                 }
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
-                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                     }
                 }
             }
@@ -120,6 +121,7 @@ fun ArtistScreen(
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onAddToPlaylist: (SongItem) -> Unit,
 ) {
     var page by remember { mutableStateOf<ArtistPage?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -169,7 +171,7 @@ fun ArtistScreen(
                         val others = section.items.filterNot { it is SongItem }
                         if (songs.isNotEmpty()) {
                             items(songs, key = { "song-${it.id}" }) { song ->
-                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                             }
                         }
                         if (others.isNotEmpty()) {
@@ -196,6 +198,7 @@ fun PlaylistScreen(
     onOpenArtist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onAddToPlaylist: (SongItem) -> Unit,
     onPlayAll: (List<SongItem>) -> Unit,
     onShuffleAll: (List<SongItem>) -> Unit,
 ) {
@@ -253,7 +256,7 @@ fun PlaylistScreen(
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
-                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                     }
                 }
             }
@@ -267,6 +270,7 @@ fun HistoryScreen(
     onBack: () -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onAddToPlaylist: (SongItem) -> Unit,
 ) {
     var page by remember { mutableStateOf<HistoryPage?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -304,7 +308,7 @@ fun HistoryScreen(
                                 )
                             }
                             items(section.songs, key = { "song-${it.id}" }) { song ->
-                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                             }
                         }
                     }

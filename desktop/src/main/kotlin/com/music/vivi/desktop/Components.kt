@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -107,7 +108,12 @@ fun YtItemCard(item: YTItem, onClick: () -> Unit, width: Dp? = 140.dp, modifier:
 
 /** One song in a vertical list (album / playlist / search songs). */
 @Composable
-fun SongRow(song: SongItem, onClick: () -> Unit, onAddToQueue: (() -> Unit)? = null) {
+fun SongRow(
+    song: SongItem,
+    onClick: () -> Unit,
+    onAddToQueue: (() -> Unit)? = null,
+    onAddToPlaylist: (() -> Unit)? = null,
+) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -122,6 +128,17 @@ fun SongRow(song: SongItem, onClick: () -> Unit, onAddToQueue: (() -> Unit)? = n
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+            )
+        }
+        if (onAddToPlaylist != null) {
+            Icon(
+                Icons.AutoMirrored.Filled.PlaylistAdd,
+                contentDescription = "Add to playlist",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onAddToPlaylist() }
+                    .padding(2.dp),
             )
         }
         if (onAddToQueue != null) {

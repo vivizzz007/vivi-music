@@ -53,6 +53,7 @@ fun LibraryScreen(
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
+    onAddToPlaylist: (SongItem) -> Unit,
     onShuffleAll: (List<SongItem>) -> Unit,
 ) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
@@ -130,7 +131,7 @@ fun LibraryScreen(
                 } else if (selectedTab == 0) {
                     LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
                         items(items.filterIsInstance<SongItem>(), key = { it.id }) { song ->
-                            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) })
+                            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                         }
                     }
                 } else {

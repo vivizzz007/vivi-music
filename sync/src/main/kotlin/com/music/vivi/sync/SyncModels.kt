@@ -101,7 +101,6 @@ data class TrackRef(
 
 /**
  * Library sync payload (liked songs / albums / artists / saved playlists).
- * Reserved for Phase 2 — kept in the schema now so the protocol does not break.
  */
 @Serializable
 data class LibrarySnapshot(
@@ -109,4 +108,29 @@ data class LibrarySnapshot(
     val albumIds: List<String> = emptyList(),
     val artistIds: List<String> = emptyList(),
     val playlistIds: List<String> = emptyList(),
+    /** Full local-playlist state (name + ordered songs), incl. deletion tombstones. */
+    val playlists: List<SyncedPlaylist> = emptyList(),
+)
+
+/** A song as stored inside a synced playlist (enough metadata to render it). */
+@Serializable
+data class SyncedSong(
+    val id: String,
+    val title: String = "",
+    val artist: String = "",
+    val thumbnail: String? = null,
+)
+
+/**
+ * A user-created playlist shared across devices. [updatedAt] (epoch millis) is
+ * the local edit timestamp used for last-write-wins merging; [deleted] is a
+ * deletion tombstone (the playlist was removed at [updatedAt]).
+ */
+@Serializable
+data class SyncedPlaylist(
+    val id: String,
+    val name: String = "",
+    val songs: List<SyncedSong> = emptyList(),
+    val updatedAt: Long = 0L,
+    val deleted: Boolean = false,
 )

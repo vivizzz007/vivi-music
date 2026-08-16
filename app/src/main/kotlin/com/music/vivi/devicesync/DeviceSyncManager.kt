@@ -48,6 +48,10 @@ import com.music.vivi.constants.SuggestionRegionKey
 import com.music.vivi.constants.TranslateLanguageKey
 import com.music.vivi.constants.TranslateLyricsKey
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.Playlist
+import com.music.vivi.db.entities.PlaylistEntity
+import com.music.vivi.db.entities.PlaylistSongMap
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncClient
@@ -55,6 +59,8 @@ import com.music.vivi.sync.SyncConnectionState
 import com.music.vivi.sync.SyncEvent
 import com.music.vivi.sync.SyncServer
 import com.music.vivi.sync.SyncSnapshot
+import com.music.vivi.sync.SyncedPlaylist
+import com.music.vivi.sync.SyncedSong
 import com.music.vivi.utils.dataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -69,6 +75,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -100,6 +108,10 @@ class DeviceSyncManager @Inject constructor(
     /** While set, playback pushes are suppressed (avoids echoing a snapshot back). */
     @Volatile
     private var suppressPlaybackPushUntil = 0L
+
+    /** While set, library pushes are suppressed (avoids echoing an applied snapshot). */
+    @Volatile
+    private var suppressLibraryPushUntil = 0L
 
     private var lastPlayback: PlaybackSnapshot? = null
 
@@ -228,17 +240,43 @@ class DeviceSyncManager @Inject constructor(
             database.artistsBookmarkedByCreateDateAsc(),
             database.playlistsByCreateDateAsc(),
         ) { songs, albums, artists, playlists ->
-            LibrarySnapshot(
+            PlaylistLibraryInput(
                 songIds = songs.map { it.song.id },
                 albumIds = albums.map { it.album.id },
                 artistIds = artists.map { it.artist.id },
-                playlistIds = playlists.map { it.playlist.id },
+                playlists = playlists,
             )
         }
             .distinctUntilChanged()
-            .collect { library ->
-                lastLibrary = library
-                if (!applyingRemote && _paired.value) pushCurrentSnapshot()
+            .collect { input ->
+                // Resolve each playlist's ordered songs (the combine transform is
+                // non-suspend, so this happens here in the suspend collector).
+                val syncedPlaylists = input.playlists.map { p ->
+                    val songs = database.playlistSongs(p.playlist.id).first()
+                    SyncedPlaylist(
+                        id = p.playlist.id,
+                        name = p.playlist.name,
+                        songs = songs.map { ps ->
+                            SyncedSong(
+                                id = ps.song.song.id,
+                                title = ps.song.song.title,
+                                artist = ps.song.artists.joinToString(", ") { it.name },
+                                thumbnail = ps.song.song.thumbnailUrl,
+                            )
+                        },
+                        updatedAt = p.playlist.lastUpdateTime?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: 0L,
+                    )
+                }
+                lastLibrary = LibrarySnapshot(
+                    songIds = input.songIds,
+                    albumIds = input.albumIds,
+                    artistIds = input.artistIds,
+                    playlistIds = input.playlists.map { it.playlist.id },
+                    playlists = syncedPlaylists,
+                )
+                if (!applyingRemote && _paired.value && System.currentTimeMillis() >= suppressLibraryPushUntil) {
+                    pushCurrentSnapshot()
+                }
             }
     }
 
@@ -328,11 +366,74 @@ class DeviceSyncManager @Inject constructor(
                 suppressPlaybackPushUntil = System.currentTimeMillis() + 1500L
                 _pendingPlayback.value = snapshot.playback
             }
-            snapshot.library?.let { _syncedLibrary.value = it }
+            snapshot.library?.let { lib ->
+                _syncedLibrary.value = lib
+                if (lib.playlists.isNotEmpty()) {
+                    applyRemotePlaylists(lib.playlists)
+                    suppressLibraryPushUntil = System.currentTimeMillis() + 2000L
+                }
+            }
         } catch (e: Exception) {
             Timber.e(e, "DeviceSync: failed to apply snapshot")
         } finally {
             applyingRemote = false
+        }
+    }
+
+    /**
+     * Applies the peer's playlist list to the local library, per-playlist
+     * last-write-wins by [SyncedPlaylist.updatedAt]. Deletion tombstones remove
+     * the local playlist only when they are newer than the local edit.
+     */
+    private suspend fun applyRemotePlaylists(remote: List<SyncedPlaylist>) {
+        val now = LocalDateTime.now()
+        for (r in remote) {
+            val local = database.playlist(r.id).first()
+            val localUpdatedAt = local?.playlist?.lastUpdateTime
+                ?.toInstant(ZoneOffset.UTC)?.toEpochMilli() ?: 0L
+
+            if (r.deleted) {
+                if (local != null && r.updatedAt > localUpdatedAt) {
+                    database.delete(local.playlist)
+                }
+                continue
+            }
+            if (r.updatedAt <= localUpdatedAt) continue // local is newer/equal: keep it
+
+            if (local == null) {
+                database.insert(
+                    PlaylistEntity(
+                        id = r.id,
+                        name = r.name,
+                        bookmarkedAt = now,
+                        lastUpdateTime = now,
+                    )
+                )
+            } else {
+                database.update(local.playlist.copy(name = r.name, lastUpdateTime = now))
+            }
+
+            // Replace the playlist's songs with the remote order.
+            database.clearPlaylist(r.id)
+            r.songs.forEachIndexed { index, s ->
+                // Ensure the song + artist rows exist so the playlist renders.
+                database.insert(
+                    MediaMetadata(
+                        id = s.id,
+                        title = s.title,
+                        artists = listOf(MediaMetadata.Artist(null, s.artist)),
+                        duration = -1,
+                        thumbnailUrl = s.thumbnail,
+                    )
+                )
+                database.insert(
+                    PlaylistSongMap(
+                        playlistId = r.id,
+                        songId = s.id,
+                        position = index,
+                    )
+                )
+            }
         }
     }
 
@@ -432,3 +533,11 @@ class DeviceSyncManager @Inject constructor(
         }
     }
 }
+
+/** Intermediate library state used to hand the flows over to the suspend collector. */
+private data class PlaylistLibraryInput(
+    val songIds: List<String>,
+    val albumIds: List<String>,
+    val artistIds: List<String>,
+    val playlists: List<Playlist>,
+)

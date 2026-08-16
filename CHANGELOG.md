@@ -11,6 +11,25 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.0] - 2026-08-16
+
+### Added
+
+- [DE] Local playlist system: create / rename / delete playlists, add songs to
+  a playlist from any song row (Home, Search, Library, Album, Artist, Playlist
+  and History), and a per-playlist detail screen with play-all and per-song
+  remove.
+- [DE+APK] Playlists now sync between the desktop and the phone over the
+  device-sync channel: the full playlist (name + ordered songs) plus a
+  per-playlist edit timestamp is shared, and edits are merged with
+  last-write-wins. The most recently updated copy of each playlist wins,
+  deletions propagate as tombstones, and a change made on either device appears
+  on the other.
+
+### Changed
+
+- [DE] The sidebar gains a "Playlists" entry that opens the local playlist list.
+
 ## [6.4.0_DE-1.32.2] - 2026-08-16
 
 ### Fixed

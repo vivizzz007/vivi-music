@@ -28,6 +28,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.outlined.PlaylistAdd
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LibraryMusic
@@ -103,8 +105,10 @@ import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.vivi.desktop.player.PlayerController
+import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncServer
+import com.music.vivi.sync.SyncedSong
 import com.music.vivi.sync.TrackRef
 import java.awt.Desktop
 import java.io.File
@@ -270,6 +274,8 @@ fun App(
 
     val playSong: (SongItem) -> Unit = { song -> player.play(songToNowPlaying(song)) }
     val addToQueue: (SongItem) -> Unit = { song -> player.addToQueue(songToNowPlaying(song)) }
+    var addToPlaylistSong by remember { mutableStateOf<SyncedSong?>(null) }
+    val addToPlaylist: (SongItem) -> Unit = { song -> addToPlaylistSong = song.toSyncedSong() }
     val playAll: (List<SongItem>) -> Unit = { songs -> player.playAll(songs.map(::songToNowPlaying)) }
     val shuffleAll: (List<SongItem>) -> Unit = { songs ->
         if (!playerState.isShuffle) player.toggleShuffle()
@@ -421,6 +427,19 @@ fun App(
         syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent))
     }
 
+    // Playlist sync: push the local playlists whenever they change and apply
+    // the peer's list (last-write-wins per playlist id).
+    LaunchedEffect(syncManager) {
+        PlaylistStore.all.collect {
+            syncManager.updateLibrary(LibrarySnapshot(playlists = PlaylistStore.toSynced()))
+        }
+    }
+    LaunchedEffect(syncManager) {
+        syncManager.incomingLibrary.collect { lib ->
+            lib?.playlists?.let { PlaylistStore.applyRemote(it) }
+        }
+    }
+
     Row(Modifier.fillMaxSize()) {
         Sidebar(
             language = language,
@@ -441,6 +460,7 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
+                        onAddToPlaylist = addToPlaylist,
                         onPlayAll = playAll,
                         onOpenBrowse = { browseId, params -> navigate(Screen.Browse(browseId, params)) },
                     )
@@ -451,6 +471,7 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                     )
                     is Screen.Library -> LibraryScreen(
                         language = language,
@@ -461,6 +482,7 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                         onShuffleAll = shuffleAll,
                     )
                     is Screen.History -> HistoryScreen(
@@ -468,6 +490,7 @@ fun App(
                         onBack = goBack,
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                     )
                     is Screen.Settings -> SettingsScreen(
                         language = language,
@@ -612,6 +635,7 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                         onPlayAll = playAll,
                         onShuffleAll = shuffleAll,
                     )
@@ -624,6 +648,7 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                     )
                     is Screen.Playlist -> PlaylistScreen(
                         playlistId = current.playlistId,
@@ -632,8 +657,21 @@ fun App(
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
+                        onAddToPlaylist = addToPlaylist,
                         onPlayAll = playAll,
                         onShuffleAll = shuffleAll,
+                    )
+                    is Screen.LocalPlaylists -> LocalPlaylistsScreen(
+                        language = language,
+                        onBack = goBack,
+                        onOpenPlaylist = { navigate(Screen.LocalPlaylist(it)) },
+                    )
+                    is Screen.LocalPlaylist -> LocalPlaylistScreen(
+                        playlistId = current.playlistId,
+                        language = language,
+                        onBack = goBack,
+                        onPlay = { s -> player.play(NowPlaying(videoId = s.id, title = s.title, artist = s.artist, thumbnail = s.thumbnail)) },
+                        onPlayAll = { songs -> player.playAll(songs.map { NowPlaying(videoId = it.id, title = it.title, artist = it.artist, thumbnail = it.thumbnail) }) },
                     )
                     is Screen.Browse -> BrowseScreen(
                         browseId = current.browseId,
@@ -724,6 +762,13 @@ fun App(
                         movable = overlayMovable,
                     )
                 }
+                addToPlaylistSong?.let { song ->
+                    AddToPlaylistDialog(
+                        language = language,
+                        song = song,
+                        onDismiss = { addToPlaylistSong = null },
+                    )
+                }
             }
             MiniPlayer(
                 nowPlaying = nowPlaying,
@@ -778,6 +823,7 @@ fun Sidebar(
         SidebarEntry(Screen.Home, "home", Icons.Outlined.Home, Icons.Filled.Home),
         SidebarEntry(Screen.Search, "search", Icons.Outlined.Search, Icons.Filled.Search),
         SidebarEntry(Screen.Library, "library", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
+        SidebarEntry(Screen.LocalPlaylists, "playlists", Icons.AutoMirrored.Outlined.PlaylistAdd, Icons.AutoMirrored.Filled.PlaylistAdd),
         SidebarEntry(Screen.Queue, "queue", Icons.AutoMirrored.Outlined.QueueMusic, Icons.AutoMirrored.Filled.QueueMusic),
         SidebarEntry(Screen.History, "history", Icons.Outlined.History, Icons.Filled.History),
         SidebarEntry(Screen.Settings, "settings", Icons.Outlined.Settings, Icons.Filled.Settings),
@@ -1942,6 +1988,13 @@ private data class PlaybackSyncKey(
     val index: Int,
     val queue: List<String>,
     val volume: Float,
+)
+
+private fun SongItem.toSyncedSong() = SyncedSong(
+    id = id,
+    title = title,
+    artist = artists.joinToString(", ") { it.name },
+    thumbnail = thumbnail,
 )
 
 /** Builds a [PlaybackSnapshot] from the current player state (null if nothing plays). */

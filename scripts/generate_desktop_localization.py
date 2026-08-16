@@ -175,6 +175,16 @@ MAPPING = {
     "theme_light": "cd_light_mode",
     "theme_dark": "cd_dark_mode",
     "theme_system": "cd_system_mode",
+    "new_playlist": "create_playlist",
+    "add_to_playlist": "add_to_playlist",
+    "create": "create",
+    "save": "save",
+    "cancel": "cancel",
+    "delete": "delete",
+    "playlist_name": "playlist_name",
+    "delete_playlist_confirm": "delete_playlist_confirm",
+    "empty_playlist": "empty_playlist",
+    "playlist_not_found": "playlist_not_found",
 }
 
 # Full desktop English table (source language).
@@ -360,6 +370,20 @@ ENGLISH = {
     "dev_unlocked_title": "Developer options enabled",
     "dev_unlocked_desc": "Configure them in Settings → Developer options",
     "dev_unlocked_open": "Open",
+    "new_playlist": "New playlist",
+    "no_playlists": "No playlists yet",
+    "song_count": "%d songs",
+    "rename": "Rename",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "create": "Create",
+    "delete_playlist": "Delete playlist",
+    "delete_playlist_confirm": "This will permanently delete the playlist. This cannot be undone.",
+    "playlist_name": "Playlist name",
+    "playlist_not_found": "Playlist not found",
+    "empty_playlist": "This playlist is empty",
+    "add_to_playlist": "Add to playlist",
 }
 
 
