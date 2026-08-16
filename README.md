@@ -182,6 +182,10 @@
   <li>Open a Pull Request</li>
 </ol>
 
+<blockquote>
+  <b>⚠️ Testing note:</b> the lead developer (<a href="https://github.com/PiBOH">@PiBOH</a>) can only test <b>VIVI Music DE</b> on <b>Windows</b>, as he does not own a Mac or a Linux machine. The Linux and macOS builds are produced by CI and rely on community testing — bug reports for those platforms are especially appreciated.
+</blockquote>
+
 <hr>
 
 <h2>🛡️ Privacy &amp; Data Collection</h2>
