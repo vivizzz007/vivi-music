@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -129,6 +131,15 @@ fun SongRow(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+        if (onAddToPlaylist != null) {
+            IconButton(onClick = onAddToPlaylist) {
+                Icon(
+                    Icons.AutoMirrored.Filled.PlaylistAdd,
+                    contentDescription = Localization.get(language, "add_to_playlist"),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
         }
         SongMenu(song = song, language = language, onAddToPlaylist = onAddToPlaylist)
         if (onAddToQueue != null) {

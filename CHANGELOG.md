@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.17] - 2026-08-16
+
+### Added
+
+- [DE] A dedicated "Add to playlist" button on every song row (Home, Search,
+  Album, Artist, Playlist, Library), alongside the ⋮ context menu — no more
+  hiding the action behind the menu.
+
 ## [6.4.4_DE-1.33.16] - 2026-08-16
 
 ### Fixed
