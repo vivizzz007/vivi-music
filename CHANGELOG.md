@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.7_DE-1.33.37] - 2026-08-16
+
+### Fixed
+
+- [DE] The update notification and the Updates screen now share a single
+  download state (`UpdateState`), so downloading/opening an installer from one
+  is reflected in the other (and vice versa). The notification no longer
+  re-offers a download for an installer the Updates screen already fetched.
+
 ## [6.4.7_DE-1.33.36] - 2026-08-16
 
 ### Added

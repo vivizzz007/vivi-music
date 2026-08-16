@@ -344,6 +344,9 @@ fun App(
     var notificationDurationSeconds by remember { mutableStateOf(DesktopSettings.load().inAppNotificationDurationSeconds) }
     var saveNotificationHistory by remember { mutableStateOf(DesktopSettings.load().saveNotificationHistory) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
+    // Keep the shared download state (used by both the notification and the
+    // Updates screen) in sync with the latest update status.
+    LaunchedEffect(updateStatus) { UpdateState.syncWithStatus(updateStatus) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
     val overlayMovable by DeveloperOptions.overlayMovable.collectAsState()
@@ -1672,13 +1675,11 @@ fun BoxScope.UpdateNotification(
     onDone: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var downloading by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
-    // If the installer for this exact version is already downloaded, offer to
-    // open it directly instead of downloading it again.
-    val existingInstaller = remember(status) {
-        status.asset?.let { UpdateDownloader.downloadedInstaller(it.fileName) }
-    }
+    val progress by UpdateState.progress.collectAsState()
+    val downloadedFile by UpdateState.downloadedFile.collectAsState()
+    // Shared with the Updates screen: if the installer for this version is
+    // already downloaded (from anywhere), offer to open it, not re-download.
+    val existingInstaller = downloadedFile
 
     Surface(
         tonalElevation = 6.dp,
@@ -1712,10 +1713,12 @@ fun BoxScope.UpdateNotification(
             }
             Button(
                 onClick = {
-                    if (downloading) return@Button
+                    if (progress != null) return@Button
                     existingInstaller?.let { file ->
-                        if (openFile(file)) exitProcess(0)
-                        onDone()
+                        scope.launch {
+                            prepareAndOpenInstaller(file)
+                            onDone()
+                        }
                         return@Button
                     }
                     val asset = status.asset
@@ -1724,23 +1727,13 @@ fun BoxScope.UpdateNotification(
                         onDone()
                     } else {
                         scope.launch {
-                            downloading = true
-                            progress = DownloadProgress(0, asset.sizeBytes, 0)
-                            val file = withContext(Dispatchers.IO) {
-                                runCatching {
-                                    UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p }
-                                }.getOrNull()
-                            }
-                            progress = null
-                            downloading = false
-                            if (file != null && openFile(file)) {
-                                exitProcess(0)
-                            }
+                            val file = UpdateState.download(asset)
+                            if (file != null) prepareAndOpenInstaller(file)
                             onDone()
                         }
                     }
                 },
-                enabled = !downloading,
+                enabled = progress == null,
                 modifier = Modifier.padding(start = 12.dp),
             ) {
                 Text(
@@ -1748,7 +1741,7 @@ fun BoxScope.UpdateNotification(
                         language,
                         when {
                             existingInstaller != null -> "open_installer"
-                            downloading -> "downloading"
+                            progress != null -> "downloading"
                             else -> "install_now"
                         },
                     )
@@ -1773,21 +1766,13 @@ fun UpdateSection(
     onOpenChangelog: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
-    var downloadedFile by remember { mutableStateOf<File?>(null) }
-    var installerCount by remember { mutableStateOf(UpdateDownloader.downloadedInstallers().size) }
+    // Shared download state (also used by the notification banner), so the two
+    // surfaces stay in sync.
+    val progress by UpdateState.progress.collectAsState()
+    val downloadedFile by UpdateState.downloadedFile.collectAsState()
+    val installerCount by UpdateState.installerCount.collectAsState()
     var openError by remember { mutableStateOf<String?>(null) }
     var intervalMenuOpen by remember { mutableStateOf(false) }
-
-    // If the installer for this version is already on disk (from a previous
-    // download or session), surface "Open installer" instead of re-downloading.
-    LaunchedEffect(status) {
-        val available = status as? UpdateStatus.Available
-        val asset = available?.asset ?: return@LaunchedEffect
-        if (downloadedFile == null) {
-            UpdateDownloader.downloadedInstaller(asset.fileName)?.let { downloadedFile = it }
-        }
-    }
 
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
@@ -1867,17 +1852,7 @@ fun UpdateSection(
                         onClick = {
                             openError = null
                             scope.launch {
-                                // Automatic backup right before applying the
-                                // update (if the user enabled it).
-                                val s = DesktopSettings.load()
-                                if (s.autoBackupEnabled && s.autoBackupBeforeUpdate) {
-                                    withContext(Dispatchers.IO) { BackupManager.autoBackup("before_update") }
-                                }
-                                if (openFile(downloadedFile!!)) {
-                                    // The app must close so the installer can replace
-                                    // the running files (updates cannot install otherwise).
-                                    exitProcess(0)
-                                } else {
+                                if (!prepareAndOpenInstaller(downloadedFile!!)) {
                                     openError = Localization.get(language, "open_failed")
                                 }
                             }
@@ -1901,17 +1876,7 @@ fun UpdateSection(
                 }
                 else -> Button(
                     onClick = {
-                        scope.launch {
-                            progress = DownloadProgress(0, asset.sizeBytes, 0)
-                            val file = withContext(Dispatchers.IO) {
-                                runCatching { UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p } }.getOrNull()
-                            }
-                            progress = null
-                            if (file != null) {
-                                downloadedFile = file
-                                installerCount = UpdateDownloader.downloadedInstallers().size
-                            }
-                        }
+                        scope.launch { UpdateState.download(asset) }
                     },
                     modifier = Modifier.padding(top = 4.dp),
                 ) {
@@ -1940,11 +1905,7 @@ fun UpdateSection(
     )
     if (installerCount > 0) {
         Button(
-            onClick = {
-                UpdateDownloader.deleteAll()
-                installerCount = 0
-                downloadedFile = null
-            },
+            onClick = { UpdateState.deleteAllInstallers() },
             modifier = Modifier.padding(top = 4.dp),
         ) {
             Text(Localization.get(language, "delete_installers"))
@@ -1986,6 +1947,22 @@ private fun openFile(file: File): Boolean {
 
 private fun formatSpeed(bps: Long): String =
     if (bps <= 0) "0 B/s" else "${formatBytes(bps)}/s"
+
+/**
+ * Runs the optional "backup before update" (if enabled) and then opens the
+ * installer, exiting the app on success so the installer can replace the
+ * running files. Returns false when the installer could not be opened. Shared
+ * by the update notification and the Updates screen so both behave the same.
+ */
+private suspend fun prepareAndOpenInstaller(file: File): Boolean {
+    val s = DesktopSettings.load()
+    if (s.autoBackupEnabled && s.autoBackupBeforeUpdate) {
+        withContext(Dispatchers.IO) { BackupManager.autoBackup("before_update") }
+    }
+    val ok = openFile(file)
+    if (ok) exitProcess(0)
+    return ok
+}
 
 /** Available update-check intervals, in hours (0 = manual only). */
 private fun updateCheckIntervalOptions(): List<Int> = listOf(0, 6, 12, 24, 72, 168)
