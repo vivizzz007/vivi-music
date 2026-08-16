@@ -795,3 +795,54 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
         }
     }
 }
+
+/** Notification preferences: where update notifications are shown. */
+@Composable
+fun SettingsNotificationsScreen(
+    language: String,
+    onBack: () -> Unit,
+    notificationMode: String,
+    onNotificationModeChange: (String) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "notifications"), style = MaterialTheme.typography.titleLarge)
+        Text(
+            Localization.get(language, "notification_mode_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Spacer(Modifier.height(12.dp))
+
+        NotificationModeOption(
+            language = language,
+            title = Localization.get(language, "notification_main_window"),
+            selected = notificationMode != "native",
+            onClick = { onNotificationModeChange("in_app") },
+        )
+        NotificationModeOption(
+            language = language,
+            title = Localization.get(language, "notification_native"),
+            selected = notificationMode == "native",
+            onClick = { onNotificationModeChange("native") },
+        )
+    }
+}
+
+@Composable
+private fun NotificationModeOption(
+    language: String,
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (selected) {
+            Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}

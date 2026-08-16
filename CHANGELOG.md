@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.19] - 2026-08-16
+
+### Added
+
+- [DE] New "Notifications" settings sub-menu: update notifications can now be
+  shown either in the main window (in-app, default) or as a native system
+  notification (`java.awt.SystemTray`, best-effort across OS).
+
 ## [6.4.4_DE-1.33.18] - 2026-08-16
 
 ### Added

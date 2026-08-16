@@ -50,6 +50,8 @@ data class DesktopSyncState(
     val devShowInTitleBar: Boolean = false,
     val devProfile: String = "FULL",
     val updateCheckIntervalHours: Int = 24,
+    /** Where update notifications are shown: "in_app" (default) or "native". */
+    val notificationMode: String = "in_app",
 )
 
 object DesktopSettings {

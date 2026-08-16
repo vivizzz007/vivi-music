@@ -45,6 +45,7 @@ import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lyrics
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
@@ -311,6 +312,7 @@ fun App(
         )
     }
     var updateIntervalHours by remember { mutableStateOf(DesktopSettings.load().updateCheckIntervalHours) }
+    var notificationMode by remember { mutableStateOf(DesktopSettings.load().notificationMode) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
@@ -342,14 +344,23 @@ fun App(
         }
     }
 
-    // Non-invasive update notification, shown once per new version.
+    // Update notification, shown once per new version. Where it appears
+    // depends on the user's notification mode (in-app vs native system).
     var showUpdateNotification by remember { mutableStateOf(false) }
     var updateNotifiedVersion by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(updateStatus) {
         val available = updateStatus as? UpdateStatus.Available
         if (available != null && available.version != updateNotifiedVersion) {
             updateNotifiedVersion = available.version
-            showUpdateNotification = true
+            val mode = DesktopSettings.load().notificationMode
+            if (mode == "native") {
+                NativeNotifier.notify(
+                    Localization.get(language, "update_available"),
+                    "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}",
+                )
+            } else {
+                showUpdateNotification = true
+            }
         }
     }
 
@@ -684,6 +695,15 @@ fun App(
                     is Screen.SettingsBackup -> SettingsBackupScreen(
                         language = language,
                         onBack = goBack,
+                    )
+                    is Screen.SettingsNotifications -> SettingsNotificationsScreen(
+                        language = language,
+                        onBack = goBack,
+                        notificationMode = notificationMode,
+                        onNotificationModeChange = { mode ->
+                            notificationMode = mode
+                            DesktopSettings.save(DesktopSettings.load().copy(notificationMode = mode))
+                        },
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
@@ -1062,6 +1082,16 @@ fun SettingsScreen(
                 AppInfo.FULL_VERSION
             },
             onClick = { onOpen(Screen.SettingsUpdates) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Notifications,
+            title = Localization.get(language, "notifications"),
+            subtitle = Localization.get(
+                language,
+                if (DesktopSettings.load().notificationMode == "native") "notification_native" else "notification_main_window",
+            ),
+            onClick = { onOpen(Screen.SettingsNotifications) },
         )
         SettingsEntryRow(
             language = language,
