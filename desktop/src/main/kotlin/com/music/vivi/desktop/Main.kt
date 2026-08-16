@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.GraphicEq
@@ -642,6 +643,10 @@ fun App(
                         onBack = goBack,
                         syncManager = syncManager,
                     )
+                    is Screen.SettingsBackup -> SettingsBackupScreen(
+                        language = language,
+                        onBack = goBack,
+                    )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,
                         language = language,
@@ -1071,6 +1076,12 @@ fun SettingsScreen(
             icon = Icons.Filled.Storage,
             title = Localization.get(language, "storage"),
             onClick = { onOpen(Screen.SettingsStorage) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.SettingsBackupRestore,
+            title = Localization.get(language, "backup_restore"),
+            onClick = { onOpen(Screen.SettingsBackup) },
         )
         SettingsEntryRow(
             language = language,

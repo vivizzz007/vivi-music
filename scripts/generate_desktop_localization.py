@@ -189,6 +189,13 @@ MAPPING = {
     "remove_from_library": "remove_from_library",
     "share": "share",
     "copied_to_clipboard": "copied_to_clipboard",
+    # Backup & restore
+    "backup_restore": "backup_restore",
+    "action_backup": "action_backup",
+    "action_restore": "action_restore",
+    "backup_create_success": "backup_create_success",
+    "backup_create_failed": "backup_create_failed",
+    "restore_failed": "restore_failed",
 }
 
 # Full desktop English table (source language).
@@ -395,6 +402,19 @@ ENGLISH = {
     "remove_from_library": "Remove from library",
     "share": "Share",
     "copied_to_clipboard": "Copied to clipboard",
+    "backup_restore": "Backup and restore",
+    "action_backup": "Backup",
+    "action_restore": "Restore",
+    "backup_create_success": "Backup created successfully",
+    "backup_create_failed": "Couldn't create backup",
+    "restore_failed": "Failed to restore backup",
+    "backup_restore_desc": "Export your settings to a backup file, or restore them from a previous backup.",
+    "backup_desc": "Save your current settings to a file.",
+    "restore_desc": "Load settings from a backup file. The app restarts to apply them.",
+    "restore_success_title": "Settings imported",
+    "restore_success": "Your settings were imported. Restart VIVI Music DE to apply them.",
+    "restart_now": "Restart now",
+    "later": "Later",
 }
 
 # Desktop-only translations (keys with no Android source string) plus gap-fills

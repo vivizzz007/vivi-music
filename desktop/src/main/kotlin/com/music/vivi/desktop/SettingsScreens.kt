@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -33,6 +36,10 @@ import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlin.system.exitProcess
 
 /** YouTube host-language codes (mirrors the Android app's `LanguageCodeToName`). */
 val LanguageCodeToName: Map<String, String> = mapOf(
@@ -361,6 +368,135 @@ fun SettingsDeveloperScreen(language: String, onBack: () -> Unit, syncManager: D
 fun SettingsStorageScreen(language: String, onBack: () -> Unit) {
     SettingsSubScreen(language, onBack) { StorageSection(language) }
 }
+
+/** Backup & restore: export the desktop settings to a file and import them back. */
+@Composable
+fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+    var showRestartDialog by remember { mutableStateOf(false) }
+
+    SettingsSubScreen(language, onBack) {
+        Text(
+            Localization.get(language, "backup_restore"),
+            style = MaterialTheme.typography.titleLarge,
+        )
+        Text(
+            Localization.get(language, "backup_restore_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedButton(
+            onClick = {
+                if (busy) return@OutlinedButton
+                busy = true
+                scope.launch {
+                    val file = withContext(Dispatchers.IO) { chooseBackupFile(save = true) }
+                    val ok = file != null && withContext(Dispatchers.IO) { exportSettings(file) }
+                    busy = false
+                    DesktopSnackbar.show(Localization.get(language, if (ok) "backup_create_success" else "backup_create_failed"))
+                }
+            },
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(Localization.get(language, "action_backup"))
+        }
+        Text(
+            Localization.get(language, "backup_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+
+        Spacer(Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                if (busy) return@Button
+                busy = true
+                scope.launch {
+                    val file = withContext(Dispatchers.IO) { chooseBackupFile(save = false) }
+                    val ok = file != null && withContext(Dispatchers.IO) { importSettings(file) }
+                    busy = false
+                    if (ok) showRestartDialog = true
+                    else DesktopSnackbar.show(Localization.get(language, "restore_failed"))
+                }
+            },
+            enabled = !busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(Localization.get(language, "action_restore"))
+        }
+        Text(
+            Localization.get(language, "restore_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+    }
+
+    if (showRestartDialog) {
+        AlertDialog(
+            onDismissRequest = { showRestartDialog = false },
+            title = { Text(Localization.get(language, "restore_success_title")) },
+            text = { Text(Localization.get(language, "restore_success")) },
+            confirmButton = {
+                Button(onClick = { exitProcess(0) }) {
+                    Text(Localization.get(language, "restart_now"))
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = { showRestartDialog = false }) {
+                    Text(Localization.get(language, "later"))
+                }
+            },
+        )
+    }
+}
+
+/** Native save/open dialog for the backup file (blocks; call on Dispatchers.IO). */
+private fun chooseBackupFile(save: Boolean): File? = runCatching {
+    val dialog = java.awt.FileDialog(
+        null as java.awt.Frame?,
+        if (save) "Backup settings" else "Restore settings",
+        if (save) java.awt.FileDialog.SAVE else java.awt.FileDialog.LOAD,
+    )
+    if (save) dialog.file = "vivi-music-de-settings.backup"
+    dialog.isVisible = true
+    val dir = dialog.directory
+    val name = dialog.file
+    dialog.dispose()
+    if (dir != null && name != null) File(dir, name) else null
+}.getOrNull()
+
+/** Writes the current settings to [file] as JSON. */
+private fun exportSettings(file: File): Boolean = runCatching {
+    val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
+    file.writeText(json.encodeToString(DesktopSyncState.serializer(), DesktopSettings.load()))
+}.isSuccess
+
+/**
+ * Imports settings from [file]. Preserves this machine's device id and its
+ * first-launch date, and drops any stale pairing, so importing a backup from
+ * another machine can't leave the app claiming it is still paired.
+ */
+private fun importSettings(file: File): Boolean = runCatching {
+    val json = Json { ignoreUnknownKeys = true }
+    val imported = json.decodeFromString(DesktopSyncState.serializer(), file.readText())
+    val current = DesktopSettings.load()
+    DesktopSettings.save(
+        imported.copy(
+            deviceId = current.deviceId,
+            firstLaunchDate = current.firstLaunchDate,
+            pairId = "",
+        )
+    )
+}.isSuccess
 
 @Composable
 fun SettingsContentScreen(

@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.9] - 2026-08-16
+
+### Added
+
+- [DE] Backup & restore sub-menu in Settings: export the desktop settings to a
+  `.backup` file (native save dialog) and import them back (native open
+  dialog). Importing preserves the device id and first-launch date, drops any
+  stale pairing, and prompts a restart to apply.
+
 ## [6.4.3_DE-1.33.8] - 2026-08-16
 
 ### Changed
