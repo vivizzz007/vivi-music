@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.18] - 2026-08-16
+
+### Added
+
+- [DE] "Add to playlist" is now also available on the full Player screen
+  (secondary actions) and on every row of the Queue screen.
+
 ## [6.4.4_DE-1.33.17] - 2026-08-16
 
 ### Added

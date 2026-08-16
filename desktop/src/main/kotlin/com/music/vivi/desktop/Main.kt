@@ -285,6 +285,10 @@ fun App(
     val addToQueue: (SongItem) -> Unit = { song -> player.addToQueue(songToNowPlaying(song)) }
     var addToPlaylistSong by remember { mutableStateOf<SyncedSong?>(null) }
     val addToPlaylist: (SongItem) -> Unit = { song -> addToPlaylistSong = song.toSyncedSong() }
+    // Same, but for the Player / Queue (which carry NowPlaying, not SongItem).
+    val addNowPlayingToPlaylist: (NowPlaying) -> Unit = { np ->
+        addToPlaylistSong = SyncedSong(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
+    }
     val playAll: (List<SongItem>) -> Unit = { songs -> player.playAll(songs.map(::songToNowPlaying)) }
     val shuffleAll: (List<SongItem>) -> Unit = { songs ->
         if (!playerState.isShuffle) player.toggleShuffle()
@@ -758,6 +762,7 @@ fun App(
                         language = language,
                         onOpenLyrics = { navigate(Screen.Lyrics) },
                         onOpenQueue = { navigate(Screen.Queue) },
+                        onAddToPlaylist = addNowPlayingToPlaylist,
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
@@ -777,6 +782,7 @@ fun App(
                         onRemoveAt = { player.removeAt(it) },
                         onClear = { player.clearQueue() },
                         onReorder = { player.reorder(it) },
+                        onAddToPlaylist = addNowPlayingToPlaylist,
                     )
                     is Screen.Changelog -> ChangelogScreen(
                         language = language,

@@ -24,6 +24,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.RepeatOne
@@ -92,6 +93,7 @@ fun PlayerScreen(
     language: String,
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
+    onAddToPlaylist: (NowPlaying) -> Unit,
 ) {
     val np = queue.getOrNull(index)
     var canvasArt by remember { mutableStateOf<CanvasArtwork?>(null) }
@@ -133,6 +135,7 @@ fun PlayerScreen(
                 language = language,
                 onOpenLyrics = onOpenLyrics,
                 onOpenQueue = onOpenQueue,
+                onAddToPlaylist = { onAddToPlaylist(np) },
             )
         }
     }
@@ -161,6 +164,7 @@ private fun PlayerContent(
     language: String,
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
+    onAddToPlaylist: (() -> Unit)? = null,
 ) {
     val contentWidth = 720.dp
 
@@ -349,6 +353,13 @@ private fun PlayerContent(
                         Spacer(Modifier.width(8.dp))
                         Text("${Localization.get(language, "queue")} ($queueSize)")
                     }
+                    if (onAddToPlaylist != null) {
+                        OutlinedButton(onClick = onAddToPlaylist) {
+                            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(Localization.get(language, "add_to_playlist"))
+                        }
+                    }
                 }
             }
         }
@@ -399,6 +410,7 @@ fun QueueScreen(
     onRemoveAt: (Int) -> Unit,
     onClear: () -> Unit,
     onReorder: (List<NowPlaying>) -> Unit,
+    onAddToPlaylist: (NowPlaying) -> Unit,
 ) {
     val lazyListState = rememberLazyListState()
     val localQueue = remember { mutableStateListOf<NowPlaying>() }
@@ -491,6 +503,13 @@ fun QueueScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            IconButton(onClick = { onAddToPlaylist(item) }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.PlaylistAdd,
+                                    contentDescription = Localization.get(language, "add_to_playlist"),
+                                    tint = MaterialTheme.colorScheme.primary,
                                 )
                             }
                             Text(
