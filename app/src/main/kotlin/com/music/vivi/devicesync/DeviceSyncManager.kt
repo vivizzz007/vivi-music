@@ -170,15 +170,24 @@ class DeviceSyncManager @Inject constructor(
         }
     }
 
-    /** Capture the current queue + position from the player and sync it. */
-    fun pushPlayback(playback: PlaybackSnapshot) {
-        if (System.currentTimeMillis() < suppressPlaybackPushUntil) return
+    /**
+     * Capture the current queue + position from the player and sync it.
+     *
+     * @return true if the snapshot will actually be sent (not suppressed by the
+     * echo window and the client is connected); false when it was dropped, so
+     * callers that care (the volume poll) can retry.
+     */
+    fun pushPlayback(playback: PlaybackSnapshot): Boolean {
         lastPlayback = if (playback.positionAtMs == 0L) {
             playback.copy(positionAtMs = serverNowMs())
         } else {
             playback
         }
+        if (System.currentTimeMillis() < suppressPlaybackPushUntil) return false
+        val c = client ?: return false
+        if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
         scope.launch { pushCurrentSnapshot() }
+        return true
     }
 
     /** Estimated clock offset to the relay server (see [SyncClient.serverOffsetMs]). */

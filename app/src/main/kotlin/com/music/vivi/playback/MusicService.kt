@@ -277,6 +277,11 @@ class MusicService :
     // Suppress the echo push right after we apply a remote volume change, so
     // the resulting system VOLUME_CHANGED broadcast doesn't bounce back.
     private var suppressVolumePushUntil = 0L
+    // Last successfully-pushed volume values (the periodic volume poll only
+    // re-pushes when these change, and sets them on a successful push so a
+    // dropped push is retried instead of being silently lost).
+    private var lastPushedPlayerVolume: Float? = null
+    private var lastPushedSystemVolume: Float? = null
     var preferredDeviceId: Int? = null //added for audio device switching
         private set//improvement
 
@@ -734,8 +739,26 @@ class MusicService :
             }
         }
 
-        // Push in-app volume-slider changes to the paired desktop edition.
-        playerVolume.debounce(300).collect(scope) { pushPlaybackToDesktop() }
+        // Push in-app + system volume changes to the paired desktop edition.
+        // Polled (not just debounced) so a push dropped by the echo-suppression
+        // window is retried on the next tick, and it also syncs when idle.
+        scope.launch {
+            while (true) {
+                delay(700L)
+                val pv = playerVolume.value
+                val sv = systemVolume()
+                val pvChanged = lastPushedPlayerVolume == null ||
+                    abs(pv - lastPushedPlayerVolume!!) > 0.001f
+                val svChanged = lastPushedSystemVolume == null ||
+                    abs(sv - lastPushedSystemVolume!!) > 0.01f
+                if (pvChanged || svChanged) {
+                    if (pushPlaybackToDesktop()) {
+                        lastPushedPlayerVolume = pv
+                        lastPushedSystemVolume = sv
+                    }
+                }
+            }
+        }
 
         currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
@@ -1490,12 +1513,17 @@ class MusicService :
         runCatching { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0) }
     }
 
-    /** Pushes the current queue + position to the paired desktop edition. */
-    private fun pushPlaybackToDesktop() {
+    /**
+     * Pushes the current queue + position to the paired desktop edition.
+     *
+     * @return true if the snapshot was actually sent (used by the volume poll
+     * so a suppressed push is retried rather than lost).
+     */
+    private fun pushPlaybackToDesktop(): Boolean {
         val meta = player.currentMetadata
         val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
         val index = player.currentMediaItemIndex.coerceAtLeast(0)
-        deviceSyncManager.pushPlayback(
+        return deviceSyncManager.pushPlayback(
             PlaybackSnapshot(
                 trackId = meta?.id,
                 trackTitle = meta?.title,
@@ -1519,8 +1547,16 @@ class MusicService :
         // Volume sync first, even if the snapshot has no track/queue:
         // - `volume` mirrors the desktop's in-app (player) volume slider.
         // - `systemVolume` mirrors the desktop's native OS volume.
-        snapshot.volume?.let { v -> playerVolume.value = v.coerceIn(0f, 1f) }
-        snapshot.systemVolume?.let { v -> setSystemVolume(v) }
+        // Recording the applied values suppresses the echo push from the poll.
+        snapshot.volume?.let { v ->
+            val c = v.coerceIn(0f, 1f)
+            playerVolume.value = c
+            lastPushedPlayerVolume = c
+        }
+        snapshot.systemVolume?.let { v ->
+            setSystemVolume(v)
+            lastPushedSystemVolume = v.coerceIn(0f, 1f)
+        }
         val items = snapshot.queue.map { it.toMediaItem() }
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)

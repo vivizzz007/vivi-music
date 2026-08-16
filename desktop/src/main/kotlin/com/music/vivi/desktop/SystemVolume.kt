@@ -1,11 +1,11 @@
 package com.music.vivi.desktop
 
-import com.sun.jna.Library
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 import com.sun.jna.ptr.IntByReference
 import com.sun.jna.ptr.PointerByReference
+import com.sun.jna.win32.StdCallLibrary
 import java.util.Locale
 
 /**
@@ -70,10 +70,15 @@ private object WindowsVolume {
         @JvmField var cbSize: Short = 0
     }
 
-    private interface Winmm : Library {
+    private interface Winmm : StdCallLibrary {
         // `uDeviceID` is UINT_PTR (pointer-sized), so it must be mapped as a
         // Pointer: WAVE_MAPPER is (UINT_PTR)-1 (all bits set).
-        fun waveOutOpen(phwo: PointerByReference, uDeviceID: Pointer, pwfx: Pointer?, dwCallback: Pointer?, dwInstance: Pointer?, fdwOpen: Int): Int
+        //
+        // NOTE: `waveOutOpen` is a macro in the Windows headers, not an exported
+        // symbol — winmm.dll only exports `waveOutOpenW`/`waveOutOpenA`. Loading
+        // `waveOutOpen` made `Native.load` fail, so every Windows volume call
+        // silently no-opped (native volume never synced).
+        fun waveOutOpenW(phwo: PointerByReference, uDeviceID: Pointer, pwfx: Pointer?, dwCallback: Pointer?, dwInstance: Pointer?, fdwOpen: Int): Int
         fun waveOutGetVolume(hwo: Pointer, pdwVolume: IntByReference): Int
         fun waveOutSetVolume(hwo: Pointer, dwVolume: Int): Int
         fun waveOutClose(hwo: Pointer): Int
@@ -87,7 +92,7 @@ private object WindowsVolume {
         val format = WaveFormatEx()
         format.write()
         val ref = PointerByReference()
-        if (mm.waveOutOpen(ref, Pointer(-1L) /* WAVE_MAPPER */, format.pointer, null, null, 0) != 0) return
+        if (mm.waveOutOpenW(ref, Pointer(-1L) /* WAVE_MAPPER */, format.pointer, null, null, 0) != 0) return
         try {
             block(ref.value)
         } finally {

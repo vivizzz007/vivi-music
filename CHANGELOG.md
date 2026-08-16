@@ -11,6 +11,21 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.22] - 2026-08-16
+
+### Fixed
+
+- [DE] Native (OS) volume now actually syncs on Windows: the WinMM call used
+  `waveOutOpen`, which is a macro — `winmm.dll` only exports `waveOutOpenW`/
+  `waveOutOpenA` — so `Native.load` failed and every native volume read/write
+  silently no-opped. The default wave device is now opened via `waveOutOpenW`
+  (with `StdCallLibrary`).
+- [DE+APK] Volume pushes (in-app `volume` and native `systemVolume`) are now
+  retried instead of being silently dropped: both sides poll volume and only
+  mark it as pushed once the snapshot is actually sent, so a push that lands in
+  the echo-suppression window is re-sent on the next tick. The mobile side is
+  echo-guarded per-field so an applied remote value isn't bounced back.
+
 ## [6.4.4_DE-1.33.21] - 2026-08-16
 
 ### Added

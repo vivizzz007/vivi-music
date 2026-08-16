@@ -196,12 +196,18 @@ class DesktopSyncManager {
         _peerDeviceId.value = ""
     }
 
-    /** Update the local playback snapshot and push it to the peer (if paired). */
-    fun updatePlayback(playback: PlaybackSnapshot?) {
+    /**
+     * Update the local playback snapshot and push it to the peer (if paired).
+     *
+     * @return true if the snapshot was actually sent this call; false when it
+     * was dropped (echo-suppression window, not connected, or not paired), so
+     * callers that care (the volume poll loops) can retry.
+     */
+    fun updatePlayback(playback: PlaybackSnapshot?): Boolean {
         lastPlayback = playback?.let { p ->
             if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
         }
-        pushSnapshot()
+        return pushSnapshot()
     }
 
     /** Update the local settings snapshot and push it to the peer (if paired). */
@@ -255,11 +261,11 @@ class DesktopSyncManager {
         _connectionState.value = SyncConnectionState.DISCONNECTED
     }
 
-    private fun pushSnapshot() {
-        if (System.currentTimeMillis() < suppressPushUntil) return
-        val c = client ?: return
-        if (c.connectionState.value != SyncConnectionState.CONNECTED) return
-        if (!_paired.value) return
+    private fun pushSnapshot(): Boolean {
+        if (System.currentTimeMillis() < suppressPushUntil) return false
+        val c = client ?: return false
+        if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
+        if (!_paired.value) return false
         c.pushSnapshot(
             SyncSnapshot(
                 deviceId = c.deviceId,
@@ -270,6 +276,7 @@ class DesktopSyncManager {
                 library = lastLibrary,
             )
         )
+        return true
     }
 
     private fun handleEvent(event: SyncEvent) {

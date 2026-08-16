@@ -443,10 +443,13 @@ fun App(
             val changed = volumeGuard.lastPushed == null ||
                 abs(v - volumeGuard.lastPushed!!) > 0.001f
             if (!isEcho && changed) {
-                volumeGuard.lastPushed = v
                 val s = player.state.value
                 val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
-                syncManager.updatePlayback(snapshot)
+                // Only mark as pushed when it was actually sent, so a dropped
+                // push (echo-suppression window) is retried on the next tick.
+                if (syncManager.updatePlayback(snapshot)) {
+                    volumeGuard.lastPushed = v
+                }
             }
             delay(500L)
         }
@@ -481,10 +484,11 @@ fun App(
                 val changed = systemVolumeGuard.lastPushed == null ||
                     abs(sv - systemVolumeGuard.lastPushed!!) > 0.01f
                 if (!isEcho && changed) {
-                    systemVolumeGuard.lastPushed = sv
                     val s = player.state.value
                     val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
-                    syncManager.updatePlayback(snapshot.copy(systemVolume = sv))
+                    if (syncManager.updatePlayback(snapshot.copy(systemVolume = sv))) {
+                        systemVolumeGuard.lastPushed = sv
+                    }
                 }
             }
             delay(800L)
