@@ -63,24 +63,44 @@ data class DesktopSyncState(
 object DesktopSettings {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
 
+    /** Serializes load/save so concurrent writers can't clobber each other. */
+    private val lock = Any()
+
     private val file: File by lazy {
         File(System.getProperty("user.home"), ".vivimusic/device-sync.json").apply {
             parentFile?.mkdirs()
         }
     }
 
-    fun load(): DesktopSyncState = try {
-        if (file.exists()) json.decodeFromString(DesktopSyncState.serializer(), file.readText())
-        else DesktopSyncState()
-    } catch (_: Exception) {
-        DesktopSyncState()
+    fun load(): DesktopSyncState = synchronized(lock) {
+        try {
+            if (file.exists()) json.decodeFromString(DesktopSyncState.serializer(), file.readText())
+            else DesktopSyncState()
+        } catch (_: Exception) {
+            DesktopSyncState()
+        }
     }
 
     fun save(state: DesktopSyncState) {
-        try {
-            file.writeText(json.encodeToString(DesktopSyncState.serializer(), state))
-        } catch (_: Exception) {
-            // best-effort
+        synchronized(lock) {
+            try {
+                file.writeText(json.encodeToString(DesktopSyncState.serializer(), state))
+            } catch (_: Exception) {
+                // best-effort
+            }
+        }
+    }
+
+    /**
+     * Atomic read-modify-write: applies [transform] to the freshly-loaded state
+     * and saves the result under the same lock. Use this instead of
+     * `save(load().copy(...))`, which races when the UI thread and the
+     * device-sync IO coroutines save at the same time and can silently drop a
+     * setting the user just changed (e.g. the notification mode).
+     */
+    fun update(transform: (DesktopSyncState) -> DesktopSyncState) {
+        synchronized(lock) {
+            save(transform(load()))
         }
     }
 
@@ -88,7 +108,7 @@ object DesktopSettings {
         val existing = load().deviceId
         if (existing.isNotEmpty()) return existing
         val id = UUID.randomUUID().toString()
-        save(load().copy(deviceId = id))
+        update { it.copy(deviceId = id) }
         return id
     }
 
@@ -101,7 +121,7 @@ object DesktopSettings {
         val state = load()
         if (state.firstLaunchDate > 0) return state.firstLaunchDate
         val now = System.currentTimeMillis()
-        save(state.copy(firstLaunchDate = now))
+        update { it.copy(firstLaunchDate = now) }
         return now
     }
 }

@@ -55,8 +55,9 @@ object NotificationHistory {
             val state = DesktopSettings.load()
             if (!state.saveNotificationHistory) return
             val entry = NotificationRecord(System.currentTimeMillis(), title, message, mode)
-            val updated = (listOf(entry) + state.notificationHistory).take(MAX_ENTRIES)
-            DesktopSettings.save(state.copy(notificationHistory = updated))
+            DesktopSettings.update { s ->
+                s.copy(notificationHistory = (listOf(entry) + s.notificationHistory).take(MAX_ENTRIES))
+            }
         }
     }
 
@@ -64,7 +65,7 @@ object NotificationHistory {
 
     fun clear() {
         runCatching {
-            DesktopSettings.save(DesktopSettings.load().copy(notificationHistory = emptyList()))
+            DesktopSettings.update { it.copy(notificationHistory = emptyList()) }
         }
     }
 }

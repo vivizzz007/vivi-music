@@ -71,8 +71,8 @@ object LoginManager {
             throw IllegalStateException("Login validation failed: ${e.message ?: "unknown error"}")
         }
 
-        DesktopSettings.save(
-            DesktopSettings.load().copy(
+        DesktopSettings.update {
+            it.copy(
                 cookie = trimmed,
                 dataSyncId = dataSyncId.orEmpty(),
                 visitorData = visitorData.orEmpty(),
@@ -80,7 +80,7 @@ object LoginManager {
                 accountEmail = account.email.orEmpty(),
                 accountChannelHandle = account.channelHandle.orEmpty(),
             )
-        )
+        }
         account
     }
 
@@ -89,8 +89,8 @@ object LoginManager {
         YouTube.dataSyncId = null
         YouTube.visitorData = null
         YouTube.useLoginForBrowse = false
-        DesktopSettings.save(
-            DesktopSettings.load().copy(
+        DesktopSettings.update {
+            it.copy(
                 cookie = "",
                 dataSyncId = "",
                 visitorData = "",
@@ -98,7 +98,7 @@ object LoginManager {
                 accountEmail = "",
                 accountChannelHandle = "",
             )
-        )
+        }
     }
 
     /**

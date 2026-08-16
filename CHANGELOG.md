@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.7_DE-1.33.35] - 2026-08-16
+
+### Fixed
+
+- [DE] Settings (e.g. where notifications are shown) no longer get forgotten on
+  restart or update: `DesktopSettings` now saves through an atomic
+  read-modify-write (`update`) instead of `save(load().copy(…))`, which could
+  race between the UI thread and the device-sync IO coroutines and silently
+  drop the value the user had just changed.
+
 ## [6.4.7_DE-1.33.34] - 2026-08-16
 
 ### Fixed

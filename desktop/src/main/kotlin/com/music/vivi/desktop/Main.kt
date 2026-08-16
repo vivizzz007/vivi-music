@@ -158,13 +158,13 @@ fun main() {
     var pureBlack by remember { mutableStateOf(DesktopSettings.load().pureBlack) }
 
     fun saveTheme() {
-        DesktopSettings.save(
-            DesktopSettings.load().copy(
+        DesktopSettings.update {
+            it.copy(
                 darkMode = themeMode.key,
                 accentColor = colorToArgbInt(accent),
                 pureBlack = pureBlack,
             )
-        )
+        }
     }
 
     // Live window title: shows CPU/RAM when dev options are on and either the
@@ -190,14 +190,14 @@ fun main() {
             if (language.isBlank()) {
                 LanguageSelectionScreen { selected ->
                     language = selected
-                    DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                    DesktopSettings.update { it.copy(language = selected) }
                 }
             } else {
                 App(
                     language = language,
                     onLanguageChange = { selected ->
                         language = selected
-                        DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                        DesktopSettings.update { it.copy(language = selected) }
                     },
                     themeMode = themeMode,
                     accent = accent,
@@ -269,10 +269,9 @@ fun App(
     // Persistent queue: save the queue whenever it changes.
     LaunchedEffect(playerState.queue, playerState.index, persistentQueue) {
         if (persistentQueue && playerState.queue.isNotEmpty()) {
-            val s = DesktopSettings.load()
-            DesktopSettings.save(
-                s.copy(queueJson = queueJson.encodeToString(playerState.queue), queueIndex = playerState.index)
-            )
+            DesktopSettings.update {
+                it.copy(queueJson = queueJson.encodeToString(playerState.queue), queueIndex = playerState.index)
+            }
         }
     }
 
@@ -597,7 +596,7 @@ fun App(
             collapsed = sidebarCollapsed,
             onToggleCollapsed = {
                 sidebarCollapsed = !sidebarCollapsed
-                DesktopSettings.save(DesktopSettings.load().copy(sidebarCollapsed = sidebarCollapsed))
+                DesktopSettings.update { it.copy(sidebarCollapsed = sidebarCollapsed) }
             },
             onSelect = openRoot,
         )
@@ -671,22 +670,22 @@ fun App(
                         autoPlayNext = autoPlayNext,
                         onToggleAutoPlayNext = { checked ->
                             autoPlayNext = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(autoPlayNext = checked))
+                            DesktopSettings.update { it.copy(autoPlayNext = checked) }
                         },
                         audioQuality = audioQuality,
                         onAudioQualityChange = { q ->
                             audioQuality = q
-                            DesktopSettings.save(DesktopSettings.load().copy(audioQuality = q))
+                            DesktopSettings.update { it.copy(audioQuality = q) }
                         },
                         rememberShuffleRepeat = rememberShuffleRepeat,
                         onToggleRememberShuffleRepeat = { checked ->
                             rememberShuffleRepeat = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(rememberShuffleRepeat = checked))
+                            DesktopSettings.update { it.copy(rememberShuffleRepeat = checked) }
                         },
                         persistentQueue = persistentQueue,
                         onTogglePersistentQueue = { checked ->
                             persistentQueue = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(persistentQueue = checked))
+                            DesktopSettings.update { it.copy(persistentQueue = checked) }
                         },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
@@ -713,12 +712,12 @@ fun App(
                         contentCountry = contentCountry,
                         onContentLanguageChange = { code ->
                             contentLanguage = code
-                            DesktopSettings.save(DesktopSettings.load().copy(contentLanguage = code))
+                            DesktopSettings.update { it.copy(contentLanguage = code) }
                             YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
                         },
                         onContentCountryChange = { code ->
                             contentCountry = code
-                            DesktopSettings.save(DesktopSettings.load().copy(contentCountry = code))
+                            DesktopSettings.update { it.copy(contentCountry = code) }
                             YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
                         },
                     )
@@ -728,12 +727,12 @@ fun App(
                         syncedLyrics = syncedLyrics,
                         onToggleSyncedLyrics = { checked ->
                             syncedLyrics = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(syncedLyrics = checked))
+                            DesktopSettings.update { it.copy(syncedLyrics = checked) }
                         },
                         lyricsTextSize = lyricsTextSize,
                         onLyricsTextSizeChange = { size ->
                             lyricsTextSize = size
-                            DesktopSettings.save(DesktopSettings.load().copy(lyricsTextSize = size))
+                            DesktopSettings.update { it.copy(lyricsTextSize = size) }
                         },
                     )
                     is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
@@ -758,11 +757,11 @@ fun App(
                         updateIntervalHours = updateIntervalHours,
                         onIntervalChange = { hours ->
                             updateIntervalHours = hours
-                            DesktopSettings.save(DesktopSettings.load().copy(updateCheckIntervalHours = hours))
+                            DesktopSettings.update { it.copy(updateCheckIntervalHours = hours) }
                         },
                         onTogglePreReleases = { checked ->
                             includePreReleases = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
+                            DesktopSettings.update { it.copy(includePreReleases = checked) }
                             runUpdateCheck()
                         },
                         onCheckUpdates = { runUpdateCheck() },
@@ -788,17 +787,17 @@ fun App(
                         notificationMode = notificationMode,
                         onNotificationModeChange = { mode ->
                             notificationMode = mode
-                            DesktopSettings.save(DesktopSettings.load().copy(notificationMode = mode))
+                            DesktopSettings.update { it.copy(notificationMode = mode) }
                         },
                         notificationDurationSeconds = notificationDurationSeconds,
                         onNotificationDurationChange = { secs ->
                             notificationDurationSeconds = secs
-                            DesktopSettings.save(DesktopSettings.load().copy(inAppNotificationDurationSeconds = secs))
+                            DesktopSettings.update { it.copy(inAppNotificationDurationSeconds = secs) }
                         },
                         saveHistory = saveNotificationHistory,
                         onSaveHistoryChange = { save ->
                             saveNotificationHistory = save
-                            DesktopSettings.save(DesktopSettings.load().copy(saveNotificationHistory = save))
+                            DesktopSettings.update { it.copy(saveNotificationHistory = save) }
                         },
                         onOpenHistory = { navigate(Screen.SettingsNotificationsHistory) },
                     )

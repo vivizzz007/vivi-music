@@ -495,14 +495,13 @@ private fun exportSettings(file: File): Boolean = runCatching {
 private fun importSettings(file: File): Boolean = runCatching {
     val json = Json { ignoreUnknownKeys = true }
     val imported = json.decodeFromString(DesktopSyncState.serializer(), file.readText())
-    val current = DesktopSettings.load()
-    DesktopSettings.save(
+    DesktopSettings.update { current ->
         imported.copy(
             deviceId = current.deviceId,
             firstLaunchDate = current.firstLaunchDate,
             pairId = "",
         )
-    )
+    }
 }.isSuccess
 
 @Composable

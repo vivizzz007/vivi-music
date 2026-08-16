@@ -126,7 +126,7 @@ class DesktopSyncManager {
         // Persist only real relay URLs; the ephemeral localhost LAN address
         // must not become the saved default.
         if (!url.startsWith("ws://localhost")) {
-            DesktopSettings.save(DesktopSettings.load().copy(serverUrl = url))
+            DesktopSettings.update { it.copy(serverUrl = url) }
         }
     }
 
@@ -168,7 +168,7 @@ class DesktopSyncManager {
         _lanAddress.value = ""
         teardownClient()
         // Stopping the LAN server unpairs both sides.
-        DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+        DesktopSettings.update { it.copy(pairId = "") }
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
@@ -188,7 +188,7 @@ class DesktopSyncManager {
 
     fun unpair() {
         client?.unpair()
-        DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+        DesktopSettings.update { it.copy(pairId = "") }
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
@@ -297,7 +297,7 @@ class DesktopSyncManager {
                 _pairCodeExpiresAt.value = 0L
                 _peerDeviceName.value = event.peerDeviceName
                 _peerDeviceId.value = event.peerDeviceId
-                DesktopSettings.save(DesktopSettings.load().copy(pairId = event.pairId))
+                DesktopSettings.update { it.copy(pairId = event.pairId) }
                 _status.value = "Paired with ${event.peerDeviceName}"
                 pushSnapshot()
             }
@@ -314,7 +314,7 @@ class DesktopSyncManager {
                 _status.value = "Snapshot received"
                 if (event.snapshot.settings.isNotEmpty()) {
                     _syncedSettings.value = event.snapshot.settings
-                    DesktopSettings.save(DesktopSettings.load().copy(settings = event.snapshot.settings))
+                    DesktopSettings.update { it.copy(settings = event.snapshot.settings) }
                     scope.launch { _incomingSettings.emit(event.snapshot.settings) }
                 }
                 event.snapshot.playback?.let { pb ->
@@ -322,7 +322,7 @@ class DesktopSyncManager {
                 }
                 event.snapshot.library?.let { lib ->
                     _syncedLibrary.value = lib
-                    DesktopSettings.save(DesktopSettings.load().copy(library = lib))
+                    DesktopSettings.update { it.copy(library = lib) }
                     scope.launch { _incomingLibrary.emit(lib) }
                 }
             }
@@ -337,7 +337,7 @@ class DesktopSyncManager {
                     _pairCodeExpiresAt.value = 0L
                     _peerDeviceName.value = ""
                     _peerDeviceId.value = ""
-                    DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+                    DesktopSettings.update { it.copy(pairId = "") }
                 }
             }
         }

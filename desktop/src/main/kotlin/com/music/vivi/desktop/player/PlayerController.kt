@@ -418,12 +418,12 @@ class PlayerController {
     private fun persistShuffleRepeat() {
         val s = DesktopSettings.load()
         if (s.rememberShuffleRepeat) {
-            DesktopSettings.save(
-                s.copy(
+            DesktopSettings.update {
+                it.copy(
                     isShuffle = _state.value.isShuffle,
                     repeatModeKey = _state.value.repeatMode.name,
                 )
-            )
+            }
         }
     }
 

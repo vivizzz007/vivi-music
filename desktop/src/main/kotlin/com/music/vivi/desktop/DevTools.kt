@@ -92,29 +92,29 @@ object DeveloperOptions {
     fun setEnabled(value: Boolean) {
         val was = _enabled.value
         _enabled.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(developerOptions = value))
+        DesktopSettings.update { it.copy(developerOptions = value) }
         if (value) SystemMonitor.start() else SystemMonitor.stop()
         if (value && !was) _unlocked.tryEmit(Unit)
     }
 
     fun setMode(value: DevToolsMode) {
         _mode.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devToolsMode = value.name))
+        DesktopSettings.update { it.copy(devToolsMode = value.name) }
     }
 
     fun setProfile(value: DevToolsProfile) {
         _profile.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devProfile = value.name))
+        DesktopSettings.update { it.copy(devProfile = value.name) }
     }
 
     fun setOverlayMovable(value: Boolean) {
         _overlayMovable.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devOverlayMovable = value))
+        DesktopSettings.update { it.copy(devOverlayMovable = value) }
     }
 
     fun setShowInTitleBar(value: Boolean) {
         _showInTitleBar.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devShowInTitleBar = value))
+        DesktopSettings.update { it.copy(devShowInTitleBar = value) }
     }
 }
 
