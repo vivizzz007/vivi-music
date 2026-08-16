@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.9_DE-1.33.40] - 2026-08-16
+
+### Fixed
+
+- [DE] Native system notifications now use the real VIVI Music DE logo as their
+  icon instead of a placeholder glyph. `logo_vmde.png` is bundled under
+  `images/` and loaded for the tray icon (scaled, with a fallback).
+
 ## [6.4.9_DE-1.33.39] - 2026-08-16
 
 ### Added

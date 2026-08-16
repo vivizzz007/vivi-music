@@ -95,8 +95,27 @@ object NativeNotifier {
         }
     }
 
-    /** Small square glyph used as the tray icon (no bundled resource needed). */
+    /** Loads the bundled VIVI Music DE logo (scaled to tray size) for the notification icon. */
     private fun trayImage(): BufferedImage {
+        val stream = NativeNotifier::class.java.getResourceAsStream("/images/logo_vmde.png")
+        if (stream != null) {
+            val source = runCatching {
+                stream.use { s -> javax.imageio.ImageIO.read(s) }
+            }.getOrNull()
+            if (source != null) {
+                val size = 64
+                val scaled = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
+                val g = scaled.createGraphics()
+                g.drawImage(source, 0, 0, size, size, null)
+                g.dispose()
+                return scaled
+            }
+        }
+        return fallbackTrayImage()
+    }
+
+    /** Placeholder glyph, used only if the bundled logo is missing (e.g. dev). */
+    private fun fallbackTrayImage(): BufferedImage {
         val size = 32
         val img = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
         val g = img.createGraphics()
