@@ -40,6 +40,7 @@ sealed interface Screen {
     data object SettingsDeveloper : Screen
     data object SettingsBackup : Screen
     data object SettingsNotifications : Screen
+    data object SettingsNotificationsHistory : Screen
 }
 
 /**

@@ -52,6 +52,12 @@ data class DesktopSyncState(
     val updateCheckIntervalHours: Int = 24,
     /** Where update notifications are shown: "in_app" (default) or "native". */
     val notificationMode: String = "in_app",
+    /** Record every notification (in-app and native) for the history screen. */
+    val saveNotificationHistory: Boolean = true,
+    /** Seconds before an in-app (main window) notification auto-dismisses; 0 = never. */
+    val inAppNotificationDurationSeconds: Int = 5,
+    /** Recent notifications (newest first), capped at a small number. */
+    val notificationHistory: List<NotificationRecord> = emptyList(),
 )
 
 object DesktopSettings {

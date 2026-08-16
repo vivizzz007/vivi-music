@@ -14,10 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -33,6 +36,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.innertube.models.YouTubeLocale
 import java.io.File
@@ -806,6 +810,11 @@ fun SettingsNotificationsScreen(
     onBack: () -> Unit,
     notificationMode: String,
     onNotificationModeChange: (String) -> Unit,
+    notificationDurationSeconds: Int,
+    onNotificationDurationChange: (Int) -> Unit,
+    saveHistory: Boolean,
+    onSaveHistoryChange: (Boolean) -> Unit,
+    onOpenHistory: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         Text(Localization.get(language, "notifications"), style = MaterialTheme.typography.titleLarge)
@@ -830,8 +839,171 @@ fun SettingsNotificationsScreen(
             selected = notificationMode == "native",
             onClick = { onNotificationModeChange("native") },
         )
+
+        Spacer(Modifier.height(16.dp))
+        Text(
+            Localization.get(language, "notification_duration"),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            Localization.get(language, "notification_duration_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
+        )
+        NotificationDurationOption(
+            seconds = 3,
+            selected = notificationDurationSeconds == 3,
+            onClick = { onNotificationDurationChange(3) },
+        )
+        NotificationDurationOption(
+            seconds = 5,
+            selected = notificationDurationSeconds == 5,
+            onClick = { onNotificationDurationChange(5) },
+        )
+        NotificationDurationOption(
+            seconds = 10,
+            selected = notificationDurationSeconds == 10,
+            onClick = { onNotificationDurationChange(10) },
+        )
+        NotificationDurationOption(
+            seconds = 15,
+            selected = notificationDurationSeconds == 15,
+            onClick = { onNotificationDurationChange(15) },
+        )
+        NotificationDurationOption(
+            seconds = 30,
+            selected = notificationDurationSeconds == 30,
+            onClick = { onNotificationDurationChange(30) },
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { onSaveHistoryChange(!saveHistory) }
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                Localization.get(language, "save_notification_history"),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(checked = saveHistory, onCheckedChange = onSaveHistoryChange)
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenHistory)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                Localization.get(language, "notification_history"),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
+
+@Composable
+private fun NotificationDurationOption(seconds: Int, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("${seconds}s", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (selected) {
+            Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}
+
+/** Scrollable list of recent notifications (in-app and native). */
+@Composable
+fun NotificationHistoryScreen(
+    language: String,
+    onBack: () -> Unit,
+) {
+    var history by remember { mutableStateOf(NotificationHistory.list()) }
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "notification_history"), style = MaterialTheme.typography.titleLarge)
+        Text(
+            Localization.get(language, "notification_history_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            OutlinedButton(onClick = {
+                NotificationHistory.clear()
+                history = emptyList()
+            }) {
+                Text(Localization.get(language, "clear_history"))
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        if (history.isEmpty()) {
+            Text(
+                Localization.get(language, "history_empty"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp),
+            )
+        } else {
+            history.forEach { record -> NotificationHistoryItem(language, record) }
+        }
+    }
+}
+
+@Composable
+private fun NotificationHistoryItem(language: String, record: NotificationRecord) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                record.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                formatNotificationTime(record.timestamp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            record.message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            Text(
+                if (record.mode == "native") Localization.get(language, "notification_native") else Localization.get(language, "notification_main_window"),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+    }
+}
+
+private fun formatNotificationTime(epochMillis: Long): String = runCatching {
+    val dt = java.time.Instant.ofEpochMilli(epochMillis).atZone(java.time.ZoneId.systemDefault())
+    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(dt)
+}.getOrDefault("")
 
 @Composable
 private fun NotificationModeOption(

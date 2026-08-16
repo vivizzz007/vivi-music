@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.29] - 2026-08-16
+
+### Added
+
+- [DE] Notification history: every notification (in-app and native) is recorded
+  and can be reviewed from Settings → Notifications → Notification history, with
+  a "Save notification history" toggle and a "Clear history" action.
+- [DE] Configurable in-app notification auto-dismiss (3/5/10/15/30 seconds,
+  default 5s) in Settings → Notifications.
+
 ## [6.4.5_DE-1.33.28] - 2026-08-16
 
 ### Changed

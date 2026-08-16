@@ -316,6 +316,15 @@ fun App(
     LaunchedEffect(Unit) {
         DesktopNotifier.events.collect { appNotification = it }
     }
+    // Auto-dismiss the generic in-app notification after the configured time.
+    LaunchedEffect(appNotification) {
+        val notice = appNotification ?: return@LaunchedEffect
+        val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+        if (seconds > 0) {
+            delay(seconds * 1000L)
+            appNotification = null
+        }
+    }
     // Pre-releases are on by default for nightly/alpha/beta/rc builds (those
     // channels only publish pre-releases), and off by default for stable.
     var includePreReleases by remember {
@@ -325,6 +334,8 @@ fun App(
     }
     var updateIntervalHours by remember { mutableStateOf(DesktopSettings.load().updateCheckIntervalHours) }
     var notificationMode by remember { mutableStateOf(DesktopSettings.load().notificationMode) }
+    var notificationDurationSeconds by remember { mutableStateOf(DesktopSettings.load().inAppNotificationDurationSeconds) }
+    var saveNotificationHistory by remember { mutableStateOf(DesktopSettings.load().saveNotificationHistory) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
@@ -335,12 +346,12 @@ fun App(
     var showDevNotification by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         DeveloperOptions.unlocked.collect {
+            val title = Localization.get(language, "dev_unlocked_title")
+            val desc = Localization.get(language, "dev_unlocked_desc")
             if (DesktopSettings.load().notificationMode == "native") {
-                DesktopNotifier.notify(
-                    Localization.get(language, "dev_unlocked_title"),
-                    Localization.get(language, "dev_unlocked_desc"),
-                )
+                DesktopNotifier.notify(title, desc)
             } else {
+                NotificationHistory.record(title, desc, "in_app")
                 showDevNotification = true
             }
         }
@@ -374,12 +385,12 @@ fun App(
         val available = updateStatus as? UpdateStatus.Available
         if (available != null && available.version != updateNotifiedVersion) {
             updateNotifiedVersion = available.version
-            val mode = DesktopSettings.load().notificationMode
+            val mode = if (DesktopSettings.load().notificationMode == "native") "native" else "in_app"
+            val title = Localization.get(language, "update_available")
+            val message = "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}"
+            NotificationHistory.record(title, message, mode)
             if (mode == "native") {
-                NativeNotifier.notify(
-                    Localization.get(language, "update_available"),
-                    "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}",
-                )
+                NativeNotifier.notify(title, message)
             } else {
                 showUpdateNotification = true
             }
@@ -775,6 +786,21 @@ fun App(
                             notificationMode = mode
                             DesktopSettings.save(DesktopSettings.load().copy(notificationMode = mode))
                         },
+                        notificationDurationSeconds = notificationDurationSeconds,
+                        onNotificationDurationChange = { secs ->
+                            notificationDurationSeconds = secs
+                            DesktopSettings.save(DesktopSettings.load().copy(inAppNotificationDurationSeconds = secs))
+                        },
+                        saveHistory = saveNotificationHistory,
+                        onSaveHistoryChange = { save ->
+                            saveNotificationHistory = save
+                            DesktopSettings.save(DesktopSettings.load().copy(saveNotificationHistory = save))
+                        },
+                        onOpenHistory = { navigate(Screen.SettingsNotificationsHistory) },
+                    )
+                    is Screen.SettingsNotificationsHistory -> NotificationHistoryScreen(
+                        language = language,
+                        onBack = goBack,
                     )
                     is Screen.Album -> AlbumScreen(
                         browseId = current.browseId,

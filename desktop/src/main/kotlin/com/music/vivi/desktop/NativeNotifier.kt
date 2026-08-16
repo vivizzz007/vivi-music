@@ -3,6 +3,7 @@ package com.music.vivi.desktop
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.serialization.Serializable
 import java.awt.Color
 import java.awt.SystemTray
 import java.awt.TrayIcon
@@ -22,10 +23,48 @@ object DesktopNotifier {
     val events: SharedFlow<Notice> = _events.asSharedFlow()
 
     fun notify(title: String, message: String) {
-        if (DesktopSettings.load().notificationMode == "native") {
+        val mode = if (DesktopSettings.load().notificationMode == "native") "native" else "in_app"
+        NotificationHistory.record(title, message, mode)
+        if (mode == "native") {
             NativeNotifier.notify(title, message)
         } else {
             _events.tryEmit(Notice(title, message))
+        }
+    }
+}
+
+/** One recorded notification (in-app or native), newest first in the list. */
+@Serializable
+data class NotificationRecord(
+    val timestamp: Long,
+    val title: String,
+    val message: String,
+    /** "in_app" or "native" — which channel actually showed it. */
+    val mode: String,
+)
+
+/**
+ * Persistent history of notifications shown by the app, so the user can review
+ * them (regardless of whether they were in-app banners or native OS toasts).
+ */
+object NotificationHistory {
+    private const val MAX_ENTRIES = 100
+
+    fun record(title: String, message: String, mode: String) {
+        runCatching {
+            val state = DesktopSettings.load()
+            if (!state.saveNotificationHistory) return
+            val entry = NotificationRecord(System.currentTimeMillis(), title, message, mode)
+            val updated = (listOf(entry) + state.notificationHistory).take(MAX_ENTRIES)
+            DesktopSettings.save(state.copy(notificationHistory = updated))
+        }
+    }
+
+    fun list(): List<NotificationRecord> = runCatching { DesktopSettings.load().notificationHistory }.getOrDefault(emptyList())
+
+    fun clear() {
+        runCatching {
+            DesktopSettings.save(DesktopSettings.load().copy(notificationHistory = emptyList()))
         }
     }
 }
