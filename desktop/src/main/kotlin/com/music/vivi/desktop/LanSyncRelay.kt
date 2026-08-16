@@ -143,7 +143,10 @@ class LanSyncRelay {
         } catch (_: Exception) {
             // connection closed — fall through to cleanup
         } finally {
-            deviceId?.let { sockets.remove(it) }
+            deviceId?.let { id ->
+                sockets.remove(id)
+                handleDisconnect(id)
+            }
         }
     }
 
@@ -226,6 +229,23 @@ class LanSyncRelay {
 
     private suspend fun handleUnpair(msg: SyncEnvelope) {
         val deviceId = msg.deviceId ?: return
+        val pairId = devicePair[deviceId] ?: return
+        if (pairId.isEmpty()) return
+        val pair = pairs.remove(pairId) ?: return
+        val peer = if (pair.first == deviceId) pair.second else pair.first
+        devicePair[deviceId] = ""
+        devicePair[peer] = ""
+        mailboxes.remove(deviceId)
+        mailboxes.remove(peer)
+        sockets[peer]?.let { send(it, SyncEnvelope(type = SyncMessageTypes.PAIR_ERROR, message = "Device was unpaired")) }
+    }
+
+    /**
+     * A device's socket closed (e.g. the app was closed). If it was paired,
+     * clear the pair and tell the still-connected peer it is no longer paired,
+     * so both sides stop showing "paired" for a peer that is gone.
+     */
+    private suspend fun handleDisconnect(deviceId: String) {
         val pairId = devicePair[deviceId] ?: return
         if (pairId.isEmpty()) return
         val pair = pairs.remove(pairId) ?: return

@@ -11,6 +11,20 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.7] - 2026-08-16
+
+### Changed
+
+- [DE+APK] Closing either app (mobile or desktop) now un-pairs both devices.
+  The relays (cloud `sync-server` and the desktop LAN relay) detect the socket
+  close, clear the pair, and tell the still-open peer it is no longer paired,
+  so it stops showing "paired" for a peer that is gone.
+
+### Note
+
+- The cloud relay needs a redeploy of `sync-server/server.js` for this to take
+  effect over `wss://`; the LAN relay works immediately.
+
 ## [6.4.3_DE-1.33.6] - 2026-08-16
 
 ### Fixed

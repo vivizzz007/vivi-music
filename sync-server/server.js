@@ -88,6 +88,7 @@ function onMessage(ws, raw) {
 
   // Remember which socket belongs to this device (lazy registration).
   sockets[msg.deviceId] = ws;
+  ws._deviceId = msg.deviceId;
   if (!state.devices[msg.deviceId]) {
     state.devices[msg.deviceId] = { name: msg.deviceName || 'Device', pairId: null };
     persist();
@@ -199,6 +200,28 @@ function handleUnpair(ws, msg) {
   persist();
 }
 
+// A device's socket closed (e.g. the app was closed). If it was paired, clear
+// the pair and tell the still-connected peer it is no longer paired, so both
+// sides stop showing "paired" for a peer that is gone.
+function handleDisconnect(ws) {
+  const deviceId = ws._deviceId;
+  if (!deviceId) return;
+  if (sockets[deviceId] === ws) delete sockets[deviceId];
+  const device = state.devices[deviceId];
+  if (!device || !device.pairId) return;
+  const pairId = device.pairId;
+  const pair = state.pairs[pairId];
+  if (!pair) return;
+  const peer = pair.a === deviceId ? pair.b : pair.a;
+  delete state.pairs[pairId];
+  if (state.devices[deviceId]) state.devices[deviceId].pairId = null;
+  if (state.devices[peer]) state.devices[peer].pairId = null;
+  delete state.mailboxes[deviceId];
+  delete state.mailboxes[peer];
+  send(sockets[peer], { type: 'pair_error', message: 'Device was unpaired' });
+  persist();
+}
+
 // ---------------------------------------------------------------------------
 // Bootstrap
 // ---------------------------------------------------------------------------
@@ -219,6 +242,7 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 wss.on('connection', (ws) => {
   ws.on('message', (raw) => onMessage(ws, raw.toString()));
+  ws.on('close', () => handleDisconnect(ws));
 });
 
 server.listen(PORT, () => {
