@@ -274,6 +274,9 @@ class MusicService :
     private var reentrantFocusGain = false
     private var wasPlayingBeforeVolumeMute = false
     private var isPausedByVolumeMute = false
+    // Suppress the echo push right after we apply a remote volume change, so
+    // the resulting system VOLUME_CHANGED broadcast doesn't bounce back.
+    private var suppressVolumePushUntil = 0L
     var preferredDeviceId: Int? = null //added for audio device switching
         private set//improvement
 
@@ -455,6 +458,16 @@ class MusicService :
         }
     }
 
+    private val volumeChangeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != "android.media.VOLUME_CHANGED_ACTION") return
+            val streamType = intent.getIntExtra("android.media.EXTRA_VOLUME_STREAM_TYPE", -1)
+            if (streamType != AudioManager.STREAM_MUSIC) return
+            if (System.currentTimeMillis() < suppressVolumePushUntil) return
+            scope.launch { pushPlaybackToDesktop() }
+        }
+    }
+
     private val audioDeviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
             super.onAudioDevicesAdded(addedDevices)
@@ -571,6 +584,7 @@ class MusicService :
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenStateReceiver, screenStateFilter)
+        registerReceiver(volumeChangeReceiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
 
         audioManager.registerAudioDeviceCallback(audioDeviceCallback, null)
 
@@ -1456,18 +1470,35 @@ class MusicService :
     // Device sync (Android <-> desktop edition)
     // ---------------------------------------------------------------------
 
+    /** Normalized system music volume (0..1) used for cross-device sync. */
+    private fun systemVolume(): Float {
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        if (max <= 0) return 1f
+        return audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / max
+    }
+
+    /** Applies a 0..1 volume to the system music stream (mirrors the desktop). */
+    private fun setSystemVolume(v: Float) {
+        val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        if (max <= 0) return
+        val index = Math.round(v.coerceIn(0f, 1f) * max).toInt().coerceIn(0, max)
+        // Suppress the echo push from the resulting VOLUME_CHANGED broadcast.
+        suppressVolumePushUntil = System.currentTimeMillis() + 1500L
+        runCatching { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0) }
+    }
+
     /** Pushes the current queue + position to the paired desktop edition. */
     private fun pushPlaybackToDesktop() {
-        val meta = player.currentMetadata ?: return
+        val meta = player.currentMetadata
         val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
         val index = player.currentMediaItemIndex.coerceAtLeast(0)
         deviceSyncManager.pushPlayback(
             PlaybackSnapshot(
-                trackId = meta.id,
-                trackTitle = meta.title,
+                trackId = meta?.id,
+                trackTitle = meta?.title,
                 positionMs = player.currentPosition,
                 isPlaying = player.isPlaying,
-                volume = player.volume,
+                volume = systemVolume(),
                 queue = items.map { item ->
                     item.metadata?.toTrackRef()
                         ?: TrackRef(id = item.mediaId, title = item.mediaId)
@@ -1481,12 +1512,13 @@ class MusicService :
 
     /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
     private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
+        // Volume sync first: mirror the desktop's volume on the system music
+        // stream even if the snapshot has no track/queue (volume-only updates).
+        snapshot.volume?.let { v -> setSystemVolume(v) }
         val items = snapshot.queue.map { it.toMediaItem() }
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
         val position = deviceSyncManager.effectivePosition(snapshot)
-        // Volume sync: mirror the desktop's volume slider.
-        snapshot.volume?.let { v -> player.volume = v.coerceIn(0f, 1f) }
         if (!playerInitialized.value) {
             scope.launch {
                 playerInitialized.first { it }
@@ -3278,6 +3310,11 @@ class MusicService :
 
         try {
             unregisterReceiver(screenStateReceiver)
+        } catch (e: Exception) {
+            // Ignore
+        }
+        try {
+            unregisterReceiver(volumeChangeReceiver)
         } catch (e: Exception) {
             // Ignore
         }

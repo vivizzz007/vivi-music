@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.6] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] Volume now syncs as the **system** volume: raising/lowering the
+  Android volume (rocker or player bar) drives the desktop volume and vice
+  versa, and the change is pushed immediately (no longer only on the periodic
+  re-sync tick). This also fixes the volume bar position not following on the
+  other device while the audible level did.
+
 ## [6.4.2_DE-1.33.6] - 2026-08-16
 
 ### Added
