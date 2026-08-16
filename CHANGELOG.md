@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.28] - 2026-08-16
+
+### Changed
+
+- [DE] Windows system volume now drives the **master** volume (the speaker icon
+  in the tray) via WASAPI `IAudioEndpointVolume` instead of WinMM, which only
+  moved the per-app `VIVIMusic` mixer entry. The app's own session is now
+  pinned to 100% so the mixer never quiets VIVI under the master. Sync with
+  the phone remains bidirectional (channel `systemVolume`).
+
 ## [6.4.5_DE-1.33.27] - 2026-08-16
 
 ### Fixed
