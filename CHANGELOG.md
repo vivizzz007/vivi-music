@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.25] - 2026-08-16
+
+### Fixed
+
+- [DE] Critical startup crash on Windows: the WinMM binding looked up
+  `waveOutOpenW`, but `winmm.dll` exports the function with **no A/W suffix**
+  (it takes no string argument, so `waveOutOpenW`/`waveOutOpenA` exist only as
+  C header macros). JNA threw "Error looking up function 'waveOutOpenW'" and the
+  app crashed. Restored the correct `waveOutOpen` symbol and guarded every
+  native call so a missing symbol can never crash the app again.
+
 ## [6.4.5_DE-1.33.24] - 2026-08-16
 
 ### Changed

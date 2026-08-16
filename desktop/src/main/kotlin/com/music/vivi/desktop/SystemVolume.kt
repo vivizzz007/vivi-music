@@ -28,7 +28,7 @@ object SystemVolume {
 
     /** Best-effort read of the current system volume (0f..1f), or null if unavailable. */
     fun get(): Float? = when {
-        os.contains("win") -> WindowsVolume.get()
+        os.contains("win") -> runCatching { WindowsVolume.get() }.getOrNull()
         os.contains("mac") -> runCatching { MacVolume.get() }.getOrNull()
         os.contains("linux") -> runCatching { LinuxVolume.get() }.getOrNull()
         else -> null
@@ -38,7 +38,7 @@ object SystemVolume {
     fun set(v: Float) {
         val c = v.coerceIn(0f, 1f)
         when {
-            os.contains("win") -> WindowsVolume.set(c)
+            os.contains("win") -> runCatching { WindowsVolume.set(c) }
             os.contains("mac") -> runCatching { MacVolume.set(c) }
             os.contains("linux") -> runCatching { LinuxVolume.set(c) }
         }
@@ -74,11 +74,11 @@ private object WindowsVolume {
         // `uDeviceID` is UINT_PTR (pointer-sized), so it must be mapped as a
         // Pointer: WAVE_MAPPER is (UINT_PTR)-1 (all bits set).
         //
-        // NOTE: `waveOutOpen` is a macro in the Windows headers, not an exported
-        // symbol — winmm.dll only exports `waveOutOpenW`/`waveOutOpenA`. Loading
-        // `waveOutOpen` made `Native.load` fail, so every Windows volume call
-        // silently no-opped (native volume never synced).
-        fun waveOutOpenW(phwo: PointerByReference, uDeviceID: Pointer, pwfx: Pointer?, dwCallback: Pointer?, dwInstance: Pointer?, fdwOpen: Int): Int
+        // NOTE: `waveOutOpen` takes no string argument, so winmm.dll exports it
+        // with NO A/W suffix — the `waveOutOpenW`/`waveOutOpenA` names exist only
+        // as C header macros, not as DLL symbols. Looking up `waveOutOpenW` threw
+        // "Error looking up function" and crashed the app at startup.
+        fun waveOutOpen(phwo: PointerByReference, uDeviceID: Pointer, pwfx: Pointer?, dwCallback: Pointer?, dwInstance: Pointer?, fdwOpen: Int): Int
         fun waveOutGetVolume(hwo: Pointer, pdwVolume: IntByReference): Int
         fun waveOutSetVolume(hwo: Pointer, dwVolume: Int): Int
         fun waveOutClose(hwo: Pointer): Int
@@ -92,7 +92,10 @@ private object WindowsVolume {
         val format = WaveFormatEx()
         format.write()
         val ref = PointerByReference()
-        if (mm.waveOutOpenW(ref, Pointer(-1L) /* WAVE_MAPPER */, format.pointer, null, null, 0) != 0) return
+        val opened = runCatching {
+            mm.waveOutOpen(ref, Pointer(-1L) /* WAVE_MAPPER */, format.pointer, null, null, 0)
+        }.getOrNull() ?: return
+        if (opened != 0) return
         try {
             block(ref.value)
         } finally {
@@ -105,7 +108,8 @@ private object WindowsVolume {
         var result: Float? = null
         withDevice { hwo ->
             val vol = IntByReference()
-            if (mm.waveOutGetVolume(hwo, vol) == 0) {
+            val rc = runCatching { mm.waveOutGetVolume(hwo, vol) }.getOrNull() ?: return@withDevice
+            if (rc == 0) {
                 val v = vol.value
                 val left = (v and 0xFFFF) / 65535f
                 val right = ((v ushr 16) and 0xFFFF) / 65535f
