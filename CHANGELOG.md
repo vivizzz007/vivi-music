@@ -11,6 +11,21 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.10] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] Device-sync regression: a transient network drop (or a socket
+  reconnecting) no longer tears down a healthy pairing. Both relays now wait a
+  15-second grace period for the device to reconnect before unpairing, and only
+  the device's live socket triggers the unpair. Closing an app still un-pairs
+  the other side (after the grace period).
+
+### Note
+
+- The cloud relay needs a redeploy of `sync-server/server.js` for this to apply
+  over `wss://`; the LAN relay is fixed immediately.
+
 ## [6.4.3_DE-1.33.9] - 2026-08-16
 
 ### Added

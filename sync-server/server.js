@@ -42,6 +42,8 @@ try {
 // Runtime-only state (never persisted)
 const sockets = {};       // deviceId -> ws
 const pendingPairs = {};  // code -> { pairId, deviceId, name, createdAt }
+const pendingDisconnects = {}; // deviceId -> timeout handle (grace before unpairing)
+const UNPAIR_GRACE_MS = 15 * 1000;
 
 function persist() {
   try {
@@ -89,6 +91,11 @@ function onMessage(ws, raw) {
   // Remember which socket belongs to this device (lazy registration).
   sockets[msg.deviceId] = ws;
   ws._deviceId = msg.deviceId;
+  // A live message means the device is (back) online: cancel any pending unpair.
+  if (pendingDisconnects[msg.deviceId]) {
+    clearTimeout(pendingDisconnects[msg.deviceId]);
+    delete pendingDisconnects[msg.deviceId];
+  }
   if (!state.devices[msg.deviceId]) {
     state.devices[msg.deviceId] = { name: msg.deviceName || 'Device', pairId: null };
     persist();
@@ -184,29 +191,11 @@ function handleSyncPull(ws, msg) {
 }
 
 function handleUnpair(ws, msg) {
-  const pairId = state.devices[msg.deviceId] && state.devices[msg.deviceId].pairId;
-  if (pairId) {
-    const pair = state.pairs[pairId];
-    if (pair) {
-      const peer = pair.a === msg.deviceId ? pair.b : pair.a;
-      delete state.pairs[pairId];
-      if (state.devices[msg.deviceId]) state.devices[msg.deviceId].pairId = null;
-      if (state.devices[peer]) state.devices[peer].pairId = null;
-      delete state.mailboxes[msg.deviceId];
-      delete state.mailboxes[peer];
-      send(sockets[peer], { type: 'pair_error', message: 'Device was unpaired' });
-    }
-  }
-  persist();
+  unpair(msg.deviceId);
 }
 
-// A device's socket closed (e.g. the app was closed). If it was paired, clear
-// the pair and tell the still-connected peer it is no longer paired, so both
-// sides stop showing "paired" for a peer that is gone.
-function handleDisconnect(ws) {
-  const deviceId = ws._deviceId;
-  if (!deviceId) return;
-  if (sockets[deviceId] === ws) delete sockets[deviceId];
+// Clear the pair for [deviceId] and tell the still-connected peer it is gone.
+function unpair(deviceId) {
   const device = state.devices[deviceId];
   if (!device || !device.pairId) return;
   const pairId = device.pairId;
@@ -220,6 +209,23 @@ function handleDisconnect(ws) {
   delete state.mailboxes[peer];
   send(sockets[peer], { type: 'pair_error', message: 'Device was unpaired' });
   persist();
+}
+
+// A device's socket closed (e.g. the app was closed). Give it a short grace
+// period to reconnect before unpairing, so a transient network blip doesn't
+// tear down a healthy pairing. Only the device's live socket matters: if a
+// newer socket already replaced this one, do nothing.
+function handleDisconnect(ws) {
+  const deviceId = ws._deviceId;
+  if (!deviceId) return;
+  if (sockets[deviceId] !== ws) return;
+  delete sockets[deviceId];
+  if (pendingDisconnects[deviceId]) clearTimeout(pendingDisconnects[deviceId]);
+  pendingDisconnects[deviceId] = setTimeout(() => {
+    delete pendingDisconnects[deviceId];
+    if (sockets[deviceId]) return; // reconnected during the grace period
+    unpair(deviceId);
+  }, UNPAIR_GRACE_MS);
 }
 
 // ---------------------------------------------------------------------------

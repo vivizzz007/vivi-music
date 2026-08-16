@@ -13,7 +13,12 @@ import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.Frame
 import io.ktor.websocket.WebSocketSession
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -52,6 +57,10 @@ class LanSyncRelay {
     private val mailboxes = ConcurrentHashMap<String, SyncSnapshot>()
     // code -> pending pair request
     private val pending = ConcurrentHashMap<String, PendingPair>()
+    // deviceId -> pending grace-period unpair job (cancelled if it reconnects)
+    private val pendingDisconnects = ConcurrentHashMap<String, Job>()
+
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var server: EmbeddedServer<*, *>? = null
     private var jmdns: JmDNS? = null
@@ -98,6 +107,8 @@ class LanSyncRelay {
         pairs.clear()
         mailboxes.clear()
         pending.clear()
+        pendingDisconnects.values.forEach { it.cancel() }
+        pendingDisconnects.clear()
         runCatching { s.stop(500, 1000) }
         stopMdns()
         port = 0
@@ -136,6 +147,8 @@ class LanSyncRelay {
                 val id = envelope.deviceId ?: continue
                 deviceId = id
                 sockets[id] = session
+                // The device is (back) online: cancel any pending unpair.
+                pendingDisconnects.remove(id)?.cancel()
                 devicePair.putIfAbsent(id, "")
                 envelope.deviceName?.takeIf { it.isNotBlank() }?.let { deviceNames[id] = it }
                 handle(envelope, session)
@@ -143,10 +156,7 @@ class LanSyncRelay {
         } catch (_: Exception) {
             // connection closed — fall through to cleanup
         } finally {
-            deviceId?.let { id ->
-                sockets.remove(id)
-                handleDisconnect(id)
-            }
+            deviceId?.let { id -> onSocketClosed(id, session) }
         }
     }
 
@@ -241,10 +251,23 @@ class LanSyncRelay {
     }
 
     /**
-     * A device's socket closed (e.g. the app was closed). If it was paired,
-     * clear the pair and tell the still-connected peer it is no longer paired,
-     * so both sides stop showing "paired" for a peer that is gone.
+     * A device's socket closed (e.g. the app was closed). Give it a short
+     * grace period to reconnect before unpairing, so a transient network blip
+     * doesn't tear down a healthy pairing. Only the device's live socket
+     * matters: if a newer socket already replaced this one, do nothing.
      */
+    private fun onSocketClosed(deviceId: String, session: WebSocketSession) {
+        if (sockets[deviceId] !== session) return
+        sockets.remove(deviceId)
+        val job = scope.launch {
+            delay(UNPAIR_GRACE_MS)
+            if (sockets.containsKey(deviceId)) return@launch // reconnected
+            handleDisconnect(deviceId)
+        }
+        pendingDisconnects[deviceId] = job
+    }
+
+    /** Clears the pair for [deviceId] and notifies the still-connected peer. */
     private suspend fun handleDisconnect(deviceId: String) {
         val pairId = devicePair[deviceId] ?: return
         if (pairId.isEmpty()) return
@@ -308,6 +331,9 @@ class LanSyncRelay {
 
     companion object {
         private const val PAIR_CODE_TTL_MS = 5 * 60 * 1000L
+
+        /** How long to wait for a reconnect before unpairing a dropped socket. */
+        private const val UNPAIR_GRACE_MS = 15_000L
 
         /** mDNS service type advertised so the phone can discover this relay. */
         const val MDNS_TYPE = "_vivimusic._tcp.local."
