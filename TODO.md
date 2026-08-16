@@ -75,7 +75,7 @@ The desktop should look exactly like the Android app, except:
 ## Phase 9 — In-app updater + developer options (completed)
 - [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels). The interval dropdown dismisses the popup before applying the change, fixing a "layouts are not part of the same hierarchy" crash.
 - [x] Robust asset selection: scans releases newest→oldest and picks the first that actually ships an installer for the host OS; falls back to a clear "open release page" message instead of a fake Download that opens the browser.
-- [x] In-app download (progress + speed), "open installer" closes the app after launching, and a "Delete installers" option to clear downloaded update files.
+- [x] In-app download (progress + speed), "Close Vivi and open installer" closes the app after launching, and a "Delete installers" option to clear downloaded update files.
 - [x] Notifications cover **all** app notifications (update available, device paired/unpaired, developer options unlocked), each routed through the chosen mode (main window vs native); native system notifications are marked "experimental".
 - [x] Single-instance guard: launching while another instance is running (or starting) exits immediately, keeping the first instance.
 - [x] Developer options: Settings entry always visible but disabled by default; unlockable via 7 taps on the version code or the dedicated toggle; unlock notification pointing to Settings → Developer options.

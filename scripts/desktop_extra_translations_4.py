@@ -3,16 +3,16 @@
 
 EXTRA_TRANSLATIONS = {
     "open_installer": {
-        "ar": "فتح المُثبِّت", "as": "ইনষ্টলাৰ খোলক", "az": "Quraşdırıcını aç", "be": "Адкрыць усталёўшчык", "bg": "Отваряне на инсталатора",
-        "bn": "ইনস্টলার খুলুন", "bs": "Otvori instalater", "ca": "Obre l'instal·lador", "cs": "Otevřít instalátor", "de": "Installer öffnen",
-        "el": "Άνοιγμα προγράμματος εγκατάστασης", "es": "Abrir instalador", "et": "Ava installer", "eu": "Ireki instalatzailea", "fi": "Avaa asennusohjelma",
-        "fil": "Buksan ang installer", "fr": "Ouvrir l'installateur", "hi": "इंस्टॉलर खोलें", "hr": "Otvori instalacijski program", "hu": "Telepítő megnyitása",
-        "id": "Buka penginstal", "it": "Apri installer", "ja": "インストーラーを開く", "km": "បើកកម្មវិធីដំឡើង", "ko": "설치 프로그램 열기",
-        "lt": "Atidaryti diegimo programą", "ml": "ഇൻസ്റ്റാളർ തുറക്കുക", "ms": "Buka pemasang", "nb": "Åpne installasjonsprogram", "nl": "Installatieprogramma openen",
-        "pa": "ਇੰਸਟਾਲਰ ਖੋਲ੍ਹੋ", "pl": "Otwórz instalator", "pt": "Abrir instalador", "ro": "Deschide instalatorul", "ru": "Открыть установщик",
-        "sk": "Otvoriť inštalátor", "sl": "Odpri namestitveni program", "sr": "Otvori instalater", "sv": "Öppna installationsprogrammet", "ta": "நிறுவியைத் திற",
-        "te": "ఇన్‌స్టాలర్‌ను తెరవండి", "th": "เปิดตัวติดตั้ง", "tr": "Yükleyiciyi aç", "uk": "Відкрити інсталятор", "vi": "Mở trình cài đặt",
-        "zh-rCN": "打开安装程序", "zh-rTW": "開啟安裝程式",
+        "ar": "أغلق Vivi وافتح المُثبِّت", "as": "Vivi বন্ধ কৰি ইনষ্টলাৰ খোলক", "az": "Vivi-ni bağla və quraşdırıcını aç", "be": "Закрыць Vivi і адкрыць усталёўшчык", "bg": "Затворете Vivi и отворете инсталатора",
+        "bn": "Vivi বন্ধ করুন এবং ইনস্টলার খুলুন", "bs": "Zatvori Vivi i otvori instalater", "ca": "Tanca el Vivi i obre l'instal·lador", "cs": "Zavřete Vivi a otevřete instalátor", "de": "Vivi schließen und Installer öffnen",
+        "el": "Κλείστε το Vivi και ανοίξτε το πρόγραμμα εγκατάστασης", "es": "Cierra Vivi y abre el instalador", "et": "Sulge Vivi ja ava installer", "eu": "Itxi Vivi eta ireki instalatzailea", "fi": "Sulje Vivi ja avaa asennusohjelma",
+        "fil": "Isara ang Vivi at buksan ang installer", "fr": "Fermer Vivi et ouvrir l'installateur", "hi": "Vivi बंद करें और इंस्टॉलर खोलें", "hr": "Zatvori Vivi i otvori instalacijski program", "hu": "Zárja be a Vivi alkalmazást, és nyissa meg a telepítőt",
+        "id": "Tutup Vivi dan buka penginstal", "it": "Chiudi Vivi e apri installer", "ja": "Vivi を閉じてインストーラーを開く", "km": "បិទ Vivi ហើយបើកកម្មវិធីដំឡើង", "ko": "Vivi를 닫고 설치 프로그램 열기",
+        "lt": "Uždarykite Vivi ir atidarykite diegimo programą", "ml": "Vivi അടച്ച് ഇൻസ്റ്റാളർ തുറക്കുക", "ms": "Tutup Vivi dan buka pemasang", "nb": "Lukk Vivi og åpne installasjonsprogrammet", "nl": "Vivi sluiten en installatieprogramma openen",
+        "pa": "Vivi ਬੰਦ ਕਰੋ ਅਤੇ ਇੰਸਟਾਲਰ ਖੋਲ੍ਹੋ", "pl": "Zamknij Vivi i otwórz instalator", "pt": "Fechar o Vivi e abrir o instalador", "ro": "Închide Vivi și deschide instalatorul", "ru": "Закрыть Vivi и открыть установщик",
+        "sk": "Zatvorte Vivi a otvorte inštalátor", "sl": "Zaprite Vivi in odprite namestitveni program", "sr": "Zatvori Vivi i otvori instalater", "sv": "Stäng Vivi och öppna installationsprogrammet", "ta": "Vivi-ஐ மூடி நிறுவியைத் திற",
+        "te": "Viviని మూసి ఇన్‌స్టాలర్‌ను తెరవండి", "th": "ปิด Vivi และเปิดตัวติดตั้ง", "tr": "Vivi'yi kapat ve yükleyiciyi aç", "uk": "Закрити Vivi і відкрити інсталятор", "vi": "Đóng Vivi và mở trình cài đặt",
+        "zh-rCN": "关闭 Vivi 并打开安装程序", "zh-rTW": "關閉 Vivi 並開啟安裝程式",
     },
     "installers_downloaded": {
         "ar": "المثبتات التي تم تنزيلها", "as": "ডাউনলোড কৰা ইনষ্টলাৰসমূহ", "az": "Yüklənmiş quraşdırıcılar", "be": "Спампаваныя ўсталёўшчыкі", "bg": "Изтеглени инсталатори",

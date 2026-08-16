@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.26] - 2026-08-16
+
+### Changed
+
+- [DE] Clearer updater wording: the update button now reads "Check for
+  available updates" (instead of the Android toggle's "Automatically check for
+  updates") and "Open installer" now reads "Close Vivi and open installer",
+  matching what the button actually does. Updated across all languages.
+
 ## [6.4.5_DE-1.33.25] - 2026-08-16
 
 ### Fixed
