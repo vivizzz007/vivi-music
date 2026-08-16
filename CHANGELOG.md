@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.1] - 2026-08-16
+
+### Added
+
+- [DE] Drag-to-reorder inside the playlist detail screen (drag the ⠿ handle);
+  the new order is saved and synced like any other playlist edit.
+
 ## [6.4.1_DE-1.33.0] - 2026-08-16
 
 ### Added

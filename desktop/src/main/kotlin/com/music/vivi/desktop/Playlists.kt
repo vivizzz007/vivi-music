@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -27,8 +29,11 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.music.vivi.sync.SyncedPlaylist
 import com.music.vivi.sync.SyncedSong
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -109,6 +116,15 @@ object PlaylistStore {
         _all.value = _all.value.map { p ->
             if (p.id == id && !p.deleted) {
                 p.copy(songs = p.songs.filter { it.id != songId }, updatedAt = System.currentTimeMillis())
+            } else p
+        }
+        persist()
+    }
+
+    fun reorderSongs(id: String, newOrder: List<SyncedSong>) {
+        _all.value = _all.value.map { p ->
+            if (p.id == id && !p.deleted) {
+                p.copy(songs = newOrder, updatedAt = System.currentTimeMillis())
             } else p
         }
         persist()
@@ -299,32 +315,74 @@ fun LocalPlaylistScreen(
                 modifier = Modifier.padding(top = 16.dp),
             )
         } else {
-            LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
-                items(playlist.songs, key = { it.id }) { song ->
-                    Row(
-                        Modifier.fillMaxWidth().clickable { onPlay(song) }.padding(vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Thumbnail(song.thumbnail, Modifier.size(44.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Column(Modifier.weight(1f)) {
-                            Text(song.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                            Text(
-                                song.artist,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+            key(playlistId) {
+                val lazyListState = rememberLazyListState()
+                val localSongs = remember { mutableStateListOf<SyncedSong>() }
+                var hasDragged by remember { mutableStateOf(false) }
+                val reorderableState = rememberReorderableLazyListState(lazyListState) { from, to ->
+                    localSongs.add(to.index, localSongs.removeAt(from.index))
+                    hasDragged = true
+                }
+
+                // Keep the local copy in sync with the stored playlist (skip while dragging).
+                LaunchedEffect(playlist.songs) {
+                    if (!reorderableState.isAnyItemDragging) {
+                        localSongs.clear()
+                        localSongs.addAll(playlist.songs)
+                    }
+                }
+
+                // Commit the new order once the drag ends.
+                LaunchedEffect(reorderableState.isAnyItemDragging) {
+                    if (!reorderableState.isAnyItemDragging && hasDragged) {
+                        PlaylistStore.reorderSongs(playlist.id, localSongs.toList())
+                        hasDragged = false
+                    }
+                }
+
+                Text(
+                    Localization.get(language, "drag_to_reorder"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize().padding(top = 8.dp)) {
+                    itemsIndexed(localSongs, key = { _, song -> song.id }) { _, song ->
+                        ReorderableItem(state = reorderableState, key = song.id) {
+                            Row(
+                                Modifier.fillMaxWidth().clickable { onPlay(song) }.padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    "⠿",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .draggableHandle()
+                                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                                )
+                                Thumbnail(song.thumbnail, Modifier.size(44.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(song.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    Text(
+                                        song.artist,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                Text(
+                                    "✕",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .clickable { PlaylistStore.removeSong(playlist.id, song.id) }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                                )
+                            }
                         }
-                        Text(
-                            "✕",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .clickable { PlaylistStore.removeSong(playlist.id, song.id) }
-                                .padding(horizontal = 10.dp, vertical = 4.dp),
-                        )
                     }
                 }
             }
