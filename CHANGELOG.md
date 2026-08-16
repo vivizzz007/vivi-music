@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.27] - 2026-08-16
+
+### Fixed
+
+- [DE] The Linux `.deb` now installs on Debian: jpackage auto-detected
+  dependencies on ubuntu-latest and emitted Ubuntu's `t64`-renamed package
+  names (e.g. `libasound2t64`, `libglib2.0-0t64`) that don't exist on Debian
+  Bookworm. A post-build step rewrites them to `<name> | <name>t64`
+  alternatives so apt picks whichever name the distro actually provides.
+
 ## [6.4.5_DE-1.33.26] - 2026-08-16
 
 ### Changed

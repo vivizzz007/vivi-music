@@ -85,3 +85,4 @@ The desktop should look exactly like the Android app, except:
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.
 - [x] Bump the version in `version.txt` on every release (mobile line + DE line + channel, advanced automatically per change).
 - [x] Include the Android APK in the same GitHub Release as the desktop (debug APK fetched from the existing CI run).
+- [x] Linux `.deb` installs on Debian too: jpackage auto-detects deps with `dpkg -S` on ubuntu-latest, which returns Ubuntu's t64-renamed names (`libasound2t64`, `libglib2.0-0t64`, …) that don't exist on Debian Bookworm. A post-build step (`scripts/fix_deb_depends.py`) rewrites each t64 package to `<name> | <name>t64` alternatives so apt picks the distro's real name.
