@@ -56,6 +56,11 @@ class AudioPlayer {
     @Volatile private var volume = 1f
     private val lock = Object()
 
+    private companion object {
+        /** Min interval between decoded-position reports to the UI (ms). */
+        const val POSITION_REPORT_INTERVAL_MS = 100L
+    }
+
     @Volatile private var line: SourceDataLine? = null
 
     private var onPosition: ((Long) -> Unit)? = null
@@ -311,34 +316,45 @@ class AudioPlayer {
             out.open(format, 8192)
             out.start()
 
-            val bigEndian = buffer.isBigEndian
-            val bitsPerSample = buffer.bitsPerSample
-            val targetSeconds = startAtMs / 1000.0
-            var elapsedSeconds = 0.0
+        val bigEndian = buffer.isBigEndian
+        val bitsPerSample = buffer.bitsPerSample
+        val targetSeconds = startAtMs / 1000.0
+        var elapsedSeconds = 0.0
+        // Position reports are throttled so the UI (seek slider, lyrics) does
+        // not recompose once per decoded frame (~43/s). Reporting ~10/s keeps
+        // the slider smooth and draggable while staying accurate to ~100 ms.
+        var lastReportMs = -POSITION_REPORT_INTERVAL_MS
 
-            fun emit() {
-                // Decode-and-discard frames until the seek target is reached.
-                if (elapsedSeconds + buffer.length >= targetSeconds) {
-                    if (!paused) {
-                        val data = if (volume < 0.999f && bitsPerSample == 16) {
-                            scale16(buffer.data, volume, bigEndian)
-                        } else {
-                            buffer.data
-                        }
-                        var written = 0
-                        while (written < data.size) {
-                            val n = out.write(data, written, data.size - written)
-                            if (n <= 0) break
-                            written += n
-                        }
+        fun reportPosition() {
+            if (gen != generation) return
+            val posMs = ((elapsedSeconds + buffer.length) * 1000).toLong()
+            if (posMs - lastReportMs >= POSITION_REPORT_INTERVAL_MS) {
+                lastReportMs = posMs
+                onPosition?.invoke(posMs)
+            }
+        }
+
+        fun emit() {
+            // Decode-and-discard frames until the seek target is reached.
+            if (elapsedSeconds + buffer.length >= targetSeconds) {
+                if (!paused) {
+                    val data = if (volume < 0.999f && bitsPerSample == 16) {
+                        scale16(buffer.data, volume, bigEndian)
+                    } else {
+                        buffer.data
                     }
-                    if (gen == generation) {
-                        onPosition?.invoke(((elapsedSeconds + buffer.length) * 1000).toLong())
+                    var written = 0
+                    while (written < data.size) {
+                        val n = out.write(data, written, data.size - written)
+                        if (n <= 0) break
+                        written += n
                     }
                 }
-                elapsedSeconds += buffer.length
+                reportPosition()
             }
-            emit()
+            elapsedSeconds += buffer.length
+        }
+        emit()
 
             var index = 0
             while (index < samples.size - 1) {

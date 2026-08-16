@@ -11,6 +11,23 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.20] - 2026-08-16
+
+### Fixed
+
+- [DE] Seek bar: decoded position is now reported at ~10 fps (throttled from
+  ~43 fps) so the player seek slider no longer fights the constant frame-by-frame
+  updates — it stays smooth and can be dragged to any position instead of
+  sticking at the start/end.
+- [DE] In-app (VIVI) volume sync now also pushes when nothing is playing, and
+  uses a per-field echo guard (mirroring the OS-volume loop) so a local change
+  is no longer silently dropped by the generic echo-suppression window.
+- [DE] Windows OS volume sync: `waveOutGetVolume`/`waveOutSetVolume` were
+  called with the `WAVE_MAPPER` constant as if it were an open handle, which
+  made every call fail (so Windows native volume never synced). The default
+  wave device is now opened first via `waveOutOpen` before reading/writing
+  volume.
+
 ## [6.4.4_DE-1.33.19] - 2026-08-16
 
 ### Added

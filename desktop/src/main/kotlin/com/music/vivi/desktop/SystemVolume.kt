@@ -2,7 +2,10 @@ package com.music.vivi.desktop
 
 import com.sun.jna.Library
 import com.sun.jna.Native
+import com.sun.jna.Pointer
+import com.sun.jna.Structure
 import com.sun.jna.ptr.IntByReference
+import com.sun.jna.ptr.PointerByReference
 import java.util.Locale
 
 /**
@@ -10,8 +13,10 @@ import java.util.Locale
  * with the Android system (STREAM_MUSIC) volume. Each platform uses a
  * best-effort native path:
  *
- * - Windows: WinMM `waveOutGetVolume`/`waveOutSetVolume` on the wave mapper,
- *   which Windows routes to the default output device.
+ * - Windows: WinMM `waveOutGetVolume`/`waveOutSetVolume`. These functions take
+ *   an *open* device handle, so we open the default wave device first. They
+ *   control the legacy "wave" volume, which Windows routes to the default
+ *   output device's session (not the 100%-always master mixer slider).
  * - Linux: PulseAudio/PipeWire via `pactl`, with an ALSA `amixer` fallback.
  * - macOS: `osascript` (AppleScript) system output volume.
  *
@@ -40,31 +45,76 @@ object SystemVolume {
     }
 }
 
-/** Windows wave-mapper volume via WinMM (legacy but maps to the default device). */
+/**
+ * Windows wave volume via WinMM.
+ *
+ * `waveOutGetVolume`/`waveOutSetVolume` require a valid `HWAVEOUT` handle; the
+ * `WAVE_MAPPER` constant is only valid for `waveOutOpen`, not for the get/set
+ * calls (passing it as a handle made every call fail, so volume never synced).
+ * We therefore open the default wave device with a minimal PCM format, apply
+ * the operation, and close it again.
+ */
 private object WindowsVolume {
+
+    @Structure.FieldOrder(
+        "wFormatTag", "nChannels", "nSamplesPerSec", "nAvgBytesPerSec",
+        "nBlockAlign", "wBitsPerSample", "cbSize",
+    )
+    class WaveFormatEx : Structure() {
+        @JvmField var wFormatTag: Short = 1 // WAVE_FORMAT_PCM
+        @JvmField var nChannels: Short = 2
+        @JvmField var nSamplesPerSec: Int = 44100
+        @JvmField var nAvgBytesPerSec: Int = 44100 * 4
+        @JvmField var nBlockAlign: Short = 4
+        @JvmField var wBitsPerSample: Short = 16
+        @JvmField var cbSize: Short = 0
+    }
+
     private interface Winmm : Library {
-        fun waveOutGetVolume(hwo: Int, pdwVolume: IntByReference): Int
-        fun waveOutSetVolume(hwo: Int, dwVolume: Int): Int
+        // `uDeviceID` is UINT_PTR (pointer-sized), so it must be mapped as a
+        // Pointer: WAVE_MAPPER is (UINT_PTR)-1 (all bits set).
+        fun waveOutOpen(phwo: PointerByReference, uDeviceID: Pointer, pwfx: Pointer?, dwCallback: Pointer?, dwInstance: Pointer?, fdwOpen: Int): Int
+        fun waveOutGetVolume(hwo: Pointer, pdwVolume: IntByReference): Int
+        fun waveOutSetVolume(hwo: Pointer, dwVolume: Int): Int
+        fun waveOutClose(hwo: Pointer): Int
     }
 
     private val winmm: Winmm? = runCatching { Native.load("winmm", Winmm::class.java) }.getOrNull()
-    private const val WAVE_MAPPER = -1
+
+    /** Opens the default wave device, runs [block], and closes it. */
+    private inline fun withDevice(block: (Pointer) -> Unit) {
+        val mm = winmm ?: return
+        val format = WaveFormatEx()
+        format.write()
+        val ref = PointerByReference()
+        if (mm.waveOutOpen(ref, Pointer(-1L) /* WAVE_MAPPER */, format.pointer, null, null, 0) != 0) return
+        try {
+            block(ref.value)
+        } finally {
+            runCatching { mm.waveOutClose(ref.value) }
+        }
+    }
 
     fun get(): Float? {
         val mm = winmm ?: return null
-        val ref = IntByReference()
-        if (runCatching { mm.waveOutGetVolume(WAVE_MAPPER, ref) }.getOrDefault(-1) != 0) return null
-        val vol = ref.value
-        val left = (vol and 0xFFFF) / 65535f
-        val right = ((vol ushr 16) and 0xFFFF) / 65535f
-        return ((left + right) / 2f).coerceIn(0f, 1f)
+        var result: Float? = null
+        withDevice { hwo ->
+            val vol = IntByReference()
+            if (mm.waveOutGetVolume(hwo, vol) == 0) {
+                val v = vol.value
+                val left = (v and 0xFFFF) / 65535f
+                val right = ((v ushr 16) and 0xFFFF) / 65535f
+                result = ((left + right) / 2f).coerceIn(0f, 1f)
+            }
+        }
+        return result
     }
 
     fun set(v: Float) {
         val mm = winmm ?: return
-        val word = (v * 65535f).toInt().coerceIn(0, 65535)
+        val word = (v.coerceIn(0f, 1f) * 65535f).toInt().coerceIn(0, 65535)
         val dw = (word and 0xFFFF) or (word shl 16)
-        runCatching { mm.waveOutSetVolume(WAVE_MAPPER, dw) }
+        withDevice { hwo -> runCatching { mm.waveOutSetVolume(hwo, dw) } }
     }
 }
 
