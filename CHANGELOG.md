@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.31] - 2026-08-16
+
+### Changed
+
+- [DE] On Windows the updater now prefers the Inno Setup `.exe` installer over
+  the `.msi` (lighter and more user-friendly). The `.msi` remains the fallback
+  when a release has no `.exe`.
+
 ## [6.4.5_DE-1.33.30] - 2026-08-16
 
 ### Fixed
