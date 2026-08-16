@@ -69,7 +69,7 @@ The desktop should look exactly like the Android app, except:
 - [x] Desktop localization: the playlist and song-menu strings (rename / delete playlist / confirmation / empty / not-found / song count / like / library / share, …) are fully translated across all 47 supported languages (desktop-only keys added via a `TRANSLATIONS` table in the generator).
 
 ## Phase 9 — In-app updater + developer options (completed)
-- [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels).
+- [x] In-app update checker: checks on startup, on entering the Updates screen, and periodically (configurable interval: manual / 6h / 12h / 24h / 3 days / 7 days); channel-aware pre-release toggle (`includePreReleases`, default on for non-stable channels). The interval dropdown dismisses the popup before applying the change, fixing a "layouts are not part of the same hierarchy" crash.
 - [x] Robust asset selection: scans releases newest→oldest and picks the first that actually ships an installer for the host OS; falls back to a clear "open release page" message instead of a fake Download that opens the browser.
 - [x] In-app download (progress + speed), "open installer" closes the app after launching, and a "Delete installers" option to clear downloaded update files.
 - [x] Non-invasive update notification (Install now / Dismiss) when an update is available.

@@ -1582,8 +1582,11 @@ fun UpdateSection(
                     DropdownMenuItem(
                         text = { Text(intervalLabel(language, hours)) },
                         onClick = {
-                            onIntervalChange(hours)
+                            // Dismiss the popup before mutating the state that
+                            // changes this row's layout, or Compose throws
+                            // "layouts are not part of the same hierarchy".
                             intervalMenuOpen = false
+                            onIntervalChange(hours)
                         },
                     )
                 }

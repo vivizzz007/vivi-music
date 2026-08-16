@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.11] - 2026-08-16
+
+### Fixed
+
+- [DE] Crash when changing the update-check interval: selecting an option in
+  the frequency dropdown no longer throws "layouts are not part of the same
+  hierarchy". The popup is now dismissed before the interval state (which
+  reflows that row) is applied.
+
 ## [6.4.3_DE-1.33.10] - 2026-08-16
 
 ### Fixed
