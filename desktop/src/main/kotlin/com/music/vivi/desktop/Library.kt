@@ -131,7 +131,7 @@ fun LibraryScreen(
                 } else if (selectedTab == 0) {
                     LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
                         items(items.filterIsInstance<SongItem>(), key = { it.id }) { song ->
-                            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                            SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                         }
                     }
                 } else {

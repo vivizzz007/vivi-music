@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -110,6 +109,7 @@ fun YtItemCard(item: YTItem, onClick: () -> Unit, width: Dp? = 140.dp, modifier:
 @Composable
 fun SongRow(
     song: SongItem,
+    language: String,
     onClick: () -> Unit,
     onAddToQueue: (() -> Unit)? = null,
     onAddToPlaylist: (() -> Unit)? = null,
@@ -130,17 +130,7 @@ fun SongRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        if (onAddToPlaylist != null) {
-            Icon(
-                Icons.AutoMirrored.Filled.PlaylistAdd,
-                contentDescription = "Add to playlist",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .size(20.dp)
-                    .clickable { onAddToPlaylist() }
-                    .padding(2.dp),
-            )
-        }
+        SongMenu(song = song, language = language, onAddToPlaylist = onAddToPlaylist)
         if (onAddToQueue != null) {
             Text(
                 "＋",

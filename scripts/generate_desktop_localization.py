@@ -185,6 +185,11 @@ MAPPING = {
     "delete_playlist_confirm": "delete_playlist_confirm",
     "empty_playlist": "empty_playlist",
     "playlist_not_found": "playlist_not_found",
+    "like": "like",
+    "add_to_library": "add_to_library",
+    "remove_from_library": "remove_from_library",
+    "share": "share",
+    "copied_to_clipboard": "copied_to_clipboard",
 }
 
 # Full desktop English table (source language).
@@ -384,6 +389,13 @@ ENGLISH = {
     "playlist_not_found": "Playlist not found",
     "empty_playlist": "This playlist is empty",
     "add_to_playlist": "Add to playlist",
+    "more": "More",
+    "like": "Like",
+    "unlike": "Unlike",
+    "add_to_library": "Add to library",
+    "remove_from_library": "Remove from library",
+    "share": "Share",
+    "copied_to_clipboard": "Copied to clipboard",
 }
 
 

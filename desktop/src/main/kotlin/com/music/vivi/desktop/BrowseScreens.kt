@@ -121,7 +121,7 @@ fun HomeScreen(
                         ) {
                             items(songs.distinctBy { it.id }, key = { it.id }) { song ->
                                 Box(Modifier.width(320.dp)) {
-                                    SongRow(song = song, onClick = { onPlaySong(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                                    SongRow(song = song, language = language, onClick = { onPlaySong(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                                 }
                             }
                         }
@@ -353,7 +353,7 @@ fun SearchScreen(
                         )
                     }
                     item(key = "body-${summary.title}") {
-                        SummaryBody(summary, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong, onAddToQueue, onAddToPlaylist)
+                        SummaryBody(summary, language, onOpenAlbum, onOpenArtist, onOpenPlaylist, onPlaySong, onAddToQueue, onAddToPlaylist)
                     }
                 }
                 if (result.summaries.isEmpty()) {
@@ -372,7 +372,7 @@ fun SearchScreen(
                 if (results.all { it is SongItem }) {
                     LazyColumn(Modifier.fillMaxSize().padding(top = 8.dp)) {
                         items(results.filterIsInstance<SongItem>(), key = { it.id }) { song ->
-                            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                            SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                         }
                     }
                 } else {
@@ -407,6 +407,7 @@ fun SearchScreen(
 @Composable
 private fun SummaryBody(
     summary: SearchSummary,
+    language: String,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
     onOpenPlaylist: (String) -> Unit,
@@ -419,7 +420,7 @@ private fun SummaryBody(
 
     Column {
         songs.forEach { song ->
-            SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+            SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
         }
         if (others.isNotEmpty()) {
             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

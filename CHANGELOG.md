@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.1_DE-1.33.2] - 2026-08-16
+
+### Added
+
+- [DE] Full song context menu (⋮): like / unlike, add to / remove from library,
+  add to playlist and share (copies the YouTube Music link to the clipboard).
+  Like and library actions use the signed-in YouTube account; a non-invasive
+  snackbar confirms clipboard copies.
+
 ## [6.4.1_DE-1.33.1] - 2026-08-16
 
 ### Added

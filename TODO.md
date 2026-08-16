@@ -59,7 +59,7 @@ The desktop should look exactly like the Android app, except:
 - [x] Player + mini-player + queue + lyrics (large responsive artwork, animated canvas background, seek/volume, shuffle/repeat, drag-to-reorder queue, synced lyrics highlighting with configurable text size).
 - [x] Settings sub-screens port (Appearance, Player & audio, Account, Content, Lyrics, Privacy, Storage, Updates, About), keeping the custom Devices screen — with real functionality (pure black, audio quality, remember shuffle/repeat, persistent queue, lyrics text size, content language/region).
 - [x] History / Changelog / Login screens (history from YouTube, live changelog fetched from the repo, cookie-based login with DATASYNC_ID/VISITOR_DATA fallback).
-- [~] Song / album / artist / playlist context menus port. "Add to playlist" is done (playlist icon on every song row); the full mobile context menu (like, library, share, etc.) is still pending.
+- [~] Song / album / artist / playlist context menus port. The full song context menu (like / library / add-to-playlist / share) is done; album / artist / playlist context menus are still pending.
 - [x] Local playlist system port: create/rename/delete playlists, add/remove/reorder songs (drag-to-reorder in the detail screen), a "Playlists" screen + per-playlist detail, and cross-device playlist sync with last-write-wins (the library snapshot now carries the full playlist name + ordered songs + edit timestamp, plus deletion tombstones).
 
 ## Phase 9 — In-app updater + developer options (completed)

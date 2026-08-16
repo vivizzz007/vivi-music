@@ -103,7 +103,7 @@ fun AlbumScreen(
                 }
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
-                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                        SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                     }
                 }
             }
@@ -171,7 +171,7 @@ fun ArtistScreen(
                         val others = section.items.filterNot { it is SongItem }
                         if (songs.isNotEmpty()) {
                             items(songs, key = { "song-${it.id}" }) { song ->
-                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                                SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                             }
                         }
                         if (others.isNotEmpty()) {
@@ -256,7 +256,7 @@ fun PlaylistScreen(
                 Spacer(Modifier.height(8.dp))
                 LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
                     items(page!!.songs, key = { it.id }) { song ->
-                        SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                        SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                     }
                 }
             }
@@ -308,7 +308,7 @@ fun HistoryScreen(
                                 )
                             }
                             items(section.songs, key = { "song-${it.id}" }) { song ->
-                                SongRow(song, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
+                                SongRow(song, language, { onPlaySong(song) }, onAddToQueue = { onAddToQueue(song) }, onAddToPlaylist = { onAddToPlaylist(song) })
                             }
                         }
                     }
