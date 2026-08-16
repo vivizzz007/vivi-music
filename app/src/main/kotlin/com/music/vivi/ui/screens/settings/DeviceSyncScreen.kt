@@ -66,7 +66,21 @@ fun DeviceSyncScreen(
     }
 
     val scanLauncher = rememberLauncherForActivityResult(ScanContract()) { result: ScanIntentResult ->
-        result.contents?.let { scanned -> onServerUrlChange(scanned.trim()) }
+        result.contents?.let { scanned ->
+            val trimmed = scanned.trim()
+            val uri = android.net.Uri.parse(trimmed)
+            // New desktop QR: vivimusic://pair?addr=<relay>&code=<6-digit>.
+            // Auto-fill both the relay URL and the pairing code; the user only
+            // has to verify the code and tap Pair. Plain ws:// URLs keep working.
+            if (uri.scheme == "vivimusic" && uri.host == "pair") {
+                uri.getQueryParameter("addr")?.let { onServerUrlChange(it) }
+                uri.getQueryParameter("code")?.let { code ->
+                    joinCode = code.filter { it.isDigit() }.take(6)
+                }
+            } else {
+                onServerUrlChange(trimmed)
+            }
+        }
     }
 
     Scaffold(

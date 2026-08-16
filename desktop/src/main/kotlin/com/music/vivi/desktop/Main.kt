@@ -58,6 +58,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.outlined.History
+import java.net.URLEncoder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.LibraryMusic
 import androidx.compose.material.icons.outlined.Search
@@ -1154,6 +1155,15 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
     }
     val remainingMs = (pairCodeExpiresAt - nowMs).coerceAtLeast(0L)
 
+    // The QR code carries both the LAN relay address and the current 6-digit
+    // pairing code (when available), so the phone can auto-fill the code and
+    // the user only has to verify it before tapping Pair.
+    val qrContent = if (lanAddress.isNotEmpty() && pairCode.isNotEmpty()) {
+        "vivimusic://pair?addr=${URLEncoder.encode(lanAddress, "UTF-8")}&code=$pairCode"
+    } else {
+        lanAddress
+    }
+
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1184,7 +1194,7 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
                 Modifier.widthIn(max = 200.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                QrCode(lanAddress, size = 180.dp)
+                QrCode(qrContent, size = 180.dp)
                 Text(
                     "${Localization.get(language, "lan_address")}: $lanAddress",
                     style = MaterialTheme.typography.bodySmall,

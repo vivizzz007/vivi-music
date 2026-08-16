@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.2_DE-1.33.6] - 2026-08-16
+
+### Added
+
+- [DE+APK] The desktop QR code now embeds the relay address **and** the current
+  6-digit pairing code (`vivimusic://pair?addr=…&code=…`). Scanning it on the
+  phone auto-fills both the server URL and the code, so you only verify the code
+  and tap Pair. Plain `ws://` URLs still work for manual entry.
+
 ## [6.4.1_DE-1.33.5] - 2026-08-16
 
 ### Added

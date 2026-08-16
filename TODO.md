@@ -17,6 +17,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Pairing screen in the Android app (Settings).
 - [x] Offline LAN (same Wi-Fi) pairing via a local desktop WebSocket relay (desktop hosts, Android connects by setting the relay URL to `ws://<lan-ip>:<port>`).
 - [x] Mobile LAN discovery: NSD/mDNS "Find desktop" + QR scan in the Devices screen.
+- [x] QR pairing auto-fill: the desktop QR now encodes the relay address + the current 6-digit pairing code (`vivimusic://pair?addr=…&code=…`); the mobile scanner parses it and pre-fills both fields so the user only verifies the code and taps Pair.
 
 ## Phase 2 — Sync: queue + playback position
 - [x] Capture the queue and position from the Android player (`pushPlayback` is wired from MusicService on track/play changes).
