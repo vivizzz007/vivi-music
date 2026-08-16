@@ -372,6 +372,19 @@ class MainActivity : ComponentActivity() {
                 }
         }
 
+        // Keep the screen on while paired with the desktop, so the OS sleeping
+        // the display (and suspending the network) can't tear down the sync
+        // socket and unpair the two devices.
+        lifecycleScope.launch {
+            deviceSyncManager.paired.collect { paired ->
+                if (paired) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
+
         setContent {
             vivimusicApp(
                 playerConnection = playerConnection,

@@ -409,6 +409,10 @@ fun App(
     var wasPaired by remember { mutableStateOf(false) }
     LaunchedEffect(syncManager) {
         syncManager.paired.collect { paired ->
+            // Keep the display/system awake while paired so the OS sleeping
+            // the screen can't tear down the sync socket and unpair the two
+            // devices.
+            KeepAwake.setEnabled(paired)
             if (paired != wasPaired) {
                 wasPaired = paired
                 if (paired) {

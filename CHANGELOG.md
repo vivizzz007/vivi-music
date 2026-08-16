@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.7_DE-1.33.33] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] The two devices no longer unpair when one screen turns off: while
+  paired, the Android app keeps the screen on (`FLAG_KEEP_SCREEN_ON`) and the
+  desktop keeps the display/system awake (kernel32 `SetThreadExecutionState` on
+  Windows, `caffeinate` on macOS). This stops the OS from sleeping the display
+  and suspending the network, which was tearing down the sync socket.
+
 ## [6.4.6_DE-1.33.32] - 2026-08-16
 
 ### Changed
