@@ -189,6 +189,19 @@ fun LocalPlaylistsScreen(
     var showCreate by remember { mutableStateOf(false) }
     var renameTarget by remember { mutableStateOf<SyncedPlaylist?>(null) }
     var deleteTarget by remember { mutableStateOf<SyncedPlaylist?>(null) }
+    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+
+    // Defer the actual deletion until the dialog has been dismissed. Deleting a
+    // row from the list in the same frame as closing the dialog reflows the
+    // LazyColumn while the dialog window is still being torn down, which trips
+    // the Compose "layouts are not part of the same hierarchy" crash.
+    LaunchedEffect(deleteTarget) {
+        val id = pendingDeleteId
+        if (deleteTarget == null && id != null) {
+            pendingDeleteId = null
+            PlaylistStore.delete(id)
+        }
+    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
@@ -261,7 +274,7 @@ fun LocalPlaylistsScreen(
             text = { Text(Localization.get(language, "delete_playlist_confirm")) },
             confirmButton = {
                 TextButton(onClick = {
-                    PlaylistStore.delete(target.id)
+                    pendingDeleteId = target.id
                     deleteTarget = null
                 }) { Text(Localization.get(language, "delete")) }
             },

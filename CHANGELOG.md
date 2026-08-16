@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.14] - 2026-08-16
+
+### Fixed
+
+- [DE] Crash ("layouts are not part of the same hierarchy") when confirming a
+  playlist deletion. The confirmation dialog now dismisses first and the row
+  removal is deferred to the next frame, so the playlist list no longer
+  reflows while the dialog window is being torn down.
+
 ## [6.4.3_DE-1.33.13] - 2026-08-16
 
 ### Fixed
