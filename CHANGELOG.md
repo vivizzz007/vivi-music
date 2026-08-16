@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.3_DE-1.33.13] - 2026-08-16
+
+### Fixed
+
+- [DE] Apostrophes now render correctly everywhere instead of showing a
+  literal `\'`. The desktop localization generator now decodes Android's
+  `\'` resource escape (plus `\n`/`\t`/`\"`/`\\`) into real characters before
+  re-encoding them as Kotlin string literals.
+
 ## [6.4.3_DE-1.33.12] - 2026-08-16
 
 ### Changed

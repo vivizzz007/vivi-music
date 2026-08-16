@@ -915,6 +915,48 @@ TRANSLATIONS = {
 }
 
 
+def android_unescape(s):
+    """Decode Android resource string escapes (aapt-style) to real chars.
+
+    ElementTree leaves `\\'`, `\\n`, etc. verbatim in the text, but Android's
+    resource compiler turns them into the real characters. We mirror that so
+    the Kotlin table holds real apostrophes/newlines, which `kt_escape` then
+    re-encodes into valid Kotlin string literals (a `\\'` left as-is would
+    render as a literal backslash-apostrophe in the desktop UI).
+    """
+    if "\\" not in s:
+        return s
+    out = []
+    i = 0
+    n = len(s)
+    while i < n:
+        c = s[i]
+        if c == "\\" and i + 1 < n:
+            nxt = s[i + 1]
+            if nxt == "n":
+                out.append("\n")
+            elif nxt == "t":
+                out.append("\t")
+            elif nxt == "r":
+                out.append("\r")
+            elif nxt == "'":
+                out.append("'")
+            elif nxt == '"':
+                out.append('"')
+            elif nxt == "\\":
+                out.append("\\")
+            else:
+                # Unknown escape: keep the backslash literally.
+                out.append(c)
+                i += 1
+                continue
+            i += 2
+            continue
+        out.append(c)
+        i += 1
+    return "".join(out)
+
+
 def read_strings(path):
     """Return {name: value} from an Android strings.xml file."""
     out = {}
@@ -926,7 +968,7 @@ def read_strings(path):
         name = node.get("name")
         if name is None:
             continue
-        out[name] = node.text or ""
+        out[name] = android_unescape(node.text or "")
     return out
 
 
