@@ -11,6 +11,21 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.0_DE-1.32.2] - 2026-08-16
+
+### Fixed
+
+- [DE] The player's seek slider could only land on the start or the end: the
+  track duration was reported as 0 because YouTube's fragmented MP4 has an empty
+  `mdhd` (jcodec returns `totalDuration == 0`). The duration is now derived from
+  the decoded AAC sample count, so the slider spans the whole track and seeking
+  works anywhere.
+- [DE] Seeking while paused now stays paused instead of forcing playback to
+  resume.
+- [DE] Stale or truncated cached audio files are now detected and re-downloaded,
+  so a leftover `.m4a` from an interrupted download no longer decodes into
+  silence.
+
 ## [6.4.0_DE-1.32.1] - 2026-08-16
 
 ### Fixed

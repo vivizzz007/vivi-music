@@ -90,11 +90,12 @@ class AudioPlayer {
         startDecode(streams, cacheKey, startAtMs, startPaused)
     }
 
-    /** Seeks to [ms] by restarting decode from the cached file. */
+    /** Seeks to [ms] by restarting decode from the cached file, preserving the
+     *  current pause state (seeking while paused must stay paused). */
     fun seekTo(ms: Long) {
         val streams = currentStreams ?: return
         val key = currentCacheKey ?: return
-        startDecode(streams, key, ms.coerceAtLeast(0L), startPaused = false)
+        startDecode(streams, key, ms.coerceAtLeast(0L), startPaused = paused)
     }
 
     /** Sets playback volume in the 0f..1f range. */
@@ -156,7 +157,11 @@ class AudioPlayer {
     private fun ensureDownloaded(streams: List<StreamResolver.ResolvedStream>, cacheKey: String): File {
         val safe = cacheKey.replace(Regex("[^A-Za-z0-9._-]"), "_")
         val file = File(cacheDir, "$safe.m4a")
-        if (file.exists() && file.length() > 0) return file
+        if (file.exists() && file.length() > 0 && isValidMp4(file)) return file
+        // A truncated/stale cache file (from an interrupted download or an older
+        // buggy build) would decode into silence or an error, so discard it and
+        // re-download a clean copy.
+        if (file.exists()) file.delete()
         val part = File(cacheDir, "$safe.m4a.part")
 
         // Try each candidate stream URL in order until one downloads cleanly.
@@ -202,6 +207,21 @@ class AudioPlayer {
         }
     }
 
+    /** Cheap integrity check: a valid (fragmented) MP4 starts with an `ftyp` box. */
+    private fun isValidMp4(file: File): Boolean = runCatching {
+        if (file.length() < 8) return@runCatching false
+        file.inputStream().use { input ->
+            val head = ByteArray(8)
+            var read = 0
+            while (read < 8) {
+                val n = input.read(head, read, 8 - read)
+                if (n < 0) break
+                read += n
+            }
+            read == 8 && String(head, 4, 4, Charsets.ISO_8859_1) == "ftyp"
+        }
+    }.getOrDefault(false)
+
     /**
      * Walks the `moof`/`trun` boxes of a fragmented MP4 and returns the
      * absolute file offset + size of every raw AAC sample of [trackId], in
@@ -235,14 +255,7 @@ class AudioPlayer {
             val track = demuxer.audioTracks.firstOrNull() as? AbstractMP4DemuxerTrack
                 ?: throw IOException("No audio track found in stream")
 
-            // Total duration in seconds (jcodec reads it from mvhd/mdhd, which
-            // is populated even for fragmented files).
-            runCatching { track.meta.totalDuration }
-                .getOrNull()
-                ?.takeIf { it > 0 }
-                ?.let { seconds -> if (gen == generation) onDuration?.invoke((seconds * 1000).toLong()) }
-
-            val dsi = MP4DemuxerTrackMeta.getCodecPrivate(track)
+        val dsi = MP4DemuxerTrackMeta.getCodecPrivate(track)
                 ?: throw IOException("No AAC decoder info found in stream")
             val decoder = Decoder(NIOUtils.toArray(dsi))
             val buffer = SampleBuffer()
@@ -262,9 +275,20 @@ class AudioPlayer {
                 decoder.decodeFrame(raw, buffer)
             }
 
-            // Decode the first frame to learn the PCM format and open the line.
-            decodeAt(0)
-            val format = AudioFormat(
+        // Decode the first frame to learn the PCM format and open the line.
+        decodeAt(0)
+
+        // Total duration: YouTube's fragmented MP4 has an empty mdhd (jcodec
+        // reports totalDuration == 0), so derive it from the sample count x
+        // per-frame duration (AAC-LC frames are constant-size). Without this the
+        // seek slider gets a 0..1 range and can only land on the start or the end.
+        val firstFrameSeconds = buffer.length.coerceAtLeast(0.0)
+        val metaDurationMs = runCatching { track.meta.totalDuration }
+            .getOrNull()?.takeIf { it > 0 }?.let { (it * 1000).toLong() } ?: 0L
+        val derivedDurationMs = (firstFrameSeconds * samples.size * 1000).toLong()
+        if (gen == generation) onDuration?.invoke(maxOf(derivedDurationMs, metaDurationMs))
+
+        val format = AudioFormat(
                 buffer.sampleRate.toFloat(),
                 buffer.bitsPerSample,
                 buffer.channels,

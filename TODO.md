@@ -30,7 +30,7 @@ Legend: `[x]` done · `[ ]` to do · `[~]` in progress
 - [x] Sync liked songs, albums, artists and playlists at the transport level: the mobile app observes its library (liked songs, bookmarked albums/artists/playlists) and pushes a `LibrarySnapshot`; the desktop receives, persists and exposes it (and pushes its own). UI-side apply on desktop waits for the desktop local-library store (Phase 5).
 
 ## Phase 4 — Desktop audio playback
-- [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position).
+- [x] JVM audio backend: pure-Java `jaad` AAC decoder + Java Sound (play/pause/resume, position). The seek slider now reports a correct track duration (derived from the decoded AAC sample count when the container's `mdhd` duration is 0, as in YouTube fMP4), seeking preserves the pause state, and stale/truncated cached audio files are detected and re-downloaded.
 - [x] Port stream resolution: NewPipe + the multi-client innerTube fallback chain, seek, and a multi-URL retry (tries every candidate and retries without `Range` on 403) are done. PoToken, proxy and HLS are Android-only / not needed by the desktop player (fMP4/AAC via jcodec + jaad).
 
 ## Phase 5 — Desktop persistence + authentication
