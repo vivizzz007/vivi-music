@@ -1,15 +1,15 @@
-name: 🚀 Feature Request (Mobile)
-description: Have an idea for the Android app? Pitch it!
-title: "[Feat][APK]: "
-labels: ["enhancement", "triage", "mobile"]
+name: 🚀 Feature Request (Vivi Music DE)
+description: Have an idea for the Desktop Edition? Pitch it!
+title: "[Feat][DE]: "
+labels: ["enhancement", "triage", "desktop"]
 body:
   - type: markdown
     attributes:
       value: |
-        ### 💡 Feature Proposal — Vivi Music (Android)
-        Help us make Vivi Music even more awesome.
-        > This template is for the **mobile / Android** app.
-        > For the desktop app (Windows / Linux / macOS), use the **🚀 Feature Request (Vivi Music DE)** template.
+        ### 💡 Feature Proposal — Vivi Music DE (Desktop Edition)
+        Help us make Vivi Music DE even more awesome.
+        > This template is for the **desktop** app (Windows / Linux / macOS).
+        > For the Android app, use the **🚀 Feature Request (Mobile)** template.
 
   - type: dropdown
     id: category
@@ -20,8 +20,23 @@ body:
         - 🎨 UI / Design Improvement
         - ⚡ Performance / Optimization
         - 🎧 Audio Experience
+        - 🔄 Updates / Installer
+        - 📱 Devices / Sync
         - 🌐 Translation / Localization
+        - 🛠️ Developer Options
         - 🔧 Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 🖥️ Which platform(s) should this target?
+      description: Desktop-only, or should it also apply to the mobile app (via sync)?
+      options:
+        - Desktop only
+        - Desktop + mobile (sync between them)
+        - Not sure
     validations:
       required: true
 
