@@ -1768,6 +1768,16 @@ fun UpdateSection(
     var openError by remember { mutableStateOf<String?>(null) }
     var intervalMenuOpen by remember { mutableStateOf(false) }
 
+    // If the installer for this version is already on disk (from a previous
+    // download or session), surface "Open installer" instead of re-downloading.
+    LaunchedEffect(status) {
+        val available = status as? UpdateStatus.Available
+        val asset = available?.asset ?: return@LaunchedEffect
+        if (downloadedFile == null) {
+            UpdateDownloader.downloadedInstaller(asset.fileName)?.let { downloadedFile = it }
+        }
+    }
+
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
         "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION} (${Localization.get(language, "de")} ${AppInfo.DE_VERSION})",

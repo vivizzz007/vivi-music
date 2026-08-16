@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.5_DE-1.33.30] - 2026-08-16
+
+### Fixed
+
+- [DE] The Updates screen no longer offers to re-download an installer that is
+  already on disk: it now detects the previously-downloaded file for the
+  available version and shows "Open installer" directly (the update banner
+  already behaved this way).
+
 ## [6.4.5_DE-1.33.29] - 2026-08-16
 
 ### Added
