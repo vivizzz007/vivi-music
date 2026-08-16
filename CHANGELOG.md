@@ -11,6 +11,27 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.4_DE-1.33.21] - 2026-08-16
+
+### Added
+
+- [DE] Single-instance guard: launching the app while another instance is
+  already running (or still starting) exits immediately, always keeping the
+  first instance that started.
+- [DE] Notifications now cover **all** app notifications, not just updates:
+  update available, device paired/unpaired and developer-options unlocked all
+  route through the chosen notification mode (main window vs native). Native
+  system notifications are marked "experimental".
+
+### Changed
+
+- [DE] Completed all remaining desktop-only translations (developer options and
+  backup/restore strings) across all 47 supported languages — every key now has
+  a real translation instead of an English fallback.
+- [DE] `Localization.kt` is now emitted as one top-level function per language
+  (instead of a single giant `mapOf`) to stay under the JVM 64KB `<clinit>`
+  limit that caused a "Method too large" compiler error.
+
 ## [6.4.4_DE-1.33.20] - 2026-08-16
 
 ### Fixed

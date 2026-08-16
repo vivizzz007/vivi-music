@@ -1,9 +1,34 @@
 package com.music.vivi.desktop
 
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import java.awt.Color
 import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.awt.image.BufferedImage
+
+/**
+ * Unified notification dispatcher. All app notifications (update available,
+ * device paired/unpaired, developer options unlocked, …) go through [notify],
+ * which honors the user's notification mode: native OS notification when
+ * `notificationMode == "native"`, otherwise an in-app banner (emitted through
+ * [events] and rendered by the main window).
+ */
+object DesktopNotifier {
+    data class Notice(val title: String, val message: String)
+
+    private val _events = MutableSharedFlow<Notice>(extraBufferCapacity = 8)
+    val events: SharedFlow<Notice> = _events.asSharedFlow()
+
+    fun notify(title: String, message: String) {
+        if (DesktopSettings.load().notificationMode == "native") {
+            NativeNotifier.notify(title, message)
+        } else {
+            _events.tryEmit(Notice(title, message))
+        }
+    }
+}
 
 /**
  * Best-effort native OS notification via `java.awt.SystemTray` (balloon/toast).

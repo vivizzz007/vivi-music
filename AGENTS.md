@@ -207,6 +207,14 @@ The **desktop edition** is English-first too, using the same 49-language list
 English until translated). The language is chosen on first launch and can be
 changed from the desktop Language menu.
 
+> **Rule (always)**: when you modify code you MUST complete ALL missing
+> translations for every new or changed string across all supported languages —
+> never leave a key with an English-only fallback. For the desktop edition,
+> add the missing entries to the `EXTRA_TRANSLATIONS` tables under
+> `scripts/desktop_extra_translations*.py` and re-run
+> `python3 scripts/generate_desktop_localization.py` so `Localization.kt` stays
+> complete, then compile `:desktop`.
+
 ### Structure
 
 - `app/src/main/res/values/strings.xml` — **default/English** strings.

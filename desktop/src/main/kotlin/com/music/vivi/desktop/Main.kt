@@ -135,7 +135,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-fun main() = application {
+fun main() {
+    // Single-instance guard: if another instance is already running (or already
+    // starting), exit immediately and keep the first one that started.
+    if (!SingleInstance.acquire()) return
+
+    application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does,
     // honouring the saved content language/region (or the OS default).
     val initialSettings = DesktopSettings.load()
@@ -212,6 +217,7 @@ fun main() = application {
                 )
             }
         }
+    }
     }
 }
 
@@ -304,6 +310,12 @@ fun App(
             snackbarHostState.showSnackbar(msg)
         }
     }
+    // Generic in-app notification banner (title + message) for notifications
+    // dispatched in "main window" mode.
+    var appNotification by remember { mutableStateOf<DesktopNotifier.Notice?>(null) }
+    LaunchedEffect(Unit) {
+        DesktopNotifier.events.collect { appNotification = it }
+    }
     // Pre-releases are on by default for nightly/alpha/beta/rc builds (those
     // channels only publish pre-releases), and off by default for stable.
     var includePreReleases by remember {
@@ -318,10 +330,20 @@ fun App(
     val devMode by DeveloperOptions.mode.collectAsState()
     val overlayMovable by DeveloperOptions.overlayMovable.collectAsState()
 
-    // One-off hint when the developer options get unlocked.
+    // One-off hint when the developer options get unlocked. Respects the
+    // notification mode (in-app banner vs native system notification).
     var showDevNotification by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        DeveloperOptions.unlocked.collect { showDevNotification = true }
+        DeveloperOptions.unlocked.collect {
+            if (DesktopSettings.load().notificationMode == "native") {
+                DesktopNotifier.notify(
+                    Localization.get(language, "dev_unlocked_title"),
+                    Localization.get(language, "dev_unlocked_desc"),
+                )
+            } else {
+                showDevNotification = true
+            }
+        }
     }
 
     fun runUpdateCheck() {
@@ -371,6 +393,28 @@ fun App(
     // resulting local change straight back to the peer.
     val systemVolumeGuard = remember { VolumeGuard() }
     val volumeGuard = remember { VolumeGuard() }
+
+    // Notify when a phone pairs or un-pairs (respects the notification mode).
+    var wasPaired by remember { mutableStateOf(false) }
+    LaunchedEffect(syncManager) {
+        syncManager.paired.collect { paired ->
+            if (paired != wasPaired) {
+                wasPaired = paired
+                if (paired) {
+                    val name = syncManager.peerDeviceName.value.ifBlank { null }
+                    DesktopNotifier.notify(
+                        Localization.get(language, "device_paired_title"),
+                        name ?: Localization.get(language, "device_paired_desc"),
+                    )
+                } else {
+                    DesktopNotifier.notify(
+                        Localization.get(language, "device_unpaired_title"),
+                        Localization.get(language, "device_unpaired_desc"),
+                    )
+                }
+            }
+        }
+    }
 
     // Push the local playback state to the peer when the track, play/pause
     // state, or queue changes (position is sent as a best-effort snapshot).
@@ -856,6 +900,14 @@ fun App(
                             navigate(Screen.SettingsDeveloper)
                         },
                         onDismiss = { showDevNotification = false },
+                    )
+                }
+                appNotification?.let { notice ->
+                    InAppNotification(
+                        title = notice.title,
+                        message = notice.message,
+                        language = language,
+                        onDismiss = { appNotification = null },
                     )
                 }
                 if (devEnabled && devMode == DevToolsMode.OVERLAY) {
@@ -1480,6 +1532,46 @@ fun LanguageSelectionScreen(onSelect: (String) -> Unit) {
                         .clickable { onSelect(lang.code) }
                         .padding(vertical = 8.dp),
                 )
+            }
+        }
+    }
+}
+
+/**
+ * Generic non-invasive in-app notification banner (title + message + dismiss),
+ * used for notifications dispatched in "main window" mode.
+ */
+@Composable
+fun BoxScope.InAppNotification(
+    title: String,
+    message: String,
+    language: String,
+    onDismiss: () -> Unit,
+) {
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.widthIn(max = 300.dp)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.padding(start = 12.dp)) {
+                Text(Localization.get(language, "dismiss"))
             }
         }
     }
