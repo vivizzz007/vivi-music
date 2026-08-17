@@ -102,6 +102,10 @@ class DesktopSyncManager {
     @Volatile
     private var suppressPushUntil = 0L
 
+    /** Resolving state of the last snapshot we actually sent (for forcing the
+     *  resolving/ready transition past the echo-suppression window). */
+    private var lastPushedResolving: Boolean? = null
+
     init {
         lastLibrary = DesktopSettings.load().library
         // Best-effort: when the desktop window is closed while the LAN relay is
@@ -232,7 +236,11 @@ class DesktopSyncManager {
             }
             snap.copy(queueUpdatedAt = queueUpdatedAt)
         }
-        return pushSnapshot()
+        // A resolving transition is new, asymmetric information (this device
+        // needs time to buffer while the peer may already be playing). Force it
+        // past the echo-suppression window so the peer learns to hold/start.
+        val resolving = lastPlayback?.isResolving
+        return pushSnapshot(force = resolving != lastPushedResolving)
     }
 
     /** Last-write-wins timestamp of the local queue (relay frame); 0 = none. */
@@ -303,8 +311,8 @@ class DesktopSyncManager {
         _connectionState.value = SyncConnectionState.DISCONNECTED
     }
 
-    private fun pushSnapshot(): Boolean {
-        if (System.currentTimeMillis() < suppressPushUntil) return false
+    private fun pushSnapshot(force: Boolean = false): Boolean {
+        if (!force && System.currentTimeMillis() < suppressPushUntil) return false
         val c = client ?: return false
         if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
         if (!_paired.value) return false
@@ -318,6 +326,7 @@ class DesktopSyncManager {
                 library = lastLibrary,
             )
         )
+        lastPushedResolving = lastPlayback?.isResolving
         return true
     }
 

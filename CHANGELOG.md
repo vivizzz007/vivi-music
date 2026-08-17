@@ -11,6 +11,18 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.62] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] A track change initiated from the phone no longer plays ahead of
+  the desktop while the desktop is still resolving its stream. The
+  resolving/ready transition was being swallowed by the 1.5s echo-suppression
+  window that runs after applying a remote snapshot, so the desktop's
+  `isResolving=true` push never reached the phone. Resolving transitions now
+  bypass echo suppression on both sides, so the phone holds while the desktop
+  buffers and resumes the moment the desktop is ready (and vice versa).
+
 ## [6.4.26_DE-1.33.61] - 2026-08-17
 
 ### Fixed

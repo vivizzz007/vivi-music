@@ -110,6 +110,10 @@ class DeviceSyncManager @Inject constructor(
     @Volatile
     private var suppressPlaybackPushUntil = 0L
 
+    /** Resolving state of the last snapshot we actually sent (for forcing the
+     *  resolving/ready transition past the echo-suppression window). */
+    private var lastPushedResolving: Boolean? = null
+
     /** While set, library pushes are suppressed (avoids echoing an applied snapshot). */
     @Volatile
     private var suppressLibraryPushUntil = 0L
@@ -200,10 +204,19 @@ class DeviceSyncManager @Inject constructor(
             queueUpdatedAt = serverNowMs()
         }
         lastPlayback = snap.copy(queueUpdatedAt = queueUpdatedAt)
-        if (System.currentTimeMillis() < suppressPlaybackPushUntil) return false
+        // A resolving transition is new, asymmetric information (this device
+        // needs time to buffer while the peer may already be playing). Force it
+        // past the echo-suppression window so the peer learns to hold/start.
+        val resolving = snap.isResolving
+        if (!(resolving != lastPushedResolving) &&
+            System.currentTimeMillis() < suppressPlaybackPushUntil
+        ) {
+            return false
+        }
         val c = client ?: return false
         if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
         scope.launch { pushCurrentSnapshot() }
+        lastPushedResolving = resolving
         return true
     }
 
