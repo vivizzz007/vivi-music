@@ -36,6 +36,9 @@ object BackupManager {
     private val timestamp: String
         get() = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
 
+    /** Default filename for a manual backup, including date + timestamp. */
+    fun defaultBackupFileName(): String = "vivimusic-de_$timestamp.vivide.backup"
+
     // ------------------------------------------------------------------
     // Manual export / import
     // ------------------------------------------------------------------

@@ -689,7 +689,7 @@ private fun chooseBackupFile(save: Boolean): File? = runCatching {
         if (save) "Backup settings" else "Restore settings",
         if (save) java.awt.FileDialog.SAVE else java.awt.FileDialog.LOAD,
     )
-    if (save) dialog.file = "vivimusic-de.vivide.backup"
+    if (save) dialog.file = BackupManager.defaultBackupFileName()
     dialog.isVisible = true
     val dir = dialog.directory
     val name = dialog.file

@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.11_DE-1.33.44] - 2026-08-16
+
+### Changed
+
+- [DE] Manual backups now include the date and timestamp in their filename
+  (`vivimusic-de_yyyyMMdd_HHmmss.vivide.backup`) instead of a fixed
+  `vivimusic-de.vivide.backup`. Automatic backups already carried the
+  timestamp, and the stored-backups list shows it as `yyyy-MM-dd HH:mm`.
+
 ## [6.4.11_DE-1.33.43] - 2026-08-16
 
 ### Fixed
