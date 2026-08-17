@@ -23,11 +23,11 @@ object DesktopNotifier {
     private val _events = MutableSharedFlow<Notice>(extraBufferCapacity = 8)
     val events: SharedFlow<Notice> = _events.asSharedFlow()
 
-    fun notify(title: String, message: String) {
+    fun notify(title: String, message: String, section: String? = null) {
         val mode = if (DesktopSettings.load().notificationMode == "native") "native" else "in_app"
         NotificationHistory.record(title, message, mode)
         if (mode == "native") {
-            NativeNotifier.notify(title, message)
+            NativeNotifier.notify(title, message, section)
         } else {
             _events.tryEmit(Notice(title, message))
         }
@@ -72,10 +72,14 @@ object NotificationHistory {
 }
 
 /**
- * Best-effort native OS notification via `java.awt.SystemTray` (balloon/toast).
- * Works on Windows (action-center style balloon), most Linux desktops, and
- * macOS (Notification Center). Every call is guarded — on unsupported systems
- * it silently no-ops, and the in-app fallback stays available.
+ * Best-effort native OS notification.
+ *
+ * On a packaged Windows build this uses a WinRT toast ([WindowsToast]) so the
+ * notification lands in the Action Center and, when clicked, opens [section].
+ * Everywhere else (and on unpackaged/dev Windows) it falls back to the legacy
+ * `java.awt.SystemTray` balloon (works on most Linux desktops and macOS).
+ * Every call is guarded — on unsupported systems it silently no-ops, and the
+ * in-app fallback stays available.
  */
 object NativeNotifier {
 
@@ -83,8 +87,12 @@ object NativeNotifier {
     private var trayIcon: TrayIcon? = null
 
     /** Shows a native system notification with [title] and [message]. */
-    fun notify(title: String, message: String) {
+    fun notify(title: String, message: String, section: String? = null) {
         runCatching {
+            if (WindowsToast.isAvailable()) {
+                WindowsToast.show(title, message, section)
+                return
+            }
             if (!SystemTray.isSupported()) return
             val tray = SystemTray.getSystemTray()
             val icon = ensureIcon(tray)

@@ -53,6 +53,36 @@ object SingleInstance {
 }
 
 /**
+ * File-based command mailbox between instances: a second launch that loses the
+ * single-instance lock writes its intent here, and the running instance polls
+ * it (e.g. a toast click passes `--open=updates` to open the Updates screen).
+ */
+object AppCommand {
+    private const val PREFIX = "--open="
+    private val file = File(System.getProperty("user.home"), ".vivimusic/open-command.txt")
+
+    /** Extracts the `--open=<section>` argument from the process args, if any. */
+    fun parse(args: Array<String>): String? =
+        args.firstOrNull { it.startsWith(PREFIX) }?.removePrefix(PREFIX)?.takeIf { it.isNotBlank() }
+
+    /** Writes a command for the running instance to pick up. */
+    fun write(section: String): Boolean = runCatching {
+        file.parentFile?.mkdirs()
+        file.writeText(section)
+    }.isSuccess
+
+    /** Reads and clears a pending command, or null if there is none. */
+    fun poll(): String? {
+        if (!file.exists()) return null
+        return runCatching {
+            val value = file.readText().trim()
+            file.delete()
+            value.takeIf { it.isNotBlank() }
+        }.getOrNull()
+    }
+}
+
+/**
  * Relaunches the app and exits the current process (used by "Restart now"
  * after restoring a backup). The single-instance lock is released first so the
  * new process isn't rejected as a duplicate of the still-running one.

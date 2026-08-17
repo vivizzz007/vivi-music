@@ -11,6 +11,21 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.53] - 2026-08-17
+
+### Added
+
+- [DE] Windows native notifications now land in the **Action Center / notification
+  history** via WinRT toasts (PowerShell helper). On a packaged Windows build the
+  app registers an AppUserModelID by creating a Start-menu shortcut with the
+  `System.AppUserModel.ID` property (inline C# `Add-Type` + shell property
+  store), then shows `ToastGeneric` toasts with the VIVI Music DE logo.
+  Clicking a toast launches the app with `--open=<section>` and opens the
+  relevant screen (Updates / Developer options / Devices), bringing the window
+  to the front; a file-based command mailbox forwards the request to an
+  already-running instance. Non-Windows and unpackaged/dev builds keep the
+  `SystemTray` balloon fallback.
+
 ## [6.4.21_DE-1.33.52] - 2026-08-17
 
 ### Changed

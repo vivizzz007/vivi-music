@@ -136,10 +136,15 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-fun main() {
+fun main(args: Array<String>) {
+    // A toast / command-line launch can request a section (e.g. --open=updates).
+    val openSection = AppCommand.parse(args)
     // Single-instance guard: if another instance is already running (or already
-    // starting), exit immediately and keep the first one that started.
-    if (!SingleInstance.acquire()) return
+    // starting), forward the request to it and exit immediately.
+    if (!SingleInstance.acquire()) {
+        if (openSection != null) AppCommand.write(openSection)
+        return
+    }
 
     // Replace the default AWT "Error" dialog (OK only) with one that also
     // offers "Copy error", so crash details are easy to report.
@@ -186,6 +191,7 @@ fun main() {
     }
 
     Window(onCloseRequest = ::exitApplication, title = windowTitle) {
+        val frameWindow = window
         AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
             // NOTE: do NOT wrap this in a global SelectionContainer. Popup-based
             // components (DropdownMenu, AlertDialog) inherit the selection
@@ -219,11 +225,27 @@ fun main() {
                         pureBlack = it
                         saveTheme()
                     },
+                    initialSection = openSection,
+                    bringToFront = {
+                        runCatching {
+                            frameWindow.state = java.awt.Frame.NORMAL
+                            frameWindow.toFront()
+                            frameWindow.requestFocus()
+                        }
+                    },
                 )
             }
         }
     }
     }
+}
+
+/** Maps a toast/command-line section id to the screen it should open. */
+private fun screenForSection(section: String?): Screen? = when (section) {
+    "updates" -> Screen.SettingsUpdates
+    "developer" -> Screen.SettingsDeveloper
+    "devices" -> Screen.SettingsDevices
+    else -> null
 }
 
 @Composable
@@ -236,6 +258,8 @@ fun App(
     onAccentChange: (Color) -> Unit,
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
+    initialSection: String? = null,
+    bringToFront: () -> Unit = {},
 ) {
     var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
     val player = remember { PlayerController() }
@@ -298,6 +322,22 @@ fun App(
     val navigate: (Screen) -> Unit = { backStack = backStack + it }
     val openRoot: (Screen) -> Unit = { backStack = listOf(it) }
     val goBack: () -> Unit = { if (backStack.size > 1) backStack = backStack.dropLast(1) }
+
+    // Toast / command-line "open section" requests: navigate and bring the
+    // window to the foreground (handled once at startup, then polled for the
+    // lifetime of the app so a toast click can reach a running instance).
+    LaunchedEffect(Unit) {
+        var pending = initialSection
+        while (true) {
+            AppCommand.poll()?.let { pending = it }
+            if (pending != null) {
+                screenForSection(pending)?.let { openRoot(it) }
+                bringToFront()
+                pending = null
+            }
+            delay(500)
+        }
+    }
     fun songToNowPlaying(song: SongItem): NowPlaying = NowPlaying(
         videoId = song.id,
         title = song.title,
@@ -371,7 +411,7 @@ fun App(
             val title = Localization.get(language, "dev_unlocked_title")
             val desc = Localization.get(language, "dev_unlocked_desc")
             if (DesktopSettings.load().notificationMode == "native") {
-                DesktopNotifier.notify(title, desc)
+                DesktopNotifier.notify(title, desc, "developer")
             } else {
                 NotificationHistory.record(title, desc, "in_app")
                 showDevNotification = true
@@ -422,7 +462,7 @@ fun App(
             val message = "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}"
             NotificationHistory.record(title, message, mode)
             if (mode == "native") {
-                NativeNotifier.notify(title, message)
+                NativeNotifier.notify(title, message, "updates")
             } else {
                 showUpdateNotification = true
             }
@@ -463,11 +503,13 @@ fun App(
                     DesktopNotifier.notify(
                         Localization.get(language, "device_paired_title"),
                         name ?: Localization.get(language, "device_paired_desc"),
+                        "devices",
                     )
                 } else {
                     DesktopNotifier.notify(
                         Localization.get(language, "device_unpaired_title"),
                         Localization.get(language, "device_unpaired_desc"),
+                        "devices",
                     )
                 }
             }
