@@ -276,7 +276,9 @@ class DesktopSyncManager {
     fun effectivePosition(snapshot: PlaybackSnapshot): Long {
         val base = snapshot.positionMs.coerceAtLeast(0L)
         val at = snapshot.positionAtMs
-        if (at <= 0L || !snapshot.isPlaying) return base
+        // While the peer is resolving its stream the position is frozen, so
+        // extrapolating would race ahead of the peer's actual playback.
+        if (at <= 0L || !snapshot.isPlaying || snapshot.isResolving) return base
         val elapsed = (serverNowMs() - at).coerceAtLeast(0L)
         return (base + elapsed).coerceAtLeast(0L)
     }

@@ -88,6 +88,13 @@ data class PlaybackSnapshot(
      * only catches up FORWARD and never drags the leader back.
      */
     val userSeek: Boolean = false,
+    /**
+     * True while the sender is still resolving/downloading/buffering the
+     * current track and its audio has not started yet (so its [positionMs] is
+     * frozen). The receiver must prepare the queue/track but NOT start
+     * playback until a snapshot arrives with `isResolving = false`.
+     */
+    val isResolving: Boolean = false,
     val isPlaying: Boolean = false,
     /** In-app player volume (0f..1f): syncs the VIVI volume slider between the
      *  two devices (mobile playerVolume <-> desktop player volume). */

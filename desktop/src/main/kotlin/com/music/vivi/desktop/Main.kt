@@ -530,6 +530,7 @@ fun App(
                 PlaybackSyncKey(
                     trackId = s.current?.videoId,
                     isPlaying = s.isPlaying,
+                    isResolving = s.isResolving,
                     index = s.index,
                     queue = s.queue.map { it.videoId },
                     repeatMode = s.repeatMode.name,
@@ -640,13 +641,13 @@ fun App(
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
-                // Explicit user seeks are applied exactly; periodic drift ticks
-                // only catch up forward so the leader never jumps back.
+                // While the peer is still resolving, its position is frozen, so
+                // hold (pause) instead of seeking to a stale point.
                 val target = syncManager.effectivePosition(pb)
-                if (pb.userSeek) {
-                    player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
-                } else {
-                    player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                when {
+                    pb.isResolving -> player.seekRemoteCatchUp(target, isPlaying = false, SyncServer.RESYNC_TOLERANCE_MS)
+                    pb.userSeek -> player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                    else -> player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
                 }
             } else {
                 // Last-write-wins for the queue: only replace the local queue if
@@ -658,7 +659,7 @@ fun App(
                         NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail, durationMs = ref.durationMs)
                     }
                     if (tracks.isNotEmpty()) {
-                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying, pb.isResolving)
                         syncManager.noteQueueApplied(pb)
                     }
                 }
@@ -2478,6 +2479,7 @@ private val queueJson = Json { ignoreUnknownKeys = true }
 private data class PlaybackSyncKey(
     val trackId: String?,
     val isPlaying: Boolean,
+    val isResolving: Boolean,
     val index: Int,
     val queue: List<String>,
     val repeatMode: String,
@@ -2506,6 +2508,7 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         trackId = current.videoId,
         trackTitle = current.title,
         positionMs = s.positionMs,
+        isResolving = s.isResolving,
         isPlaying = s.isPlaying,
         volume = if (DesktopSettings.load().syncViviVolume) s.volume else null,
         systemVolume = SystemVolume.get(),

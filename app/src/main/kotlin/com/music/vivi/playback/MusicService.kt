@@ -1544,6 +1544,7 @@ class MusicService :
                 trackTitle = meta?.title,
                 positionMs = player.currentPosition,
                 userSeek = userSeek,
+                isResolving = player.playbackState == Player.STATE_BUFFERING,
                 isPlaying = player.isPlaying,
                 volume = if (dataStore.get(SyncViviVolumeKey, true)) playerVolume.value else null,
                 systemVolume = systemVolume(),
@@ -1595,6 +1596,12 @@ class MusicService :
         // within tolerance so it doesn't glitch the audio.
         val currentId = player.currentMetadata?.id
         if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
+            // While the desktop is still resolving, its position is frozen: hold
+            // (pause) instead of seeking to a stale point.
+            if (snapshot.isResolving) {
+                player.playWhenReady = false
+                return
+            }
             val local = player.currentPosition
             // Explicit user seeks are applied exactly (both directions); periodic
             // drift ticks only catch up forward so the leader never jumps back.
@@ -1623,7 +1630,8 @@ class MusicService :
                 startIndex = index,
                 position = position,
             ),
-            playWhenReady = snapshot.isPlaying,
+            // Wait for the desktop to finish resolving before actually starting.
+            playWhenReady = snapshot.isPlaying && !snapshot.isResolving,
         )
     }
 
@@ -2317,6 +2325,13 @@ class MusicService :
         // Save state when playback state changes (but not during silence skipping)
         if (dataStore.get(PersistentQueueKey, true) && !isSilenceSkipping) {
             saveQueueToDisk()
+        }
+
+        // Push the resolving/buffering transition promptly so the paired desktop
+        // holds while we buffer and starts as soon as we're ready (instead of
+        // waiting for the next 5s periodic re-sync tick).
+        if (playbackState == Player.STATE_BUFFERING || playbackState == Player.STATE_READY) {
+            pushPlaybackToDesktop()
         }
 
         if (playbackState == Player.STATE_READY) {

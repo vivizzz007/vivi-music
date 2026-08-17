@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.24_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback start is now synchronized while a device is still resolving
+  its stream. The desktop marks the snapshot as `isResolving` from the moment it
+  starts resolving until audio actually flows (first position report), and the
+  mobile marks it while ExoPlayer is `STATE_BUFFERING`. The receiver now
+  prepares the queue but holds playback (instead of playing ahead of the peer),
+  and `effectivePosition` no longer extrapolates a frozen position while the
+  peer is resolving. This fixes the phone starting the track before the desktop
+  had finished resolving/downloading.
+
 ## [6.4.23_DE-1.33.60] - 2026-08-17
 
 ### Fixed

@@ -37,6 +37,8 @@ data class PlayerState(
     val errorDetail: String? = null,
     /** Current load phase (resolving / downloading / none). */
     val loadPhase: LoadPhase = LoadPhase.NONE,
+    /** True while the stream is being resolved/downloaded and audio hasn't started. */
+    val isResolving: Boolean = false,
 ) {
     val current: NowPlaying? get() = queue.getOrNull(index)
     val isLoading: Boolean get() = loadPhase != LoadPhase.NONE
@@ -349,10 +351,12 @@ class PlayerController {
      * Applies a remote playback snapshot (from device sync): replaces the
      * queue, jumps to the given index and position, and starts/pauses.
      */
-    fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean) {
+    fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean, isResolving: Boolean = false) {
         if (tracks.isEmpty()) return
         val idx = index.coerceIn(0, tracks.lastIndex)
-        playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying)
+        // While the peer is still resolving its stream, prepare the queue but
+        // hold (start paused) so we don't play ahead of it.
+        playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying || isResolving)
     }
 
     private fun playAt(
@@ -387,6 +391,7 @@ class PlayerController {
                 isShuffle = _state.value.isShuffle,
                 repeatMode = _state.value.repeatMode,
                 loadPhase = LoadPhase.RESOLVING,
+                isResolving = true,
             )
 
             val streams = StreamResolver.resolveAacStream(
@@ -401,7 +406,7 @@ class PlayerController {
                     playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                 } else {
                     loadedVideoId = null
-                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE) }
+                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE, isResolving = false) }
                 }
                 return@launch
             }
@@ -424,7 +429,7 @@ class PlayerController {
                         loadedVideoId = null
                         _state.update { s ->
                             if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                                s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE)
+                                s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE, isResolving = false)
                             } else s
                         }
                     }
@@ -432,7 +437,8 @@ class PlayerController {
                 onPosition = { pos ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                            s.copy(positionMs = pos)
+                            // First position report means audio is actually flowing.
+                            s.copy(positionMs = pos, isResolving = false)
                         } else s
                     }
                 },
