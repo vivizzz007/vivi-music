@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.71] - 2026-08-17
+
+### Added
+
+- [DE] Sort chips in the Library (all tabs): A–Z / Z–A, plus "By artist"
+  for the songs tab. Fully translated.
+
 ## [6.4.27_DE-1.33.70] - 2026-08-17
 
 ### Added

@@ -148,7 +148,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [x] Song swipe gestures (swipe to play / remove) in the Queue screen (DE 1.33.69).
 - [ ] Advanced lyrics (swipe lyrics, romanization, AI translation, line spacing, animation styles, thumbnail play/pause).
 - [ ] UI density (density scale 85/75/65/55%) + custom grid size.
-- [ ] Sort / filter chips for library / albums / artists / playlists.
+- [x] Sort chips for library items: A-Z / Z-A + by artist on songs (DE 1.33.71).
 - [ ] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card.
 - [ ] Integrations: Discord RPC, Last.fm scrobbling (mobile screens/options).
 - [ ] Search/listen history + pause-history privacy toggles.

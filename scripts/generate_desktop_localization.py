@@ -167,6 +167,9 @@ MAPPING = {
     "rotating_thumbnail_desc": "Slowly rotate the album artwork while playing.",
     "apple_mini_player": "Apple mini player",
     "apple_mini_player_desc": "Rounded Apple Music-style mini player.",
+    "sort_az": "A–Z",
+    "sort_za": "Z–A",
+    "sort_artist": "By artist",
     "mini_player": "Mini player",
     "mini_player_desc": "Style of the mini player above the sidebar.",
     "mini_player_standard": "Standard",
@@ -1080,8 +1083,9 @@ from desktop_extra_translations_10 import EXTRA_TRANSLATIONS as _EXTRA_10
 from desktop_extra_translations_11 import EXTRA_TRANSLATIONS as _EXTRA_11
 from desktop_extra_translations_12 import EXTRA_TRANSLATIONS as _EXTRA_12
 from desktop_extra_translations_13 import EXTRA_TRANSLATIONS as _EXTRA_13
+from desktop_extra_translations_14 import EXTRA_TRANSLATIONS as _EXTRA_14
 
-for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12, _EXTRA_13):
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12, _EXTRA_13, _EXTRA_14):
     TRANSLATIONS.update(_extra)
 
 
