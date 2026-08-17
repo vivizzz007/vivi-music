@@ -94,6 +94,7 @@ fun PlayerScreen(
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (NowPlaying) -> Unit,
+    sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
 ) {
     val np = queue.getOrNull(index)
     var canvasArt by remember { mutableStateOf<CanvasArtwork?>(null) }
@@ -143,6 +144,7 @@ fun PlayerScreen(
                 onOpenLyrics = onOpenLyrics,
                 onOpenQueue = onOpenQueue,
                 onAddToPlaylist = { onAddToPlaylist(np) },
+                sliderStyle = sliderStyle,
             )
         }
     }
@@ -172,6 +174,7 @@ private fun PlayerContent(
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
 ) {
     val contentWidth = 720.dp
 
@@ -248,7 +251,7 @@ private fun PlayerContent(
                 } else {
                     positionMs.toFloat().coerceIn(0f, sliderMax.toFloat())
                 }
-                Slider(
+                ViviSlider(
                     value = displayPosition.coerceIn(0f, sliderMax.toFloat()),
                     onValueChange = {
                         seekValue = it.coerceIn(0f, sliderMax.toFloat())
@@ -260,6 +263,7 @@ private fun PlayerContent(
                     },
                     enabled = durationMs > 0,
                     valueRange = 0f..sliderMax.toFloat(),
+                    style = sliderStyle,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(Modifier.fillMaxWidth()) {
@@ -351,10 +355,11 @@ private fun PlayerContent(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.width(8.dp))
-                    Slider(
+                    ViviSlider(
                         value = volume.coerceIn(0f, 1f),
                         onValueChange = onVolume,
                         valueRange = 0f..1f,
+                        style = sliderStyle,
                         modifier = Modifier.weight(1f),
                     )
                 }

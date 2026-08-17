@@ -29,6 +29,8 @@ data class DesktopSyncState(
     val gridItemSize: Int = 160,
     /** Screen transition style between navigations: off / fade / slide. */
     val screenTransition: String = "fade",
+    /** Player slider style: slim / squiggly / wavy. */
+    val sliderStyle: String = "slim",
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",
     val autoPlayNext: Boolean = true,

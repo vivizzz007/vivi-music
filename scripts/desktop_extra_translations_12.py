@@ -154,3 +154,45 @@ _TRANSITIONS = {
 }
 for _k, _v in _TRANSITIONS.items():
     EXTRA_TRANSLATIONS.setdefault(_k, {}).update(_v)
+
+# Slider styles (appended by the slider port)
+_SLIDERS = {
+    "slider_style": {
+        "ar": "نمط شريط التمرير", "as": "স্লাইডাৰ শৈলী", "az": "Sürgü üslubu", "be": "Стыль паўзунка", "bg": "Стил на плъзгача",
+        "bn": "স্লাইডার স্টাইল", "bs": "Stil klizača", "ca": "Estil del control lliscant", "cs": "Styl posuvníku", "de": "Schieberegler-Stil",
+        "el": "Στυλ ρυθμιστικού", "es": "Estilo del control deslizante", "et": "Liuguri stiil", "eu": "Irristailuaren estiloa", "fi": "Liukusäätimen tyyli",
+        "fil": "Estilo ng slider", "fr": "Style du curseur", "hi": "स्लाइडर शैली", "hr": "Stil klizača", "hu": "Csúszka stílus",
+        "id": "Gaya penggeser", "it": "Stile del cursore", "ja": "スライダースタイル", "km": "រចនាប័ទ្មគ្រាប់រំកិល", "ko": "슬라이더 스타일",
+        "lt": "Slinkties stilius", "ml": "സ്ലൈഡർ ശൈലി", "ms": "Gaya gelangsar", "nb": "Glidebryterstil", "nl": "Schuifregelaarstijl",
+        "pa": "ਸਲਾਈਡਰ ਸ਼ੈਲੀ", "pl": "Styl suwaka", "pt": "Estilo do controle deslizante", "ro": "Stilul glisorului", "ru": "Стиль ползунка",
+        "sk": "Štýl posúvača", "sl": "Slog drsnika", "sr": "Стил клизача", "sv": "Skjutreglagestil", "ta": "ஸ்லைடர் பாணி",
+        "te": "స్లయిడర్ శైలి", "th": "สไตล์แถบเลื่อน", "tr": "Kaydırıcı stili", "uk": "Стиль повзунка", "vi": "Kiểu thanh trượt",
+        "zh-rCN": "滑块样式", "zh-rTW": "滑桿樣式",
+    },
+    "slider_slim": {
+        "ar": "رفيع", "as": "পাতল", "az": "Nazik", "be": "Тонкі", "bg": "Тънък", "bn": "স্লিম", "bs": "Tanko", "ca": "Prim",
+        "cs": "Tenký", "de": "Schlank", "el": "Λεπτό", "es": "Fino", "et": "Õhuke", "eu": "Mehea", "fi": "Ohut", "fil": "Slim",
+        "fr": "Fin", "hi": "पतला", "hr": "Tanko", "hu": "Vékony", "id": "Tipis", "it": "Sottile", "ja": "スリム", "km": "ស្តើង",
+        "ko": "슬림", "lt": "Plonas", "ml": "സ്ലിം", "ms": "Nipis", "nb": "Slank", "nl": "Slank", "pa": "ਸਲਿਮ", "pl": "Cienki",
+        "pt": "Fino", "ro": "Subțire", "ru": "Тонкий", "sk": "Tenký", "sl": "Tanko", "sr": "Танко", "sv": "Smal", "ta": "ஸ்லிம்",
+        "te": "స్లిమ్", "th": "สลิม", "tr": "İnce", "uk": "Тонкий", "vi": "Mảnh", "zh-rCN": "纤细", "zh-rTW": "纖細",
+    },
+    "slider_squiggly": {
+        "ar": "متعرج", "as": "কুণ্ডলীকৃত", "az": "Dalğavari", "be": "Хвалісты", "bg": "Вълнообразен", "bn": "তরঙ্গায়িত", "bs": "Ispupčen", "ca": "Sinuós",
+        "cs": "Zvlněný", "de": "Gewellt", "el": "Κυματιστό", "es": "Serpenteado", "et": "Looklev", "eu": "Kiribildua", "fi": "Aaltoileva", "fil": "Kulot-kulot",
+        "fr": "Ondulé", "hi": "लहरदार", "hr": "Valovito", "hu": "Hullámos", "id": "Berlekuk", "it": "Ondulato", "ja": "クネクネ", "km": "រលក",
+        "ko": "구불구불", "lt": "Vingiuotas", "ml": "വളഞ്ഞ", "ms": "Berombak", "nb": "Slingrete", "nl": "Kronkelend", "pa": "ਲਹਿਰਦਾਰ", "pl": "Kręty",
+        "pt": "Sinuoso", "ro": "Șerpuit", "ru": "Волнистый", "sk": "Vlnitý", "sl": "Valovito", "sr": "Таласасто", "sv": "Slingrande", "ta": "வளைந்த",
+        "te": "ఉంగరాల", "th": "หยัก", "tr": "Kıvrımlı", "uk": "Хвилястий", "vi": "Lượn sóng", "zh-rCN": "波浪形", "zh-rTW": "波浪形",
+    },
+    "slider_wavy": {
+        "ar": "متموج", "as": "তৰংগময়", "az": "Dalğalı", "be": "Хвалісты", "bg": "Вълнист", "bn": "তরঙ্গময়", "bs": "Talasast", "ca": "Onat",
+        "cs": "Vlnitý", "de": "Wellig", "el": "Κυματιστό", "es": "Ondulado", "et": "Laineline", "eu": "Uhinduna", "fi": "Aaltoileva", "fil": "Alon-alon",
+        "fr": "Ondulé", "hi": "लहरदार", "hr": "Valovit", "hu": "Hullámos", "id": "Bergelombang", "it": "Ondulato", "ja": "ウェーブ", "km": "រលកថ្នមៗ",
+        "ko": "물결", "lt": "Banguotas", "ml": "തരംഗം", "ms": "Berombak", "nb": "Bølgete", "nl": "Golvend", "pa": "ਤਰੰਗੀ", "pl": "Falisty",
+        "pt": "Ondulado", "ro": "Valurile", "ru": "Волнистый", "sk": "Vlnitý", "sl": "Valovit", "sr": "Таласаст", "sv": "Vågig", "ta": "அலை",
+        "te": "అలలు", "th": "คลื่น", "tr": "Dalgalı", "uk": "Хвилястий", "vi": "Gợn sóng", "zh-rCN": "波浪", "zh-rTW": "波浪",
+    },
+}
+for _k, _v in _SLIDERS.items():
+    EXTRA_TRANSLATIONS.setdefault(_k, {}).update(_v)

@@ -284,6 +284,7 @@ fun App(
     var densityScale by remember { mutableStateOf(DesktopSettings.load().densityScale) }
     var gridItemSize by remember { mutableStateOf(DesktopSettings.load().gridItemSize) }
     var screenTransition by remember { mutableStateOf(DesktopSettings.load().screenTransition) }
+    var sliderStyle by remember { mutableStateOf(DesktopSettings.load().sliderStyle) }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -908,6 +909,11 @@ fun App(
                             syncViviVolume = checked
                             DesktopSettings.update { it.copy(syncViviVolume = checked) }
                         },
+                        sliderStyle = sliderStyle,
+                        onSliderStyleChange = { s ->
+                            sliderStyle = s
+                            DesktopSettings.update { it.copy(sliderStyle = s) }
+                        },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
                         language = language,
@@ -1123,6 +1129,7 @@ fun App(
                         onOpenLyrics = { navigate(Screen.Lyrics) },
                         onOpenQueue = { navigate(Screen.Queue) },
                         onAddToPlaylist = addNowPlayingToPlaylist,
+                        sliderStyle = ViviSliderStyle.from(sliderStyle),
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
@@ -2455,8 +2462,11 @@ fun PlayerSection(
     onTogglePersistentQueue: (Boolean) -> Unit,
     syncViviVolume: Boolean,
     onToggleSyncViviVolume: (Boolean) -> Unit,
+    sliderStyle: String,
+    onSliderStyleChange: (String) -> Unit,
 ) {
     var qualityExpanded by remember { mutableStateOf(false) }
+    var sliderExpanded by remember { mutableStateOf(false) }
 
     Text(Localization.get(language, "player_audio"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -2479,6 +2489,27 @@ fun PlayerSection(
     SettingSwitch(language, "remember_shuffle_repeat", rememberShuffleRepeat, onToggleRememberShuffleRepeat)
     SettingSwitch(language, "persistent_queue", persistentQueue, onTogglePersistentQueue)
     SettingSwitch(language, "sync_vivi_volume", syncViviVolume, onToggleSyncViviVolume)
+
+    Text(Localization.get(language, "slider_style"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+    Box(Modifier.padding(top = 8.dp)) {
+        OutlinedButton(onClick = { sliderExpanded = true }) {
+            Text(sliderStyleLabel(language, sliderStyle))
+        }
+        DropdownMenu(expanded = sliderExpanded, onDismissRequest = { sliderExpanded = false }) {
+            listOf("slim", "squiggly", "wavy").forEach { s ->
+                DropdownMenuItem(
+                    text = { Text(sliderStyleLabel(language, s)) },
+                    onClick = { sliderExpanded = false; onSliderStyleChange(s) },
+                )
+            }
+        }
+    }
+}
+
+private fun sliderStyleLabel(language: String, style: String): String = when (style) {
+    "squiggly" -> Localization.get(language, "slider_squiggly")
+    "wavy" -> Localization.get(language, "slider_wavy")
+    else -> Localization.get(language, "slider_slim")
 }
 
 @Composable

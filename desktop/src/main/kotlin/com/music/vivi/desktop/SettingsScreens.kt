@@ -381,6 +381,8 @@ fun SettingsPlayerScreen(
     onTogglePersistentQueue: (Boolean) -> Unit,
     syncViviVolume: Boolean,
     onToggleSyncViviVolume: (Boolean) -> Unit,
+    sliderStyle: String,
+    onSliderStyleChange: (String) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerSection(
@@ -395,6 +397,8 @@ fun SettingsPlayerScreen(
             onTogglePersistentQueue,
             syncViviVolume,
             onToggleSyncViviVolume,
+            sliderStyle,
+            onSliderStyleChange,
         )
     }
 }

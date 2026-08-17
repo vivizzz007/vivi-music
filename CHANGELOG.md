@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.66] - 2026-08-17
+
+### Added
+
+- [DE] Player slider styles: Slim / Squiggly / Wavy (Settings → Player & audio),
+  applied to the seek bar and the volume slider via a custom `ViviSlider`.
+  Fully translated.
+
 ## [6.4.27_DE-1.33.65] - 2026-08-17
 
 ### Added
