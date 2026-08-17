@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Check
@@ -138,7 +136,7 @@ fun ThemeSection(
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxWidth()) {
         Text(Localization.get(language, "theme_colors"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
         // Live preview card (uses the currently applied theme).
@@ -407,7 +405,7 @@ fun FontSection(
 ) {
     val activeFamily = AppFonts.familyFor(selectedFont)
 
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxWidth()) {
         Text(Localization.get(language, "app_font"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
         Card(
@@ -531,7 +529,7 @@ fun CanvasSection(
     canvasSource: CanvasSource,
     onCanvasSourceChange: (CanvasSource) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+    Column(Modifier.fillMaxWidth()) {
         Text(Localization.get(language, "vivimusic_canvas"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
         Text(

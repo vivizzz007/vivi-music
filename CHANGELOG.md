@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.51] - 2026-08-17
+
+### Fixed
+
+- [DE] Opening Appearance → Theme & colors, App font, or Canvas no longer
+  crashes with "Vertically scrollable component was measured with an infinity
+  maximum height constraints". Those sub-screens had their own
+  `verticalScroll` nested inside the settings screen's scrollable scaffold; the
+  inner scroll was removed so the content scrolls with the outer scaffold only.
+
 ## [6.4.21_DE-1.33.50] - 2026-08-17
 
 ### Added
