@@ -1,8 +1,10 @@
 package com.music.vivi.desktop
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -79,6 +81,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -105,6 +108,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -288,7 +293,7 @@ fun App(
     var playerDesign by remember { mutableStateOf(PlayerDesign.from(DesktopSettings.load().playerDesign)) }
     var playerBackground by remember { mutableStateOf(PlayerBackgroundStyle.from(DesktopSettings.load().playerBackground)) }
     var rotatingThumbnail by remember { mutableStateOf(DesktopSettings.load().rotatingThumbnail) }
-    var useAppleMiniPlayer by remember { mutableStateOf(DesktopSettings.load().useAppleMiniPlayer) }
+    var miniPlayerStyle by remember { mutableStateOf(DesktopSettings.load().miniPlayerStyle) }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -938,10 +943,10 @@ fun App(
                             rotatingThumbnail = r
                             DesktopSettings.update { it.copy(rotatingThumbnail = r) }
                         },
-                        useAppleMiniPlayer = useAppleMiniPlayer,
-                        onUseAppleMiniPlayerChange = { a ->
-                            useAppleMiniPlayer = a
-                            DesktopSettings.update { it.copy(useAppleMiniPlayer = a) }
+                        miniPlayerStyle = miniPlayerStyle,
+                        onMiniPlayerStyleChange = { s ->
+                            miniPlayerStyle = s
+                            DesktopSettings.update { it.copy(miniPlayerStyle = s) }
                         },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
@@ -1254,7 +1259,7 @@ fun App(
                 // Click toggles the full player: open it, or hide it (go back).
                 onOpen = { if (current == Screen.Player) goBack() else navigate(Screen.Player) },
                 onOpenQueue = { navigate(Screen.Queue) },
-                appleMini = useAppleMiniPlayer,
+                style = MiniPlayerStyle.from(miniPlayerStyle),
             )
         }
     }
@@ -1381,71 +1386,134 @@ fun MiniPlayer(
     onNext: () -> Unit,
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
-    appleMini: Boolean = false,
+    style: MiniPlayerStyle = MiniPlayerStyle.STANDARD,
 ) {
     val np = nowPlaying ?: return
-    Surface(
-        tonalElevation = 4.dp,
-        shadowElevation = 4.dp,
-        shape = if (appleMini) RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp) else RoundedCornerShape(0.dp),
-    ) {
-        Column {
-            if (durationMs > 0) {
-                LinearProgressIndicator(
-                    progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(if (appleMini) 3.dp else 2.dp),
+    val pureBlack = style == MiniPlayerStyle.PURE_BLACK
+
+    // Swipe-to-expand: dragging the mini player up reveals the full player.
+    var dragOffset by remember { mutableStateOf(0f) }
+    val openThreshold = 90.dp
+    val density = LocalDensity.current
+    val thresholdPx = with(density) { openThreshold.toPx() }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .graphicsLayer { translationY = -dragOffset.coerceAtLeast(0f) }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, dragAmount ->
+                        dragOffset = (dragOffset + dragAmount).coerceAtLeast(0f)
+                    },
+                    onDragEnd = {
+                        if (dragOffset > thresholdPx) onOpen()
+                        dragOffset = 0f
+                    },
+                    onDragCancel = { dragOffset = 0f },
                 )
-            }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpen)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (appleMini) {
-                    Box(Modifier.clip(RoundedCornerShape(10.dp))) {
-                        Thumbnail(np.thumbnail, Modifier.size(40.dp))
-                    }
-                    Spacer(Modifier.width(12.dp))
-                } else {
-                    Thumbnail(np.thumbnail, Modifier.size(44.dp))
-                    Spacer(Modifier.width(12.dp))
-                }
-                Column(Modifier.weight(1f)) {
-                    Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        np.artist,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            },
+    ) {
+        Surface(
+            color = when {
+                pureBlack -> Color.Black
+                style == MiniPlayerStyle.OUTLINE -> MaterialTheme.colorScheme.surface
+                else -> MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            tonalElevation = if (style == MiniPlayerStyle.OUTLINE) 0.dp else 4.dp,
+            shadowElevation = 4.dp,
+            border = if (style == MiniPlayerStyle.OUTLINE) {
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            } else null,
+            shape = when (style) {
+                MiniPlayerStyle.APPLE -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                MiniPlayerStyle.OUTLINE -> RoundedCornerShape(14.dp)
+                else -> RoundedCornerShape(0.dp)
+            },
+        ) {
+            Column {
+                // Drag handle (hint that the bar can be swiped up to expand).
+                Box(
+                    Modifier.fillMaxWidth().padding(top = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        Modifier
+                            .width(36.dp)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(if (pureBlack) Color.White.copy(alpha = 0.4f) else MaterialTheme.colorScheme.outlineVariant),
                     )
                 }
-                IconButton(onClick = onTogglePlay) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                if (durationMs > 0) {
+                    LinearProgressIndicator(
+                        progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(if (style == MiniPlayerStyle.APPLE) 3.dp else 2.dp),
+                        color = if (pureBlack) Color.White else MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpen)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (style == MiniPlayerStyle.APPLE) {
+                        Box(Modifier.clip(RoundedCornerShape(10.dp))) {
+                            Thumbnail(np.thumbnail, Modifier.size(40.dp))
+                        }
                     } else {
+                        Thumbnail(np.thumbnail, Modifier.size(44.dp))
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            np.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            np.artist,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (pureBlack) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    IconButton(onClick = onTogglePlay) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = if (pureBlack) Color.White else MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Icon(
+                                if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                contentDescription = null,
+                                tint = if (pureBlack) Color.White else LocalContentColor.current,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    }
+                    IconButton(onClick = onNext) {
                         Icon(
-                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            Icons.Filled.SkipNext,
                             contentDescription = null,
+                            tint = if (pureBlack) Color.White else LocalContentColor.current,
                             modifier = Modifier.size(22.dp),
                         )
                     }
-                }
-                IconButton(onClick = onNext) {
-                    Icon(
-                        Icons.Filled.SkipNext,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-                IconButton(onClick = onOpenQueue) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
+                    IconButton(onClick = onOpenQueue) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.QueueMusic,
+                            contentDescription = null,
+                            tint = if (pureBlack) Color.White else LocalContentColor.current,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
             }
         }

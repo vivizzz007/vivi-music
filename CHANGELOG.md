@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.68] - 2026-08-17
+
+### Added
+
+- [DE] Mini-player styles: Standard / Apple / Outline / Pure black
+  (Settings → Player & audio → Player design → Mini player), replacing the
+  old Apple-only toggle. Fully translated.
+- [DE] Swipe-to-expand on the mini player: drag it up to open the full
+  player (with a drag handle hint at the top).
+
 ## [6.4.27_DE-1.33.67] - 2026-08-17
 
 ### Added

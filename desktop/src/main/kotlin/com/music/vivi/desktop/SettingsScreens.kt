@@ -415,8 +415,8 @@ fun SettingsPlayerDesignScreen(
     onBackgroundChange: (PlayerBackgroundStyle) -> Unit,
     rotatingThumbnail: Boolean,
     onRotatingThumbnailChange: (Boolean) -> Unit,
-    useAppleMiniPlayer: Boolean,
-    onUseAppleMiniPlayerChange: (Boolean) -> Unit,
+    miniPlayerStyle: String,
+    onMiniPlayerStyleChange: (String) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerDesignScreen(
@@ -427,8 +427,8 @@ fun SettingsPlayerDesignScreen(
             onBackgroundChange = onBackgroundChange,
             rotatingThumbnail = rotatingThumbnail,
             onRotatingThumbnailChange = onRotatingThumbnailChange,
-            useAppleMiniPlayer = useAppleMiniPlayer,
-            onUseAppleMiniPlayerChange = onUseAppleMiniPlayerChange,
+            miniPlayerStyle = miniPlayerStyle,
+            onMiniPlayerStyleChange = onMiniPlayerStyleChange,
         )
     }
 }

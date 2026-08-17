@@ -144,7 +144,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [x] Slider styles (squiggly / wavy / thin). (DE 1.33.66)
 - [x] Screen transitions (fade/slide, matching `NavigationBuilder`). (DE 1.33.65)
 - [~] Animated thumbnails: rotating done (DE 1.33.67); swipe / canvas thumbnail still missing.
-- [ ] Mini-player: swipe-to-expand, outline, pure-black mini, interaction with the (floating) nav bar.
+- [x] Mini-player: swipe-to-expand, outline, pure-black mini (DE 1.33.68). Floating nav-bar interaction: the DE uses the sidebar instead, mini player already sits above it.
 - [ ] Song swipe gestures (swipe to play / remove).
 - [ ] Advanced lyrics (swipe lyrics, romanization, AI translation, line spacing, animation styles, thumbnail play/pause).
 - [ ] UI density (density scale 85/75/65/55%) + custom grid size.

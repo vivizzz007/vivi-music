@@ -37,8 +37,8 @@ data class DesktopSyncState(
     val playerBackground: String = "canvas",
     /** Slowly rotate the player artwork while playing. */
     val rotatingThumbnail: Boolean = false,
+    val miniPlayerStyle: String = "standard",
     /** Apple-style mini player variant. */
-    val useAppleMiniPlayer: Boolean = false,
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",
     val autoPlayNext: Boolean = true,

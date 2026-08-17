@@ -802,8 +802,8 @@ fun PlayerDesignScreen(
     onBackgroundChange: (PlayerBackgroundStyle) -> Unit,
     rotatingThumbnail: Boolean,
     onRotatingThumbnailChange: (Boolean) -> Unit,
-    useAppleMiniPlayer: Boolean,
-    onUseAppleMiniPlayerChange: (Boolean) -> Unit,
+    miniPlayerStyle: String,
+    onMiniPlayerStyleChange: (String) -> Unit,
 ) {
     Column(
         Modifier
@@ -868,12 +868,31 @@ fun PlayerDesignScreen(
             checked = rotatingThumbnail,
             onCheckedChange = onRotatingThumbnailChange,
         )
-        SwitchRow(
-            title = Localization.get(language, "apple_mini_player"),
-            desc = Localization.get(language, "apple_mini_player_desc"),
-            checked = useAppleMiniPlayer,
-            onCheckedChange = onUseAppleMiniPlayerChange,
+        Spacer(Modifier.height(16.dp))
+        Text(
+            Localization.get(language, "mini_player"),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 4.dp),
         )
+        Text(
+            Localization.get(language, "mini_player_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        listOf(
+            MiniPlayerStyle.STANDARD to "mini_player_standard",
+            MiniPlayerStyle.APPLE to "mini_player_apple",
+            MiniPlayerStyle.OUTLINE to "mini_player_outline",
+            MiniPlayerStyle.PURE_BLACK to "mini_player_pure_black",
+        ).forEach { (value, key) ->
+            RadioRow(
+                title = Localization.get(language, key),
+                desc = "",
+                selected = MiniPlayerStyle.from(miniPlayerStyle) == value,
+                onClick = { onMiniPlayerStyleChange(value.key) },
+            )
+        }
     }
 }
 

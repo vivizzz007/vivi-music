@@ -53,6 +53,18 @@ enum class PlayerBackgroundStyle(val key: String) {
     }
 }
 
+/** Mini-player style (port of the mobile mini-player variants). */
+enum class MiniPlayerStyle(val key: String) {
+    STANDARD("standard"),
+    APPLE("apple"),
+    OUTLINE("outline"),
+    PURE_BLACK("pure_black");
+
+    companion object {
+        fun from(key: String?): MiniPlayerStyle = entries.firstOrNull { it.key == key } ?: STANDARD
+    }
+}
+
 /** Resolves the art size + title-overlay for a [PlayerDesign] variant. */
 data class PlayerDesignMetrics(val artSize: Dp, val overlayTitle: Boolean, val artCorner: Dp)
 
