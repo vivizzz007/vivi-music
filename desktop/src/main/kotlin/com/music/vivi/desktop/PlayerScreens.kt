@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -62,6 +63,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -551,60 +555,112 @@ fun QueueScreen(
                 itemsIndexed(localQueue, key = { _, item -> item.videoId }) { i, item ->
                     val isCurrent = item.videoId == currentVideoId
                     ReorderableItem(state = reorderableState, key = item.videoId) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { onSkipTo(i) }
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "⠿",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .draggableHandle()
-                                    .padding(horizontal = 6.dp, vertical = 4.dp),
-                            )
-                            Text(
-                                if (isCurrent) "▶" else "${i + 1}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(end = 8.dp),
-                            )
-                            Thumbnail(item.thumbnail, Modifier.size(44.dp))
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
+                        // Swipe gestures: swipe right to play, swipe left to remove.
+                        var dragX by remember { mutableStateOf(0f) }
+                        val density = LocalDensity.current
+                        val threshold = with(density) { 64.dp.toPx() }
+                        Box(Modifier.fillMaxWidth()) {
+                            // Action hints revealed behind the row while dragging.
+                            val progress = (kotlin.math.abs(dragX) / threshold).coerceIn(0f, 1f)
+                            Box(
+                                Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f * progress))
+                                    .matchParentSize(),
+                                contentAlignment = Alignment.CenterEnd,
+                            ) {
                                 Text(
-                                    item.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    "✕ " + Localization.get(language, "remove_from_queue"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(end = 20.dp),
                                 )
+                            }
+                            Box(
+                                Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f * progress))
+                                    .matchParentSize(),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
                                 Text(
-                                    item.artist,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    "▶ " + Localization.get(language, "play"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(start = 48.dp),
+                                )
+                            }
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer { translationX = dragX }
+                                    .pointerInput(item.videoId) {
+                                        detectHorizontalDragGestures(
+                                            onHorizontalDrag = { _, dragAmount ->
+                                                dragX = (dragX + dragAmount).coerceIn(-threshold * 2f, threshold * 2f)
+                                            },
+                                            onDragEnd = {
+                                                when {
+                                                    dragX < -threshold -> onRemoveAt(i)
+                                                    dragX > threshold -> onSkipTo(i)
+                                                }
+                                                dragX = 0f
+                                            },
+                                            onDragCancel = { dragX = 0f },
+                                        )
+                                    }
+                                    .clickable { onSkipTo(i) }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    "⠿",
+                                    style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .draggableHandle()
+                                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                                )
+                                Text(
+                                    if (isCurrent) "▶" else "${i + 1}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                )
+                                Thumbnail(item.thumbnail, Modifier.size(44.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        item.title,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        item.artist,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                IconButton(onClick = { onAddToPlaylist(item) }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.PlaylistAdd,
+                                        contentDescription = Localization.get(language, "add_to_playlist"),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                Text(
+                                    "✕",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .clickable { onRemoveAt(i) }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
                                 )
                             }
-                            IconButton(onClick = { onAddToPlaylist(item) }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.PlaylistAdd,
-                                    contentDescription = Localization.get(language, "add_to_playlist"),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            Text(
-                                "✕",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable { onRemoveAt(i) }
-                                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                            )
                         }
                     }
                 }

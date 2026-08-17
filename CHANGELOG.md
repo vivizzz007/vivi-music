@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.69] - 2026-08-17
+
+### Added
+
+- [DE] Song swipe gestures in the Queue screen: swipe a row right to play
+  it, swipe left to remove it from the queue (action hints appear behind
+  the row while dragging). Fully translated.
+
 ## [6.4.27_DE-1.33.68] - 2026-08-17
 
 ### Added
