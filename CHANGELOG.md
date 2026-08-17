@@ -11,6 +11,22 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.55] - 2026-08-17
+
+### Changed
+
+- [DE] The About "website" entry now points to the VIVI Music DE GitHub Pages
+  site (`https://piboh.github.io/vivi-music/`).
+
+### Website
+
+- Made the site fully responsive for mobile (collapsible hamburger nav,
+  stacking download rows / platform cards).
+- Compact sticky footer (always pinned to the bottom of the viewport).
+- Removed the Android APK download from the DE site; it now links to the
+  upstream VIVI Music site, with credits to VIVIDH P ASHOKAN
+  (`https://vivimusic.mkmdevilmi.workers.dev/`).
+
 ## [6.4.21_DE-1.33.54] - 2026-08-17
 
 ### Fixed
