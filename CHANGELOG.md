@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.22_DE-1.33.59] - 2026-08-17
+
+### Fixed
+
+- [DE] Developer options network stats (down/up speed + total traffic) now show
+  real values on non-English Windows. They were parsing the localized
+  `netstat -e` output ("Byte" / "Ricevuti"/"Trasmessi" instead of "Bytes"),
+  which never matched and left the values at "—". Replaced with
+  `Get-NetAdapterStatistics` (culture-invariant property names).
+
 ## [6.4.22_DE-1.33.58] - 2026-08-17
 
 ### Fixed

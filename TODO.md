@@ -94,7 +94,7 @@ The desktop should look exactly like the Android app, except:
 - [x] Crash/error dialog "Copy error": a global uncaught-exception handler (`installGlobalErrorDialog`, installed at startup) replaces the default AWT "Error" dialog with one that shows the full stack trace and offers "Copy error" (copies to clipboard) plus "OK".
 - [x] Single-instance guard: launching while another instance is running (or starting) exits immediately, keeping the first instance.
 - [x] Developer options: Settings entry always visible but disabled by default; unlockable via 7 taps on the version code or the dedicated toggle; unlock notification pointing to Settings → Developer options.
-- [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar and a "Title bar only" display mode.
+- [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar and a "Title bar only" display mode. Network down/up speed + total traffic are read culture-invariantly via `Get-NetAdapterStatistics` on Windows (the old `netstat -e` parser only matched the English "Bytes" label and showed "—" on localized Windows).
 - [x] Developer options screen reorganized into clear, dividers-separated sections (Display, Monitoring profile, Overlay behaviour, Title bar) for a more "developer" layout.
 
 ## Phase 10 — Remaining gaps to reach 100% UI parity (mobile → desktop)
