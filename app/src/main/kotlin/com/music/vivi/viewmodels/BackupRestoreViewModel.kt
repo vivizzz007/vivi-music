@@ -142,6 +142,9 @@ class BackupRestoreViewModel @Inject constructor(
                     }
                 }
                 if (!hasDb && !hasSettings) error("No backup entries found in archive")
+                if (hasDb) {
+                    validateStagedDatabase(tmpDb)?.let { error("Corrupt backup: $it") }
+                }
             }
 
             Handler(Looper.getMainLooper()).post {
@@ -153,7 +156,12 @@ class BackupRestoreViewModel @Inject constructor(
                     pendingDir.deleteRecursively()
                     reportException(e)
                     Timber.tag("RESTORE").e(e, "Restore failed")
-                    Toast.makeText(appContext, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+                    val msg = if (e.message?.startsWith("Corrupt backup:") == true) {
+                        appContext.getString(R.string.restore_failed_corrupt)
+                    } else {
+                        appContext.getString(R.string.restore_failed)
+                    }
+                    Toast.makeText(appContext, msg, Toast.LENGTH_LONG).show()
                 }
             }
         }.start()
@@ -328,6 +336,46 @@ class BackupRestoreViewModel @Inject constructor(
             ).show()
         }
         return songs
+    }
+
+    /**
+     * Verifies a staged `song.db` is a valid, non-corrupt SQLite database before
+     * it gets swapped in on the next launch (a corrupt file would otherwise crash
+     * Room with a `SQLiteDatabaseCorruptException`). Returns an error message,
+     * or null when the database is valid.
+     */
+    private fun validateStagedDatabase(file: java.io.File): String? {
+        // Fast check: the SQLite header magic ("SQLite format 3\0").
+        val headerOk = runCatching {
+            FileInputStream(file).use { input ->
+                val magic = ByteArray(16)
+                input.read(magic) == 16 &&
+                    String(magic, Charsets.US_ASCII) == "SQLite format 3\u0000"
+            }
+        }.getOrDefault(false)
+        if (!headerOk) return "not a valid SQLite database"
+
+        return runCatching {
+            val staged = android.database.sqlite.SQLiteDatabase.openDatabase(
+                file.absolutePath,
+                null,
+                android.database.sqlite.SQLiteDatabase.OPEN_READONLY,
+            )
+            staged.use { db ->
+                val integrity = db.rawQuery("PRAGMA integrity_check", null).use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else "no result"
+                }
+                if (integrity != "ok") return@use "database integrity check failed: $integrity"
+
+                val version = db.rawQuery("PRAGMA user_version", null).use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getLong(0) else -1L
+                }
+                if (version > InternalDatabase.DB_VERSION) {
+                    return@use "database schema version $version is newer than this app supports"
+                }
+                null
+            }
+        }.getOrElse { "could not validate the database: ${it.message ?: "unknown error"}" }
     }
 
     companion object {

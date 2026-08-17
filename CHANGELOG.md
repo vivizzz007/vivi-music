@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.20_DE-1.33.50] - 2026-08-17
+
+### Added
+
+- [APK] Restore now validates the backup's database before applying it (SQLite
+  header magic + `PRAGMA integrity_check` + schema-version guard). A corrupt or
+  incompatible backup fails with a clear "backup is corrupt" message instead of
+  swapping in a bad file and crashing the app on the next launch.
+
 ## [6.4.19_DE-1.33.50] - 2026-08-17
 
 ### Fixed
