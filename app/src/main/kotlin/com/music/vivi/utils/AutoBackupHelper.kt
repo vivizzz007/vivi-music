@@ -53,9 +53,9 @@ object AutoBackupHelper {
             val timestamp = LocalDateTime.now().format(formatter)
             
             val fileName = if (backupType == "before_update") {
-                "auto_backup_before_update_${BuildConfig.VERSION_NAME}_$timestamp.vivide.backup"
+                "auto_backup_before_update_${BuildConfig.VERSION_NAME}_$timestamp.vividroid.backup"
             } else {
-                "auto_backup_${backupType}_$timestamp.vivide.backup"
+                "auto_backup_${backupType}_$timestamp.vividroid.backup"
             }
             
             // Create a temporary file in cacheDir

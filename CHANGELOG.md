@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.16_DE-1.33.48] - 2026-08-17
+
+### Changed
+
+- [APK] Mobile backups now use the `.vividroid.backup` extension (desktop keeps
+  `.vivide.backup`), so the two editions' backup files are clearly
+  distinguishable. Older `.backup` files are still listed and importable.
+
 ## [6.4.15_DE-1.33.48] - 2026-08-17
 
 ### Fixed

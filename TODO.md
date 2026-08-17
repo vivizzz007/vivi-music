@@ -94,7 +94,7 @@ The desktop should look exactly like the Android app, except:
 
 ## Infra / release
 - [x] Inno Setup "Start VIVI Music DE" after install: removed the redundant `launchafterinstall` task that gated the `[Run]` entry, so the final-page checkbox now actually launches `{app}\VIVIMusic.exe`.
-- [x] Mobile backup files use the `.vivide.backup` extension (manual + automatic) to match the desktop; older `.backup` files remain listed and importable (the `endsWith(".backup")` listing filters still match the new extension, and the filename timestamp regex accepts both).
+- [x] Mobile backup files use the `.vividroid.backup` extension (manual + automatic) while the desktop uses `.vivide.backup`, so the two editions are distinguishable; older `.backup` files remain listed and importable (the `endsWith(".backup")` listing filters still match the new extension, and the filename timestamp regex accepts both).
 - [x] Debug APK build fix: `sync_vivi_volume_desc` used a bare apostrophe that aapt2 rejected as "Invalid unicode escape sequence"; escaped it (`\'`) so `assembleUniversalGmsDebug` (and the CI "Build Debug APK" job) completes again.
 - [ ] `WINDOWS_SIGNING_CERT` + `WINDOWS_SIGNING_PASSWORD` secrets to sign the Windows installer.
 - [x] Bump the version in `version.txt` on every release (mobile line + DE line + channel, advanced automatically per change).
