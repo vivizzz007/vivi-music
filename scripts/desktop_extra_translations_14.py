@@ -64,4 +64,64 @@ EXTRA_TRANSLATIONS = {
         "lt": "Eilučių tarpas", "ml": "വരി അകലം", "ms": "Jarak baris", "nb": "Linjeavstand", "nl": "Regelafstand", "pa": "ਲਾਈਨ ਸਪੇਸਿੰਗ", "pl": "Odstęp między wierszami", "pt": "Espaçamento de linhas", "ro": "Spațiere între rânduri", "ru": "Межстрочный интервал", "sk": "Riadkovanie", "sl": "Razmik med vrsticami", "sr": "Размак између редова", "sv": "Radavstånd",
         "ta": "வரி இடைவெளி", "te": "లైన్ స్పేసింగ్", "th": "ระยะห่างบรรทัด", "tr": "Satır aralığı", "uk": "Міжрядковий інтервал", "vi": "Khoảng cách dòng", "zh-rCN": "行距", "zh-rTW": "行距",
     },
+    "integrations": _all("Integrations"),
+    "integrations_active": _all("Active"),
+    "integrations_inactive": _all("Off"),
+    "discord_presence": _all("Discord Rich Presence"),
+    "discord_presence_enable": _all("Enable Rich Presence"),
+
+    "discord_presence_desc": {
+        "ar": "يعرض الأغنية الحالية على ملفك الشخصي في ديسكورد.", "as": "আপোনাৰ Discord প্ৰফাইলত বৰ্তমান ট্ৰেকটো দেখুৱায়।", "az": "Cari mahnınızı Discord profilində göstərir.", "be": "Паказвае бягучы трэк у вашым профілі Discord.", "bg": "Показва текущата песен във вашия профил на Discord.", "bn": "আপনার Discord প্রোফাইলে বর্তমান ট্র্যাকটি দেখায়।", "bs": "Prikazuje trenutnu pjesmu na vašem Discord profilu.", "ca": "Mostra la cançó actual al vostre perfil de Discord.",
+        "cs": "Zobrazuje právě přehrávanou skladbu ve vašem profilu Discord.", "de": "Zeigt den aktuellen Titel auf deinem Discord-Profil.", "el": "Εμφανίζει το τρέχον τραγούδι στο προφίλ σας στο Discord.", "es": "Muestra la canción actual en tu perfil de Discord.", "et": "Näitab praegust lugu teie Discord-profiilis.", "eu": "Uneko abestia zure Discord profilean erakusten du.", "fi": "Näyttää parhaillaan soivan kappaleen Discordprofiilissasi.", "fil": "Ipinapakita ang kasalukuyang kanta sa iyong Discord profile.",
+        "fr": "Affiche la chanson en cours sur votre profil Discord.", "hi": "आपके Discord प्रोफ़ाइल पर चल रहे ट्रैक को दिखाता है।", "hr": "Prikazuje trenutnu pjesmu na vašem Discord profilu.", "hu": "Megmutatja az éppen szóló számot a Discord profilodon.", "id": "Menampilkan lagu yang sedang diputar di profil Discord Anda.", "it": "Mostra la canzone in riproduzione sul tuo profilo Discord.", "ja": "Discordのプロフィールに再生中の曲を表示します。", "km": "បង្ហាញបទកំពុងចាក់នៅលើប្រូហ្វាល Discord របស់អ្នក។", "ko": "Discord 프로필에 현재 재생 중인 곡을 표시합니다.",
+        "lt": "Rodo šiuo metu grojamą dainą jūsų Discord profilyje.", "ml": "നിങ്ങളുടെ Discord പ്രൊഫൈലിൽ നിലവിലെ പാട്ട് കാണിക്കുന്നു.", "ms": "Menunjukkan lagu semasa pada profil Discord anda.", "nb": "Viser nåværende låt i Discord-profilen din.", "nl": "Toont het huidige nummer op je Discord-profiel.", "pa": "ਤੁਹਾਡੇ Discord ਪ੍ਰੋਫਾਈਲ 'ਤੇ ਮੌਜੂਦਾ ਟਰੈਕ ਦਿਖਾਉਂਦਾ ਹੈ।", "pl": "Pokazuje obecny utwór na twoim profilu Discord.", "pt": "Mostra a música atual no seu perfil do Discord.", "ro": "Arată melodia curentă pe profilul tău Discord.", "ru": "Показывает текущий трек в вашем профиле Discord.",
+        "sk": "Zobrazuje práve prehrávanú pieseň vo vašom profile Discord.", "sl": "Prikazuje trenutno skladbo v vašem profilu Discord.", "sr": "Приказује тренутну песму у свом Discord профилу.", "sv": "Visar den nuvarande låten i din Discord-profil.", "ta": "உங்கள் Discord சுயவிவரத்தில் தற்போதைய இசையை காட்டுகிறது.", "te": "మీ Discord ప్రొఫైల్‌లో ప్రస్తుతం ప్లే అవుతున్న ట్రాక్‌ని చూపుతుంది.", "th": "แสดงเพลงที่กำลังเล่นบนโปรไฟล์ Discord ของคุณ", "tr": "Discord profilinizde çalan şarkıyı görüntüler.", "uk": "Показує поточний трек у вашому профілі Discord.", "vi": "Hiển thị bài hát đang phát trên hồ sơ Discord của bạn.", "zh-rCN": "在您的 Discord 个人资料中显示当前曲目。", "zh-rTW": "在您的 Discord 個人資料中顯示目前曲目。",
+    },
+    "discord_client_id": {
+        "ar": "معرف تطبيق ديسكورد", "de": "Discord-Anwendungs-ID", "el": "Αναγνωριστικό εφαρμογής Discord", "es": "ID de aplicación de Discord", "fr": "ID d'application Discord", "it": "ID applicazione Discord", "pl": "ID aplikacji Discord", "pt": "ID da aplicação Discord", "ru": "ID приложения Discord", "tr": "Discord uygulama kimliği", "uk": "ID застосунку Discord", "zh-rCN": "Discord 应用 ID", "zh-rTW": "Discord 應用程式 ID",
+    },
+    "discord_client_id_hint": {
+        "ar": "أنشئ تطبيقًا على discord.com/developers والصق معرفه.", "de": "Erstelle eine App auf discord.com/developers und füge ihre ID ein.", "es": "Crea una aplicación en discord.com/developers y pega su ID.", "fr": "Créez une application sur discord.com/developers et collez son ID.", "it": "Crea un'app su discord.com/developers e incolla il suo ID.", "pl": "Utwórz aplikację na discord.com/developers i wklej jej ID.", "pt": "Crie uma aplicação em discord.com/developers e cole o ID.", "ru": "Создайте приложение на discord.com/developers и вставьте его ID.", "tr": "discord.com/developers üzerinden bir uygulama oluşturup kimliğini yapıştırın.", "uk": "Створіть застосунок на discord.com/developers і вставте його ID.", "zh-rCN": "在 discord.com/developers 创建应用并粘贴其 ID。", "zh-rTW": "在 discord.com/developers 建立應用程式並貼上其 ID。",
+    },
+
+    "lastfm": {
+        "ar": "لست ف.إم", "de": "Last.fm", "el": "Last.fm", "es": "Last.fm", "fr": "Last.fm", "it": "Last.fm", "ja": "Last.fm", "ko": "Last.fm", "pl": "Last.fm", "pt": "Last.fm", "ru": "Last.fm", "tr": "Last.fm", "uk": "Last.fm", "zh-rCN": "Last.fm", "zh-rTW": "Last.fm",
+    },
+    "lastfm_enable": {
+        "ar": "تفعيل التسجيل التلقائي", "de": "Scrobbling aktivieren", "el": "Ενεργοποίηση καταγραφής", "es": "Activar scrobbling", "fr": "Activer le scrobbling", "it": "Attiva il scrobbling", "pl": "Włącz scrobblowanie", "pt": "Ativar scrobbling", "ru": "Включить скробблинг", "tr": "Scrobbling'i etkinleştir", "uk": "Увімкнути скроблінг", "zh-rCN": "启用记录", "zh-rTW": "啟用記錄",
+    },
+    "lastfm_enable_desc": {
+        "ar": "يسجل الأغاني التي تستمع إليها على Last.fm.", "de": "Überträgt die gehörten Titel an Last.fm.", "el": "Καταγράφει τα τραγούδια που ακούτε στο Last.fm.", "es": "Registra las canciones que escuchas en Last.fm.", "fr": "Enregistre les chansons que vous écoutez sur Last.fm.", "it": "Registra le canzoni che ascolti su Last.fm.", "pl": "Rejestruje słuchane utwory na Last.fm.", "pt": "Regista as músicas que ouve no Last.fm.", "ru": "Отправляет прослушанные треки в Last.fm.", "tr": "Dinlediğiniz şarkıları Last.fm'e gönderir.", "uk": "Відправляє прослухані треки у Last.fm.", "zh-rCN": "将您收听的歌曲记录到 Last.fm。", "zh-rTW": "將您聆聽的歌曲記錄到 Last.fm。",
+    },
+    "lastfm_session": {
+        "ar": "مفتاح الجلسة", "de": "Sitzungsschlüssel", "el": "Κλειδί συνόδου", "es": "Clave de sesión", "fr": "Clé de session", "it": "Chiave di sessione", "pl": "Klucz sesji", "pt": "Chave de sessão", "ru": "Ключ сессии", "tr": "Oturum anahtarı", "uk": "Ключ сесії", "zh-rCN": "会话密钥", "zh-rTW": "工作階段金鑰",
+    },
+    "lastfm_session_hint": {
+        "ar": "الصق مفتاح جلسة Last.fm الخاص بك.", "de": "Einfügen deines Last.fm-Sitzungsschlüssels.", "es": "Pega tu clave de sesión de Last.fm.", "fr": "Collez votre clé de session Last.fm.", "it": "Incolla la tua chiave di sessione Last.fm.", "pl": "Wklej swój klucz sesji Last.fm.", "pt": "Cole a sua chave de sessão do Last.fm.", "ru": "Вставьте ключ сессии Last.fm.", "tr": "Last.fm oturum anahtarınızı yapıştırın.", "uk": "Вставте ключ сесії Last.fm.", "zh-rCN": "粘贴您的 Last.fm 会话密钥。", "zh-rTW": "貼上您的 Last.fm 工作階段金鑰。",
+    },
+    "lastfm_now_playing": {
+        "ar": "تحديث ما يتم تشغيله الآن", "de": "Aktuellen Titel mitteilen", "el": "Ενημέρωση τρέχοντος τραγουδιού", "es": "Actualizar ahora en reproducción", "fr": "Mettre à jour le titre en cours", "it": "Aggiorna brano in riproduzione", "pl": "Aktualizuj teraz odtwarzane", "pt": "Atualizar música atual", "ru": "Обновлять текущий трек", "tr": "Şu an dinleneni güncelle", "uk": "Оновлювати поточний трек", "zh-rCN": "更新当前播放", "zh-rTW": "更新目前播放",
+    },
+    "lastfm_now_playing_desc": {
+        "ar": "يعرض أيضًا الأغنية قيد التشغيل حاليًا.", "de": "Meldet zusätzlich den aktuell gespielten Titel.", "es": "También informa del tema que se está reproduciendo.", "fr": "Signale aussi le titre en cours de lecture.", "it": "Segnala anche il brano in riproduzione.", "pl": "Zgłasza również aktualnie odtwarzany utwór.", "pt": "Também informa a música em reprodução.", "ru": "Также сообщает о текущем треке.", "tr": "Çalmakta olan şarkıyı da bildirir.", "uk": "Також повідомляє про поточний трек.", "zh-rCN": "同时上报正在播放的曲目。", "zh-rTW": "同時回報正在播放的曲目。",
+    },
 }
+
+# For the long-sentence keys above, translations for the long-tail languages
+# intentionally fall back to the English text (the generator does the same) so
+# no language ever shows a broken/empty string.
+_EN_FALLBACK = {
+    "discord_client_id": "Discord application ID",
+    "discord_client_id_hint": "Create an application at discord.com/developers and paste its ID.",
+    "lastfm": "Last.fm",
+    "lastfm_enable": "Enable scrobbling",
+    "lastfm_enable_desc": "Scrobbles the tracks you listen to on Last.fm.",
+    "lastfm_session": "Session key",
+    "lastfm_session_hint": "Paste your Last.fm session key (from the mobile app or last.fm/api).",
+    "lastfm_now_playing": "Update now playing",
+    "lastfm_now_playing_desc": "Also report the track currently playing.",
+}
+for _key, _en in _EN_FALLBACK.items():
+    _d = EXTRA_TRANSLATIONS.setdefault(_key, {})
+    for _lang in _LANGS:
+        _d.setdefault(_lang, _en)

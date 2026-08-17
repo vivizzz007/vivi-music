@@ -44,6 +44,11 @@ data class DesktopSyncState(
     val pauseListenHistory: Boolean = false,
     val searchHistory: List<String> = emptyList(),
     val lyricsLineSpacing: Float = 1.35f,
+    val discordRpcEnabled: Boolean = false,
+    val discordClientId: String = "",
+    val lastfmEnabled: Boolean = false,
+    val lastfmSession: String = "",
+    val lastfmNowPlaying: Boolean = true,
     /** Apple-style mini player variant. */
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",

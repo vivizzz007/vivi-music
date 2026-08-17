@@ -124,6 +124,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.music.lastfm.LastFM
 import com.music.innertube.YouTube
 import kotlin.math.abs
 import kotlin.system.exitProcess
@@ -363,6 +364,55 @@ fun App(
     var syncViviVolume by remember { mutableStateOf(DesktopSettings.load().syncViviVolume) }
     var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
     var lyricsLineSpacing by remember { mutableStateOf(DesktopSettings.load().lyricsLineSpacing) }
+    var discordRpcEnabled by remember { mutableStateOf(DesktopSettings.load().discordRpcEnabled) }
+    var discordClientId by remember { mutableStateOf(DesktopSettings.load().discordClientId) }
+    var lastfmEnabled by remember { mutableStateOf(DesktopSettings.load().lastfmEnabled) }
+    var lastfmSession by remember { mutableStateOf(DesktopSettings.load().lastfmSession) }
+    var lastfmNowPlaying by remember { mutableStateOf(DesktopSettings.load().lastfmNowPlaying) }
+
+    // Integrations: initialize Last.fm with env-provided credentials (like the
+    // mobile BuildConfig) and mirror the Discord toggles to the RPC client.
+    LaunchedEffect(Unit) {
+        val key = System.getenv("LASTFM_API_KEY").orEmpty()
+        val secret = System.getenv("LASTFM_SECRET").orEmpty()
+        if (key.isNotEmpty() && secret.isNotEmpty()) LastFM.initialize(key, secret)
+        DiscordRPC.clientId = DiscordRPC.clientId.ifBlank { discordClientId }
+        DiscordRPC.enabled = discordRpcEnabled
+    }
+    LaunchedEffect(discordRpcEnabled, discordClientId) {
+        DiscordRPC.clientId = discordClientId
+        DiscordRPC.enabled = discordRpcEnabled
+    }
+
+    // Discord presence + Last.fm now-playing / scrobble feed.
+    var lastfmReported by remember { mutableStateOf<String?>(null) }
+    var lastfmScrobbled by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(nowPlaying?.videoId, isPlaying, playerState.positionMs, discordRpcEnabled, lastfmEnabled, lastfmSession) {
+        val np = nowPlaying
+        if (np == null) {
+            DiscordRPC.updateActivity(null, null, null, null)
+            return@LaunchedEffect
+        }
+        if (discordRpcEnabled && discordClientId.isNotBlank() && isPlaying) {
+            DiscordRPC.updateActivity(details = np.title, state = np.artist, largeImage = "vivimusic")
+        }
+        if (lastfmEnabled && lastfmSession.isNotBlank() && LastFM.isInitialized()) {
+            LastFM.sessionKey = lastfmSession
+            if (isPlaying && lastfmReported != np.videoId) {
+                lastfmReported = np.videoId
+                if (lastfmNowPlaying) {
+                    runCatching { LastFM.updateNowPlaying(artist = np.artist, track = np.title, duration = (np.durationMs / 1000L).toInt().coerceAtLeast(0)) }
+                }
+            }
+            // Scrobble near the end of the track (>=5s before it finishes).
+            val dur = np.durationMs
+            val pos = playerState.positionMs
+            if (dur > 30_000 && pos > 0 && pos >= dur - 15_000 && lastfmScrobbled != np.videoId) {
+                lastfmScrobbled = np.videoId
+                runCatching { LastFM.scrobble(artist = np.artist, track = np.title, timestamp = System.currentTimeMillis() / 1000, duration = (dur / 1000L).toInt()) }
+            }
+        }
+    }
 
     // Persistent queue: restore the saved queue on startup (paused, not auto-played).
     LaunchedEffect(Unit) {
@@ -1042,6 +1092,35 @@ fun App(
                         onToggleSyncViviVolume = { checked ->
                             syncViviVolume = checked
                             DesktopSettings.update { it.copy(syncViviVolume = checked) }
+                        },
+                    )
+                    is Screen.SettingsIntegrations -> SettingsIntegrationsScreen(
+                        language = language,
+                        onBack = goBack,
+                        discordEnabled = discordRpcEnabled,
+                        onDiscordEnabledChange = { v ->
+                            discordRpcEnabled = v
+                            DesktopSettings.update { it.copy(discordRpcEnabled = v) }
+                        },
+                        discordClientId = discordClientId,
+                        onDiscordClientIdChange = { v ->
+                            discordClientId = v
+                            DesktopSettings.update { it.copy(discordClientId = v) }
+                        },
+                        lastfmEnabled = lastfmEnabled,
+                        onLastfmEnabledChange = { v ->
+                            lastfmEnabled = v
+                            DesktopSettings.update { it.copy(lastfmEnabled = v) }
+                        },
+                        lastfmSession = lastfmSession,
+                        onLastfmSessionChange = { v ->
+                            lastfmSession = v
+                            DesktopSettings.update { it.copy(lastfmSession = v) }
+                        },
+                        lastfmNowPlaying = lastfmNowPlaying,
+                        onLastfmNowPlayingChange = { v ->
+                            lastfmNowPlaying = v
+                            DesktopSettings.update { it.copy(lastfmNowPlaying = v) }
                         },
                     )
                     is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
@@ -1815,6 +1894,17 @@ fun SettingsScreen(
             icon = Icons.Filled.Storage,
             title = Localization.get(language, "storage"),
             onClick = { onOpen(Screen.SettingsStorage) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Tune,
+            title = Localization.get(language, "integrations"),
+            subtitle = if (DesktopSettings.load().discordRpcEnabled || DesktopSettings.load().lastfmEnabled) {
+                Localization.get(language, "integrations_active")
+            } else {
+                Localization.get(language, "integrations_inactive")
+            },
+            onClick = { onOpen(Screen.SettingsIntegrations) },
         )
         SettingsEntryRow(
             language = language,

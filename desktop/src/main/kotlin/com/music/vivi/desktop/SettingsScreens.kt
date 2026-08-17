@@ -24,6 +24,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -1469,6 +1470,94 @@ fun SettingsPrivacyScreen(
         Spacer(Modifier.height(12.dp))
         OutlinedButton(onClick = { showClearDialog = true }) {
             Text(Localization.get(language, "clear_search_history"))
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+/** Integrations sub-screen: Discord Rich Presence + Last.fm scrobbling. */
+@Composable
+fun SettingsIntegrationsScreen(
+    language: String,
+    onBack: () -> Unit,
+    discordEnabled: Boolean,
+    onDiscordEnabledChange: (Boolean) -> Unit,
+    discordClientId: String,
+    onDiscordClientIdChange: (String) -> Unit,
+    lastfmEnabled: Boolean,
+    onLastfmEnabledChange: (Boolean) -> Unit,
+    lastfmSession: String,
+    onLastfmSessionChange: (String) -> Unit,
+    lastfmNowPlaying: Boolean,
+    onLastfmNowPlayingChange: (Boolean) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "integrations"), style = MaterialTheme.typography.titleLarge)
+
+        Text(
+            Localization.get(language, "discord_presence"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "discord_presence_enable",
+            descKey = "discord_presence_desc",
+            checked = discordEnabled,
+            onCheckedChange = onDiscordEnabledChange,
+        )
+        OutlinedTextField(
+            value = discordClientId,
+            onValueChange = onDiscordClientIdChange,
+            label = { Text(Localization.get(language, "discord_client_id")) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+        if (discordEnabled && discordClientId.isBlank()) {
+            Text(
+                Localization.get(language, "discord_client_id_hint"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            Localization.get(language, "lastfm"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "lastfm_enable",
+            descKey = "lastfm_enable_desc",
+            checked = lastfmEnabled,
+            onCheckedChange = onLastfmEnabledChange,
+        )
+        if (lastfmEnabled) {
+            OutlinedTextField(
+                value = lastfmSession,
+                onValueChange = onLastfmSessionChange,
+                label = { Text(Localization.get(language, "lastfm_session")) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+            Text(
+                Localization.get(language, "lastfm_session_hint"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            BackupToggleRow(
+                language = language,
+                titleKey = "lastfm_now_playing",
+                descKey = "lastfm_now_playing_desc",
+                checked = lastfmNowPlaying,
+                onCheckedChange = onLastfmNowPlayingChange,
+            )
         }
         Spacer(Modifier.height(16.dp))
     }

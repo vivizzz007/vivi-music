@@ -11,6 +11,18 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.76] - 2026-08-17
+
+### Added
+
+- [DE] Integrations sub-screen (Settings → Integrations):
+  - Discord Rich Presence over the local IPC pipe (Windows; toggle + your
+    Discord application ID; shows the current track).
+  - Last.fm scrobbling: enable toggle, session key field, now-playing
+    update and auto-scrobble near the end of each track (credentials via
+    the LASTFM_API_KEY / LASTFM_SECRET env vars, like mobile build config).
+  Fully translated.
+
 ## [6.4.27_DE-1.33.75] - 2026-08-17
 
 ### Added

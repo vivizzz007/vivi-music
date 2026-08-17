@@ -150,7 +150,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [ ] UI density (density scale 85/75/65/55%) + custom grid size.
 - [x] Sort chips for library items: A-Z / Z-A + by artist on songs (DE 1.33.71).
 - [x] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card (session stats) (DE 1.33.72).
-- [ ] Integrations: Discord RPC, Last.fm scrobbling (mobile screens/options).
+- [x] Integrations: Discord RPC (Windows IPC pipe) + Last.fm scrobbling/now-playing (DE 1.33.76).
 - [x] Search/listen history + pause-history privacy toggles (DE 1.33.73): local recent searches on the Search screen, Privacy sub-screen with pause toggles + clear.
 - [x] Settings popup (quick settings shortcut) via the sidebar Tune button (DE 1.33.74).
 
