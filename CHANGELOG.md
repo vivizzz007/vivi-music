@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.77] - 2026-08-17
+
+### Changed
+
+- [DE] Stream resolution cache: resolved audio URLs are cached in memory for
+  up to 10 minutes, so replaying or retrying a track doesn't re-run the whole
+  resolution chain when we already have a valid stream. (Resolution only —
+  the audio decode/playback core is untouched.)
+
 ## [6.4.27_DE-1.33.76] - 2026-08-17
 
 ### Added

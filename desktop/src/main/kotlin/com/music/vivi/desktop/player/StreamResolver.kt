@@ -78,6 +78,19 @@ object StreamResolver {
         .build()
 
     /**
+     * Short-lived in-memory cache of resolved stream URLs, so starting the
+     * same track again (or retrying it) does not re-run the whole resolution
+     * chain (NewPipe signature + player client chain + URL validation) for as
+     * long as the URLs are still valid. googlevideo URLs are single-use and
+     * expire quickly, hence the 10-minute TTL.
+     */
+    private class Cached(val streams: List<ResolvedStream>, val expiresAt: Long)
+
+    private val cache = java.util.concurrent.ConcurrentHashMap<String, Cached>()
+    private const val CACHE_TTL_MS = 10 * 60_000L
+    private const val CACHE_MAX_ENTRIES = 32
+
+    /**
      * Returns a direct HTTP URL to an AAC audio stream, or null if it cannot be
      * resolved. Callers should invoke this from a background coroutine: the
      * NewPipe path is blocking and the player path performs network I/O.
@@ -89,6 +102,14 @@ object StreamResolver {
      * prevents playback when another source works.
      */
     suspend fun resolveAacStream(videoId: String, quality: AudioQuality = AudioQuality.AUTO): List<ResolvedStream> {
+        // Serve from the in-memory cache first: the URLs are only valid for a
+        // few minutes anyway, so re-resolving is pure waste when we still have
+        // a working candidate.
+        val now = System.currentTimeMillis()
+        cache[videoId]?.let { hit ->
+            if (hit.expiresAt > now && hit.streams.isNotEmpty()) return hit.streams
+            cache.remove(videoId)
+        }
         GuestSession.ensure()
         var resolution = resolveOnce(videoId, quality)
         // Bot detection: when no candidate URL passed validation, YouTube likely
@@ -105,6 +126,13 @@ object StreamResolver {
             delay(750L)
             resolution = resolveOnce(videoId, quality)
             attempts++
+        }
+        if (resolution.streams.isNotEmpty()) {
+            cache[videoId] = Cached(resolution.streams, System.currentTimeMillis() + CACHE_TTL_MS)
+            while (cache.size > CACHE_MAX_ENTRIES) {
+                val oldest = cache.entries.minByOrNull { it.value.expiresAt }?.key ?: break
+                cache.remove(oldest)
+            }
         }
         return resolution.streams
     }
