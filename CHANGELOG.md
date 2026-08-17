@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.17_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [APK] Restoring an old backup (e.g. from the original 6.0.5) no longer crashes.
+  The restore previously closed the shared Room database while the app's live
+  queries were still running, which crashed with an uncaught "database is
+  closed" exception. It now stages the backup to `filesDir/pending_restore`,
+  exits, and swaps the settings + database in at startup (in `App.onCreate()`)
+  before Room/DataStore are opened.
+
 ## [6.4.16_DE-1.33.48] - 2026-08-17
 
 ### Changed

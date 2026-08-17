@@ -6,7 +6,6 @@
 package com.music.vivi.viewmodels
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
@@ -22,7 +21,6 @@ import com.music.vivi.extensions.div
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.extensions.zipInputStream
 import com.music.vivi.extensions.zipOutputStream
-import com.music.vivi.playback.MusicService
 import com.music.vivi.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -107,18 +105,22 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     private fun restoreFromInputStream(context: Context, raw: java.io.InputStream) {
-        // Phase 1 (background): decompress the archive and stage the restored
-        // files to temporary paths, so the heavy I/O never blocks the UI thread
-        // (which previously froze the app on large backups).
+        val appContext = context.applicationContext
+        // Decompress the archive to a persistent staging directory on a
+        // background thread, then kill the process. App.onCreate() swaps the
+        // staged files in before Room/DataStore are opened on the next launch.
+        // This avoids closing the shared Room database while the app is still
+        // running, which crashed with in-flight queries ("database is closed").
         Thread {
-            val tmpDb = java.io.File(context.cacheDir, "restore_song.db.tmp")
-            val tmpSettings = java.io.File(context.cacheDir, "restore_settings.pb.tmp")
-            tmpDb.delete()
-            tmpSettings.delete()
-            var hasDb = false
-            var hasSettings = false
-
+            val pendingDir = java.io.File(appContext.filesDir, PENDING_RESTORE_DIR)
             val staged = runCatching {
+                pendingDir.deleteRecursively()
+                pendingDir.mkdirs()
+                val tmpDb = java.io.File(pendingDir, InternalDatabase.DB_NAME)
+                val tmpSettings = java.io.File(pendingDir, SETTINGS_FILENAME)
+                var hasDb = false
+                var hasSettings = false
+
                 raw.use {
                     it.zipInputStream().use { inputStream ->
                         var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
@@ -142,58 +144,19 @@ class BackupRestoreViewModel @Inject constructor(
                 if (!hasDb && !hasSettings) error("No backup entries found in archive")
             }
 
-            // Phase 2 (main thread): swap the staged files in and kill the
-            // process in one synchronous block, so no other UI work can touch
-            // the database between close() and exitProcess().
             Handler(Looper.getMainLooper()).post {
-                staged
-                    .onSuccess { applyStagedRestore(context, tmpDb.takeIf { hasDb }, tmpSettings.takeIf { hasSettings }) }
-                    .onFailure { e ->
-                        reportException(e)
-                        Timber.tag("RESTORE").e(e, "Restore failed")
-                        Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-                        tmpDb.delete()
-                        tmpSettings.delete()
-                    }
+                staged.onSuccess {
+                    // The staged files are applied by App.onCreate() before the
+                    // database/DataStore are opened on the next launch.
+                    exitProcess(0)
+                }.onFailure { e ->
+                    pendingDir.deleteRecursively()
+                    reportException(e)
+                    Timber.tag("RESTORE").e(e, "Restore failed")
+                    Toast.makeText(appContext, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+                }
             }
         }.start()
-    }
-
-    private fun applyStagedRestore(context: Context, tmpDb: java.io.File?, tmpSettings: java.io.File?) {
-        runCatching {
-            // Stop playback first so the service can't hit the database while we
-            // close and replace it below.
-            context.stopService(Intent(context, MusicService::class.java))
-
-            if (tmpSettings != null) {
-                val target = context.filesDir / "datastore" / SETTINGS_FILENAME
-                target.parentFile?.mkdirs()
-                tmpSettings.copyTo(target, overwrite = true)
-            }
-
-            if (tmpDb != null) {
-                // capture path before closing DB to avoid reopening race
-                val dbPath = database.openHelper.writableDatabase.path
-                database.close()
-                // The DB uses write-ahead logging: delete the WAL/SHM sidecars
-                // and the old DB before swapping in the restored file, so the
-                // restored DB is never mixed with stale journal frames on the
-                // next launch (which forced uninstall/reinstall).
-                java.io.File(dbPath + "-wal").delete()
-                java.io.File(dbPath + "-shm").delete()
-                java.io.File(dbPath).delete()
-                tmpDb.copyTo(java.io.File(dbPath), overwrite = true)
-                Timber.tag("RESTORE").i("DB overwrite complete")
-            }
-
-            context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
-            // Kill the process so the next launch reads the restored files fresh.
-            exitProcess(0)
-        }.onFailure {
-            reportException(it)
-            Timber.tag("RESTORE").e(it, "Restore failed")
-            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-        }
     }
 
     fun previewCsvFile(context: Context, uri: Uri): CsvImportState {
@@ -369,5 +332,36 @@ class BackupRestoreViewModel @Inject constructor(
 
     companion object {
         const val SETTINGS_FILENAME = "settings.preferences_pb"
+        const val PENDING_RESTORE_DIR = "pending_restore"
+
+        /**
+         * Applies a staged backup (settings + database) before Room and
+         * DataStore are opened. Called from App.onCreate() on startup.
+         */
+        fun applyPendingRestoreIfNeeded(context: Context) {
+            val pendingDir = java.io.File(context.filesDir, PENDING_RESTORE_DIR)
+            val stagedSettings = java.io.File(pendingDir, SETTINGS_FILENAME)
+            val stagedDb = java.io.File(pendingDir, InternalDatabase.DB_NAME)
+            if (!stagedSettings.exists() && !stagedDb.exists()) {
+                pendingDir.deleteRecursively()
+                return
+            }
+            runCatching {
+                if (stagedSettings.exists()) {
+                    val target = context.filesDir / "datastore" / SETTINGS_FILENAME
+                    target.parentFile?.mkdirs()
+                    stagedSettings.copyTo(target, overwrite = true)
+                }
+                if (stagedDb.exists()) {
+                    val dbPath = context.getDatabasePath(InternalDatabase.DB_NAME).absolutePath
+                    java.io.File(dbPath + "-wal").delete()
+                    java.io.File(dbPath + "-shm").delete()
+                    java.io.File(dbPath).delete()
+                    stagedDb.copyTo(java.io.File(dbPath), overwrite = true)
+                }
+                context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
+            }
+            pendingDir.deleteRecursively()
+        }
     }
 }
