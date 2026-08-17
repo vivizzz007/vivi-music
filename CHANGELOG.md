@@ -11,6 +11,18 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.12_DE-1.33.46] - 2026-08-16
+
+### Fixed
+
+- [APK] Restoring a backup no longer crashes while choosing the file or when
+  reopening the app: the archive is decompressed on a background thread and
+  staged to temp files, then the settings + database are swapped in and the
+  process is killed in a single synchronous block on the main thread. This
+  removes the race where the UI queried the database after it was closed on a
+  background thread (the crash introduced by the previous fix), while still
+  deleting the WAL/SHM sidecars so the restored DB isn't corrupted on launch.
+
 ## [6.4.11_DE-1.33.46] - 2026-08-16
 
 ### Fixed
