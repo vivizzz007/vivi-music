@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sync — VIVI Music DE</title>
+  <meta name="description" content="Pair your phone with VIVI Music DE over LAN or the cloud relay and keep everything in sync." />
+  <link rel="icon" href="images/logo_vmde.png" type="image/png" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html">
+        <img src="images/logo_vmde.png" alt="VIVI Music DE logo" />
+        VIVI Music DE <small>desktop edition</small>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="downloads.html">Downloads</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="sync.html">Sync</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <h1>Phone ↔ Desktop sync</h1>
+    <p class="lede">
+      Pair the Android app with VIVI Music DE and they stay in sync in real
+      time: queue, playback position, volume, playlists, theme, accent color
+      and settings.
+    </p>
+
+    <h2>Pairing over LAN (same Wi-Fi)</h2>
+    <ol class="steps">
+      <li>Open <b>Settings → Devices</b> in VIVI Music DE and tap <b>Start LAN server</b>. A relay address and a 6-digit pairing code appear.</li>
+      <li>Open <b>Settings → Devices</b> in the Android app (or scan the QR code on the desktop).</li>
+      <li>Enter the relay address and the 6-digit code, then tap <b>Pair</b>.</li>
+      <li>Done — the two devices are connected and sync continuously.</li>
+    </ol>
+
+    <h2>Pairing over the cloud relay</h2>
+    <p>
+      If the phone and desktop are on different networks, set the relay URL to
+      the cloud server (default <code>wss://vivimusic-device-sync.onrender.com</code>)
+      and pair with the same 6-digit code. The same protocol runs over WebSocket.
+    </p>
+
+    <h2>Notes</h2>
+    <ul>
+      <li>Closing either app un-pairs both (a short grace period tolerates brief network blips).</li>
+      <li>Volume syncs on two channels: the in-app VIVI volume and the native OS volume (Android ↔ Windows/Linux/macOS).</li>
+      <li>Playlists and the queue use last-write-wins: the most recently edited side wins.</li>
+    </ul>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>VIVI Music DE — desktop edition of VIVI Music</span>
+      <div class="links">
+        <a href="https://github.com/PiBOH/vivi-music">GitHub</a>
+        <a href="https://github.com/PiBOH/vivi-music/releases">Releases</a>
+        <a href="https://t.me/vivimusicapp">Telegram</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
