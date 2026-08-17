@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.54] - 2026-08-17
+
+### Fixed
+
+- [DE] Tracks restored from the persistent queue (or whose load failed earlier)
+  now actually start on the first Play press: pressing play on a track whose
+  stream is not loaded yet triggers a real resolution + load instead of a
+  no-op `resume()` that silently did nothing.
+
 ## [6.4.21_DE-1.33.53] - 2026-08-17
 
 ### Added

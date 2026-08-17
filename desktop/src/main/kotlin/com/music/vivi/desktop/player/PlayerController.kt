@@ -81,6 +81,14 @@ class PlayerController {
     /** Monotonic token identifying the active play session. */
     private var playToken = 0
 
+    /**
+     * videoId currently loaded (or being resolved/loaded) in the [AudioPlayer].
+     * A track restored from the persistent queue has no stream loaded, so
+     * pressing play must trigger a real load instead of a no-op `resume()`.
+     */
+    @Volatile
+    private var loadedVideoId: String? = null
+
     /** Back-navigation history used by "previous" in shuffle mode. */
     private val previousStack = ArrayDeque<Int>()
 
@@ -153,6 +161,7 @@ class PlayerController {
             newQueue.isEmpty() -> {
                 playToken++
                 player.stop()
+                loadedVideoId = null
                 _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
             }
             index < s.index -> _state.update { it.copy(queue = newQueue, index = it.index - 1) }
@@ -165,6 +174,7 @@ class PlayerController {
         val s = _state.value
         playToken++
         player.stop()
+        loadedVideoId = null
         _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
     }
 
@@ -187,6 +197,19 @@ class PlayerController {
             player.pause()
             _state.update { it.copy(isPlaying = false) }
         } else {
+            startCurrent(s)
+        }
+    }
+
+    /**
+     * Starts the current track. If its stream isn't loaded yet (e.g. it was
+     * restored from the persistent queue, or a previous load failed), trigger a
+     * real resolution + load instead of a no-op `resume()`.
+     */
+    private fun startCurrent(s: PlayerState) {
+        if (loadedVideoId != s.current?.videoId) {
+            playAt(s.queue, s.index, startAtMs = s.positionMs, startPaused = false)
+        } else {
             player.resume()
             _state.update { it.copy(isPlaying = true) }
         }
@@ -195,6 +218,7 @@ class PlayerController {
     fun stop() {
         playToken++
         player.stop()
+        loadedVideoId = null
         _state.update { it.copy(isPlaying = false, positionMs = 0L) }
     }
 
@@ -235,8 +259,7 @@ class PlayerController {
         val s = _state.value
         if (s.isPlaying == playing) return
         if (playing) {
-            player.resume()
-            _state.update { it.copy(isPlaying = true) }
+            startCurrent(s)
         } else {
             player.pause()
             _state.update { it.copy(isPlaying = false) }
@@ -289,12 +312,17 @@ class PlayerController {
         if (tracks.isEmpty()) return
         playToken++
         player.stop()
+        loadedVideoId = null
+        val idx = index.coerceIn(0, tracks.lastIndex)
         _state.update {
             it.copy(
                 queue = tracks,
-                index = index.coerceIn(0, tracks.lastIndex),
+                index = idx,
                 isPlaying = false,
                 positionMs = 0L,
+                // Report the saved duration so the seek slider is usable
+                // immediately, even before the stream is resolved.
+                durationMs = tracks[idx].durationMs,
             )
         }
     }
@@ -325,6 +353,7 @@ class PlayerController {
     ) {
         val track = tracks[index]
         val token = ++playToken
+        loadedVideoId = track.videoId
         scope.launch {
             player.stop()
             _state.value = PlayerState(
@@ -353,6 +382,7 @@ class PlayerController {
                     GuestSession.rotate()
                     playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                 } else {
+                    loadedVideoId = null
                     _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE) }
                 }
                 return@launch
@@ -373,6 +403,7 @@ class PlayerController {
                             playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                         }
                     } else {
+                        loadedVideoId = null
                         _state.update { s ->
                             if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
                                 s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE)
@@ -422,10 +453,14 @@ class PlayerController {
                     previousStack.addLast(s.index)
                     playAt(s.queue, nextIndex)
                 } else {
+                    loadedVideoId = null
                     _state.update { it.copy(isPlaying = false) }
                 }
             }
-            else -> _state.update { it.copy(isPlaying = false) }
+            else -> {
+                loadedVideoId = null
+                _state.update { it.copy(isPlaying = false) }
+            }
         }
     }
 
