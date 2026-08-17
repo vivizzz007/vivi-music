@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.67] - 2026-08-17
+
+### Added
+
+- [DE] Player design variants: Classic / New / V2 / Expressive (Settings →
+  Player & audio → Player design), reworking the full-player layout and the
+  Apple Music-style rounded mini-player variant. Fully translated.
+- [DE] Player background styles: Gradient / Blur / Glow / Apple Music /
+  Live mesh (Settings → Player & audio → Player design), animated behind
+  the full player. Fully translated.
+- [DE] Rotating artwork option (settings toggle): the album art rotates
+  slowly while playing, like the mobile rotating-thumbnail option.
+
 ## [6.4.27_DE-1.33.66] - 2026-08-17
 
 ### Added

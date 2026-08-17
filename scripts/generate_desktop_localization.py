@@ -150,6 +150,23 @@ MAPPING = {
     "slider_slim": "Slim",
     "slider_squiggly": "Squiggly",
     "slider_wavy": "Wavy",
+    "player_design": "Player design",
+    "player_design_desc": "Layout variant of the full player.",
+    "player_design_classic": "Classic",
+    "player_design_new": "New",
+    "player_design_v2": "V2",
+    "player_design_expressive": "Expressive",
+    "player_background": "Player background",
+    "player_background_desc": "Animated style behind the player.",
+    "player_background_gradient": "Gradient",
+    "player_background_blur": "Blur",
+    "player_background_glow": "Glow",
+    "player_background_apple": "Apple Music",
+    "player_background_mesh": "Live mesh",
+    "rotating_thumbnail": "Rotating artwork",
+    "rotating_thumbnail_desc": "Slowly rotate the album artwork while playing.",
+    "apple_mini_player": "Apple mini player",
+    "apple_mini_player_desc": "Rounded Apple Music-style mini player.",
     "density_and_grid": "display_density",
     "use_canvas": "use_canvas",
     "canvas_source": "canvas_source",
@@ -1056,8 +1073,9 @@ from desktop_extra_translations_9 import EXTRA_TRANSLATIONS as _EXTRA_9
 from desktop_extra_translations_10 import EXTRA_TRANSLATIONS as _EXTRA_10
 from desktop_extra_translations_11 import EXTRA_TRANSLATIONS as _EXTRA_11
 from desktop_extra_translations_12 import EXTRA_TRANSLATIONS as _EXTRA_12
+from desktop_extra_translations_13 import EXTRA_TRANSLATIONS as _EXTRA_13
 
-for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12):
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12, _EXTRA_13):
     TRANSLATIONS.update(_extra)
 
 

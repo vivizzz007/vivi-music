@@ -285,6 +285,10 @@ fun App(
     var gridItemSize by remember { mutableStateOf(DesktopSettings.load().gridItemSize) }
     var screenTransition by remember { mutableStateOf(DesktopSettings.load().screenTransition) }
     var sliderStyle by remember { mutableStateOf(DesktopSettings.load().sliderStyle) }
+    var playerDesign by remember { mutableStateOf(PlayerDesign.from(DesktopSettings.load().playerDesign)) }
+    var playerBackground by remember { mutableStateOf(PlayerBackgroundStyle.from(DesktopSettings.load().playerBackground)) }
+    var rotatingThumbnail by remember { mutableStateOf(DesktopSettings.load().rotatingThumbnail) }
+    var useAppleMiniPlayer by remember { mutableStateOf(DesktopSettings.load().useAppleMiniPlayer) }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -914,6 +918,31 @@ fun App(
                             sliderStyle = s
                             DesktopSettings.update { it.copy(sliderStyle = s) }
                         },
+                        onOpenPlayerDesign = { navigate(Screen.SettingsPlayerDesign) },
+                    )
+                    is Screen.SettingsPlayerDesign -> SettingsPlayerDesignScreen(
+                        language = language,
+                        onBack = goBack,
+                        design = playerDesign,
+                        onDesignChange = { d ->
+                            playerDesign = d
+                            DesktopSettings.update { it.copy(playerDesign = d.key) }
+                        },
+                        background = playerBackground,
+                        onBackgroundChange = { b ->
+                            playerBackground = b
+                            DesktopSettings.update { it.copy(playerBackground = b.key) }
+                        },
+                        rotatingThumbnail = rotatingThumbnail,
+                        onRotatingThumbnailChange = { r ->
+                            rotatingThumbnail = r
+                            DesktopSettings.update { it.copy(rotatingThumbnail = r) }
+                        },
+                        useAppleMiniPlayer = useAppleMiniPlayer,
+                        onUseAppleMiniPlayerChange = { a ->
+                            useAppleMiniPlayer = a
+                            DesktopSettings.update { it.copy(useAppleMiniPlayer = a) }
+                        },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
                         language = language,
@@ -1130,6 +1159,10 @@ fun App(
                         onOpenQueue = { navigate(Screen.Queue) },
                         onAddToPlaylist = addNowPlayingToPlaylist,
                         sliderStyle = ViviSliderStyle.from(sliderStyle),
+                        design = playerDesign,
+                        background = playerBackground,
+                        rotatingThumbnail = rotatingThumbnail,
+                        accent = accent,
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
@@ -1221,6 +1254,7 @@ fun App(
                 // Click toggles the full player: open it, or hide it (go back).
                 onOpen = { if (current == Screen.Player) goBack() else navigate(Screen.Player) },
                 onOpenQueue = { navigate(Screen.Queue) },
+                appleMini = useAppleMiniPlayer,
             )
         }
     }
@@ -1347,14 +1381,19 @@ fun MiniPlayer(
     onNext: () -> Unit,
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
+    appleMini: Boolean = false,
 ) {
     val np = nowPlaying ?: return
-    Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
+    Surface(
+        tonalElevation = 4.dp,
+        shadowElevation = 4.dp,
+        shape = if (appleMini) RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp) else RoundedCornerShape(0.dp),
+    ) {
         Column {
             if (durationMs > 0) {
                 LinearProgressIndicator(
                     progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(2.dp),
+                    modifier = Modifier.fillMaxWidth().height(if (appleMini) 3.dp else 2.dp),
                 )
             }
             Row(
@@ -1364,8 +1403,15 @@ fun MiniPlayer(
                     .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Thumbnail(np.thumbnail, Modifier.size(44.dp))
-                Spacer(Modifier.width(12.dp))
+                if (appleMini) {
+                    Box(Modifier.clip(RoundedCornerShape(10.dp))) {
+                        Thumbnail(np.thumbnail, Modifier.size(40.dp))
+                    }
+                    Spacer(Modifier.width(12.dp))
+                } else {
+                    Thumbnail(np.thumbnail, Modifier.size(44.dp))
+                    Spacer(Modifier.width(12.dp))
+                }
                 Column(Modifier.weight(1f)) {
                     Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(
@@ -2464,6 +2510,7 @@ fun PlayerSection(
     onToggleSyncViviVolume: (Boolean) -> Unit,
     sliderStyle: String,
     onSliderStyleChange: (String) -> Unit,
+    onOpenPlayerDesign: () -> Unit,
 ) {
     var qualityExpanded by remember { mutableStateOf(false) }
     var sliderExpanded by remember { mutableStateOf(false) }
@@ -2483,6 +2530,16 @@ fun PlayerSection(
                 )
             }
         }
+    }
+
+    Row(
+        Modifier.fillMaxWidth().padding(top = 12.dp).clickable(onClick = onOpenPlayerDesign),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(Localization.get(language, "player_design"), style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
     }
 
     SettingSwitch(language, "autoplay_next", autoPlayNext, onToggleAutoPlayNext)

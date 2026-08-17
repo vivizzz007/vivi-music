@@ -787,3 +787,117 @@ private fun RadioRow(
         }
     }
 }
+
+/**
+ * Player design sub-screen: full-player layout variant (classic / new / v2 /
+ * expressive), background style (canvas / gradient / blur / glow / apple
+ * music / live mesh), rotating artwork and the Apple mini-player variant.
+ */
+@Composable
+fun PlayerDesignScreen(
+    language: String,
+    design: PlayerDesign,
+    onDesignChange: (PlayerDesign) -> Unit,
+    background: PlayerBackgroundStyle,
+    onBackgroundChange: (PlayerBackgroundStyle) -> Unit,
+    rotatingThumbnail: Boolean,
+    onRotatingThumbnailChange: (Boolean) -> Unit,
+    useAppleMiniPlayer: Boolean,
+    onUseAppleMiniPlayerChange: (Boolean) -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+    ) {
+        Text(
+            Localization.get(language, "player_design"),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
+        Text(
+            Localization.get(language, "player_design_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        listOf(
+            PlayerDesign.CLASSIC to "player_design_classic",
+            PlayerDesign.NEW to "player_design_new",
+            PlayerDesign.V2 to "player_design_v2",
+            PlayerDesign.EXPRESSIVE to "player_design_expressive",
+        ).forEach { (value, key) ->
+            RadioRow(
+                title = Localization.get(language, key),
+                desc = "",
+                selected = design == value,
+                onClick = { onDesignChange(value) },
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        Text(
+            Localization.get(language, "player_background"),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 4.dp),
+        )
+        Text(
+            Localization.get(language, "player_background_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        listOf(
+            PlayerBackgroundStyle.CANVAS to "canvas",
+            PlayerBackgroundStyle.GRADIENT to "player_background_gradient",
+            PlayerBackgroundStyle.BLUR to "player_background_blur",
+            PlayerBackgroundStyle.GLOW to "player_background_glow",
+            PlayerBackgroundStyle.APPLE_MUSIC to "player_background_apple",
+            PlayerBackgroundStyle.LIVE_MESH to "player_background_mesh",
+        ).forEach { (value, key) ->
+            RadioRow(
+                title = Localization.get(language, key),
+                desc = "",
+                selected = background == value,
+                onClick = { onBackgroundChange(value) },
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        SwitchRow(
+            title = Localization.get(language, "rotating_thumbnail"),
+            desc = Localization.get(language, "rotating_thumbnail_desc"),
+            checked = rotatingThumbnail,
+            onCheckedChange = onRotatingThumbnailChange,
+        )
+        SwitchRow(
+            title = Localization.get(language, "apple_mini_player"),
+            desc = Localization.get(language, "apple_mini_player_desc"),
+            checked = useAppleMiniPlayer,
+            onCheckedChange = onUseAppleMiniPlayerChange,
+        )
+    }
+}
+
+@Composable
+private fun SwitchRow(
+    title: String,
+    desc: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                desc,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}

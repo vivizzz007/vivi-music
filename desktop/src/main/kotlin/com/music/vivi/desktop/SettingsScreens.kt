@@ -383,6 +383,7 @@ fun SettingsPlayerScreen(
     onToggleSyncViviVolume: (Boolean) -> Unit,
     sliderStyle: String,
     onSliderStyleChange: (String) -> Unit,
+    onOpenPlayerDesign: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerSection(
@@ -399,6 +400,35 @@ fun SettingsPlayerScreen(
             onToggleSyncViviVolume,
             sliderStyle,
             onSliderStyleChange,
+            onOpenPlayerDesign,
+        )
+    }
+}
+
+@Composable
+fun SettingsPlayerDesignScreen(
+    language: String,
+    onBack: () -> Unit,
+    design: PlayerDesign,
+    onDesignChange: (PlayerDesign) -> Unit,
+    background: PlayerBackgroundStyle,
+    onBackgroundChange: (PlayerBackgroundStyle) -> Unit,
+    rotatingThumbnail: Boolean,
+    onRotatingThumbnailChange: (Boolean) -> Unit,
+    useAppleMiniPlayer: Boolean,
+    onUseAppleMiniPlayerChange: (Boolean) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        PlayerDesignScreen(
+            language = language,
+            design = design,
+            onDesignChange = onDesignChange,
+            background = background,
+            onBackgroundChange = onBackgroundChange,
+            rotatingThumbnail = rotatingThumbnail,
+            onRotatingThumbnailChange = onRotatingThumbnailChange,
+            useAppleMiniPlayer = useAppleMiniPlayer,
+            onUseAppleMiniPlayerChange = onUseAppleMiniPlayerChange,
         )
     }
 }

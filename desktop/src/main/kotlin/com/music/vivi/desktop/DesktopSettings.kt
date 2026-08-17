@@ -31,6 +31,14 @@ data class DesktopSyncState(
     val screenTransition: String = "fade",
     /** Player slider style: slim / squiggly / wavy. */
     val sliderStyle: String = "slim",
+    /** Full-player layout variant: classic / new / v2 / expressive. */
+    val playerDesign: String = "classic",
+    /** Full-player background style: canvas / gradient / blur / glow / apple_music / live_mesh. */
+    val playerBackground: String = "canvas",
+    /** Slowly rotate the player artwork while playing. */
+    val rotatingThumbnail: Boolean = false,
+    /** Apple-style mini player variant. */
+    val useAppleMiniPlayer: Boolean = false,
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",
     val autoPlayNext: Boolean = true,

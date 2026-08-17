@@ -139,13 +139,13 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 
 ### Fine-grained parity (not previously tracked)
 - [ ] Dynamic theme (Material You `dynamicTheme`); the DE is a fixed seed palette.
-- [ ] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`).
-- [ ] Player background styles (gradient / blur / glow animated / apple music / live mesh); the DE only has the canvas.
-- [ ] Slider styles (squiggly / wavy / slim).
+- [x] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`). (DE 1.33.67)
+- [x] Player background styles (gradient / blur / glow animated / apple music / live mesh). (DE 1.33.67)
+- [x] Slider styles (squiggly / wavy / thin). (DE 1.33.66)
+- [x] Screen transitions (fade/slide, matching `NavigationBuilder`). (DE 1.33.65)
+- [~] Animated thumbnails: rotating done (DE 1.33.67); swipe / canvas thumbnail still missing.
 - [ ] Mini-player: swipe-to-expand, outline, pure-black mini, interaction with the (floating) nav bar.
 - [ ] Song swipe gestures (swipe to play / remove).
-- [ ] Screen transitions (fade/slide, matching `NavigationBuilder`).
-- [ ] Animated thumbnails (rotating / swipe / canvas thumbnail).
 - [ ] Advanced lyrics (swipe lyrics, romanization, AI translation, line spacing, animation styles, thumbnail play/pause).
 - [ ] UI density (density scale 85/75/65/55%) + custom grid size.
 - [ ] Sort / filter chips for library / albums / artists / playlists.

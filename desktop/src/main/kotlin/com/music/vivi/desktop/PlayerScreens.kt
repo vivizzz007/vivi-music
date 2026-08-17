@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +61,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
@@ -95,6 +99,10 @@ fun PlayerScreen(
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (NowPlaying) -> Unit,
     sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
+    design: PlayerDesign = PlayerDesign.CLASSIC,
+    background: PlayerBackgroundStyle = PlayerBackgroundStyle.CANVAS,
+    rotatingThumbnail: Boolean = false,
+    accent: Color = MaterialTheme.colorScheme.primary,
 ) {
     val np = queue.getOrNull(index)
     var canvasArt by remember { mutableStateOf<CanvasArtwork?>(null) }
@@ -115,7 +123,7 @@ fun PlayerScreen(
     val bgUrl = CanvasResolver.displayUrl(canvasArt, np?.thumbnail)
 
     Box(Modifier.fillMaxSize()) {
-        CanvasBackground(bgUrl, Modifier.fillMaxSize())
+        PlayerBackground(background, bgUrl, accent, Modifier.fillMaxSize())
         if (np == null) {
             Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Text(Localization.get(language, "nothing_playing"), style = MaterialTheme.typography.titleLarge)
@@ -145,6 +153,10 @@ fun PlayerScreen(
                 onOpenQueue = onOpenQueue,
                 onAddToPlaylist = { onAddToPlaylist(np) },
                 sliderStyle = sliderStyle,
+                design = design,
+                background = background,
+                rotatingThumbnail = rotatingThumbnail,
+                accent = accent,
             )
         }
     }
@@ -175,8 +187,13 @@ private fun PlayerContent(
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
     sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
+    design: PlayerDesign = PlayerDesign.CLASSIC,
+    background: PlayerBackgroundStyle = PlayerBackgroundStyle.CANVAS,
+    rotatingThumbnail: Boolean = false,
+    accent: Color = MaterialTheme.colorScheme.primary,
 ) {
     val contentWidth = 720.dp
+    val metrics = design.metrics()
 
     Column(
         Modifier
@@ -203,37 +220,80 @@ private fun PlayerContent(
 
         Spacer(Modifier.height(28.dp))
 
-        // Two-column layout: compact artwork on the left, controls on the right.
+        // Two-column layout: artwork on the left, controls on the right. The
+        // art size / title-overlay follow the selected player design variant.
         Row(
             Modifier.widthIn(max = contentWidth).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(40.dp),
         ) {
-            // Left: smaller artwork + title/artist.
+            // Left: artwork + title/artist (title overlaid on the art for the
+            // v2 / expressive designs).
             Column(
-                Modifier.widthIn(max = 240.dp),
+                Modifier.widthIn(max = metrics.artSize + 40.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(Modifier.shadow(16.dp, RoundedCornerShape(12.dp))) {
-                    Thumbnail(np.thumbnail, Modifier.size(200.dp))
+                Box(Modifier.shadow(16.dp, RoundedCornerShape(metrics.artCorner))) {
+                    Box {
+                        PlayerThumbnail(np.thumbnail, metrics.artSize, metrics.artCorner, rotatingThumbnail)
+                        if (metrics.overlayTitle) {
+                            Box(
+                                Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(metrics.artCorner))
+                                    .background(
+                                        Brush.verticalGradient(
+                                            0.5f to Color.Transparent,
+                                            1f to Color.Black.copy(alpha = 0.72f),
+                                        )
+                                    )
+                            )
+                            Column(
+                                Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(12.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    np.title,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    np.artist,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.85f),
+                                    textAlign = TextAlign.Center,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
                 }
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    np.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    np.artist,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                if (!metrics.overlayTitle) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        np.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    Text(
+                        np.artist,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
 
             // Right: seek bar + transport controls + volume + secondary actions.
