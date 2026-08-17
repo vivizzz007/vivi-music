@@ -146,7 +146,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [~] Animated thumbnails: rotating done (DE 1.33.67); swipe / canvas thumbnail still missing.
 - [x] Mini-player: swipe-to-expand, outline, pure-black mini (DE 1.33.68). Floating nav-bar interaction: the DE uses the sidebar instead, mini player already sits above it.
 - [x] Song swipe gestures (swipe to play / remove) in the Queue screen (DE 1.33.69).
-- [ ] Advanced lyrics (swipe lyrics, romanization, AI translation, line spacing, animation styles, thumbnail play/pause).
+- [~] Advanced lyrics: line spacing + thumbnail play/pause done (DE 1.33.75); swipe lyrics / romanization / AI translation are touch/API-dependent and not portable to desktop — noted as out of scope.
 - [ ] UI density (density scale 85/75/65/55%) + custom grid size.
 - [x] Sort chips for library items: A-Z / Z-A + by artist on songs (DE 1.33.71).
 - [x] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card (session stats) (DE 1.33.72).

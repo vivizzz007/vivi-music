@@ -727,6 +727,8 @@ fun LyricsScreen(
     language: String,
     synced: Boolean = true,
     textSizeSp: Float = 18f,
+    lineSpacing: Float = 1.35f,
+    onTogglePlay: () -> Unit = {},
     onBack: () -> Unit,
 ) {
     var lyrics by remember { mutableStateOf<String?>(null) }
@@ -749,7 +751,31 @@ fun LyricsScreen(
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
-        Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            // Thumbnail play/pause (port of the mobile advanced-lyrics control).
+            np?.let {
+                Box {
+                    Thumbnail(it.thumbnail, Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)))
+                    // Small play/pause overlay.
+                    Box(
+                        Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .clickable(onClick = onTogglePlay),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+            }
+        }
         when {
             np == null -> Text(
                 Localization.get(language, "nothing_playing"),
@@ -774,6 +800,7 @@ fun LyricsScreen(
                             Text(
                                 line,
                                 fontSize = textSizeSp.sp,
+                                lineHeight = (textSizeSp * lineSpacing).sp,
                                 modifier = Modifier.padding(vertical = 2.dp),
                             )
                         }
@@ -806,6 +833,7 @@ fun LyricsScreen(
                             Text(
                                 line.text,
                                 fontSize = if (isCurrent) (textSizeSp + 4).sp else textSizeSp.sp,
+                                lineHeight = (textSizeSp * lineSpacing).sp,
                                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 6.dp),

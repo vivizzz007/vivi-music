@@ -362,6 +362,7 @@ fun App(
     var persistentQueue by remember { mutableStateOf(DesktopSettings.load().persistentQueue) }
     var syncViviVolume by remember { mutableStateOf(DesktopSettings.load().syncViviVolume) }
     var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
+    var lyricsLineSpacing by remember { mutableStateOf(DesktopSettings.load().lyricsLineSpacing) }
 
     // Persistent queue: restore the saved queue on startup (paused, not auto-played).
     LaunchedEffect(Unit) {
@@ -1090,6 +1091,11 @@ fun App(
                             lyricsTextSize = size
                             DesktopSettings.update { it.copy(lyricsTextSize = size) }
                         },
+                        lyricsLineSpacing = lyricsLineSpacing,
+                        onLyricsLineSpacingChange = { ls ->
+                            lyricsLineSpacing = ls
+                            DesktopSettings.update { it.copy(lyricsLineSpacing = ls) }
+                        },
                     )
                     is Screen.SettingsStorage -> SettingsStorageScreen(
                         language = language,
@@ -1256,6 +1262,8 @@ fun App(
                         language = language,
                         synced = syncedLyrics,
                         textSizeSp = lyricsTextSize,
+                        lineSpacing = lyricsLineSpacing,
+                        onTogglePlay = { player.toggle() },
                         onBack = goBack,
                     )
                     is Screen.Queue -> QueueScreen(

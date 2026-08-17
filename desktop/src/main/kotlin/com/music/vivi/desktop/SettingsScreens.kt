@@ -844,9 +844,19 @@ fun SettingsLyricsScreen(
     onToggleSyncedLyrics: (Boolean) -> Unit,
     lyricsTextSize: Float,
     onLyricsTextSizeChange: (Float) -> Unit,
+    lyricsLineSpacing: Float = 1.35f,
+    onLyricsLineSpacingChange: (Float) -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
-        LyricsSection(language, syncedLyrics, onToggleSyncedLyrics, lyricsTextSize, onLyricsTextSizeChange)
+        LyricsSection(
+            language,
+            syncedLyrics,
+            onToggleSyncedLyrics,
+            lyricsTextSize,
+            onLyricsTextSizeChange,
+            lyricsLineSpacing,
+            onLyricsLineSpacingChange,
+        )
     }
 }
 
@@ -916,6 +926,8 @@ fun LyricsSection(
     onToggleSyncedLyrics: (Boolean) -> Unit,
     lyricsTextSize: Float,
     onLyricsTextSizeChange: (Float) -> Unit,
+    lyricsLineSpacing: Float = 1.35f,
+    onLyricsLineSpacingChange: (Float) -> Unit = {},
 ) {
     Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Row(
@@ -943,6 +955,18 @@ fun LyricsSection(
         value = lyricsTextSize,
         onValueChange = onLyricsTextSizeChange,
         valueRange = 12f..32f,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    Text(
+        "${Localization.get(language, "lyrics_line_spacing")}: ${String.format("%.2f", lyricsLineSpacing)}",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    androidx.compose.material3.Slider(
+        value = lyricsLineSpacing,
+        onValueChange = onLyricsLineSpacingChange,
+        valueRange = 1.0f..2.0f,
         modifier = Modifier.fillMaxWidth(),
     )
 }

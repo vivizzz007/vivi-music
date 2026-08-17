@@ -43,6 +43,7 @@ data class DesktopSyncState(
     val pauseSearchHistory: Boolean = false,
     val pauseListenHistory: Boolean = false,
     val searchHistory: List<String> = emptyList(),
+    val lyricsLineSpacing: Float = 1.35f,
     /** Apple-style mini player variant. */
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",

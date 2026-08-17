@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.75] - 2026-08-17
+
+### Added
+
+- [DE] Advanced lyrics: line-spacing slider (1.0–2.0, Settings → Lyrics)
+  and a thumbnail with play/pause overlay on the Lyrics screen (port of the
+  mobile advanced-lyrics controls). Fully translated.
+
 ## [6.4.27_DE-1.33.74] - 2026-08-17
 
 ### Added

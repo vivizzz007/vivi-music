@@ -57,4 +57,11 @@ EXTRA_TRANSLATIONS = {
         "lt": "Greiti nustatymai", "ml": "ദ്രുത ക്രമീകരണങ്ങൾ", "ms": "Tetapan pantas", "nb": "Hurtiginnstillinger", "nl": "Snelle instellingen", "pa": "ਤੇਜ਼ ਸੈਟਿੰਗਾਂ", "pl": "Szybkie ustawienia", "pt": "Definições rápidas", "ro": "Setări rapide", "ru": "Быстрые настройки", "sk": "Rýchle nastavenia", "sl": "Hitre nastavitve", "sr": "Brze postavke", "sv": "Snabbinställningar",
         "ta": "விரைவு அமைப்புகள்", "te": "శీఘ్ర సెట్టింగులు", "th": "การตั้งค่าด่วน", "tr": "Hızlı ayarlar", "uk": "Швидкі налаштування", "vi": "Cài đặt nhanh", "zh-rCN": "快速设置", "zh-rTW": "快速設定",
     },
+    "lyrics_line_spacing": {
+        "ar": "تباعد الأسطر", "as": "শাৰীৰ ব্যৱধান", "az": "Sətir aralığı", "be": "Міжрадковы інтэрвал", "bg": "Разстояние между редовете", "bn": "লাইনের ব্যবধান", "bs": "Razmak između redova", "ca": "Espai entre línies",
+        "cs": "Řádkování", "de": "Zeilenabstand", "el": "Διάστιχο", "es": "Espaciado de línea", "et": "Reavahe", "eu": "Lerro tartea", "fi": "Riviväli", "fil": "Espasyo ng linya",
+        "fr": "Espacement des lignes", "hi": "पंक्ति रिक्ति", "hr": "Razmak redaka", "hu": "Sorköz", "id": "Jarak baris", "it": "Spaziatura righe", "ja": "行間隔", "km": "គម្លាតបន្ទាត់", "ko": "줄 간격",
+        "lt": "Eilučių tarpas", "ml": "വരി അകലം", "ms": "Jarak baris", "nb": "Linjeavstand", "nl": "Regelafstand", "pa": "ਲਾਈਨ ਸਪੇਸਿੰਗ", "pl": "Odstęp między wierszami", "pt": "Espaçamento de linhas", "ro": "Spațiere între rânduri", "ru": "Межстрочный интервал", "sk": "Riadkovanie", "sl": "Razmik med vrsticami", "sr": "Размак између редова", "sv": "Radavstånd",
+        "ta": "வரி இடைவெளி", "te": "లైన్ స్పేసింగ్", "th": "ระยะห่างบรรทัด", "tr": "Satır aralığı", "uk": "Міжрядковий інтервал", "vi": "Khoảng cách dòng", "zh-rCN": "行距", "zh-rTW": "行距",
+    },
 }
