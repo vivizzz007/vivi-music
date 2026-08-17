@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.23_DE-1.33.60] - 2026-08-17
+
+### Fixed
+
+- [APK] Update check from the fork source (`PiBOH/vivi-music`) now works:
+  the updater extracts the mobile version from the combined desktop tag
+  (`6.4.22_DE-1.33.60-nightly` → `6.4.22`) before comparing, and accepts the
+  fork's `VIVIMusic-<version>-debug.apk` asset instead of only `vivi.apk`.
+
 ## [6.4.22_DE-1.33.60] - 2026-08-17
 
 ### Fixed

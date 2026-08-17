@@ -726,10 +726,19 @@ private fun formatGitHubDate(githubDate: String): String = try {
     githubDate
 }
 
+/** Extracts the Android (mobile) version part from a release tag.
+ *  Handles original tags (`v6.0.5`, `b6.1.0`) and fork combined tags
+ *  (`6.4.22_DE-1.33.60-nightly` -> `6.4.22`). */
+fun mobileVersionFromTag(tag: String): String {
+    val clean = tag.removePrefix("b").removePrefix("v")
+    val idx = clean.indexOf("_DE-")
+    return if (idx >= 0) clean.substring(0, idx) else clean
+}
+
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v")
-    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v")
+    val latestVersionClean = mobileVersionFromTag(latestVersion)
+    val currentVersionClean = mobileVersionFromTag(currentVersion)
 
     val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
@@ -893,8 +902,8 @@ suspend fun checkForUpdate(
                 val targetIsStable = targetTagName.startsWith("v")
                 
                 // Compare version numbers ignoring prefixes
-                val currentClean = currentVersion.removePrefix("b").removePrefix("v")
-                val targetClean = targetTagName.removePrefix("b").removePrefix("v")
+                val currentClean = mobileVersionFromTag(currentVersion)
+                val targetClean = mobileVersionFromTag(targetTagName)
                 val isDifferentVersion = currentClean != targetClean
                 
                 var shouldShow = isNewer
@@ -951,15 +960,15 @@ suspend fun checkForUpdate(
 
                     var apkSizeInMB = ""
                     var apkDownloadUrl = ""
-                    for (j in 0 until assets.length()) {
-                        val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name")
-                        if (assetName == "vivi.apk") {
-                            val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
-                        }
+                    // Prefer the original repo's `vivi.apk`; otherwise any APK
+                    // (the fork ships `VIVIMusic-<version>-debug.apk`).
+                    val apkAssets = (0 until assets.length()).map { assets.getJSONObject(it) }
+                    val apkAsset = apkAssets.firstOrNull { it.getString("name") == "vivi.apk" }
+                        ?: apkAssets.firstOrNull { it.getString("name").endsWith(".apk", ignoreCase = true) }
+                    if (apkAsset != null) {
+                        val apkSizeInBytes = apkAsset.getLong("size")
+                        apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                        apkDownloadUrl = apkAsset.getString("browser_download_url")
                     }
 
                     if (apkDownloadUrl.isNotEmpty()) {
