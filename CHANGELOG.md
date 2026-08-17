@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.74] - 2026-08-17
+
+### Added
+
+- [DE] Quick settings popup: a Tune button at the bottom of the sidebar
+  opens a compact panel with theme (System/Light/Dark), pure black toggle,
+  accent swatches and a shortcut to the full Appearance settings (port of
+  the mobile quick-settings shortcut). Fully translated.
+
 ## [6.4.27_DE-1.33.73] - 2026-08-17
 
 ### Added

@@ -3,6 +3,7 @@ package com.music.vivi.desktop
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -786,6 +788,13 @@ fun App(
     Row(Modifier.fillMaxSize()) {
         Sidebar(
             hideHistory = pauseListenHistory,
+            themeMode = themeMode,
+            onThemeModeChange = onThemeModeChange,
+            pureBlack = pureBlack,
+            onPureBlackChange = onPureBlackChange,
+            accent = accent,
+            onAccentChange = onAccentChange,
+            onOpenSettings = { navigate(Screen.SettingsAppearance) },
             language = language,
             current = current,
             collapsed = sidebarCollapsed,
@@ -1369,6 +1378,13 @@ fun Sidebar(
     current: Screen,
     collapsed: Boolean,
     hideHistory: Boolean = false,
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeChange: (ThemeMode) -> Unit = {},
+    pureBlack: Boolean = false,
+    onPureBlackChange: (Boolean) -> Unit = {},
+    accent: Color = AccentPalette.default,
+    onAccentChange: (Color) -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     onToggleCollapsed: () -> Unit,
     onSelect: (Screen) -> Unit,
 ) {
@@ -1410,6 +1426,18 @@ fun Sidebar(
                     )
                 }
             }
+                    Spacer(Modifier.weight(1f))
+            QuickSettingsButton(
+                language = language,
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange,
+                pureBlack = pureBlack,
+                onPureBlackChange = onPureBlackChange,
+                accent = accent,
+                onAccentChange = onAccentChange,
+                onOpenSettings = onOpenSettings,
+                collapsed = collapsed,
+            )
             Spacer(Modifier.height(12.dp))
             entries.forEach { entry ->
                 val selected = current == entry.screen
@@ -1445,6 +1473,94 @@ fun Sidebar(
                 }
                 Spacer(Modifier.height(4.dp))
             }
+        }
+    }
+}
+
+/** Quick settings popup (port of the mobile quick-settings shortcut). */
+@Composable
+private fun QuickSettingsButton(
+    language: String,
+    themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
+    pureBlack: Boolean,
+    onPureBlackChange: (Boolean) -> Unit,
+    accent: Color,
+    onAccentChange: (Color) -> Unit,
+    onOpenSettings: () -> Unit,
+    collapsed: Boolean,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { expanded = true }) {
+            Icon(
+                Icons.Filled.Tune,
+                contentDescription = Localization.get(language, "quick_settings"),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            Text(
+                Localization.get(language, "theme"),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+            ThemeMode.entries.forEach { mode ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            when (mode) {
+                                ThemeMode.SYSTEM -> Localization.get(language, "theme_system")
+                                ThemeMode.LIGHT -> Localization.get(language, "theme_light")
+                                ThemeMode.DARK -> Localization.get(language, "theme_dark")
+                            }
+                        )
+                    },
+                    trailingIcon = if (mode == themeMode) {
+                        { Text("✓", color = MaterialTheme.colorScheme.primary) }
+                    } else null,
+                    onClick = { onThemeModeChange(mode); expanded = false },
+                )
+            }
+            DropdownMenuItem(
+                text = { Text(Localization.get(language, "pure_black")) },
+                trailingIcon = {
+                    Switch(checked = pureBlack, onCheckedChange = null)
+                },
+                onClick = { onPureBlackChange(!pureBlack); expanded = false },
+            )
+            Text(
+                Localization.get(language, "color_palette"),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            )
+            Row(
+                Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                AccentPalette.colors.take(10).forEach { entry ->
+                    val swatch = if (entry.color == Color.Transparent) {
+                        AccentPalette.systemAccent() ?: AccentPalette.default
+                    } else {
+                        entry.color
+                    }
+                    val selected = swatch == AccentPalette.effective(accent)
+                    Box(
+                        Modifier
+                            .size(22.dp)
+                            .clip(CircleShape)
+                            .background(swatch)
+                            .border(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                            .clickable { onAccentChange(swatch); expanded = false },
+                    )
+                }
+            }
+            DropdownMenuItem(
+                text = { Text(Localization.get(language, "settings")) },
+                onClick = { expanded = false; onOpenSettings() },
+            )
         }
     }
 }
