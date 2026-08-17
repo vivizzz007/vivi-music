@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.70] - 2026-08-17
+
+### Added
+
+- [DE] Dynamic theme (Material You): the "Dynamic" accent swatch now reads
+  the OS accent color instead of a fixed seed — Windows DWM accent, macOS
+  accent (defaults), GNOME accent (gsettings) — with fallback to the default
+  palette. Re-detected each time Dynamic is picked.
+
 ## [6.4.27_DE-1.33.69] - 2026-08-17
 
 ### Added

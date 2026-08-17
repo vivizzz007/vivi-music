@@ -138,7 +138,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [ ] Gradient header on Album / Artist / Playlist (currently a simple row).
 
 ### Fine-grained parity (not previously tracked)
-- [ ] Dynamic theme (Material You `dynamicTheme`); the DE is a fixed seed palette.
+- [x] Dynamic theme (Material You `dynamicTheme`): OS accent detection (Windows DWM / macOS / GNOME) for the Dynamic swatch (DE 1.33.70).
 - [x] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`). (DE 1.33.67)
 - [x] Player background styles (gradient / blur / glow animated / apple music / live mesh). (DE 1.33.67)
 - [x] Slider styles (squiggly / wavy / thin). (DE 1.33.66)

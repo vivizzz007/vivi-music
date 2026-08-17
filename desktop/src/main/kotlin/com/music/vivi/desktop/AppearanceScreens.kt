@@ -262,10 +262,18 @@ fun ThemeSection(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 row.forEach { entry ->
+                    // Re-detect the OS accent when the "Dynamic" (system)
+                    // swatch is picked, so Material You picks up changes.
+                    val resolved = if (entry.color == Color.Transparent) {
+                        AccentPalette.refreshSystemAccent()
+                        AccentPalette.systemAccent() ?: AccentPalette.default
+                    } else {
+                        entry.color
+                    }
                     AccentSwatch(
                         color = entry.color,
-                        selected = AccentPalette.effective(entry.color) == AccentPalette.effective(accent),
-                        onClick = { onAccentChange(AccentPalette.effective(entry.color)) },
+                        selected = resolved == AccentPalette.effective(accent),
+                        onClick = { onAccentChange(resolved) },
                     )
                 }
             }

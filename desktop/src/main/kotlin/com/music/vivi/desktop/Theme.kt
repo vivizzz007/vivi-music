@@ -35,8 +35,99 @@ data class AccentColor(val name: String, val color: Color)
 object AccentPalette {
     val default: Color = Color(0xFFED5564)
 
-    /** Resolve a sentinel (dynamic) swatch to the default accent color. */
-    fun effective(color: Color): Color = if (color == Color.Transparent) default else color
+    @Volatile private var cachedSystemAccent: Color? = null
+
+    /**
+     * Best-effort "Material You" detection of the OS accent color:
+     * Windows DWM accent (registry), macOS accent (defaults), GNOME accent
+     * (gsettings). Returns null when the platform accent can't be read, in
+     * which case the default accent is used.
+     */
+    fun systemAccent(): Color? {
+        cachedSystemAccent?.let { return it }
+        val detected = detectSystemAccent()
+        cachedSystemAccent = detected
+        return detected
+    }
+
+    /** Forget the cached system accent so it is re-detected on next use. */
+    fun refreshSystemAccent() {
+        cachedSystemAccent = null
+    }
+
+    private fun detectSystemAccent(): Color? {
+        val os = System.getProperty("os.name", "").lowercase()
+        return try {
+            when {
+                os.contains("win") -> windowsAccent()
+                os.contains("mac") -> macAccent()
+                os.contains("linux") -> linuxAccent()
+                else -> null
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun runCmd(vararg cmd: String): String = try {
+        ProcessBuilder(*cmd).redirectErrorStream(true).start().apply {
+            waitFor(3, java.util.concurrent.TimeUnit.SECONDS)
+        }.inputStream.bufferedReader().readText()
+    } catch (_: Exception) {
+        ""
+    }
+
+    private fun windowsAccent(): Color? {
+        val out = runCmd("reg", "query", "HKCU\\Software\\Microsoft\\Windows\\DWM", "/v", "AccentColor")
+        val m = Regex("0x([0-9A-Fa-f]{8})").find(out) ?: return null
+        val abgr = m.groupValues[1].toLong(16)
+        // DWM AccentColor is stored as 0xAABBGGRR.
+        val r = (abgr and 0xFF).toInt()
+        val g = ((abgr shr 8) and 0xFF).toInt()
+        val b = ((abgr shr 16) and 0xFF).toInt()
+        return Color(r / 255f, g / 255f, b / 255f)
+    }
+
+    private fun macAccent(): Color? {
+        // AppleAccentColor: -1 graphite, 0 blue, 1 purple, 2 pink, 3 red,
+        // 4 orange, 5 yellow, 6 green, 7 teal.
+        val v = runCmd("defaults", "read", "-g", "AppleAccentColor").trim().toIntOrNull() ?: return null
+        return when (v) {
+            -1 -> Color(0xFF8E8E93)
+            0 -> Color(0xFF0A84FF)
+            1 -> Color(0xFFBF5AF2)
+            2 -> Color(0xFFFF2D55)
+            3 -> Color(0xFFFF453A)
+            4 -> Color(0xFFFF9F0A)
+            5 -> Color(0xFFFFD60A)
+            6 -> Color(0xFF30D158)
+            7 -> Color(0xFF64D2FF)
+            else -> null
+        }
+    }
+
+    private fun linuxAccent(): Color? {
+        val out = runCmd("gsettings", "get", "org.gnome.desktop.interface", "accent-color")
+        val rgb = Regex("rgba?\\((\\d+)\\s*,\\s*(\\d+)\\s*,\\s*(\\d+)").find(out)
+        if (rgb != null) {
+            val r = rgb.groupValues[1].toIntOrNull() ?: return null
+            val g = rgb.groupValues[2].toIntOrNull() ?: return null
+            val b = rgb.groupValues[3].toIntOrNull() ?: return null
+            return Color(r / 255f, g / 255f, b / 255f)
+        }
+        val hex = Regex("'([0-9A-Fa-f]{8})'").find(out)
+        if (hex != null) {
+            val v = hex.groupValues[1].toLong(16)
+            val r = ((v shr 24) and 0xFF).toInt()
+            val g = ((v shr 16) and 0xFF).toInt()
+            val b = ((v shr 8) and 0xFF).toInt()
+            return Color(r / 255f, g / 255f, b / 255f)
+        }
+        return null
+    }
+
+    /** Resolve a sentinel (dynamic) swatch to the OS accent (or the default). */
+    fun effective(color: Color): Color = if (color == Color.Transparent) (systemAccent() ?: default) else color
 
     val colors: List<AccentColor> = listOf(
         AccentColor("Dynamic", Color.Transparent),
