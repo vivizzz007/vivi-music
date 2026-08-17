@@ -566,8 +566,11 @@ fun App(
     }
 
     // Push immediately on user seeks so the peer follows to the same position.
+    // Marked as a user seek so the receiver applies it exactly (both directions).
     LaunchedEffect(syncManager) {
-        player.seekEvents.collect { player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) } }
+        player.seekEvents.collect {
+            player.toPlaybackSnapshot()?.copy(userSeek = true)?.let { syncManager.updatePlayback(it) }
+        }
     }
 
     // Periodic re-sync: while playing, re-push the position every few seconds so
@@ -637,13 +640,14 @@ fun App(
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
-                // Periodic ticks re-send the position; skip the seek when the
-                // drift is within tolerance so it doesn't glitch the audio.
-                player.seekRemote(
-                    syncManager.effectivePosition(pb),
-                    pb.isPlaying,
-                    SyncServer.RESYNC_TOLERANCE_MS,
-                )
+                // Explicit user seeks are applied exactly; periodic drift ticks
+                // only catch up forward so the leader never jumps back.
+                val target = syncManager.effectivePosition(pb)
+                if (pb.userSeek) {
+                    player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                } else {
+                    player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                }
             } else {
                 // Last-write-wins for the queue: only replace the local queue if
                 // the remote edit is newer (or unknown, from an older peer).

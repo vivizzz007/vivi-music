@@ -246,6 +246,24 @@ class PlayerController {
         setPlaying(isPlaying)
     }
 
+    /**
+     * Applies a periodic drift-tic correction: matches play/pause, and only
+     * seeks FORWARD (catch up) when the remote position is ahead by more than
+     * [toleranceMs]. It never seeks backward, so a device that is ahead (the
+     * leader) isn't dragged back by the follower's slightly-stale position.
+     */
+    fun seekRemoteCatchUp(positionMs: Long, isPlaying: Boolean, toleranceMs: Long) {
+        val s = _state.value
+        if (s.current == null) {
+            setPlaying(isPlaying)
+            return
+        }
+        if (isPlaying && positionMs - s.positionMs > toleranceMs) {
+            seekInternal(positionMs)
+        }
+        setPlaying(isPlaying)
+    }
+
     private fun seekInternal(ms: Long): Long? {
         val s = _state.value
         if (s.current == null) return null

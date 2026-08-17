@@ -81,6 +81,13 @@ data class PlaybackSnapshot(
      * [positionMs] directly.
      */
     val positionAtMs: Long = 0L,
+    /**
+     * True when this snapshot was pushed by an explicit user seek (slider drag,
+     * skip, restart). The receiver applies these exactly (both directions,
+     * no tolerance). Periodic drift-ticks leave this false so the receiver
+     * only catches up FORWARD and never drags the leader back.
+     */
+    val userSeek: Boolean = false,
     val isPlaying: Boolean = false,
     /** In-app player volume (0f..1f): syncs the VIVI volume slider between the
      *  two devices (mobile playerVolume <-> desktop player volume). */

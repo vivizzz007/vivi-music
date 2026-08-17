@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.22_DE-1.33.58] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback sync no longer "jumps back": explicit user seeks are now
+  flagged and applied exactly on the peer (both directions, no tolerance),
+  while the periodic drift-tic only catch up FORWARD. This stops the device
+  that is slightly ahead (the leader) from being dragged back every 5s by the
+  follower's stale position, which was the visible seekbar jump-back.
+
 ## [6.4.21_DE-1.33.57] - 2026-08-17
 
 ### Fixed

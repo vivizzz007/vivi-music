@@ -1534,7 +1534,7 @@ class MusicService :
      * @return true if the snapshot was actually sent (used by the volume poll
      * so a suppressed push is retried rather than lost).
      */
-    private fun pushPlaybackToDesktop(): Boolean {
+    private fun pushPlaybackToDesktop(userSeek: Boolean = false): Boolean {
         val meta = player.currentMetadata
         val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
         val index = player.currentMediaItemIndex.coerceAtLeast(0)
@@ -1543,6 +1543,7 @@ class MusicService :
                 trackId = meta?.id,
                 trackTitle = meta?.title,
                 positionMs = player.currentPosition,
+                userSeek = userSeek,
                 isPlaying = player.isPlaying,
                 volume = if (dataStore.get(SyncViviVolumeKey, true)) playerVolume.value else null,
                 systemVolume = systemVolume(),
@@ -1595,10 +1596,15 @@ class MusicService :
         val currentId = player.currentMetadata?.id
         if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
             val local = player.currentPosition
-            if (snapshot.isPlaying && abs(position - local) <= SyncServer.RESYNC_TOLERANCE_MS) {
-                player.playWhenReady = snapshot.isPlaying
-            } else {
+            // Explicit user seeks are applied exactly (both directions); periodic
+            // drift ticks only catch up forward so the leader never jumps back.
+            if (snapshot.userSeek) {
                 player.seekTo(position)
+                player.playWhenReady = snapshot.isPlaying
+            } else if (snapshot.isPlaying && position - local > SyncServer.RESYNC_TOLERANCE_MS) {
+                player.seekTo(position)
+                player.playWhenReady = true
+            } else {
                 player.playWhenReady = snapshot.isPlaying
             }
             return
@@ -3553,7 +3559,8 @@ class MusicService :
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             scheduleCrossfade()
             // Push the seek to the desktop immediately so both players stay aligned.
-            pushPlaybackToDesktop()
+            // Marked as a user seek so the desktop applies it exactly.
+            pushPlaybackToDesktop(userSeek = true)
         }
     }
 
