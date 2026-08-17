@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VIVI Music DE — Desktop Edition</title>
-  <meta name="description" content="VIVI Music DE: the desktop client for VIVI Music. An elegant, open-source music player for Windows, Linux and macOS with phone sync." />
+  <title>VIVI Music DE</title>
+  <meta name="description" content="VIVI Music DE: an elegant, open-source music player for Windows, Linux and macOS with phone sync." />
   <link rel="icon" href="images/logo_vmde.png" type="image/png" />
   <link rel="stylesheet" href="assets/style.css" />
 </head>
@@ -13,10 +13,9 @@
     <div class="wrap nav-inner">
       <a class="brand" href="index.html">
         <img src="images/logo_vmde.png" alt="VIVI Music DE logo" />
-        VIVI Music DE <small>desktop edition</small>
+        VIVI Music DE
       </a>
       <div class="nav-links">
-        <a href="index.html">Home</a>
         <a href="downloads.html">Downloads</a>
         <a href="changelog.html">Changelog</a>
         <a href="sync.html">Sync</a>
@@ -27,20 +26,40 @@
 
   <header class="hero">
     <div class="wrap">
-      <span class="logo-badge">Latest release: <span class="version-pill" data-version>…</span></span>
       <h1>More Than Just Music</h1>
       <p class="tagline">
-        An elegant, open-source music player for your desktop. Enjoy seamless
-        playback, real-time synced lyrics, an animated canvas — and a live
-        connection to your phone, so your queue, playlists and settings stay
-        in sync.
+        An elegant, open-source music player for Windows, Linux and macOS.
+        Seamless background playback, real-time synced lyrics, and
+        high-fidelity streaming from YouTube Music — with a live connection
+        to your phone.
       </p>
-      <div class="buttons">
-        <a class="btn primary" data-download="winExe" href="https://github.com/PiBOH/vivi-music/releases/latest">⬇ Windows <small>.exe</small></a>
-        <a class="btn" data-download="deb" href="https://github.com/PiBOH/vivi-music/releases/latest">⬇ Linux <small>.deb</small></a>
-        <a class="btn" data-download="dmg" href="https://github.com/PiBOH/vivi-music/releases/latest">⬇ macOS <small>.dmg</small></a>
-        <a class="btn" data-download="apk" href="https://github.com/PiBOH/vivi-music/releases/latest">⬇ Android <small>APK</small></a>
+
+      <div class="tabs">
+        <button class="tab active" data-channel="stable" type="button">Stable</button>
+        <button class="tab" data-channel="nightly" type="button">Nightly builds</button>
       </div>
+
+      <div class="platforms">
+        <a class="platform" data-download="winExe" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🪟</span>
+          <span><span class="pl-name">Windows</span><br /><span class="pl-fmt">.exe installer</span></span>
+        </a>
+        <a class="platform" data-download="deb" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🐧</span>
+          <span><span class="pl-name">Linux</span><br /><span class="pl-fmt">.deb · AppImage</span></span>
+        </a>
+        <a class="platform" data-download="dmg" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🍎</span>
+          <span><span class="pl-name">macOS</span><br /><span class="pl-fmt">.dmg · .pkg</span></span>
+        </a>
+        <a class="platform" data-download="apk" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🤖</span>
+          <span><span class="pl-name">Android</span><br /><span class="pl-fmt">APK</span></span>
+        </a>
+      </div>
+
+      <p class="hint">Latest <span data-version>…</span> · <a href="https://github.com/PiBOH/vivi-music/releases">all releases</a></p>
+
       <div class="stats">
         <img src="https://img.shields.io/github/stars/PiBOH/vivi-music?style=for-the-badge&label=stars" alt="GitHub stars" />
         <img src="https://img.shields.io/github/downloads/PiBOH/vivi-music/total?style=for-the-badge&label=downloads" alt="Total downloads" />
@@ -53,18 +72,18 @@
       <div class="cards">
         <div class="card">
           <div class="emoji">📱💻</div>
-          <h3>Phone ↔ PC sync</h3>
-          <p>Pair your phone and desktop over LAN or the cloud relay. Queue, playlists, volume, theme and settings stay in sync in real time.</p>
+          <h3>Phone sync</h3>
+          <p>Pair your phone and desktop over LAN or the cloud relay. Queue, playlists, volume and settings stay in sync in real time.</p>
         </div>
         <div class="card">
           <div class="emoji">🎵</div>
-          <h3>High-fidelity streaming</h3>
-          <p>Stream from YouTube Music with a full Material 3 player, synced lyrics, mini-player and an animated canvas background.</p>
+          <h3>Full player</h3>
+          <p>Material 3 player with synced lyrics, mini-player and an animated canvas background.</p>
         </div>
         <div class="card">
           <div class="emoji">🔓</div>
           <h3>Open source</h3>
-          <p>Free and open source under the GPL-3.0 license. No ads, no tracking — your music, your way.</p>
+          <p>Free and open source under the GPL-3.0 license. No ads, no tracking.</p>
         </div>
       </div>
     </div>
@@ -72,7 +91,7 @@
 
   <footer class="footer">
     <div class="wrap footer-inner">
-      <span>VIVI Music DE — desktop edition of VIVI Music</span>
+      <span>VIVI Music DE</span>
       <div class="links">
         <a href="https://github.com/PiBOH/vivi-music">GitHub</a>
         <a href="https://github.com/PiBOH/vivi-music/releases">Releases</a>

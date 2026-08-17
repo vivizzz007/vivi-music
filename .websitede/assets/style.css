@@ -134,6 +134,32 @@ a:hover { text-decoration: underline; }
 }
 .stats img { border-radius: 8px; }
 
+/* ---------- Channel tabs ---------- */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 26px;
+}
+.tab {
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: color 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.tab:hover { color: var(--text); }
+.tab.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ---------- Sections / cards ---------- */
 .section { padding: 40px 0; }
 .section h2 {
@@ -183,6 +209,32 @@ a:hover { text-decoration: underline; }
 .dl-row .name { font-weight: 600; }
 .dl-row .desc { color: var(--muted); font-size: 13px; }
 .dl-row .btn { padding: 9px 16px; font-size: 14px; }
+
+/* Platform picker on the home page */
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  max-width: 760px;
+  margin: 0 auto 18px;
+}
+.platform {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 0.12s ease, transform 0.12s ease;
+}
+.platform:hover { border-color: var(--accent); transform: translateY(-1px); text-decoration: none; }
+.platform .os { font-size: 22px; }
+.platform .pl-name { font-weight: 600; font-size: 15px; }
+.platform .pl-fmt { color: var(--muted); font-size: 12px; }
+.platform.disabled { opacity: 0.45; pointer-events: none; }
+.hint { text-align: center; color: var(--muted); font-size: 13px; }
 
 /* Changelog */
 .changelog pre {

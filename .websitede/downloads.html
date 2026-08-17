@@ -13,7 +13,7 @@
     <div class="wrap nav-inner">
       <a class="brand" href="index.html">
         <img src="images/logo_vmde.png" alt="VIVI Music DE logo" />
-        VIVI Music DE <small>desktop edition</small>
+        VIVI Music DE
       </a>
       <div class="nav-links">
         <a href="index.html">Home</a>
@@ -28,23 +28,28 @@
   <main class="page">
     <h1>Downloads</h1>
     <p class="lede">
-      Latest release: <strong data-version>…</strong> — installers are resolved
-      automatically from the latest GitHub release. If a button is greyed out
-      there is no installer for that format in the latest release yet.
+      Choose a channel, then pick your platform. Greyed-out buttons mean that
+      format isn't shipped in that release yet.
     </p>
 
-    <h2>Windows (10+)</h2>
+    <div class="tabs" style="justify-content: flex-start">
+      <button class="tab active" data-channel="stable" type="button">Stable</button>
+      <button class="tab" data-channel="nightly" type="button">Nightly builds</button>
+    </div>
+    <p class="lede">Latest <span data-version>…</span></p>
+
+    <h2>Windows 10+</h2>
     <div class="dl-row">
       <div>
-        <div class="name">Inno Setup installer</div>
-        <div class="desc">Lightweight, user-friendly wizard — recommended.</div>
+        <div class="name">Installer</div>
+        <div class="desc">Lightweight wizard — recommended.</div>
       </div>
       <a class="btn primary" data-download="winExe" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .exe</a>
     </div>
     <div class="dl-row">
       <div>
         <div class="name">MSI package</div>
-        <div class="desc">For enterprise / silent deployment.</div>
+        <div class="desc">For silent / enterprise deployment.</div>
       </div>
       <a class="btn" data-download="winMsi" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .msi</a>
     </div>
@@ -52,7 +57,7 @@
     <h2>Linux</h2>
     <div class="dl-row">
       <div>
-        <div class="name">Debian / Ubuntu package</div>
+        <div class="name">Debian / Ubuntu</div>
         <div class="desc">Works on Debian, Ubuntu and derivatives.</div>
       </div>
       <a class="btn" data-download="deb" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .deb</a>
@@ -65,7 +70,7 @@
       <a class="btn" data-download="appimage" href="https://github.com/PiBOH/vivi-music/releases/latest">Download AppImage</a>
     </div>
 
-    <h2>macOS (10.15+)</h2>
+    <h2>macOS 10.15+</h2>
     <div class="dl-row">
       <div>
         <div class="name">Disk image</div>
@@ -85,7 +90,7 @@
     <div class="dl-row">
       <div>
         <div class="name">VIVI Music APK</div>
-        <div class="desc">The mobile companion app — pair it with the desktop edition.</div>
+        <div class="desc">The mobile companion — pair it with VIVI Music DE.</div>
       </div>
       <a class="btn" data-download="apk" href="https://github.com/PiBOH/vivi-music/releases/latest">Download APK</a>
     </div>
@@ -93,13 +98,13 @@
     <p class="lede" style="margin-top: 28px">
       All installers live on the
       <a href="https://github.com/PiBOH/vivi-music/releases">GitHub Releases</a>
-      page — check there for older versions and checksums.
+      page — check there for older versions.
     </p>
   </main>
 
   <footer class="footer">
     <div class="wrap footer-inner">
-      <span>VIVI Music DE — desktop edition of VIVI Music</span>
+      <span>VIVI Music DE</span>
       <div class="links">
         <a href="https://github.com/PiBOH/vivi-music">GitHub</a>
         <a href="https://github.com/PiBOH/vivi-music/releases">Releases</a>
