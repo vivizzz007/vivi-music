@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.11_DE-1.33.45] - 2026-08-16
+
+### Fixed
+
+- [DE] LAN sync now works when the computer is connected to the phone's
+  hotspot: the desktop advertises the address of the interface that actually
+  routes to the phone (resolved via the outbound-route source address, then
+  preferring Wi-Fi/wlan adapters) instead of the first site-local address,
+  which on multi-homed machines was often a virtual adapter the phone could
+  not reach. Start/stop of the relay is now serialized and the bound-port
+  lookup is guarded, so rapid Stop→Start (or a failed bind) no longer throws
+  and crashes the app — failures surface in the status line instead.
+
 ## [6.4.11_DE-1.33.44] - 2026-08-16
 
 ### Changed

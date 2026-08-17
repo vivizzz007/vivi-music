@@ -143,31 +143,39 @@ class DesktopSyncManager {
      *  a pairing code so the phone can pair right away. */
     fun startLan() {
         scope.launch {
-            val port = relay.start()
-            _lanRunning.value = true
-            _lanAddress.value = "ws://${lanIpAddress()}:$port"
-            connect("ws://localhost:$port")
-            val c = client ?: return@launch
-            // Wait for the local client to connect, then request the code.
-            // Retry a few times so a startup race (relay still binding, or the
-            // request landing before the session is ready) can't leave the code
-            // missing right after "Start LAN server".
-            repeat(5) {
-                if (_pairCode.value.isNotEmpty()) return@launch
-                withTimeoutOrNull(3_000L) {
-                    c.connectionState.first { it == SyncConnectionState.CONNECTED }
+            try {
+                val port = relay.start()
+                _lanRunning.value = true
+                _lanAddress.value = "ws://${lanIpAddress()}:$port"
+                connect("ws://localhost:$port")
+                val c = client ?: return@launch
+                // Wait for the local client to connect, then request the code.
+                // Retry a few times so a startup race (relay still binding, or the
+                // request landing before the session is ready) can't leave the code
+                // missing right after "Start LAN server".
+                repeat(5) {
+                    if (_pairCode.value.isNotEmpty()) return@launch
+                    withTimeoutOrNull(3_000L) {
+                        c.connectionState.first { it == SyncConnectionState.CONNECTED }
+                    }
+                    if (c.connectionState.value == SyncConnectionState.CONNECTED) {
+                        requestPairingCode()
+                    }
+                    delay(1_000L)
                 }
-                if (c.connectionState.value == SyncConnectionState.CONNECTED) {
-                    requestPairingCode()
-                }
-                delay(1_000L)
+            } catch (e: Exception) {
+                // Surface the failure in the status line instead of letting an
+                // uncaught coroutine exception crash the whole app.
+                _status.value = "LAN error: ${e.message}"
+                _lanRunning.value = false
+                _lanAddress.value = ""
             }
         }
     }
 
     fun stopLan() {
         // Notify the phone it is unpaired, then tear down the relay.
-        scope.launch { relay.stop() }
+        scope.launch { runCatching { relay.stop() } }
         _lanRunning.value = false
         _lanAddress.value = ""
         teardownClient()
