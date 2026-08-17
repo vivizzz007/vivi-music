@@ -113,43 +113,41 @@ using System.Runtime.InteropServices;
 public static class AumidSetter {
     [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     interface IPropertyStore {
-        [PreserveSig] int GetCount(out uint cProps);
-        [PreserveSig] int GetAt(uint iProp, out PropertyKey pkey);
-        [PreserveSig] int GetValue(ref PropertyKey key, out PropVariant pv);
-        [PreserveSig] int SetValue(ref PropertyKey key, ref PropVariant pv);
-        [PreserveSig] int Commit();
+        uint GetCount(out uint cProps);
+        uint GetAt(uint iProp, out PropertyKey pkey);
+        uint GetValue(ref PropertyKey key, [Out] PropVariant pv);
+        uint SetValue(ref PropertyKey key, [In] PropVariant pv);
+        uint Commit();
     }
-    [StructLayout(LayoutKind.Sequential)]
-    struct PropertyKey { public Guid fmtid; public uint pid; }
-    [StructLayout(LayoutKind.Sequential)]
-    struct PropVariant {
-        public ushort vt;
-        public ushort wReserved1;
-        public ushort wReserved2;
-        public ushort wReserved3;
-        public IntPtr p;
-        public int reserved2;
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    struct PropertyKey { public Guid formatId; public int propertyId; }
+    [StructLayout(LayoutKind.Explicit)]
+    sealed class PropVariant : IDisposable {
+        [FieldOffset(0)] public ushort valueType;
+        [FieldOffset(8)] public IntPtr ptr;
+        public PropVariant() {}
+        public PropVariant(string value) {
+            valueType = (ushort)31; // VT_LPWSTR
+            ptr = Marshal.StringToCoTaskMemUni(value);
+        }
+        public void Dispose() { if (ptr != IntPtr.Zero) Marshal.FreeCoTaskMem(ptr); }
     }
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
-    static extern int SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, ref Guid riid, out IPropertyStore ppv);
+    static extern int SHGetPropertyStoreFromParsingName(string pszPath, IntPtr pbc, uint flags, ref Guid riid, out IPropertyStore ppv);
 
     public static void Set(string lnkPath, string appId) {
         Guid riid = new Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99");
         IPropertyStore store;
-        int hr = SHGetPropertyStoreFromParsingName(lnkPath, IntPtr.Zero, ref riid, out store);
+        int hr = SHGetPropertyStoreFromParsingName(lnkPath, IntPtr.Zero, 2, ref riid, out store); // GPS_READWRITE
         if (hr != 0) throw new Exception("SHGetPropertyStoreFromParsingName failed: 0x" + hr.ToString("X"));
-        PropertyKey key = new PropertyKey { fmtid = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), pid = 5 };
-        PropVariant pv = new PropVariant { vt = 31 };
-        pv.p = Marshal.StringToCoTaskMemUni(appId);
-        try {
-            hr = store.SetValue(ref key, ref pv);
-            if (hr != 0) throw new Exception("SetValue failed: 0x" + hr.ToString("X"));
-            hr = store.Commit();
-            if (hr != 0) throw new Exception("Commit failed: 0x" + hr.ToString("X"));
-        } finally {
-            Marshal.FreeCoTaskMem(pv.p);
-            Marshal.ReleaseComObject(store);
+        PropertyKey key = new PropertyKey { formatId = new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), propertyId = 5 };
+        using (PropVariant pv = new PropVariant(appId)) {
+            uint setHr = store.SetValue(ref key, pv);
+            if (setHr != 0) throw new Exception("SetValue failed: 0x" + setHr.ToString("X"));
+            uint commitHr = store.Commit();
+            if (commitHr != 0) throw new Exception("Commit failed: 0x" + commitHr.ToString("X"));
         }
+        Marshal.ReleaseComObject(store);
     }
 }
         """.trimIndent()

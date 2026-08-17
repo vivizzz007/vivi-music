@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.22_DE-1.33.60] - 2026-08-17
+
+### Fixed
+
+- [DE] Native Windows toast notifications now actually appear in the Action
+  Center. The AUMID registration was failing with `0x80070057` because the
+  `SHGetPropertyStoreFromParsingName` P/Invoke was missing the
+  `GETPROPERTYSTOREFLAGS flags` parameter, and the `PROPVARIANT` was declared
+  as a sequential struct instead of an explicit-layout class. Both are fixed,
+  so the Start-menu shortcut gets its `System.AppUserModel.ID` correctly.
+
 ## [6.4.22_DE-1.33.59] - 2026-08-17
 
 ### Fixed
