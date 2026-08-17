@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.50] - 2026-08-17
+
+### Added
+
+- [APK] Restoring a backup now shows a confirmation dialog with the backup's
+  file name, date, and the app version it was created from, before anything is
+  applied.
+
 ## [6.4.20_DE-1.33.50] - 2026-08-17
 
 ### Added

@@ -29,6 +29,10 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -44,6 +48,12 @@ data class CsvImportState(
 data class ConvertedSongLog(
     val title: String,
     val artists: String,
+)
+
+data class BackupInfo(
+    val fileName: String,
+    val dateText: String,
+    val versionText: String,
 )
 
 @HiltViewModel
@@ -89,6 +99,49 @@ class BackupRestoreViewModel @Inject constructor(
         }
         restoreFromInputStream(context, inputStream)
     }
+
+    /**
+     * Reads display metadata (name, date, version) for a selected backup file
+     * without touching its contents, so the UI can ask for confirmation before
+     * applying it.
+     */
+    fun readBackupInfo(context: Context, uri: Uri): BackupInfo {
+        val unknown = context.getString(R.string.restore_unknown)
+        var fileName = ""
+        var lastModified = -1L
+        runCatching {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIdx >= 0) fileName = cursor.getString(nameIdx) ?: ""
+                    val lmIdx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DATE_MODIFIED)
+                    if (lmIdx >= 0) lastModified = cursor.getLong(lmIdx) * 1000L
+                }
+            }
+        }
+        val parsedDate = parseBackupDate(fileName)
+        val fallbackDate = if (lastModified > 0) formatMillis(lastModified) else null
+        val dateText = parsedDate ?: fallbackDate ?: unknown
+        val versionText = parseBackupVersion(fileName) ?: unknown
+        return BackupInfo(fileName, dateText, versionText)
+    }
+
+    private fun parseBackupDate(name: String): String? {
+        val match = Regex("""(\d{8})[_\s]?(\d{6})""").find(name) ?: return null
+        val raw = match.groupValues[1] + match.groupValues[2]
+        return runCatching {
+            LocalDateTime.parse(raw, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                .format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a"))
+        }.getOrNull()
+    }
+
+    private fun parseBackupVersion(name: String): String? =
+        Regex("""\d+\.\d+\.\d+""").find(name)?.value
+
+    private fun formatMillis(millis: Long): String? = runCatching {
+        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+            .format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a"))
+    }.getOrNull()
 
     fun restoreFromFile(context: Context, file: java.io.File) {
         val inputStream = try {
