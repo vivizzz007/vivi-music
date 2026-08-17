@@ -89,7 +89,14 @@ class SyncClient(
     @Volatile
     private var serverOffsetMsEstimate = 0L
 
+    /** True once a PING/PONG round-trip has measured the relay clock offset. */
+    @Volatile
+    private var offsetMeasured = false
+
     val serverOffsetMs: Long get() = serverOffsetMsEstimate
+
+    /** Whether the relay clock offset has been measured (extrapolation is safe). */
+    val hasServerOffset: Boolean get() = offsetMeasured
 
     private val listener = object : WebSocketListener() {
         override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -222,7 +229,16 @@ class SyncClient(
                     val rtt = System.currentTimeMillis() - sentAt
                     if (rtt >= 0) {
                         val offset = serverAt - (sentAt + rtt / 2)
-                        serverOffsetMsEstimate = (serverOffsetMsEstimate * 3 + offset) / 4
+                        // The first measurement sets the offset directly (the
+                        // EMA starting from 0 only reaches a fraction of the
+                        // true skew after one sample, so playback started right
+                        // after pairing drifted and the two players fought).
+                        serverOffsetMsEstimate = if (!offsetMeasured) {
+                            offsetMeasured = true
+                            offset
+                        } else {
+                            (serverOffsetMsEstimate * 3 + offset) / 4
+                        }
                     }
                 }
             }
@@ -269,22 +285,31 @@ class SyncClient(
     private fun startPing() {
         pingJob?.cancel()
         pingJob = scope.launch {
+            // First PING immediately so the clock offset converges right away.
+            // The old code waited 25s for the first PING, so for the first
+            // ~25s of a pairing the two devices extrapolated position from raw
+            // local clocks and kept seeking each other back/forth by the skew.
+            sendPing()
             while (true) {
                 delay(25_000L)
-                val ws = webSocket
-                if (_connectionState.value == SyncConnectionState.CONNECTED && ws != null) {
-                    ws.send(
-                        json.encodeToString(
-                            SyncEnvelope.serializer(),
-                            SyncEnvelope(
-                                type = SyncMessageTypes.PING,
-                                deviceId = deviceId,
-                                timestampMs = System.currentTimeMillis(),
-                            ),
-                        )
-                    )
-                }
+                sendPing()
             }
+        }
+    }
+
+    private fun sendPing() {
+        val ws = webSocket
+        if (_connectionState.value == SyncConnectionState.CONNECTED && ws != null) {
+            ws.send(
+                json.encodeToString(
+                    SyncEnvelope.serializer(),
+                    SyncEnvelope(
+                        type = SyncMessageTypes.PING,
+                        deviceId = deviceId,
+                        timestampMs = System.currentTimeMillis(),
+                    ),
+                )
+            )
         }
     }
 }

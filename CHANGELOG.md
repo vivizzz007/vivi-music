@@ -11,6 +11,20 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.19_DE-1.33.50] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback position no longer jumps back and forth between the two
+  devices. The shared-clock offset used to extrapolate the live position was
+  only measured 25 s after connecting and converged slowly via a running
+  average, so during that window both devices extrapolated from raw local
+  clocks and kept seeking each other back/forth by the clock skew. The first
+  PING is now sent immediately on connect, the first measurement sets the
+  offset directly, and a position is only timestamped once the offset is known
+  (older relays fall back to the raw position instead of a skew-corrupted
+  extrapolation).
+
 ## [6.4.18_DE-1.33.49] - 2026-08-17
 
 ### Added

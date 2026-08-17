@@ -183,7 +183,12 @@ class DeviceSyncManager @Inject constructor(
      * callers that care (the volume poll) can retry.
      */
     fun pushPlayback(playback: PlaybackSnapshot): Boolean {
-        var snap = if (playback.positionAtMs == 0L) {
+        // Only stamp the shared-clock timestamp once the relay clock offset is
+        // measured. Stamping a raw local clock (before the first PONG / with an
+        // older relay) makes the peer extrapolate by the clock skew and causes
+        // the two players to keep seeking each other back and forth.
+        val stamp = playback.positionAtMs == 0L && client?.hasServerOffset == true
+        var snap = if (stamp) {
             playback.copy(positionAtMs = serverNowMs())
         } else {
             playback

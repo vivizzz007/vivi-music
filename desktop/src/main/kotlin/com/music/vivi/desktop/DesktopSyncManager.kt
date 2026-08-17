@@ -217,7 +217,12 @@ class DesktopSyncManager {
      */
     fun updatePlayback(playback: PlaybackSnapshot?): Boolean {
         lastPlayback = playback?.let { p ->
-            var snap = if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
+            // Stamp the shared-clock timestamp only when the relay clock offset
+            // is known. If we stamp a raw local clock (offset still converging
+            // or an older relay without PONG echo), the peer extrapolates by the
+            // clock skew and seeks back/forth forever.
+            val stamp = p.positionAtMs == 0L && client?.hasServerOffset == true
+            var snap = if (stamp) p.copy(positionAtMs = serverNowMs()) else p
             val fp = queueFingerprint(snap)
             if (fp.isNotEmpty() && fp != lastQueueFingerprint) {
                 // The queue/index changed locally: stamp a fresh LWW timestamp
