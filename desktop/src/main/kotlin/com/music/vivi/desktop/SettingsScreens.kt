@@ -1074,6 +1074,7 @@ fun SettingsNotificationsScreen(
     saveHistory: Boolean,
     onSaveHistoryChange: (Boolean) -> Unit,
     onOpenHistory: () -> Unit,
+    onTestNotification: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         Text(Localization.get(language, "notifications"), style = MaterialTheme.typography.titleLarge)
@@ -1098,6 +1099,14 @@ fun SettingsNotificationsScreen(
             selected = notificationMode == "native",
             onClick = { onNotificationModeChange("native") },
         )
+
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = onTestNotification,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(Localization.get(language, "test_notification"))
+        }
 
         Spacer(Modifier.height(16.dp))
         Text(

@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.56] - 2026-08-17
+
+### Added
+
+- [DE] A "Send test notification" button in Settings → Notifications so native
+  notifications can be triggered on demand.
+
+### Changed
+
+- [DE] Native notification path now writes a diagnostic log to
+  `~/.vivimusic/native-notify.log` (which branch is used, AUMID registration
+  result, and PowerShell output) to help diagnose Windows toast issues.
+
 ## [6.4.21_DE-1.33.55] - 2026-08-17
 
 ### Changed

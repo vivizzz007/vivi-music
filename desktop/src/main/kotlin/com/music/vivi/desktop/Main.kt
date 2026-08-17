@@ -956,6 +956,13 @@ fun App(
                             DesktopSettings.update { it.copy(saveNotificationHistory = save) }
                         },
                         onOpenHistory = { navigate(Screen.SettingsNotificationsHistory) },
+                        onTestNotification = {
+                            DesktopNotifier.notify(
+                                "VIVI Music DE",
+                                Localization.get(language, "test_notification"),
+                                null,
+                            )
+                        },
                     )
                     is Screen.SettingsNotificationsHistory -> NotificationHistoryScreen(
                         language = language,

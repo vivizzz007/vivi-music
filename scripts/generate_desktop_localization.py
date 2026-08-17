@@ -323,6 +323,7 @@ ENGLISH = {
     "history_empty": "No notifications yet",
     "notification_duration": "In-app notification duration",
     "notification_duration_desc": "How long an in-app notification stays on screen before disappearing.",
+    "test_notification": "Send test notification",
     "device_paired_title": "Device paired",
     "device_paired_desc": "Your phone is now connected and synchronized",
     "device_unpaired_title": "Device unpaired",
@@ -1031,8 +1032,9 @@ from desktop_extra_translations_7 import EXTRA_TRANSLATIONS as _EXTRA_7
 from desktop_extra_translations_8 import EXTRA_TRANSLATIONS as _EXTRA_8
 from desktop_extra_translations_9 import EXTRA_TRANSLATIONS as _EXTRA_9
 from desktop_extra_translations_10 import EXTRA_TRANSLATIONS as _EXTRA_10
+from desktop_extra_translations_11 import EXTRA_TRANSLATIONS as _EXTRA_11
 
-for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10):
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11):
     TRANSLATIONS.update(_extra)
 
 

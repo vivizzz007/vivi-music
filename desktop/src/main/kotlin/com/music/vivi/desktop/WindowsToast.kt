@@ -40,15 +40,26 @@ object WindowsToast {
     /** True on a packaged Windows build (the only case where toasts can work). */
     fun isAvailable(): Boolean = os.contains("win") && appExe != null
 
+    /** Appends a diagnostic line to `~/.vivimusic/native-notify.log`. */
+    fun log(msg: String) {
+        runCatching {
+            val file = File(System.getProperty("user.home"), ".vivimusic/native-notify.log")
+            file.parentFile?.mkdirs()
+            file.appendText("[${java.time.LocalDateTime.now()}] $msg\n")
+        }
+    }
+
     /** Shows a native toast with [title] and [message], opening [section] on click. */
     fun show(title: String, message: String, section: String?) {
+        log("show: isAvailable=${isAvailable()} os=$os appExe=$appExe title=\"$title\" section=$section")
         if (!isAvailable()) return
         Thread {
             runCatching {
                 ensureRegistered()
                 val logo = extractLogo()
-                runPowerShell(toastScript(title, message, section, logo))
-            }
+                val ok = runPowerShell(toastScript(title, message, section, logo))
+                log("show: toast powershell result=$ok")
+            }.onFailure { log("show: exception=$it") }
         }.apply { isDaemon = true; name = "VIVI-Toast" }.start()
     }
 
@@ -58,7 +69,9 @@ object WindowsToast {
         synchronized(this) {
             if (registered) return
             val exe = appExe ?: return
+            log("ensureRegistered: registering AUMID for exe=$exe")
             registered = runCatching { runPowerShell(registrationScript(exe)) }.getOrDefault(false)
+            log("ensureRegistered: result=$registered")
         }
     }
 
@@ -84,7 +97,10 @@ object WindowsToast {
             val output = proc.inputStream.bufferedReader().readText()
             val finished = proc.waitFor(20, TimeUnit.SECONDS)
             val ok = finished && proc.exitValue() == 0
-            if (!ok) println("[WindowsToast] powershell failed: ${output.trim()}")
+            if (!ok) {
+                println("[WindowsToast] powershell failed: ${output.trim()}")
+                log("runPowerShell: failed (finished=$finished) output=${output.trim()}")
+            }
             ok
         }.getOrDefault(false)
     }

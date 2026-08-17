@@ -89,11 +89,16 @@ object NativeNotifier {
     /** Shows a native system notification with [title] and [message]. */
     fun notify(title: String, message: String, section: String? = null) {
         runCatching {
-            if (WindowsToast.isAvailable()) {
+            val winToast = WindowsToast.isAvailable()
+            WindowsToast.log("NativeNotifier.notify: winToast=$winToast os=${System.getProperty("os.name")} title=\"$title\"")
+            if (winToast) {
                 WindowsToast.show(title, message, section)
                 return
             }
-            if (!SystemTray.isSupported()) return
+            if (!SystemTray.isSupported()) {
+                WindowsToast.log("NativeNotifier: SystemTray not supported, dropping")
+                return
+            }
             val tray = SystemTray.getSystemTray()
             val icon = ensureIcon(tray)
             icon.displayMessage(title, message, TrayIcon.MessageType.INFO)
