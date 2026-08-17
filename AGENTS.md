@@ -73,7 +73,10 @@ dependencies there, or you break the desktop build.
   runs and the result can be verified. The `sync-server/` relay is deployed
   **separately** (Render Blueprint `render.yaml`) and does **not** trigger the
   auto-release. Documentation-only changes (README, AGENTS.md, CHANGELOG.md,
-  TODO.md) do **not** need the `v` prefix.
+  TODO.md) do **not** need the `v` prefix. The website (`.websitede/**`) is the
+  same: content-only changes there do **not** need `v` (it has its own
+  `pages-deploy.yml` trigger on `.websitede/**`); only use `v` when the commit
+  also touches program code or build/release workflows.
 - Do not commit unrelated files (stray artifacts, debug dumps) unless relevant.
 - **Keep `TODO.md` up to date**: every time you change the program (feature,
   fix, ported screen, workflow change), reflect it in `TODO.md` — mark done
