@@ -2,6 +2,8 @@ name: Deploy Website (GitHub Pages)
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # daily at midnight UTC
   push:
     branches: [ vivi-music-de ]
     paths:
