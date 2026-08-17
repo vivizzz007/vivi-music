@@ -177,6 +177,8 @@ MAPPING = {
     "wrapped_tracks": "tracks",
     "wrapped_listening_time": "listening",
     "wrapped_top_song": "top song",
+    "pause_listen_history_desc": "Hides the History screen from the sidebar.",
+    "pause_search_history_desc": "Keeps new searches out of the recent-searches list.",
     "mini_player": "Mini player",
     "mini_player_desc": "Style of the mini player above the sidebar.",
     "mini_player_standard": "Standard",

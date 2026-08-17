@@ -40,6 +40,9 @@ data class DesktopSyncState(
     val miniPlayerStyle: String = "standard",
     val homeUseLastListen: Boolean = false,
     val randomizeHomeOrder: Boolean = false,
+    val pauseSearchHistory: Boolean = false,
+    val pauseListenHistory: Boolean = false,
+    val searchHistory: List<String> = emptyList(),
     /** Apple-style mini player variant. */
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",

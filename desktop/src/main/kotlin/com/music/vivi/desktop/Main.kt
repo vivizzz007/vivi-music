@@ -296,6 +296,16 @@ fun App(
     var miniPlayerStyle by remember { mutableStateOf(DesktopSettings.load().miniPlayerStyle) }
     var homeUseLastListen by remember { mutableStateOf(DesktopSettings.load().homeUseLastListen) }
     var randomizeHomeOrder by remember { mutableStateOf(DesktopSettings.load().randomizeHomeOrder) }
+    var pauseSearchHistory by remember { mutableStateOf(DesktopSettings.load().pauseSearchHistory) }
+    var pauseListenHistory by remember { mutableStateOf(DesktopSettings.load().pauseListenHistory) }
+    var searchHistory by remember { mutableStateOf(DesktopSettings.load().searchHistory) }
+    val recordSearch: (String) -> Unit = { term ->
+        if (!pauseSearchHistory && term.isNotBlank()) {
+            val updated = (listOf(term.trim()) + searchHistory.filter { !it.equals(term.trim(), ignoreCase = true) }).take(12)
+            searchHistory = updated
+            DesktopSettings.update { it.copy(searchHistory = updated) }
+        }
+    }
 
     // Session listening stats for the Home "VIVI Wrapped" card (session-only).
     var sessionTrackStarts by remember { mutableStateOf(0) }
@@ -775,6 +785,7 @@ fun App(
     ) {
     Row(Modifier.fillMaxSize()) {
         Sidebar(
+            hideHistory = pauseListenHistory,
             language = language,
             current = current,
             collapsed = sidebarCollapsed,
@@ -834,6 +845,12 @@ fun App(
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                         onAddToPlaylist = addToPlaylist,
+                        searchHistory = if (pauseSearchHistory) emptyList() else searchHistory,
+                        onRecordSearch = recordSearch,
+                        onClearSearchHistory = {
+                            searchHistory = emptyList()
+                            DesktopSettings.update { it.copy(searchHistory = emptyList()) }
+                        },
                     )
                     is Screen.Library -> LibraryScreen(
                         language = language,
@@ -1017,6 +1034,24 @@ fun App(
                             DesktopSettings.update { it.copy(syncViviVolume = checked) }
                         },
                     )
+                    is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
+                        language = language,
+                        onBack = goBack,
+                        pauseListenHistory = pauseListenHistory,
+                        onPauseListenHistoryChange = { v ->
+                            pauseListenHistory = v
+                            DesktopSettings.update { it.copy(pauseListenHistory = v) }
+                        },
+                        pauseSearchHistory = pauseSearchHistory,
+                        onPauseSearchHistoryChange = { v ->
+                            pauseSearchHistory = v
+                            DesktopSettings.update { it.copy(pauseSearchHistory = v) }
+                        },
+                        onClearSearchHistory = {
+                            searchHistory = emptyList()
+                            DesktopSettings.update { it.copy(searchHistory = emptyList()) }
+                        },
+                    )
                     is Screen.SettingsContent -> SettingsContentScreen(
                         language = language,
                         onBack = goBack,
@@ -1045,16 +1080,6 @@ fun App(
                         onLyricsTextSizeChange = { size ->
                             lyricsTextSize = size
                             DesktopSettings.update { it.copy(lyricsTextSize = size) }
-                        },
-                    )
-                    is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
-                        language = language,
-                        onBack = goBack,
-                        isLoggedIn = isLoggedIn,
-                        onLogout = {
-                            LoginManager.logout()
-                            isLoggedIn = false
-                            accountName = ""
                         },
                     )
                     is Screen.SettingsStorage -> SettingsStorageScreen(
@@ -1343,10 +1368,11 @@ fun Sidebar(
     language: String,
     current: Screen,
     collapsed: Boolean,
+    hideHistory: Boolean = false,
     onToggleCollapsed: () -> Unit,
     onSelect: (Screen) -> Unit,
 ) {
-    val entries = listOf(
+    val allEntries = listOf(
         SidebarEntry(Screen.Home, "home", Icons.Outlined.Home, Icons.Filled.Home),
         SidebarEntry(Screen.Search, "search", Icons.Outlined.Search, Icons.Filled.Search),
         SidebarEntry(Screen.Library, "library", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
@@ -1355,6 +1381,8 @@ fun Sidebar(
         SidebarEntry(Screen.History, "history", Icons.Outlined.History, Icons.Filled.History),
         SidebarEntry(Screen.Settings, "settings", Icons.Outlined.Settings, Icons.Filled.Settings),
     )
+
+    val entries = allEntries.filter { entry -> !(hideHistory && entry.screen == Screen.History) }
 
     val width by animateDpAsState(if (collapsed) 72.dp else 224.dp, label = "sidebarWidth")
 

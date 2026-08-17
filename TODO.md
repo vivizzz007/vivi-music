@@ -151,7 +151,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [x] Sort chips for library items: A-Z / Z-A + by artist on songs (DE 1.33.71).
 - [x] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card (session stats) (DE 1.33.72).
 - [ ] Integrations: Discord RPC, Last.fm scrobbling (mobile screens/options).
-- [ ] Search/listen history + pause-history privacy toggles.
+- [x] Search/listen history + pause-history privacy toggles (DE 1.33.73): local recent searches on the Search screen, Privacy sub-screen with pause toggles + clear.
 - [ ] Settings popup (quick settings shortcut).
 
 ## Infra / release

@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.73] - 2026-08-17
+
+### Added
+
+- [DE] Local search history: recent searches appear as chips on the Search
+  screen (saved on submit / suggestion click, max 12) with a clear button.
+- [DE] Privacy sub-screen (Settings → Privacy): "Pause listen history"
+  (hides the History screen from the sidebar) and "Pause search history"
+  (stops saving new searches) toggles + "Clear search history".
+  Fully translated.
+
 ## [6.4.27_DE-1.33.72] - 2026-08-17
 
 ### Added

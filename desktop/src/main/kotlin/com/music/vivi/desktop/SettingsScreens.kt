@@ -1378,3 +1378,74 @@ private fun NotificationModeOption(
         }
     }
 }
+
+/** Privacy sub-screen: listen/search history toggles (port of the mobile PrivacySettings screen). */
+@Composable
+fun SettingsPrivacyScreen(
+    language: String,
+    onBack: () -> Unit,
+    pauseListenHistory: Boolean,
+    onPauseListenHistoryChange: (Boolean) -> Unit,
+    pauseSearchHistory: Boolean,
+    onPauseSearchHistoryChange: (Boolean) -> Unit,
+    onClearSearchHistory: () -> Unit,
+) {
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text(Localization.get(language, "clear_search_history")) },
+            text = { Text(Localization.get(language, "clear_search_history_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { showClearDialog = false; onClearSearchHistory() }) {
+                    Text(Localization.get(language, "ok"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) {
+                    Text(Localization.get(language, "cancel"))
+                }
+            },
+        )
+    }
+
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "privacy"), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            Localization.get(language, "listen_history"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "pause_listen_history",
+            descKey = "pause_listen_history_desc",
+            checked = pauseListenHistory,
+            onCheckedChange = onPauseListenHistoryChange,
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            Localization.get(language, "search_history"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
+        BackupToggleRow(
+            language = language,
+            titleKey = "pause_search_history",
+            descKey = "pause_search_history_desc",
+            checked = pauseSearchHistory,
+            onCheckedChange = onPauseSearchHistoryChange,
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = { showClearDialog = true }) {
+            Text(Localization.get(language, "clear_search_history"))
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}

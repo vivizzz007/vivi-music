@@ -4,8 +4,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -369,6 +373,9 @@ fun SearchScreen(
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
     onAddToPlaylist: (SongItem) -> Unit,
+    searchHistory: List<String> = emptyList(),
+    onRecordSearch: (String) -> Unit = {},
+    onClearSearchHistory: () -> Unit = {},
 ) {
     var query by remember { mutableStateOf("") }
     var page by remember { mutableStateOf<SearchSummaryPage?>(null) }
@@ -422,7 +429,39 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
             singleLine = true,
             placeholder = { Text(Localization.get(language, "search_placeholder")) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = {
+                val q = query.trim()
+                if (q.isNotEmpty()) onRecordSearch(q)
+            }),
         )
+
+        // Recent searches (saved locally, shown when the field is empty).
+        if (query.isBlank() && searchHistory.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    Localization.get(language, "search_history"),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onClearSearchHistory) {
+                    Text(Localization.get(language, "clear_search_history"))
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                searchHistory.take(12).forEach { term ->
+                    FilterChip(
+                        selected = false,
+                        onClick = { query = term; onRecordSearch(term) },
+                        label = { Text(term) },
+                    )
+                }
+            }
+        }
 
         // Filter chips (All / Songs / Videos / Albums / Artists / Playlists).
         val filters = listOf(
@@ -462,7 +501,7 @@ fun SearchScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { query = s; focused = false }
+                                .clickable { query = s; focused = false; onRecordSearch(s) }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                         )
                     }
