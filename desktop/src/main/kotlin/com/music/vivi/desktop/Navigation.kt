@@ -28,6 +28,9 @@ sealed interface Screen {
     // Settings sub-screens (ported from the mobile settings structure).
     data object SettingsLanguage : Screen
     data object SettingsAppearance : Screen
+    data object SettingsTheme : Screen
+    data object SettingsFont : Screen
+    data object SettingsCanvas : Screen
     data object SettingsPlayer : Screen
     data object SettingsAccount : Screen
     data object SettingsDevices : Screen

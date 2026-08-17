@@ -276,6 +276,20 @@ fun SettingsLanguageScreen(language: String, onBack: () -> Unit, onLanguageChang
 fun SettingsAppearanceScreen(
     language: String,
     onBack: () -> Unit,
+    selectedFont: AppFont,
+    onOpenTheme: () -> Unit,
+    onOpenFont: () -> Unit,
+    onOpenCanvas: () -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        AppearanceSection(language, selectedFont, onOpenTheme, onOpenFont, onOpenCanvas)
+    }
+}
+
+@Composable
+fun SettingsThemeScreen(
+    language: String,
+    onBack: () -> Unit,
     themeMode: ThemeMode,
     accent: androidx.compose.ui.graphics.Color,
     onThemeModeChange: (ThemeMode) -> Unit,
@@ -284,7 +298,33 @@ fun SettingsAppearanceScreen(
     onPureBlackChange: (Boolean) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
-        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange, pureBlack, onPureBlackChange)
+        ThemeSection(language, themeMode, accent, onThemeModeChange, onAccentChange, pureBlack, onPureBlackChange)
+    }
+}
+
+@Composable
+fun SettingsFontScreen(
+    language: String,
+    onBack: () -> Unit,
+    selectedFont: AppFont,
+    onFontChange: (AppFont) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        FontSection(language, selectedFont, onFontChange)
+    }
+}
+
+@Composable
+fun SettingsCanvasScreen(
+    language: String,
+    onBack: () -> Unit,
+    canvasEnabled: Boolean,
+    onCanvasEnabledChange: (Boolean) -> Unit,
+    canvasSource: CanvasSource,
+    onCanvasSourceChange: (CanvasSource) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        CanvasSection(language, canvasEnabled, onCanvasEnabledChange, canvasSource, onCanvasSourceChange)
     }
 }
 

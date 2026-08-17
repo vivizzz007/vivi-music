@@ -101,7 +101,14 @@ fun PlayerScreen(
     LaunchedEffect(np?.videoId) {
         canvasArt = null
         val track = np ?: return@LaunchedEffect
-        canvasArt = withContext(Dispatchers.IO) { CanvasResolver.resolve(track.title, track.artist, null) }
+        val settings = DesktopSettings.load()
+        canvasArt = if (settings.canvasEnabled) {
+            withContext(Dispatchers.IO) {
+                CanvasResolver.resolve(track.title, track.artist, null, CanvasSource.from(settings.canvasSource))
+            }
+        } else {
+            null
+        }
     }
 
     val bgUrl = CanvasResolver.displayUrl(canvasArt, np?.thumbnail)

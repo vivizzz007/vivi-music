@@ -246,6 +246,10 @@ fun App(
     var autoPlayNext by remember { mutableStateOf(DesktopSettings.load().autoPlayNext) }
     player.autoPlayNext = autoPlayNext
 
+    var selectedFont by remember { mutableStateOf(AppFont.fromValue(DesktopSettings.load().selectedFont)) }
+    var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
+    var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
+
     // Guest sessions need a visitorData (like the Android app) or YouTube flags
     // the requests as bots and 403s audio playback.
     LaunchedEffect(Unit) { GuestSession.ensure() }
@@ -720,12 +724,43 @@ fun App(
                     is Screen.SettingsAppearance -> SettingsAppearanceScreen(
                         language = language,
                         onBack = goBack,
+                        selectedFont = selectedFont,
+                        onOpenTheme = { navigate(Screen.SettingsTheme) },
+                        onOpenFont = { navigate(Screen.SettingsFont) },
+                        onOpenCanvas = { navigate(Screen.SettingsCanvas) },
+                    )
+                    is Screen.SettingsTheme -> SettingsThemeScreen(
+                        language = language,
+                        onBack = goBack,
                         themeMode = themeMode,
                         accent = accent,
                         onThemeModeChange = onThemeModeChange,
                         onAccentChange = onAccentChange,
                         pureBlack = pureBlack,
                         onPureBlackChange = onPureBlackChange,
+                    )
+                    is Screen.SettingsFont -> SettingsFontScreen(
+                        language = language,
+                        onBack = goBack,
+                        selectedFont = selectedFont,
+                        onFontChange = { f ->
+                            selectedFont = f
+                            DesktopSettings.update { it.copy(selectedFont = f.value) }
+                        },
+                    )
+                    is Screen.SettingsCanvas -> SettingsCanvasScreen(
+                        language = language,
+                        onBack = goBack,
+                        canvasEnabled = canvasEnabled,
+                        onCanvasEnabledChange = { enabled ->
+                            canvasEnabled = enabled
+                            DesktopSettings.update { it.copy(canvasEnabled = enabled) }
+                        },
+                        canvasSource = canvasSource,
+                        onCanvasSourceChange = { s ->
+                            canvasSource = s
+                            DesktopSettings.update { it.copy(canvasSource = s.key) }
+                        },
                     )
                     is Screen.SettingsPlayer -> SettingsPlayerScreen(
                         language = language,

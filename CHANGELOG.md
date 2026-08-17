@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.18_DE-1.33.49] - 2026-08-17
+
+### Added
+
+- [DE] Complete port of the mobile Appearance sub-menu into three dedicated
+  sub-screens: **Theme** (4-mode selector System/Light/Dark/Pure black, the
+  full 21-color accent palette and a live preview card), **App font** (the five
+  mobile fonts — System, Google Sans, Sans Flex, Outfit, Plus Jakarta Sans —
+  bundled into the desktop resources with a live typography preview) and
+  **Canvas** (enable toggle + source Auto / Apple Music / ViViMusic / Tidal,
+  wired into the player's animated background). All new strings reuse the
+  Android translations (47 languages).
+
 ## [6.4.18_DE-1.33.48] - 2026-08-17
 
 ### Fixed

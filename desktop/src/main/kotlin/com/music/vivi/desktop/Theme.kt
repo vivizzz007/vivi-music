@@ -1,31 +1,18 @@
 package com.music.vivi.desktop
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 /** Light / dark / follow-system theme mode, persisted in [DesktopSettings]. */
 enum class ThemeMode(val key: String) {
@@ -40,20 +27,39 @@ enum class ThemeMode(val key: String) {
 
 data class AccentColor(val name: String, val color: Color)
 
-/** Accent color palette mirroring the Android app's theme colors. */
+/**
+ * Accent color palette mirroring the Android app's theme colors. The first
+ * entry is the "dynamic/system" sentinel (transparent) which selects the
+ * default accent color.
+ */
 object AccentPalette {
     val default: Color = Color(0xFFED5564)
 
+    /** Resolve a sentinel (dynamic) swatch to the default accent color. */
+    fun effective(color: Color): Color = if (color == Color.Transparent) default else color
+
     val colors: List<AccentColor> = listOf(
-        AccentColor("Crimson", Color(0xFFED5564)),
+        AccentColor("Dynamic", Color.Transparent),
+        AccentColor("Crimson", Color(0xFFEC5464)),
         AccentColor("Rose", Color(0xFFD81B60)),
         AccentColor("Purple", Color(0xFF8E24AA)),
+        AccentColor("Monochrome", Color(0xFF000000)),
+        AccentColor("Deep Purple", Color(0xFF5E35B1)),
         AccentColor("Indigo", Color(0xFF3949AB)),
         AccentColor("Blue", Color(0xFF1E88E5)),
+        AccentColor("Sky Blue", Color(0xFF039BE5)),
+        AccentColor("Cyan", Color(0xFF00ACC1)),
         AccentColor("Teal", Color(0xFF00897B)),
         AccentColor("Green", Color(0xFF43A047)),
+        AccentColor("Light Green", Color(0xFF7CB342)),
+        AccentColor("Lime", Color(0xFFC0CA33)),
+        AccentColor("Yellow", Color(0xFFFDD835)),
         AccentColor("Amber", Color(0xFFFFB300)),
         AccentColor("Orange", Color(0xFFFB8C00)),
+        AccentColor("Deep Orange", Color(0xFFF4511E)),
+        AccentColor("Brown", Color(0xFF6D4C41)),
+        AccentColor("Grey", Color(0xFF757575)),
+        AccentColor("Blue Grey", Color(0xFF546E7A)),
     )
 }
 
@@ -93,7 +99,7 @@ fun AppTheme(
     // Same seed-based tonal palette as the Android app (TonalSpot + SPEC_2025),
     // so the desktop colors match the mobile app pixel-perfectly.
     val colorScheme = rememberDynamicColorScheme(
-        seedColor = accent,
+        seedColor = AccentPalette.effective(accent),
         isDark = useDark,
         specVersion = ColorSpec.SpecVersion.SPEC_2025,
         style = PaletteStyle.TonalSpot,
@@ -116,97 +122,5 @@ fun AppTheme(
                 content()
             }
         }
-    }
-}
-
-/** A clickable circle showing an accent color, highlighted when selected. */
-@Composable
-private fun AccentSwatch(color: Color, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        Modifier
-            .size(32.dp)
-            .clip(CircleShape)
-            .background(color)
-            .border(
-                width = if (selected) 3.dp else 1.dp,
-                color = if (selected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outlineVariant,
-                shape = CircleShape,
-            )
-            .clickable(onClick = onClick),
-    )
-}
-
-/**
- * Appearance section: theme mode (System / Light / Dark) and the accent color
- * palette. Rendered inside Settings.
- */
-@Composable
-fun AppearanceSection(
-    language: String,
-    mode: ThemeMode,
-    accent: Color,
-    onModeChange: (ThemeMode) -> Unit,
-    onAccentChange: (Color) -> Unit,
-    pureBlack: Boolean = false,
-    onPureBlackChange: (Boolean) -> Unit = {},
-) {
-    Text(Localization.get(language, "appearance"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
-
-    // Theme mode
-    Text(Localization.get(language, "theme_mode"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
-    Row(
-        Modifier.fillMaxWidth().padding(top = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        ThemeMode.entries.forEach { entry ->
-            val selected = mode == entry
-            val label = when (entry) {
-                ThemeMode.SYSTEM -> Localization.get(language, "theme_system")
-                ThemeMode.LIGHT -> Localization.get(language, "theme_light")
-                ThemeMode.DARK -> Localization.get(language, "theme_dark")
-            }
-            Box(
-                Modifier
-                    .clip(MaterialTheme.shapes.small)
-                    .background(
-                        if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    .clickable { onModeChange(entry) }
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-            ) {
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-    }
-
-    // Accent color palette
-    Text(Localization.get(language, "accent_color"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 16.dp))
-    Row(
-        Modifier.fillMaxWidth().padding(top = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        AccentPalette.colors.forEach { entry ->
-            AccentSwatch(
-                color = entry.color,
-                selected = entry.color == accent,
-                onClick = { onAccentChange(entry.color) },
-            )
-        }
-    }
-
-    // Pure black background in dark mode.
-    Row(
-        Modifier.fillMaxWidth().padding(top = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        androidx.compose.material3.Switch(checked = pureBlack, onCheckedChange = onPureBlackChange)
-        Text(Localization.get(language, "pure_black"))
     }
 }
