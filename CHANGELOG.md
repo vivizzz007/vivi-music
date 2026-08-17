@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.78] - 2026-08-18
+
+### Changed
+
+- [DE] The stream resolution cache TTL is now configurable: a slider in
+  Settings → Player & audio (1–60 minutes, default 10) controls how long a
+  resolved stream URL is reused before the resolution chain runs again.
+  (Resolution only — the audio decode/playback core is untouched.)
+
 ## [6.4.27_DE-1.33.77] - 2026-08-17
 
 ### Changed

@@ -1,5 +1,6 @@
 package com.music.vivi.desktop.player
 
+import com.music.vivi.desktop.DesktopSettings
 import com.music.vivi.desktop.GuestSession
 import com.music.innertube.NewPipeExtractor
 import com.music.innertube.YouTube
@@ -87,8 +88,10 @@ object StreamResolver {
     private class Cached(val streams: List<ResolvedStream>, val expiresAt: Long)
 
     private val cache = java.util.concurrent.ConcurrentHashMap<String, Cached>()
-    private const val CACHE_TTL_MS = 10 * 60_000L
     private const val CACHE_MAX_ENTRIES = 32
+
+    /** Cache lifetime in ms, read from the user setting (1–60 minutes). */
+    private fun cacheTtlMs(): Long = DesktopSettings.load().streamCacheMinutes.coerceIn(1, 60) * 60_000L
 
     /**
      * Returns a direct HTTP URL to an AAC audio stream, or null if it cannot be
@@ -128,7 +131,7 @@ object StreamResolver {
             attempts++
         }
         if (resolution.streams.isNotEmpty()) {
-            cache[videoId] = Cached(resolution.streams, System.currentTimeMillis() + CACHE_TTL_MS)
+            cache[videoId] = Cached(resolution.streams, System.currentTimeMillis() + cacheTtlMs())
             while (cache.size > CACHE_MAX_ENTRIES) {
                 val oldest = cache.entries.minByOrNull { it.value.expiresAt }?.key ?: break
                 cache.remove(oldest)

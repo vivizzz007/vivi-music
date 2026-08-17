@@ -385,6 +385,8 @@ fun SettingsPlayerScreen(
     sliderStyle: String,
     onSliderStyleChange: (String) -> Unit,
     onOpenPlayerDesign: () -> Unit,
+    streamCacheMinutes: Int = 10,
+    onStreamCacheMinutesChange: (Int) -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerSection(
@@ -402,6 +404,8 @@ fun SettingsPlayerScreen(
             sliderStyle,
             onSliderStyleChange,
             onOpenPlayerDesign,
+            streamCacheMinutes,
+            onStreamCacheMinutesChange,
         )
     }
 }

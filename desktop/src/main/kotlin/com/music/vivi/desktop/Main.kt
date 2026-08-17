@@ -90,6 +90,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -364,6 +365,7 @@ fun App(
     var syncViviVolume by remember { mutableStateOf(DesktopSettings.load().syncViviVolume) }
     var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
     var lyricsLineSpacing by remember { mutableStateOf(DesktopSettings.load().lyricsLineSpacing) }
+    var streamCacheMinutes by remember { mutableStateOf(DesktopSettings.load().streamCacheMinutes) }
     var discordRpcEnabled by remember { mutableStateOf(DesktopSettings.load().discordRpcEnabled) }
     var discordClientId by remember { mutableStateOf(DesktopSettings.load().discordClientId) }
     var lastfmEnabled by remember { mutableStateOf(DesktopSettings.load().lastfmEnabled) }
@@ -1047,6 +1049,11 @@ fun App(
                             DesktopSettings.update { it.copy(sliderStyle = s) }
                         },
                         onOpenPlayerDesign = { navigate(Screen.SettingsPlayerDesign) },
+                        streamCacheMinutes = streamCacheMinutes,
+                        onStreamCacheMinutesChange = { m ->
+                            streamCacheMinutes = m
+                            DesktopSettings.update { it.copy(streamCacheMinutes = m) }
+                        },
                     )
                     is Screen.SettingsPlayerDesign -> SettingsPlayerDesignScreen(
                         language = language,
@@ -2867,6 +2874,8 @@ fun PlayerSection(
     sliderStyle: String,
     onSliderStyleChange: (String) -> Unit,
     onOpenPlayerDesign: () -> Unit,
+    streamCacheMinutes: Int = 10,
+    onStreamCacheMinutesChange: (Int) -> Unit = {},
 ) {
     var qualityExpanded by remember { mutableStateOf(false) }
     var sliderExpanded by remember { mutableStateOf(false) }
@@ -2902,6 +2911,24 @@ fun PlayerSection(
     SettingSwitch(language, "remember_shuffle_repeat", rememberShuffleRepeat, onToggleRememberShuffleRepeat)
     SettingSwitch(language, "persistent_queue", persistentQueue, onTogglePersistentQueue)
     SettingSwitch(language, "sync_vivi_volume", syncViviVolume, onToggleSyncViviVolume)
+
+    Text(
+        "${Localization.get(language, "stream_cache_minutes")}: ${streamCacheMinutes} min",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    Text(
+        Localization.get(language, "stream_cache_minutes_desc"),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Slider(
+        value = streamCacheMinutes.toFloat(),
+        onValueChange = { onStreamCacheMinutesChange(it.toInt().coerceIn(1, 60)) },
+        valueRange = 1f..60f,
+        steps = 58,
+        modifier = Modifier.fillMaxWidth(),
+    )
 
     Text(Localization.get(language, "slider_style"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
     Box(Modifier.padding(top = 8.dp)) {

@@ -181,6 +181,8 @@ MAPPING = {
     "pause_search_history_desc": "Keeps new searches out of the recent-searches list.",
     "quick_settings": "Quick settings",
     "lyrics_line_spacing": "Line spacing",
+    "stream_cache_minutes": "Stream cache (minutes)",
+    "stream_cache_minutes_desc": "How long a resolved stream URL is reused before it is resolved again.",
     "integrations": "Integrations",
     "integrations_active": "Active",
     "integrations_inactive": "Off",
