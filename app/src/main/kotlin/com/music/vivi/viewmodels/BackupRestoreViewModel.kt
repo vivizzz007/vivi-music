@@ -447,20 +447,31 @@ class BackupRestoreViewModel @Inject constructor(
                 pendingDir.deleteRecursively()
                 return
             }
-            runCatching {
+            val result = runCatching {
                 if (stagedSettings.exists()) {
                     val target = context.filesDir / "datastore" / SETTINGS_FILENAME
                     target.parentFile?.mkdirs()
                     stagedSettings.copyTo(target, overwrite = true)
                 }
                 if (stagedDb.exists()) {
-                    val dbPath = context.getDatabasePath(InternalDatabase.DB_NAME).absolutePath
-                    java.io.File(dbPath + "-wal").delete()
-                    java.io.File(dbPath + "-shm").delete()
-                    java.io.File(dbPath).delete()
-                    stagedDb.copyTo(java.io.File(dbPath), overwrite = true)
+                    val dbFile = context.getDatabasePath(InternalDatabase.DB_NAME)
+                    dbFile.parentFile?.mkdirs()
+                    java.io.File(dbFile.absolutePath + "-wal").delete()
+                    java.io.File(dbFile.absolutePath + "-shm").delete()
+                    dbFile.delete()
+                    stagedDb.copyTo(dbFile, overwrite = true)
                 }
                 context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
+            }
+            result.onFailure {
+                // Keep the staged backup so the restore can be retried on the
+                // next launch instead of silently losing the user's data.
+                android.util.Log.e(
+                    "BackupRestore",
+                    "Failed to apply pending restore; keeping staged files for retry",
+                    it
+                )
+                return
             }
             pendingDir.deleteRecursively()
         }

@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.26_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [APK] Restore swap is no longer silent on failure: the database target
+  directory is created if missing (clean install), and if the staged
+  settings/database copy fails the staged backup is kept and the error is
+  logged (with a stack trace) so the restore can be retried on the next launch
+  instead of the backup being deleted without being applied.
+
 ## [6.4.25_DE-1.33.61] - 2026-08-17
 
 ### Fixed
