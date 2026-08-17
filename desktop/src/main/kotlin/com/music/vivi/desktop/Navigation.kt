@@ -62,3 +62,11 @@ data class NowPlaying(
     val thumbnail: String? = null,
     val durationMs: Long = 0L,
 )
+
+/** Session listening stats shown by the Home "VIVI Wrapped" card. */
+data class WrappedStats(
+    val trackStarts: Int = 0,
+    val playedMs: Long = 0L,
+    val topSongTitle: String? = null,
+    val topSongCount: Int = 0,
+)

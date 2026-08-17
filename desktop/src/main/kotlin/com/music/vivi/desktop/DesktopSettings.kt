@@ -38,6 +38,8 @@ data class DesktopSyncState(
     /** Slowly rotate the player artwork while playing. */
     val rotatingThumbnail: Boolean = false,
     val miniPlayerStyle: String = "standard",
+    val homeUseLastListen: Boolean = false,
+    val randomizeHomeOrder: Boolean = false,
     /** Apple-style mini player variant. */
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",

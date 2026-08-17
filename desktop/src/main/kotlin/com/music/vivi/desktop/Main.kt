@@ -294,6 +294,36 @@ fun App(
     var playerBackground by remember { mutableStateOf(PlayerBackgroundStyle.from(DesktopSettings.load().playerBackground)) }
     var rotatingThumbnail by remember { mutableStateOf(DesktopSettings.load().rotatingThumbnail) }
     var miniPlayerStyle by remember { mutableStateOf(DesktopSettings.load().miniPlayerStyle) }
+    var homeUseLastListen by remember { mutableStateOf(DesktopSettings.load().homeUseLastListen) }
+    var randomizeHomeOrder by remember { mutableStateOf(DesktopSettings.load().randomizeHomeOrder) }
+
+    // Session listening stats for the Home "VIVI Wrapped" card (session-only).
+    var sessionTrackStarts by remember { mutableStateOf(0) }
+    var sessionPlayedMs by remember { mutableStateOf(0L) }
+    var sessionTopSong by remember { mutableStateOf<Pair<String, String>?>(null) } // videoId to title
+    var sessionTopCount by remember { mutableStateOf(0) }
+    var lastSessionSongId by remember { mutableStateOf<String?>(null) }
+    var lastSessionPosition by remember { mutableStateOf(0L) }
+    LaunchedEffect(nowPlaying?.videoId, isPlaying, playerState.positionMs) {
+        val id = nowPlaying?.videoId
+        val pos = playerState.positionMs
+        if (id != null && id != lastSessionSongId) {
+            // New track started in this session: count it and track the top one.
+            lastSessionSongId = id
+            if (sessionTopSong?.first == id) {
+                sessionTopCount++
+            } else {
+                sessionTopSong = id to (nowPlaying?.title ?: "")
+                sessionTopCount = 1
+            }
+            sessionTrackStarts++
+            lastSessionPosition = pos
+        } else if (isPlaying) {
+            val delta = pos - lastSessionPosition
+            if (delta in 1..10_000) sessionPlayedMs += delta
+            lastSessionPosition = pos
+        }
+    }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -778,6 +808,22 @@ fun App(
                         onAddToPlaylist = addToPlaylist,
                         onPlayAll = playAll,
                         onOpenBrowse = { browseId, params -> navigate(Screen.Browse(browseId, params)) },
+                        useLastListen = homeUseLastListen,
+                        onUseLastListenChange = { v ->
+                            homeUseLastListen = v
+                            DesktopSettings.update { it.copy(homeUseLastListen = v) }
+                        },
+                        randomizeOrder = randomizeHomeOrder,
+                        onRandomizeOrderChange = { v ->
+                            randomizeHomeOrder = v
+                            DesktopSettings.update { it.copy(randomizeHomeOrder = v) }
+                        },
+                        wrappedStats = WrappedStats(
+                            trackStarts = sessionTrackStarts,
+                            playedMs = sessionPlayedMs,
+                            topSongTitle = sessionTopSong?.second,
+                            topSongCount = sessionTopCount,
+                        ),
                     )
                     is Screen.Search -> SearchScreen(
                         language = language,

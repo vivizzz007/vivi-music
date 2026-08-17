@@ -297,6 +297,7 @@ private fun strings_0(): Map<String, String> =
         "website" to "Website",
         "weekly_backup" to "Weekly backup",
         "weekly_backup_desc" to "Create a backup automatically once a week.",
+        "wrapped_listening_time" to "Listening…",
     )
 
 private fun strings_1(): Map<String, String> =
@@ -432,6 +433,7 @@ private fun strings_1(): Map<String, String> =
         "lan_hint" to "على هاتفك، افتح الإعدادات ← الأجهزة، واضبط خادم التتابع على العنوان أعلاه، ثم أدخل الرمز.",
         "lan_sync" to "مزامنة LAN (نفس Wi-Fi)",
         "language" to "لغة التطبيق",
+        "last_listen" to "آخر استماع",
         "later" to "لاحقًا",
         "latest_release" to "أحدث ملاحظات الإصدار",
         "library" to "مكتبة",
@@ -511,6 +513,8 @@ private fun strings_1(): Map<String, String> =
         "pure_black" to "أسود نقي",
         "queue" to "قائمة الانتظار",
         "queue_empty" to "قائمة الانتظار فارغة",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "خلط ترتيب الصفحة الرئيسية",
         "relay_server" to "خادم الترحيل (wss://)",
         "remember_shuffle_repeat" to "تذكر خلط الاغاني و تكرار الأغنية",
         "remove_from_library" to "امسح من المكتبة",
@@ -582,6 +586,10 @@ private fun strings_1(): Map<String, String> =
         "uptime" to "وقت التشغيل",
         "visitor_data_label" to "VISITOR_DATA (اختياري)",
         "volume" to "مستوى الصوت",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_2(): Map<String, String> =
@@ -686,6 +694,7 @@ private fun strings_2(): Map<String, String> =
         "lan_address" to "ফোনে সংযোগ হয়",
         "lan_hint" to "আপোনাৰ ফোনত, ছেটিংছ → ডিভাইছ খোলক, ৰিলে চাৰ্ভাৰ ওপৰৰ ঠিকনালৈ ছেট কৰক, তাৰ পিছত ক'ডটো লিখক।",
         "lan_sync" to "LAN ছিংক (একে Wi-Fi)",
+        "last_listen" to "শেষ শুনা",
         "later" to "পিছত",
         "latest_release" to "শেহতীয়া ৰিলিজ টোকা",
         "library_empty" to "ইয়াত এতিয়াও একো নাই",
@@ -743,6 +752,8 @@ private fun strings_2(): Map<String, String> =
         "privacy_desc" to "ছেছন কুকি, কেশ্ব কৰা অডিঅ' আৰু ডাউনলোড কৰা ইনষ্টলাৰ কেৱল এই ডিভাইচত সংৰক্ষণ হয়। ইয়াতে আপুনি সেইবোৰ আঁতৰাব পাৰে।",
         "process" to "প্ৰক্ৰিয়া",
         "queue_empty" to "শাৰী খালি",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "হ'ম ক্ৰম ৰেণ্ডমাইজ কৰক",
         "relay_server" to "ৰিলে চাৰ্ভাৰ (wss://)",
         "rename" to "নাম সলনি কৰক",
         "repeat" to "পুনৰাবৃত্তি",
@@ -796,6 +807,10 @@ private fun strings_2(): Map<String, String> =
         "updates" to "আপডেটসমূহ",
         "uptime" to "আপটাইম",
         "visitor_data_label" to "VISITOR_DATA (ঐচ্ছিক)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_3(): Map<String, String> =
@@ -900,6 +915,7 @@ private fun strings_3(): Map<String, String> =
         "lan_address" to "Telefon qoşulur",
         "lan_hint" to "Telefonunuzda Parametrlər → Qurğular bölməsini açın, relay serverini yuxarıdakı ünvana təyin edin, sonra kodu daxil edin.",
         "lan_sync" to "LAN sinxron (eyni Wi-Fi)",
+        "last_listen" to "Son dinləmə",
         "later" to "Sonra",
         "latest_release" to "Son buraxılış qeydləri",
         "library_empty" to "Hələ burada heç nə yoxdur",
@@ -959,6 +975,8 @@ private fun strings_3(): Map<String, String> =
         "privacy_desc" to "Sessiya kukiləri, keşlənmiş audio və endirilmiş quraşdırıcılar yalnız bu cihazda saxlanılır. Onları buradan silə bilərsiniz.",
         "process" to "Proses",
         "queue_empty" to "Növbə boşdur",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Ana səhifə sırasını qarışdır",
         "relay_server" to "Relay server (wss://)",
         "rename" to "Adını dəyiş",
         "repeat" to "Təkrar",
@@ -1012,6 +1030,10 @@ private fun strings_3(): Map<String, String> =
         "updates" to "Yeniləmələr",
         "uptime" to "İş vaxtı",
         "visitor_data_label" to "VISITOR_DATA (istəyə bağlı)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_4(): Map<String, String> =
@@ -1141,6 +1163,7 @@ private fun strings_4(): Map<String, String> =
         "lan_address" to "Тэлефон падключаецца да",
         "lan_hint" to "На тэлефоне адкрыйце Налады → Прылады, задайце рэлейны сервер на адрас вышэй, затым увядзіце код.",
         "lan_sync" to "Сінхранізацыя LAN (той жа Wi-Fi)",
+        "last_listen" to "Апошняе праслухоўванне",
         "later" to "Пазней",
         "latest_release" to "Нататкі апошняга рэлізу",
         "library_empty" to "Тут пакуль нічога няма",
@@ -1209,6 +1232,8 @@ private fun strings_4(): Map<String, String> =
         "process" to "Працэс",
         "pure_black" to "Рэжым чыстага чорнага колеру",
         "queue_empty" to "Чарга пустая",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Перамяшаць парадак на галоўнай",
         "relay_server" to "Рэлейны сервер (wss://)",
         "remove_from_library" to "Выдаліць з бібліятэкі",
         "rename" to "Перайменаваць",
@@ -1278,6 +1303,10 @@ private fun strings_4(): Map<String, String> =
         "uptime" to "Час працы",
         "visitor_data_label" to "VISITOR_DATA (неабавязкова)",
         "volume" to "Узровень гучнасці",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_5(): Map<String, String> =
@@ -1409,6 +1438,7 @@ private fun strings_5(): Map<String, String> =
         "lan_hint" to "На телефона си отворете Настройки → Устройства, задайте релейния сървър на адреса по-горе, след което въведете кода.",
         "lan_sync" to "LAN синхронизация (същият Wi-Fi)",
         "language" to "Език на приложението",
+        "last_listen" to "Последно слушане",
         "later" to "По-късно",
         "latest_release" to "Бележки за последното издание",
         "library" to "Библиотека",
@@ -1483,6 +1513,8 @@ private fun strings_5(): Map<String, String> =
         "pure_black" to "Чисто черно",
         "queue" to "Опашка",
         "queue_empty" to "Опашката е празна",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Разбъркай реда на началната страница",
         "relay_server" to "Ретранслиращ сървър (wss://)",
         "remove_from_library" to "Премахни от библиотеката",
         "rename" to "Преименуване",
@@ -1551,6 +1583,10 @@ private fun strings_5(): Map<String, String> =
         "uptime" to "Време на работа",
         "visitor_data_label" to "VISITOR_DATA (по избор)",
         "volume" to "Увеличаване",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_6(): Map<String, String> =
@@ -1681,6 +1717,7 @@ private fun strings_6(): Map<String, String> =
         "lan_address" to "ফোন সংযোগ করে",
         "lan_hint" to "আপনার ফোনে সেটিংস → ডিভাইস খুলুন, রিলে সার্ভারটি উপরের ঠিকানায় সেট করুন, তারপর কোডটি লিখুন।",
         "lan_sync" to "LAN সিঙ্ক (একই Wi-Fi)",
+        "last_listen" to "শেষ শোনা",
         "later" to "পরে",
         "latest_release" to "সর্বশেষ রিলিজ নোট",
         "library" to "লাইব্রেরি",
@@ -1752,6 +1789,8 @@ private fun strings_6(): Map<String, String> =
         "pure_black" to "ব্ল্যাক",
         "queue" to "কিউ",
         "queue_empty" to "সারি খালি",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "হোমের ক্রম এলোমেলো করুন",
         "relay_server" to "রিলে সার্ভার (wss://)",
         "remove_from_library" to "লাইব্রেরি থেকে সরান",
         "rename" to "নাম পরিবর্তন করুন",
@@ -1819,6 +1858,10 @@ private fun strings_6(): Map<String, String> =
         "uptime" to "আপটাইম",
         "visitor_data_label" to "VISITOR_DATA (ঐচ্ছিক)",
         "volume" to "ভলিউম",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_7(): Map<String, String> =
@@ -1950,6 +1993,7 @@ private fun strings_7(): Map<String, String> =
         "lan_hint" to "Na telefonu otvorite Postavke → Uređaji, postavite relay server na gornju adresu, zatim unesite kod.",
         "lan_sync" to "LAN sinhronizacija (isti Wi-Fi)",
         "language" to "Jezik aplikacije",
+        "last_listen" to "Zadnje slušanje",
         "later" to "Kasnije",
         "latest_release" to "Napomene zadnjeg izdanja",
         "library" to "Biblioteka",
@@ -2022,6 +2066,8 @@ private fun strings_7(): Map<String, String> =
         "pure_black" to "Čisto crna",
         "queue" to "Red",
         "queue_empty" to "Red je prazan",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Nasumično miješaj redoslijed početne",
         "relay_server" to "Relejni server (wss://)",
         "remove_from_library" to "Ukloni iz biblioteke",
         "rename" to "Preimenuj",
@@ -2089,6 +2135,10 @@ private fun strings_7(): Map<String, String> =
         "uptime" to "Vrijeme rada",
         "visitor_data_label" to "VISITOR_DATA (opcionalno)",
         "volume" to "Zvuk",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_8(): Map<String, String> =
@@ -2224,6 +2274,7 @@ private fun strings_8(): Map<String, String> =
         "lan_hint" to "Al telèfon, obriu Configuració → Dispositius, definiu el servidor de relé a l'adreça de dalt i introduïu el codi.",
         "lan_sync" to "Sincronització LAN (mateix Wi-Fi)",
         "language" to "Llengua de l'aplicació",
+        "last_listen" to "Darrera escolta",
         "later" to "Més tard",
         "latest_release" to "Notes de l'última versió",
         "library" to "Col·lecció",
@@ -2303,6 +2354,8 @@ private fun strings_8(): Map<String, String> =
         "pure_black" to "Negre pur",
         "queue" to "Cua",
         "queue_empty" to "La cua és buida",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Aleatoritza l'ordre de la pàgina principal",
         "relay_server" to "Servidor de retransmissió (wss://)",
         "remember_shuffle_repeat" to "Recorda l'aleatori i la repetició",
         "remove_from_library" to "Elimina de la col·lecció",
@@ -2374,6 +2427,10 @@ private fun strings_8(): Map<String, String> =
         "uptime" to "Temps d'activitat",
         "visitor_data_label" to "VISITOR_DATA (opcional)",
         "volume" to "Volum",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_9(): Map<String, String> =
@@ -2509,6 +2566,7 @@ private fun strings_9(): Map<String, String> =
         "lan_hint" to "V telefonu otevřete Nastavení → Zařízení, nastavte relay server na výše uvedenou adresu a zadejte kód.",
         "lan_sync" to "Synchronizace LAN (stejná Wi-Fi)",
         "language" to "Jazyk aplikace",
+        "last_listen" to "Poslední poslech",
         "later" to "Později",
         "latest_release" to "Poznámky k poslednímu vydání",
         "library" to "Knihovna",
@@ -2588,6 +2646,8 @@ private fun strings_9(): Map<String, String> =
         "pure_black" to "Čistě černá",
         "queue" to "Fronta",
         "queue_empty" to "Fronta je prázdná",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Náhodně seřadit domovské sekce",
         "relay_server" to "Přenosový server (wss://)",
         "remember_shuffle_repeat" to "Zapamatovat náhodné přehrávání a opakování",
         "remove_from_library" to "Odebrat z knihovny",
@@ -2659,6 +2719,10 @@ private fun strings_9(): Map<String, String> =
         "uptime" to "Doba provozu",
         "visitor_data_label" to "VISITOR_DATA (volitelné)",
         "volume" to "Hlasitost",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_10(): Map<String, String> =
@@ -2794,6 +2858,7 @@ private fun strings_10(): Map<String, String> =
         "lan_hint" to "Öffne auf deinem Handy Einstellungen → Geräte, setze den Relay-Server auf die obige Adresse und gib dann den Code ein.",
         "lan_sync" to "LAN-Sync (gleiches WLAN)",
         "language" to "App-Sprache",
+        "last_listen" to "Zuletzt gehört",
         "later" to "Später",
         "latest_release" to "Neueste Versionshinweise",
         "library" to "Bibliothek",
@@ -2873,6 +2938,8 @@ private fun strings_10(): Map<String, String> =
         "pure_black" to "Reines Schwarz",
         "queue" to "Warteschlange",
         "queue_empty" to "Warteschlange ist leer",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Reihenfolge der Startseite mischen",
         "relay_server" to "Relay-Server (wss://)",
         "remember_shuffle_repeat" to "Behalte den Shuffle- und Wiederholungsmodus",
         "remove_from_library" to "Aus Bibliothek entfernen",
@@ -2944,6 +3011,10 @@ private fun strings_10(): Map<String, String> =
         "uptime" to "Betriebszeit",
         "visitor_data_label" to "VISITOR_DATA (optional)",
         "volume" to "Lautstärke",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_11(): Map<String, String> =
@@ -3076,6 +3147,7 @@ private fun strings_11(): Map<String, String> =
         "lan_hint" to "Στο τηλέφωνό σας, ανοίξτε Ρυθμίσεις → Συσκευές, ορίστε τον διακομιστή αναμετάδοσης στην παραπάνω διεύθυνση και εισαγάγετε τον κωδικό.",
         "lan_sync" to "Συγχρονισμός LAN (ίδιο Wi-Fi)",
         "language" to "Γλώσσα εφαρμογής",
+        "last_listen" to "Τελευταία ακρόαση",
         "later" to "Αργότερα",
         "latest_release" to "Σημειώσεις τελευταίας έκδοσης",
         "library" to "Βιβλιοθήκη",
@@ -3154,6 +3226,8 @@ private fun strings_11(): Map<String, String> =
         "pure_black" to "Καθαρό μαύρο",
         "queue" to "Ουρά",
         "queue_empty" to "Η ουρά είναι κενή",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Τυχαία σειρά στην αρχική",
         "relay_server" to "Διακομιστής αναμετάδοσης (wss://)",
         "remember_shuffle_repeat" to "Απομνημόνευση τυχαίας αναπαραγωγής και επανάληψης",
         "remove_from_library" to "Αφαίρεση από τη βιβλιοθήκη",
@@ -3223,6 +3297,10 @@ private fun strings_11(): Map<String, String> =
         "uptime" to "Χρόνος λειτουργίας",
         "visitor_data_label" to "VISITOR_DATA (προαιρετικό)",
         "volume" to "Τόμος",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_12(): Map<String, String> =
@@ -3358,6 +3436,7 @@ private fun strings_12(): Map<String, String> =
         "lan_hint" to "En tu teléfono, abre Ajustes → Dispositivos, configura el servidor de retransmisión con la dirección de arriba y, a continuación, introduce el código.",
         "lan_sync" to "Sincronización LAN (misma Wi-Fi)",
         "language" to "Idioma de la aplicación",
+        "last_listen" to "Última escucha",
         "later" to "Más tarde",
         "latest_release" to "Notas de la última versión",
         "library" to "Biblioteca",
@@ -3437,6 +3516,8 @@ private fun strings_12(): Map<String, String> =
         "pure_black" to "Negro puro",
         "queue" to "Cola",
         "queue_empty" to "La cola está vacía",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Aleatorizar el orden de inicio",
         "relay_server" to "Servidor de retransmisión (wss://)",
         "remember_shuffle_repeat" to "Recuerda mezclar y repetir",
         "remove_from_library" to "Quitar de la biblioteca",
@@ -3508,6 +3589,10 @@ private fun strings_12(): Map<String, String> =
         "uptime" to "Tiempo de actividad",
         "visitor_data_label" to "VISITOR_DATA (opcional)",
         "volume" to "Volumen",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_13(): Map<String, String> =
@@ -3639,6 +3724,7 @@ private fun strings_13(): Map<String, String> =
         "lan_hint" to "Avage telefonis Seaded → Seadmed, määrake releeserveriks ülaltoodud aadress ja sisestage kood.",
         "lan_sync" to "LAN-sünkroonimine (sama Wi-Fi)",
         "language" to "Rakenduse keel",
+        "last_listen" to "Viimati kuulatud",
         "later" to "Hiljem",
         "latest_release" to "Viimase väljalaske märkmed",
         "library" to "Muusikakogu",
@@ -3712,6 +3798,8 @@ private fun strings_13(): Map<String, String> =
         "pure_black" to "Õige must kujundus",
         "queue" to "Esitusjärjekord",
         "queue_empty" to "Järjekord on tühi",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Segista avalehe järjekorda",
         "relay_server" to "Vaheserver (wss://)",
         "remove_from_library" to "Eemalda muusikakogust",
         "rename" to "Nimeta ümber",
@@ -3780,6 +3868,10 @@ private fun strings_13(): Map<String, String> =
         "uptime" to "Tööaeg",
         "visitor_data_label" to "VISITOR_DATA (valikuline)",
         "volume" to "Helitugevus",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_14(): Map<String, String> =
@@ -3885,6 +3977,7 @@ private fun strings_14(): Map<String, String> =
         "lan_hint" to "Telefonoan ireki Ezarpenak → Gailuak, ezarri errele-zerbitzaria goiko helbidean eta sartu kodea.",
         "lan_sync" to "LAN sinkronizazioa (Wi-Fi bera)",
         "language" to "Aplikazio hizkuntza",
+        "last_listen" to "Azken entzunaldia",
         "later" to "Geroago",
         "latest_release" to "Azken bertsioaren oharrak",
         "library_empty" to "Oraindik ez dago ezer hemen",
@@ -3944,6 +4037,8 @@ private fun strings_14(): Map<String, String> =
         "privacy_desc" to "Saio-cookieak, cachean gordetako audioa eta deskargatutako instalatzaileak gailu honetan bakarrik gordetzen dira. Hemen ken ditzakezu.",
         "process" to "Prozesua",
         "queue_empty" to "Ilara hutsik dago",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Ausaz ordenatu hasierako atalek",
         "relay_server" to "Errelebo-zerbitzaria (wss://)",
         "rename" to "Berrizendatu",
         "repeat" to "Errepikatu",
@@ -3997,6 +4092,10 @@ private fun strings_14(): Map<String, String> =
         "updates" to "Eguneratzeak",
         "uptime" to "Funtzionamendu-denbora",
         "visitor_data_label" to "VISITOR_DATA (aukerakoa)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_15(): Map<String, String> =
@@ -4127,6 +4226,7 @@ private fun strings_15(): Map<String, String> =
         "lan_address" to "Puhelin yhdistyy",
         "lan_hint" to "Avaa puhelimessa Asetukset → Laitteet, aseta välityspalvelimeksi yllä oleva osoite ja syötä koodi.",
         "lan_sync" to "LAN-synkronointi (sama Wi-Fi)",
+        "last_listen" to "Viimeksi kuunneltu",
         "later" to "Myöhemmin",
         "latest_release" to "Uusimman julkaisun tiedot",
         "library" to "Kirjasto",
@@ -4198,6 +4298,8 @@ private fun strings_15(): Map<String, String> =
         "pure_black" to "Puhtaan musta",
         "queue" to "Jono",
         "queue_empty" to "Jono on tyhjä",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Sekoita kodin järjestys",
         "relay_server" to "Välityspalvelin (wss://)",
         "remove_from_library" to "Poista kirjastosta",
         "rename" to "Nimeä uudelleen",
@@ -4265,6 +4367,10 @@ private fun strings_15(): Map<String, String> =
         "uptime" to "Käyttöaika",
         "visitor_data_label" to "VISITOR_DATA (valinnainen)",
         "volume" to "Voimakkuus",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_16(): Map<String, String> =
@@ -4369,6 +4475,7 @@ private fun strings_16(): Map<String, String> =
         "lan_address" to "Kumokonekta ang telepono sa",
         "lan_hint" to "Sa iyong telepono, buksan ang Settings → Devices, itakda ang relay server sa address sa itaas, pagkatapos ay ilagay ang code.",
         "lan_sync" to "LAN sync (parehong Wi-Fi)",
+        "last_listen" to "Huling pinakinggan",
         "later" to "Mamaya",
         "latest_release" to "Mga tala ng pinakabagong release",
         "library_empty" to "Wala pang laman dito",
@@ -4427,6 +4534,8 @@ private fun strings_16(): Map<String, String> =
         "privacy_desc" to "Ang session cookies, naka-cache na audio at mga na-download na installer ay naka-store lang sa device na ito. Maaari mong alisin ang mga ito dito.",
         "process" to "Proseso",
         "queue_empty" to "Walang laman ang queue",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "I-random ang order ng home",
         "relay_server" to "Relay server (wss://)",
         "rename" to "Palitan ang pangalan",
         "repeat" to "Ulitin",
@@ -4480,6 +4589,10 @@ private fun strings_16(): Map<String, String> =
         "updates" to "Mga update",
         "uptime" to "Uptime",
         "visitor_data_label" to "VISITOR_DATA (optional)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_17(): Map<String, String> =
@@ -4653,6 +4766,7 @@ private fun strings_17(): Map<String, String> =
         "lan_hint" to "Sur votre téléphone, ouvrez Paramètres → Appareils, définissez le serveur relais sur l'adresse ci-dessus, puis saisissez le code.",
         "lan_sync" to "Synchronisation LAN (même Wi-Fi)",
         "language" to "Langue de l'application",
+        "last_listen" to "Dernière écoute",
         "later" to "Plus tard",
         "latest_release" to "Notes de la dernière version",
         "library" to "Bibliothèque",
@@ -4734,6 +4848,8 @@ private fun strings_17(): Map<String, String> =
         "pure_black" to "Noir pur",
         "queue" to "File d'attente",
         "queue_empty" to "La file d'attente est vide",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Mélanger l'ordre de l'accueil",
         "relay_server" to "Serveur relais (wss://)",
         "remember_shuffle_repeat" to "N'oubliez pas la lecture aléatoire et la répétition",
         "remove_from_library" to "Supprimer de la bibliothèque",
@@ -4817,6 +4933,10 @@ private fun strings_17(): Map<String, String> =
         "website" to "Site web",
         "weekly_backup" to "Sauvegarde hebdomadaire",
         "weekly_backup_desc" to "Sauvegardez automatiquement vos données chaque semaine en arrière-plan.",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_18(): Map<String, String> =
@@ -4935,6 +5055,7 @@ private fun strings_18(): Map<String, String> =
         "lan_address" to "फ़ोन कनेक्ट होता है",
         "lan_hint" to "अपने फ़ोन पर सेटिंग्स → डिवाइस खोलें, रिले सर्वर को ऊपर दिए पते पर सेट करें, फिर कोड दर्ज करें।",
         "lan_sync" to "LAN सिंक (समान Wi-Fi)",
+        "last_listen" to "आखिरी बार सुना",
         "later" to "बाद में",
         "latest_release" to "नवीनतम रिलीज़ नोट्स",
         "library" to "संग्रह",
@@ -5001,6 +5122,8 @@ private fun strings_18(): Map<String, String> =
         "process" to "प्रक्रिया",
         "pure_black" to "शुद्ध काला",
         "queue_empty" to "कतार खाली है",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "होम का क्रम यादृच्छिक करें",
         "relay_server" to "रिले सर्वर (wss://)",
         "remove_from_library" to "संग्रह से हटाएं",
         "rename" to "नाम बदलें",
@@ -5065,6 +5188,10 @@ private fun strings_18(): Map<String, String> =
         "uptime" to "अपटाइम",
         "visitor_data_label" to "VISITOR_DATA (वैकल्पिक)",
         "volume" to "प्रबलता",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_19(): Map<String, String> =
@@ -5196,6 +5323,7 @@ private fun strings_19(): Map<String, String> =
         "lan_hint" to "Na telefonu otvorite Postavke → Uređaji, postavite relay poslužitelj na gornju adresu, zatim unesite kod.",
         "lan_sync" to "LAN sinkronizacija (isti Wi-Fi)",
         "language" to "Jezik aplikacije",
+        "last_listen" to "Zadnje slušanje",
         "later" to "Kasnije",
         "latest_release" to "Napomene zadnjeg izdanja",
         "library" to "Zbirka",
@@ -5269,6 +5397,8 @@ private fun strings_19(): Map<String, String> =
         "pure_black" to "Potpuno crna",
         "queue" to "Red",
         "queue_empty" to "Red je prazan",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Nasumično promijeni redoslijed početne",
         "relay_server" to "Relejni poslužitelj (wss://)",
         "remove_from_library" to "Ukloni iz zbirke",
         "rename" to "Preimenuj",
@@ -5336,6 +5466,10 @@ private fun strings_19(): Map<String, String> =
         "uptime" to "Vrijeme rada",
         "visitor_data_label" to "VISITOR_DATA (opcionalno)",
         "volume" to "Glasnoća",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_20(): Map<String, String> =
@@ -5467,6 +5601,7 @@ private fun strings_20(): Map<String, String> =
         "lan_hint" to "A telefonján nyissa meg a Beállítások → Eszközök menüt, állítsa a relé szervert a fenti címre, majd írja be a kódot.",
         "lan_sync" to "LAN-szinkronizálás (ugyanaz a Wi-Fi)",
         "language" to "App nyelve",
+        "last_listen" to "Utolsó hallgatás",
         "later" to "Később",
         "latest_release" to "Legújabb kiadás megjegyzései",
         "library" to "Könyvtár",
@@ -5541,6 +5676,8 @@ private fun strings_20(): Map<String, String> =
         "pure_black" to "OLED fekete",
         "queue" to "Lista",
         "queue_empty" to "A sor üres",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Kezdőlap sorrendjének véletlenszerűsítése",
         "relay_server" to "Relé szerver (wss://)",
         "remember_shuffle_repeat" to "Keverés és ismétlés megjegyzése",
         "remove_from_library" to "Eltávolítás a könyvtárból",
@@ -5610,6 +5747,10 @@ private fun strings_20(): Map<String, String> =
         "uptime" to "Üzemidő",
         "visitor_data_label" to "VISITOR_DATA (opcionális)",
         "volume" to "Hangerő",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_21(): Map<String, String> =
@@ -5745,6 +5886,7 @@ private fun strings_21(): Map<String, String> =
         "lan_hint" to "Di ponsel Anda, buka Pengaturan → Perangkat, atur server relai ke alamat di atas, lalu masukkan kodenya.",
         "lan_sync" to "Sinkronisasi LAN (Wi-Fi yang sama)",
         "language" to "Bahasa aplikasi",
+        "last_listen" to "Terakhir didengar",
         "later" to "Nanti",
         "latest_release" to "Catatan rilis terbaru",
         "library" to "Pustaka",
@@ -5824,6 +5966,8 @@ private fun strings_21(): Map<String, String> =
         "pure_black" to "Hitam murni",
         "queue" to "Antrean",
         "queue_empty" to "Antrean kosong",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Acak urutan beranda",
         "relay_server" to "Server relai (wss://)",
         "remember_shuffle_repeat" to "Ingat status acak dan ulang",
         "remove_from_library" to "Hapus dari pustaka",
@@ -5895,6 +6039,10 @@ private fun strings_21(): Map<String, String> =
         "uptime" to "Waktu aktif",
         "visitor_data_label" to "VISITOR_DATA (opsional)",
         "volume" to "Volume",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_22(): Map<String, String> =
@@ -6030,6 +6178,7 @@ private fun strings_22(): Map<String, String> =
         "lan_hint" to "Sul telefono, apri Impostazioni → Dispositivi, imposta il server relay sull'indirizzo sopra, quindi inserisci il codice.",
         "lan_sync" to "Sincronizzazione LAN (stesso Wi-Fi)",
         "language" to "Lingua dell'app",
+        "last_listen" to "Ultimo ascolto",
         "later" to "Più tardi",
         "latest_release" to "Note dell'ultima release",
         "library" to "Libreria",
@@ -6109,6 +6258,8 @@ private fun strings_22(): Map<String, String> =
         "pure_black" to "Nero",
         "queue" to "Coda",
         "queue_empty" to "Coda vuota",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Mescola l'ordine della home",
         "relay_server" to "Server di relay (wss://)",
         "remember_shuffle_repeat" to "Ricorda le opzioni di ripetizione e di riproduzione casuale",
         "remove_from_library" to "Rimuovi da libreria",
@@ -6180,6 +6331,10 @@ private fun strings_22(): Map<String, String> =
         "uptime" to "Tempo di attività",
         "visitor_data_label" to "VISITOR_DATA (facoltativo)",
         "volume" to "Volume",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_23(): Map<String, String> =
@@ -6324,6 +6479,7 @@ private fun strings_23(): Map<String, String> =
         "lan_hint" to "スマホで設定 → デバイスを開き、リレーサーバーを上記のアドレスに設定してからコードを入力してください。",
         "lan_sync" to "LAN同期（同じWi-Fi）",
         "language" to "言語",
+        "last_listen" to "最近聴いた曲",
         "later" to "後で",
         "latest_release" to "最新リリースノート",
         "library" to "ライブラリ",
@@ -6404,6 +6560,8 @@ private fun strings_23(): Map<String, String> =
         "pure_black" to "ピュアブラック",
         "queue" to "再生キュー",
         "queue_empty" to "キューは空です",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "ホームの順序をランダム化",
         "relay_server" to "リレーサーバー (wss://)",
         "remember_shuffle_repeat" to "シャッフル/リピート再生を保持",
         "remove_from_library" to "ライブラリから削除",
@@ -6480,6 +6638,10 @@ private fun strings_23(): Map<String, String> =
         "volume" to "音量",
         "weekly_backup" to "毎週のバックアップ",
         "weekly_backup_desc" to "毎週バックグラウンドでデータを自動的にバックアップします。",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_24(): Map<String, String> =
@@ -6584,6 +6746,7 @@ private fun strings_24(): Map<String, String> =
         "lan_address" to "ទូរស័ព្ទភ្ជាប់ទៅ",
         "lan_hint" to "នៅលើទូរស័ព្ទរបស់អ្នក បើក ការកំណត់ → ឧបករណ៍ កំណត់ម៉ាស៊ីនមេបញ្ជូនទៅអាសយដ្ឋានខាងលើ បន្ទាប់មកបញ្ចូលកូដ។",
         "lan_sync" to "ធ្វើសមកាលកម្ម LAN (Wi-Fi ដូចគ្នា)",
+        "last_listen" to "ស្តាប់ចុងក្រោយ",
         "later" to "ពេលក្រោយ",
         "latest_release" to "កំណត់ចំណាំកំណែចុងក្រោយ",
         "library_empty" to "មិនទាន់មានអ្វីនៅទីនេះទេ",
@@ -6641,6 +6804,8 @@ private fun strings_24(): Map<String, String> =
         "privacy_desc" to "Cookie សម័យ សំឡេងដែលបានឃ្លាំងសម្ងាត់ និងកម្មវិធីដំឡើងដែលបានទាញយកត្រូវបានរក្សាទុកតែលើឧបករណ៍នេះប៉ុណ្ណោះ។ អ្នកអាចលុបវានៅទីនេះ។",
         "process" to "ដំណើរការ",
         "queue_empty" to "ជួរទទេ",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "ចៃដន្យលំដាប់ទំព័រដើម",
         "relay_server" to "ម៉ាស៊ីនមេបញ្ជូនបន្ត (wss://)",
         "rename" to "ប្តូរឈ្មោះ",
         "repeat" to "ធ្វើម្ដងទៀត",
@@ -6694,6 +6859,10 @@ private fun strings_24(): Map<String, String> =
         "updates" to "បច្ចុប្បន្នភាព",
         "uptime" to "ពេលវេលាដំណើរការ",
         "visitor_data_label" to "VISITOR_DATA (ជាជម្រើស)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_25(): Map<String, String> =
@@ -6826,6 +6995,7 @@ private fun strings_25(): Map<String, String> =
         "lan_hint" to "휴대전화에서 설정 → 기기를 열고 릴레이 서버를 위 주소로 설정한 다음 코드를 입력하세요.",
         "lan_sync" to "LAN 동기화 (동일 Wi-Fi)",
         "language" to "앱 언어",
+        "last_listen" to "마지막으로 들음",
         "later" to "나중에",
         "latest_release" to "최신 릴리스 노트",
         "library" to "보관함",
@@ -6902,6 +7072,8 @@ private fun strings_25(): Map<String, String> =
         "pure_black" to "퓨어 블랙",
         "queue" to "대기열",
         "queue_empty" to "대기열이 비어 있음",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "홈 순서 무작위로",
         "relay_server" to "릴레이 서버 (wss://)",
         "remove_from_library" to "보관함에서 삭제",
         "rename" to "이름 바꾸기",
@@ -6969,6 +7141,10 @@ private fun strings_25(): Map<String, String> =
         "uptime" to "가동 시간",
         "visitor_data_label" to "VISITOR_DATA(선택 사항)",
         "volume" to "음량",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_26(): Map<String, String> =
@@ -7075,6 +7251,7 @@ private fun strings_26(): Map<String, String> =
         "lan_hint" to "Telefone atidarykite Nustatymai → Įrenginiai, nustatykite perdavimo serverį į aukščiau esantį adresą, tada įveskite kodą.",
         "lan_sync" to "LAN sinchronizavimas (tas pats Wi-Fi)",
         "language" to "Programėlės kalba",
+        "last_listen" to "Paskutinį kartą klausyta",
         "later" to "Vėliau",
         "latest_release" to "Naujausio leidimo pastabos",
         "library_empty" to "Čia dar nieko nėra",
@@ -7138,6 +7315,8 @@ private fun strings_26(): Map<String, String> =
         "privacy_desc" to "Seanso slapukai, talpykloje esantis garsas ir atsisiųstos diegimo programos saugomi tik šiame įrenginyje. Čia galite juos pašalinti.",
         "process" to "Procesas",
         "queue_empty" to "Eilė tuščia",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Atsitiktinai išmaišyti pradinio puslapio eilę",
         "relay_server" to "Perdavimo serveris (wss://)",
         "remember_shuffle_repeat" to "Atsiminti maišymą ir kartojimą",
         "rename" to "Pervadinti",
@@ -7193,6 +7372,10 @@ private fun strings_26(): Map<String, String> =
         "updates" to "Atnaujinimai",
         "uptime" to "Veikimo laikas",
         "visitor_data_label" to "VISITOR_DATA (neprivalomas)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_27(): Map<String, String> =
@@ -7323,6 +7506,7 @@ private fun strings_27(): Map<String, String> =
         "lan_address" to "ഫോൺ കണക്റ്റുചെയ്യുന്നത്",
         "lan_hint" to "നിങ്ങളുടെ ഫോണിൽ ക്രമീകരണങ്ങൾ → ഉപകരണങ്ങൾ തുറന്ന്, റിലേ സെർവർ മുകളിലെ വിലാസത്തിലേക്ക് സജ്ജമാക്കി കോഡ് നൽകുക.",
         "lan_sync" to "LAN സമന്വയം (ഒരേ Wi-Fi)",
+        "last_listen" to "അവസാനം കേട്ടത്",
         "later" to "പിന്നീട്",
         "latest_release" to "ഏറ്റവും പുതിയ റിലീസ് കുറിപ്പുകൾ",
         "library" to "ലൈബ്രറി",
@@ -7394,6 +7578,8 @@ private fun strings_27(): Map<String, String> =
         "pure_black" to "ശുദ്ധ കറുപ്പ്",
         "queue" to "ക്യൂ",
         "queue_empty" to "ക്യൂ ശൂന്യമാണ്",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "ഹോം ക്രമം റാൻഡം ചെയ്യുക",
         "relay_server" to "റിലേ സെർവർ (wss://)",
         "remove_from_library" to "ലൈബ്രറിയിൽ നിന്ന് കളയുക",
         "rename" to "പേരുമാറ്റുക",
@@ -7461,6 +7647,10 @@ private fun strings_27(): Map<String, String> =
         "uptime" to "അപ്ടൈം",
         "visitor_data_label" to "VISITOR_DATA (ഓപ്ഷണൽ)",
         "volume" to "ശബ്ദം",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_28(): Map<String, String> =
@@ -7565,6 +7755,7 @@ private fun strings_28(): Map<String, String> =
         "lan_address" to "Telefon bersambung ke",
         "lan_hint" to "Pada telefon anda, buka Tetapan → Peranti, tetapkan pelayan geganti ke alamat di atas, kemudian masukkan kod.",
         "lan_sync" to "Segerak LAN (Wi-Fi yang sama)",
+        "last_listen" to "Terakhir didengar",
         "later" to "Kemudian",
         "latest_release" to "Nota keluaran terkini",
         "library_empty" to "Belum ada apa-apa di sini",
@@ -7624,6 +7815,8 @@ private fun strings_28(): Map<String, String> =
         "privacy_desc" to "Kuki sesi, audio yang dicache dan pemasang yang dimuat turun disimpan hanya pada peranti ini. Anda boleh mengeluarkannya di sini.",
         "process" to "Proses",
         "queue_empty" to "Baris giliran kosong",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Rawak urutan laman utama",
         "relay_server" to "Pelayan geganti (wss://)",
         "rename" to "Namakan semula",
         "repeat" to "Ulang",
@@ -7677,6 +7870,10 @@ private fun strings_28(): Map<String, String> =
         "updates" to "Kemas kini",
         "uptime" to "Masa aktif",
         "visitor_data_label" to "VISITOR_DATA (pilihan)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_29(): Map<String, String> =
@@ -7808,6 +8005,7 @@ private fun strings_29(): Map<String, String> =
         "lan_hint" to "På telefonen åpner du Innstillinger → Enheter, setter reléserveren til adressen ovenfor, og skriver inn koden.",
         "lan_sync" to "LAN-synkronisering (samme Wi-Fi)",
         "language" to "Appspråk",
+        "last_listen" to "Sist spilt",
         "later" to "Senere",
         "latest_release" to "Siste utgivelsesnotater",
         "library" to "Bibliotek",
@@ -7881,6 +8079,8 @@ private fun strings_29(): Map<String, String> =
         "pure_black" to "Ren svart",
         "queue" to "Kø",
         "queue_empty" to "Køen er tom",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Tilfeldig rekkefølge på hjemmesiden",
         "relay_server" to "Relé-server (wss://)",
         "remove_from_library" to "Fjern fra biblioteket",
         "rename" to "Gi nytt navn",
@@ -7948,6 +8148,10 @@ private fun strings_29(): Map<String, String> =
         "uptime" to "Oppetid",
         "visitor_data_label" to "VISITOR_DATA (valgfritt)",
         "volume" to "Lydstyrke",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_30(): Map<String, String> =
@@ -8079,6 +8283,7 @@ private fun strings_30(): Map<String, String> =
         "lan_hint" to "Open op je telefoon Instellingen → Apparaten, stel de relayserver in op het adres hierboven en voer de code in.",
         "lan_sync" to "LAN-synchronisatie (zelfde wifi)",
         "language" to "App taal",
+        "last_listen" to "Laatst beluisterd",
         "later" to "Later",
         "latest_release" to "Nieuwste releaseopmerkingen",
         "library" to "Bibliotheek",
@@ -8154,6 +8359,8 @@ private fun strings_30(): Map<String, String> =
         "pure_black" to "Zuiver zwart",
         "queue" to "Wachtrij",
         "queue_empty" to "Wachtrij is leeg",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Volgorde van startpagina door elkaar halen",
         "relay_server" to "Relay-server (wss://)",
         "remember_shuffle_repeat" to "Behoud de shuffle- en herhaalmodus",
         "remove_from_library" to "Verwijderen van bibliotheek",
@@ -8223,6 +8430,10 @@ private fun strings_30(): Map<String, String> =
         "uptime" to "Uptime",
         "visitor_data_label" to "VISITOR_DATA (optioneel)",
         "volume" to "Volume",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_31(): Map<String, String> =
@@ -8352,6 +8563,7 @@ private fun strings_31(): Map<String, String> =
         "lan_address" to "ਫ਼ੋਨ ਜੁੜਦਾ ਹੈ",
         "lan_hint" to "ਆਪਣੇ ਫ਼ੋਨ 'ਤੇ ਸੈਟਿੰਗਾਂ → ਡਿਵਾਈਸਾਂ ਖੋਲ੍ਹੋ, ਰੀਲੇਅ ਸਰਵਰ ਨੂੰ ਉੱਪਰ ਦਿੱਤੇ ਪਤੇ 'ਤੇ ਸੈੱਟ ਕਰੋ, ਫਿਰ ਕੋਡ ਦਰਜ ਕਰੋ।",
         "lan_sync" to "LAN ਸਿੰਕ (ਇੱਕੋ Wi-Fi)",
+        "last_listen" to "ਆਖਰੀ ਸੁਣੀ",
         "later" to "ਬਾਅਦ ਵਿੱਚ",
         "latest_release" to "ਨਵੀਨਤਮ ਰੀਲੀਜ਼ ਨੋਟਸ",
         "library" to "ਲਾਇਬ੍ਰੇਰੀ",
@@ -8420,6 +8632,8 @@ private fun strings_31(): Map<String, String> =
         "process" to "ਪ੍ਰਕਿਰਿਆ",
         "pure_black" to "ਸ਼ਾਹ ਕਾਲ੍ਹਾ",
         "queue_empty" to "ਕਤਾਰ ਖਾਲੀ ਹੈ",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "ਹੋਮ ਦੇ ਕ੍ਰਮ ਨੂੰ ਬੇਤਰਤੀਬ ਕਰੋ",
         "relay_server" to "ਰੀਲੇ ਸਰਵਰ (wss://)",
         "remove_from_library" to "ਲਾਇਬ੍ਰੇਰੀ ਤੋਂ ਹਟਾਓ",
         "rename" to "ਨਾਮ ਬਦਲੋ",
@@ -8487,6 +8701,10 @@ private fun strings_31(): Map<String, String> =
         "uptime" to "ਅੱਪਟਾਈਮ",
         "visitor_data_label" to "VISITOR_DATA (ਵਿਕਲਪਿਕ)",
         "volume" to "ਆਵਾਜ਼",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_32(): Map<String, String> =
@@ -8619,6 +8837,7 @@ private fun strings_32(): Map<String, String> =
         "lan_hint" to "Na telefonie otwórz Ustawienia → Urządzenia, ustaw serwer przekaźnikowy na powyższy adres, a następnie wprowadź kod.",
         "lan_sync" to "Synchronizacja LAN (ta sama sieć Wi-Fi)",
         "language" to "Język aplikacji",
+        "last_listen" to "Ostatnio słuchane",
         "later" to "Później",
         "latest_release" to "Notatki najnowszego wydania",
         "library" to "Biblioteka",
@@ -8697,6 +8916,8 @@ private fun strings_32(): Map<String, String> =
         "pure_black" to "Czysta czerń",
         "queue" to "Kolejka",
         "queue_empty" to "Kolejka jest pusta",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Losuj kolejność strony głównej",
         "relay_server" to "Serwer przekaźnikowy (wss://)",
         "remember_shuffle_repeat" to "Zapamiętaj mieszanie i powtarzanie",
         "remove_from_library" to "Usuń z biblioteki",
@@ -8766,6 +8987,10 @@ private fun strings_32(): Map<String, String> =
         "uptime" to "Czas pracy",
         "visitor_data_label" to "VISITOR_DATA (opcjonalnie)",
         "volume" to "Głośność",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_33(): Map<String, String> =
@@ -8898,6 +9123,7 @@ private fun strings_33(): Map<String, String> =
         "lan_hint" to "No telemóvel, abra Definições → Dispositivos, defina o servidor de retransmissão para o endereço acima e introduza o código.",
         "lan_sync" to "Sincronização LAN (mesmo Wi-Fi)",
         "language" to "Idioma da app",
+        "last_listen" to "Última audição",
         "later" to "Mais tarde",
         "latest_release" to "Notas da versão mais recente",
         "library" to "Biblioteca",
@@ -8976,6 +9202,8 @@ private fun strings_33(): Map<String, String> =
         "pure_black" to "Preto puro",
         "queue" to "Fila",
         "queue_empty" to "A fila está vazia",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Embaralhar ordem da página inicial",
         "relay_server" to "Servidor de retransmissão (wss://)",
         "remember_shuffle_repeat" to "Lembrar modo aleatório e repetir",
         "remove_from_library" to "Remover da biblioteca",
@@ -9045,6 +9273,10 @@ private fun strings_33(): Map<String, String> =
         "uptime" to "Tempo de atividade",
         "visitor_data_label" to "VISITOR_DATA (opcional)",
         "volume" to "Volume",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_34(): Map<String, String> =
@@ -9180,6 +9412,7 @@ private fun strings_34(): Map<String, String> =
         "lan_hint" to "Pe telefon, deschide Setări → Dispozitive, setează serverul releu la adresa de mai sus, apoi introdu codul.",
         "lan_sync" to "Sincronizare LAN (același Wi-Fi)",
         "language" to "Limba aplicației",
+        "last_listen" to "Ultima ascultare",
         "later" to "Mai târziu",
         "latest_release" to "Notele celei mai recente versiuni",
         "library" to "Bibliotecă",
@@ -9259,6 +9492,8 @@ private fun strings_34(): Map<String, String> =
         "pure_black" to "Negru pur",
         "queue" to "Coadă",
         "queue_empty" to "Coada este goală",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Amestecă ordinea de pe prima pagină",
         "relay_server" to "Server de retransmisie (wss://)",
         "remember_shuffle_repeat" to "Memorează modurile de amestecare și de repetare",
         "remove_from_library" to "Elimină din bibliotecă",
@@ -9330,6 +9565,10 @@ private fun strings_34(): Map<String, String> =
         "uptime" to "Timp de funcționare",
         "visitor_data_label" to "VISITOR_DATA (opțional)",
         "volume" to "Volum",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_35(): Map<String, String> =
@@ -9465,6 +9704,7 @@ private fun strings_35(): Map<String, String> =
         "lan_hint" to "На телефоне откройте Настройки → Устройства, задайте ретрансляционный сервер по адресу выше, затем введите код.",
         "lan_sync" to "Синхронизация по LAN (тот же Wi-Fi)",
         "language" to "Язык приложения",
+        "last_listen" to "Недавно слушали",
         "later" to "Позже",
         "latest_release" to "Примечания к последнему релизу",
         "library" to "Библиотека",
@@ -9544,6 +9784,8 @@ private fun strings_35(): Map<String, String> =
         "pure_black" to "Режим чистого черного цвета",
         "queue" to "Очередь",
         "queue_empty" to "Очередь пуста",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Случайный порядок главной страницы",
         "relay_server" to "Сервер ретрансляции (wss://)",
         "remember_shuffle_repeat" to "Запоминать перемешивание и повтор",
         "remove_from_library" to "Удалить из библиотеки",
@@ -9615,6 +9857,10 @@ private fun strings_35(): Map<String, String> =
         "uptime" to "Время работы",
         "visitor_data_label" to "VISITOR_DATA (необязательно)",
         "volume" to "Уровень громкости",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_36(): Map<String, String> =
@@ -9746,6 +9992,7 @@ private fun strings_36(): Map<String, String> =
         "lan_hint" to "V telefóne otvorte Nastavenia → Zariadenia, nastavte relay server na adresu vyššie a zadajte kód.",
         "lan_sync" to "Synchronizácia LAN (rovnaké Wi-Fi)",
         "language" to "Jazyk aplikácie",
+        "last_listen" to "Naposledy počúvané",
         "later" to "Neskôr",
         "latest_release" to "Poznámky k najnovšiemu vydaniu",
         "library" to "Knižnica",
@@ -9821,6 +10068,8 @@ private fun strings_36(): Map<String, String> =
         "pure_black" to "Úplná čierna",
         "queue" to "Fronta",
         "queue_empty" to "Fronta je prázdna",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Náhodne usporiadať domovskú stránku",
         "relay_server" to "Prenosový server (wss://)",
         "remove_from_library" to "Odstrániť z knižnice",
         "rename" to "Premenovať",
@@ -9889,6 +10138,10 @@ private fun strings_36(): Map<String, String> =
         "uptime" to "Doba prevádzky",
         "visitor_data_label" to "VISITOR_DATA (voliteľné)",
         "volume" to "Úroveň hlasitosti",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_37(): Map<String, String> =
@@ -10004,6 +10257,7 @@ private fun strings_37(): Map<String, String> =
         "lan_hint" to "Na telefonu odprite Nastavitve → Naprave, nastavite relejni strežnik na zgornji naslov in vnesite kodo.",
         "lan_sync" to "Sinhronizacija LAN (isti Wi-Fi)",
         "language" to "Jezik aplikacije",
+        "last_listen" to "Nazadnje poslušano",
         "later" to "Kasneje",
         "latest_release" to "Opombe zadnje izdaje",
         "library" to "Knjižnica",
@@ -10068,6 +10322,8 @@ private fun strings_37(): Map<String, String> =
         "privacy_desc" to "Piškotki seje, predpomnjeni zvok in preneseni namestitveni programi so shranjeni samo v tej napravi. Tukaj jih lahko odstranite.",
         "process" to "Proces",
         "queue_empty" to "Vrsta je prazna",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Naključno razporedi domov",
         "relay_server" to "Relejni strežnik (wss://)",
         "rename" to "Preimenuj",
         "repeat" to "Ponovi",
@@ -10126,6 +10382,10 @@ private fun strings_37(): Map<String, String> =
         "updates" to "Posodobitve",
         "uptime" to "Čas delovanja",
         "visitor_data_label" to "VISITOR_DATA (neobvezno)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_38(): Map<String, String> =
@@ -10256,6 +10516,7 @@ private fun strings_38(): Map<String, String> =
         "lan_address" to "Telefon se povezuje na",
         "lan_hint" to "Na telefonu otvorite Podešavanja → Uređaji, postavite relejni server na gornju adresu, zatim unesite kod.",
         "lan_sync" to "LAN sinhronizacija (isti Wi-Fi)",
+        "last_listen" to "Posljednje slušano",
         "later" to "Kasnije",
         "latest_release" to "Napomene najnovijeg izdanja",
         "library" to "Biblioteka",
@@ -10329,6 +10590,8 @@ private fun strings_38(): Map<String, String> =
         "pure_black" to "Čisto crna",
         "queue" to "Red",
         "queue_empty" to "Red je prazan",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Nasumično rasporedi početnu stranicu",
         "relay_server" to "Relejni server (wss://)",
         "remove_from_library" to "Ukloni iz biblioteke",
         "rename" to "Preimenuj",
@@ -10396,6 +10659,10 @@ private fun strings_38(): Map<String, String> =
         "uptime" to "Vreme rada",
         "visitor_data_label" to "VISITOR_DATA (opciono)",
         "volume" to "Zvuk",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_39(): Map<String, String> =
@@ -10501,6 +10768,7 @@ private fun strings_39(): Map<String, String> =
         "lan_hint" to "Öppna Inställningar → Enheter på telefonen, ställ in reläservern på adressen ovan och ange sedan koden.",
         "lan_sync" to "LAN-synkronisering (samma Wi-Fi)",
         "language" to "Appspråk",
+        "last_listen" to "Senast lyssnat",
         "later" to "Senare",
         "latest_release" to "Senaste versionsanteckningar",
         "library_empty" to "Inget här ännu",
@@ -10560,6 +10828,8 @@ private fun strings_39(): Map<String, String> =
         "privacy_desc" to "Sessionscookies, cachad ljud och nedladdade installationsprogram lagras bara på den här enheten. Du kan ta bort dem här.",
         "process" to "Process",
         "queue_empty" to "Kön är tom",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Slumpa ordningen på startsidan",
         "relay_server" to "Reläserver (wss://)",
         "rename" to "Byt namn",
         "repeat" to "Upprepa",
@@ -10613,6 +10883,10 @@ private fun strings_39(): Map<String, String> =
         "updates" to "Uppdateringar",
         "uptime" to "Drifttid",
         "visitor_data_label" to "VISITOR_DATA (valfritt)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_40(): Map<String, String> =
@@ -10743,6 +11017,7 @@ private fun strings_40(): Map<String, String> =
         "lan_address" to "ஃபோன் இணைகிறது",
         "lan_hint" to "உங்கள் ஃபோனில் அமைப்புகள் → சாதனங்களைத் திறந்து, ரிலே சேவையகத்தை மேலே உள்ள முகவரிக்கு அமைத்து, குறியீட்டை உள்ளிடவும்.",
         "lan_sync" to "LAN ஒத்திசைவு (அதே Wi-Fi)",
+        "last_listen" to "கடைசியாகக் கேட்டது",
         "later" to "பின்னர்",
         "latest_release" to "சமீபத்திய வெளியீட்டு குறிப்புகள்",
         "library" to "நூலகம்",
@@ -10814,6 +11089,8 @@ private fun strings_40(): Map<String, String> =
         "pure_black" to "தூய கருப்பு",
         "queue" to "வரிசை",
         "queue_empty" to "வரிசை காலியாக உள்ளது",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "முகப்பு வரிசையை கலக்கவும்",
         "relay_server" to "ரிலே சேவையகம் (wss://)",
         "remove_from_library" to "நூலகத்திலிருந்து அகற்று",
         "rename" to "பெயரை மாற்று",
@@ -10881,6 +11158,10 @@ private fun strings_40(): Map<String, String> =
         "uptime" to "செயல்பாட்டு நேரம்",
         "visitor_data_label" to "VISITOR_DATA (விருப்பத்தேர்வு)",
         "volume" to "தொகுதி",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_41(): Map<String, String> =
@@ -11011,6 +11292,7 @@ private fun strings_41(): Map<String, String> =
         "lan_address" to "ఫోన్ కనెక్ట్ అవుతుంది",
         "lan_hint" to "మీ ఫోన్‌లో సెట్టింగ్‌లు → పరికరాలు తెరిచి, రిలే సర్వర్‌ను పై చిరునామాకు సెట్ చేసి, ఆపై కోడ్‌ను నమోదు చేయండి.",
         "lan_sync" to "LAN సింక్ (అదే Wi-Fi)",
+        "last_listen" to "చివరగా విన్నవి",
         "later" to "తర్వాత",
         "latest_release" to "తాజా విడుదల గమనికలు",
         "library" to "లైబ్రరీ",
@@ -11084,6 +11366,8 @@ private fun strings_41(): Map<String, String> =
         "pure_black" to "స్వచ్ఛమైన నలుపు",
         "queue" to "వరుస",
         "queue_empty" to "క్యూ ఖాళీగా ఉంది",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "హోమ్ క్రమాన్ని యాదృచ్ఛికం చేయండి",
         "relay_server" to "రిలే సర్వర్ (wss://)",
         "remove_from_library" to "లైబ్రరీకి అన్నీ జోడించండి",
         "rename" to "పేరు మార్చు",
@@ -11151,6 +11435,10 @@ private fun strings_41(): Map<String, String> =
         "uptime" to "అప్టైమ్",
         "visitor_data_label" to "VISITOR_DATA (ఐచ్ఛికం)",
         "volume" to "శబ్దం",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_42(): Map<String, String> =
@@ -11260,6 +11548,7 @@ private fun strings_42(): Map<String, String> =
         "lan_hint" to "บนโทรศัพท์ของคุณ เปิดการตั้งค่า → อุปกรณ์ ตั้งค่าเซิร์ฟเวอร์รีเลย์เป็นที่อยู่ด้านบน แล้วป้อนรหัส",
         "lan_sync" to "ซิงค์ผ่าน LAN (Wi-Fi เดียวกัน)",
         "language" to "ภาษาของแอป",
+        "last_listen" to "ฟังล่าสุด",
         "later" to "ภายหลัง",
         "latest_release" to "บันทึกเวอร์ชันล่าสุด",
         "library_empty" to "ยังไม่มีอะไรที่นี่",
@@ -11325,6 +11614,8 @@ private fun strings_42(): Map<String, String> =
         "privacy_desc" to "คุกกี้เซสชัน เสียงที่แคชไว้ และตัวติดตั้งที่ดาวน์โหลดแล้วจะถูกเก็บไว้เฉพาะบนอุปกรณ์นี้เท่านั้น คุณสามารถลบได้ที่นี่",
         "process" to "กระบวนการ",
         "queue_empty" to "คิวว่างเปล่า",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "สุ่มลำดับหน้าแรก",
         "relay_server" to "เซิร์ฟเวอร์รีเลย์ (wss://)",
         "remember_shuffle_repeat" to "จดจำการตั้งค่าโหมดสุ่มและเล่นซ้ำ",
         "rename" to "เปลี่ยนชื่อ",
@@ -11382,6 +11673,10 @@ private fun strings_42(): Map<String, String> =
         "updates" to "อัปเดต",
         "uptime" to "เวลาทำงาน",
         "visitor_data_label" to "VISITOR_DATA (ไม่บังคับ)",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_43(): Map<String, String> =
@@ -11525,6 +11820,7 @@ private fun strings_43(): Map<String, String> =
         "lan_hint" to "Telefonunuzda Ayarlar → Cihazlar'ı açın, röle sunucusunu yukarıdaki adrese ayarlayın ve kodu girin.",
         "lan_sync" to "LAN senkronizasyonu (aynı Wi-Fi)",
         "language" to "Uygulama dili",
+        "last_listen" to "Son dinlenen",
         "later" to "Daha sonra",
         "latest_release" to "Son sürüm notları",
         "library" to "Kütüphane",
@@ -11605,6 +11901,8 @@ private fun strings_43(): Map<String, String> =
         "pure_black" to "Simsiyah",
         "queue" to "Sıra",
         "queue_empty" to "Kuyruk boş",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Ana sayfa sırasını karıştır",
         "relay_server" to "Röle sunucusu (wss://)",
         "remember_shuffle_repeat" to "Karışık listeyi hatırla ve tekrarla",
         "remove_from_library" to "Kütüphaneden kaldır",
@@ -11682,6 +11980,10 @@ private fun strings_43(): Map<String, String> =
         "vivimusic_canvas_desc" to "Mevcut olduğunda hareketli albüm kapaklarını göster",
         "volume" to "Ses yüksekliği",
         "website" to "Web sitesi",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_44(): Map<String, String> =
@@ -11814,6 +12116,7 @@ private fun strings_44(): Map<String, String> =
         "lan_hint" to "На телефоні відкрийте Налаштування → Пристрої, задайте релейний сервер на адресу вище, потім введіть код.",
         "lan_sync" to "Синхронізація LAN (той самий Wi-Fi)",
         "language" to "Мова застосунку",
+        "last_listen" to "Останнє прослуховування",
         "later" to "Пізніше",
         "latest_release" to "Примітки до останнього випуску",
         "library" to "Бібліотека",
@@ -11892,6 +12195,8 @@ private fun strings_44(): Map<String, String> =
         "pure_black" to "Режим чистого чорного кольору",
         "queue" to "Черга",
         "queue_empty" to "Черга порожня",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Перемішати порядок головної сторінки",
         "relay_server" to "Сервер ретрансляції (wss://)",
         "remember_shuffle_repeat" to "Пам’ятайте про перемішування та повторення",
         "remove_from_library" to "Видалити з бібліотеки",
@@ -11961,6 +12266,10 @@ private fun strings_44(): Map<String, String> =
         "uptime" to "Час роботи",
         "visitor_data_label" to "VISITOR_DATA (необов'язково)",
         "volume" to "Рівень гучності",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_45(): Map<String, String> =
@@ -12095,6 +12404,7 @@ private fun strings_45(): Map<String, String> =
         "lan_hint" to "Trên điện thoại, mở Cài đặt → Thiết bị, đặt máy chủ chuyển tiếp theo địa chỉ ở trên, rồi nhập mã.",
         "lan_sync" to "Đồng bộ LAN (cùng Wi-Fi)",
         "language" to "Ngôn ngữ ứng dụng",
+        "last_listen" to "Đã nghe gần đây",
         "later" to "Để sau",
         "latest_release" to "Ghi chú bản phát hành mới nhất",
         "library" to "Thư viện",
@@ -12173,6 +12483,8 @@ private fun strings_45(): Map<String, String> =
         "pure_black" to "Tối hoàn toàn",
         "queue" to "Hàng đợi",
         "queue_empty" to "Hàng đợi trống",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "Trộn thứ tự trang chủ",
         "relay_server" to "Máy chủ chuyển tiếp (wss://)",
         "remember_shuffle_repeat" to "Nhớ trạng thái ngẫu nhiên và lặp",
         "remove_from_library" to "Xoá khỏi thư viện",
@@ -12244,6 +12556,10 @@ private fun strings_45(): Map<String, String> =
         "uptime" to "Thời gian hoạt động",
         "visitor_data_label" to "VISITOR_DATA (tùy chọn)",
         "volume" to "Âm lượng",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_46(): Map<String, String> =
@@ -12379,6 +12695,7 @@ private fun strings_46(): Map<String, String> =
         "lan_hint" to "在手机上打开设置 → 设备，将中继服务器设为上面的地址，然后输入代码。",
         "lan_sync" to "局域网同步（同一 Wi-Fi）",
         "language" to "应用语言",
+        "last_listen" to "最近收听",
         "later" to "稍后",
         "latest_release" to "最新版本说明",
         "library" to "媒体库",
@@ -12458,6 +12775,8 @@ private fun strings_46(): Map<String, String> =
         "pure_black" to "纯黑",
         "queue" to "播放队列",
         "queue_empty" to "队列为空",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "随机主页顺序",
         "relay_server" to "中继服务器 (wss://)",
         "remember_shuffle_repeat" to "记住随机与循环设置",
         "remove_from_library" to "从媒体库中移除",
@@ -12529,6 +12848,10 @@ private fun strings_46(): Map<String, String> =
         "uptime" to "运行时间",
         "visitor_data_label" to "VISITOR_DATA（可选）",
         "volume" to "音量",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 private fun strings_47(): Map<String, String> =
@@ -12661,6 +12984,7 @@ private fun strings_47(): Map<String, String> =
         "lan_hint" to "在手機上開啟設定 → 裝置，將中繼伺服器設為上面的位址，然後輸入代碼。",
         "lan_sync" to "區域網路同步（同一 Wi-Fi）",
         "language" to "應用程式語言",
+        "last_listen" to "最近收聽",
         "later" to "稍後",
         "latest_release" to "最新版本說明",
         "library" to "媒體庫",
@@ -12736,6 +13060,8 @@ private fun strings_47(): Map<String, String> =
         "pure_black" to "純黑",
         "queue" to "播放佇列",
         "queue_empty" to "佇列為空",
+        "randomize" to "Randomize",
+        "randomize_home_order" to "隨機主頁順序",
         "relay_server" to "中繼伺服器 (wss://)",
         "remove_from_library" to "從音樂庫中移除",
         "rename" to "重新命名",
@@ -12804,6 +13130,10 @@ private fun strings_47(): Map<String, String> =
         "uptime" to "運作時間",
         "visitor_data_label" to "VISITOR_DATA（可選）",
         "volume" to "音量",
+        "wrapped_listening_time" to "listening",
+        "wrapped_title" to "VIVI Wrapped · This session",
+        "wrapped_top_song" to "top song",
+        "wrapped_tracks" to "tracks",
     )
 
 object Localization {

@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.72] - 2026-08-17
+
+### Added
+
+- [DE] Home: "Quick Picks vs Last Listen" toggle (chip row) so only the
+  chosen section shows, like on mobile.
+- [DE] Home: "Randomize" button that shuffles the order of the home
+  sections (persisted).
+- [DE] Home: "VIVI Wrapped · This session" card with tracks played,
+  listening time and top song of the current session. Fully translated.
+
 ## [6.4.27_DE-1.33.71] - 2026-08-17
 
 ### Added
