@@ -22,7 +22,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -276,6 +283,7 @@ fun App(
     var selectedFont by remember { mutableStateOf(AppFont.fromValue(DesktopSettings.load().selectedFont)) }
     var densityScale by remember { mutableStateOf(DesktopSettings.load().densityScale) }
     var gridItemSize by remember { mutableStateOf(DesktopSettings.load().gridItemSize) }
+    var screenTransition by remember { mutableStateOf(DesktopSettings.load().screenTransition) }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -738,7 +746,19 @@ fun App(
         )
         Column(Modifier.weight(1f).fillMaxHeight()) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
-                when (current) {
+                AnimatedContent(
+                    targetState = current,
+                    transitionSpec = {
+                        when (screenTransition) {
+                            "slide" -> (slideInHorizontally(animationSpec = tween(220)) { it / 4 } + fadeIn(animationSpec = tween(220))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(220)) { -it / 4 } + fadeOut(animationSpec = tween(220)))
+                            "off" -> fadeIn(animationSpec = tween(0)) togetherWith fadeOut(animationSpec = tween(0))
+                            else -> fadeIn(animationSpec = tween(180)) togetherWith fadeOut(animationSpec = tween(180))
+                        }
+                    },
+                    label = "screenTransition",
+                ) { screen ->
+                when (screen) {
                     is Screen.Home -> HomeScreen(
                         language = language,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
@@ -797,10 +817,21 @@ fun App(
                         onBack = goBack,
                         selectedFont = selectedFont,
                         densityScale = densityScale,
+                        screenTransition = screenTransition,
                         onOpenTheme = { navigate(Screen.SettingsTheme) },
                         onOpenFont = { navigate(Screen.SettingsFont) },
                         onOpenCanvas = { navigate(Screen.SettingsCanvas) },
                         onOpenDensity = { navigate(Screen.SettingsDensity) },
+                        onOpenTransitions = { navigate(Screen.SettingsTransitions) },
+                    )
+                    is Screen.SettingsTransitions -> SettingsTransitionsScreen(
+                        language = language,
+                        onBack = goBack,
+                        screenTransition = screenTransition,
+                        onScreenTransitionChange = { t ->
+                            screenTransition = t
+                            DesktopSettings.update { it.copy(screenTransition = t) }
+                        },
                     )
                     is Screen.SettingsDensity -> SettingsDensityScreen(
                         language = language,
@@ -1014,7 +1045,7 @@ fun App(
                         onBack = goBack,
                     )
                     is Screen.Album -> AlbumScreen(
-                        browseId = current.browseId,
+                        browseId = screen.browseId,
                         language = language,
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -1025,7 +1056,7 @@ fun App(
                         onShuffleAll = shuffleAll,
                     )
                     is Screen.Artist -> ArtistScreen(
-                        browseId = current.browseId,
+                        browseId = screen.browseId,
                         language = language,
                         onBack = goBack,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
@@ -1036,7 +1067,7 @@ fun App(
                         onAddToPlaylist = addToPlaylist,
                     )
                     is Screen.Playlist -> PlaylistScreen(
-                        playlistId = current.playlistId,
+                        playlistId = screen.playlistId,
                         language = language,
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -1052,15 +1083,15 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.LocalPlaylist(it)) },
                     )
                     is Screen.LocalPlaylist -> LocalPlaylistScreen(
-                        playlistId = current.playlistId,
+                        playlistId = screen.playlistId,
                         language = language,
                         onBack = goBack,
                         onPlay = { s -> player.play(NowPlaying(videoId = s.id, title = s.title, artist = s.artist, thumbnail = s.thumbnail)) },
                         onPlayAll = { songs -> player.playAll(songs.map { NowPlaying(videoId = it.id, title = it.title, artist = it.artist, thumbnail = it.thumbnail) }) },
                     )
                     is Screen.Browse -> BrowseScreen(
-                        browseId = current.browseId,
-                        params = current.params,
+                        browseId = screen.browseId,
+                        params = screen.params,
                         language = language,
                         gridItemSize = gridItemSize,
                         onBack = goBack,
@@ -1126,6 +1157,7 @@ fun App(
                         },
                     )
                 }
+                } // AnimatedContent
                 if (showUpdateNotification && updateStatus is UpdateStatus.Available) {
                     UpdateNotification(
                         status = updateStatus as UpdateStatus.Available,

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.MotionPhotosOn
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -49,10 +50,12 @@ fun AppearanceSection(
     language: String,
     selectedFont: AppFont,
     densityScale: Float,
+    screenTransition: String,
     onOpenTheme: () -> Unit,
     onOpenFont: () -> Unit,
     onOpenCanvas: () -> Unit,
     onOpenDensity: () -> Unit,
+    onOpenTransitions: () -> Unit,
 ) {
     Text(Localization.get(language, "appearance"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -88,6 +91,48 @@ fun AppearanceSection(
         subtitle = Localization.get(language, densityLabelKey(densityScale)),
         onClick = onOpenDensity,
     )
+    AppearanceEntryRow(
+        language = language,
+        icon = { Icon(Icons.Filled.MotionPhotosOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        title = Localization.get(language, "screen_transitions"),
+        subtitle = Localization.get(language, when (screenTransition) {
+            "slide" -> "transition_slide"
+            "off" -> "transition_off"
+            else -> "transition_fade"
+        }),
+        onClick = onOpenTransitions,
+    )
+}
+
+/**
+ * Screen transitions sub-screen: Off / Fade / Slide (matches the Android
+ * navigation transition options).
+ */
+@Composable
+fun TransitionsScreen(
+    language: String,
+    screenTransition: String,
+    onScreenTransitionChange: (String) -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+    ) {
+        Text(
+            Localization.get(language, "screen_transitions"),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
+        listOf("off" to "transition_off", "fade" to "transition_fade", "slide" to "transition_slide").forEach { (value, key) ->
+            RadioRow(
+                title = Localization.get(language, key),
+                desc = "",
+                selected = screenTransition == value,
+                onClick = { onScreenTransitionChange(value) },
+            )
+        }
+    }
 }
 
 /** Localization key for a density scale value (100/85/75/65/55 %). */

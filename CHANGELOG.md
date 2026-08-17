@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.65] - 2026-08-17
+
+### Added
+
+- [DE] Screen transitions between navigations: Off / Fade / Slide (Settings →
+  Appearance → Screen transitions), applied with `AnimatedContent` around the
+  main screen switch. Fully translated.
+
 ## [6.4.27_DE-1.33.64] - 2026-08-17
 
 ### Added

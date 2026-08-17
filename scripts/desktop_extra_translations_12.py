@@ -110,3 +110,47 @@ EXTRA_TRANSLATIONS = {
         "te": "చాలా పెద్దది", "th": "ใหญ่มาก", "tr": "Çok büyük", "uk": "Дуже великий", "vi": "Rất lớn", "zh-rCN": "特大", "zh-rTW": "特大",
     },
 }
+
+# Screen transitions (appended by the transitions port)
+_TRANSITIONS = {
+    "screen_transitions": {
+        "ar": "انتقالات الشاشة", "as": "স্ক্ৰীণ ট্ৰাঞ্জিচন", "az": "Ekran keçidləri", "be": "Пераходы экрана",
+        "bg": "Преходи на екрана", "bn": "স্ক্রিন ট্রানজিশন", "bs": "Tranzicije ekrana", "ca": "Transicions de pantalla",
+        "cs": "Přechody obrazovky", "de": "Bildschirmübergänge", "el": "Μεταβάσεις οθόνης", "es": "Transiciones de pantalla",
+        "et": "Kuva üleminekud", "eu": "Pantailako trantsizioak", "fi": "Näytön siirtymät", "fil": "Mga transition ng screen",
+        "fr": "Transitions d'écran", "hi": "स्क्रीन ट्रांज़िशन", "hr": "Prijelazi zaslona", "hu": "Képernyőátmenetek",
+        "id": "Transisi layar", "it": "Transizioni dello schermo", "ja": "画面の切り替え", "km": "ការផ្លាស់ប្តូរអេក្រង់",
+        "ko": "화면 전환", "lt": "Ekrano perėjimai", "ml": "സ്ക്രീൻ ട്രാൻസിഷനുകൾ", "ms": "Peralihan skrin",
+        "nb": "Skjermoverganger", "nl": "Schermovergangen", "pa": "ਸਕ੍ਰੀਨ ਟ੍ਰਾਂਜ਼ੀਸ਼ਨ", "pl": "Przejścia ekranu",
+        "pt": "Transições de tela", "ro": "Tranziții de ecran", "ru": "Переходы экрана", "sk": "Prechody obrazovky",
+        "sl": "Prehodi zaslona", "sr": "Прелази екрана", "sv": "Skärmsövergångar", "ta": "திரை மாற்றங்கள்",
+        "te": "స్క్రీన్ పరివర్తనలు", "th": "การเปลี่ยนหน้าจอ", "tr": "Ekran geçişleri", "uk": "Переходи екрана",
+        "vi": "Chuyển tiếp màn hình", "zh-rCN": "屏幕切换动画", "zh-rTW": "螢幕切換動畫",
+    },
+    "transition_off": {
+        "ar": "إيقاف", "as": "বন্ধ", "az": "Söndürülmüş", "be": "Выключана", "bg": "Изключено", "bn": "বন্ধ", "bs": "Isključeno", "ca": "Desactivat",
+        "cs": "Vypnuto", "de": "Aus", "el": "Απενεργοποίηση", "es": "Desactivado", "et": "Väljas", "eu": "Itzalita", "fi": "Pois", "fil": "Naka-off",
+        "fr": "Désactivé", "hi": "बंद", "hr": "Isključeno", "hu": "Ki", "id": "Mati", "it": "Disattivato", "ja": "オフ", "km": "បិទ",
+        "ko": "끄기", "lt": "Išjungta", "ml": "ഓഫ്", "ms": "Mati", "nb": "Av", "nl": "Uit", "pa": "ਬੰਦ", "pl": "Wyłączone",
+        "pt": "Desativado", "ro": "Oprit", "ru": "Выключено", "sk": "Vypnuté", "sl": "Izklopljeno", "sr": "Искључено", "sv": "Av", "ta": "முடக்கு",
+        "te": "ఆఫ్", "th": "ปิด", "tr": "Kapalı", "uk": "Вимкнено", "vi": "Tắt", "zh-rCN": "关闭", "zh-rTW": "關閉",
+    },
+    "transition_fade": {
+        "ar": "تلاشي", "as": "ফেড", "az": "Solma", "be": "Згасанне", "bg": "Избледняване", "bn": "ফেড", "bs": "Izbljeđivanje", "ca": "Esvaïment",
+        "cs": "Prolnutí", "de": "Einblenden", "el": "Ξεθώριασμα", "es": "Fundido", "et": "Hajumine", "eu": "Laukitzea", "fi": "Häivytys", "fil": "Fade",
+        "fr": "Fondu", "hi": "फेड", "hr": "Izbljeđivanje", "hu": "Áttűnés", "id": "Fade", "it": "Dissolvenza", "ja": "フェード", "km": "រសាត់",
+        "ko": "페이드", "lt": "Išblukimas", "ml": "ഫേഡ്", "ms": "Fade", "nb": "Fade", "nl": "Vervagen", "pa": "ਫੇਡ", "pl": "Zanikanie",
+        "pt": "Desvanecer", "ro": "Estompare", "ru": "Затухание", "sk": "Prelínanie", "sl": "Zbledenje", "sr": "Изблеђивање", "sv": "Tonar", "ta": "மென்மையாக மாற்று",
+        "te": "ఫేడ్", "th": "เฟด", "tr": "Solma", "uk": "Затухання", "vi": "Mờ dần", "zh-rCN": "淡入淡出", "zh-rTW": "淡入淡出",
+    },
+    "transition_slide": {
+        "ar": "انزلاق", "as": "স্লাইড", "az": "Sürüşdürmə", "be": "Слайд", "bg": "Плъзгане", "bn": "স্লাইড", "bs": "Klizanje", "ca": "Lliscament",
+        "cs": "Posun", "de": "Schieben", "el": "Ολίσθηση", "es": "Deslizar", "et": "Libisemine", "eu": "Irristatzea", "fi": "Liukuva", "fil": "Slide",
+        "fr": "Glissement", "hi": "स्लाइड", "hr": "Klizanje", "hu": "Csúszás", "id": "Geser", "it": "Scorri", "ja": "スライド", "km": "រុញ",
+        "ko": "슬라이드", "lt": "Slydimas", "ml": "സ്ലൈഡ്", "ms": "Leret", "nb": "Glid", "nl": "Schuiven", "pa": "ਸਲਾਈਡ", "pl": "Przesunięcie",
+        "pt": "Deslizar", "ro": "Glisare", "ru": "Сдвиг", "sk": "Posun", "sl": "Drsenje", "sr": "Клизање", "sv": "Glid", "ta": "ஸ்லைடு",
+        "te": "స్లయిడ్", "th": "สไลด์", "tr": "Kaydır", "uk": "Слайд", "vi": "Trượt", "zh-rCN": "滑动", "zh-rTW": "滑動",
+    },
+}
+for _k, _v in _TRANSITIONS.items():
+    EXTRA_TRANSLATIONS.setdefault(_k, {}).update(_v)

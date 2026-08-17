@@ -27,6 +27,8 @@ data class DesktopSyncState(
     val densityScale: Float = 1f,
     /** Adaptive grid cell width in dp for album/artist/playlist grids. */
     val gridItemSize: Int = 160,
+    /** Screen transition style between navigations: off / fade / slide. */
+    val screenTransition: String = "fade",
     val canvasEnabled: Boolean = true,
     val canvasSource: String = "AUTO",
     val autoPlayNext: Boolean = true,

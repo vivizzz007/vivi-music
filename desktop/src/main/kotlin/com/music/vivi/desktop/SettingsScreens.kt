@@ -278,13 +278,30 @@ fun SettingsAppearanceScreen(
     onBack: () -> Unit,
     selectedFont: AppFont,
     densityScale: Float,
+    screenTransition: String,
     onOpenTheme: () -> Unit,
     onOpenFont: () -> Unit,
     onOpenCanvas: () -> Unit,
     onOpenDensity: () -> Unit,
+    onOpenTransitions: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
-        AppearanceSection(language, selectedFont, densityScale, onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity)
+        AppearanceSection(
+            language, selectedFont, densityScale, screenTransition,
+            onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity, onOpenTransitions,
+        )
+    }
+}
+
+@Composable
+fun SettingsTransitionsScreen(
+    language: String,
+    onBack: () -> Unit,
+    screenTransition: String,
+    onScreenTransitionChange: (String) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        TransitionsScreen(language, screenTransition, onScreenTransitionChange)
     }
 }
 
