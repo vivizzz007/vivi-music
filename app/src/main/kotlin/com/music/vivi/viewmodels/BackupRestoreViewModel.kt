@@ -8,6 +8,8 @@ package com.music.vivi.viewmodels
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import com.music.vivi.MainActivity
@@ -106,56 +108,77 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     private fun restoreFromInputStream(context: Context, raw: java.io.InputStream) {
-        runCatching {
-            raw.use {
-                it.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
-                    var foundAny = false
-                    while (entry != null) {
-                        Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
-                        when (entry.name) {
-                            SETTINGS_FILENAME -> {
-                                Timber.tag("RESTORE").i("Restoring settings to datastore")
-                                foundAny = true
-                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream()
-                                    .use { outputStream ->
-                                        inputStream.copyTo(outputStream)
-                                    }
-                            }
-                            InternalDatabase.DB_NAME -> {
-                                Timber.tag("RESTORE").i("Restoring DB (entry = ${entry.name})")
-                                foundAny = true
-                                // capture path before closing DB to avoid reopening race
-                                val dbPath = database.openHelper.writableDatabase.path
-                                runBlocking(Dispatchers.IO) { database.checkpoint() }
-                                database.close()
-                                Timber.tag("RESTORE").i("Overwriting DB at path: $dbPath")
-                                FileOutputStream(dbPath).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+        // Run the copy work off the main thread: the DB (and settings) files can be
+        // large, and doing this on the UI thread froze the app during restore.
+        Thread {
+            // Stop playback first so the service can't hit the database while we
+            // close and overwrite it below.
+            context.stopService(Intent(context, MusicService::class.java))
+
+            val restored = runCatching {
+                raw.use {
+                    it.zipInputStream().use { inputStream ->
+                        var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                        var foundAny = false
+                        while (entry != null) {
+                            Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
+                            when (entry.name) {
+                                SETTINGS_FILENAME -> {
+                                    Timber.tag("RESTORE").i("Restoring settings to datastore")
+                                    foundAny = true
+                                    (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream()
+                                        .use { outputStream ->
+                                            inputStream.copyTo(outputStream)
+                                        }
                                 }
-                                Timber.tag("RESTORE").i("DB overwrite complete")
+                                InternalDatabase.DB_NAME -> {
+                                    Timber.tag("RESTORE").i("Restoring DB (entry = ${entry.name})")
+                                    foundAny = true
+                                    restoreDatabase(context, inputStream)
+                                }
+                                else -> {
+                                    Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
+                                }
                             }
-                            else -> {
-                                Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
-                            }
+                            entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                         }
-                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
-                    }
-                    if (!foundAny) {
-                        Timber.tag("RESTORE").w("No expected entries found in archive")
+                        if (!foundAny) {
+                            Timber.tag("RESTORE").w("No expected entries found in archive")
+                        }
                     }
                 }
             }
 
-            context.stopService(Intent(context, MusicService::class.java))
-            context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
-            context.startActivity(Intent(context, MainActivity::class.java))
-            exitProcess(0)
-        }.onFailure {
-            reportException(it)
-            Timber.tag("RESTORE").e(it, "Restore failed")
-            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+            // Restart + toast must happen on the main thread.
+            Handler(Looper.getMainLooper()).post {
+                restored.onSuccess {
+                    context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                    exitProcess(0)
+                }.onFailure {
+                    reportException(it)
+                    Timber.tag("RESTORE").e(it, "Restore failed")
+                    Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }.start()
+    }
+
+    private fun restoreDatabase(context: Context, inputStream: java.io.InputStream) {
+        // capture path before closing DB to avoid reopening race
+        val dbPath = database.openHelper.writableDatabase.path
+        runBlocking(Dispatchers.IO) { database.checkpoint() }
+        database.close()
+        // Delete the WAL/SHM sidecar files: the DB uses write-ahead logging, so
+        // restoring only the main .db while stale journal frames remain would
+        // corrupt the DB on next launch (forcing uninstall/reinstall).
+        java.io.File(dbPath + "-wal").delete()
+        java.io.File(dbPath + "-shm").delete()
+        Timber.tag("RESTORE").i("Overwriting DB at path: $dbPath")
+        FileOutputStream(dbPath).use { outputStream ->
+            inputStream.copyTo(outputStream)
         }
+        Timber.tag("RESTORE").i("DB overwrite complete")
     }
 
     fun previewCsvFile(context: Context, uri: Uri): CsvImportState {

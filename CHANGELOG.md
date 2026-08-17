@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.11_DE-1.33.43] - 2026-08-16
+
+### Fixed
+
+- [APK] Restoring a backup no longer freezes and then corrupts the app: the
+  restore (settings + DB copy) now runs off the main thread instead of blocking
+  the UI, and the WAL/SHM sidecar files are deleted before overwriting the
+  Room database, so a restored `song.db` is no longer mixed with stale journal
+  frames (which corrupted the DB on the next launch and required an
+  uninstall/reinstall). Playback is stopped before the database is touched.
+
 ## [6.4.10_DE-1.33.43] - 2026-08-16
 
 ### Added
