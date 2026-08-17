@@ -96,6 +96,54 @@ The desktop should look exactly like the Android app, except:
 - [x] Performance overlay with two profiles — Full (all metrics) and Performance (CPU + RAM + GPU) — movable by dragging (default on), plus an option to show CPU/RAM in the window title bar and a "Title bar only" display mode.
 - [x] Developer options screen reorganized into clear, dividers-separated sections (Display, Monitoring profile, Overlay behaviour, Title bar) for a more "developer" layout.
 
+## Phase 10 — Remaining gaps to reach 100% UI parity (mobile → desktop)
+Only allowed difference: the bottom navigation bar becomes the collapsible/expandable sidebar. Everything below is still missing or divergent.
+
+### Screens / sections missing entirely
+- [ ] Listen Together (mobile main tab) + its chat and "from topbar" variants.
+- [ ] Stats screen.
+- [ ] New Release albums screen.
+- [ ] Charts screen.
+- [ ] Wrapped screen.
+- [ ] Song recognition (Shazam) + recognition history.
+- [ ] Commit screen (`settings/commits`).
+- [ ] Artist sub-tabs: Songs / Albums / Items (mobile `artist/{id}/songs|albums|items`); the DE has a single Artist page.
+- [ ] Auto-playlist detail screens (Liked / Downloaded / Top / Cached); the DE only shows them as Library filters.
+- [ ] Dedicated Mood & genres screen (the DE navigates to a generic Browse screen).
+
+### Settings sub-screens missing
+- [ ] Listen Together settings (hub entry).
+- [ ] AI Lyrics Translation (`settings/ai`).
+- [ ] Data saver (`settings/datasaver`).
+- [ ] Romanization (`settings/content/romanization`).
+- [ ] JioSaavn (`settings/player/jio`).
+- [ ] Equalizer (`settings/equalizer` + dialog).
+- [ ] Spotify import (`settings/spotify`).
+- [ ] Integrations hub + Discord / Last.fm / Listen Together settings.
+- [ ] Discord login.
+- [ ] Notification permission (`settings/update/notification_permission`).
+
+### Already tracked, still open (see Phase 8)
+- [~] Album / Artist / Playlist context menus (the song context menu is done).
+- [ ] Gradient header on Album / Artist / Playlist (currently a simple row).
+
+### Fine-grained parity (not previously tracked)
+- [ ] Dynamic theme (Material You `dynamicTheme`); the DE is a fixed seed palette.
+- [ ] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`).
+- [ ] Player background styles (gradient / blur / glow animated / apple music / live mesh); the DE only has the canvas.
+- [ ] Slider styles (squiggly / wavy / slim).
+- [ ] Mini-player: swipe-to-expand, outline, pure-black mini, interaction with the (floating) nav bar.
+- [ ] Song swipe gestures (swipe to play / remove).
+- [ ] Screen transitions (fade/slide, matching `NavigationBuilder`).
+- [ ] Animated thumbnails (rotating / swipe / canvas thumbnail).
+- [ ] Advanced lyrics (swipe lyrics, romanization, AI translation, line spacing, animation styles, thumbnail play/pause).
+- [ ] UI density (density scale 85/75/65/55%) + custom grid size.
+- [ ] Sort / filter chips for library / albums / artists / playlists.
+- [ ] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card.
+- [ ] Integrations: Discord RPC, Last.fm scrobbling (mobile screens/options).
+- [ ] Search/listen history + pause-history privacy toggles.
+- [ ] Settings popup (quick settings shortcut).
+
 ## Infra / release
 - [x] Inno Setup "Start VIVI Music DE" after install: removed the redundant `launchafterinstall` task that gated the `[Run]` entry, so the final-page checkbox now actually launches `{app}\VIVIMusic.exe`.
 - [x] Mobile backup files use the `.vividroid.backup` extension (manual + automatic) while the desktop uses `.vivide.backup`, so the two editions are distinguishable; older `.backup` files remain listed and importable (the `endsWith(".backup")` listing filters still match the new extension, and the filename timestamp regex accepts both).
