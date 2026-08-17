@@ -11,6 +11,24 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.13_DE-1.33.47] - 2026-08-17
+
+### Added
+
+- [DE+APK] New "Sync VIVI volume" toggle (Settings → Devices and Settings →
+  Player & audio, on both editions). When off, each device keeps its own
+  in-app volume slider independent; the native OS (system) volume sync is
+  unaffected.
+
+### Fixed
+
+- [DE] The seek slider no longer stays disabled or stuck at the end: the track
+  duration is reported as soon as it is known (before the stream resolves) and
+  the live position is clamped to the track length so it can't overshoot.
+- [DE] Position sync no longer fights itself: the periodic re-sync tick only
+  pushes when the position actually advanced, so a stalled/frozen player can't
+  repeatedly drag the paired device back to the same point.
+
 ## [6.4.12_DE-1.33.46] - 2026-08-16
 
 ### Fixed

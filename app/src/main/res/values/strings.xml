@@ -456,4 +456,6 @@
     <string name="device_sync_paired">Paired</string>
     <string name="device_sync_not_paired">Not paired</string>
     <string name="device_sync_paired_device">Paired device</string>
+    <string name="sync_vivi_volume">Sync VIVI volume</string>
+    <string name="sync_vivi_volume_desc">Mirror the in-app volume slider between this phone and VIVI Music DE. Disable it to keep each device's player volume independent.</string>
 </resources>

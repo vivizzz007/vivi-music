@@ -300,6 +300,8 @@ fun SettingsPlayerScreen(
     onToggleRememberShuffleRepeat: (Boolean) -> Unit,
     persistentQueue: Boolean,
     onTogglePersistentQueue: (Boolean) -> Unit,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerSection(
@@ -312,6 +314,8 @@ fun SettingsPlayerScreen(
             onToggleRememberShuffleRepeat,
             persistentQueue,
             onTogglePersistentQueue,
+            syncViviVolume,
+            onToggleSyncViviVolume,
         )
     }
 }
@@ -329,8 +333,16 @@ fun SettingsAccountScreen(
 }
 
 @Composable
-fun SettingsDevicesScreen(language: String, onBack: () -> Unit, syncManager: DesktopSyncManager) {
-    SettingsSubScreen(language, onBack) { DeviceSyncSection(language, syncManager) }
+fun SettingsDevicesScreen(
+    language: String,
+    onBack: () -> Unit,
+    syncManager: DesktopSyncManager,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        DeviceSyncSection(language, syncManager, syncViviVolume, onToggleSyncViviVolume)
+    }
 }
 
 @Composable

@@ -54,4 +54,5 @@ data class NowPlaying(
     val title: String,
     val artist: String,
     val thumbnail: String? = null,
+    val durationMs: Long = 0L,
 )

@@ -117,6 +117,7 @@ import com.music.vivi.constants.PauseOnMute
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
 import com.music.vivi.constants.PlayerVolumeKey
+import com.music.vivi.constants.SyncViviVolumeKey
 import com.music.vivi.constants.RememberShuffleAndRepeatKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ResumeOnBluetoothConnectKey
@@ -1543,7 +1544,7 @@ class MusicService :
                 trackTitle = meta?.title,
                 positionMs = player.currentPosition,
                 isPlaying = player.isPlaying,
-                volume = playerVolume.value,
+                volume = if (dataStore.get(SyncViviVolumeKey, true)) playerVolume.value else null,
                 systemVolume = systemVolume(),
                 repeatMode = repeatModeString(player.repeatMode),
                 isShuffle = player.shuffleModeEnabled,
@@ -1568,6 +1569,7 @@ class MusicService :
         // - `systemVolume` mirrors the desktop's native OS volume.
         // Recording the applied values suppresses the echo push from the poll.
         snapshot.volume?.let { v ->
+            if (!dataStore.get(SyncViviVolumeKey, true)) return@let
             val c = v.coerceIn(0f, 1f)
             playerVolume.value = c
             lastPushedPlayerVolume = c

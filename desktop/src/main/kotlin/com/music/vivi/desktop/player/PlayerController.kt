@@ -332,6 +332,10 @@ class PlayerController {
                 index = index,
                 isPlaying = !startPaused,
                 positionMs = startAtMs,
+                // Report the known duration immediately so the seek slider has
+                // a correct range before the stream resolves (otherwise it shows
+                // as disabled / stuck at the end while positionMs > 0).
+                durationMs = track.durationMs,
                 volume = _state.value.volume,
                 isShuffle = _state.value.isShuffle,
                 repeatMode = _state.value.repeatMode,

@@ -66,6 +66,8 @@ data class DesktopSyncState(
     val autoBackupWeekly: Boolean = false,
     /** Run an automatic backup before installing an update. */
     val autoBackupBeforeUpdate: Boolean = true,
+    /** Sync the in-app (VIVI) player volume slider between devices. */
+    val syncViviVolume: Boolean = true,
 )
 
 object DesktopSettings {

@@ -136,4 +136,18 @@ EXTRA_TRANSLATIONS = {
         "te": "అప్డేట్ మూలం", "th": "แหล่งที่มาของการอัปเดต", "tr": "Güncelleme kaynağı", "uk": "Джерело оновлень",
         "vi": "Nguồn cập nhật", "zh-rCN": "更新来源", "zh-rTW": "更新來源",
     },
+    "sync_vivi_volume": {
+        "ar": "مزامنة صوت VIVI", "as": "VIVI ভলিউম ছিনক্রনাইজ", "az": "VIVI səsini sinxronlaşdır", "be": "Сінхранізаваць гучнасць VIVI",
+        "bg": "Синхронизиране на звука на VIVI", "bn": "VIVI ভলিউম সিঙ্ক করুন", "bs": "Sinhronizuj VIVI jačinu", "ca": "Sincronitza el volum de VIVI",
+        "cs": "Synchronizovat hlasitost VIVI", "de": "VIVI-Lautstärke synchronisieren", "el": "Συγχρονισμός έντασης VIVI", "es": "Sincronizar volumen de VIVI",
+        "et": "VIVI helitugevuse sünkroonimine", "eu": "Sinkronizatu VIVI bolumena", "fi": "Synkronoi VIVI-äänenvoimakkuus", "fil": "I-sync ang volume ng VIVI",
+        "fr": "Synchroniser le volume VIVI", "hi": "VIVI वॉल्यूम सिंक करें", "hr": "Sinkroniziraj VIVI glasnoću", "hu": "VIVI hangerő szinkronizálása",
+        "id": "Sinkronkan volume VIVI", "it": "Sincronizza volume VIVI", "ja": "VIVI の音量を同期", "km": "ធ្វើសមកាលកម្មកម្រិតសំឡេង VIVI",
+        "ko": "VIVI 볼륨 동기화", "lt": "Sinchronizuoti VIVI garsumą", "ml": "VIVI വോളിയം സമന്വയിപ്പിക്കുക", "ms": "Segerakkan volum VIVI",
+        "nb": "Synkroniser VIVI-volum", "nl": "VIVI-volume synchroniseren", "pa": "VIVI ਵਾਲੀਅਮ ਸਿੰਕ ਕਰੋ", "pl": "Synchronizuj głośność VIVI",
+        "pt": "Sincronizar volume do VIVI", "ro": "Sincronizează volumul VIVI", "ru": "Синхронизировать громкость VIVI", "sk": "Synchronizovať hlasitosť VIVI",
+        "sl": "Sinhroniziraj glasnost VIVI", "sr": "Sinhronizuj VIVI jačinu", "sv": "Synkronisera VIVI-volym", "ta": "VIVI ஒலியளவை ஒத்திசை",
+        "te": "VIVI వాల్యూమ్ను సమకాలీకరించు", "th": "ซิงค์ระดับเสียง VIVI", "tr": "VIVI ses düzeyini eşitle", "uk": "Синхронізувати гучність VIVI",
+        "vi": "Đồng bộ âm lượng VIVI", "zh-rCN": "同步 VIVI 音量", "zh-rTW": "同步 VIVI 音量",
+    },
 }

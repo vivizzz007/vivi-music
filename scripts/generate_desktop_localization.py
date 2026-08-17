@@ -387,6 +387,7 @@ ENGLISH = {
     "audio_quality_low": "Low",
     "remember_shuffle_repeat": "Remember shuffle and repeat",
     "persistent_queue": "Persistent queue",
+    "sync_vivi_volume": "Sync VIVI volume",
     "lyrics_text_size": "Lyrics text size",
     "install_now": "Install now",
     "dismiss": "Dismiss",

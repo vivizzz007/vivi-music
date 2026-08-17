@@ -267,6 +267,7 @@ fun App(
     var audioQuality by remember { mutableStateOf(DesktopSettings.load().audioQuality) }
     var rememberShuffleRepeat by remember { mutableStateOf(DesktopSettings.load().rememberShuffleRepeat) }
     var persistentQueue by remember { mutableStateOf(DesktopSettings.load().persistentQueue) }
+    var syncViviVolume by remember { mutableStateOf(DesktopSettings.load().syncViviVolume) }
     var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
 
     // Persistent queue: restore the saved queue on startup (paused, not auto-played).
@@ -298,6 +299,7 @@ fun App(
         title = song.title,
         artist = song.artists.joinToString(", ") { it.name },
         thumbnail = song.thumbnail,
+        durationMs = (song.duration ?: 0) * 1000L,
     )
 
     val playSong: (SongItem) -> Unit = { song -> player.play(songToNowPlaying(song)) }
@@ -491,18 +493,20 @@ fun App(
     // locally-applied remote value isn't bounced straight back.
     LaunchedEffect(syncManager) {
         while (true) {
-            val v = player.state.value.volume
-            val isEcho = System.currentTimeMillis() < volumeGuard.echoUntil &&
-                abs(v - volumeGuard.echoValue) < 0.01f
-            val changed = volumeGuard.lastPushed == null ||
-                abs(v - volumeGuard.lastPushed!!) > 0.001f
-            if (!isEcho && changed) {
-                val s = player.state.value
-                val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
-                // Only mark as pushed when it was actually sent, so a dropped
-                // push (echo-suppression window) is retried on the next tick.
-                if (syncManager.updatePlayback(snapshot)) {
-                    volumeGuard.lastPushed = v
+            if (DesktopSettings.load().syncViviVolume) {
+                val v = player.state.value.volume
+                val isEcho = System.currentTimeMillis() < volumeGuard.echoUntil &&
+                    abs(v - volumeGuard.echoValue) < 0.01f
+                val changed = volumeGuard.lastPushed == null ||
+                    abs(v - volumeGuard.lastPushed!!) > 0.001f
+                if (!isEcho && changed) {
+                    val s = player.state.value
+                    val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
+                    // Only mark as pushed when it was actually sent, so a dropped
+                    // push (echo-suppression window) is retried on the next tick.
+                    if (syncManager.updatePlayback(snapshot)) {
+                        volumeGuard.lastPushed = v
+                    }
                 }
             }
             delay(500L)
@@ -518,9 +522,14 @@ fun App(
     // the peer auto-corrects drift (buffering / clock skew) instead of waiting
     // for the next discrete seek/play/track event.
     LaunchedEffect(syncManager) {
+        var lastPushedPositionMs = -1L
         while (true) {
             delay(SyncServer.RESYNC_TICK_MS)
-            if (player.state.value.isPlaying) {
+            val s = player.state.value
+            // Only push when the position actually advanced: a stalled/frozen
+            // player must not repeatedly drag the peer back to the same point.
+            if (s.isPlaying && s.positionMs != lastPushedPositionMs) {
+                lastPushedPositionMs = s.positionMs
                 player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) }
             }
         }
@@ -553,11 +562,13 @@ fun App(
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
             // App (player) volume sync: mirror the peer's in-app volume slider.
-            pb.volume?.let { v ->
-                volumeGuard.echoUntil = System.currentTimeMillis() + 1500L
-                volumeGuard.echoValue = v
-                volumeGuard.lastPushed = v
-                if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+            if (DesktopSettings.load().syncViviVolume) {
+                pb.volume?.let { v ->
+                    volumeGuard.echoUntil = System.currentTimeMillis() + 1500L
+                    volumeGuard.echoValue = v
+                    volumeGuard.lastPushed = v
+                    if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+                }
             }
             // Native OS system volume sync: mirror the peer's system volume.
             pb.systemVolume?.let { v ->
@@ -588,7 +599,7 @@ fun App(
                 val newerQueue = pb.queueUpdatedAt <= 0L || pb.queueUpdatedAt >= syncManager.queueUpdatedAt()
                 if (newerQueue) {
                     val tracks = pb.queue.map { ref ->
-                        NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
+                        NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail, durationMs = ref.durationMs)
                     }
                     if (tracks.isNotEmpty()) {
                         player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
@@ -739,6 +750,11 @@ fun App(
                             persistentQueue = checked
                             DesktopSettings.update { it.copy(persistentQueue = checked) }
                         },
+                        syncViviVolume = syncViviVolume,
+                        onToggleSyncViviVolume = { checked ->
+                            syncViviVolume = checked
+                            DesktopSettings.update { it.copy(syncViviVolume = checked) }
+                        },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
                         language = language,
@@ -756,6 +772,11 @@ fun App(
                         language = language,
                         onBack = goBack,
                         syncManager = syncManager,
+                        syncViviVolume = syncViviVolume,
+                        onToggleSyncViviVolume = { checked ->
+                            syncViviVolume = checked
+                            DesktopSettings.update { it.copy(syncViviVolume = checked) }
+                        },
                     )
                     is Screen.SettingsContent -> SettingsContentScreen(
                         language = language,
@@ -1375,7 +1396,12 @@ private fun SettingsEntryRow(
 }
 
 @Composable
-fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
+fun DeviceSyncSection(
+    language: String,
+    syncManager: DesktopSyncManager,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+) {
     var serverUrl by remember {
         val saved = DesktopSettings.load().serverUrl
         // Default to the same relay the Android app uses; treat the old
@@ -1414,6 +1440,13 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
     }
 
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+
+    SettingSwitch(
+        language = language,
+        key = "sync_vivi_volume",
+        checked = syncViviVolume,
+        onCheckedChange = onToggleSyncViviVolume,
+    )
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
@@ -2257,6 +2290,8 @@ fun PlayerSection(
     onToggleRememberShuffleRepeat: (Boolean) -> Unit,
     persistentQueue: Boolean,
     onTogglePersistentQueue: (Boolean) -> Unit,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
 ) {
     var qualityExpanded by remember { mutableStateOf(false) }
 
@@ -2280,6 +2315,7 @@ fun PlayerSection(
     SettingSwitch(language, "autoplay_next", autoPlayNext, onToggleAutoPlayNext)
     SettingSwitch(language, "remember_shuffle_repeat", rememberShuffleRepeat, onToggleRememberShuffleRepeat)
     SettingSwitch(language, "persistent_queue", persistentQueue, onTogglePersistentQueue)
+    SettingSwitch(language, "sync_vivi_volume", syncViviVolume, onToggleSyncViviVolume)
 }
 
 @Composable
@@ -2377,7 +2413,7 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         trackTitle = current.title,
         positionMs = s.positionMs,
         isPlaying = s.isPlaying,
-        volume = s.volume,
+        volume = if (DesktopSettings.load().syncViviVolume) s.volume else null,
         systemVolume = SystemVolume.get(),
         repeatMode = s.repeatMode.name,
         isShuffle = s.isShuffle,
