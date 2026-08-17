@@ -40,6 +40,7 @@ sealed interface Screen {
     data object SettingsContent : Screen
     data object SettingsLyrics : Screen
     data object SettingsPrivacy : Screen
+    data object SettingsWrapped : Screen
     data object SettingsStorage : Screen
     data object SettingsUpdates : Screen
     data object SettingsAbout : Screen

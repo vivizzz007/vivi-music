@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.MotionPhotosOn
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -56,6 +57,7 @@ fun AppearanceSection(
     onOpenCanvas: () -> Unit,
     onOpenDensity: () -> Unit,
     onOpenTransitions: () -> Unit,
+    onOpenPlayerDesign: () -> Unit = {},
 ) {
     Text(Localization.get(language, "appearance"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -90,6 +92,12 @@ fun AppearanceSection(
         title = Localization.get(language, "density_and_grid"),
         subtitle = Localization.get(language, densityLabelKey(densityScale)),
         onClick = onOpenDensity,
+    )
+    AppearanceEntryRow(
+        language = language,
+        icon = { Icon(Icons.Filled.MusicNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        title = Localization.get(language, "player_design"),
+        onClick = onOpenPlayerDesign,
     )
     AppearanceEntryRow(
         language = language,

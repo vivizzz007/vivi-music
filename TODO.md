@@ -114,7 +114,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [ ] Stats screen.
 - [ ] New Release albums screen.
 - [ ] Charts screen.
-- [ ] Wrapped screen.
+- [x] Wrapped screen: Settings → VIVI Wrapped sub-screen with the session stats card (DE 1.33.79); the Home card remains as the quick glance.
 - [ ] Song recognition (Shazam) + recognition history.
 - [ ] Commit screen (`settings/commits`).
 - [ ] Artist sub-tabs: Songs / Albums / Items (mobile `artist/{id}/songs|albums|items`); the DE has a single Artist page.
@@ -152,7 +152,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [x] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card (session stats) (DE 1.33.72).
 - [x] Integrations: Discord RPC (Windows IPC pipe) + Last.fm scrobbling/now-playing (DE 1.33.76).
 - [x] Search/listen history + pause-history privacy toggles (DE 1.33.73): local recent searches on the Search screen, Privacy sub-screen with pause toggles + clear.
-- [x] Settings popup (quick settings shortcut) via the sidebar Tune button (DE 1.33.74).
+- [x] Settings popup (quick settings shortcut) via the sidebar Tune button (DE 1.33.74) — **removed again in DE 1.33.79** at the user's request ("procura solo fastidio").
 
 ## Infra / release
 - [x] GitHub Pages website for VIVI Music DE: the static site lives in `.websitede/` (index + Downloads/Changelog/Sync/About subpages, dark minimal style matching the original site, logo bundled) and is deployed by `.github/workflows/pages-deploy.yml` via `actions/deploy-pages` on push to `.websitede/**` (or manual dispatch). Download links and the changelog resolve the latest GitHub release client-side through the API, so the site stays current without rebuilding on every release. URL: `https://piboh.github.io/vivi-music/` (requires Pages → Source: GitHub Actions enabled in repo settings). The site is fully responsive (hamburger nav on mobile, stacking download rows), uses a compact sticky footer, links the Android companion back to the upstream VIVI Music site, and credits VIVIDH P ASHOKAN as the original mobile author.

@@ -11,6 +11,38 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.79] - 2026-08-18
+
+### Added
+
+- [DE] Settings → VIVI Wrapped sub-screen: the session listening-stats card
+  now lives in its own settings sub-menu, like the mobile app. The Home card
+  stays as a quick glance.
+- [DE] Appearance now hosts the player personalization: a new "Player
+  design" row (Material 3 style) opens the design / background / rotating
+  thumbnail / mini-player style screen.
+
+### Fixed
+
+- [DE] Raw keys no longer appear as "code language" UI: 10 keys were missing
+  from the desktop string table (`remove_from_queue`, `pause_search_history`,
+  `pause_listen_history`, `quick_picks`, `search_history`, `listen_history`,
+  `clear_search_history`, `clear_search_history_confirm`, `theme`, `ok`) and
+  are now wired to the Android translations (fallback OK).
+- [DE] Queue screen: the swipe-left remove hint ("✕ remove from queue")
+  duplicated the row's X button; the hint was removed — the X is now the
+  single remove control (swipe-left still works).
+- [DE] Full player: add-to-playlist now sits under the song title, next to
+  the Queue button; the duplicate header Queue shortcut and the old
+  bottom-row buttons were removed.
+- [DE] Startup volume guard: if the Windows master volume is muted, VIVI
+  Music DE unmutes it and sets it to 0% so a paired mobile device can always
+  control it (a muted master ignores volume writes).
+
+### Removed
+
+- [DE] Quick settings (Tune) button in the sidebar.
+
 ## [6.4.27_DE-1.33.78] - 2026-08-18
 
 ### Changed

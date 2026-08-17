@@ -216,10 +216,6 @@ private fun PlayerContent(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = onOpenQueue) {
-                Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = Localization.get(language, "queue"))
-            }
         }
 
         Spacer(Modifier.height(28.dp))
@@ -297,6 +293,23 @@ private fun PlayerContent(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
+                }
+
+                // Under the song text: add-to-playlist + queue, side by side.
+                Spacer(Modifier.height(14.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    if (onAddToPlaylist != null) {
+                        OutlinedButton(onClick = onAddToPlaylist) {
+                            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(Localization.get(language, "add_to_playlist"))
+                        }
+                    }
+                    OutlinedButton(onClick = onOpenQueue) {
+                        Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("${Localization.get(language, "queue")} ($queueSize)")
+                    }
                 }
             }
 
@@ -437,18 +450,6 @@ private fun PlayerContent(
                         Spacer(Modifier.width(8.dp))
                         Text(Localization.get(language, "lyrics"))
                     }
-                    OutlinedButton(onClick = onOpenQueue) {
-                        Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("${Localization.get(language, "queue")} ($queueSize)")
-                    }
-                    if (onAddToPlaylist != null) {
-                        OutlinedButton(onClick = onAddToPlaylist) {
-                            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(Localization.get(language, "add_to_playlist"))
-                        }
-                    }
                 }
             }
         }
@@ -560,22 +561,8 @@ fun QueueScreen(
                         val density = LocalDensity.current
                         val threshold = with(density) { 64.dp.toPx() }
                         Box(Modifier.fillMaxWidth()) {
-                            // Action hints revealed behind the row while dragging.
+                            // Play hint revealed behind the row while swiping right.
                             val progress = (kotlin.math.abs(dragX) / threshold).coerceIn(0f, 1f)
-                            Box(
-                                Modifier
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.85f * progress))
-                                    .matchParentSize(),
-                                contentAlignment = Alignment.CenterEnd,
-                            ) {
-                                Text(
-                                    "✕ " + Localization.get(language, "remove_from_queue"),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onErrorContainer,
-                                    modifier = Modifier.padding(end = 20.dp),
-                                )
-                            }
                             Box(
                                 Modifier
                                     .clip(RoundedCornerShape(12.dp))

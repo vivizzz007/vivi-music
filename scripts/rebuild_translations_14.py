@@ -43,6 +43,22 @@ DATA["randomize_home_order"] = {
 DATA["randomize"] = {"en": "Randomize"}
 DATA["wrapped_title"] = {"en": "VIVI Wrapped \u00b7 This session"}
 DATA["wrapped_tracks"] = {"en": "tracks"}
+DATA["wrapped_desc"] = {
+    "en": "Your listening stats for the current session — restart to reset.",
+    "ar": "إحصائيات الاستماع الخاصة بك للجلسة الحالية — أعد التشغيل لإعادة التعيين.",
+    "de": "Deine Hörstatistiken für die aktuelle Sitzung — Neustart setzt zurück.",
+    "el": "Τα στατιστικά ακρόασης για την τρέχουσα συνεδρία — κάντε επανεκκίνηση για επαναφορά.",
+    "es": "Tus estadísticas de escucha de la sesión actual; reinicia para restablecerlas.",
+    "fr": "Vos statistiques d'écoute pour la session en cours — redémarrez pour réinitialiser.",
+    "it": "Le tue statistiche di ascolto per la sessione corrente — riavvia per azzerarle.",
+    "pl": "Twoje statystyki słuchania z bieżącej sesji — zrestartuj, aby wyzerować.",
+    "pt": "Suas estatísticas de audição da sessão atual — reinicie para redefinir.",
+    "ru": "Ваша статистика прослушивания за текущую сессию — перезапустите, чтобы сбросить.",
+    "tr": "Bu oturumun dinleme istatistikleri — sıfırlamak için yeniden başlatın.",
+    "uk": "Ваша статистика прослуховування за поточну сесію — перезапустіть, щоб скинути.",
+    "zh-rCN": "当前会话的收听统计 — 重启可重置。",
+    "zh-rTW": "目前工作階段的收聽統計——重新啟動可重設。",
+}
 DATA["wrapped_listening_time"] = {"en": "listening"}
 DATA["wrapped_top_song"] = {"en": "top song"}
 DATA["pause_listen_history_desc"] = {"en": "Hides the History screen from the sidebar."}

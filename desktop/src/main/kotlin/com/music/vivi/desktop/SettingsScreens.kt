@@ -285,11 +285,30 @@ fun SettingsAppearanceScreen(
     onOpenCanvas: () -> Unit,
     onOpenDensity: () -> Unit,
     onOpenTransitions: () -> Unit,
+    onOpenPlayerDesign: () -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
         AppearanceSection(
             language, selectedFont, densityScale, screenTransition,
-            onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity, onOpenTransitions,
+            onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity, onOpenTransitions, onOpenPlayerDesign,
+        )
+    }
+}
+
+@Composable
+fun SettingsWrappedScreen(
+    language: String,
+    onBack: () -> Unit,
+    wrappedStats: WrappedStats = WrappedStats(),
+) {
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "wrapped_title"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 12.dp))
+        WrappedCard(wrappedStats = wrappedStats, language = language)
+        Text(
+            Localization.get(language, "wrapped_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
     }
 }

@@ -5,6 +5,7 @@ import com.sun.jna.Memory
 import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.FloatByReference
+import com.sun.jna.ptr.IntByReference
 import com.sun.jna.ptr.PointerByReference
 import com.sun.jna.win32.StdCallLibrary
 import java.util.Locale
@@ -45,6 +46,34 @@ object SystemVolume {
             os.contains("win") -> runCatching { WindowsVolume.set(c) }
             os.contains("mac") -> runCatching { MacVolume.set(c) }
             os.contains("linux") -> runCatching { LinuxVolume.set(c) }
+        }
+    }
+
+    /**
+     * Windows master mute state (true = muted, false = unmuted, null = unknown).
+     * The app only controls the master volume when it is NOT muted; a muted
+     * master would swallow every volume write. Returns null on non-Windows or
+     * when the WASAPI call fails, so callers can no-op safely.
+     */
+    fun isMuted(): Boolean? =
+        if (os.contains("win")) runCatching { WindowsVolume.isMuted() }.getOrNull() else null
+
+    /** Best-effort mute/unmute of the Windows master volume. */
+    fun setMuted(muted: Boolean) {
+        if (os.contains("win")) runCatching { WindowsVolume.setMuted(muted) }
+    }
+
+    /**
+     * Startup guard: if the Windows master volume is muted, unmute it and put
+     * it at 0% so a paired mobile device can control it (a muted master ignores
+     * every volume write). Non-Windows and non-muted states are left untouched.
+     */
+    fun unmuteIfMuted() {
+        if (!os.contains("win")) return
+        val muted = runCatching { WindowsVolume.isMuted() }.getOrNull() ?: return
+        if (muted) {
+            WindowsVolume.setMuted(false)
+            WindowsVolume.set(0f)
         }
     }
 }
@@ -95,6 +124,8 @@ private object WindowsVolume {
     // IAudioEndpointVolume
     private const val EPV_SET_MASTER_SCALAR = 7
     private const val EPV_GET_MASTER_SCALAR = 9
+    private const val EPV_SET_MUTE = 14
+    private const val EPV_GET_MUTE = 15
     // IAudioSessionManager
     private const val ASM_GET_SIMPLE_VOLUME = 4
     // ISimpleAudioVolume
@@ -161,6 +192,12 @@ private object WindowsVolume {
         runOnCom { setOnCom(v); null }
     }
 
+    fun isMuted(): Boolean = runOnCom { getMuteOnCom() } ?: false
+
+    fun setMuted(muted: Boolean) {
+        runOnCom { setMuteOnCom(muted); null }
+    }
+
     private fun initCom(): Boolean {
         val o = ole32 ?: return false
         val hr = runCatching { o.CoInitializeEx(null, COINIT_MULTITHREADED) }.getOrNull() ?: return false
@@ -217,6 +254,22 @@ private object WindowsVolume {
         val ep = endpointVolume ?: return
         pinSessionToMax()
         runCatching { ep.invoke(EPV_SET_MASTER_SCALAR, v.coerceIn(0f, 1f), null) }
+    }
+
+    private fun getMuteOnCom(): Boolean? {
+        if (!ensureVolumes()) return null
+        val ep = endpointVolume ?: return null
+        val ref = IntByReference()
+        val hr = runCatching { ep.invoke(EPV_GET_MUTE, ref) }.getOrNull() ?: return null
+        if (hr != S_OK) return null
+        return ref.value != 0
+    }
+
+    private fun setMuteOnCom(muted: Boolean) {
+        if (!ensureVolumes()) return
+        val ep = endpointVolume ?: return
+        pinSessionToMax()
+        runCatching { ep.invoke(EPV_SET_MUTE, if (muted) 1 else 0, null) }
     }
 }
 

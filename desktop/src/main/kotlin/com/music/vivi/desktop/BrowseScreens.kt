@@ -251,7 +251,7 @@ fun HomeScreen(
 
 /** "VIVI Wrapped" card showing the current session's listening stats. */
 @Composable
-private fun WrappedCard(wrappedStats: WrappedStats, language: String) {
+fun WrappedCard(wrappedStats: WrappedStats, language: String) {
     val minutes = wrappedStats.playedMs / 60_000
     val timeText = if (minutes >= 60) {
         "${minutes / 60}h ${minutes % 60}m"
