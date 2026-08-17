@@ -68,9 +68,13 @@ dependencies there, or you break the desktop build.
   anything that affects the release assets (the `desktop` module,
   `.github/workflows/`, `installer/`, `version.txt`, `desktop/build.gradle.kts`,
   icons, the shared JVM modules) MUST be committed and
-  pushed with a commit message starting with `v` (e.g. `v6.0.5_DE-1.0.0`,
-  optionally followed by a short description after `:`), so the auto-release
-  runs and the result can be verified. The `sync-server/` relay is deployed
+  pushed with a commit message starting with `v` followed by the FULL version
+  (from `version.txt`: `<mobile>_DE-<de>` + channel suffix for non-stable, e.g.
+  `6.4.22_DE-1.33.59-nightly`) and then `:` and a short description. The
+  format is ALWAYS `v<full version>: <short description>` — NEVER a bare
+  `v: ...` (e.g. `v6.4.22_DE-1.33.59: fix network stats on non-English
+  Windows`, with the details — what changed, why — in the commit body after a
+  blank line), so the auto-release runs and the result can be verified. The `sync-server/` relay is deployed
   **separately** (Render Blueprint `render.yaml`) and does **not** trigger the
   auto-release. Documentation-only changes (README, AGENTS.md, CHANGELOG.md,
   TODO.md) do **not** need the `v` prefix. The website (`.websitede/**`) is the
