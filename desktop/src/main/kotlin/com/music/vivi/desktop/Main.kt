@@ -88,11 +88,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -271,6 +274,8 @@ fun App(
     player.autoPlayNext = autoPlayNext
 
     var selectedFont by remember { mutableStateOf(AppFont.fromValue(DesktopSettings.load().selectedFont)) }
+    var densityScale by remember { mutableStateOf(DesktopSettings.load().densityScale) }
+    var gridItemSize by remember { mutableStateOf(DesktopSettings.load().gridItemSize) }
     var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
     var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
 
@@ -714,6 +719,12 @@ fun App(
         }
     }
 
+    // UI density scale: multiply the density so every dp-based measurement
+    // zooms (100% / 85% / 75% / 65% / 55%), matching the Android density setting.
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(baseDensity.density * densityScale, baseDensity.fontScale)
+    ) {
     Row(Modifier.fillMaxSize()) {
         Sidebar(
             language = language,
@@ -740,6 +751,7 @@ fun App(
                     )
                     is Screen.Search -> SearchScreen(
                         language = language,
+                        gridItemSize = gridItemSize,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
@@ -750,6 +762,7 @@ fun App(
                     is Screen.Library -> LibraryScreen(
                         language = language,
                         isLoggedIn = isLoggedIn,
+                        gridItemSize = gridItemSize,
                         onOpenLogin = { navigate(Screen.Login) },
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -783,9 +796,25 @@ fun App(
                         language = language,
                         onBack = goBack,
                         selectedFont = selectedFont,
+                        densityScale = densityScale,
                         onOpenTheme = { navigate(Screen.SettingsTheme) },
                         onOpenFont = { navigate(Screen.SettingsFont) },
                         onOpenCanvas = { navigate(Screen.SettingsCanvas) },
+                        onOpenDensity = { navigate(Screen.SettingsDensity) },
+                    )
+                    is Screen.SettingsDensity -> SettingsDensityScreen(
+                        language = language,
+                        onBack = goBack,
+                        densityScale = densityScale,
+                        onDensityScaleChange = { s ->
+                            densityScale = s
+                            DesktopSettings.update { it.copy(densityScale = s) }
+                        },
+                        gridItemSize = gridItemSize,
+                        onGridItemSizeChange = { g ->
+                            gridItemSize = g
+                            DesktopSettings.update { it.copy(gridItemSize = g) }
+                        },
                     )
                     is Screen.SettingsTheme -> SettingsThemeScreen(
                         language = language,
@@ -1033,6 +1062,7 @@ fun App(
                         browseId = current.browseId,
                         params = current.params,
                         language = language,
+                        gridItemSize = gridItemSize,
                         onBack = goBack,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -1155,6 +1185,7 @@ fun App(
             )
         }
     }
+    } // density scale CompositionLocalProvider
 
     // Developer tools in a dedicated window (closing it falls back to overlay).
     if (devEnabled && devMode == DevToolsMode.WINDOW) {

@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.SettingsBrightness
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -47,9 +48,11 @@ import androidx.compose.ui.unit.dp
 fun AppearanceSection(
     language: String,
     selectedFont: AppFont,
+    densityScale: Float,
     onOpenTheme: () -> Unit,
     onOpenFont: () -> Unit,
     onOpenCanvas: () -> Unit,
+    onOpenDensity: () -> Unit,
 ) {
     Text(Localization.get(language, "appearance"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -78,6 +81,22 @@ fun AppearanceSection(
         title = Localization.get(language, "vivimusic_canvas"),
         onClick = onOpenCanvas,
     )
+    AppearanceEntryRow(
+        language = language,
+        icon = { Icon(Icons.Filled.SettingsBrightness, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+        title = Localization.get(language, "density_and_grid"),
+        subtitle = Localization.get(language, densityLabelKey(densityScale)),
+        onClick = onOpenDensity,
+    )
+}
+
+/** Localization key for a density scale value (100/85/75/65/55 %). */
+private fun densityLabelKey(scale: Float): String = when {
+    scale <= 0.55f -> "density_55"
+    scale <= 0.65f -> "density_65"
+    scale <= 0.75f -> "density_75"
+    scale <= 0.85f -> "density_85"
+    else -> "density_100"
 }
 
 @Composable
@@ -627,6 +646,99 @@ private fun CanvasSourceOption(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+/** Density scale presets (percent). */
+private val DENSITY_PRESETS = listOf(1f, 0.85f, 0.75f, 0.65f, 0.55f)
+
+/** Grid cell width presets in dp (small / medium / large). */
+private val GRID_PRESETS = listOf(140 to "grid_small", 160 to "grid_medium", 200 to "grid_large", 240 to "grid_xlarge")
+
+/**
+ * Density & grid sub-screen: UI density scale (100/85/75/65/55 %) and the
+ * adaptive grid cell size used by album/artist/playlist grids.
+ */
+@Composable
+fun DensityScreen(
+    language: String,
+    densityScale: Float,
+    onDensityScaleChange: (Float) -> Unit,
+    gridItemSize: Int,
+    onGridItemSizeChange: (Int) -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+    ) {
+        Text(
+            Localization.get(language, "density_and_grid"),
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
+        )
+        Text(
+            Localization.get(language, "density_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        DENSITY_PRESETS.forEach { scale ->
+            RadioRow(
+                title = Localization.get(language, densityLabelKey(scale)),
+                desc = "",
+                selected = kotlin.math.abs(scale - densityScale) < 0.001f,
+                onClick = { onDensityScaleChange(scale) },
+            )
+        }
+        Spacer(Modifier.height(16.dp))
+        Text(
+            Localization.get(language, "grid_item_size"),
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 4.dp),
+        )
+        Text(
+            Localization.get(language, "grid_item_size_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        GRID_PRESETS.forEach { (size, key) ->
+            RadioRow(
+                title = Localization.get(language, key),
+                desc = "",
+                selected = gridItemSize == size,
+                onClick = { onGridItemSizeChange(size) },
+            )
+        }
+    }
+}
+
+@Composable
+private fun RadioRow(
+    title: String,
+    desc: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = null)
+        Column(Modifier.weight(1f).padding(start = 12.dp)) {
+            Text(title, style = MaterialTheme.typography.bodyLarge)
+            if (desc.isNotEmpty()) {
+                Text(
+                    desc,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

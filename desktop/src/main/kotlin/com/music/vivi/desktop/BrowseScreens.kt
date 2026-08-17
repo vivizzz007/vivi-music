@@ -175,6 +175,7 @@ fun BrowseScreen(
     browseId: String,
     params: String?,
     language: String,
+    gridItemSize: Int,
     onBack: () -> Unit,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
@@ -197,7 +198,7 @@ fun BrowseScreen(
             error != null -> ErrorBox(language, error)
             result == null -> LoadingBox(language)
             else -> LazyVerticalGrid(
-                columns = GridCells.Adaptive(160.dp),
+                columns = GridCells.Adaptive(gridItemSize.dp),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -226,6 +227,7 @@ fun BrowseScreen(
 @Composable
 fun SearchScreen(
     language: String,
+    gridItemSize: Int,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
     onOpenPlaylist: (String) -> Unit,
@@ -377,7 +379,7 @@ fun SearchScreen(
                     }
                 } else {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(160.dp),
+                        columns = GridCells.Adaptive(gridItemSize.dp),
                         modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),

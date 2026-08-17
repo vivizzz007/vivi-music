@@ -129,6 +129,20 @@ MAPPING = {
     "font_plus_jakarta_sans_desc": "font_plus_jakarta_sans_desc",
     "typography_preview": "typography_preview",
     "preview_text_quote": "preview_text_quote",
+    "density_and_grid": "Density & grid",
+    "density_desc": "Scale the whole interface smaller (or keep 100%).",
+    "density_100": "100%",
+    "density_85": "85%",
+    "density_75": "75%",
+    "density_65": "65%",
+    "density_55": "55%",
+    "grid_item_size": "Grid item size",
+    "grid_item_size_desc": "Card size for albums, artists and playlists grids.",
+    "grid_small": "Small",
+    "grid_medium": "Medium",
+    "grid_large": "Large",
+    "grid_xlarge": "Extra large",
+    "density_and_grid": "display_density",
     "use_canvas": "use_canvas",
     "canvas_source": "canvas_source",
     "canvas_source_auto": "canvas_source_auto",
@@ -1033,8 +1047,9 @@ from desktop_extra_translations_8 import EXTRA_TRANSLATIONS as _EXTRA_8
 from desktop_extra_translations_9 import EXTRA_TRANSLATIONS as _EXTRA_9
 from desktop_extra_translations_10 import EXTRA_TRANSLATIONS as _EXTRA_10
 from desktop_extra_translations_11 import EXTRA_TRANSLATIONS as _EXTRA_11
+from desktop_extra_translations_12 import EXTRA_TRANSLATIONS as _EXTRA_12
 
-for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11):
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12):
     TRANSLATIONS.update(_extra)
 
 

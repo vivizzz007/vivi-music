@@ -47,6 +47,7 @@ import com.music.innertube.pages.LibraryPage
 fun LibraryScreen(
     language: String,
     isLoggedIn: Boolean,
+    gridItemSize: Int,
     onOpenLogin: () -> Unit,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
@@ -136,7 +137,7 @@ fun LibraryScreen(
                     }
                 } else {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(140.dp),
+                        columns = GridCells.Adaptive(gridItemSize.dp),
                         modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),

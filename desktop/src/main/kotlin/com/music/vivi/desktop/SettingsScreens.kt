@@ -277,12 +277,34 @@ fun SettingsAppearanceScreen(
     language: String,
     onBack: () -> Unit,
     selectedFont: AppFont,
+    densityScale: Float,
     onOpenTheme: () -> Unit,
     onOpenFont: () -> Unit,
     onOpenCanvas: () -> Unit,
+    onOpenDensity: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
-        AppearanceSection(language, selectedFont, onOpenTheme, onOpenFont, onOpenCanvas)
+        AppearanceSection(language, selectedFont, densityScale, onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity)
+    }
+}
+
+@Composable
+fun SettingsDensityScreen(
+    language: String,
+    onBack: () -> Unit,
+    densityScale: Float,
+    onDensityScaleChange: (Float) -> Unit,
+    gridItemSize: Int,
+    onGridItemSizeChange: (Int) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        DensityScreen(
+            language = language,
+            densityScale = densityScale,
+            onDensityScaleChange = onDensityScaleChange,
+            gridItemSize = gridItemSize,
+            onGridItemSizeChange = onGridItemSizeChange,
+        )
     }
 }
 

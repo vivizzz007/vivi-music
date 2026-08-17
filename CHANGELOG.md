@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.64] - 2026-08-17
+
+### Added
+
+- [DE] UI density scale (100 / 85 / 75 / 65 / 55 %) applied to the whole
+  interface via a density override (Settings → Appearance → Density & grid),
+  plus a custom adaptive grid item size (small / medium / large / extra
+  large) used by the album / artist / playlist grids. Fully translated.
+
 ## [6.4.27_DE-1.33.63] - 2026-08-17
 
 ### Fixed
