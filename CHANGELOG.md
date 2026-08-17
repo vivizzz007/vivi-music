@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.14_DE-1.33.47] - 2026-08-17
+
+### Fixed
+
+- [APK] The debug APK build (CI) no longer fails during resource merge: the new
+  `sync_vivi_volume_desc` string used a bare apostrophe that aapt2 rejected as an
+  "Invalid unicode escape sequence"; it is now escaped (`\'`) like the rest of the
+  Android strings, so `assembleUniversalGmsDebug` completes again.
+
 ## [6.4.13_DE-1.33.47] - 2026-08-17
 
 ### Added
