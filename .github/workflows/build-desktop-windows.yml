@@ -48,9 +48,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          # version.txt: line 1 = mobile version, line 4 = DE version.
           $mobileVersion = (Get-Content version.txt)[0].Trim()
-          $deVersion = (Get-Content version.txt)[1].Trim()
+          $deVersion = (Get-Content version.txt)[3].Trim()
           $fullVersion = "${mobileVersion}_DE-$deVersion"
           $installerVersion = $deVersion
           $source = Join-Path $env:GITHUB_WORKSPACE 'desktop\build\compose\binaries\main\app\VIVIMusic'
@@ -88,7 +88,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)_DE-$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)_DE-$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           # The MSI is best-effort; copy it only if jpackage produced one.
           if ls desktop/build/compose/binaries/main/msi/*.msi >/dev/null 2>&1; then
             cp desktop/build/compose/binaries/main/msi/*.msi "dist/VIVIMusic-${VERSION}.msi"

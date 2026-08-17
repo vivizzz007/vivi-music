@@ -1,20 +1,24 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
-// version.txt is the single source of truth for release metadata:
-//   line 1 = mobile (Android) version, e.g. 6.0.5
-//   line 2 = desktop ("DE") version, e.g. 1.0.0  (the program's own SemVer)
-//   line 3 = release channel: stable / rc / beta / alpha / nightly
-//   line 4 = desktop version code (monotonic counter, e.g. 57)
-// The human-readable desktop version is "<mobile>_DE-<de>", e.g. 6.0.5_DE-1.0.0.
+// version.txt is the single source of truth for release metadata. Layout:
+//   line 1 = mobile (Android) version, e.g. 6.4.21
+//   line 2 = mobile version code (monotonic int)
+//   line 3 = mobile release channel (stable / rc / beta / alpha / nightly)
+//   line 4 = desktop ("DE") version, e.g. 1.33.52 (the program's own SemVer)
+//   line 5 = desktop version code (monotonic counter)
+//   line 6 = desktop release channel (stable / rc / beta / alpha / nightly)
+//   (comment lines, prefixed with '#', may follow and are ignored)
+// The human-readable desktop version is "<mobile>_DE-<de>", e.g. 6.4.21_DE-1.33.52.
 val versionLines: List<String> = rootProject.file("version.txt")
     .takeIf { it.exists() }
     ?.readLines()
     ?.map { it.trim() }
+    ?.filter { it.isNotEmpty() && !it.startsWith("#") }
     ?: emptyList()
 
 val mobileVersion: String = versionLines.getOrNull(0)?.takeIf { it.isNotEmpty() } ?: "0.0.0"
-val deVersion: String = versionLines.getOrNull(1)?.takeIf { it.isNotEmpty() } ?: "0.0.0"
-val releaseChannel: String = versionLines.getOrNull(2)?.takeIf { it.isNotEmpty() } ?: "stable"
+val deVersion: String = versionLines.getOrNull(3)?.takeIf { it.isNotEmpty() } ?: "0.0.0"
+val releaseChannel: String = versionLines.getOrNull(5)?.takeIf { it.isNotEmpty() } ?: "stable"
 val fullVersion: String = "${mobileVersion}_DE-${deVersion}"
 
 // Installers/package managers require a purely numeric MAJOR.MINOR.PATCH on

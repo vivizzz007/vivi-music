@@ -1,4 +1,13 @@
 6.4.21
-1.33.51
+104
 nightly
-129
+1.33.52
+130
+nightly
+
+# Line 1 — Mobile (Android) version (SemVer), e.g. 6.4.21
+# Line 2 — Mobile version code (monotonic int; keep in sync with app/build.gradle.kts `versionCode`)
+# Line 3 — Mobile release channel (stable / rc / beta / alpha / nightly)
+# Line 4 — Desktop (DE) version (SemVer), e.g. 1.33.52
+# Line 5 — Desktop (DE) version code (monotonic int)
+# Line 6 — Desktop (DE) release channel (stable / rc / beta / alpha / nightly)

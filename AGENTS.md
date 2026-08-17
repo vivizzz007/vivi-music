@@ -121,7 +121,8 @@ warrants it (no need to wait for the user to ask). Update **all** of these to
 keep them in sync:
 
 1. `version.txt` — single source of truth for release metadata (mobile
-   version, DE version, channel — see "Desktop versioning" below).
+   version + code + channel, DE version + code + channel — see "Desktop
+   versioning" below).
 2. `app/build.gradle.kts` — `versionName` (SemVer string) and `versionCode`
    (monotonically increasing integer; the Android requirement is that
    `versionCode` always increases on each release).
@@ -134,10 +135,11 @@ considers obvious):
 
 - A change to the **Android app** (`app/`, or an Android-only module/behavior)
   bumps the **mobile** version: `version.txt` line 1 **and**
-  `app/build.gradle.kts` `versionName` (+ `versionCode`).
+  `app/build.gradle.kts` `versionName` (+ `versionCode`). Also advance
+  `version.txt` line 2 (mobile version code) to match `versionCode`.
 - A change to the **desktop edition** (`desktop/`, its build/installer, the
   `.github/workflows/` release pipeline, or a desktop-only behavior) bumps the
-  **DE** version: `version.txt` line 2 (+ line 4 version code by 1).
+  **DE** version: `version.txt` line 4 (+ line 5 version code by 1).
 - A change that affects **both** editions bumps **both** versions.
 
 Never bump the DE version for a mobile-only change, and never bump the mobile
@@ -150,15 +152,19 @@ version of the form `<mobile>_DE-<de>` (e.g. `6.0.5_DE-1.0.0`):
 
 - `6.0.5` is the Android (mobile) version the desktop is paired with; `1.0.0`
   is the desktop ("DE") version — the program's own SemVer.
-- `version.txt` holds the release metadata on **four lines**: line 1 = mobile
-  version, line 2 = DE version, line 3 = release channel, line 4 = the desktop
-  **version code** (a small monotonic counter matching the number of DE
-  releases, e.g. `57` — shown in the About screen, and bumped by 1 on every DE
-  release). The Android app version stays numeric in `app/build.gradle.kts`
-  (e.g. `6.0.5`).
-- Release channel (line 3): `stable` (or empty) publishes a stable GitHub
-  release; any other value (`rc`, `beta`, `alpha`, `nightly`, …) publishes a
-  pre-release. The channel is shown (uppercased) in the About screen.
+- `version.txt` holds the release metadata on **six lines** (comment lines
+  prefixed with `#` may follow): line 1 = mobile version, line 2 = mobile
+  version code, line 3 = mobile release channel, line 4 = DE version, line 5 =
+  the desktop **version code** (a small monotonic counter matching the number
+  of DE releases, e.g. `57` — shown in the About screen, and bumped by 1 on
+  every DE release), line 6 = DE release channel. The Android app version also
+  stays numeric in `app/build.gradle.kts` (`versionName` / `versionCode`,
+  e.g. `6.0.5` / `57`).
+- Release channels (lines 3 and 6): the **DE** channel (line 6) drives the
+  desktop release — `stable` (or empty) publishes a stable GitHub release;
+  any other value (`rc`, `beta`, `alpha`, `nightly`, …) publishes a
+  pre-release. The channel is shown (uppercased) in the About screen. The
+  mobile channel (line 3) is informational for the Android side.
 - The GitHub release title and desktop artifact filenames use the full
   version (`VIVIMusic-6.0.5_DE-1.0.0-setup.exe`, …). Release **tags carry no
   `v` prefix**: stable releases use the bare version (`6.0.5_DE-1.0.0`), while

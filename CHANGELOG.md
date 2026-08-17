@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.52] - 2026-08-17
+
+### Changed
+
+- [DE] `version.txt` is reorganized into a self-documenting six-line layout:
+  mobile version / mobile version code / mobile channel, then DE version / DE
+  version code / DE channel, with comment lines below explaining each field.
+  `desktop/build.gradle.kts`, `AppInfo`, and the release/build workflows now
+  read the new positions (DE version = line 4, DE channel = line 6, DE version
+  code = line 5).
+
 ## [6.4.21_DE-1.33.51] - 2026-08-17
 
 ### Fixed

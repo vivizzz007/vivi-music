@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           VERSION="${MOBILE}_DE-${DE}"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/deb/*.deb "dist/VIVIMusic-${VERSION}.deb"
@@ -97,7 +97,7 @@ jobs:
         run: |
           set -euo pipefail
           MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           VERSION="${MOBILE}_DE-${DE}"
           # jpackage --type app-image produces a directory, not a single-file
           # .AppImage. Wrap it into an AppDir (AppRun + .desktop + icon) and pack
