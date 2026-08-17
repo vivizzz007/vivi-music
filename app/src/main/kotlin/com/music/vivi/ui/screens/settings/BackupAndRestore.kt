@@ -154,7 +154,7 @@ fun BackupAndRestore(
                         backupLauncher.launch(
                             "${context.getString(R.string.app_name)}_${
                                 LocalDateTime.now().format(formatter)
-                            }.backup"
+                            }.vivide.backup"
                         )
                     },
                     isExpressive = true

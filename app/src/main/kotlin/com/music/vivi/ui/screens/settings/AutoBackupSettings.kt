@@ -329,7 +329,7 @@ fun AutoBackupSettings(
 
 private fun parseBackupFilename(file: File, context: Context): Pair<String, String> {
     val name = file.name
-    val timestampRegex = Regex("""(\d{8}_\d{6})\.backup$""")
+    val timestampRegex = Regex("""(\d{8}_\d{6})(?:\.vivide)?\.backup$""")
     val timestampMatch = timestampRegex.find(name)
     val formattedTime = if (timestampMatch != null) {
         val ts = timestampMatch.groupValues[1]
