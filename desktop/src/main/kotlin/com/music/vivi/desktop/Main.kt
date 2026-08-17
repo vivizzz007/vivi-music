@@ -468,14 +468,20 @@ fun App(
             }
         }
     }
-    // Auto-dismiss the update banner after the configured time. The download
-    // itself keeps running in the shared UpdateState (visible in Settings → Updates).
-    LaunchedEffect(showUpdateNotification) {
-        if (showUpdateNotification) {
+    // Auto-dismiss the update banner after the configured time, but never while
+    // it is showing download progress. The download itself keeps running in the
+    // shared UpdateState (also visible in Settings → Updates).
+    val updateDownloading by UpdateState.progress.collectAsState()
+    val updateBusy = updateDownloading != null
+    LaunchedEffect(showUpdateNotification, updateBusy) {
+        if (showUpdateNotification && !updateBusy) {
             val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
             if (seconds > 0) {
                 delay(seconds * 1000L)
-                showUpdateNotification = false
+                // A download may have started while we waited; don't dismiss then.
+                if (UpdateState.progress.value == null) {
+                    showUpdateNotification = false
+                }
             }
         }
     }

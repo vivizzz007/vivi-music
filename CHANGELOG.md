@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.21_DE-1.33.57] - 2026-08-17
+
+### Fixed
+
+- [DE] The in-app update notification no longer auto-dismisses while it is
+  showing the download progress bar; the timer pauses during a download and
+  resumes after it finishes.
+
 ## [6.4.21_DE-1.33.56] - 2026-08-17
 
 ### Added
