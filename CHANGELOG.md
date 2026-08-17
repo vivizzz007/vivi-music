@@ -11,6 +11,18 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.63] - 2026-08-17
+
+### Fixed
+
+- [DE] The desktop no longer stays silent (appears in the Windows mixer but
+  emits no sound) when a synced track change starts. The desktop held
+  (`startPaused`) whenever the peer was still resolving, and the peer held for
+  the desktop's own resolution, so both paused and neither ever started. The
+  desktop now starts when the peer says it is playing and ignores the peer's
+  play/pause echoes while it is still resolving its own stream; the phone keeps
+  holding for the desktop and both resume together once the desktop is ready.
+
 ## [6.4.27_DE-1.33.62] - 2026-08-17
 
 ### Fixed

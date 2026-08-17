@@ -351,12 +351,15 @@ class PlayerController {
      * Applies a remote playback snapshot (from device sync): replaces the
      * queue, jumps to the given index and position, and starts/pauses.
      */
-    fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean, isResolving: Boolean = false) {
+    fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean) {
         if (tracks.isEmpty()) return
         val idx = index.coerceIn(0, tracks.lastIndex)
-        // While the peer is still resolving its stream, prepare the queue but
-        // hold (start paused) so we don't play ahead of it.
-        playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying || isResolving)
+        // Start right away when the peer is playing: we are the slower device
+        // and the peer will hold for us while WE resolve (see the same-track
+        // `isResolving` handler). Holding here on the peer's transient
+        // resolving state caused a deadlock where both devices paused and
+        // neither ever started.
+        playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying)
     }
 
     private fun playAt(

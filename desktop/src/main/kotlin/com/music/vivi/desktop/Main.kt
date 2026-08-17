@@ -641,13 +641,18 @@ fun App(
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
-                // While the peer is still resolving, its position is frozen, so
-                // hold (pause) instead of seeking to a stale point.
-                val target = syncManager.effectivePosition(pb)
-                when {
-                    pb.isResolving -> player.seekRemoteCatchUp(target, isPlaying = false, SyncServer.RESYNC_TOLERANCE_MS)
-                    pb.userSeek -> player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
-                    else -> player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                // While WE are still resolving this track our own resolution
+                // decides when playback starts: ignore the peer's play/pause
+                // echoes (the peer pauses only because we told it to hold) so we
+                // don't pause ourselves out of the startup. Drift is corrected
+                // by the periodic re-sync once we actually start playing.
+                if (!player.state.value.isResolving) {
+                    val target = syncManager.effectivePosition(pb)
+                    when {
+                        pb.isResolving -> player.seekRemoteCatchUp(target, isPlaying = false, SyncServer.RESYNC_TOLERANCE_MS)
+                        pb.userSeek -> player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                        else -> player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                    }
                 }
             } else {
                 // Last-write-wins for the queue: only replace the local queue if
@@ -659,7 +664,7 @@ fun App(
                         NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail, durationMs = ref.durationMs)
                     }
                     if (tracks.isNotEmpty()) {
-                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying, pb.isResolving)
+                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
                         syncManager.noteQueueApplied(pb)
                     }
                 }
