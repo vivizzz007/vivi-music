@@ -170,7 +170,8 @@ fun BackupAndRestore(
                     title = { Text(stringResource(R.string.action_restore)) },
                     icon = painterResource(R.drawable.restore),
                     onClick = {
-                        restoreLauncher.launch(arrayOf("application/octet-stream"))
+                        // Use */* so old .backup files (no registered MIME) always show up.
+                        restoreLauncher.launch(arrayOf("*/*"))
                     },
                     isExpressive = true
                 ),

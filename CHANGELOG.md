@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.25_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [APK] The restore picker now accepts any file (`*/*`) so old `.backup` files
+  created by the original 6.0.5 app (which have no registered MIME type) always
+  appear in the file selector instead of being hidden/unselectable.
+
 ## [6.4.24_DE-1.33.61] - 2026-08-17
 
 ### Fixed
