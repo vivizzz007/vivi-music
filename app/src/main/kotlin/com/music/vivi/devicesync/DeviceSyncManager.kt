@@ -75,6 +75,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -435,17 +436,25 @@ class DeviceSyncManager @Inject constructor(
             }
             if (r.updatedAt <= localUpdatedAt) continue // local is newer/equal: keep it
 
+            // Preserve the peer's edit timestamp instead of stamping "now":
+            // last-write-wins compares `updatedAt` against the stored
+            // `lastUpdateTime`, so overwriting it with the local clock made the
+            // next remote rename/delete look "older" and get silently dropped.
+            val remoteUpdateTime = if (r.updatedAt > 0L) {
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(r.updatedAt), ZoneOffset.UTC)
+            } else now
+
             if (local == null) {
                 database.insert(
                     PlaylistEntity(
                         id = r.id,
                         name = r.name,
                         bookmarkedAt = now,
-                        lastUpdateTime = now,
+                        lastUpdateTime = remoteUpdateTime,
                     )
                 )
             } else {
-                database.update(local.playlist.copy(name = r.name, lastUpdateTime = now))
+                database.update(local.playlist.copy(name = r.name, lastUpdateTime = remoteUpdateTime))
             }
 
             // Replace the playlist's songs with the remote order.

@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.18_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playlist changes made on the desktop now actually reach the phone.
+  The mobile side was stamping the local "now" into `lastUpdateTime` when
+  applying a remote playlist, so the next desktop rename/delete compared newer
+  than an artificially-updated timestamp and was silently dropped by the
+  last-write-wins check. The remote edit timestamp is now preserved, so create /
+  rename / delete all propagate.
+
 ## [6.4.17_DE-1.33.48] - 2026-08-17
 
 ### Fixed
