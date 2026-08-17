@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.serialization.Serializable
 import java.awt.Color
+import java.awt.RenderingHints
 import java.awt.SystemTray
 import java.awt.TrayIcon
 import java.awt.image.BufferedImage
@@ -78,20 +79,34 @@ object NotificationHistory {
  */
 object NativeNotifier {
 
+    @Volatile
+    private var trayIcon: TrayIcon? = null
+
     /** Shows a native system notification with [title] and [message]. */
     fun notify(title: String, message: String) {
         runCatching {
             if (!SystemTray.isSupported()) return
             val tray = SystemTray.getSystemTray()
-            val icon = TrayIcon(trayImage(), "VIVI Music")
-            icon.isImageAutoSize = true
-            tray.add(icon)
+            val icon = ensureIcon(tray)
             icon.displayMessage(title, message, TrayIcon.MessageType.INFO)
-            // Remove the temporary tray icon shortly after the balloon shows.
-            Thread {
-                Thread.sleep(10_000)
-                runCatching { tray.remove(icon) }
-            }.apply { isDaemon = true; name = "vivimusic-notify"; start() }
+        }
+    }
+
+    /**
+     * Creates the tray icon once and keeps it for the app's lifetime. A
+     * persistent icon (instead of add/remove on every notification) is more
+     * reliable and keeps the VIVI logo consistent for every balloon.
+     */
+    private fun ensureIcon(tray: SystemTray): TrayIcon {
+        trayIcon?.let { return it }
+        return synchronized(this) {
+            trayIcon ?: run {
+                val icon = TrayIcon(trayImage(), "VIVI Music")
+                icon.isImageAutoSize = true
+                tray.add(icon)
+                trayIcon = icon
+                icon
+            }
         }
     }
 
@@ -103,9 +118,12 @@ object NativeNotifier {
                 stream.use { s -> javax.imageio.ImageIO.read(s) }
             }.getOrNull()
             if (source != null) {
-                val size = 64
+                val size = runCatching { SystemTray.getSystemTray().trayIconSize.width }
+                    .getOrDefault(16).coerceIn(16, 64)
                 val scaled = BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB)
                 val g = scaled.createGraphics()
+                g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR)
+                g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
                 g.drawImage(source, 0, 0, size, size, null)
                 g.dispose()
                 return scaled

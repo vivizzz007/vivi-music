@@ -372,6 +372,16 @@ fun App(
             }
         }
     }
+    // Auto-dismiss the dev-unlocked hint after the configured time.
+    LaunchedEffect(showDevNotification) {
+        if (showDevNotification) {
+            val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+            if (seconds > 0) {
+                delay(seconds * 1000L)
+                showDevNotification = false
+            }
+        }
+    }
 
     fun runUpdateCheck() {
         updateStatus = UpdateStatus.Checking
@@ -409,6 +419,17 @@ fun App(
                 NativeNotifier.notify(title, message)
             } else {
                 showUpdateNotification = true
+            }
+        }
+    }
+    // Auto-dismiss the update banner after the configured time. The download
+    // itself keeps running in the shared UpdateState (visible in Settings → Updates).
+    LaunchedEffect(showUpdateNotification) {
+        if (showUpdateNotification) {
+            val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+            if (seconds > 0) {
+                delay(seconds * 1000L)
+                showUpdateNotification = false
             }
         }
     }

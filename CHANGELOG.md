@@ -11,6 +11,19 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.11_DE-1.33.46] - 2026-08-16
+
+### Fixed
+
+- [DE] All in-app notifications now auto-dismiss after the configured time
+  (Settings → Notifications → In-app notification duration): the update
+  banner and the developer-options-unlocked hint previously stayed on screen
+  until dismissed manually, ignoring the setting.
+- [DE] Native notifications keep a single persistent tray icon (created once
+  with the VIVI Music DE logo) instead of adding/removing a temporary icon per
+  notification, so the logo shows reliably and the icon is scaled with
+  high-quality interpolation.
+
 ## [6.4.11_DE-1.33.45] - 2026-08-16
 
 ### Fixed
