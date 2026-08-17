@@ -11,6 +11,16 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.15_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [DE] The Inno Setup installer now actually launches the app when "Start VIVI
+  Music DE" is checked on the final page. The `[Run]` entry was gated on both
+  the final-page checkbox *and* a separate (unchecked) `launchafterinstall`
+  task, so the app never started; the redundant task is removed and the
+  final-page checkbox alone controls the launch.
+
 ## [6.4.15_DE-1.33.47] - 2026-08-17
 
 ### Changed
