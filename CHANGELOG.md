@@ -11,6 +11,14 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.86] - 2026-08-18
+
+### Fixed
+
+- [DE] The Queue swipe-to-play hint ("▶ Play") no longer stays visible on top
+  of the song artwork: the hint (background + text) now fades in only while
+  dragging right, so it is fully hidden when the row is idle.
+
 ## [6.4.28_DE-1.33.85] - 2026-08-18
 
 ### Fixed

@@ -686,7 +686,8 @@ fun QueueScreen(
                             Box(
                                 Modifier
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f * progress))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f))
+                                    .graphicsLayer { alpha = progress }
                                     .matchParentSize(),
                                 contentAlignment = Alignment.CenterStart,
                             ) {
