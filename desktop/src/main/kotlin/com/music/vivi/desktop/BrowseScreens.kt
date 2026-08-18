@@ -72,6 +72,7 @@ fun HomeScreen(
     randomizeOrder: Boolean = false,
     onRandomizeOrderChange: (Boolean) -> Unit = {},
     wrappedStats: WrappedStats = WrappedStats(),
+    showWrapped: Boolean = false,
 ) {
     var home by remember { mutableStateOf<HomePage?>(null) }
     var moodAndGenres by remember { mutableStateOf<List<MoodAndGenres>?>(null) }
@@ -100,7 +101,7 @@ fun HomeScreen(
             val page = home!!
 
             // "VIVI Wrapped" session stats card (top of Home, like mobile).
-            if (wrappedStats.trackStarts > 0) {
+            if (showWrapped && wrappedStats.trackStarts > 0) {
                 item(key = "wrapped") {
                     WrappedCard(wrappedStats = wrappedStats, language = language)
                 }

@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.27_DE-1.33.80] - 2026-08-18
+
+### Changed
+
+- [DE] The VIVI Wrapped card is now hidden from the Home screen by default.
+  It can be re-enabled via Settings → VIVI Wrapped → "Show on Home".
+
 ## [6.4.27_DE-1.33.79] - 2026-08-18
 
 ### Added

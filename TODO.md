@@ -114,7 +114,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [ ] Stats screen.
 - [ ] New Release albums screen.
 - [ ] Charts screen.
-- [x] Wrapped screen: Settings → VIVI Wrapped sub-screen with the session stats card (DE 1.33.79); the Home card remains as the quick glance.
+- [x] Wrapped screen: Settings → VIVI Wrapped sub-screen with the session stats card + "Show on Home" toggle (default off) (DE 1.33.80).
 - [ ] Song recognition (Shazam) + recognition history.
 - [ ] Commit screen (`settings/commits`).
 - [ ] Artist sub-tabs: Songs / Albums / Items (mobile `artist/{id}/songs|albums|items`); the DE has a single Artist page.

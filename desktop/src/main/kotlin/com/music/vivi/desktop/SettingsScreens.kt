@@ -300,10 +300,27 @@ fun SettingsWrappedScreen(
     language: String,
     onBack: () -> Unit,
     wrappedStats: WrappedStats = WrappedStats(),
+    showWrappedOnHome: Boolean = false,
+    onShowWrappedOnHomeChange: (Boolean) -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
         Text(Localization.get(language, "wrapped_title"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 12.dp))
         WrappedCard(wrappedStats = wrappedStats, language = language)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Switch(checked = showWrappedOnHome, onCheckedChange = onShowWrappedOnHomeChange)
+            Column(Modifier.clickable { onShowWrappedOnHomeChange(!showWrappedOnHome) }) {
+                Text(Localization.get(language, "wrapped_show_on_home"))
+                Text(
+                    Localization.get(language, "wrapped_show_on_home_desc"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         Text(
             Localization.get(language, "wrapped_desc"),
             style = MaterialTheme.typography.bodySmall,

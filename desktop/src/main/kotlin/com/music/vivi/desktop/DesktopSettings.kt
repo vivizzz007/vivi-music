@@ -40,6 +40,8 @@ data class DesktopSyncState(
     val miniPlayerStyle: String = "standard",
     val homeUseLastListen: Boolean = false,
     val randomizeHomeOrder: Boolean = false,
+    /** Show the "VIVI Wrapped" card on the Home screen. */
+    val showWrappedOnHome: Boolean = false,
     val pauseSearchHistory: Boolean = false,
     val pauseListenHistory: Boolean = false,
     val searchHistory: List<String> = emptyList(),

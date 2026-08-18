@@ -301,6 +301,7 @@ fun App(
     var miniPlayerStyle by remember { mutableStateOf(DesktopSettings.load().miniPlayerStyle) }
     var homeUseLastListen by remember { mutableStateOf(DesktopSettings.load().homeUseLastListen) }
     var randomizeHomeOrder by remember { mutableStateOf(DesktopSettings.load().randomizeHomeOrder) }
+    var showWrappedOnHome by remember { mutableStateOf(DesktopSettings.load().showWrappedOnHome) }
     var pauseSearchHistory by remember { mutableStateOf(DesktopSettings.load().pauseSearchHistory) }
     var pauseListenHistory by remember { mutableStateOf(DesktopSettings.load().pauseListenHistory) }
     var searchHistory by remember { mutableStateOf(DesktopSettings.load().searchHistory) }
@@ -896,6 +897,7 @@ fun App(
                             topSongTitle = sessionTopSong?.second,
                             topSongCount = sessionTopCount,
                         ),
+                        showWrapped = showWrappedOnHome,
                     )
                     is Screen.Search -> SearchScreen(
                         language = language,
@@ -1145,6 +1147,11 @@ fun App(
                             topSongTitle = sessionTopSong?.second,
                             topSongCount = sessionTopCount,
                         ),
+                        showWrappedOnHome = showWrappedOnHome,
+                        onShowWrappedOnHomeChange = { v ->
+                            showWrappedOnHome = v
+                            DesktopSettings.update { it.copy(showWrappedOnHome = v) }
+                        },
                     )
                     is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
                         language = language,

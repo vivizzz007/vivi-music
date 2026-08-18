@@ -61,6 +61,27 @@ DATA["wrapped_desc"] = {
 }
 DATA["wrapped_listening_time"] = {"en": "listening"}
 DATA["wrapped_top_song"] = {"en": "top song"}
+DATA["wrapped_show_on_home"] = {
+    "en": "Show on Home", "ar": "\u0639\u0631\u0636 \u0641\u064a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629", "de": "Auf der Startseite anzeigen",
+    "el": "\u0395\u03bc\u03c6\u03ac\u03bd\u03b9\u03c3\u03b7 \u03c3\u03c4\u03b7\u03bd \u03b1\u03c1\u03c7\u03b9\u03ba\u03ae", "es": "Mostrar en inicio", "fr": "Afficher sur l'accueil",
+    "it": "Mostra nella home", "pl": "Poka\u017c na stronie g\u0142\u00f3wnej", "pt": "Mostrar no in\u00edcio",
+    "ru": "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043d\u0430 \u0433\u043b\u0430\u0432\u043d\u043e\u0439", "tr": "Ana sayfada g\u00f6ster",
+    "uk": "\u041f\u043e\u043a\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u043d\u0430 \u0433\u043e\u043b\u043e\u0432\u043d\u0456\u0439", "zh-rCN": "\u5728\u4e3b\u9875\u663e\u793a", "zh-rTW": "\u5728\u4e3b\u9801\u986f\u793a",
+}
+DATA["wrapped_show_on_home_desc"] = {
+    "en": "Display the VIVI Wrapped card at the top of the Home screen.",
+    "ar": "\u0639\u0631\u0636 \u0628\u0637\u0627\u0642\u0629 VIVI Wrapped \u0641\u064a \u0623\u0639\u0644\u0649 \u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629.",
+    "de": "Zeigt die VIVI-Wrapped-Karte oben auf der Startseite.",
+    "es": "Muestra la tarjeta VIVI Wrapped en la parte superior de la pantalla de inicio.",
+    "fr": "Affiche la carte VIVI Wrapped en haut de l'\u00e9cran d'accueil.",
+    "it": "Mostra la scheda VIVI Wrapped in cima alla home.",
+    "pt": "Mostra o cart\u00e3o VIVI Wrapped no topo da tela inicial.",
+    "ru": "\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0435\u0442 \u043a\u0430\u0440\u0442\u043e\u0447\u043a\u0443 VIVI Wrapped \u0441\u0432\u0435\u0440\u0445\u0443 \u0433\u043b\u0430\u0432\u043d\u043e\u0433\u043e \u044d\u043a\u0440\u0430\u043d\u0430.",
+    "tr": "VIVI Wrapped kart\u0131n\u0131 ana ekran\u0131n \u00fcst k\u0131sm\u0131nda g\u00f6sterir.",
+    "uk": "\u041f\u043e\u043a\u0430\u0437\u0443\u0454 \u043a\u0430\u0440\u0442\u043a\u0443 VIVI Wrapped \u0432\u0433\u043e\u0440\u0456 \u0433\u043e\u043b\u043e\u0432\u043d\u043e\u0433\u043e \u0435\u043a\u0440\u0430\u043d\u0430.",
+    "zh-rCN": "\u5728\u4e3b\u9875\u9876\u90e8\u663e\u793a VIVI Wrapped \u5361\u7247\u3002",
+    "zh-rTW": "\u5728\u4e3b\u9801\u9802\u90e8\u986f\u793a VIVI Wrapped \u5361\u7247\u3002",
+}
 DATA["pause_listen_history_desc"] = {"en": "Hides the History screen from the sidebar."}
 DATA["pause_search_history_desc"] = {"en": "Keeps new searches out of the recent-searches list."}
 DATA["quick_settings"] = {
