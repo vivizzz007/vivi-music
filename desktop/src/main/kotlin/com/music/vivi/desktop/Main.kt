@@ -818,12 +818,16 @@ fun App(
             settings["selectedThemeColor"]?.toIntOrNull()?.let { argb ->
                 onAccentChange(argbIntToColor(argb))
             }
+            settings["syncViviVolume"]?.toBooleanStrictOrNull()?.let { v ->
+                syncViviVolume = v
+                DesktopSettings.update { it.copy(syncViviVolume = v) }
+            }
         }
     }
 
     // Push the local settings when they change (also once on startup).
-    LaunchedEffect(syncManager, language, themeMode, accent) {
-        syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent))
+    LaunchedEffect(syncManager, language, themeMode, accent, syncViviVolume) {
+        syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent, syncViviVolume))
     }
 
     // Playlist sync: push the local playlists whenever they change and apply
@@ -2986,7 +2990,12 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
 }
 
 /** Maps the desktop theme/language/accent onto the Android shared-preference keys. */
-private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: Color): Map<String, String> = mapOf(
+private fun desktopSettingsMap(
+    language: String,
+    themeMode: ThemeMode,
+    accent: Color,
+    syncViviVolume: Boolean,
+): Map<String, String> = mapOf(
     "appLanguage" to Languages.toMobileCode(language).ifBlank { "SYSTEM_DEFAULT" },
     "darkMode" to when (themeMode) {
         ThemeMode.SYSTEM -> "AUTO"
@@ -2996,4 +3005,5 @@ private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: C
     "selectedThemeColor" to colorToArgbInt(accent).toString(),
     "pureBlack" to "false",
     "dynamicTheme" to "false",
+    "syncViviVolume" to syncViviVolume.toString(),
 )

@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.81] - 2026-08-18
+
+### Fixed
+
+- [DE+APK] The "Sync VIVI volume" toggle is now part of the shared settings
+  snapshot, so enabling/disabling it on either device reflects on the other.
+
 ## [6.4.27_DE-1.33.80] - 2026-08-18
 
 ### Changed
