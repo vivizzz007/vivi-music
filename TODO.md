@@ -139,7 +139,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 
 ### Fine-grained parity (not previously tracked)
 - [x] Dynamic theme (Material You `dynamicTheme`): OS accent detection (Windows DWM / macOS / GNOME) for the Dynamic swatch (DE 1.33.70).
-- [x] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`). (DE 1.33.67)
+- [x] Player design variants (`useNewPlayerDesign`, `usePlayerV2`, `useExpressiveAlbumDesign`, `useAppleMiniPlayer`). Made visually distinct: Classic (two-column), New (single-column hero + pill play), V2 (two-column, title overlaid), Expressive (single-column, largest art, title overlaid). (DE 1.33.83)
 - [x] Player background styles (gradient / blur / glow animated / apple music / live mesh). (DE 1.33.67)
 - [x] Slider styles (squiggly / wavy / thin). (DE 1.33.66)
 - [x] Screen transitions (fade/slide, matching `NavigationBuilder`). (DE 1.33.65)

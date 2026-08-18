@@ -198,6 +198,8 @@ private fun PlayerContent(
 ) {
     val contentWidth = 720.dp
     val metrics = design.metrics()
+    val singleColumn = design == PlayerDesign.NEW || design == PlayerDesign.EXPRESSIVE
+    val pillPlay = design == PlayerDesign.NEW
 
     Column(
         Modifier
@@ -206,7 +208,7 @@ private fun PlayerContent(
             .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Header: label + queue shortcut.
+        // Header: label.
         Row(
             Modifier.widthIn(max = contentWidth).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -220,236 +222,89 @@ private fun PlayerContent(
 
         Spacer(Modifier.height(28.dp))
 
-        // Two-column layout: artwork on the left, controls on the right. The
-        // art size / title-overlay follow the selected player design variant.
-        Row(
-            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(40.dp),
-        ) {
-            // Left: artwork + title/artist (title overlaid on the art for the
-            // v2 / expressive designs).
+        if (singleColumn) {
+            // Single-column "hero" layout: artwork + title centered on top,
+            // controls stacked below (new / expressive designs).
+            PlayerArtworkBlock(
+                np = np,
+                queueSize = queueSize,
+                metrics = metrics,
+                rotatingThumbnail = rotatingThumbnail,
+                language = language,
+                onAddToPlaylist = onAddToPlaylist,
+                onOpenQueue = onOpenQueue,
+            )
+            Spacer(Modifier.height(24.dp))
             Column(
-                Modifier.widthIn(max = metrics.artSize + 40.dp),
+                Modifier.widthIn(max = contentWidth).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(Modifier.shadow(16.dp, RoundedCornerShape(metrics.artCorner))) {
-                    Box {
-                        PlayerThumbnail(np.thumbnail, metrics.artSize, metrics.artCorner, rotatingThumbnail)
-                        if (metrics.overlayTitle) {
-                            Box(
-                                Modifier
-                                    .matchParentSize()
-                                    .clip(RoundedCornerShape(metrics.artCorner))
-                                    .background(
-                                        Brush.verticalGradient(
-                                            0.5f to Color.Transparent,
-                                            1f to Color.Black.copy(alpha = 0.72f),
-                                        )
-                                    )
-                            )
-                            Column(
-                                Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .padding(12.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                            ) {
-                                Text(
-                                    np.title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = Color.White,
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    np.artist,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = Color.White.copy(alpha = 0.85f),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                    }
-                }
-                if (!metrics.overlayTitle) {
-                    Spacer(Modifier.height(16.dp))
-                    Text(
-                        np.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        np.artist,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-
-                // Under the song text: add-to-playlist + queue, side by side.
-                Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (onAddToPlaylist != null) {
-                        OutlinedButton(onClick = onAddToPlaylist) {
-                            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(Localization.get(language, "add_to_playlist"))
-                        }
-                    }
-                    OutlinedButton(onClick = onOpenQueue) {
-                        Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("${Localization.get(language, "queue")} ($queueSize)")
-                    }
-                }
-            }
-
-            // Right: seek bar + transport controls + volume + secondary actions.
-            Column(Modifier.weight(1f)) {
-                // Seek slider (position / duration). Disabled until the duration
-                // is known so the slider can never degenerate into a 0..1 range
-                // (which made the thumb snap to the start or the end). While the
-                // user drags, the live position is ignored so it can't fight the
-                // drag and yank the thumb back.
-                var isSeeking by remember(np.videoId) { mutableStateOf(false) }
-                var seekValue by remember(np.videoId) { mutableStateOf(0f) }
-                val sliderMax = durationMs.coerceAtLeast(1L)
-                val displayPosition = if (isSeeking) {
-                    seekValue
-                } else {
-                    positionMs.toFloat().coerceIn(0f, sliderMax.toFloat())
-                }
-                ViviSlider(
-                    value = displayPosition.coerceIn(0f, sliderMax.toFloat()),
-                    onValueChange = {
-                        seekValue = it.coerceIn(0f, sliderMax.toFloat())
-                        isSeeking = true
-                    },
-                    onValueChangeFinished = {
-                        if (durationMs > 0) onSeek(seekValue.toLong())
-                        isSeeking = false
-                    },
-                    enabled = durationMs > 0,
-                    valueRange = 0f..sliderMax.toFloat(),
-                    style = sliderStyle,
-                    modifier = Modifier.fillMaxWidth(),
+                PlayerControlPanel(
+                    np = np,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    volume = volume,
+                    isShuffle = isShuffle,
+                    repeatMode = repeatMode,
+                    loadPhase = loadPhase,
+                    onTogglePlay = onTogglePlay,
+                    onNext = onNext,
+                    onPrevious = onPrevious,
+                    onSeek = onSeek,
+                    onVolume = onVolume,
+                    onToggleShuffle = onToggleShuffle,
+                    onCycleRepeat = onCycleRepeat,
+                    language = language,
+                    onOpenLyrics = onOpenLyrics,
+                    sliderStyle = sliderStyle,
+                    pillPlay = pillPlay,
                 )
-                Row(Modifier.fillMaxWidth()) {
-                    Text(
-                        formatTime(displayPosition.toLong()),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        formatTime(durationMs),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                if (loadPhase != LoadPhase.NONE) {
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            Localization.get(language, if (loadPhase == LoadPhase.RESOLVING) "resolving" else "downloading"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Transport controls: shuffle / previous / play / next / repeat.
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+            }
+        } else {
+            // Two-column layout: artwork on the left, controls on the right
+            // (classic / v2 designs).
+            Row(
+                Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(40.dp),
+            ) {
+                Column(
+                    Modifier.widthIn(max = metrics.artSize + 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    IconButton(onClick = onToggleShuffle) {
-                        Icon(
-                            Icons.Filled.Shuffle,
-                            contentDescription = Localization.get(language, "shuffle"),
-                            tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
-                        Icon(
-                            Icons.Filled.SkipPrevious,
-                            contentDescription = Localization.get(language, "previous"),
-                            modifier = Modifier.size(36.dp),
-                        )
-                    }
-                    FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
-                        Icon(
-                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
-                            modifier = Modifier.size(40.dp),
-                        )
-                    }
-                    IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
-                        Icon(
-                            Icons.Filled.SkipNext,
-                            contentDescription = Localization.get(language, "next"),
-                            modifier = Modifier.size(36.dp),
-                        )
-                    }
-                    IconButton(onClick = onCycleRepeat) {
-                        Icon(
-                            repeatIcon(repeatMode),
-                            contentDescription = Localization.get(language, "repeat"),
-                            tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Volume.
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        volumeIcon(volume),
-                        contentDescription = Localization.get(language, "volume"),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    ViviSlider(
-                        value = volume.coerceIn(0f, 1f),
-                        onValueChange = onVolume,
-                        valueRange = 0f..1f,
-                        style = sliderStyle,
-                        modifier = Modifier.weight(1f),
+                    PlayerArtworkBlock(
+                        np = np,
+                        queueSize = queueSize,
+                        metrics = metrics,
+                        rotatingThumbnail = rotatingThumbnail,
+                        language = language,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onOpenQueue = onOpenQueue,
                     )
                 }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Secondary actions.
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = onOpenLyrics) {
-                        Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(Localization.get(language, "lyrics"))
-                    }
+                Column(Modifier.weight(1f)) {
+                    PlayerControlPanel(
+                        np = np,
+                        isPlaying = isPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        volume = volume,
+                        isShuffle = isShuffle,
+                        repeatMode = repeatMode,
+                        loadPhase = loadPhase,
+                        onTogglePlay = onTogglePlay,
+                        onNext = onNext,
+                        onPrevious = onPrevious,
+                        onSeek = onSeek,
+                        onVolume = onVolume,
+                        onToggleShuffle = onToggleShuffle,
+                        onCycleRepeat = onCycleRepeat,
+                        language = language,
+                        onOpenLyrics = onOpenLyrics,
+                        sliderStyle = sliderStyle,
+                        pillPlay = pillPlay,
+                    )
                 }
             }
         }
@@ -475,6 +330,271 @@ private fun PlayerContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PlayerArtworkBlock(
+    np: NowPlaying,
+    queueSize: Int,
+    metrics: PlayerDesignMetrics,
+    rotatingThumbnail: Boolean,
+    language: String,
+    onAddToPlaylist: (() -> Unit)?,
+    onOpenQueue: () -> Unit,
+) {
+    Box(Modifier.shadow(16.dp, RoundedCornerShape(metrics.artCorner))) {
+        Box {
+            PlayerThumbnail(np.thumbnail, metrics.artSize, metrics.artCorner, rotatingThumbnail)
+            if (metrics.overlayTitle) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(metrics.artCorner))
+                        .background(
+                            Brush.verticalGradient(
+                                0.5f to Color.Transparent,
+                                1f to Color.Black.copy(alpha = 0.72f),
+                            )
+                        )
+                )
+                Column(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        np.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        np.artist,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+    if (!metrics.overlayTitle) {
+        Spacer(Modifier.height(16.dp))
+        Text(
+            np.title,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            np.artist,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+
+    // Under the song text: add-to-playlist + queue, side by side.
+    Spacer(Modifier.height(14.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (onAddToPlaylist != null) {
+            OutlinedButton(onClick = onAddToPlaylist) {
+                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(Localization.get(language, "add_to_playlist"))
+            }
+        }
+        OutlinedButton(onClick = onOpenQueue) {
+            Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("${Localization.get(language, "queue")} ($queueSize)")
+        }
+    }
+}
+
+@Composable
+private fun PlayerControlPanel(
+    np: NowPlaying,
+    isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    volume: Float,
+    isShuffle: Boolean,
+    repeatMode: RepeatMode,
+    loadPhase: LoadPhase,
+    onTogglePlay: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onVolume: (Float) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
+    language: String,
+    onOpenLyrics: () -> Unit,
+    sliderStyle: ViviSliderStyle,
+    pillPlay: Boolean,
+) {
+    // Seek slider (position / duration). Disabled until the duration
+    // is known so the slider can never degenerate into a 0..1 range
+    // (which made the thumb snap to the start or the end). While the
+    // user drags, the live position is ignored so it can't fight the
+    // drag and yank the thumb back.
+    var isSeeking by remember(np.videoId) { mutableStateOf(false) }
+    var seekValue by remember(np.videoId) { mutableStateOf(0f) }
+    val sliderMax = durationMs.coerceAtLeast(1L)
+    val displayPosition = if (isSeeking) {
+        seekValue
+    } else {
+        positionMs.toFloat().coerceIn(0f, sliderMax.toFloat())
+    }
+    ViviSlider(
+        value = displayPosition.coerceIn(0f, sliderMax.toFloat()),
+        onValueChange = {
+            seekValue = it.coerceIn(0f, sliderMax.toFloat())
+            isSeeking = true
+        },
+        onValueChangeFinished = {
+            if (durationMs > 0) onSeek(seekValue.toLong())
+            isSeeking = false
+        },
+        enabled = durationMs > 0,
+        valueRange = 0f..sliderMax.toFloat(),
+        style = sliderStyle,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Row(Modifier.fillMaxWidth()) {
+        Text(
+            formatTime(displayPosition.toLong()),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            formatTime(durationMs),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+
+    if (loadPhase != LoadPhase.NONE) {
+        Spacer(Modifier.height(12.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                Localization.get(language, if (loadPhase == LoadPhase.RESOLVING) "resolving" else "downloading"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Transport controls: shuffle / previous / play / next / repeat.
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onToggleShuffle) {
+            Icon(
+                Icons.Filled.Shuffle,
+                contentDescription = Localization.get(language, "shuffle"),
+                tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
+            Icon(
+                Icons.Filled.SkipPrevious,
+                contentDescription = Localization.get(language, "previous"),
+                modifier = Modifier.size(36.dp),
+            )
+        }
+        if (pillPlay) {
+            Button(
+                onClick = onTogglePlay,
+                shape = RoundedCornerShape(50),
+            ) {
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(Localization.get(language, if (isPlaying) "pause" else "play"))
+            }
+        } else {
+            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
+                    modifier = Modifier.size(40.dp),
+                )
+            }
+        }
+        IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
+            Icon(
+                Icons.Filled.SkipNext,
+                contentDescription = Localization.get(language, "next"),
+                modifier = Modifier.size(36.dp),
+            )
+        }
+        IconButton(onClick = onCycleRepeat) {
+            Icon(
+                repeatIcon(repeatMode),
+                contentDescription = Localization.get(language, "repeat"),
+                tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Volume.
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            volumeIcon(volume),
+            contentDescription = Localization.get(language, "volume"),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.width(8.dp))
+        ViviSlider(
+            value = volume.coerceIn(0f, 1f),
+            onValueChange = onVolume,
+            valueRange = 0f..1f,
+            style = sliderStyle,
+            modifier = Modifier.weight(1f),
+        )
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Secondary actions.
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(onClick = onOpenLyrics) {
+            Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(Localization.get(language, "lyrics"))
         }
     }
 }

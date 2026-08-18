@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.83] - 2026-08-18
+
+### Changed
+
+- [DE] The player design variants now actually differ: Classic is the
+  two-column layout, New is a single-column hero with a pill play button,
+  V2 keeps two columns with the title overlaid on the artwork, and Expressive
+  is a single-column hero with the title overlaid on the largest artwork.
+
 ## [6.4.28_DE-1.33.82] - 2026-08-18
 
 ### Changed
