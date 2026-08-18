@@ -11,6 +11,17 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.85] - 2026-08-18
+
+### Fixed
+
+- [DE] Player sync (seek bar + play/pause) now follows the peer even over a
+  phone hotspot: a seek/play command that arrived while the desktop was still
+  resolving its own stream was dropped (our own resolution decides when audio
+  starts) and only recovered on the next 5s re-sync tick. The latest peer
+  snapshot is now re-applied the moment our stream finishes resolving, so the
+  slower resolution over a hotspot no longer leaves seek/play-pause unsynced.
+
 ## [6.4.28_DE-1.33.84] - 2026-08-18
 
 ### Added

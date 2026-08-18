@@ -740,9 +740,18 @@ fun App(
         }
     }
 
+    // Latest peer playback snapshot. While WE are still resolving our stream,
+    // incoming seek/play-pause is held off (our own resolution decides when
+    // audio starts), so a command sent during that window is re-applied as soon
+    // as our audio actually starts flowing instead of being dropped until the
+    // next 5s periodic re-sync (which was especially noticeable on a slow
+    // phone-hotspot connection where resolution takes a while).
+    val latestRemotePlayback = remember { java.util.concurrent.atomic.AtomicReference<PlaybackSnapshot?>(null) }
+
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
+            latestRemotePlayback.set(pb)
             // App (player) volume sync: mirror the peer's in-app volume slider.
             if (DesktopSettings.load().syncViviVolume) {
                 pb.volume?.let { v ->
@@ -771,7 +780,7 @@ fun App(
                 // decides when playback starts: ignore the peer's play/pause
                 // echoes (the peer pauses only because we told it to hold) so we
                 // don't pause ourselves out of the startup. Drift is corrected
-                // by the periodic re-sync once we actually start playing.
+                // by the re-apply effect below once we actually start playing.
                 if (!player.state.value.isResolving) {
                     val target = syncManager.effectivePosition(pb)
                     when {
@@ -795,6 +804,30 @@ fun App(
                     }
                 }
             }
+        }
+    }
+
+    // Re-apply the peer's latest snapshot the moment our stream finishes
+    // resolving: a seek/play-pause received while we were still buffering was
+    // held off above, so without this it would be lost until the next periodic
+    // re-sync (slow over a phone hotspot). Only same-track corrections are
+    // re-applied; a changed queue is handled by the collector above.
+    LaunchedEffect(syncManager) {
+        var wasResolving = player.state.value.isResolving
+        player.state.map { it.isResolving }.distinctUntilChanged().collect { resolving ->
+            if (wasResolving && !resolving) {
+                val pb = latestRemotePlayback.get()
+                val currentId = player.state.value.current?.videoId
+                if (pb != null && !pb.isResolving && currentId != null && pb.trackId == currentId) {
+                    val target = syncManager.effectivePosition(pb)
+                    if (pb.userSeek) {
+                        player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                    } else {
+                        player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                    }
+                }
+            }
+            wasResolving = resolving
         }
     }
 
