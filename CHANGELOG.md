@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.82] - 2026-08-18
+
+### Changed
+
+- [DE] UI density scale now also offers values above 100% (110, 120, 125, 130,
+  140, 150, 180, 200) in addition to the existing 100/85/75/65/55%.
+
 ## [6.4.28_DE-1.33.81] - 2026-08-18
 
 ### Fixed

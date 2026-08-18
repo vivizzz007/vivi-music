@@ -23,7 +23,7 @@ data class DesktopSyncState(
     val darkMode: String = "system",
     val accentColor: Int = 0xFFED5564.toInt(),
     val selectedFont: String = "system",
-    /** UI density scale (1f = 100%, then 0.85/0.75/0.65/0.55). */
+    /** UI density scale (1f = 100%; supports 55%..200% via the density presets). */
     val densityScale: Float = 1f,
     /** Adaptive grid cell width in dp for album/artist/playlist grids. */
     val gridItemSize: Int = 160,

@@ -147,7 +147,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [x] Mini-player: swipe-to-expand, outline, pure-black mini (DE 1.33.68). Floating nav-bar interaction: the DE uses the sidebar instead, mini player already sits above it.
 - [x] Song swipe gestures (swipe to play / remove) in the Queue screen (DE 1.33.69).
 - [~] Advanced lyrics: line spacing + thumbnail play/pause done (DE 1.33.75); swipe lyrics / romanization / AI translation are touch/API-dependent and not portable to desktop — noted as out of scope.
-- [x] UI density (density scale 100/85/75/65/55%) + custom adaptive grid size (DE 1.33.64, Settings → Appearance → Density & grid).
+- [x] UI density (density scale 55%..200%, incl. 110/120/125/130/140/150/180/200 above 100%) + custom adaptive grid size (DE 1.33.82, Settings → Appearance → Density & grid).
 - [x] Sort chips for library items: A-Z / Z-A + by artist on songs (DE 1.33.71).
 - [x] Home: "Quick Picks vs Last Listen" toggle, "Randomize home order", Wrapped card (session stats) (DE 1.33.72).
 - [x] Integrations: Discord RPC (Windows IPC pipe) + Last.fm scrobbling/now-playing (DE 1.33.76).

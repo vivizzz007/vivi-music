@@ -844,7 +844,7 @@ fun App(
     }
 
     // UI density scale: multiply the density so every dp-based measurement
-    // zooms (100% / 85% / 75% / 65% / 55%), matching the Android density setting.
+    // zooms (200% down to 55%), matching the Android density setting.
     val baseDensity = LocalDensity.current
     CompositionLocalProvider(
         LocalDensity provides Density(baseDensity.density * densityScale, baseDensity.fontScale)

@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 
 /**
  * Appearance hub: three rows mirroring the Android app's Appearance sub-menu
@@ -90,7 +91,7 @@ fun AppearanceSection(
         language = language,
         icon = { Icon(Icons.Filled.SettingsBrightness, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
         title = Localization.get(language, "density_and_grid"),
-        subtitle = Localization.get(language, densityLabelKey(densityScale)),
+        subtitle = densityLabel(densityScale),
         onClick = onOpenDensity,
     )
     AppearanceEntryRow(
@@ -143,14 +144,8 @@ fun TransitionsScreen(
     }
 }
 
-/** Localization key for a density scale value (100/85/75/65/55 %). */
-private fun densityLabelKey(scale: Float): String = when {
-    scale <= 0.55f -> "density_55"
-    scale <= 0.65f -> "density_65"
-    scale <= 0.75f -> "density_75"
-    scale <= 0.85f -> "density_85"
-    else -> "density_100"
-}
+/** Human-readable density label (e.g. "110%") for a scale value. */
+private fun densityLabel(scale: Float): String = "${(scale * 100).roundToInt()}%"
 
 @Composable
 private fun AppearanceEntryRow(
@@ -711,14 +706,17 @@ private fun CanvasSourceOption(
     }
 }
 
-/** Density scale presets (percent). */
-private val DENSITY_PRESETS = listOf(1f, 0.85f, 0.75f, 0.65f, 0.55f)
+/** Density scale presets (fractional; 1f = 100%). */
+private val DENSITY_PRESETS = listOf(
+    2.0f, 1.8f, 1.5f, 1.4f, 1.3f, 1.25f, 1.2f, 1.1f,
+    1f, 0.85f, 0.75f, 0.65f, 0.55f,
+)
 
 /** Grid cell width presets in dp (small / medium / large). */
 private val GRID_PRESETS = listOf(140 to "grid_small", 160 to "grid_medium", 200 to "grid_large", 240 to "grid_xlarge")
 
 /**
- * Density & grid sub-screen: UI density scale (100/85/75/65/55 %) and the
+ * Density & grid sub-screen: UI density scale (200% down to 55%) and the
  * adaptive grid cell size used by album/artist/playlist grids.
  */
 @Composable
@@ -747,7 +745,7 @@ fun DensityScreen(
         )
         DENSITY_PRESETS.forEach { scale ->
             RadioRow(
-                title = Localization.get(language, densityLabelKey(scale)),
+                title = densityLabel(scale),
                 desc = "",
                 selected = kotlin.math.abs(scale - densityScale) < 0.001f,
                 onClick = { onDensityScaleChange(scale) },
