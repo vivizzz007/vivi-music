@@ -512,6 +512,7 @@ fun SettingsUpdatesScreen(
     onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onOpenCommits: () -> Unit,
 ) {
     // Check for updates every time the section is opened.
     LaunchedEffect(Unit) { onCheckUpdates() }
@@ -527,6 +528,7 @@ fun SettingsUpdatesScreen(
             onUpdateSourceChange,
             onCheckUpdates,
             onOpenChangelog,
+            onOpenCommits,
         )
     }
 }

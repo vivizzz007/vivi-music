@@ -116,7 +116,7 @@ Only allowed difference: the bottom navigation bar becomes the collapsible/expan
 - [ ] Charts screen.
 - [x] Wrapped screen: Settings → VIVI Wrapped sub-screen with the session stats card + "Show on Home" toggle (default off) (DE 1.33.80).
 - [ ] Song recognition (Shazam) + recognition history.
-- [ ] Commit screen (`settings/commits`).
+- [x] Commit screen (`settings/commits`) — Settings → Updates → Commits lists the selected source branch's recent commits (DE 1.33.87).
 - [ ] Artist sub-tabs: Songs / Albums / Items (mobile `artist/{id}/songs|albums|items`); the DE has a single Artist page.
 - [ ] Auto-playlist detail screens (Liked / Downloaded / Top / Cached); the DE only shows them as Library filters.
 - [ ] Dedicated Mood & genres screen (the DE navigates to a generic Browse screen).

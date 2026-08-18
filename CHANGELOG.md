@@ -11,6 +11,15 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.87] - 2026-08-18
+
+### Added
+
+- [DE] Commit screen (Settings → Updates → Commits): lists the most recent
+  commits of the selected update source branch (fork `vivi-music-de` or
+  original `main`), with author, date, short SHA and avatar. Clicking a commit
+  opens it on GitHub.
+
 ## [6.4.28_DE-1.33.86] - 2026-08-18
 
 ### Fixed

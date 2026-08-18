@@ -143,6 +143,19 @@ DATA["stream_cache_forever"] = {
     "pt": "Para sempre", "ru": "\u041d\u0430\u0432\u0441\u0435\u0433\u0434\u0430", "tr": "Sonsuza dek",
     "uk": "\u041d\u0430\u0437\u0430\u0432\u0436\u0434\u0438", "zh-rCN": "\u6c38\u4e45", "zh-rTW": "\u6c38\u4e45",
 }
+DATA["commits_desc"] = {
+    "en": "Browse the most recent changes to VIVI Music DE.",
+    "de": "Durchst\u00f6bere die letzten \u00c4nderungen an VIVI Music DE.",
+    "es": "Explora los cambios m\u00e1s recientes de VIVI Music DE.",
+    "fr": "Parcourez les derni\u00e8res modifications de VIVI Music DE.",
+    "it": "Sfoglia le modifiche pi\u00f9 recenti a VIVI Music DE.",
+    "pt": "Navegue pelas altera\u00e7\u00f5es mais recentes do VIVI Music DE.",
+    "ru": "\u041f\u0440\u043e\u0441\u043c\u043e\u0442\u0440\u0438\u0442\u0435 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0438\u0435 \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f VIVI Music DE.",
+    "tr": "VIVI Music DE'deki en son de\u011fi\u015fikliklere g\u00f6z at\u0131n.",
+    "uk": "\u041f\u0435\u0440\u0435\u0433\u043b\u044f\u043d\u044c\u0442\u0435 \u043e\u0441\u0442\u0430\u043d\u043d\u0456 \u0437\u043c\u0456\u043d\u0438 VIVI Music DE.",
+    "zh-rCN": "\u6d4f\u89c8 VIVI Music DE \u6700\u65b0\u7684\u53d8\u66f4\u3002",
+    "zh-rTW": "\u700f\u89bd VIVI Music DE \u6700\u65b0\u7684\u8b8a\u66f4\u3002",
+}
 
 out = ["# -*- coding: utf-8 -*-",
        "\"\"\"Desktop-only translations: home toggles, sort chips, privacy, quick settings, integrations.\"\"\"",

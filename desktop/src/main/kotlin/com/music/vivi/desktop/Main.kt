@@ -1271,6 +1271,11 @@ fun App(
                         },
                         onCheckUpdates = { runUpdateCheck() },
                         onOpenChangelog = { navigate(Screen.Changelog) },
+                        onOpenCommits = { navigate(Screen.SettingsCommits) },
+                    )
+                    is Screen.SettingsCommits -> CommitsScreen(
+                        language = language,
+                        onBack = goBack,
                     )
                     is Screen.SettingsAbout -> SettingsAboutScreen(
                         language = language,
@@ -2388,6 +2393,7 @@ fun UpdateSection(
     onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onOpenCommits: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     // Shared download state (also used by the notification banner), so the two
@@ -2406,8 +2412,13 @@ fun UpdateSection(
         modifier = Modifier.padding(top = 4.dp),
     )
 
-    OutlinedButton(onClick = onOpenChangelog, modifier = Modifier.padding(top = 8.dp)) {
-        Text(Localization.get(language, "changelog"))
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = onOpenChangelog) {
+            Text(Localization.get(language, "changelog"))
+        }
+        OutlinedButton(onClick = onOpenCommits) {
+            Text(Localization.get(language, "commits"))
+        }
     }
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2560,7 +2571,7 @@ fun UpdateSection(
     }
 }
 
-private fun openUrl(url: String): Boolean {
+internal fun openUrl(url: String): Boolean {
     if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
         if (runCatching { Desktop.getDesktop().browse(URI(url)) }.isSuccess) return true
     }
