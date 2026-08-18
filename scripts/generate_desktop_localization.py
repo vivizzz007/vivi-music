@@ -193,6 +193,7 @@ MAPPING = {
     "lyrics_line_spacing": "Line spacing",
     "stream_cache_minutes": "Stream cache (minutes)",
     "stream_cache_minutes_desc": "How long a resolved stream URL is reused before it is resolved again.",
+    "stream_cache_forever": "Forever",
     "integrations": "Integrations",
     "integrations_active": "Active",
     "integrations_inactive": "Off",

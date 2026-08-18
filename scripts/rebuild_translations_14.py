@@ -137,6 +137,12 @@ DATA["stream_cache_minutes"] = {
     "tr": "Ak\u0131\u015f \u00f6nbelle\u011fi (dakika)", "zh-rCN": "\u6d41\u7f13\u5b58\uff08\u5206\u949f\uff09", "zh-rTW": "\u4e32\u6d41\u5feb\u5b58\uff08\u5206\u9418\uff09",
 }
 DATA["stream_cache_minutes_desc"] = {"en": "How long a resolved stream URL is reused before it is resolved again."}
+DATA["stream_cache_forever"] = {
+    "en": "Forever", "ar": "\u0625\u0644\u0649 \u0627\u0644\u0623\u0628\u062f", "de": "F\u00fcr immer",
+    "el": "\u0393\u03b9\u03b1 \u03c0\u03ac\u03bd\u03c4\u03b1", "es": "Para siempre", "fr": "Pour toujours", "it": "Per sempre",
+    "pt": "Para sempre", "ru": "\u041d\u0430\u0432\u0441\u0435\u0433\u0434\u0430", "tr": "Sonsuza dek",
+    "uk": "\u041d\u0430\u0437\u0430\u0432\u0436\u0434\u0438", "zh-rCN": "\u6c38\u4e45", "zh-rTW": "\u6c38\u4e45",
+}
 
 out = ["# -*- coding: utf-8 -*-",
        "\"\"\"Desktop-only translations: home toggles, sort chips, privacy, quick settings, integrations.\"\"\"",

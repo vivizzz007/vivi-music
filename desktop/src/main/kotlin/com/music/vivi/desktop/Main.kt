@@ -129,6 +129,7 @@ import androidx.compose.ui.window.application
 import com.music.lastfm.LastFM
 import com.music.innertube.YouTube
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
@@ -2842,7 +2843,9 @@ fun PlayerSection(
     SettingSwitch(language, "sync_vivi_volume", syncViviVolume, onToggleSyncViviVolume)
 
     Text(
-        "${Localization.get(language, "stream_cache_minutes")}: ${streamCacheMinutes} min",
+        "${Localization.get(language, "stream_cache_minutes")}: " +
+            if (streamCacheMinutes <= 0) Localization.get(language, "stream_cache_forever")
+            else "${streamCacheMinutes} min",
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.padding(top = 16.dp),
     )
@@ -2852,10 +2855,13 @@ fun PlayerSection(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Slider(
-        value = streamCacheMinutes.toFloat(),
-        onValueChange = { onStreamCacheMinutesChange(it.toInt().coerceIn(1, 60)) },
-        valueRange = 1f..60f,
-        steps = 58,
+        value = if (streamCacheMinutes <= 0) 61f else streamCacheMinutes.toFloat(),
+        onValueChange = {
+            val v = it.roundToInt()
+            onStreamCacheMinutesChange(if (v >= 61) 0 else v.coerceIn(1, 60))
+        },
+        valueRange = 1f..61f,
+        steps = 59,
         modifier = Modifier.fillMaxWidth(),
     )
 

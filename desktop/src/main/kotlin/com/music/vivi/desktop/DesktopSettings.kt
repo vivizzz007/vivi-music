@@ -46,6 +46,7 @@ data class DesktopSyncState(
     val pauseListenHistory: Boolean = false,
     val searchHistory: List<String> = emptyList(),
     val lyricsLineSpacing: Float = 1.35f,
+    /** Stream-URL cache lifetime in minutes (1–60); 0 = never expire. */
     val streamCacheMinutes: Int = 10,
     val discordRpcEnabled: Boolean = false,
     val discordClientId: String = "",

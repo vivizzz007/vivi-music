@@ -90,8 +90,12 @@ object StreamResolver {
     private val cache = java.util.concurrent.ConcurrentHashMap<String, Cached>()
     private const val CACHE_MAX_ENTRIES = 32
 
-    /** Cache lifetime in ms, read from the user setting (1–60 minutes). */
-    private fun cacheTtlMs(): Long = DesktopSettings.load().streamCacheMinutes.coerceIn(1, 60) * 60_000L
+    /** Cache lifetime in ms, read from the user setting (1–60 minutes);
+     *  0 (or any non-positive value) means the cache never expires. */
+    private fun cacheTtlMs(): Long = when (val minutes = DesktopSettings.load().streamCacheMinutes) {
+        in 1..60 -> minutes * 60_000L
+        else -> Long.MAX_VALUE
+    }
 
     /**
      * Returns a direct HTTP URL to an AAC audio stream, or null if it cannot be
@@ -131,7 +135,9 @@ object StreamResolver {
             attempts++
         }
         if (resolution.streams.isNotEmpty()) {
-            cache[videoId] = Cached(resolution.streams, System.currentTimeMillis() + cacheTtlMs())
+            val ttl = cacheTtlMs()
+            val expiresAt = if (ttl == Long.MAX_VALUE) Long.MAX_VALUE else System.currentTimeMillis() + ttl
+            cache[videoId] = Cached(resolution.streams, expiresAt)
             while (cache.size > CACHE_MAX_ENTRIES) {
                 val oldest = cache.entries.minByOrNull { it.value.expiresAt }?.key ?: break
                 cache.remove(oldest)

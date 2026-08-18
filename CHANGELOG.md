@@ -11,6 +11,13 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.84] - 2026-08-18
+
+### Added
+
+- [DE] Stream cache now offers a "Forever" option past 60 minutes: the resolved
+  stream URL is kept for the whole app session instead of expiring.
+
 ## [6.4.28_DE-1.33.83] - 2026-08-18
 
 ### Changed
