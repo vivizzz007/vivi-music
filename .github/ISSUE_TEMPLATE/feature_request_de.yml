@@ -1,0 +1,65 @@
+name: 🚀 Feature Request (Vivi Music DE)
+description: Have an idea for the Desktop Edition? Pitch it!
+title: "[Feat][DE]: "
+labels: ["enhancement", "triage", "desktop"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 💡 Feature Proposal — Vivi Music DE (Desktop Edition)
+        Help us make Vivi Music DE even more awesome.
+        > This template is for the **desktop** app (Windows / Linux / macOS).
+        > For the Android app, use the **🚀 Feature Request (Mobile)** template.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 🏷️ Category
+      options:
+        - ✨ New Feature
+        - 🎨 UI / Design Improvement
+        - ⚡ Performance / Optimization
+        - 🎧 Audio Experience
+        - 🔄 Updates / Installer
+        - 📱 Devices / Sync
+        - 🌐 Translation / Localization
+        - 🛠️ Developer Options
+        - 🔧 Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 🖥️ Which platform(s) should this target?
+      description: Desktop-only, or should it also apply to the mobile app (via sync)?
+      options:
+        - Desktop only
+        - Desktop + mobile (sync between them)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📝 The Pitch
+      description: Describe your idea clearly. How should it work?
+      placeholder: "I would love to see..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🤝 Problem Solved
+      description: Why is this feature necessary? What problem does it solve for you?
+      placeholder: "Currently, it is difficult to..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: 🎨 Mockups / Screenshots / Extras
+      description: Drop images or sketches here if you have them!

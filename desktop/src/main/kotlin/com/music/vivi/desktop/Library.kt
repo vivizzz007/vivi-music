@@ -47,6 +47,7 @@ import com.music.innertube.pages.LibraryPage
 fun LibraryScreen(
     language: String,
     isLoggedIn: Boolean,
+    gridItemSize: Int,
     onOpenLogin: () -> Unit,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
@@ -83,6 +84,8 @@ fun LibraryScreen(
         var page by remember { mutableStateOf<LibraryPage?>(null) }
         var loading by remember { mutableStateOf(false) }
         var error by remember { mutableStateOf<String?>(null) }
+        var sortAsc by remember { mutableStateOf(true) }
+        var sortByArtist by remember { mutableStateOf(false) }
 
         LaunchedEffect(selectedTab) {
             loading = true
@@ -116,11 +119,50 @@ fun LibraryScreen(
             }
         }
 
+        // Sort chips (A-Z / Z-A, plus "by artist" for the songs tab).
+        if (page?.items?.isNotEmpty() == true) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                FilterChip(
+                    selected = sortAsc,
+                    onClick = { sortAsc = true },
+                    label = { Text(Localization.get(language, "sort_az")) },
+                )
+                FilterChip(
+                    selected = !sortAsc,
+                    onClick = { sortAsc = false },
+                    label = { Text(Localization.get(language, "sort_za")) },
+                )
+                if (selectedTab == 0) {
+                    FilterChip(
+                        selected = sortByArtist,
+                        onClick = { sortByArtist = !sortByArtist },
+                        label = { Text(Localization.get(language, "sort_artist")) },
+                    )
+                }
+            }
+        }
+
         when {
             error != null -> ErrorBox(language, error)
             loading || page == null -> LoadingBox(language)
             else -> {
-                val items = page!!.items
+                val rawItems = page!!.items
+                val items = run {
+                    val base = if (selectedTab == 0) {
+                        val songs = rawItems.filterIsInstance<SongItem>()
+                        if (sortByArtist) {
+                            songs.sortedWith(compareBy({ it.artists.firstOrNull()?.name.orEmpty().lowercase() }, { it.title.lowercase() }))
+                        } else {
+                            songs.sortedBy { it.title.lowercase() }
+                        }
+                    } else {
+                        rawItems.sortedBy { it.title.lowercase() }
+                    }
+                    if (sortAsc) base else base.reversed()
+                }
                 if (items.isEmpty()) {
                     Text(
                         Localization.get(language, "library_empty"),
@@ -136,7 +178,7 @@ fun LibraryScreen(
                     }
                 } else {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(140.dp),
+                        columns = GridCells.Adaptive(gridItemSize.dp),
                         modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),

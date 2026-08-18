@@ -67,6 +67,7 @@ import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.constants.SyncViviVolumeKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
 import com.music.vivi.ui.component.IconButton
@@ -182,6 +183,10 @@ fun PlayerSettings(
     val (keepScreenOn, onKeepScreenOnChange) = rememberPreference(
         KeepScreenOn,
         defaultValue = false
+    )
+    val (syncViviVolume, onSyncViviVolumeChange) = rememberPreference(
+        SyncViviVolumeKey,
+        defaultValue = true
     )
     val (historyDuration, onHistoryDurationChange) = rememberPreference(
         HistoryDuration,
@@ -790,6 +795,29 @@ fun PlayerSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.misc),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.sync),
+                    title = { Text(stringResource(R.string.sync_vivi_volume)) },
+                    description = { Text(stringResource(R.string.sync_vivi_volume_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = syncViviVolume,
+                            onCheckedChange = onSyncViviVolumeChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (syncViviVolume) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onSyncViviVolumeChange(!syncViviVolume) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.stop_music_on_task_clear)) },

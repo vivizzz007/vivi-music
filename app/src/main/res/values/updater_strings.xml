@@ -74,6 +74,7 @@
     <string name="support_development">Support development</string>
     <string name="beta_updates">Beta Updates</string>
     <string name="beta_updates_subtitle">Receive beta updates</string>
+    <string name="update_source">Update source</string>
     <string name="on_latest_version">You\'re on the latest version</string>
     <string name="current_version_v">Current version: %1$s</string>
     <string name="update_to_v">Update available %1$s</string>

@@ -1,8 +1,11 @@
 package com.music.vivi.desktop
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,8 +25,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
@@ -72,12 +84,14 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -88,13 +102,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -107,12 +126,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import com.music.lastfm.LastFM
 import com.music.innertube.YouTube
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 import com.music.innertube.YouTubeExtractor
 import com.music.innertube.models.SongItem
 import com.music.vivi.desktop.player.PlayerController
+import com.music.vivi.desktop.player.RepeatMode
 import com.music.vivi.sync.LibrarySnapshot
 import com.music.vivi.sync.PlaybackSnapshot
 import com.music.vivi.sync.SyncServer
@@ -135,7 +157,21 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-fun main() = application {
+fun main(args: Array<String>) {
+    // A toast / command-line launch can request a section (e.g. --open=updates).
+    val openSection = AppCommand.parse(args)
+    // Single-instance guard: if another instance is already running (or already
+    // starting), forward the request to it and exit immediately.
+    if (!SingleInstance.acquire()) {
+        if (openSection != null) AppCommand.write(openSection)
+        return
+    }
+
+    // Replace the default AWT "Error" dialog (OK only) with one that also
+    // offers "Copy error", so crash details are easy to report.
+    installGlobalErrorDialog()
+
+    application {
     // Configure the shared YouTube client exactly like the Android App.onCreate() does,
     // honouring the saved content language/region (or the OS default).
     val initialSettings = DesktopSettings.load()
@@ -153,13 +189,13 @@ fun main() = application {
     var pureBlack by remember { mutableStateOf(DesktopSettings.load().pureBlack) }
 
     fun saveTheme() {
-        DesktopSettings.save(
-            DesktopSettings.load().copy(
+        DesktopSettings.update {
+            it.copy(
                 darkMode = themeMode.key,
                 accentColor = colorToArgbInt(accent),
                 pureBlack = pureBlack,
             )
-        )
+        }
     }
 
     // Live window title: shows CPU/RAM when dev options are on and either the
@@ -176,6 +212,7 @@ fun main() = application {
     }
 
     Window(onCloseRequest = ::exitApplication, title = windowTitle) {
+        val frameWindow = window
         AppTheme(mode = themeMode, accent = accent, pureBlack = pureBlack) {
             // NOTE: do NOT wrap this in a global SelectionContainer. Popup-based
             // components (DropdownMenu, AlertDialog) inherit the selection
@@ -185,14 +222,14 @@ fun main() = application {
             if (language.isBlank()) {
                 LanguageSelectionScreen { selected ->
                     language = selected
-                    DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                    DesktopSettings.update { it.copy(language = selected) }
                 }
             } else {
                 App(
                     language = language,
                     onLanguageChange = { selected ->
                         language = selected
-                        DesktopSettings.save(DesktopSettings.load().copy(language = selected))
+                        DesktopSettings.update { it.copy(language = selected) }
                     },
                     themeMode = themeMode,
                     accent = accent,
@@ -209,10 +246,27 @@ fun main() = application {
                         pureBlack = it
                         saveTheme()
                     },
+                    initialSection = openSection,
+                    bringToFront = {
+                        runCatching {
+                            frameWindow.state = java.awt.Frame.NORMAL
+                            frameWindow.toFront()
+                            frameWindow.requestFocus()
+                        }
+                    },
                 )
             }
         }
     }
+    }
+}
+
+/** Maps a toast/command-line section id to the screen it should open. */
+private fun screenForSection(section: String?): Screen? = when (section) {
+    "updates" -> Screen.SettingsUpdates
+    "developer" -> Screen.SettingsDeveloper
+    "devices" -> Screen.SettingsDevices
+    else -> null
 }
 
 @Composable
@@ -225,6 +279,8 @@ fun App(
     onAccentChange: (Color) -> Unit,
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
+    initialSection: String? = null,
+    bringToFront: () -> Unit = {},
 ) {
     var backStack by remember { mutableStateOf(listOf<Screen>(Screen.Home)) }
     val player = remember { PlayerController() }
@@ -235,9 +291,75 @@ fun App(
     var autoPlayNext by remember { mutableStateOf(DesktopSettings.load().autoPlayNext) }
     player.autoPlayNext = autoPlayNext
 
+    var selectedFont by remember { mutableStateOf(AppFont.fromValue(DesktopSettings.load().selectedFont)) }
+    var densityScale by remember { mutableStateOf(DesktopSettings.load().densityScale) }
+    var gridItemSize by remember { mutableStateOf(DesktopSettings.load().gridItemSize) }
+    var screenTransition by remember { mutableStateOf(DesktopSettings.load().screenTransition) }
+    var sliderStyle by remember { mutableStateOf(DesktopSettings.load().sliderStyle) }
+    var playerDesign by remember { mutableStateOf(PlayerDesign.from(DesktopSettings.load().playerDesign)) }
+    var playerBackground by remember { mutableStateOf(PlayerBackgroundStyle.from(DesktopSettings.load().playerBackground)) }
+    var rotatingThumbnail by remember { mutableStateOf(DesktopSettings.load().rotatingThumbnail) }
+    var miniPlayerStyle by remember { mutableStateOf(DesktopSettings.load().miniPlayerStyle) }
+    var homeUseLastListen by remember { mutableStateOf(DesktopSettings.load().homeUseLastListen) }
+    var randomizeHomeOrder by remember { mutableStateOf(DesktopSettings.load().randomizeHomeOrder) }
+    var showWrappedOnHome by remember { mutableStateOf(DesktopSettings.load().showWrappedOnHome) }
+    var pauseSearchHistory by remember { mutableStateOf(DesktopSettings.load().pauseSearchHistory) }
+    var pauseListenHistory by remember { mutableStateOf(DesktopSettings.load().pauseListenHistory) }
+    var searchHistory by remember { mutableStateOf(DesktopSettings.load().searchHistory) }
+    val recordSearch: (String) -> Unit = { term ->
+        if (!pauseSearchHistory && term.isNotBlank()) {
+            val updated = (listOf(term.trim()) + searchHistory.filter { !it.equals(term.trim(), ignoreCase = true) }).take(12)
+            searchHistory = updated
+            DesktopSettings.update { it.copy(searchHistory = updated) }
+        }
+    }
+
+    // Session listening stats for the Home "VIVI Wrapped" card (session-only).
+    var sessionTrackStarts by remember { mutableStateOf(0) }
+    var sessionPlayedMs by remember { mutableStateOf(0L) }
+    var sessionTopSong by remember { mutableStateOf<Pair<String, String>?>(null) } // videoId to title
+    var sessionTopCount by remember { mutableStateOf(0) }
+    var lastSessionSongId by remember { mutableStateOf<String?>(null) }
+    var lastSessionPosition by remember { mutableStateOf(0L) }
+    LaunchedEffect(nowPlaying?.videoId, isPlaying, playerState.positionMs) {
+        val id = nowPlaying?.videoId
+        val pos = playerState.positionMs
+        if (id != null && id != lastSessionSongId) {
+            // New track started in this session: count it and track the top one.
+            lastSessionSongId = id
+            if (sessionTopSong?.first == id) {
+                sessionTopCount++
+            } else {
+                sessionTopSong = id to (nowPlaying?.title ?: "")
+                sessionTopCount = 1
+            }
+            sessionTrackStarts++
+            lastSessionPosition = pos
+        } else if (isPlaying) {
+            val delta = pos - lastSessionPosition
+            if (delta in 1..10_000) sessionPlayedMs += delta
+            lastSessionPosition = pos
+        }
+    }
+    var canvasEnabled by remember { mutableStateOf(DesktopSettings.load().canvasEnabled) }
+    var canvasSource by remember { mutableStateOf(CanvasSource.from(DesktopSettings.load().canvasSource)) }
+
     // Guest sessions need a visitorData (like the Android app) or YouTube flags
     // the requests as bots and 403s audio playback.
     LaunchedEffect(Unit) { GuestSession.ensure() }
+
+    // A muted Windows master volume ignores every volume write, so a paired
+    // mobile device could never control it; unmute it (and drop it to 0%) once
+    // at startup. Non-Windows and non-muted states are left untouched.
+    LaunchedEffect(Unit) { SystemVolume.unmuteIfMuted() }
+
+    // Scheduled automatic backups (weekly): check on startup, then hourly.
+    LaunchedEffect(Unit) {
+        while (true) {
+            runCatching { BackupManager.maybeRunScheduled() }
+            delay(3600_000L)
+        }
+    }
 
     var isLoggedIn by remember { mutableStateOf(LoginManager.isLoggedIn()) }
     var accountName by remember { mutableStateOf(DesktopSettings.load().accountName) }
@@ -248,7 +370,59 @@ fun App(
     var audioQuality by remember { mutableStateOf(DesktopSettings.load().audioQuality) }
     var rememberShuffleRepeat by remember { mutableStateOf(DesktopSettings.load().rememberShuffleRepeat) }
     var persistentQueue by remember { mutableStateOf(DesktopSettings.load().persistentQueue) }
+    var syncViviVolume by remember { mutableStateOf(DesktopSettings.load().syncViviVolume) }
     var lyricsTextSize by remember { mutableStateOf(DesktopSettings.load().lyricsTextSize) }
+    var lyricsLineSpacing by remember { mutableStateOf(DesktopSettings.load().lyricsLineSpacing) }
+    var streamCacheMinutes by remember { mutableStateOf(DesktopSettings.load().streamCacheMinutes) }
+    var discordRpcEnabled by remember { mutableStateOf(DesktopSettings.load().discordRpcEnabled) }
+    var discordClientId by remember { mutableStateOf(DesktopSettings.load().discordClientId) }
+    var lastfmEnabled by remember { mutableStateOf(DesktopSettings.load().lastfmEnabled) }
+    var lastfmSession by remember { mutableStateOf(DesktopSettings.load().lastfmSession) }
+    var lastfmNowPlaying by remember { mutableStateOf(DesktopSettings.load().lastfmNowPlaying) }
+
+    // Integrations: initialize Last.fm with env-provided credentials (like the
+    // mobile BuildConfig) and mirror the Discord toggles to the RPC client.
+    LaunchedEffect(Unit) {
+        val key = System.getenv("LASTFM_API_KEY").orEmpty()
+        val secret = System.getenv("LASTFM_SECRET").orEmpty()
+        if (key.isNotEmpty() && secret.isNotEmpty()) LastFM.initialize(key, secret)
+        DiscordRPC.clientId = DiscordRPC.clientId.ifBlank { discordClientId }
+        DiscordRPC.enabled = discordRpcEnabled
+    }
+    LaunchedEffect(discordRpcEnabled, discordClientId) {
+        DiscordRPC.clientId = discordClientId
+        DiscordRPC.enabled = discordRpcEnabled
+    }
+
+    // Discord presence + Last.fm now-playing / scrobble feed.
+    var lastfmReported by remember { mutableStateOf<String?>(null) }
+    var lastfmScrobbled by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(nowPlaying?.videoId, isPlaying, playerState.positionMs, discordRpcEnabled, lastfmEnabled, lastfmSession) {
+        val np = nowPlaying
+        if (np == null) {
+            DiscordRPC.updateActivity(null, null, null, null)
+            return@LaunchedEffect
+        }
+        if (discordRpcEnabled && discordClientId.isNotBlank() && isPlaying) {
+            DiscordRPC.updateActivity(details = np.title, state = np.artist, largeImage = "vivimusic")
+        }
+        if (lastfmEnabled && lastfmSession.isNotBlank() && LastFM.isInitialized()) {
+            LastFM.sessionKey = lastfmSession
+            if (isPlaying && lastfmReported != np.videoId) {
+                lastfmReported = np.videoId
+                if (lastfmNowPlaying) {
+                    runCatching { LastFM.updateNowPlaying(artist = np.artist, track = np.title, duration = (np.durationMs / 1000L).toInt().coerceAtLeast(0)) }
+                }
+            }
+            // Scrobble near the end of the track (>=5s before it finishes).
+            val dur = np.durationMs
+            val pos = playerState.positionMs
+            if (dur > 30_000 && pos > 0 && pos >= dur - 15_000 && lastfmScrobbled != np.videoId) {
+                lastfmScrobbled = np.videoId
+                runCatching { LastFM.scrobble(artist = np.artist, track = np.title, timestamp = System.currentTimeMillis() / 1000, duration = (dur / 1000L).toInt()) }
+            }
+        }
+    }
 
     // Persistent queue: restore the saved queue on startup (paused, not auto-played).
     LaunchedEffect(Unit) {
@@ -263,10 +437,9 @@ fun App(
     // Persistent queue: save the queue whenever it changes.
     LaunchedEffect(playerState.queue, playerState.index, persistentQueue) {
         if (persistentQueue && playerState.queue.isNotEmpty()) {
-            val s = DesktopSettings.load()
-            DesktopSettings.save(
-                s.copy(queueJson = queueJson.encodeToString(playerState.queue), queueIndex = playerState.index)
-            )
+            DesktopSettings.update {
+                it.copy(queueJson = queueJson.encodeToString(playerState.queue), queueIndex = playerState.index)
+            }
         }
     }
 
@@ -275,11 +448,28 @@ fun App(
     val navigate: (Screen) -> Unit = { backStack = backStack + it }
     val openRoot: (Screen) -> Unit = { backStack = listOf(it) }
     val goBack: () -> Unit = { if (backStack.size > 1) backStack = backStack.dropLast(1) }
+
+    // Toast / command-line "open section" requests: navigate and bring the
+    // window to the foreground (handled once at startup, then polled for the
+    // lifetime of the app so a toast click can reach a running instance).
+    LaunchedEffect(Unit) {
+        var pending = initialSection
+        while (true) {
+            AppCommand.poll()?.let { pending = it }
+            if (pending != null) {
+                screenForSection(pending)?.let { openRoot(it) }
+                bringToFront()
+                pending = null
+            }
+            delay(500)
+        }
+    }
     fun songToNowPlaying(song: SongItem): NowPlaying = NowPlaying(
         videoId = song.id,
         title = song.title,
         artist = song.artists.joinToString(", ") { it.name },
         thumbnail = song.thumbnail,
+        durationMs = (song.duration ?: 0) * 1000L,
     )
 
     val playSong: (SongItem) -> Unit = { song -> player.play(songToNowPlaying(song)) }
@@ -304,6 +494,21 @@ fun App(
             snackbarHostState.showSnackbar(msg)
         }
     }
+    // Generic in-app notification banner (title + message) for notifications
+    // dispatched in "main window" mode.
+    var appNotification by remember { mutableStateOf<DesktopNotifier.Notice?>(null) }
+    LaunchedEffect(Unit) {
+        DesktopNotifier.events.collect { appNotification = it }
+    }
+    // Auto-dismiss the generic in-app notification after the configured time.
+    LaunchedEffect(appNotification) {
+        val notice = appNotification ?: return@LaunchedEffect
+        val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+        if (seconds > 0) {
+            delay(seconds * 1000L)
+            appNotification = null
+        }
+    }
     // Pre-releases are on by default for nightly/alpha/beta/rc builds (those
     // channels only publish pre-releases), and off by default for stable.
     var includePreReleases by remember {
@@ -312,16 +517,42 @@ fun App(
         )
     }
     var updateIntervalHours by remember { mutableStateOf(DesktopSettings.load().updateCheckIntervalHours) }
+    var updateSource by remember { mutableStateOf(DesktopSettings.load().updateSource) }
     var notificationMode by remember { mutableStateOf(DesktopSettings.load().notificationMode) }
+    var notificationDurationSeconds by remember { mutableStateOf(DesktopSettings.load().inAppNotificationDurationSeconds) }
+    var saveNotificationHistory by remember { mutableStateOf(DesktopSettings.load().saveNotificationHistory) }
     var updateStatus by remember { mutableStateOf<UpdateStatus>(UpdateStatus.Idle) }
+    // Keep the shared download state (used by both the notification and the
+    // Updates screen) in sync with the latest update status.
+    LaunchedEffect(updateStatus) { UpdateState.syncWithStatus(updateStatus) }
     val devEnabled by DeveloperOptions.enabled.collectAsState()
     val devMode by DeveloperOptions.mode.collectAsState()
     val overlayMovable by DeveloperOptions.overlayMovable.collectAsState()
 
-    // One-off hint when the developer options get unlocked.
+    // One-off hint when the developer options get unlocked. Respects the
+    // notification mode (in-app banner vs native system notification).
     var showDevNotification by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        DeveloperOptions.unlocked.collect { showDevNotification = true }
+        DeveloperOptions.unlocked.collect {
+            val title = Localization.get(language, "dev_unlocked_title")
+            val desc = Localization.get(language, "dev_unlocked_desc")
+            if (DesktopSettings.load().notificationMode == "native") {
+                DesktopNotifier.notify(title, desc, "developer")
+            } else {
+                NotificationHistory.record(title, desc, "in_app")
+                showDevNotification = true
+            }
+        }
+    }
+    // Auto-dismiss the dev-unlocked hint after the configured time.
+    LaunchedEffect(showDevNotification) {
+        if (showDevNotification) {
+            val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+            if (seconds > 0) {
+                delay(seconds * 1000L)
+                showDevNotification = false
+            }
+        }
     }
 
     fun runUpdateCheck() {
@@ -352,14 +583,31 @@ fun App(
         val available = updateStatus as? UpdateStatus.Available
         if (available != null && available.version != updateNotifiedVersion) {
             updateNotifiedVersion = available.version
-            val mode = DesktopSettings.load().notificationMode
+            val mode = if (DesktopSettings.load().notificationMode == "native") "native" else "in_app"
+            val title = Localization.get(language, "update_available")
+            val message = "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}"
+            NotificationHistory.record(title, message, mode)
             if (mode == "native") {
-                NativeNotifier.notify(
-                    Localization.get(language, "update_available"),
-                    "${Localization.get(language, "current_version")}: ${AppInfo.FULL_VERSION}\n${available.version}",
-                )
+                NativeNotifier.notify(title, message, "updates")
             } else {
                 showUpdateNotification = true
+            }
+        }
+    }
+    // Auto-dismiss the update banner after the configured time, but never while
+    // it is showing download progress. The download itself keeps running in the
+    // shared UpdateState (also visible in Settings → Updates).
+    val updateDownloading by UpdateState.progress.collectAsState()
+    val updateBusy = updateDownloading != null
+    LaunchedEffect(showUpdateNotification, updateBusy) {
+        if (showUpdateNotification && !updateBusy) {
+            val seconds = DesktopSettings.load().inAppNotificationDurationSeconds
+            if (seconds > 0) {
+                delay(seconds * 1000L)
+                // A download may have started while we waited; don't dismiss then.
+                if (UpdateState.progress.value == null) {
+                    showUpdateNotification = false
+                }
             }
         }
     }
@@ -372,6 +620,34 @@ fun App(
     val systemVolumeGuard = remember { VolumeGuard() }
     val volumeGuard = remember { VolumeGuard() }
 
+    // Notify when a phone pairs or un-pairs (respects the notification mode).
+    var wasPaired by remember { mutableStateOf(false) }
+    LaunchedEffect(syncManager) {
+        syncManager.paired.collect { paired ->
+            // Keep the display/system awake while paired so the OS sleeping
+            // the screen can't tear down the sync socket and unpair the two
+            // devices.
+            KeepAwake.setEnabled(paired)
+            if (paired != wasPaired) {
+                wasPaired = paired
+                if (paired) {
+                    val name = syncManager.peerDeviceName.value.ifBlank { null }
+                    DesktopNotifier.notify(
+                        Localization.get(language, "device_paired_title"),
+                        name ?: Localization.get(language, "device_paired_desc"),
+                        "devices",
+                    )
+                } else {
+                    DesktopNotifier.notify(
+                        Localization.get(language, "device_unpaired_title"),
+                        Localization.get(language, "device_unpaired_desc"),
+                        "devices",
+                    )
+                }
+            }
+        }
+    }
+
     // Push the local playback state to the peer when the track, play/pause
     // state, or queue changes (position is sent as a best-effort snapshot).
     LaunchedEffect(syncManager) {
@@ -380,8 +656,11 @@ fun App(
                 PlaybackSyncKey(
                     trackId = s.current?.videoId,
                     isPlaying = s.isPlaying,
+                    isResolving = s.isResolving,
                     index = s.index,
                     queue = s.queue.map { it.videoId },
+                    repeatMode = s.repeatMode.name,
+                    isShuffle = s.isShuffle,
                 )
             }
             .distinctUntilChanged()
@@ -393,33 +672,46 @@ fun App(
     // locally-applied remote value isn't bounced straight back.
     LaunchedEffect(syncManager) {
         while (true) {
-            val v = player.state.value.volume
-            val isEcho = System.currentTimeMillis() < volumeGuard.echoUntil &&
-                abs(v - volumeGuard.echoValue) < 0.01f
-            val changed = volumeGuard.lastPushed == null ||
-                abs(v - volumeGuard.lastPushed!!) > 0.001f
-            if (!isEcho && changed) {
-                volumeGuard.lastPushed = v
-                val s = player.state.value
-                val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
-                syncManager.updatePlayback(snapshot)
+            if (DesktopSettings.load().syncViviVolume) {
+                val v = player.state.value.volume
+                val isEcho = System.currentTimeMillis() < volumeGuard.echoUntil &&
+                    abs(v - volumeGuard.echoValue) < 0.01f
+                val changed = volumeGuard.lastPushed == null ||
+                    abs(v - volumeGuard.lastPushed!!) > 0.001f
+                if (!isEcho && changed) {
+                    val s = player.state.value
+                    val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
+                    // Only mark as pushed when it was actually sent, so a dropped
+                    // push (echo-suppression window) is retried on the next tick.
+                    if (syncManager.updatePlayback(snapshot)) {
+                        volumeGuard.lastPushed = v
+                    }
+                }
             }
             delay(500L)
         }
     }
 
     // Push immediately on user seeks so the peer follows to the same position.
+    // Marked as a user seek so the receiver applies it exactly (both directions).
     LaunchedEffect(syncManager) {
-        player.seekEvents.collect { player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) } }
+        player.seekEvents.collect {
+            player.toPlaybackSnapshot()?.copy(userSeek = true)?.let { syncManager.updatePlayback(it) }
+        }
     }
 
     // Periodic re-sync: while playing, re-push the position every few seconds so
     // the peer auto-corrects drift (buffering / clock skew) instead of waiting
     // for the next discrete seek/play/track event.
     LaunchedEffect(syncManager) {
+        var lastPushedPositionMs = -1L
         while (true) {
             delay(SyncServer.RESYNC_TICK_MS)
-            if (player.state.value.isPlaying) {
+            val s = player.state.value
+            // Only push when the position actually advanced: a stalled/frozen
+            // player must not repeatedly drag the peer back to the same point.
+            if (s.isPlaying && s.positionMs != lastPushedPositionMs) {
+                lastPushedPositionMs = s.positionMs
                 player.toPlaybackSnapshot()?.let { syncManager.updatePlayback(it) }
             }
         }
@@ -437,25 +729,37 @@ fun App(
                 val changed = systemVolumeGuard.lastPushed == null ||
                     abs(sv - systemVolumeGuard.lastPushed!!) > 0.01f
                 if (!isEcho && changed) {
-                    systemVolumeGuard.lastPushed = sv
                     val s = player.state.value
                     val snapshot = player.toPlaybackSnapshot() ?: PlaybackSnapshot(volume = s.volume)
-                    syncManager.updatePlayback(snapshot.copy(systemVolume = sv))
+                    if (syncManager.updatePlayback(snapshot.copy(systemVolume = sv))) {
+                        systemVolumeGuard.lastPushed = sv
+                    }
                 }
             }
             delay(800L)
         }
     }
 
+    // Latest peer playback snapshot. While WE are still resolving our stream,
+    // incoming seek/play-pause is held off (our own resolution decides when
+    // audio starts), so a command sent during that window is re-applied as soon
+    // as our audio actually starts flowing instead of being dropped until the
+    // next 5s periodic re-sync (which was especially noticeable on a slow
+    // phone-hotspot connection where resolution takes a while).
+    val latestRemotePlayback = remember { java.util.concurrent.atomic.AtomicReference<PlaybackSnapshot?>(null) }
+
     // Apply incoming playback snapshots from the peer.
     LaunchedEffect(syncManager) {
         syncManager.incomingPlayback.collect { pb ->
+            latestRemotePlayback.set(pb)
             // App (player) volume sync: mirror the peer's in-app volume slider.
-            pb.volume?.let { v ->
-                volumeGuard.echoUntil = System.currentTimeMillis() + 1500L
-                volumeGuard.echoValue = v
-                volumeGuard.lastPushed = v
-                if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+            if (DesktopSettings.load().syncViviVolume) {
+                pb.volume?.let { v ->
+                    volumeGuard.echoUntil = System.currentTimeMillis() + 1500L
+                    volumeGuard.echoValue = v
+                    volumeGuard.lastPushed = v
+                    if (abs(v - player.state.value.volume) > 0.001f) player.setVolume(v)
+                }
             }
             // Native OS system volume sync: mirror the peer's system volume.
             pb.systemVolume?.let { v ->
@@ -464,24 +768,66 @@ fun App(
                 systemVolumeGuard.lastPushed = v
                 SystemVolume.set(v)
             }
+            // Repeat mode + shuffle sync (independent of the queue/position).
+            pb.repeatMode?.let { mode ->
+                runCatching { RepeatMode.valueOf(mode) }.getOrNull()?.let { player.setRepeatMode(it) }
+            }
+            pb.isShuffle?.let { player.setShuffle(it) }
             val currentId = player.state.value.current?.videoId
             if (currentId != null && pb.trackId != null && pb.trackId == currentId) {
                 // Same track: lightweight seek (instant + precise), no restart.
-                // Periodic ticks re-send the position; skip the seek when the
-                // drift is within tolerance so it doesn't glitch the audio.
-                player.seekRemote(
-                    syncManager.effectivePosition(pb),
-                    pb.isPlaying,
-                    SyncServer.RESYNC_TOLERANCE_MS,
-                )
-            } else {
-                val tracks = pb.queue.map { ref ->
-                    NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail)
+                // While WE are still resolving this track our own resolution
+                // decides when playback starts: ignore the peer's play/pause
+                // echoes (the peer pauses only because we told it to hold) so we
+                // don't pause ourselves out of the startup. Drift is corrected
+                // by the re-apply effect below once we actually start playing.
+                if (!player.state.value.isResolving) {
+                    val target = syncManager.effectivePosition(pb)
+                    when {
+                        pb.isResolving -> player.seekRemoteCatchUp(target, isPlaying = false, SyncServer.RESYNC_TOLERANCE_MS)
+                        pb.userSeek -> player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                        else -> player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                    }
                 }
-                if (tracks.isNotEmpty()) {
-                    player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+            } else {
+                // Last-write-wins for the queue: only replace the local queue if
+                // the remote edit is newer (or unknown, from an older peer).
+                // Volume/position sync above still runs regardless.
+                val newerQueue = pb.queueUpdatedAt <= 0L || pb.queueUpdatedAt >= syncManager.queueUpdatedAt()
+                if (newerQueue) {
+                    val tracks = pb.queue.map { ref ->
+                        NowPlaying(videoId = ref.id, title = ref.title, artist = ref.artist.orEmpty(), thumbnail = ref.thumbnail, durationMs = ref.durationMs)
+                    }
+                    if (tracks.isNotEmpty()) {
+                        player.applyRemotePlayback(tracks, pb.queueIndex, syncManager.effectivePosition(pb), pb.isPlaying)
+                        syncManager.noteQueueApplied(pb)
+                    }
                 }
             }
+        }
+    }
+
+    // Re-apply the peer's latest snapshot the moment our stream finishes
+    // resolving: a seek/play-pause received while we were still buffering was
+    // held off above, so without this it would be lost until the next periodic
+    // re-sync (slow over a phone hotspot). Only same-track corrections are
+    // re-applied; a changed queue is handled by the collector above.
+    LaunchedEffect(syncManager) {
+        var wasResolving = player.state.value.isResolving
+        player.state.map { it.isResolving }.distinctUntilChanged().collect { resolving ->
+            if (wasResolving && !resolving) {
+                val pb = latestRemotePlayback.get()
+                val currentId = player.state.value.current?.videoId
+                if (pb != null && !pb.isResolving && currentId != null && pb.trackId == currentId) {
+                    val target = syncManager.effectivePosition(pb)
+                    if (pb.userSeek) {
+                        player.seekRemote(target, pb.isPlaying, toleranceMs = 0L)
+                    } else {
+                        player.seekRemoteCatchUp(target, pb.isPlaying, SyncServer.RESYNC_TOLERANCE_MS)
+                    }
+                }
+            }
+            wasResolving = resolving
         }
     }
 
@@ -506,12 +852,16 @@ fun App(
             settings["selectedThemeColor"]?.toIntOrNull()?.let { argb ->
                 onAccentChange(argbIntToColor(argb))
             }
+            settings["syncViviVolume"]?.toBooleanStrictOrNull()?.let { v ->
+                syncViviVolume = v
+                DesktopSettings.update { it.copy(syncViviVolume = v) }
+            }
         }
     }
 
     // Push the local settings when they change (also once on startup).
-    LaunchedEffect(syncManager, language, themeMode, accent) {
-        syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent))
+    LaunchedEffect(syncManager, language, themeMode, accent, syncViviVolume) {
+        syncManager.updateSettings(desktopSettingsMap(language, themeMode, accent, syncViviVolume))
     }
 
     // Playlist sync: push the local playlists whenever they change and apply
@@ -527,20 +877,39 @@ fun App(
         }
     }
 
+    // UI density scale: multiply the density so every dp-based measurement
+    // zooms (200% down to 55%), matching the Android density setting.
+    val baseDensity = LocalDensity.current
+    CompositionLocalProvider(
+        LocalDensity provides Density(baseDensity.density * densityScale, baseDensity.fontScale)
+    ) {
     Row(Modifier.fillMaxSize()) {
         Sidebar(
+            hideHistory = pauseListenHistory,
             language = language,
             current = current,
             collapsed = sidebarCollapsed,
             onToggleCollapsed = {
                 sidebarCollapsed = !sidebarCollapsed
-                DesktopSettings.save(DesktopSettings.load().copy(sidebarCollapsed = sidebarCollapsed))
+                DesktopSettings.update { it.copy(sidebarCollapsed = sidebarCollapsed) }
             },
             onSelect = openRoot,
         )
         Column(Modifier.weight(1f).fillMaxHeight()) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
-                when (current) {
+                AnimatedContent(
+                    targetState = current,
+                    transitionSpec = {
+                        when (screenTransition) {
+                            "slide" -> (slideInHorizontally(animationSpec = tween(220)) { it / 4 } + fadeIn(animationSpec = tween(220))) togetherWith
+                                (slideOutHorizontally(animationSpec = tween(220)) { -it / 4 } + fadeOut(animationSpec = tween(220)))
+                            "off" -> fadeIn(animationSpec = tween(0)) togetherWith fadeOut(animationSpec = tween(0))
+                            else -> fadeIn(animationSpec = tween(180)) togetherWith fadeOut(animationSpec = tween(180))
+                        }
+                    },
+                    label = "screenTransition",
+                ) { screen ->
+                when (screen) {
                     is Screen.Home -> HomeScreen(
                         language = language,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
@@ -550,19 +919,44 @@ fun App(
                         onAddToPlaylist = addToPlaylist,
                         onPlayAll = playAll,
                         onOpenBrowse = { browseId, params -> navigate(Screen.Browse(browseId, params)) },
+                        useLastListen = homeUseLastListen,
+                        onUseLastListenChange = { v ->
+                            homeUseLastListen = v
+                            DesktopSettings.update { it.copy(homeUseLastListen = v) }
+                        },
+                        randomizeOrder = randomizeHomeOrder,
+                        onRandomizeOrderChange = { v ->
+                            randomizeHomeOrder = v
+                            DesktopSettings.update { it.copy(randomizeHomeOrder = v) }
+                        },
+                        wrappedStats = WrappedStats(
+                            trackStarts = sessionTrackStarts,
+                            playedMs = sessionPlayedMs,
+                            topSongTitle = sessionTopSong?.second,
+                            topSongCount = sessionTopCount,
+                        ),
+                        showWrapped = showWrappedOnHome,
                     )
                     is Screen.Search -> SearchScreen(
                         language = language,
+                        gridItemSize = gridItemSize,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
                         onOpenPlaylist = { navigate(Screen.Playlist(it)) },
                         onPlaySong = playSong,
                         onAddToQueue = addToQueue,
                         onAddToPlaylist = addToPlaylist,
+                        searchHistory = if (pauseSearchHistory) emptyList() else searchHistory,
+                        onRecordSearch = recordSearch,
+                        onClearSearchHistory = {
+                            searchHistory = emptyList()
+                            DesktopSettings.update { it.copy(searchHistory = emptyList()) }
+                        },
                     )
                     is Screen.Library -> LibraryScreen(
                         language = language,
                         isLoggedIn = isLoggedIn,
+                        gridItemSize = gridItemSize,
                         onOpenLogin = { navigate(Screen.Login) },
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -585,6 +979,12 @@ fun App(
                         isLoggedIn = isLoggedIn,
                         accountName = accountName,
                         updateStatus = updateStatus,
+                        wrappedStats = WrappedStats(
+                            trackStarts = sessionTrackStarts,
+                            playedMs = sessionPlayedMs,
+                            topSongTitle = sessionTopSong?.second,
+                            topSongCount = sessionTopCount,
+                        ),
                         onOpen = navigate,
                     )
                     is Screen.SettingsLanguage -> SettingsLanguageScreen(
@@ -595,6 +995,42 @@ fun App(
                     is Screen.SettingsAppearance -> SettingsAppearanceScreen(
                         language = language,
                         onBack = goBack,
+                        selectedFont = selectedFont,
+                        densityScale = densityScale,
+                        screenTransition = screenTransition,
+                        onOpenTheme = { navigate(Screen.SettingsTheme) },
+                        onOpenFont = { navigate(Screen.SettingsFont) },
+                        onOpenCanvas = { navigate(Screen.SettingsCanvas) },
+                        onOpenDensity = { navigate(Screen.SettingsDensity) },
+                        onOpenTransitions = { navigate(Screen.SettingsTransitions) },
+                        onOpenPlayerDesign = { navigate(Screen.SettingsPlayerDesign) },
+                    )
+                    is Screen.SettingsTransitions -> SettingsTransitionsScreen(
+                        language = language,
+                        onBack = goBack,
+                        screenTransition = screenTransition,
+                        onScreenTransitionChange = { t ->
+                            screenTransition = t
+                            DesktopSettings.update { it.copy(screenTransition = t) }
+                        },
+                    )
+                    is Screen.SettingsDensity -> SettingsDensityScreen(
+                        language = language,
+                        onBack = goBack,
+                        densityScale = densityScale,
+                        onDensityScaleChange = { s ->
+                            densityScale = s
+                            DesktopSettings.update { it.copy(densityScale = s) }
+                        },
+                        gridItemSize = gridItemSize,
+                        onGridItemSizeChange = { g ->
+                            gridItemSize = g
+                            DesktopSettings.update { it.copy(gridItemSize = g) }
+                        },
+                    )
+                    is Screen.SettingsTheme -> SettingsThemeScreen(
+                        language = language,
+                        onBack = goBack,
                         themeMode = themeMode,
                         accent = accent,
                         onThemeModeChange = onThemeModeChange,
@@ -602,28 +1038,91 @@ fun App(
                         pureBlack = pureBlack,
                         onPureBlackChange = onPureBlackChange,
                     )
+                    is Screen.SettingsFont -> SettingsFontScreen(
+                        language = language,
+                        onBack = goBack,
+                        selectedFont = selectedFont,
+                        onFontChange = { f ->
+                            selectedFont = f
+                            DesktopSettings.update { it.copy(selectedFont = f.value) }
+                        },
+                    )
+                    is Screen.SettingsCanvas -> SettingsCanvasScreen(
+                        language = language,
+                        onBack = goBack,
+                        canvasEnabled = canvasEnabled,
+                        onCanvasEnabledChange = { enabled ->
+                            canvasEnabled = enabled
+                            DesktopSettings.update { it.copy(canvasEnabled = enabled) }
+                        },
+                        canvasSource = canvasSource,
+                        onCanvasSourceChange = { s ->
+                            canvasSource = s
+                            DesktopSettings.update { it.copy(canvasSource = s.key) }
+                        },
+                    )
                     is Screen.SettingsPlayer -> SettingsPlayerScreen(
                         language = language,
                         onBack = goBack,
                         autoPlayNext = autoPlayNext,
                         onToggleAutoPlayNext = { checked ->
                             autoPlayNext = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(autoPlayNext = checked))
+                            DesktopSettings.update { it.copy(autoPlayNext = checked) }
                         },
                         audioQuality = audioQuality,
                         onAudioQualityChange = { q ->
                             audioQuality = q
-                            DesktopSettings.save(DesktopSettings.load().copy(audioQuality = q))
+                            DesktopSettings.update { it.copy(audioQuality = q) }
                         },
                         rememberShuffleRepeat = rememberShuffleRepeat,
                         onToggleRememberShuffleRepeat = { checked ->
                             rememberShuffleRepeat = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(rememberShuffleRepeat = checked))
+                            DesktopSettings.update { it.copy(rememberShuffleRepeat = checked) }
                         },
                         persistentQueue = persistentQueue,
                         onTogglePersistentQueue = { checked ->
                             persistentQueue = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(persistentQueue = checked))
+                            DesktopSettings.update { it.copy(persistentQueue = checked) }
+                        },
+                        syncViviVolume = syncViviVolume,
+                        onToggleSyncViviVolume = { checked ->
+                            syncViviVolume = checked
+                            DesktopSettings.update { it.copy(syncViviVolume = checked) }
+                        },
+                        sliderStyle = sliderStyle,
+                        onSliderStyleChange = { s ->
+                            sliderStyle = s
+                            DesktopSettings.update { it.copy(sliderStyle = s) }
+                        },
+                        onOpenPlayerDesign = { navigate(Screen.SettingsPlayerDesign) },
+                        streamCacheMinutes = streamCacheMinutes,
+                        onStreamCacheMinutesChange = { m ->
+                            streamCacheMinutes = m
+                            DesktopSettings.update { it.copy(streamCacheMinutes = m) }
+                        },
+                    )
+                    is Screen.SettingsPlayerDesign -> SettingsPlayerDesignScreen(
+                        language = language,
+                        onBack = goBack,
+                        design = playerDesign,
+                        onDesignChange = { d ->
+                            playerDesign = d
+                            DesktopSettings.update { it.copy(playerDesign = d.key) }
+                        },
+                        background = playerBackground,
+                        onBackgroundChange = { b ->
+                            playerBackground = b
+                            DesktopSettings.update { it.copy(playerBackground = b.key) }
+                        },
+                        rotatingThumbnail = rotatingThumbnail,
+                        onRotatingThumbnailChange = { r ->
+                            rotatingThumbnail = r
+                            DesktopSettings.update { it.copy(rotatingThumbnail = r) }
+                        },
+                        miniPlayerStyle = miniPlayerStyle,
+                        onMiniPlayerStyleChange = { s ->
+                            miniPlayerStyle = s
+                            DesktopSettings.update { it.copy(miniPlayerStyle = s) }
                         },
                     )
                     is Screen.SettingsAccount -> SettingsAccountScreen(
@@ -642,6 +1141,73 @@ fun App(
                         language = language,
                         onBack = goBack,
                         syncManager = syncManager,
+                        syncViviVolume = syncViviVolume,
+                        onToggleSyncViviVolume = { checked ->
+                            syncViviVolume = checked
+                            DesktopSettings.update { it.copy(syncViviVolume = checked) }
+                        },
+                    )
+                    is Screen.SettingsIntegrations -> SettingsIntegrationsScreen(
+                        language = language,
+                        onBack = goBack,
+                        discordEnabled = discordRpcEnabled,
+                        onDiscordEnabledChange = { v ->
+                            discordRpcEnabled = v
+                            DesktopSettings.update { it.copy(discordRpcEnabled = v) }
+                        },
+                        discordClientId = discordClientId,
+                        onDiscordClientIdChange = { v ->
+                            discordClientId = v
+                            DesktopSettings.update { it.copy(discordClientId = v) }
+                        },
+                        lastfmEnabled = lastfmEnabled,
+                        onLastfmEnabledChange = { v ->
+                            lastfmEnabled = v
+                            DesktopSettings.update { it.copy(lastfmEnabled = v) }
+                        },
+                        lastfmSession = lastfmSession,
+                        onLastfmSessionChange = { v ->
+                            lastfmSession = v
+                            DesktopSettings.update { it.copy(lastfmSession = v) }
+                        },
+                        lastfmNowPlaying = lastfmNowPlaying,
+                        onLastfmNowPlayingChange = { v ->
+                            lastfmNowPlaying = v
+                            DesktopSettings.update { it.copy(lastfmNowPlaying = v) }
+                        },
+                    )
+                    is Screen.SettingsWrapped -> SettingsWrappedScreen(
+                        language = language,
+                        onBack = goBack,
+                        wrappedStats = WrappedStats(
+                            trackStarts = sessionTrackStarts,
+                            playedMs = sessionPlayedMs,
+                            topSongTitle = sessionTopSong?.second,
+                            topSongCount = sessionTopCount,
+                        ),
+                        showWrappedOnHome = showWrappedOnHome,
+                        onShowWrappedOnHomeChange = { v ->
+                            showWrappedOnHome = v
+                            DesktopSettings.update { it.copy(showWrappedOnHome = v) }
+                        },
+                    )
+                    is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
+                        language = language,
+                        onBack = goBack,
+                        pauseListenHistory = pauseListenHistory,
+                        onPauseListenHistoryChange = { v ->
+                            pauseListenHistory = v
+                            DesktopSettings.update { it.copy(pauseListenHistory = v) }
+                        },
+                        pauseSearchHistory = pauseSearchHistory,
+                        onPauseSearchHistoryChange = { v ->
+                            pauseSearchHistory = v
+                            DesktopSettings.update { it.copy(pauseSearchHistory = v) }
+                        },
+                        onClearSearchHistory = {
+                            searchHistory = emptyList()
+                            DesktopSettings.update { it.copy(searchHistory = emptyList()) }
+                        },
                     )
                     is Screen.SettingsContent -> SettingsContentScreen(
                         language = language,
@@ -650,12 +1216,12 @@ fun App(
                         contentCountry = contentCountry,
                         onContentLanguageChange = { code ->
                             contentLanguage = code
-                            DesktopSettings.save(DesktopSettings.load().copy(contentLanguage = code))
+                            DesktopSettings.update { it.copy(contentLanguage = code) }
                             YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
                         },
                         onContentCountryChange = { code ->
                             contentCountry = code
-                            DesktopSettings.save(DesktopSettings.load().copy(contentCountry = code))
+                            DesktopSettings.update { it.copy(contentCountry = code) }
                             YouTube.locale = resolveYouTubeLocale(contentLanguage, contentCountry)
                         },
                     )
@@ -665,22 +1231,17 @@ fun App(
                         syncedLyrics = syncedLyrics,
                         onToggleSyncedLyrics = { checked ->
                             syncedLyrics = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(syncedLyrics = checked))
+                            DesktopSettings.update { it.copy(syncedLyrics = checked) }
                         },
                         lyricsTextSize = lyricsTextSize,
                         onLyricsTextSizeChange = { size ->
                             lyricsTextSize = size
-                            DesktopSettings.save(DesktopSettings.load().copy(lyricsTextSize = size))
+                            DesktopSettings.update { it.copy(lyricsTextSize = size) }
                         },
-                    )
-                    is Screen.SettingsPrivacy -> SettingsPrivacyScreen(
-                        language = language,
-                        onBack = goBack,
-                        isLoggedIn = isLoggedIn,
-                        onLogout = {
-                            LoginManager.logout()
-                            isLoggedIn = false
-                            accountName = ""
+                        lyricsLineSpacing = lyricsLineSpacing,
+                        onLyricsLineSpacingChange = { ls ->
+                            lyricsLineSpacing = ls
+                            DesktopSettings.update { it.copy(lyricsLineSpacing = ls) }
                         },
                     )
                     is Screen.SettingsStorage -> SettingsStorageScreen(
@@ -693,17 +1254,28 @@ fun App(
                         updateStatus = updateStatus,
                         includePreReleases = includePreReleases,
                         updateIntervalHours = updateIntervalHours,
+                        updateSource = updateSource,
                         onIntervalChange = { hours ->
                             updateIntervalHours = hours
-                            DesktopSettings.save(DesktopSettings.load().copy(updateCheckIntervalHours = hours))
+                            DesktopSettings.update { it.copy(updateCheckIntervalHours = hours) }
                         },
                         onTogglePreReleases = { checked ->
                             includePreReleases = checked
-                            DesktopSettings.save(DesktopSettings.load().copy(includePreReleases = checked))
+                            DesktopSettings.update { it.copy(includePreReleases = checked) }
+                            runUpdateCheck()
+                        },
+                        onUpdateSourceChange = { source ->
+                            updateSource = source
+                            DesktopSettings.update { it.copy(updateSource = source) }
                             runUpdateCheck()
                         },
                         onCheckUpdates = { runUpdateCheck() },
                         onOpenChangelog = { navigate(Screen.Changelog) },
+                        onOpenCommits = { navigate(Screen.SettingsCommits) },
+                    )
+                    is Screen.SettingsCommits -> CommitsScreen(
+                        language = language,
+                        onBack = goBack,
                     )
                     is Screen.SettingsAbout -> SettingsAboutScreen(
                         language = language,
@@ -725,11 +1297,33 @@ fun App(
                         notificationMode = notificationMode,
                         onNotificationModeChange = { mode ->
                             notificationMode = mode
-                            DesktopSettings.save(DesktopSettings.load().copy(notificationMode = mode))
+                            DesktopSettings.update { it.copy(notificationMode = mode) }
+                        },
+                        notificationDurationSeconds = notificationDurationSeconds,
+                        onNotificationDurationChange = { secs ->
+                            notificationDurationSeconds = secs
+                            DesktopSettings.update { it.copy(inAppNotificationDurationSeconds = secs) }
+                        },
+                        saveHistory = saveNotificationHistory,
+                        onSaveHistoryChange = { save ->
+                            saveNotificationHistory = save
+                            DesktopSettings.update { it.copy(saveNotificationHistory = save) }
+                        },
+                        onOpenHistory = { navigate(Screen.SettingsNotificationsHistory) },
+                        onTestNotification = {
+                            DesktopNotifier.notify(
+                                "VIVI Music DE",
+                                Localization.get(language, "test_notification"),
+                                null,
+                            )
                         },
                     )
+                    is Screen.SettingsNotificationsHistory -> NotificationHistoryScreen(
+                        language = language,
+                        onBack = goBack,
+                    )
                     is Screen.Album -> AlbumScreen(
-                        browseId = current.browseId,
+                        browseId = screen.browseId,
                         language = language,
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -740,7 +1334,7 @@ fun App(
                         onShuffleAll = shuffleAll,
                     )
                     is Screen.Artist -> ArtistScreen(
-                        browseId = current.browseId,
+                        browseId = screen.browseId,
                         language = language,
                         onBack = goBack,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
@@ -751,7 +1345,7 @@ fun App(
                         onAddToPlaylist = addToPlaylist,
                     )
                     is Screen.Playlist -> PlaylistScreen(
-                        playlistId = current.playlistId,
+                        playlistId = screen.playlistId,
                         language = language,
                         onBack = goBack,
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -767,16 +1361,17 @@ fun App(
                         onOpenPlaylist = { navigate(Screen.LocalPlaylist(it)) },
                     )
                     is Screen.LocalPlaylist -> LocalPlaylistScreen(
-                        playlistId = current.playlistId,
+                        playlistId = screen.playlistId,
                         language = language,
                         onBack = goBack,
                         onPlay = { s -> player.play(NowPlaying(videoId = s.id, title = s.title, artist = s.artist, thumbnail = s.thumbnail)) },
                         onPlayAll = { songs -> player.playAll(songs.map { NowPlaying(videoId = it.id, title = it.title, artist = it.artist, thumbnail = it.thumbnail) }) },
                     )
                     is Screen.Browse -> BrowseScreen(
-                        browseId = current.browseId,
-                        params = current.params,
+                        browseId = screen.browseId,
+                        params = screen.params,
                         language = language,
+                        gridItemSize = gridItemSize,
                         onBack = goBack,
                         onOpenAlbum = { navigate(Screen.Album(it)) },
                         onOpenArtist = { navigate(Screen.Artist(it)) },
@@ -806,6 +1401,11 @@ fun App(
                         onOpenLyrics = { navigate(Screen.Lyrics) },
                         onOpenQueue = { navigate(Screen.Queue) },
                         onAddToPlaylist = addNowPlayingToPlaylist,
+                        sliderStyle = ViviSliderStyle.from(sliderStyle),
+                        design = playerDesign,
+                        background = playerBackground,
+                        rotatingThumbnail = rotatingThumbnail,
+                        accent = accent,
                     )
                     is Screen.Lyrics -> LyricsScreen(
                         nowPlaying = nowPlaying,
@@ -814,6 +1414,8 @@ fun App(
                         language = language,
                         synced = syncedLyrics,
                         textSizeSp = lyricsTextSize,
+                        lineSpacing = lyricsLineSpacing,
+                        onTogglePlay = { player.toggle() },
                         onBack = goBack,
                     )
                     is Screen.Queue -> QueueScreen(
@@ -840,6 +1442,7 @@ fun App(
                         },
                     )
                 }
+                } // AnimatedContent
                 if (showUpdateNotification && updateStatus is UpdateStatus.Available) {
                     UpdateNotification(
                         status = updateStatus as UpdateStatus.Available,
@@ -856,6 +1459,14 @@ fun App(
                             navigate(Screen.SettingsDeveloper)
                         },
                         onDismiss = { showDevNotification = false },
+                    )
+                }
+                appNotification?.let { notice ->
+                    InAppNotification(
+                        title = notice.title,
+                        message = notice.message,
+                        language = language,
+                        onDismiss = { appNotification = null },
                     )
                 }
                 if (devEnabled && devMode == DevToolsMode.OVERLAY) {
@@ -888,9 +1499,11 @@ fun App(
                 // Click toggles the full player: open it, or hide it (go back).
                 onOpen = { if (current == Screen.Player) goBack() else navigate(Screen.Player) },
                 onOpenQueue = { navigate(Screen.Queue) },
+                style = MiniPlayerStyle.from(miniPlayerStyle),
             )
         }
     }
+    } // density scale CompositionLocalProvider
 
     // Developer tools in a dedicated window (closing it falls back to overlay).
     if (devEnabled && devMode == DevToolsMode.WINDOW) {
@@ -924,10 +1537,11 @@ fun Sidebar(
     language: String,
     current: Screen,
     collapsed: Boolean,
+    hideHistory: Boolean = false,
     onToggleCollapsed: () -> Unit,
     onSelect: (Screen) -> Unit,
 ) {
-    val entries = listOf(
+    val allEntries = listOf(
         SidebarEntry(Screen.Home, "home", Icons.Outlined.Home, Icons.Filled.Home),
         SidebarEntry(Screen.Search, "search", Icons.Outlined.Search, Icons.Filled.Search),
         SidebarEntry(Screen.Library, "library", Icons.Outlined.LibraryMusic, Icons.Filled.LibraryMusic),
@@ -936,6 +1550,8 @@ fun Sidebar(
         SidebarEntry(Screen.History, "history", Icons.Outlined.History, Icons.Filled.History),
         SidebarEntry(Screen.Settings, "settings", Icons.Outlined.Settings, Icons.Filled.Settings),
     )
+
+    val entries = allEntries.filter { entry -> !(hideHistory && entry.screen == Screen.History) }
 
     val width by animateDpAsState(if (collapsed) 72.dp else 224.dp, label = "sidebarWidth")
 
@@ -963,7 +1579,7 @@ fun Sidebar(
                     )
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.weight(1f))
             entries.forEach { entry ->
                 val selected = current == entry.screen
                 Row(
@@ -1002,6 +1618,7 @@ fun Sidebar(
     }
 }
 
+
 @Composable
 fun MiniPlayer(
     nowPlaying: NowPlaying?,
@@ -1013,59 +1630,134 @@ fun MiniPlayer(
     onNext: () -> Unit,
     onOpen: () -> Unit,
     onOpenQueue: () -> Unit,
+    style: MiniPlayerStyle = MiniPlayerStyle.STANDARD,
 ) {
     val np = nowPlaying ?: return
-    Surface(tonalElevation = 4.dp, shadowElevation = 4.dp) {
-        Column {
-            if (durationMs > 0) {
-                LinearProgressIndicator(
-                    progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
-                    modifier = Modifier.fillMaxWidth().height(2.dp),
+    val pureBlack = style == MiniPlayerStyle.PURE_BLACK
+
+    // Swipe-to-expand: dragging the mini player up reveals the full player.
+    var dragOffset by remember { mutableStateOf(0f) }
+    val openThreshold = 90.dp
+    val density = LocalDensity.current
+    val thresholdPx = with(density) { openThreshold.toPx() }
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .graphicsLayer { translationY = -dragOffset.coerceAtLeast(0f) }
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, dragAmount ->
+                        dragOffset = (dragOffset + dragAmount).coerceAtLeast(0f)
+                    },
+                    onDragEnd = {
+                        if (dragOffset > thresholdPx) onOpen()
+                        dragOffset = 0f
+                    },
+                    onDragCancel = { dragOffset = 0f },
                 )
-            }
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable(onClick = onOpen)
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Thumbnail(np.thumbnail, Modifier.size(44.dp))
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(np.title, style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(
-                        np.artist,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            },
+    ) {
+        Surface(
+            color = when {
+                pureBlack -> Color.Black
+                style == MiniPlayerStyle.OUTLINE -> MaterialTheme.colorScheme.surface
+                else -> MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+            tonalElevation = if (style == MiniPlayerStyle.OUTLINE) 0.dp else 4.dp,
+            shadowElevation = 4.dp,
+            border = if (style == MiniPlayerStyle.OUTLINE) {
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            } else null,
+            shape = when (style) {
+                MiniPlayerStyle.APPLE -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+                MiniPlayerStyle.OUTLINE -> RoundedCornerShape(14.dp)
+                else -> RoundedCornerShape(0.dp)
+            },
+        ) {
+            Column {
+                // Drag handle (hint that the bar can be swiped up to expand).
+                Box(
+                    Modifier.fillMaxWidth().padding(top = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Box(
+                        Modifier
+                            .width(36.dp)
+                            .height(3.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(if (pureBlack) Color.White.copy(alpha = 0.4f) else MaterialTheme.colorScheme.outlineVariant),
                     )
                 }
-                IconButton(onClick = onTogglePlay) {
-                    if (isLoading) {
-                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                if (durationMs > 0) {
+                    LinearProgressIndicator(
+                        progress = { (positionMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f) },
+                        modifier = Modifier.fillMaxWidth().height(if (style == MiniPlayerStyle.APPLE) 3.dp else 2.dp),
+                        color = if (pureBlack) Color.White else MaterialTheme.colorScheme.primary,
+                    )
+                }
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onOpen)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (style == MiniPlayerStyle.APPLE) {
+                        Box(Modifier.clip(RoundedCornerShape(10.dp))) {
+                            Thumbnail(np.thumbnail, Modifier.size(40.dp))
+                        }
                     } else {
+                        Thumbnail(np.thumbnail, Modifier.size(44.dp))
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            np.title,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            np.artist,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (pureBlack) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    IconButton(onClick = onTogglePlay) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = if (pureBlack) Color.White else MaterialTheme.colorScheme.primary,
+                            )
+                        } else {
+                            Icon(
+                                if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                contentDescription = null,
+                                tint = if (pureBlack) Color.White else LocalContentColor.current,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
+                    }
+                    IconButton(onClick = onNext) {
                         Icon(
-                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            Icons.Filled.SkipNext,
                             contentDescription = null,
+                            tint = if (pureBlack) Color.White else LocalContentColor.current,
                             modifier = Modifier.size(22.dp),
                         )
                     }
-                }
-                IconButton(onClick = onNext) {
-                    Icon(
-                        Icons.Filled.SkipNext,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
-                }
-                IconButton(onClick = onOpenQueue) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.QueueMusic,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp),
-                    )
+                    IconButton(onClick = onOpenQueue) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.QueueMusic,
+                            contentDescription = null,
+                            tint = if (pureBlack) Color.White else LocalContentColor.current,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
                 }
             }
         }
@@ -1079,6 +1771,7 @@ fun SettingsScreen(
     isLoggedIn: Boolean,
     accountName: String,
     updateStatus: UpdateStatus,
+    wrappedStats: WrappedStats = WrappedStats(),
     onOpen: (Screen) -> Unit,
 ) {
     val devEnabled by DeveloperOptions.enabled.collectAsState()
@@ -1172,6 +1865,24 @@ fun SettingsScreen(
         )
         SettingsEntryRow(
             language = language,
+            icon = Icons.Filled.AutoAwesome,
+            title = Localization.get(language, "wrapped_title"),
+            subtitle = "${wrappedStats.trackStarts} ${Localization.get(language, "wrapped_tracks")}",
+            onClick = { onOpen(Screen.SettingsWrapped) },
+        )
+        SettingsEntryRow(
+            language = language,
+            icon = Icons.Filled.Tune,
+            title = Localization.get(language, "integrations"),
+            subtitle = if (DesktopSettings.load().discordRpcEnabled || DesktopSettings.load().lastfmEnabled) {
+                Localization.get(language, "integrations_active")
+            } else {
+                Localization.get(language, "integrations_inactive")
+            },
+            onClick = { onOpen(Screen.SettingsIntegrations) },
+        )
+        SettingsEntryRow(
+            language = language,
             icon = Icons.Filled.SettingsBackupRestore,
             title = Localization.get(language, "backup_restore"),
             onClick = { onOpen(Screen.SettingsBackup) },
@@ -1232,7 +1943,12 @@ private fun SettingsEntryRow(
 }
 
 @Composable
-fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
+fun DeviceSyncSection(
+    language: String,
+    syncManager: DesktopSyncManager,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+) {
     var serverUrl by remember {
         val saved = DesktopSettings.load().serverUrl
         // Default to the same relay the Android app uses; treat the old
@@ -1271,6 +1987,13 @@ fun DeviceSyncSection(language: String, syncManager: DesktopSyncManager) {
     }
 
     Text(Localization.get(language, "device_sync"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
+
+    SettingSwitch(
+        language = language,
+        key = "sync_vivi_volume",
+        checked = syncViviVolume,
+        onCheckedChange = onToggleSyncViviVolume,
+    )
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
@@ -1486,6 +2209,46 @@ fun LanguageSelectionScreen(onSelect: (String) -> Unit) {
 }
 
 /**
+ * Generic non-invasive in-app notification banner (title + message + dismiss),
+ * used for notifications dispatched in "main window" mode.
+ */
+@Composable
+fun BoxScope.InAppNotification(
+    title: String,
+    message: String,
+    language: String,
+    onDismiss: () -> Unit,
+) {
+    Surface(
+        tonalElevation = 6.dp,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp),
+    ) {
+        Row(
+            Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.widthIn(max = 300.dp)) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            TextButton(onClick = onDismiss, modifier = Modifier.padding(start = 12.dp)) {
+                Text(Localization.get(language, "dismiss"))
+            }
+        }
+    }
+}
+
+/**
  * One-off banner shown right after the developer options are unlocked,
  * pointing the user to the settings screen where they can configure them.
  */
@@ -1539,13 +2302,11 @@ fun BoxScope.UpdateNotification(
     onDone: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var downloading by remember { mutableStateOf(false) }
-    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
-    // If the installer for this exact version is already downloaded, offer to
-    // open it directly instead of downloading it again.
-    val existingInstaller = remember(status) {
-        status.asset?.let { UpdateDownloader.downloadedInstaller(it.fileName) }
-    }
+    val progress by UpdateState.progress.collectAsState()
+    val downloadedFile by UpdateState.downloadedFile.collectAsState()
+    // Shared with the Updates screen: if the installer for this version is
+    // already downloaded (from anywhere), offer to open it, not re-download.
+    val existingInstaller = downloadedFile
 
     Surface(
         tonalElevation = 6.dp,
@@ -1579,10 +2340,12 @@ fun BoxScope.UpdateNotification(
             }
             Button(
                 onClick = {
-                    if (downloading) return@Button
+                    if (progress != null) return@Button
                     existingInstaller?.let { file ->
-                        if (openFile(file)) exitProcess(0)
-                        onDone()
+                        scope.launch {
+                            prepareAndOpenInstaller(file)
+                            onDone()
+                        }
                         return@Button
                     }
                     val asset = status.asset
@@ -1591,23 +2354,13 @@ fun BoxScope.UpdateNotification(
                         onDone()
                     } else {
                         scope.launch {
-                            downloading = true
-                            progress = DownloadProgress(0, asset.sizeBytes, 0)
-                            val file = withContext(Dispatchers.IO) {
-                                runCatching {
-                                    UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p }
-                                }.getOrNull()
-                            }
-                            progress = null
-                            downloading = false
-                            if (file != null && openFile(file)) {
-                                exitProcess(0)
-                            }
+                            val file = UpdateState.download(asset)
+                            if (file != null) prepareAndOpenInstaller(file)
                             onDone()
                         }
                     }
                 },
-                enabled = !downloading,
+                enabled = progress == null,
                 modifier = Modifier.padding(start = 12.dp),
             ) {
                 Text(
@@ -1615,7 +2368,7 @@ fun BoxScope.UpdateNotification(
                         language,
                         when {
                             existingInstaller != null -> "open_installer"
-                            downloading -> "downloading"
+                            progress != null -> "downloading"
                             else -> "install_now"
                         },
                     )
@@ -1634,17 +2387,23 @@ fun UpdateSection(
     status: UpdateStatus,
     includePreReleases: Boolean,
     updateIntervalHours: Int,
+    updateSource: String,
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
+    onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onOpenCommits: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var progress by remember { mutableStateOf<DownloadProgress?>(null) }
-    var downloadedFile by remember { mutableStateOf<File?>(null) }
-    var installerCount by remember { mutableStateOf(UpdateDownloader.downloadedInstallers().size) }
+    // Shared download state (also used by the notification banner), so the two
+    // surfaces stay in sync.
+    val progress by UpdateState.progress.collectAsState()
+    val downloadedFile by UpdateState.downloadedFile.collectAsState()
+    val installerCount by UpdateState.installerCount.collectAsState()
     var openError by remember { mutableStateOf<String?>(null) }
     var intervalMenuOpen by remember { mutableStateOf(false) }
+    var sourceMenuOpen by remember { mutableStateOf(false) }
 
     Text(Localization.get(language, "updates"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Text(
@@ -1653,8 +2412,13 @@ fun UpdateSection(
         modifier = Modifier.padding(top = 4.dp),
     )
 
-    OutlinedButton(onClick = onOpenChangelog, modifier = Modifier.padding(top = 8.dp)) {
-        Text(Localization.get(language, "changelog"))
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = onOpenChangelog) {
+            Text(Localization.get(language, "changelog"))
+        }
+        OutlinedButton(onClick = onOpenCommits) {
+            Text(Localization.get(language, "commits"))
+        }
     }
 
     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1663,6 +2427,28 @@ fun UpdateSection(
         }
         Switch(checked = includePreReleases, onCheckedChange = onTogglePreReleases)
         Text(Localization.get(language, "include_prereleases"))
+    }
+
+    // Update source (fork vs original repo).
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(Localization.get(language, "update_source"), style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.weight(1f))
+        Box {
+            OutlinedButton(onClick = { sourceMenuOpen = true }) {
+                Text(UpdateSource.repoFor(updateSource))
+            }
+            DropdownMenu(expanded = sourceMenuOpen, onDismissRequest = { sourceMenuOpen = false }) {
+                listOf(UpdateSource.FORK, UpdateSource.ORIGINAL).forEach { source ->
+                    DropdownMenuItem(
+                        text = { Text(UpdateSource.repoFor(source)) },
+                        onClick = {
+                            sourceMenuOpen = false
+                            onUpdateSourceChange(source)
+                        },
+                    )
+                }
+            }
+        }
     }
 
     // Automatic check frequency.
@@ -1723,12 +2509,10 @@ fun UpdateSection(
                     Button(
                         onClick = {
                             openError = null
-                            if (openFile(downloadedFile!!)) {
-                                // The app must close so the installer can replace
-                                // the running files (updates cannot install otherwise).
-                                exitProcess(0)
-                            } else {
-                                openError = Localization.get(language, "open_failed")
+                            scope.launch {
+                                if (!prepareAndOpenInstaller(downloadedFile!!)) {
+                                    openError = Localization.get(language, "open_failed")
+                                }
                             }
                         },
                         modifier = Modifier.padding(top = 4.dp),
@@ -1750,17 +2534,7 @@ fun UpdateSection(
                 }
                 else -> Button(
                     onClick = {
-                        scope.launch {
-                            progress = DownloadProgress(0, asset.sizeBytes, 0)
-                            val file = withContext(Dispatchers.IO) {
-                                runCatching { UpdateDownloader.download(asset.downloadUrl, asset.fileName) { p -> progress = p } }.getOrNull()
-                            }
-                            progress = null
-                            if (file != null) {
-                                downloadedFile = file
-                                installerCount = UpdateDownloader.downloadedInstallers().size
-                            }
-                        }
+                        scope.launch { UpdateState.download(asset) }
                     },
                     modifier = Modifier.padding(top = 4.dp),
                 ) {
@@ -1789,11 +2563,7 @@ fun UpdateSection(
     )
     if (installerCount > 0) {
         Button(
-            onClick = {
-                UpdateDownloader.deleteAll()
-                installerCount = 0
-                downloadedFile = null
-            },
+            onClick = { UpdateState.deleteAllInstallers() },
             modifier = Modifier.padding(top = 4.dp),
         ) {
             Text(Localization.get(language, "delete_installers"))
@@ -1801,7 +2571,7 @@ fun UpdateSection(
     }
 }
 
-private fun openUrl(url: String): Boolean {
+internal fun openUrl(url: String): Boolean {
     if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
         if (runCatching { Desktop.getDesktop().browse(URI(url)) }.isSuccess) return true
     }
@@ -1835,6 +2605,22 @@ private fun openFile(file: File): Boolean {
 
 private fun formatSpeed(bps: Long): String =
     if (bps <= 0) "0 B/s" else "${formatBytes(bps)}/s"
+
+/**
+ * Runs the optional "backup before update" (if enabled) and then opens the
+ * installer, exiting the app on success so the installer can replace the
+ * running files. Returns false when the installer could not be opened. Shared
+ * by the update notification and the Updates screen so both behave the same.
+ */
+private suspend fun prepareAndOpenInstaller(file: File): Boolean {
+    val s = DesktopSettings.load()
+    if (s.autoBackupEnabled && s.autoBackupBeforeUpdate) {
+        withContext(Dispatchers.IO) { BackupManager.autoBackup("before_update") }
+    }
+    val ok = openFile(file)
+    if (ok) exitProcess(0)
+    return ok
+}
 
 /** Available update-check intervals, in hours (0 = manual only). */
 private fun updateCheckIntervalOptions(): List<Int> = listOf(0, 6, 12, 24, 72, 168)
@@ -1923,7 +2709,7 @@ fun AboutSection(language: String, onOpenChangelog: () -> Unit) {
     AboutInfoRow(
         icon = Icons.Filled.Public,
         title = Localization.get(language, "website"),
-        onClick = { openUrl("https://piboh.github.io/") },
+        onClick = { openUrl("https://piboh.github.io/vivi-music/") },
     )
 
     AboutSectionHeader(Localization.get(language, "community_section"))
@@ -2057,8 +2843,16 @@ fun PlayerSection(
     onToggleRememberShuffleRepeat: (Boolean) -> Unit,
     persistentQueue: Boolean,
     onTogglePersistentQueue: (Boolean) -> Unit,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+    sliderStyle: String,
+    onSliderStyleChange: (String) -> Unit,
+    onOpenPlayerDesign: () -> Unit,
+    streamCacheMinutes: Int = 10,
+    onStreamCacheMinutesChange: (Int) -> Unit = {},
 ) {
     var qualityExpanded by remember { mutableStateOf(false) }
+    var sliderExpanded by remember { mutableStateOf(false) }
 
     Text(Localization.get(language, "player_audio"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
 
@@ -2077,9 +2871,64 @@ fun PlayerSection(
         }
     }
 
+    Row(
+        Modifier.fillMaxWidth().padding(top = 12.dp).clickable(onClick = onOpenPlayerDesign),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Text(Localization.get(language, "player_design"), style = MaterialTheme.typography.bodyLarge)
+        Spacer(Modifier.weight(1f))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null)
+    }
+
     SettingSwitch(language, "autoplay_next", autoPlayNext, onToggleAutoPlayNext)
     SettingSwitch(language, "remember_shuffle_repeat", rememberShuffleRepeat, onToggleRememberShuffleRepeat)
     SettingSwitch(language, "persistent_queue", persistentQueue, onTogglePersistentQueue)
+    SettingSwitch(language, "sync_vivi_volume", syncViviVolume, onToggleSyncViviVolume)
+
+    Text(
+        "${Localization.get(language, "stream_cache_minutes")}: " +
+            if (streamCacheMinutes <= 0) Localization.get(language, "stream_cache_forever")
+            else "${streamCacheMinutes} min",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    Text(
+        Localization.get(language, "stream_cache_minutes_desc"),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    Slider(
+        value = if (streamCacheMinutes <= 0) 61f else streamCacheMinutes.toFloat(),
+        onValueChange = {
+            val v = it.roundToInt()
+            onStreamCacheMinutesChange(if (v >= 61) 0 else v.coerceIn(1, 60))
+        },
+        valueRange = 1f..61f,
+        steps = 59,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    Text(Localization.get(language, "slider_style"), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
+    Box(Modifier.padding(top = 8.dp)) {
+        OutlinedButton(onClick = { sliderExpanded = true }) {
+            Text(sliderStyleLabel(language, sliderStyle))
+        }
+        DropdownMenu(expanded = sliderExpanded, onDismissRequest = { sliderExpanded = false }) {
+            listOf("slim", "squiggly", "wavy").forEach { s ->
+                DropdownMenuItem(
+                    text = { Text(sliderStyleLabel(language, s)) },
+                    onClick = { sliderExpanded = false; onSliderStyleChange(s) },
+                )
+            }
+        }
+    }
+}
+
+private fun sliderStyleLabel(language: String, style: String): String = when (style) {
+    "squiggly" -> Localization.get(language, "slider_squiggly")
+    "wavy" -> Localization.get(language, "slider_wavy")
+    else -> Localization.get(language, "slider_slim")
 }
 
 @Composable
@@ -2148,8 +2997,11 @@ private val queueJson = Json { ignoreUnknownKeys = true }
 private data class PlaybackSyncKey(
     val trackId: String?,
     val isPlaying: Boolean,
+    val isResolving: Boolean,
     val index: Int,
     val queue: List<String>,
+    val repeatMode: String,
+    val isShuffle: Boolean,
 )
 
 /** Mutable echo-suppression state for a volume sync loop. */
@@ -2174,9 +3026,12 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
         trackId = current.videoId,
         trackTitle = current.title,
         positionMs = s.positionMs,
+        isResolving = s.isResolving,
         isPlaying = s.isPlaying,
-        volume = s.volume,
+        volume = if (DesktopSettings.load().syncViviVolume) s.volume else null,
         systemVolume = SystemVolume.get(),
+        repeatMode = s.repeatMode.name,
+        isShuffle = s.isShuffle,
         queue = s.queue.map { np ->
             TrackRef(id = np.videoId, title = np.title, artist = np.artist, thumbnail = np.thumbnail)
         },
@@ -2185,7 +3040,12 @@ private fun PlayerController.toPlaybackSnapshot(): PlaybackSnapshot? {
 }
 
 /** Maps the desktop theme/language/accent onto the Android shared-preference keys. */
-private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: Color): Map<String, String> = mapOf(
+private fun desktopSettingsMap(
+    language: String,
+    themeMode: ThemeMode,
+    accent: Color,
+    syncViviVolume: Boolean,
+): Map<String, String> = mapOf(
     "appLanguage" to Languages.toMobileCode(language).ifBlank { "SYSTEM_DEFAULT" },
     "darkMode" to when (themeMode) {
         ThemeMode.SYSTEM -> "AUTO"
@@ -2195,4 +3055,5 @@ private fun desktopSettingsMap(language: String, themeMode: ThemeMode, accent: C
     "selectedThemeColor" to colorToArgbInt(accent).toString(),
     "pureBlack" to "false",
     "dynamicTheme" to "false",
+    "syncViviVolume" to syncViviVolume.toString(),
 )

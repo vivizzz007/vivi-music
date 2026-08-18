@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIVI Music DE</title>
+  <meta name="description" content="VIVI Music DE: an elegant, open-source music player for Windows, Linux and macOS with phone sync." />
+  <link rel="icon" href="images/logo_vmde.png" type="image/png" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html">
+        <img src="images/logo_vmde.png" alt="VIVI Music DE logo" />
+        VIVI Music DE
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="nav-links">
+        <a href="downloads.html">Downloads</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="sync.html">Sync</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap">
+      <h1>More Than Just Music</h1>
+      <p class="tagline">
+        An elegant, open-source music player for Windows, Linux and macOS.
+        Seamless background playback, real-time synced lyrics, and
+        high-fidelity streaming from YouTube Music — with a live connection
+        to your phone.
+      </p>
+
+      <div class="tabs">
+        <button class="tab active" data-channel="stable" type="button">Stable</button>
+        <button class="tab" data-channel="nightly" type="button">Nightly builds</button>
+      </div>
+
+      <div class="platforms">
+        <a class="platform" data-download="winExe" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🪟</span>
+          <span><span class="pl-name">Windows</span><br /><span class="pl-fmt">.exe installer</span></span>
+        </a>
+        <a class="platform" data-download="deb" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🐧</span>
+          <span><span class="pl-name">Linux</span><br /><span class="pl-fmt">.deb · AppImage</span></span>
+        </a>
+        <a class="platform" data-download="dmg" href="https://github.com/PiBOH/vivi-music/releases/latest">
+          <span class="os">🍎</span>
+          <span><span class="pl-name">macOS</span><br /><span class="pl-fmt">.dmg · .pkg</span></span>
+        </a>
+        <a class="platform" href="https://vivimusic.mkmdevilmi.workers.dev/">
+          <span class="os">🤖</span>
+          <span><span class="pl-name">VIVI Music</span><br /><span class="pl-fmt">Android — original app</span></span>
+        </a>
+      </div>
+
+      <p class="hint">Latest <span data-version>…</span> · <a href="https://github.com/PiBOH/vivi-music/releases">all releases</a></p>
+
+      <div class="stats">
+        <img src="https://img.shields.io/github/stars/PiBOH/vivi-music?style=for-the-badge&label=stars" alt="GitHub stars" />
+        <img src="https://img.shields.io/github/downloads/PiBOH/vivi-music/total?style=for-the-badge&label=downloads" alt="Total downloads" />
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="cards">
+        <div class="card">
+          <div class="emoji">📱💻</div>
+          <h3>Phone sync</h3>
+          <p>Pair your phone and desktop over LAN or the cloud relay. Queue, playlists, volume and settings stay in sync in real time.</p>
+        </div>
+        <div class="card">
+          <div class="emoji">🎵</div>
+          <h3>Full player</h3>
+          <p>Material 3 player with synced lyrics, mini-player and an animated canvas background.</p>
+        </div>
+        <div class="card">
+          <div class="emoji">🔓</div>
+          <h3>Open source</h3>
+          <p>Free and open source under the GPL-3.0 license. No ads, no tracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>VIVI Music DE</span>
+      <div class="links">
+        <a href="https://github.com/PiBOH/vivi-music">GitHub</a>
+        <a href="https://github.com/PiBOH/vivi-music/releases">Releases</a>
+        <a href="https://t.me/vivimusicapp">Telegram</a>
+        <a href="https://vivimusic.mkmdevilmi.workers.dev/">Original VIVI Music</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

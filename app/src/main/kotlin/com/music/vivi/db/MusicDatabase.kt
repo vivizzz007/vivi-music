@@ -158,6 +158,9 @@ abstract class InternalDatabase : RoomDatabase() {
     companion object {
         const val DB_NAME = "song.db"
 
+        /** Room schema version — keep in sync with `@Database(version = …)`. */
+        const val DB_VERSION = 34
+
         fun newInstance(context: Context): MusicDatabase =
             MusicDatabase(
                 delegate =

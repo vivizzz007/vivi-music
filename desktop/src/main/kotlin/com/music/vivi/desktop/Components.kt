@@ -1,7 +1,10 @@
 package com.music.vivi.desktop
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -276,5 +287,138 @@ fun MoodAndGenresButton(title: String, onClick: () -> Unit, modifier: Modifier =
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ViviSlider: slim / squiggly / wavy slider styles (ported from mobile)
+// ---------------------------------------------------------------------------
+
+/** Slider visual style (matches the mobile slider-style setting). */
+enum class ViviSliderStyle(val key: String) {
+    SLIM("slim"),
+    SQUIGGLY("squiggly"),
+    WAVY("wavy");
+
+    companion object {
+        fun from(key: String?): ViviSliderStyle = entries.firstOrNull { it.key == key } ?: SLIM
+    }
+}
+
+/**
+ * Custom slider with three track styles:
+ * - SLIM: thin straight track (default Material look)
+ * - SQUIGGLY: tight zig-zag bumps along the track
+ * - WAVY: smooth sine wave along the track
+ *
+ * Dragging/tapping anywhere on the track seeks; the thumb follows the value.
+ */
+@Composable
+fun ViviSlider(
+    value: Float,
+    onValueChange: (Float) -> Unit,
+    valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
+    onValueChangeFinished: (() -> Unit)? = null,
+    style: ViviSliderStyle = ViviSliderStyle.SLIM,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+) {
+    val range = valueRange.endInclusive - valueRange.start
+    val fraction = if (range == 0f) 0f else ((value - valueRange.start) / range).coerceIn(0f, 1f)
+    val primary = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val thumbColor = if (enabled) primary else MaterialTheme.colorScheme.outline
+
+    Box(
+        modifier
+            .height(28.dp)
+            .fillMaxWidth()
+            .then(if (!enabled) Modifier else Modifier)
+            .pointerInput(Unit) {
+                detectTapGestures { offset ->
+                    if (enabled) {
+                        val f = (offset.x / size.width).coerceIn(0f, 1f)
+                        onValueChange(valueRange.start + f * range)
+                        onValueChangeFinished?.invoke()
+                    }
+                }
+            }
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragEnd = { if (enabled) onValueChangeFinished?.invoke() },
+                    onDragCancel = { if (enabled) onValueChangeFinished?.invoke() },
+                ) { change, _ ->
+                    if (enabled) {
+                        val f = (change.position.x / size.width).coerceIn(0f, 1f)
+                        onValueChange(valueRange.start + f * range)
+                        change.consume()
+                    }
+                }
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        val trackHeight = if (style == ViviSliderStyle.SLIM) 3.dp else 6.dp
+        Canvas(Modifier.fillMaxWidth().height(28.dp)) {
+            val cy = size.height / 2f
+            val amp = when (style) {
+                ViviSliderStyle.SLIM -> 0f
+                ViviSliderStyle.SQUIGGLY -> 3.5f
+                ViviSliderStyle.WAVY -> 6f
+            }
+            val freq = when (style) {
+                ViviSliderStyle.SLIM -> 0f
+                ViviSliderStyle.SQUIGGLY -> 14f
+                ViviSliderStyle.WAVY -> 3f
+            }
+            fun waveY(x: Float): Float = cy + if (freq > 0f) {
+                kotlin.math.sin((x / size.width) * freq * 2f * kotlin.math.PI.toFloat()) * amp
+            } else cy - cy
+
+            fun buildPath(toX: Float): Path {
+                val p = Path()
+                p.moveTo(0f, waveY(0f))
+                var x = 0f
+                while (x <= toX) {
+                    p.lineTo(x, waveY(x))
+                    x += 4f
+                }
+                return p
+            }
+
+            if (style == ViviSliderStyle.SLIM) {
+                drawRoundRect(
+                    color = trackColor,
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, cy - 1.5f),
+                    size = androidx.compose.ui.geometry.Size(size.width, 3f),
+                    cornerRadius = CornerRadius(1.5f, 1.5f),
+                )
+                drawRoundRect(
+                    color = primary,
+                    topLeft = androidx.compose.ui.geometry.Offset(0f, cy - 1.5f),
+                    size = androidx.compose.ui.geometry.Size(size.width * fraction, 3f),
+                    cornerRadius = CornerRadius(1.5f, 1.5f),
+                )
+            } else {
+                val stroke = Stroke(width = trackHeight.toPx(), cap = StrokeCap.Round)
+                drawPath(buildPath(size.width), color = trackColor, style = stroke)
+                if (fraction > 0.001f) {
+                    drawPath(buildPath(size.width * fraction), color = primary, style = stroke)
+                }
+            }
+            // Thumb
+            val thumbX = size.width * fraction
+            drawCircle(
+                color = thumbColor,
+                radius = if (style == ViviSliderStyle.SLIM) 6f else 7f,
+                center = Offset(thumbX, waveY(thumbX)),
+            )
+            // Subtle ring so the thumb is visible on any background.
+            drawCircle(
+                color = Color.White.copy(alpha = 0.35f),
+                radius = if (style == ViviSliderStyle.SLIM) 6f else 7f,
+                center = Offset(thumbX, waveY(thumbX)),
+                style = Stroke(width = 1.5f),
+            )
+        }
     }
 }

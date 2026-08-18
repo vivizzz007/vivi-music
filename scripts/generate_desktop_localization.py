@@ -113,6 +113,121 @@ MAPPING = {
     "download": "action_download",
     "appearance": "appearance",
     "theme_mode": "theme_mode",
+    "theme": "theme",
+    "theme_colors": "theme_colors",
+    "color_palette": "color_palette",
+    "quick_picks": "quick_picks",
+    "search_history": "search_history",
+    "listen_history": "listen_history",
+    "clear_search_history": "clear_search_history",
+    "clear_search_history_confirm": "clear_search_history_confirm",
+    "pause_listen_history": "pause_listen_history",
+    "pause_search_history": "pause_search_history",
+    "remove_from_queue": "remove_from_queue",
+    "app_font": "app_font",
+    "font_selection": "font_selection",
+    "font_system": "font_system",
+    "font_google_sans": "font_google_sans",
+    "font_sans_flex": "font_sans_flex",
+    "font_outfit": "font_outfit",
+    "font_plus_jakarta_sans": "font_plus_jakarta_sans",
+    "font_system_desc": "font_system_desc",
+    "font_google_sans_desc": "font_google_sans_desc",
+    "font_sans_flex_desc": "font_sans_flex_desc",
+    "font_outfit_desc": "font_outfit_desc",
+    "font_plus_jakarta_sans_desc": "font_plus_jakarta_sans_desc",
+    "typography_preview": "typography_preview",
+    "preview_text_quote": "preview_text_quote",
+    "density_and_grid": "Density & grid",
+    "density_desc": "Scale the whole interface smaller (or keep 100%).",
+    "density_100": "100%",
+    "density_85": "85%",
+    "density_75": "75%",
+    "density_65": "65%",
+    "density_55": "55%",
+    "grid_item_size": "Grid item size",
+    "grid_item_size_desc": "Card size for albums, artists and playlists grids.",
+    "grid_small": "Small",
+    "grid_medium": "Medium",
+    "grid_large": "Large",
+    "grid_xlarge": "Extra large",
+    "screen_transitions": "Screen transitions",
+    "transition_off": "Off",
+    "transition_fade": "Fade",
+    "transition_slide": "Slide",
+    "slider_style": "Slider style",
+    "slider_slim": "Slim",
+    "slider_squiggly": "Squiggly",
+    "slider_wavy": "Wavy",
+    "player_design": "Player design",
+    "player_design_desc": "Layout variant of the full player.",
+    "player_design_classic": "Classic",
+    "player_design_new": "New",
+    "player_design_v2": "V2",
+    "player_design_expressive": "Expressive",
+    "player_background": "Player background",
+    "player_background_desc": "Animated style behind the player.",
+    "player_background_gradient": "Gradient",
+    "player_background_blur": "Blur",
+    "player_background_glow": "Glow",
+    "player_background_apple": "Apple Music",
+    "player_background_mesh": "Live mesh",
+    "rotating_thumbnail": "Rotating artwork",
+    "rotating_thumbnail_desc": "Slowly rotate the album artwork while playing.",
+    "apple_mini_player": "Apple mini player",
+    "apple_mini_player_desc": "Rounded Apple Music-style mini player.",
+    "sort_az": "A–Z",
+    "sort_za": "Z–A",
+    "sort_artist": "By artist",
+    "last_listen": "Last listen",
+    "randomize_home_order": "Randomize home order",
+    "randomize": "Randomize",
+    "wrapped_title": "VIVI Wrapped · This session",
+    "wrapped_desc": "Your listening stats for the current session — restart to reset.",
+    "wrapped_tracks": "tracks",
+    "wrapped_listening_time": "listening",
+    "wrapped_top_song": "top song",
+    "pause_listen_history_desc": "Hides the History screen from the sidebar.",
+    "pause_search_history_desc": "Keeps new searches out of the recent-searches list.",
+    "quick_settings": "Quick settings",
+    "lyrics_line_spacing": "Line spacing",
+    "stream_cache_minutes": "Stream cache (minutes)",
+    "stream_cache_minutes_desc": "How long a resolved stream URL is reused before it is resolved again.",
+    "stream_cache_forever": "Forever",
+    "integrations": "Integrations",
+    "integrations_active": "Active",
+    "integrations_inactive": "Off",
+    "discord_presence": "Discord Rich Presence",
+    "discord_presence_enable": "Enable Rich Presence",
+    "discord_presence_desc": "Shows the current track on your Discord profile (Windows).",
+    "discord_client_id": "Discord application ID",
+    "discord_client_id_hint": "Create an application at discord.com/developers and paste its ID.",
+    "lastfm": "Last.fm",
+    "lastfm_enable": "Enable scrobbling",
+    "lastfm_enable_desc": "Scrobbles the tracks you listen to on Last.fm.",
+    "lastfm_session": "Session key",
+    "lastfm_session_hint": "Paste your Last.fm session key (from the mobile app or last.fm/api).",
+    "lastfm_now_playing": "Update now playing",
+    "lastfm_now_playing_desc": "Also report the track currently playing.",
+    "mini_player": "Mini player",
+    "mini_player_desc": "Style of the mini player above the sidebar.",
+    "mini_player_standard": "Standard",
+    "mini_player_apple": "Apple",
+    "mini_player_outline": "Outline",
+    "mini_player_pure_black": "Pure black",
+    "density_and_grid": "display_density",
+    "use_canvas": "use_canvas",
+    "canvas_source": "canvas_source",
+    "canvas_source_auto": "canvas_source_auto",
+    "canvas_source_apple_music": "canvas_source_apple_music",
+    "canvas_source_vivimusic": "canvas_source_vivimusic",
+    "canvas_source_tidal": "canvas_source_tidal",
+    "canvas_source_auto_desc": "canvas_source_auto_desc",
+    "canvas_source_apple_music_desc": "canvas_source_apple_music_desc",
+    "canvas_source_vivimusic_desc": "canvas_source_vivimusic_desc",
+    "canvas_source_tidal_desc": "canvas_source_tidal_desc",
+    "vivimusic_canvas": "vivimusic_canvas",
+    "vivimusic_canvas_desc": "vivimusic_canvas_desc",
     "player_audio": "player_and_audio",
     "queue": "queue",
     "history": "history",
@@ -167,6 +282,8 @@ MAPPING = {
     "play_all": "play_all",
     "repeat": "repeat",
     "changelog": "changelog_title",
+    "commits": "commits",
+    "error_loading_commits": "error_loading_commits",
     "connect": "connect",
     "disconnect": "disconnect",
     "logging_in": "logging_in",
@@ -196,11 +313,36 @@ MAPPING = {
     "backup_create_success": "backup_create_success",
     "backup_create_failed": "backup_create_failed",
     "restore_failed": "restore_failed",
+    "auto_backup": "autobackup_settings",
+    "enable_automatic_backup": "enable_automatic_backup",
+    "automatic_backup_desc": "automatic_backup_desc",
+    "weekly_backup": "weekly_backup",
+    "weekly_backup_desc": "weekly_backup_desc",
+    "backup_before_update": "backup_before_update",
+    "backup_before_update_desc": "backup_before_update_desc",
+    "stored_backups": "stored_backups",
+    "backups_empty": "no_stored_backups",
+    "delete_backup_confirm": "delete_backup_confirm",
+    "restore_backup_confirm": "restore_backup_confirm",
+    "backup_type_weekly": "backup_type_weekly",
+    "backup_type_before_update": "backup_type_before_update",
+    # Reused Android strings (kept out of the desktop-only table)
+    "dismiss": "dismiss",
+    "updates": "app_updates_title",
+    "check_updates": "check_for_updates",
+    "checking": "checking_for_updates",
+    "up_to_date": "app_update_uptodate",
+    "update_failed": "update_failed",
+    "paired_device": "device_sync_paired_device",
+    "no_paired_device": "device_sync_not_paired",
+    "dev_unlocked_open": "open",
+    "install_now": "install",
 }
 
 # Full desktop English table (source language).
 ENGLISH = {
     "header": "VIVI Music (desktop)",
+    "ok": "OK",
     "search": "Search",
     "search_placeholder": "Search YouTube Music",
     "search_button": "Search",
@@ -255,19 +397,33 @@ ENGLISH = {
     "mobile": "Mobile",
     "de": "DE",
     "updates": "Updates",
-    "check_updates": "Check for updates",
+    "check_updates": "Check for available updates",
     "checking": "Checking…",
     "up_to_date": "You're up to date",
     "update_available": "Update available",
     "notifications": "Notifications",
-    "notification_mode_desc": "Where to show update notifications.",
+    "notification_mode_desc": "Choose how app notifications (updates, device sync, and more) are shown.",
     "notification_main_window": "Main window",
     "notification_native": "Native system notification",
+    "experimental": "experimental",
+    "notification_history": "Notification history",
+    "notification_history_desc": "View recent notifications (in-app and native).",
+    "save_notification_history": "Save notification history",
+    "clear_history": "Clear history",
+    "history_empty": "No notifications yet",
+    "notification_duration": "In-app notification duration",
+    "notification_duration_desc": "How long an in-app notification stays on screen before disappearing.",
+    "test_notification": "Send test notification",
+    "device_paired_title": "Device paired",
+    "device_paired_desc": "Your phone is now connected and synchronized",
+    "device_unpaired_title": "Device unpaired",
+    "device_unpaired_desc": "The paired device has been disconnected",
     "download": "Download",
     "include_prereleases": "Include pre-releases",
     "update_failed": "Update check failed",
     "current_version": "Current version",
     "update_check_interval": "Update check interval",
+    "update_source": "Update source",
     "interval_manual": "Manual only",
     "interval_6h": "Every 6 hours",
     "interval_12h": "Every 12 hours",
@@ -294,11 +450,14 @@ ENGLISH = {
     "cache_size": "Cache size",
     "clear_cache": "Clear cache",
     "changelog": "Changelog",
+    "commits": "Commits",
+    "commits_desc": "Browse the most recent changes to VIVI Music DE.",
+    "error_loading_commits": "Failed to load commits",
     "latest_release": "Latest release notes",
     "changelog_unavailable": "Changelog not available",
     "downloading": "Downloading",
     "downloaded": "Downloaded",
-    "open_installer": "Open installer",
+    "open_installer": "Close Vivi and open installer",
     "installers_downloaded": "Downloaded installers",
     "delete_installers": "Delete installers",
     "account": "Account",
@@ -350,6 +509,7 @@ ENGLISH = {
     "audio_quality_low": "Low",
     "remember_shuffle_repeat": "Remember shuffle and repeat",
     "persistent_queue": "Persistent queue",
+    "sync_vivi_volume": "Sync VIVI volume",
     "lyrics_text_size": "Lyrics text size",
     "install_now": "Install now",
     "dismiss": "Dismiss",
@@ -412,8 +572,16 @@ ENGLISH = {
     "backup_create_success": "Backup created successfully",
     "backup_create_failed": "Couldn't create backup",
     "restore_failed": "Failed to restore backup",
-    "backup_restore_desc": "Export your settings to a backup file, or restore them from a previous backup.",
-    "backup_desc": "Save your current settings to a file.",
+    "backup_restore_desc": "Export everything (settings, playlists, account and library) to a backup file, or restore it from a previous backup.",
+    "backup_desc": "Save all your data (settings, playlists, account and library) to a file.",
+    "auto_backup": "Automatic backup",
+    "automatic_backup_desc": "Automatically back up your data on a schedule.",
+    "enable_automatic_backup": "Enable automatic backup",
+    "weekly_backup": "Weekly backup",
+    "weekly_backup_desc": "Create a backup automatically once a week.",
+    "backup_before_update": "Backup before update",
+    "backup_before_update_desc": "Automatically back up your data before installing an update.",
+    "backups_empty": "No automatic backups yet",
     "restore_desc": "Load settings from a backup file. The app restarts to apply them.",
     "restore_success_title": "Settings imported",
     "restore_success": "Your settings were imported. Restart VIVI Music DE to apply them.",
@@ -946,6 +1114,25 @@ TRANSLATIONS = {
     },
 }
 
+# Complete desktop-only translations (kept in separate files for readability).
+from desktop_extra_translations import EXTRA_TRANSLATIONS as _EXTRA_1
+from desktop_extra_translations_2 import EXTRA_TRANSLATIONS as _EXTRA_2
+from desktop_extra_translations_3 import EXTRA_TRANSLATIONS as _EXTRA_3
+from desktop_extra_translations_4 import EXTRA_TRANSLATIONS as _EXTRA_4
+from desktop_extra_translations_5 import EXTRA_TRANSLATIONS as _EXTRA_5
+from desktop_extra_translations_6 import EXTRA_TRANSLATIONS as _EXTRA_6
+from desktop_extra_translations_7 import EXTRA_TRANSLATIONS as _EXTRA_7
+from desktop_extra_translations_8 import EXTRA_TRANSLATIONS as _EXTRA_8
+from desktop_extra_translations_9 import EXTRA_TRANSLATIONS as _EXTRA_9
+from desktop_extra_translations_10 import EXTRA_TRANSLATIONS as _EXTRA_10
+from desktop_extra_translations_11 import EXTRA_TRANSLATIONS as _EXTRA_11
+from desktop_extra_translations_12 import EXTRA_TRANSLATIONS as _EXTRA_12
+from desktop_extra_translations_13 import EXTRA_TRANSLATIONS as _EXTRA_13
+from desktop_extra_translations_14 import EXTRA_TRANSLATIONS as _EXTRA_14
+
+for _extra in (_EXTRA_1, _EXTRA_2, _EXTRA_3, _EXTRA_4, _EXTRA_5, _EXTRA_6, _EXTRA_7, _EXTRA_8, _EXTRA_9, _EXTRA_10, _EXTRA_11, _EXTRA_12, _EXTRA_13, _EXTRA_14):
+    TRANSLATIONS.update(_extra)
+
 
 def android_unescape(s):
     """Decode Android resource string escapes (aapt-style) to real chars.
@@ -1071,6 +1258,13 @@ def main():
         lines.append(pad + ')')
         return "\n".join(lines)
 
+    # One entry per emitted language, in a deterministic order. The per-language
+    # maps are emitted as top-level functions (not inline in the object) so the
+    # JVM <clinit> method stays under the 64KB bytecode limit.
+    ordered = [("en", ENGLISH)] + [
+        (lang, languages[lang]) for lang in sorted(languages)
+    ]
+
     parts = []
     parts.append("package com.music.vivi.desktop\n")
     parts.append("/**")
@@ -1081,14 +1275,14 @@ def main():
     parts.append(" * This file is GENERATED by `scripts/generate_desktop_localization.py` from")
     parts.append(" * the Android app's `strings.xml` resources — do not edit by hand.")
     parts.append(" */")
-    parts.append("object Localization {\n")
+    for i, (lang, entries) in enumerate(ordered):
+        parts.append("private fun strings_%d(): Map<String, String> =" % i)
+        parts.append("    " + emit_map(entries, 4).lstrip() + "\n")
+    parts.append("object Localization {")
     parts.append("    private val strings: Map<String, Map<String, String>> = mapOf(")
-    parts.append('        "en" to ' + emit_map(ENGLISH, 8).lstrip() + ",")
-    for lang in sorted(languages):
-        parts.append(
-            '        "%s" to %s,' % (lang, emit_map(languages[lang], 8).lstrip())
-        )
-    parts.append("    )\n")
+    for i, (lang, _entries) in enumerate(ordered):
+        parts.append('        "%s" to strings_%d(),' % (lang, i))
+    parts.append("    )")
     parts.append("    fun get(language: String, key: String): String =")
     parts.append('        strings[language]?.get(key) ?: strings["en"]?.get(key) ?: key')
     parts.append("}\n")

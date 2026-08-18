@@ -338,7 +338,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 ContextCompat.startActivity(context, installIntent, null)
                                             }
                                         } else {
-                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/${currentStatus.version}/vivi.apk"
+                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/${updateRepo(context)}/releases/download/${currentStatus.version}/vivi.apk"
                                             val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
                                                 .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
                                                 .addTag("update_download")
@@ -662,6 +662,26 @@ fun saveBetaUpdatesSetting(context: Context, enabled: Boolean) {
     sharedPrefs.edit().putBoolean(KEY_BETA_UPDATES, enabled).apply()
 }
 
+const val KEY_UPDATE_SOURCE = "update_source"
+const val UPDATE_SOURCE_ORIGINAL = "original"
+const val UPDATE_SOURCE_FORK = "fork"
+const val REPO_ORIGINAL = "vivizzz007/vivi-music"
+const val REPO_FORK = "PiBOH/vivi-music"
+
+fun getUpdateSource(context: Context): String {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getString(KEY_UPDATE_SOURCE, UPDATE_SOURCE_ORIGINAL) ?: UPDATE_SOURCE_ORIGINAL
+}
+
+fun saveUpdateSource(context: Context, source: String) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putString(KEY_UPDATE_SOURCE, source).apply()
+}
+
+/** GitHub owner/name for the currently selected update source. */
+fun updateRepo(context: Context): String =
+    if (getUpdateSource(context) == UPDATE_SOURCE_FORK) REPO_FORK else REPO_ORIGINAL
+
 // ──────────────────────────────────────────────────────────────────────────
 // 9 PM daily gate for beta/nightly update checks
 // ──────────────────────────────────────────────────────────────────────────
@@ -706,10 +726,19 @@ private fun formatGitHubDate(githubDate: String): String = try {
     githubDate
 }
 
+/** Extracts the Android (mobile) version part from a release tag.
+ *  Handles original tags (`v6.0.5`, `b6.1.0`) and fork combined tags
+ *  (`6.4.22_DE-1.33.60-nightly` -> `6.4.22`). */
+fun mobileVersionFromTag(tag: String): String {
+    val clean = tag.removePrefix("b").removePrefix("v")
+    val idx = clean.indexOf("_DE-")
+    return if (idx >= 0) clean.substring(0, idx) else clean
+}
+
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v")
-    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v")
+    val latestVersionClean = mobileVersionFromTag(latestVersion)
+    val currentVersionClean = mobileVersionFromTag(currentVersion)
 
     val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
@@ -743,7 +772,7 @@ suspend fun checkForUpdate(
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+            val url = URL("https://api.github.com/repos/${updateRepo(context)}/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
             val releases = JSONArray(json)
             
@@ -756,7 +785,7 @@ suspend fun checkForUpdate(
 
             if (betaEnabled) {
                 try {
-                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
+                    val nightlyUrl = URL("https://api.github.com/repos/${updateRepo(context)}/actions/workflows/nightly.yml/runs?status=success&per_page=100")
                     val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
                     val nightlyData = JSONObject(nightlyJson)
                     val runs = nightlyData.optJSONArray("workflow_runs")
@@ -829,7 +858,7 @@ suspend fun checkForUpdate(
                 changelogList.add(ChangelogSection(context.getString(R.string.changelog), nightlyChangelog))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
-                val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
+                val apkDownloadUrl = "https://nightly.link/${updateRepo(context)}/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
                 
                 withContext(Dispatchers.Main) {
                     onSuccess(displayTag, true, changelogList, "~30", formattedReleaseDate, "Bleeding-edge nightly build from main branch.", null, apkDownloadUrl)
@@ -873,8 +902,8 @@ suspend fun checkForUpdate(
                 val targetIsStable = targetTagName.startsWith("v")
                 
                 // Compare version numbers ignoring prefixes
-                val currentClean = currentVersion.removePrefix("b").removePrefix("v")
-                val targetClean = targetTagName.removePrefix("b").removePrefix("v")
+                val currentClean = mobileVersionFromTag(currentVersion)
+                val targetClean = mobileVersionFromTag(targetTagName)
                 val isDifferentVersion = currentClean != targetClean
                 
                 var shouldShow = isNewer
@@ -900,7 +929,7 @@ suspend fun checkForUpdate(
                     var imageUrl: String? = null
                     try {
                         val changelogUrl =
-                            URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json")
+                            URL("https://github.com/${updateRepo(context)}/releases/download/$tagWithPrefix/changelog.json")
                         val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                         val changelogData = JSONObject(changelogJson)
 
@@ -931,15 +960,15 @@ suspend fun checkForUpdate(
 
                     var apkSizeInMB = ""
                     var apkDownloadUrl = ""
-                    for (j in 0 until assets.length()) {
-                        val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name")
-                        if (assetName == "vivi.apk") {
-                            val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
-                        }
+                    // Prefer the original repo's `vivi.apk`; otherwise any APK
+                    // (the fork ships `VIVIMusic-<version>-debug.apk`).
+                    val apkAssets = (0 until assets.length()).map { assets.getJSONObject(it) }
+                    val apkAsset = apkAssets.firstOrNull { it.getString("name") == "vivi.apk" }
+                        ?: apkAssets.firstOrNull { it.getString("name").endsWith(".apk", ignoreCase = true) }
+                    if (apkAsset != null) {
+                        val apkSizeInBytes = apkAsset.getLong("size")
+                        apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                        apkDownloadUrl = apkAsset.getString("browser_download_url")
                     }
 
                     if (apkDownloadUrl.isNotEmpty()) {

@@ -117,6 +117,7 @@ import com.music.vivi.constants.PauseOnMute
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
 import com.music.vivi.constants.PlayerVolumeKey
+import com.music.vivi.constants.SyncViviVolumeKey
 import com.music.vivi.constants.RememberShuffleAndRepeatKey
 import com.music.vivi.constants.RepeatModeKey
 import com.music.vivi.constants.ResumeOnBluetoothConnectKey
@@ -277,6 +278,11 @@ class MusicService :
     // Suppress the echo push right after we apply a remote volume change, so
     // the resulting system VOLUME_CHANGED broadcast doesn't bounce back.
     private var suppressVolumePushUntil = 0L
+    // Last successfully-pushed volume values (the periodic volume poll only
+    // re-pushes when these change, and sets them on a successful push so a
+    // dropped push is retried instead of being silently lost).
+    private var lastPushedPlayerVolume: Float? = null
+    private var lastPushedSystemVolume: Float? = null
     var preferredDeviceId: Int? = null //added for audio device switching
         private set//improvement
 
@@ -734,8 +740,26 @@ class MusicService :
             }
         }
 
-        // Push in-app volume-slider changes to the paired desktop edition.
-        playerVolume.debounce(300).collect(scope) { pushPlaybackToDesktop() }
+        // Push in-app + system volume changes to the paired desktop edition.
+        // Polled (not just debounced) so a push dropped by the echo-suppression
+        // window is retried on the next tick, and it also syncs when idle.
+        scope.launch {
+            while (true) {
+                delay(700L)
+                val pv = playerVolume.value
+                val sv = systemVolume()
+                val pvChanged = lastPushedPlayerVolume == null ||
+                    abs(pv - lastPushedPlayerVolume!!) > 0.001f
+                val svChanged = lastPushedSystemVolume == null ||
+                    abs(sv - lastPushedSystemVolume!!) > 0.01f
+                if (pvChanged || svChanged) {
+                    if (pushPlaybackToDesktop()) {
+                        lastPushedPlayerVolume = pv
+                        lastPushedSystemVolume = sv
+                    }
+                }
+            }
+        }
 
         currentSong.debounce(50).collect(scope) { song ->
             updateNotification()
@@ -1490,19 +1514,42 @@ class MusicService :
         runCatching { audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0) }
     }
 
-    /** Pushes the current queue + position to the paired desktop edition. */
-    private fun pushPlaybackToDesktop() {
+    /** Maps ExoPlayer's repeat mode int to the shared sync string ("OFF"/"ALL"/"ONE"). */
+    private fun repeatModeString(mode: Int): String = when (mode) {
+        REPEAT_MODE_ONE -> "ONE"
+        REPEAT_MODE_ALL -> "ALL"
+        else -> "OFF"
+    }
+
+    /** Maps the shared sync string back to ExoPlayer's repeat mode int. */
+    private fun repeatModeFromString(s: String): Int = when (s.uppercase()) {
+        "ONE" -> REPEAT_MODE_ONE
+        "ALL" -> REPEAT_MODE_ALL
+        else -> REPEAT_MODE_OFF
+    }
+
+    /**
+     * Pushes the current queue + position to the paired desktop edition.
+     *
+     * @return true if the snapshot was actually sent (used by the volume poll
+     * so a suppressed push is retried rather than lost).
+     */
+    private fun pushPlaybackToDesktop(userSeek: Boolean = false): Boolean {
         val meta = player.currentMetadata
         val items = runCatching { player.mediaItems }.getOrNull().orEmpty()
         val index = player.currentMediaItemIndex.coerceAtLeast(0)
-        deviceSyncManager.pushPlayback(
+        return deviceSyncManager.pushPlayback(
             PlaybackSnapshot(
                 trackId = meta?.id,
                 trackTitle = meta?.title,
                 positionMs = player.currentPosition,
+                userSeek = userSeek,
+                isResolving = player.playbackState == Player.STATE_BUFFERING,
                 isPlaying = player.isPlaying,
-                volume = playerVolume.value,
+                volume = if (dataStore.get(SyncViviVolumeKey, true)) playerVolume.value else null,
                 systemVolume = systemVolume(),
+                repeatMode = repeatModeString(player.repeatMode),
+                isShuffle = player.shuffleModeEnabled,
                 queue = items.map { item ->
                     item.metadata?.toTrackRef()
                         ?: TrackRef(id = item.mediaId, title = item.mediaId)
@@ -1516,11 +1563,23 @@ class MusicService :
 
     /** Applies a remote playback snapshot (desktop -> phone): replaces the queue and resumes. */
     private fun applyRemotePlayback(snapshot: PlaybackSnapshot) {
+        // Repeat mode + shuffle sync first (independent of queue/position).
+        snapshot.repeatMode?.let { player.repeatMode = repeatModeFromString(it) }
+        snapshot.isShuffle?.let { player.shuffleModeEnabled = it }
         // Volume sync first, even if the snapshot has no track/queue:
         // - `volume` mirrors the desktop's in-app (player) volume slider.
         // - `systemVolume` mirrors the desktop's native OS volume.
-        snapshot.volume?.let { v -> playerVolume.value = v.coerceIn(0f, 1f) }
-        snapshot.systemVolume?.let { v -> setSystemVolume(v) }
+        // Recording the applied values suppresses the echo push from the poll.
+        snapshot.volume?.let { v ->
+            if (!dataStore.get(SyncViviVolumeKey, true)) return@let
+            val c = v.coerceIn(0f, 1f)
+            playerVolume.value = c
+            lastPushedPlayerVolume = c
+        }
+        snapshot.systemVolume?.let { v ->
+            setSystemVolume(v)
+            lastPushedSystemVolume = v.coerceIn(0f, 1f)
+        }
         val items = snapshot.queue.map { it.toMediaItem() }
         if (items.isEmpty()) return
         val index = snapshot.queueIndex.coerceIn(0, items.lastIndex)
@@ -1537,15 +1596,33 @@ class MusicService :
         // within tolerance so it doesn't glitch the audio.
         val currentId = player.currentMetadata?.id
         if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
+            // While the desktop is still resolving, its position is frozen: hold
+            // (pause) instead of seeking to a stale point.
+            if (snapshot.isResolving) {
+                player.playWhenReady = false
+                return
+            }
             val local = player.currentPosition
-            if (snapshot.isPlaying && abs(position - local) <= SyncServer.RESYNC_TOLERANCE_MS) {
-                player.playWhenReady = snapshot.isPlaying
-            } else {
+            // Explicit user seeks are applied exactly (both directions); periodic
+            // drift ticks only catch up forward so the leader never jumps back.
+            if (snapshot.userSeek) {
                 player.seekTo(position)
+                player.playWhenReady = snapshot.isPlaying
+            } else if (snapshot.isPlaying && position - local > SyncServer.RESYNC_TOLERANCE_MS) {
+                player.seekTo(position)
+                player.playWhenReady = true
+            } else {
                 player.playWhenReady = snapshot.isPlaying
             }
             return
         }
+        // Last-write-wins for the queue: only replace the local queue if the
+        // remote edit is newer (or unknown, from an older peer). Position and
+        // volume sync above still run regardless.
+        val newerQueue = snapshot.queueUpdatedAt <= 0L ||
+            snapshot.queueUpdatedAt >= deviceSyncManager.queueUpdatedAt()
+        if (!newerQueue) return
+        deviceSyncManager.noteQueueApplied(snapshot)
         playQueue(
             ListQueue(
                 title = snapshot.queueTitle,
@@ -1553,7 +1630,8 @@ class MusicService :
                 startIndex = index,
                 position = position,
             ),
-            playWhenReady = snapshot.isPlaying,
+            // Wait for the desktop to finish resolving before actually starting.
+            playWhenReady = snapshot.isPlaying && !snapshot.isResolving,
         )
     }
 
@@ -2249,6 +2327,13 @@ class MusicService :
             saveQueueToDisk()
         }
 
+        // Push the resolving/buffering transition promptly so the paired desktop
+        // holds while we buffer and starts as soon as we're ready (instead of
+        // waiting for the next 5s periodic re-sync tick).
+        if (playbackState == Player.STATE_BUFFERING || playbackState == Player.STATE_READY) {
+            pushPlaybackToDesktop()
+        }
+
         if (playbackState == Player.STATE_READY) {
             consecutivePlaybackErr = 0
             retryCount = 0
@@ -2357,6 +2442,7 @@ class MusicService :
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
+        pushPlaybackToDesktop()
         if (shuffleModeEnabled) {
             // If queue is empty, don't shuffle
             if (player.mediaItemCount == 0) return
@@ -2385,6 +2471,7 @@ class MusicService :
 
     override fun onRepeatModeChanged(repeatMode: Int) {
         updateNotification()
+        pushPlaybackToDesktop()
         scope.launch {
             dataStore.edit { settings ->
                 settings[RepeatModeKey] = repeatMode
@@ -3487,7 +3574,8 @@ class MusicService :
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
             scheduleCrossfade()
             // Push the seek to the desktop immediately so both players stay aligned.
-            pushPlaybackToDesktop()
+            // Marked as a user seek so the desktop applies it exactly.
+            pushPlaybackToDesktop(userSeek = true)
         }
     }
 

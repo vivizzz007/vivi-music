@@ -58,7 +58,7 @@ object GuestSession {
             YouTube.visitorData = v
             // Persist so it survives restarts. LoginManager.restore() only acts
             // when logged in, so this never collides with account credentials.
-            DesktopSettings.save(DesktopSettings.load().copy(visitorData = v))
+            DesktopSettings.update { it.copy(visitorData = v) }
         }
     }
 }

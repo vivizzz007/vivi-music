@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Downloads — VIVI Music DE</title>
+  <meta name="description" content="Download VIVI Music DE for Windows, Linux and macOS." />
+  <link rel="icon" href="images/logo_vmde.png" type="image/png" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="index.html">
+        <img src="images/logo_vmde.png" alt="VIVI Music DE logo" />
+        VIVI Music DE
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">☰</button>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="downloads.html">Downloads</a>
+        <a href="changelog.html">Changelog</a>
+        <a href="sync.html">Sync</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="page">
+    <h1>Downloads</h1>
+    <p class="lede">
+      Choose a channel, then pick your platform. Greyed-out buttons mean that
+      format isn't shipped in that release yet.
+    </p>
+
+    <div class="tabs" style="justify-content: flex-start">
+      <button class="tab active" data-channel="stable" type="button">Stable</button>
+      <button class="tab" data-channel="nightly" type="button">Nightly builds</button>
+    </div>
+    <p class="lede">Latest <span data-version>…</span></p>
+
+    <h2>Windows 10+</h2>
+    <div class="dl-row">
+      <div>
+        <div class="name">Installer</div>
+        <div class="desc">Lightweight wizard — recommended.</div>
+      </div>
+      <a class="btn primary" data-download="winExe" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .exe</a>
+    </div>
+    <div class="dl-row">
+      <div>
+        <div class="name">MSI package</div>
+        <div class="desc">For silent / enterprise deployment.</div>
+      </div>
+      <a class="btn" data-download="winMsi" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .msi</a>
+    </div>
+
+    <h2>Linux</h2>
+    <div class="dl-row">
+      <div>
+        <div class="name">Debian / Ubuntu</div>
+        <div class="desc">Works on Debian, Ubuntu and derivatives.</div>
+      </div>
+      <a class="btn" data-download="deb" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .deb</a>
+    </div>
+    <div class="dl-row">
+      <div>
+        <div class="name">AppImage</div>
+        <div class="desc">Portable — runs on most distros, including Arch.</div>
+      </div>
+      <a class="btn" data-download="appimage" href="https://github.com/PiBOH/vivi-music/releases/latest">Download AppImage</a>
+    </div>
+
+    <h2>macOS 10.15+</h2>
+    <div class="dl-row">
+      <div>
+        <div class="name">Disk image</div>
+        <div class="desc">Intel and Apple Silicon builds are published separately.</div>
+      </div>
+      <a class="btn" data-download="dmg" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .dmg</a>
+    </div>
+    <div class="dl-row">
+      <div>
+        <div class="name">Installer package</div>
+        <div class="desc">Alternative .pkg installer.</div>
+      </div>
+      <a class="btn" data-download="pkg" href="https://github.com/PiBOH/vivi-music/releases/latest">Download .pkg</a>
+    </div>
+
+    <h2>Android</h2>
+    <div class="dl-row">
+      <div>
+        <div class="name">VIVI Music (mobile)</div>
+        <div class="desc">The original Android app, maintained upstream by VIVIDH P ASHOKAN.</div>
+      </div>
+      <a class="btn" href="https://vivimusic.mkmdevilmi.workers.dev/">Official site</a>
+    </div>
+
+    <p class="lede" style="margin-top: 28px">
+      All installers live on the
+      <a href="https://github.com/PiBOH/vivi-music/releases">GitHub Releases</a>
+      page — check there for older versions.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <span>VIVI Music DE</span>
+      <div class="links">
+        <a href="https://github.com/PiBOH/vivi-music">GitHub</a>
+        <a href="https://github.com/PiBOH/vivi-music/releases">Releases</a>
+        <a href="https://t.me/vivimusicapp">Telegram</a>
+        <a href="https://vivimusic.mkmdevilmi.workers.dev/">Original VIVI Music</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

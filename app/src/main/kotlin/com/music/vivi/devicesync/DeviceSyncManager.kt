@@ -45,6 +45,7 @@ import com.music.vivi.constants.SelectedFontKey
 import com.music.vivi.constants.SelectedThemeColorKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.SuggestionRegionKey
+import com.music.vivi.constants.SyncViviVolumeKey
 import com.music.vivi.constants.TranslateLanguageKey
 import com.music.vivi.constants.TranslateLyricsKey
 import com.music.vivi.db.MusicDatabase
@@ -75,6 +76,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.util.UUID
@@ -109,6 +111,10 @@ class DeviceSyncManager @Inject constructor(
     @Volatile
     private var suppressPlaybackPushUntil = 0L
 
+    /** Resolving state of the last snapshot we actually sent (for forcing the
+     *  resolving/ready transition past the echo-suppression window). */
+    private var lastPushedResolving: Boolean? = null
+
     /** While set, library pushes are suppressed (avoids echoing an applied snapshot). */
     @Volatile
     private var suppressLibraryPushUntil = 0L
@@ -116,6 +122,10 @@ class DeviceSyncManager @Inject constructor(
     private var lastPlayback: PlaybackSnapshot? = null
 
     private var lastLibrary: LibrarySnapshot? = null
+
+    /** Queue fingerprint + last-write-wins timestamp (shared relay-time frame). */
+    private var lastQueueFingerprint = ""
+    private var queueUpdatedAt = 0L
 
     private val _paired = MutableStateFlow(false)
     val paired: StateFlow<Boolean> = _paired.asStateFlow()
@@ -170,16 +180,61 @@ class DeviceSyncManager @Inject constructor(
         }
     }
 
-    /** Capture the current queue + position from the player and sync it. */
-    fun pushPlayback(playback: PlaybackSnapshot) {
-        if (System.currentTimeMillis() < suppressPlaybackPushUntil) return
-        lastPlayback = if (playback.positionAtMs == 0L) {
+    /**
+     * Capture the current queue + position from the player and sync it.
+     *
+     * @return true if the snapshot will actually be sent (not suppressed by the
+     * echo window and the client is connected); false when it was dropped, so
+     * callers that care (the volume poll) can retry.
+     */
+    fun pushPlayback(playback: PlaybackSnapshot): Boolean {
+        // Only stamp the shared-clock timestamp once the relay clock offset is
+        // measured. Stamping a raw local clock (before the first PONG / with an
+        // older relay) makes the peer extrapolate by the clock skew and causes
+        // the two players to keep seeking each other back and forth.
+        val stamp = playback.positionAtMs == 0L && client?.hasServerOffset == true
+        var snap = if (stamp) {
             playback.copy(positionAtMs = serverNowMs())
         } else {
             playback
         }
+        val fp = queueFingerprint(snap)
+        if (fp.isNotEmpty() && fp != lastQueueFingerprint) {
+            // The queue/index changed locally: stamp a fresh LWW timestamp.
+            lastQueueFingerprint = fp
+            queueUpdatedAt = serverNowMs()
+        }
+        lastPlayback = snap.copy(queueUpdatedAt = queueUpdatedAt)
+        // A resolving transition is new, asymmetric information (this device
+        // needs time to buffer while the peer may already be playing). Force it
+        // past the echo-suppression window so the peer learns to hold/start.
+        val resolving = snap.isResolving
+        if (!(resolving != lastPushedResolving) &&
+            System.currentTimeMillis() < suppressPlaybackPushUntil
+        ) {
+            return false
+        }
+        val c = client ?: return false
+        if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
         scope.launch { pushCurrentSnapshot() }
+        lastPushedResolving = resolving
+        return true
     }
+
+    /** Last-write-wins timestamp of the local queue (relay frame); 0 = none. */
+    fun queueUpdatedAt(): Long = queueUpdatedAt
+
+    /** Adopts the remote queue's fingerprint + timestamp right after applying it. */
+    fun noteQueueApplied(snapshot: PlaybackSnapshot) {
+        val fp = queueFingerprint(snapshot)
+        if (fp.isNotEmpty()) {
+            lastQueueFingerprint = fp
+            if (snapshot.queueUpdatedAt > 0L) queueUpdatedAt = snapshot.queueUpdatedAt
+        }
+    }
+
+    private fun queueFingerprint(p: PlaybackSnapshot): String =
+        if (p.queue.isEmpty()) "" else p.queue.joinToString("|") { it.id } + "@" + p.queueIndex
 
     /** Estimated clock offset to the relay server (see [SyncClient.serverOffsetMs]). */
     val serverOffsetMs: Long get() = client?.serverOffsetMs ?: 0L
@@ -195,7 +250,9 @@ class DeviceSyncManager @Inject constructor(
     fun effectivePosition(snapshot: PlaybackSnapshot): Long {
         val base = snapshot.positionMs.coerceAtLeast(0L)
         val at = snapshot.positionAtMs
-        if (at <= 0L || !snapshot.isPlaying) return base
+        // While the peer is resolving its stream the position is frozen, so
+        // extrapolating would race ahead of the peer's actual playback.
+        if (at <= 0L || !snapshot.isPlaying || snapshot.isResolving) return base
         val elapsed = (serverNowMs() - at).coerceAtLeast(0L)
         return (base + elapsed).coerceAtLeast(0L)
     }
@@ -400,17 +457,25 @@ class DeviceSyncManager @Inject constructor(
             }
             if (r.updatedAt <= localUpdatedAt) continue // local is newer/equal: keep it
 
+            // Preserve the peer's edit timestamp instead of stamping "now":
+            // last-write-wins compares `updatedAt` against the stored
+            // `lastUpdateTime`, so overwriting it with the local clock made the
+            // next remote rename/delete look "older" and get silently dropped.
+            val remoteUpdateTime = if (r.updatedAt > 0L) {
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(r.updatedAt), ZoneOffset.UTC)
+            } else now
+
             if (local == null) {
                 database.insert(
                     PlaylistEntity(
                         id = r.id,
                         name = r.name,
                         bookmarkedAt = now,
-                        lastUpdateTime = now,
+                        lastUpdateTime = remoteUpdateTime,
                     )
                 )
             } else {
-                database.update(local.playlist.copy(name = r.name, lastUpdateTime = now))
+                database.update(local.playlist.copy(name = r.name, lastUpdateTime = remoteUpdateTime))
             }
 
             // Replace the playlist's songs with the remote order.
@@ -477,6 +542,7 @@ class DeviceSyncManager @Inject constructor(
         put(CrossfadeEnabledKey.name, (prefs[CrossfadeEnabledKey] ?: false).toString())
         put(CrossfadeDurationKey.name, (prefs[CrossfadeDurationKey] ?: 0f).toString())
         put(SkipSilenceKey.name, (prefs[SkipSilenceKey] ?: false).toString())
+        put(SyncViviVolumeKey.name, (prefs[SyncViviVolumeKey] ?: true).toString())
         // Lyrics
         put(PreferredLyricsProviderKey.name, prefs[PreferredLyricsProviderKey] ?: PreferredLyricsProvider.LRCLIB.name)
         put(TranslateLyricsKey.name, (prefs[TranslateLyricsKey] ?: false).toString())
@@ -514,6 +580,7 @@ class DeviceSyncManager @Inject constructor(
                 CrossfadeEnabledKey.name -> prefs[CrossfadeEnabledKey] = value.toBooleanStrictOrNull() ?: return@edit
                 CrossfadeDurationKey.name -> prefs[CrossfadeDurationKey] = value.toFloatOrNull() ?: return@edit
                 SkipSilenceKey.name -> prefs[SkipSilenceKey] = value.toBooleanStrictOrNull() ?: return@edit
+                SyncViviVolumeKey.name -> prefs[SyncViviVolumeKey] = value.toBooleanStrictOrNull() ?: return@edit
                 PreferredLyricsProviderKey.name -> prefs[PreferredLyricsProviderKey] = value
                 TranslateLyricsKey.name -> prefs[TranslateLyricsKey] = value.toBooleanStrictOrNull() ?: return@edit
                 TranslateLanguageKey.name -> prefs[TranslateLanguageKey] = value

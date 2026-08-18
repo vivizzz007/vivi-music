@@ -36,6 +36,7 @@ import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanIntentResult
 import com.journeyapps.barcodescanner.ScanOptions
 import com.music.vivi.constants.DeviceSyncServerUrlKey
+import com.music.vivi.constants.SyncViviVolumeKey
 import com.music.vivi.devicesync.LanDiscovery
 import com.music.vivi.sync.SyncServer
 import com.music.vivi.ui.component.IconButton
@@ -55,6 +56,7 @@ fun DeviceSyncScreen(
     val peerDeviceName by viewModel.peerDeviceName.collectAsState()
 
     val (serverUrl, onServerUrlChange) = rememberPreference(DeviceSyncServerUrlKey, SyncServer.DEFAULT_URL)
+    val (syncViviVolume, onSyncViviVolumeChange) = rememberPreference(SyncViviVolumeKey, true)
     var joinCode by remember { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -125,6 +127,22 @@ fun DeviceSyncScreen(
                 modifier = Modifier.padding(bottom = 16.dp),
             )
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = stringResource(R.string.sync_vivi_volume),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(vertical = 12.dp),
+                )
+                Switch(
+                    checked = syncViviVolume,
+                    onCheckedChange = onSyncViviVolumeChange,
+                )
+            }
+
             OutlinedTextField(
                 value = serverUrl,
                 onValueChange = onServerUrlChange,
@@ -154,6 +172,10 @@ fun DeviceSyncScreen(
                 }
                 OutlinedButton(
                     onClick = {
+                        // If we're already paired/connected, drop that first so
+                        // scanning a new QR starts from a clean slate and can
+                        // pair to a (possibly different) desktop.
+                        viewModel.unpair()
                         scanLauncher.launch(
                             ScanOptions()
                                 .setDesiredBarcodeFormats(ScanOptions.QR_CODE)

@@ -34,6 +34,7 @@ import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.ViviPrefCache
 import com.music.vivi.utils.dataStore
+import com.music.vivi.viewmodels.BackupRestoreViewModel
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -63,6 +64,11 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         context = this
+
+        // Apply any staged backup restore BEFORE Room/DataStore are opened.
+        // (The restore flow stages the files and kills the process; this swaps
+        // them in so the app starts with the restored data.)
+        BackupRestoreViewModel.applyPendingRestoreIfNeeded(this)
 
         // Start preferences cache immediately
         ViviPrefCache.start(this)

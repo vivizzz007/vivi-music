@@ -1,0 +1,155 @@
+name: 🐛 Bug Report (Vivi Music DE)
+description: Something is broken in the Desktop Edition? Help us fix it!
+title: "[Bug][DE]: "
+labels: ["bug", "triage", "desktop"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ### 🛠️ Bug Report — Vivi Music DE (Desktop Edition)
+        Thank you for reporting! Please fill out the form below.
+        > This template is for the **desktop** app (Windows / Linux / macOS).
+        > For the Android app, use the **🐛 Bug Report (Mobile)** template.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-flight Checklist
+      options:
+        - label: I am running the [latest Vivi Music DE release](https://github.com/PiBOH/vivi-music/releases).
+          required: true
+        - label: I checked for duplicate issues.
+          required: true
+        - label: I tested the latest version (this bug still happens there).
+          required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: 📍 Where does the bug happen?
+      description: Select the area of the app.
+      options:
+        - 🎵 Music Player (Now Playing)
+        - 🎚️ Queue / Lyrics
+        - 📚 Library / Playlists
+        - 🔍 Search
+        - ⚙️ Settings
+        - 🔄 Updates / Installer
+        - 📱 Devices / Sync (pairing, LAN server)
+        - 🛠️ Developer Options
+        - 🎨 UI / Visuals / Theme
+        - 🪟 Window / Layout / Resize
+        - ❓ Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: 📉 How often does it happen?
+      options:
+        - 🔴 Every time (100%)
+        - 🟠 Often (> 50%)
+        - 🟡 Sometimes (< 50%)
+        - 🟢 Rarely (Once or twice)
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: 🔄 Steps to Reproduce
+      description: clear steps lead to a faster fix!
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error
+      value: |
+        1. 
+        2. 
+        3. 
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-actual
+    attributes:
+      label: 🆚 Expected vs. Actual
+      description: What happened vs. what should have happened.
+      placeholder: |
+        Expected: Music starts playing.
+        Actual: App crashes immediately.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: "---"
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 🖥️ Operating System
+      options:
+        - Windows 10
+        - Windows 11
+        - Linux (Debian / Ubuntu)
+        - Linux (Arch / Manjaro)
+        - Linux (other)
+        - macOS 10.15 - 12
+        - macOS 13 or newer
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: 📦 How did you install it?
+      options:
+        - .exe (Inno Setup)
+        - .msi (WiX)
+        - .deb (Linux)
+        - .AppImage (Linux)
+        - .dmg / .pkg (macOS)
+        - Ran from source (development)
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: arch
+    attributes:
+      label: 🧮 Architecture
+      options:
+        - x64 (64-bit)
+        - arm64
+        - x86 (32-bit)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 📦 Vivi Music DE Version
+      description: "e.g. 6.4.10_DE-1.33.43 (channel: stable / nightly / beta / rc / alpha). Check Settings -> About."
+      placeholder: e.g. 6.4.10_DE-1.33.43 (nightly)
+    validations:
+      required: true
+
+  - type: input
+    id: device-sync
+    attributes:
+      label: 📱 Connected to the Android app?
+      description: Was the mobile app paired/connected via device sync when the bug happened?
+      placeholder: e.g. Yes, paired via LAN / No, standalone
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 📄 Logs / Screenshots
+      description: Paste logs or drag & drop screenshots here (check Developer Options for metrics/errors).
+      render: shell

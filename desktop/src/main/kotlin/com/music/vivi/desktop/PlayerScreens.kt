@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +62,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.lrclib.LrcLib
@@ -94,6 +102,11 @@ fun PlayerScreen(
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (NowPlaying) -> Unit,
+    sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
+    design: PlayerDesign = PlayerDesign.CLASSIC,
+    background: PlayerBackgroundStyle = PlayerBackgroundStyle.CANVAS,
+    rotatingThumbnail: Boolean = false,
+    accent: Color = MaterialTheme.colorScheme.primary,
 ) {
     val np = queue.getOrNull(index)
     var canvasArt by remember { mutableStateOf<CanvasArtwork?>(null) }
@@ -101,13 +114,20 @@ fun PlayerScreen(
     LaunchedEffect(np?.videoId) {
         canvasArt = null
         val track = np ?: return@LaunchedEffect
-        canvasArt = withContext(Dispatchers.IO) { CanvasResolver.resolve(track.title, track.artist, null) }
+        val settings = DesktopSettings.load()
+        canvasArt = if (settings.canvasEnabled) {
+            withContext(Dispatchers.IO) {
+                CanvasResolver.resolve(track.title, track.artist, null, CanvasSource.from(settings.canvasSource))
+            }
+        } else {
+            null
+        }
     }
 
     val bgUrl = CanvasResolver.displayUrl(canvasArt, np?.thumbnail)
 
     Box(Modifier.fillMaxSize()) {
-        CanvasBackground(bgUrl, Modifier.fillMaxSize())
+        PlayerBackground(background, bgUrl, accent, Modifier.fillMaxSize())
         if (np == null) {
             Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
                 Text(Localization.get(language, "nothing_playing"), style = MaterialTheme.typography.titleLarge)
@@ -136,6 +156,11 @@ fun PlayerScreen(
                 onOpenLyrics = onOpenLyrics,
                 onOpenQueue = onOpenQueue,
                 onAddToPlaylist = { onAddToPlaylist(np) },
+                sliderStyle = sliderStyle,
+                design = design,
+                background = background,
+                rotatingThumbnail = rotatingThumbnail,
+                accent = accent,
             )
         }
     }
@@ -165,8 +190,16 @@ private fun PlayerContent(
     onOpenLyrics: () -> Unit,
     onOpenQueue: () -> Unit,
     onAddToPlaylist: (() -> Unit)? = null,
+    sliderStyle: ViviSliderStyle = ViviSliderStyle.SLIM,
+    design: PlayerDesign = PlayerDesign.CLASSIC,
+    background: PlayerBackgroundStyle = PlayerBackgroundStyle.CANVAS,
+    rotatingThumbnail: Boolean = false,
+    accent: Color = MaterialTheme.colorScheme.primary,
 ) {
     val contentWidth = 720.dp
+    val metrics = design.metrics()
+    val singleColumn = design == PlayerDesign.NEW || design == PlayerDesign.EXPRESSIVE
+    val pillPlay = design == PlayerDesign.NEW
 
     Column(
         Modifier
@@ -175,7 +208,7 @@ private fun PlayerContent(
             .padding(horizontal = 32.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        // Header: label + queue shortcut.
+        // Header: label.
         Row(
             Modifier.widthIn(max = contentWidth).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -185,181 +218,93 @@ private fun PlayerContent(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.weight(1f))
-            IconButton(onClick = onOpenQueue) {
-                Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = Localization.get(language, "queue"))
-            }
         }
 
         Spacer(Modifier.height(28.dp))
 
-        // Two-column layout: compact artwork on the left, controls on the right.
-        Row(
-            Modifier.widthIn(max = contentWidth).fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(40.dp),
-        ) {
-            // Left: smaller artwork + title/artist.
+        if (singleColumn) {
+            // Single-column "hero" layout: artwork + title centered on top,
+            // controls stacked below (new / expressive designs).
+            PlayerArtworkBlock(
+                np = np,
+                queueSize = queueSize,
+                metrics = metrics,
+                rotatingThumbnail = rotatingThumbnail,
+                language = language,
+                onAddToPlaylist = onAddToPlaylist,
+                onOpenQueue = onOpenQueue,
+            )
+            Spacer(Modifier.height(24.dp))
             Column(
-                Modifier.widthIn(max = 240.dp),
+                Modifier.widthIn(max = contentWidth).fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Box(Modifier.shadow(16.dp, RoundedCornerShape(12.dp))) {
-                    Thumbnail(np.thumbnail, Modifier.size(200.dp))
-                }
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    np.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    np.artist,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                PlayerControlPanel(
+                    np = np,
+                    isPlaying = isPlaying,
+                    positionMs = positionMs,
+                    durationMs = durationMs,
+                    volume = volume,
+                    isShuffle = isShuffle,
+                    repeatMode = repeatMode,
+                    loadPhase = loadPhase,
+                    onTogglePlay = onTogglePlay,
+                    onNext = onNext,
+                    onPrevious = onPrevious,
+                    onSeek = onSeek,
+                    onVolume = onVolume,
+                    onToggleShuffle = onToggleShuffle,
+                    onCycleRepeat = onCycleRepeat,
+                    language = language,
+                    onOpenLyrics = onOpenLyrics,
+                    sliderStyle = sliderStyle,
+                    pillPlay = pillPlay,
                 )
             }
-
-            // Right: seek bar + transport controls + volume + secondary actions.
-            Column(Modifier.weight(1f)) {
-                // Seek slider (position / duration).
-                var sliderPosition by remember(np.videoId) { mutableStateOf<Long?>(null) }
-                val effectivePosition = sliderPosition ?: positionMs
-                val sliderMax = durationMs.coerceAtLeast(1L)
-                Slider(
-                    value = effectivePosition.toFloat().coerceIn(0f, sliderMax.toFloat()),
-                    onValueChange = { sliderPosition = it.toLong() },
-                    onValueChangeFinished = {
-                        sliderPosition?.let { onSeek(it) }
-                        sliderPosition = null
-                    },
-                    valueRange = 0f..sliderMax.toFloat(),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(Modifier.fillMaxWidth()) {
-                    Text(
-                        formatTime(effectivePosition),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        formatTime(durationMs),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-
-                if (loadPhase != LoadPhase.NONE) {
-                    Spacer(Modifier.height(12.dp))
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            Localization.get(language, if (loadPhase == LoadPhase.RESOLVING) "resolving" else "downloading"),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Transport controls: shuffle / previous / play / next / repeat.
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+        } else {
+            // Two-column layout: artwork on the left, controls on the right
+            // (classic / v2 designs).
+            Row(
+                Modifier.widthIn(max = contentWidth).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(40.dp),
+            ) {
+                Column(
+                    Modifier.widthIn(max = metrics.artSize + 40.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    IconButton(onClick = onToggleShuffle) {
-                        Icon(
-                            Icons.Filled.Shuffle,
-                            contentDescription = Localization.get(language, "shuffle"),
-                            tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
-                        Icon(
-                            Icons.Filled.SkipPrevious,
-                            contentDescription = Localization.get(language, "previous"),
-                            modifier = Modifier.size(36.dp),
-                        )
-                    }
-                    FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
-                        Icon(
-                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                            contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
-                            modifier = Modifier.size(40.dp),
-                        )
-                    }
-                    IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
-                        Icon(
-                            Icons.Filled.SkipNext,
-                            contentDescription = Localization.get(language, "next"),
-                            modifier = Modifier.size(36.dp),
-                        )
-                    }
-                    IconButton(onClick = onCycleRepeat) {
-                        Icon(
-                            repeatIcon(repeatMode),
-                            contentDescription = Localization.get(language, "repeat"),
-                            tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Volume.
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        volumeIcon(volume),
-                        contentDescription = Localization.get(language, "volume"),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Slider(
-                        value = volume.coerceIn(0f, 1f),
-                        onValueChange = onVolume,
-                        valueRange = 0f..1f,
-                        modifier = Modifier.weight(1f),
+                    PlayerArtworkBlock(
+                        np = np,
+                        queueSize = queueSize,
+                        metrics = metrics,
+                        rotatingThumbnail = rotatingThumbnail,
+                        language = language,
+                        onAddToPlaylist = onAddToPlaylist,
+                        onOpenQueue = onOpenQueue,
                     )
                 }
-
-                Spacer(Modifier.height(16.dp))
-
-                // Secondary actions.
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(onClick = onOpenLyrics) {
-                        Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(Localization.get(language, "lyrics"))
-                    }
-                    OutlinedButton(onClick = onOpenQueue) {
-                        Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("${Localization.get(language, "queue")} ($queueSize)")
-                    }
-                    if (onAddToPlaylist != null) {
-                        OutlinedButton(onClick = onAddToPlaylist) {
-                            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(Localization.get(language, "add_to_playlist"))
-                        }
-                    }
+                Column(Modifier.weight(1f)) {
+                    PlayerControlPanel(
+                        np = np,
+                        isPlaying = isPlaying,
+                        positionMs = positionMs,
+                        durationMs = durationMs,
+                        volume = volume,
+                        isShuffle = isShuffle,
+                        repeatMode = repeatMode,
+                        loadPhase = loadPhase,
+                        onTogglePlay = onTogglePlay,
+                        onNext = onNext,
+                        onPrevious = onPrevious,
+                        onSeek = onSeek,
+                        onVolume = onVolume,
+                        onToggleShuffle = onToggleShuffle,
+                        onCycleRepeat = onCycleRepeat,
+                        language = language,
+                        onOpenLyrics = onOpenLyrics,
+                        sliderStyle = sliderStyle,
+                        pillPlay = pillPlay,
+                    )
                 }
             }
         }
@@ -385,6 +330,271 @@ private fun PlayerContent(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun PlayerArtworkBlock(
+    np: NowPlaying,
+    queueSize: Int,
+    metrics: PlayerDesignMetrics,
+    rotatingThumbnail: Boolean,
+    language: String,
+    onAddToPlaylist: (() -> Unit)?,
+    onOpenQueue: () -> Unit,
+) {
+    Box(Modifier.shadow(16.dp, RoundedCornerShape(metrics.artCorner))) {
+        Box {
+            PlayerThumbnail(np.thumbnail, metrics.artSize, metrics.artCorner, rotatingThumbnail)
+            if (metrics.overlayTitle) {
+                Box(
+                    Modifier
+                        .matchParentSize()
+                        .clip(RoundedCornerShape(metrics.artCorner))
+                        .background(
+                            Brush.verticalGradient(
+                                0.5f to Color.Transparent,
+                                1f to Color.Black.copy(alpha = 0.72f),
+                            )
+                        )
+                )
+                Column(
+                    Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        np.title,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        np.artist,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+    if (!metrics.overlayTitle) {
+        Spacer(Modifier.height(16.dp))
+        Text(
+            np.title,
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            np.artist,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+
+    // Under the song text: add-to-playlist + queue, side by side.
+    Spacer(Modifier.height(14.dp))
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (onAddToPlaylist != null) {
+            OutlinedButton(onClick = onAddToPlaylist) {
+                Icon(Icons.AutoMirrored.Filled.PlaylistAdd, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(Localization.get(language, "add_to_playlist"))
+            }
+        }
+        OutlinedButton(onClick = onOpenQueue) {
+            Icon(Icons.AutoMirrored.Filled.QueueMusic, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("${Localization.get(language, "queue")} ($queueSize)")
+        }
+    }
+}
+
+@Composable
+private fun PlayerControlPanel(
+    np: NowPlaying,
+    isPlaying: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    volume: Float,
+    isShuffle: Boolean,
+    repeatMode: RepeatMode,
+    loadPhase: LoadPhase,
+    onTogglePlay: () -> Unit,
+    onNext: () -> Unit,
+    onPrevious: () -> Unit,
+    onSeek: (Long) -> Unit,
+    onVolume: (Float) -> Unit,
+    onToggleShuffle: () -> Unit,
+    onCycleRepeat: () -> Unit,
+    language: String,
+    onOpenLyrics: () -> Unit,
+    sliderStyle: ViviSliderStyle,
+    pillPlay: Boolean,
+) {
+    // Seek slider (position / duration). Disabled until the duration
+    // is known so the slider can never degenerate into a 0..1 range
+    // (which made the thumb snap to the start or the end). While the
+    // user drags, the live position is ignored so it can't fight the
+    // drag and yank the thumb back.
+    var isSeeking by remember(np.videoId) { mutableStateOf(false) }
+    var seekValue by remember(np.videoId) { mutableStateOf(0f) }
+    val sliderMax = durationMs.coerceAtLeast(1L)
+    val displayPosition = if (isSeeking) {
+        seekValue
+    } else {
+        positionMs.toFloat().coerceIn(0f, sliderMax.toFloat())
+    }
+    ViviSlider(
+        value = displayPosition.coerceIn(0f, sliderMax.toFloat()),
+        onValueChange = {
+            seekValue = it.coerceIn(0f, sliderMax.toFloat())
+            isSeeking = true
+        },
+        onValueChangeFinished = {
+            if (durationMs > 0) onSeek(seekValue.toLong())
+            isSeeking = false
+        },
+        enabled = durationMs > 0,
+        valueRange = 0f..sliderMax.toFloat(),
+        style = sliderStyle,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Row(Modifier.fillMaxWidth()) {
+        Text(
+            formatTime(displayPosition.toLong()),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            formatTime(durationMs),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+
+    if (loadPhase != LoadPhase.NONE) {
+        Spacer(Modifier.height(12.dp))
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                Localization.get(language, if (loadPhase == LoadPhase.RESOLVING) "resolving" else "downloading"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Transport controls: shuffle / previous / play / next / repeat.
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(onClick = onToggleShuffle) {
+            Icon(
+                Icons.Filled.Shuffle,
+                contentDescription = Localization.get(language, "shuffle"),
+                tint = if (isShuffle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(onClick = onPrevious, modifier = Modifier.size(52.dp)) {
+            Icon(
+                Icons.Filled.SkipPrevious,
+                contentDescription = Localization.get(language, "previous"),
+                modifier = Modifier.size(36.dp),
+            )
+        }
+        if (pillPlay) {
+            Button(
+                onClick = onTogglePlay,
+                shape = RoundedCornerShape(50),
+            ) {
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(Localization.get(language, if (isPlaying) "pause" else "play"))
+            }
+        } else {
+            FilledIconButton(onClick = onTogglePlay, modifier = Modifier.size(72.dp)) {
+                Icon(
+                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = Localization.get(language, if (isPlaying) "pause" else "play"),
+                    modifier = Modifier.size(40.dp),
+                )
+            }
+        }
+        IconButton(onClick = onNext, modifier = Modifier.size(52.dp)) {
+            Icon(
+                Icons.Filled.SkipNext,
+                contentDescription = Localization.get(language, "next"),
+                modifier = Modifier.size(36.dp),
+            )
+        }
+        IconButton(onClick = onCycleRepeat) {
+            Icon(
+                repeatIcon(repeatMode),
+                contentDescription = Localization.get(language, "repeat"),
+                tint = if (repeatMode != RepeatMode.OFF) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Volume.
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            volumeIcon(volume),
+            contentDescription = Localization.get(language, "volume"),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.width(8.dp))
+        ViviSlider(
+            value = volume.coerceIn(0f, 1f),
+            onValueChange = onVolume,
+            valueRange = 0f..1f,
+            style = sliderStyle,
+            modifier = Modifier.weight(1f),
+        )
+    }
+
+    Spacer(Modifier.height(16.dp))
+
+    // Secondary actions.
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(onClick = onOpenLyrics) {
+            Icon(Icons.AutoMirrored.Filled.Subject, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(Localization.get(language, "lyrics"))
         }
     }
 }
@@ -466,60 +676,99 @@ fun QueueScreen(
                 itemsIndexed(localQueue, key = { _, item -> item.videoId }) { i, item ->
                     val isCurrent = item.videoId == currentVideoId
                     ReorderableItem(state = reorderableState, key = item.videoId) {
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { onSkipTo(i) }
-                                .padding(vertical = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                "⠿",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .draggableHandle()
-                                    .padding(horizontal = 6.dp, vertical = 4.dp),
-                            )
-                            Text(
-                                if (isCurrent) "▶" else "${i + 1}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(end = 8.dp),
-                            )
-                            Thumbnail(item.thumbnail, Modifier.size(44.dp))
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
+                        // Swipe gestures: swipe right to play, swipe left to remove.
+                        var dragX by remember { mutableStateOf(0f) }
+                        val density = LocalDensity.current
+                        val threshold = with(density) { 64.dp.toPx() }
+                        Box(Modifier.fillMaxWidth()) {
+                            // Play hint revealed behind the row while swiping right.
+                            val progress = (kotlin.math.abs(dragX) / threshold).coerceIn(0f, 1f)
+                            Box(
+                                Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f))
+                                    .graphicsLayer { alpha = progress }
+                                    .matchParentSize(),
+                                contentAlignment = Alignment.CenterStart,
+                            ) {
                                 Text(
-                                    item.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    "▶ " + Localization.get(language, "play"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(start = 48.dp),
                                 )
+                            }
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer { translationX = dragX }
+                                    .pointerInput(item.videoId) {
+                                        detectHorizontalDragGestures(
+                                            onHorizontalDrag = { _, dragAmount ->
+                                                dragX = (dragX + dragAmount).coerceIn(-threshold * 2f, threshold * 2f)
+                                            },
+                                            onDragEnd = {
+                                                when {
+                                                    dragX < -threshold -> onRemoveAt(i)
+                                                    dragX > threshold -> onSkipTo(i)
+                                                }
+                                                dragX = 0f
+                                            },
+                                            onDragCancel = { dragX = 0f },
+                                        )
+                                    }
+                                    .clickable { onSkipTo(i) }
+                                    .padding(vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 Text(
-                                    item.artist,
-                                    style = MaterialTheme.typography.bodySmall,
+                                    "⠿",
+                                    style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .draggableHandle()
+                                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                                )
+                                Text(
+                                    if (isCurrent) "▶" else "${i + 1}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(end = 8.dp),
+                                )
+                                Thumbnail(item.thumbnail, Modifier.size(44.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(
+                                        item.title,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                    Text(
+                                        item.artist,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                IconButton(onClick = { onAddToPlaylist(item) }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.PlaylistAdd,
+                                        contentDescription = Localization.get(language, "add_to_playlist"),
+                                        tint = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                Text(
+                                    "✕",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier
+                                        .clickable { onRemoveAt(i) }
+                                        .padding(horizontal = 10.dp, vertical = 4.dp),
                                 )
                             }
-                            IconButton(onClick = { onAddToPlaylist(item) }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.PlaylistAdd,
-                                    contentDescription = Localization.get(language, "add_to_playlist"),
-                                    tint = MaterialTheme.colorScheme.primary,
-                                )
-                            }
-                            Text(
-                                "✕",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .clickable { onRemoveAt(i) }
-                                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                            )
                         }
                     }
                 }
@@ -586,6 +835,8 @@ fun LyricsScreen(
     language: String,
     synced: Boolean = true,
     textSizeSp: Float = 18f,
+    lineSpacing: Float = 1.35f,
+    onTogglePlay: () -> Unit = {},
     onBack: () -> Unit,
 ) {
     var lyrics by remember { mutableStateOf<String?>(null) }
@@ -608,7 +859,31 @@ fun LyricsScreen(
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         BackButton(language, onBack)
-        Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            // Thumbnail play/pause (port of the mobile advanced-lyrics control).
+            np?.let {
+                Box {
+                    Thumbnail(it.thumbnail, Modifier.size(40.dp).clip(RoundedCornerShape(8.dp)))
+                    // Small play/pause overlay.
+                    Box(
+                        Modifier
+                            .size(40.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .clickable(onClick = onTogglePlay),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+            }
+        }
         when {
             np == null -> Text(
                 Localization.get(language, "nothing_playing"),
@@ -633,6 +908,7 @@ fun LyricsScreen(
                             Text(
                                 line,
                                 fontSize = textSizeSp.sp,
+                                lineHeight = (textSizeSp * lineSpacing).sp,
                                 modifier = Modifier.padding(vertical = 2.dp),
                             )
                         }
@@ -665,6 +941,7 @@ fun LyricsScreen(
                             Text(
                                 line.text,
                                 fontSize = if (isCurrent) (textSizeSp + 4).sp else textSizeSp.sp,
+                                lineHeight = (textSizeSp * lineSpacing).sp,
                                 fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
                                 color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(vertical = 6.dp),

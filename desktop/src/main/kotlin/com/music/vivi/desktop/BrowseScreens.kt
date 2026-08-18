@@ -4,10 +4,22 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -16,11 +28,15 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,6 +45,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
@@ -50,6 +67,12 @@ fun HomeScreen(
     onAddToPlaylist: (SongItem) -> Unit,
     onPlayAll: (List<SongItem>) -> Unit,
     onOpenBrowse: (String, String?) -> Unit,
+    useLastListen: Boolean = false,
+    onUseLastListenChange: (Boolean) -> Unit = {},
+    randomizeOrder: Boolean = false,
+    onRandomizeOrderChange: (Boolean) -> Unit = {},
+    wrappedStats: WrappedStats = WrappedStats(),
+    showWrapped: Boolean = false,
 ) {
     var home by remember { mutableStateOf<HomePage?>(null) }
     var moodAndGenres by remember { mutableStateOf<List<MoodAndGenres>?>(null) }
@@ -77,6 +100,50 @@ fun HomeScreen(
         else -> LazyColumn(Modifier.fillMaxSize()) {
             val page = home!!
 
+            // "VIVI Wrapped" session stats card (top of Home, like mobile).
+            if (showWrapped && wrappedStats.trackStarts > 0) {
+                item(key = "wrapped") {
+                    WrappedCard(wrappedStats = wrappedStats, language = language)
+                }
+            }
+
+            // Quick Picks vs Last Listen toggle + randomize-home-order button.
+            item(key = "home_toggles") {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    FilterChip(
+                        selected = !useLastListen,
+                        onClick = { onUseLastListenChange(false) },
+                        label = { Text(Localization.get(language, "quick_picks")) },
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FilterChip(
+                        selected = useLastListen,
+                        onClick = { onUseLastListenChange(true) },
+                        label = { Text(Localization.get(language, "last_listen")) },
+                    )
+                    Spacer(Modifier.weight(1f))
+                    // Randomize the order of the Home sections.
+                    val shuffleColor = if (randomizeOrder) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                    TextButton(onClick = { onRandomizeOrderChange(!randomizeOrder) }) {
+                        Icon(
+                            Icons.Filled.Shuffle,
+                            contentDescription = Localization.get(language, "randomize_home_order"),
+                            tint = shuffleColor,
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(Localization.get(language, "randomize"), color = shuffleColor)
+                    }
+                }
+            }
+
             if (!page.chips.isNullOrEmpty()) {
                 item(key = "chips") {
                     LazyRow(
@@ -95,7 +162,21 @@ fun HomeScreen(
                 }
             }
 
-            page.sections.forEachIndexed { index, section ->
+            // Keep only the section matching the chosen mode, then optionally
+            // shuffle the remaining sections to randomize the home order.
+            val wantedSections = page.sections
+                .filter { s ->
+                    val t = s.title.lowercase()
+                    when {
+                        t.contains("quick picks") -> !useLastListen
+                        t.contains("last listen") -> useLastListen
+                        else -> true
+                    }
+                }
+                .toMutableList()
+            if (randomizeOrder) wantedSections.shuffle()
+
+            wantedSections.forEachIndexed { index, section ->
                 val songs = section.items.filterIsInstance<SongItem>()
                 val isSongsOnly = section.items.isNotEmpty() && songs.size == section.items.size
 
@@ -169,12 +250,72 @@ fun HomeScreen(
     }
 }
 
+/** "VIVI Wrapped" card showing the current session's listening stats. */
+@Composable
+fun WrappedCard(wrappedStats: WrappedStats, language: String) {
+    val minutes = wrappedStats.playedMs / 60_000
+    val timeText = if (minutes >= 60) {
+        "${minutes / 60}h ${minutes % 60}m"
+    } else {
+        "${minutes}m"
+    }
+    val accent = MaterialTheme.colorScheme.primary
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                Localization.get(language, "wrapped_title"),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth()) {
+                WrappedStat(
+                    value = wrappedStats.trackStarts.toString(),
+                    label = Localization.get(language, "wrapped_tracks"),
+                    accent = accent,
+                    modifier = Modifier.weight(1f),
+                )
+                WrappedStat(
+                    value = timeText,
+                    label = Localization.get(language, "wrapped_listening_time"),
+                    accent = accent,
+                    modifier = Modifier.weight(1f),
+                )
+                WrappedStat(
+                    value = wrappedStats.topSongCount.toString(),
+                    label = wrappedStats.topSongTitle?.take(18) ?: Localization.get(language, "wrapped_top_song"),
+                    accent = accent,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WrappedStat(value: String, label: String, accent: Color, modifier: Modifier = Modifier) {
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.headlineSmall, color = accent)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onPrimaryContainer,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
 /** Generic browse screen (mood/genre pages, "More" endpoints, etc.). */
 @Composable
 fun BrowseScreen(
     browseId: String,
     params: String?,
     language: String,
+    gridItemSize: Int,
     onBack: () -> Unit,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
@@ -197,7 +338,7 @@ fun BrowseScreen(
             error != null -> ErrorBox(language, error)
             result == null -> LoadingBox(language)
             else -> LazyVerticalGrid(
-                columns = GridCells.Adaptive(160.dp),
+                columns = GridCells.Adaptive(gridItemSize.dp),
                 contentPadding = PaddingValues(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -226,12 +367,16 @@ fun BrowseScreen(
 @Composable
 fun SearchScreen(
     language: String,
+    gridItemSize: Int,
     onOpenAlbum: (String) -> Unit,
     onOpenArtist: (String) -> Unit,
     onOpenPlaylist: (String) -> Unit,
     onPlaySong: (SongItem) -> Unit,
     onAddToQueue: (SongItem) -> Unit,
     onAddToPlaylist: (SongItem) -> Unit,
+    searchHistory: List<String> = emptyList(),
+    onRecordSearch: (String) -> Unit = {},
+    onClearSearchHistory: () -> Unit = {},
 ) {
     var query by remember { mutableStateOf("") }
     var page by remember { mutableStateOf<SearchSummaryPage?>(null) }
@@ -285,7 +430,39 @@ fun SearchScreen(
             modifier = Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
             singleLine = true,
             placeholder = { Text(Localization.get(language, "search_placeholder")) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = {
+                val q = query.trim()
+                if (q.isNotEmpty()) onRecordSearch(q)
+            }),
         )
+
+        // Recent searches (saved locally, shown when the field is empty).
+        if (query.isBlank() && searchHistory.isNotEmpty()) {
+            Row(
+                Modifier.fillMaxWidth().padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    Localization.get(language, "search_history"),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.weight(1f))
+                TextButton(onClick = onClearSearchHistory) {
+                    Text(Localization.get(language, "clear_search_history"))
+                }
+            }
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                searchHistory.take(12).forEach { term ->
+                    FilterChip(
+                        selected = false,
+                        onClick = { query = term; onRecordSearch(term) },
+                        label = { Text(term) },
+                    )
+                }
+            }
+        }
 
         // Filter chips (All / Songs / Videos / Albums / Artists / Playlists).
         val filters = listOf(
@@ -325,7 +502,7 @@ fun SearchScreen(
                             style = MaterialTheme.typography.bodyLarge,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { query = s; focused = false }
+                                .clickable { query = s; focused = false; onRecordSearch(s) }
                                 .padding(horizontal = 16.dp, vertical = 12.dp),
                         )
                     }
@@ -377,7 +554,7 @@ fun SearchScreen(
                     }
                 } else {
                     LazyVerticalGrid(
-                        columns = GridCells.Adaptive(160.dp),
+                        columns = GridCells.Adaptive(gridItemSize.dp),
                         modifier = Modifier.fillMaxSize().padding(top = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp),

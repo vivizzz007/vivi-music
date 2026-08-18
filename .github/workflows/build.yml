@@ -34,18 +34,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Generate debug.keystore
+      - name: Restore persistent debug keystore
+        shell: bash
         run: |
           mkdir -p ~/.android
-          keytool -genkey -v \
-            -keystore ~/.android/debug.keystore \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
+          if [ -n "${{ secrets.DEBUG_KEYSTORE }}" ]; then
+            echo "${{ secrets.DEBUG_KEYSTORE }}" | base64 --decode > ~/.android/debug.keystore
+            echo "Using persistent debug keystore from DEBUG_KEYSTORE secret"
+          else
+            echo "DEBUG_KEYSTORE secret not set — generating a fresh debug keystore"
+            keytool -genkey -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
 
       - name: Build Debug APK
         env:

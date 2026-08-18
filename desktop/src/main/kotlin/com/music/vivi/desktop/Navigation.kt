@@ -28,18 +28,28 @@ sealed interface Screen {
     // Settings sub-screens (ported from the mobile settings structure).
     data object SettingsLanguage : Screen
     data object SettingsAppearance : Screen
+    data object SettingsTheme : Screen
+    data object SettingsFont : Screen
+    data object SettingsCanvas : Screen
+    data object SettingsDensity : Screen
+    data object SettingsTransitions : Screen
     data object SettingsPlayer : Screen
+    data object SettingsPlayerDesign : Screen
     data object SettingsAccount : Screen
     data object SettingsDevices : Screen
     data object SettingsContent : Screen
     data object SettingsLyrics : Screen
     data object SettingsPrivacy : Screen
+    data object SettingsWrapped : Screen
     data object SettingsStorage : Screen
     data object SettingsUpdates : Screen
+    data object SettingsCommits : Screen
     data object SettingsAbout : Screen
     data object SettingsDeveloper : Screen
     data object SettingsBackup : Screen
     data object SettingsNotifications : Screen
+    data object SettingsNotificationsHistory : Screen
+    data object SettingsIntegrations : Screen
 }
 
 /**
@@ -53,4 +63,13 @@ data class NowPlaying(
     val title: String,
     val artist: String,
     val thumbnail: String? = null,
+    val durationMs: Long = 0L,
+)
+
+/** Session listening stats shown by the Home "VIVI Wrapped" card. */
+data class WrappedStats(
+    val trackStarts: Int = 0,
+    val playedMs: Long = 0L,
+    val topSongTitle: String? = null,
+    val topSongCount: Int = 0,
 )

@@ -1,13 +1,15 @@
-name: 🚀 Feature Request
-description: Have an idea? Pitch it!
-title: "[Feat]: "
-labels: ["enhancement", "triage"]
+name: 🚀 Feature Request (Mobile)
+description: Have an idea for the Android app? Pitch it!
+title: "[Feat][APK]: "
+labels: ["enhancement", "triage", "mobile"]
 body:
   - type: markdown
     attributes:
       value: |
-        ### 💡 Feature Proposal
+        ### 💡 Feature Proposal — Vivi Music (Android)
         Help us make Vivi Music even more awesome.
+        > This template is for the **mobile / Android** app.
+        > For the desktop app (Windows / Linux / macOS), use the **🚀 Feature Request (Vivi Music DE)** template.
 
   - type: dropdown
     id: category

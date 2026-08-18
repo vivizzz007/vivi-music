@@ -33,12 +33,26 @@ jobs:
         shell: bash
         run: ./gradlew :desktop:packageDeb --no-daemon
 
+      - name: Fix DEB dependencies (Debian-compatible)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # jpackage auto-detects deps with `dpkg -S` on ubuntu-latest, which
+          # returns Ubuntu's t64-renamed names (libasound2t64, …). Those don't
+          # exist on Debian Bookworm, so add `<name> | <name>t64` alternatives.
+          DEB="$(find desktop/build/compose/binaries/main/deb -name '*.deb' -print -quit)"
+          if [ -z "$DEB" ]; then
+            echo "No .deb produced; cannot patch dependencies." >&2
+            exit 1
+          fi
+          python3 scripts/fix_deb_depends.py "$DEB"
+
       - name: Collect DEB
         shell: bash
         run: |
           set -euo pipefail
           MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           VERSION="${MOBILE}_DE-${DE}"
           mkdir -p dist
           cp desktop/build/compose/binaries/main/deb/*.deb "dist/VIVIMusic-${VERSION}.deb"
@@ -83,7 +97,7 @@ jobs:
         run: |
           set -euo pipefail
           MOBILE="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          DE="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          DE="$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           VERSION="${MOBILE}_DE-${DE}"
           # jpackage --type app-image produces a directory, not a single-file
           # .AppImage. Wrap it into an AppDir (AppRun + .desktop + icon) and pack

@@ -273,6 +273,7 @@ const val SYNC_COOLDOWN = 30 * 60L
 // Device sync (Android <-> Desktop edition, via pairing)
 val DeviceSyncEnabledKey = booleanPreferencesKey("deviceSyncEnabled")
 val DeviceSyncServerUrlKey = stringPreferencesKey("deviceSyncServerUrl")
+val SyncViviVolumeKey = booleanPreferencesKey("syncViviVolume")
 val DeviceSyncPairIdKey = stringPreferencesKey("deviceSyncPairId")
 val DeviceSyncDeviceIdKey = stringPreferencesKey("deviceSyncDeviceId")
 val DeviceSyncDeviceNameKey = stringPreferencesKey("deviceSyncDeviceName")

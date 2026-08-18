@@ -81,6 +81,20 @@ data class PlaybackSnapshot(
      * [positionMs] directly.
      */
     val positionAtMs: Long = 0L,
+    /**
+     * True when this snapshot was pushed by an explicit user seek (slider drag,
+     * skip, restart). The receiver applies these exactly (both directions,
+     * no tolerance). Periodic drift-ticks leave this false so the receiver
+     * only catches up FORWARD and never drags the leader back.
+     */
+    val userSeek: Boolean = false,
+    /**
+     * True while the sender is still resolving/downloading/buffering the
+     * current track and its audio has not started yet (so its [positionMs] is
+     * frozen). The receiver must prepare the queue/track but NOT start
+     * playback until a snapshot arrives with `isResolving = false`.
+     */
+    val isResolving: Boolean = false,
     val isPlaying: Boolean = false,
     /** In-app player volume (0f..1f): syncs the VIVI volume slider between the
      *  two devices (mobile playerVolume <-> desktop player volume). */
@@ -88,9 +102,20 @@ data class PlaybackSnapshot(
     /** Native OS system volume (0f..1f): Android STREAM_MUSIC <-> desktop OS
      *  master volume. Null when the sender can't read its system volume. */
     val systemVolume: Float? = null,
+    /** Repeat mode: "OFF" / "ALL" / "ONE". Null = not set (older peer). */
+    val repeatMode: String? = null,
+    /** Shuffle enabled. Null = not set (older peer). */
+    val isShuffle: Boolean? = null,
     val queue: List<TrackRef> = emptyList(),
     val queueIndex: Int = -1,
     val queueTitle: String? = null,
+    /**
+     * Epoch millis (shared relay-time reference frame) when the queue/index was
+     * last changed locally. `0` means unknown (older peer) and the queue is then
+     * applied unconditionally. Used for last-write-wins queue merging, mirroring
+     * the playlists' [SyncedPlaylist.updatedAt].
+     */
+    val queueUpdatedAt: Long = 0L,
 )
 
 @Serializable

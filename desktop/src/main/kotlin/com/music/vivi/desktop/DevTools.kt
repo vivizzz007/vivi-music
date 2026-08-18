@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import java.awt.GraphicsEnvironment
 import java.io.File
 import java.lang.management.ManagementFactory
+import java.util.Base64
 import kotlin.math.roundToInt
 
 /** Where the live dev-tools stats are shown. */
@@ -92,29 +93,29 @@ object DeveloperOptions {
     fun setEnabled(value: Boolean) {
         val was = _enabled.value
         _enabled.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(developerOptions = value))
+        DesktopSettings.update { it.copy(developerOptions = value) }
         if (value) SystemMonitor.start() else SystemMonitor.stop()
         if (value && !was) _unlocked.tryEmit(Unit)
     }
 
     fun setMode(value: DevToolsMode) {
         _mode.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devToolsMode = value.name))
+        DesktopSettings.update { it.copy(devToolsMode = value.name) }
     }
 
     fun setProfile(value: DevToolsProfile) {
         _profile.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devProfile = value.name))
+        DesktopSettings.update { it.copy(devProfile = value.name) }
     }
 
     fun setOverlayMovable(value: Boolean) {
         _overlayMovable.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devOverlayMovable = value))
+        DesktopSettings.update { it.copy(devOverlayMovable = value) }
     }
 
     fun setShowInTitleBar(value: Boolean) {
         _showInTitleBar.value = value
-        DesktopSettings.save(DesktopSettings.load().copy(devShowInTitleBar = value))
+        DesktopSettings.update { it.copy(devShowInTitleBar = value) }
     }
 }
 
@@ -294,20 +295,28 @@ object SystemMonitor {
     }
 
     private fun windowsNetTotals(): Pair<Long, Long> {
-        val out = ProcessBuilder("netstat", "-e").redirectErrorStream(true)
-            .start().inputStream.bufferedReader().readText()
-        var rx = -1L
-        var tx = -1L
-        for (line in out.lines()) {
-            if (line.trim().startsWith("Bytes")) {
-                val m = Regex("(\\d+)\\s+(\\d+)").find(line)
-                if (m != null) {
-                    rx = m.groupValues[1].toLongOrNull() ?: -1L
-                    tx = m.groupValues[2].toLongOrNull() ?: -1L
-                }
-            }
+        // `netstat -e` labels are localized on non-English Windows ("Byte" /
+        // "Ricevuti"/"Trasmessi"), so matching the English "Bytes" row silently
+        // failed and the network stats stayed "—". Get-NetAdapterStatistics
+        // exposes culture-invariant property names, so sum ReceivedBytes /
+        // SentBytes across all adapters via PowerShell instead.
+        val script = """
+            ${'$'}ErrorActionPreference = 'Stop'
+            (Get-NetAdapterStatistics -ErrorAction SilentlyContinue | Measure-Object -Property ReceivedBytes, SentBytes -Sum | ForEach-Object { [long]${'$'}_.Sum }) -join ' '
+        """.trimIndent()
+        val encoded = Base64.getEncoder().encodeToString(script.toByteArray(Charsets.UTF_16LE))
+        val out = runCatching {
+            ProcessBuilder(
+                "powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+                "-EncodedCommand", encoded,
+            ).redirectErrorStream(true).start().inputStream.bufferedReader().readText()
+        }.getOrDefault("")
+        val m = Regex("(\\d+)\\s+(\\d+)").find(out.trim())
+        return if (m != null) {
+            (m.groupValues[1].toLongOrNull() ?: -1L) to (m.groupValues[2].toLongOrNull() ?: -1L)
+        } else {
+            -1L to -1L
         }
-        return rx to tx
     }
 }
 

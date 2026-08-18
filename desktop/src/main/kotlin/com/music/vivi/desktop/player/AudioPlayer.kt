@@ -327,7 +327,11 @@ class AudioPlayer {
 
         fun reportPosition() {
             if (gen != generation) return
-            val posMs = ((elapsedSeconds + buffer.length) * 1000).toLong()
+            var posMs = ((elapsedSeconds + buffer.length) * 1000).toLong()
+            // Never report past the end of the track, so the seek slider can't
+            // get stuck at the end while playing (or push a past-end position
+            // to the synced device).
+            if (durationMs > 0) posMs = posMs.coerceAtMost(durationMs)
             if (posMs - lastReportMs >= POSITION_REPORT_INTERVAL_MS) {
                 lastReportMs = posMs
                 onPosition?.invoke(posMs)

@@ -22,6 +22,40 @@ data class DesktopSyncState(
     val includePreReleases: Boolean = false,
     val darkMode: String = "system",
     val accentColor: Int = 0xFFED5564.toInt(),
+    val selectedFont: String = "system",
+    /** UI density scale (1f = 100%; supports 55%..200% via the density presets). */
+    val densityScale: Float = 1f,
+    /** Adaptive grid cell width in dp for album/artist/playlist grids. */
+    val gridItemSize: Int = 160,
+    /** Screen transition style between navigations: off / fade / slide. */
+    val screenTransition: String = "fade",
+    /** Player slider style: slim / squiggly / wavy. */
+    val sliderStyle: String = "slim",
+    /** Full-player layout variant: classic / new / v2 / expressive. */
+    val playerDesign: String = "classic",
+    /** Full-player background style: canvas / gradient / blur / glow / apple_music / live_mesh. */
+    val playerBackground: String = "canvas",
+    /** Slowly rotate the player artwork while playing. */
+    val rotatingThumbnail: Boolean = false,
+    val miniPlayerStyle: String = "standard",
+    val homeUseLastListen: Boolean = false,
+    val randomizeHomeOrder: Boolean = false,
+    /** Show the "VIVI Wrapped" card on the Home screen. */
+    val showWrappedOnHome: Boolean = false,
+    val pauseSearchHistory: Boolean = false,
+    val pauseListenHistory: Boolean = false,
+    val searchHistory: List<String> = emptyList(),
+    val lyricsLineSpacing: Float = 1.35f,
+    /** Stream-URL cache lifetime in minutes (1–60); 0 = never expire. */
+    val streamCacheMinutes: Int = 10,
+    val discordRpcEnabled: Boolean = false,
+    val discordClientId: String = "",
+    val lastfmEnabled: Boolean = false,
+    val lastfmSession: String = "",
+    val lastfmNowPlaying: Boolean = true,
+    /** Apple-style mini player variant. */
+    val canvasEnabled: Boolean = true,
+    val canvasSource: String = "AUTO",
     val autoPlayNext: Boolean = true,
     val sidebarCollapsed: Boolean = false,
     val cookie: String = "",
@@ -50,12 +84,31 @@ data class DesktopSyncState(
     val devShowInTitleBar: Boolean = false,
     val devProfile: String = "FULL",
     val updateCheckIntervalHours: Int = 24,
+    /** Update source: "fork" (PiBOH/vivi-music, default) or "original" (vivizzz007/vivi-music). */
+    val updateSource: String = "fork",
     /** Where update notifications are shown: "in_app" (default) or "native". */
     val notificationMode: String = "in_app",
+    /** Record every notification (in-app and native) for the history screen. */
+    val saveNotificationHistory: Boolean = true,
+    /** Seconds before an in-app (main window) notification auto-dismisses; 0 = never. */
+    val inAppNotificationDurationSeconds: Int = 5,
+    /** Recent notifications (newest first), capped at a small number. */
+    val notificationHistory: List<NotificationRecord> = emptyList(),
+    /** Master toggle for automatic backups. */
+    val autoBackupEnabled: Boolean = false,
+    /** Run an automatic backup once a week. */
+    val autoBackupWeekly: Boolean = false,
+    /** Run an automatic backup before installing an update. */
+    val autoBackupBeforeUpdate: Boolean = true,
+    /** Sync the in-app (VIVI) player volume slider between devices. */
+    val syncViviVolume: Boolean = true,
 )
 
 object DesktopSettings {
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
+
+    /** Serializes load/save so concurrent writers can't clobber each other. */
+    private val lock = Any()
 
     private val file: File by lazy {
         File(System.getProperty("user.home"), ".vivimusic/device-sync.json").apply {
@@ -63,18 +116,35 @@ object DesktopSettings {
         }
     }
 
-    fun load(): DesktopSyncState = try {
-        if (file.exists()) json.decodeFromString(DesktopSyncState.serializer(), file.readText())
-        else DesktopSyncState()
-    } catch (_: Exception) {
-        DesktopSyncState()
+    fun load(): DesktopSyncState = synchronized(lock) {
+        try {
+            if (file.exists()) json.decodeFromString(DesktopSyncState.serializer(), file.readText())
+            else DesktopSyncState()
+        } catch (_: Exception) {
+            DesktopSyncState()
+        }
     }
 
     fun save(state: DesktopSyncState) {
-        try {
-            file.writeText(json.encodeToString(DesktopSyncState.serializer(), state))
-        } catch (_: Exception) {
-            // best-effort
+        synchronized(lock) {
+            try {
+                file.writeText(json.encodeToString(DesktopSyncState.serializer(), state))
+            } catch (_: Exception) {
+                // best-effort
+            }
+        }
+    }
+
+    /**
+     * Atomic read-modify-write: applies [transform] to the freshly-loaded state
+     * and saves the result under the same lock. Use this instead of
+     * `save(load().copy(...))`, which races when the UI thread and the
+     * device-sync IO coroutines save at the same time and can silently drop a
+     * setting the user just changed (e.g. the notification mode).
+     */
+    fun update(transform: (DesktopSyncState) -> DesktopSyncState) {
+        synchronized(lock) {
+            save(transform(load()))
         }
     }
 
@@ -82,7 +152,7 @@ object DesktopSettings {
         val existing = load().deviceId
         if (existing.isNotEmpty()) return existing
         val id = UUID.randomUUID().toString()
-        save(load().copy(deviceId = id))
+        update { it.copy(deviceId = id) }
         return id
     }
 
@@ -95,7 +165,7 @@ object DesktopSettings {
         val state = load()
         if (state.firstLaunchDate > 0) return state.firstLaunchDate
         val now = System.currentTimeMillis()
-        save(state.copy(firstLaunchDate = now))
+        update { it.copy(firstLaunchDate = now) }
         return now
     }
 }

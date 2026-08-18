@@ -11,6 +11,851 @@ the program's own SemVer. `[APK]` marks mobile-only changes.
 
 ## [Unreleased]
 
+## [6.4.28_DE-1.33.87] - 2026-08-18
+
+### Added
+
+- [DE] Commit screen (Settings → Updates → Commits): lists the most recent
+  commits of the selected update source branch (fork `vivi-music-de` or
+  original `main`), with author, date, short SHA and avatar. Clicking a commit
+  opens it on GitHub.
+
+## [6.4.28_DE-1.33.86] - 2026-08-18
+
+### Fixed
+
+- [DE] The Queue swipe-to-play hint ("▶ Play") no longer stays visible on top
+  of the song artwork: the hint (background + text) now fades in only while
+  dragging right, so it is fully hidden when the row is idle.
+
+## [6.4.28_DE-1.33.85] - 2026-08-18
+
+### Fixed
+
+- [DE] Player sync (seek bar + play/pause) now follows the peer even over a
+  phone hotspot: a seek/play command that arrived while the desktop was still
+  resolving its own stream was dropped (our own resolution decides when audio
+  starts) and only recovered on the next 5s re-sync tick. The latest peer
+  snapshot is now re-applied the moment our stream finishes resolving, so the
+  slower resolution over a hotspot no longer leaves seek/play-pause unsynced.
+
+## [6.4.28_DE-1.33.84] - 2026-08-18
+
+### Added
+
+- [DE] Stream cache now offers a "Forever" option past 60 minutes: the resolved
+  stream URL is kept for the whole app session instead of expiring.
+
+## [6.4.28_DE-1.33.83] - 2026-08-18
+
+### Changed
+
+- [DE] The player design variants now actually differ: Classic is the
+  two-column layout, New is a single-column hero with a pill play button,
+  V2 keeps two columns with the title overlaid on the artwork, and Expressive
+  is a single-column hero with the title overlaid on the largest artwork.
+
+## [6.4.28_DE-1.33.82] - 2026-08-18
+
+### Changed
+
+- [DE] UI density scale now also offers values above 100% (110, 120, 125, 130,
+  140, 150, 180, 200) in addition to the existing 100/85/75/65/55%.
+
+## [6.4.28_DE-1.33.81] - 2026-08-18
+
+### Fixed
+
+- [DE+APK] The "Sync VIVI volume" toggle is now part of the shared settings
+  snapshot, so enabling/disabling it on either device reflects on the other.
+
+## [6.4.27_DE-1.33.80] - 2026-08-18
+
+### Changed
+
+- [DE] The VIVI Wrapped card is now hidden from the Home screen by default.
+  It can be re-enabled via Settings → VIVI Wrapped → "Show on Home".
+
+## [6.4.27_DE-1.33.79] - 2026-08-18
+
+### Added
+
+- [DE] Settings → VIVI Wrapped sub-screen: the session listening-stats card
+  now lives in its own settings sub-menu, like the mobile app. The Home card
+  stays as a quick glance.
+- [DE] Appearance now hosts the player personalization: a new "Player
+  design" row (Material 3 style) opens the design / background / rotating
+  thumbnail / mini-player style screen.
+
+### Fixed
+
+- [DE] Raw keys no longer appear as "code language" UI: 10 keys were missing
+  from the desktop string table (`remove_from_queue`, `pause_search_history`,
+  `pause_listen_history`, `quick_picks`, `search_history`, `listen_history`,
+  `clear_search_history`, `clear_search_history_confirm`, `theme`, `ok`) and
+  are now wired to the Android translations (fallback OK).
+- [DE] Queue screen: the swipe-left remove hint ("✕ remove from queue")
+  duplicated the row's X button; the hint was removed — the X is now the
+  single remove control (swipe-left still works).
+- [DE] Full player: add-to-playlist now sits under the song title, next to
+  the Queue button; the duplicate header Queue shortcut and the old
+  bottom-row buttons were removed.
+- [DE] Startup volume guard: if the Windows master volume is muted, VIVI
+  Music DE unmutes it and sets it to 0% so a paired mobile device can always
+  control it (a muted master ignores volume writes).
+
+### Removed
+
+- [DE] Quick settings (Tune) button in the sidebar.
+
+## [6.4.27_DE-1.33.78] - 2026-08-18
+
+### Changed
+
+- [DE] The stream resolution cache TTL is now configurable: a slider in
+  Settings → Player & audio (1–60 minutes, default 10) controls how long a
+  resolved stream URL is reused before the resolution chain runs again.
+  (Resolution only — the audio decode/playback core is untouched.)
+
+## [6.4.27_DE-1.33.77] - 2026-08-17
+
+### Changed
+
+- [DE] Stream resolution cache: resolved audio URLs are cached in memory for
+  up to 10 minutes, so replaying or retrying a track doesn't re-run the whole
+  resolution chain when we already have a valid stream. (Resolution only —
+  the audio decode/playback core is untouched.)
+
+## [6.4.27_DE-1.33.76] - 2026-08-17
+
+### Added
+
+- [DE] Integrations sub-screen (Settings → Integrations):
+  - Discord Rich Presence over the local IPC pipe (Windows; toggle + your
+    Discord application ID; shows the current track).
+  - Last.fm scrobbling: enable toggle, session key field, now-playing
+    update and auto-scrobble near the end of each track (credentials via
+    the LASTFM_API_KEY / LASTFM_SECRET env vars, like mobile build config).
+  Fully translated.
+
+## [6.4.27_DE-1.33.75] - 2026-08-17
+
+### Added
+
+- [DE] Advanced lyrics: line-spacing slider (1.0–2.0, Settings → Lyrics)
+  and a thumbnail with play/pause overlay on the Lyrics screen (port of the
+  mobile advanced-lyrics controls). Fully translated.
+
+## [6.4.27_DE-1.33.74] - 2026-08-17
+
+### Added
+
+- [DE] Quick settings popup: a Tune button at the bottom of the sidebar
+  opens a compact panel with theme (System/Light/Dark), pure black toggle,
+  accent swatches and a shortcut to the full Appearance settings (port of
+  the mobile quick-settings shortcut). Fully translated.
+
+## [6.4.27_DE-1.33.73] - 2026-08-17
+
+### Added
+
+- [DE] Local search history: recent searches appear as chips on the Search
+  screen (saved on submit / suggestion click, max 12) with a clear button.
+- [DE] Privacy sub-screen (Settings → Privacy): "Pause listen history"
+  (hides the History screen from the sidebar) and "Pause search history"
+  (stops saving new searches) toggles + "Clear search history".
+  Fully translated.
+
+## [6.4.27_DE-1.33.72] - 2026-08-17
+
+### Added
+
+- [DE] Home: "Quick Picks vs Last Listen" toggle (chip row) so only the
+  chosen section shows, like on mobile.
+- [DE] Home: "Randomize" button that shuffles the order of the home
+  sections (persisted).
+- [DE] Home: "VIVI Wrapped · This session" card with tracks played,
+  listening time and top song of the current session. Fully translated.
+
+## [6.4.27_DE-1.33.71] - 2026-08-17
+
+### Added
+
+- [DE] Sort chips in the Library (all tabs): A–Z / Z–A, plus "By artist"
+  for the songs tab. Fully translated.
+
+## [6.4.27_DE-1.33.70] - 2026-08-17
+
+### Added
+
+- [DE] Dynamic theme (Material You): the "Dynamic" accent swatch now reads
+  the OS accent color instead of a fixed seed — Windows DWM accent, macOS
+  accent (defaults), GNOME accent (gsettings) — with fallback to the default
+  palette. Re-detected each time Dynamic is picked.
+
+## [6.4.27_DE-1.33.69] - 2026-08-17
+
+### Added
+
+- [DE] Song swipe gestures in the Queue screen: swipe a row right to play
+  it, swipe left to remove it from the queue (action hints appear behind
+  the row while dragging). Fully translated.
+
+## [6.4.27_DE-1.33.68] - 2026-08-17
+
+### Added
+
+- [DE] Mini-player styles: Standard / Apple / Outline / Pure black
+  (Settings → Player & audio → Player design → Mini player), replacing the
+  old Apple-only toggle. Fully translated.
+- [DE] Swipe-to-expand on the mini player: drag it up to open the full
+  player (with a drag handle hint at the top).
+
+## [6.4.27_DE-1.33.67] - 2026-08-17
+
+### Added
+
+- [DE] Player design variants: Classic / New / V2 / Expressive (Settings →
+  Player & audio → Player design), reworking the full-player layout and the
+  Apple Music-style rounded mini-player variant. Fully translated.
+- [DE] Player background styles: Gradient / Blur / Glow / Apple Music /
+  Live mesh (Settings → Player & audio → Player design), animated behind
+  the full player. Fully translated.
+- [DE] Rotating artwork option (settings toggle): the album art rotates
+  slowly while playing, like the mobile rotating-thumbnail option.
+
+## [6.4.27_DE-1.33.66] - 2026-08-17
+
+### Added
+
+- [DE] Player slider styles: Slim / Squiggly / Wavy (Settings → Player & audio),
+  applied to the seek bar and the volume slider via a custom `ViviSlider`.
+  Fully translated.
+
+## [6.4.27_DE-1.33.65] - 2026-08-17
+
+### Added
+
+- [DE] Screen transitions between navigations: Off / Fade / Slide (Settings →
+  Appearance → Screen transitions), applied with `AnimatedContent` around the
+  main screen switch. Fully translated.
+
+## [6.4.27_DE-1.33.64] - 2026-08-17
+
+### Added
+
+- [DE] UI density scale (100 / 85 / 75 / 65 / 55 %) applied to the whole
+  interface via a density override (Settings → Appearance → Density & grid),
+  plus a custom adaptive grid item size (small / medium / large / extra
+  large) used by the album / artist / playlist grids. Fully translated.
+
+## [6.4.27_DE-1.33.63] - 2026-08-17
+
+### Fixed
+
+- [DE] The desktop no longer stays silent (appears in the Windows mixer but
+  emits no sound) when a synced track change starts. The desktop held
+  (`startPaused`) whenever the peer was still resolving, and the peer held for
+  the desktop's own resolution, so both paused and neither ever started. The
+  desktop now starts when the peer says it is playing and ignores the peer's
+  play/pause echoes while it is still resolving its own stream; the phone keeps
+  holding for the desktop and both resume together once the desktop is ready.
+
+## [6.4.27_DE-1.33.62] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] A track change initiated from the phone no longer plays ahead of
+  the desktop while the desktop is still resolving its stream. The
+  resolving/ready transition was being swallowed by the 1.5s echo-suppression
+  window that runs after applying a remote snapshot, so the desktop's
+  `isResolving=true` push never reached the phone. Resolving transitions now
+  bypass echo suppression on both sides, so the phone holds while the desktop
+  buffers and resumes the moment the desktop is ready (and vice versa).
+
+## [6.4.26_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [APK] Restore swap is no longer silent on failure: the database target
+  directory is created if missing (clean install), and if the staged
+  settings/database copy fails the staged backup is kept and the error is
+  logged (with a stack trace) so the restore can be retried on the next launch
+  instead of the backup being deleted without being applied.
+
+## [6.4.25_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [APK] The restore picker now accepts any file (`*/*`) so old `.backup` files
+  created by the original 6.0.5 app (which have no registered MIME type) always
+  appear in the file selector instead of being hidden/unselectable.
+
+## [6.4.24_DE-1.33.61] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback start is now synchronized while a device is still resolving
+  its stream. The desktop marks the snapshot as `isResolving` from the moment it
+  starts resolving until audio actually flows (first position report), and the
+  mobile marks it while ExoPlayer is `STATE_BUFFERING`. The receiver now
+  prepares the queue but holds playback (instead of playing ahead of the peer),
+  and `effectivePosition` no longer extrapolates a frozen position while the
+  peer is resolving. This fixes the phone starting the track before the desktop
+  had finished resolving/downloading.
+
+## [6.4.23_DE-1.33.60] - 2026-08-17
+
+### Fixed
+
+- [APK] Update check from the fork source (`PiBOH/vivi-music`) now works:
+  the updater extracts the mobile version from the combined desktop tag
+  (`6.4.22_DE-1.33.60-nightly` → `6.4.22`) before comparing, and accepts the
+  fork's `VIVIMusic-<version>-debug.apk` asset instead of only `vivi.apk`.
+
+## [6.4.22_DE-1.33.60] - 2026-08-17
+
+### Fixed
+
+- [DE] Native Windows toast notifications now actually appear in the Action
+  Center. The AUMID registration was failing with `0x80070057` because the
+  `SHGetPropertyStoreFromParsingName` P/Invoke was missing the
+  `GETPROPERTYSTOREFLAGS flags` parameter, and the `PROPVARIANT` was declared
+  as a sequential struct instead of an explicit-layout class. Both are fixed,
+  so the Start-menu shortcut gets its `System.AppUserModel.ID` correctly.
+
+## [6.4.22_DE-1.33.59] - 2026-08-17
+
+### Fixed
+
+- [DE] Developer options network stats (down/up speed + total traffic) now show
+  real values on non-English Windows. They were parsing the localized
+  `netstat -e` output ("Byte" / "Ricevuti"/"Trasmessi" instead of "Bytes"),
+  which never matched and left the values at "—". Replaced with
+  `Get-NetAdapterStatistics` (culture-invariant property names).
+
+## [6.4.22_DE-1.33.58] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback sync no longer "jumps back": explicit user seeks are now
+  flagged and applied exactly on the peer (both directions, no tolerance),
+  while the periodic drift-tic only catch up FORWARD. This stops the device
+  that is slightly ahead (the leader) from being dragged back every 5s by the
+  follower's stale position, which was the visible seekbar jump-back.
+
+## [6.4.21_DE-1.33.57] - 2026-08-17
+
+### Fixed
+
+- [DE] The in-app update notification no longer auto-dismisses while it is
+  showing the download progress bar; the timer pauses during a download and
+  resumes after it finishes.
+
+## [6.4.21_DE-1.33.56] - 2026-08-17
+
+### Added
+
+- [DE] A "Send test notification" button in Settings → Notifications so native
+  notifications can be triggered on demand.
+
+### Changed
+
+- [DE] Native notification path now writes a diagnostic log to
+  `~/.vivimusic/native-notify.log` (which branch is used, AUMID registration
+  result, and PowerShell output) to help diagnose Windows toast issues.
+
+## [6.4.21_DE-1.33.55] - 2026-08-17
+
+### Changed
+
+- [DE] The About "website" entry now points to the VIVI Music DE GitHub Pages
+  site (`https://piboh.github.io/vivi-music/`).
+
+### Website
+
+- Made the site fully responsive for mobile (collapsible hamburger nav,
+  stacking download rows / platform cards).
+- Compact sticky footer (always pinned to the bottom of the viewport).
+- Removed the Android APK download from the DE site; it now links to the
+  upstream VIVI Music site, with credits to VIVIDH P ASHOKAN
+  (`https://vivimusic.mkmdevilmi.workers.dev/`).
+
+## [6.4.21_DE-1.33.54] - 2026-08-17
+
+### Fixed
+
+- [DE] Tracks restored from the persistent queue (or whose load failed earlier)
+  now actually start on the first Play press: pressing play on a track whose
+  stream is not loaded yet triggers a real resolution + load instead of a
+  no-op `resume()` that silently did nothing.
+
+## [6.4.21_DE-1.33.53] - 2026-08-17
+
+### Added
+
+- [DE] Windows native notifications now land in the **Action Center / notification
+  history** via WinRT toasts (PowerShell helper). On a packaged Windows build the
+  app registers an AppUserModelID by creating a Start-menu shortcut with the
+  `System.AppUserModel.ID` property (inline C# `Add-Type` + shell property
+  store), then shows `ToastGeneric` toasts with the VIVI Music DE logo.
+  Clicking a toast launches the app with `--open=<section>` and opens the
+  relevant screen (Updates / Developer options / Devices), bringing the window
+  to the front; a file-based command mailbox forwards the request to an
+  already-running instance. Non-Windows and unpackaged/dev builds keep the
+  `SystemTray` balloon fallback.
+
+## [6.4.21_DE-1.33.52] - 2026-08-17
+
+### Changed
+
+- [DE] `version.txt` is reorganized into a self-documenting six-line layout:
+  mobile version / mobile version code / mobile channel, then DE version / DE
+  version code / DE channel, with comment lines below explaining each field.
+  `desktop/build.gradle.kts`, `AppInfo`, and the release/build workflows now
+  read the new positions (DE version = line 4, DE channel = line 6, DE version
+  code = line 5).
+
+## [6.4.21_DE-1.33.51] - 2026-08-17
+
+### Fixed
+
+- [DE] Opening Appearance → Theme & colors, App font, or Canvas no longer
+  crashes with "Vertically scrollable component was measured with an infinity
+  maximum height constraints". Those sub-screens had their own
+  `verticalScroll` nested inside the settings screen's scrollable scaffold; the
+  inner scroll was removed so the content scrolls with the outer scaffold only.
+
+## [6.4.21_DE-1.33.50] - 2026-08-17
+
+### Added
+
+- [APK] Restoring a backup now shows a confirmation dialog with the backup's
+  file name, date, and the app version it was created from, before anything is
+  applied.
+
+## [6.4.20_DE-1.33.50] - 2026-08-17
+
+### Added
+
+- [APK] Restore now validates the backup's database before applying it (SQLite
+  header magic + `PRAGMA integrity_check` + schema-version guard). A corrupt or
+  incompatible backup fails with a clear "backup is corrupt" message instead of
+  swapping in a bad file and crashing the app on the next launch.
+
+## [6.4.19_DE-1.33.50] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playback position no longer jumps back and forth between the two
+  devices. The shared-clock offset used to extrapolate the live position was
+  only measured 25 s after connecting and converged slowly via a running
+  average, so during that window both devices extrapolated from raw local
+  clocks and kept seeking each other back/forth by the clock skew. The first
+  PING is now sent immediately on connect, the first measurement sets the
+  offset directly, and a position is only timestamped once the offset is known
+  (older relays fall back to the raw position instead of a skew-corrupted
+  extrapolation).
+
+## [6.4.18_DE-1.33.49] - 2026-08-17
+
+### Added
+
+- [DE] Complete port of the mobile Appearance sub-menu into three dedicated
+  sub-screens: **Theme** (4-mode selector System/Light/Dark/Pure black, the
+  full 21-color accent palette and a live preview card), **App font** (the five
+  mobile fonts — System, Google Sans, Sans Flex, Outfit, Plus Jakarta Sans —
+  bundled into the desktop resources with a live typography preview) and
+  **Canvas** (enable toggle + source Auto / Apple Music / ViViMusic / Tidal,
+  wired into the player's animated background). All new strings reuse the
+  Android translations (47 languages).
+
+## [6.4.18_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [DE+APK] Playlist changes made on the desktop now actually reach the phone.
+  The mobile side was stamping the local "now" into `lastUpdateTime` when
+  applying a remote playlist, so the next desktop rename/delete compared newer
+  than an artificially-updated timestamp and was silently dropped by the
+  last-write-wins check. The remote edit timestamp is now preserved, so create /
+  rename / delete all propagate.
+
+## [6.4.17_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [APK] Restoring an old backup (e.g. from the original 6.0.5) no longer crashes.
+  The restore previously closed the shared Room database while the app's live
+  queries were still running, which crashed with an uncaught "database is
+  closed" exception. It now stages the backup to `filesDir/pending_restore`,
+  exits, and swaps the settings + database in at startup (in `App.onCreate()`)
+  before Room/DataStore are opened.
+
+## [6.4.16_DE-1.33.48] - 2026-08-17
+
+### Changed
+
+- [APK] Mobile backups now use the `.vividroid.backup` extension (desktop keeps
+  `.vivide.backup`), so the two editions' backup files are clearly
+  distinguishable. Older `.backup` files are still listed and importable.
+
+## [6.4.15_DE-1.33.48] - 2026-08-17
+
+### Fixed
+
+- [DE] The Inno Setup installer now actually launches the app when "Start VIVI
+  Music DE" is checked on the final page. The `[Run]` entry was gated on both
+  the final-page checkbox *and* a separate (unchecked) `launchafterinstall`
+  task, so the app never started; the redundant task is removed and the
+  final-page checkbox alone controls the launch.
+
+## [6.4.15_DE-1.33.47] - 2026-08-17
+
+### Changed
+
+- [APK] Mobile backup files now use the `.vivide.backup` extension (manual and
+  automatic) to match the desktop edition. Older `.backup` files are still listed
+  and importable, so nothing is lost.
+
+## [6.4.14_DE-1.33.47] - 2026-08-17
+
+### Fixed
+
+- [APK] The debug APK build (CI) no longer fails during resource merge: the new
+  `sync_vivi_volume_desc` string used a bare apostrophe that aapt2 rejected as an
+  "Invalid unicode escape sequence"; it is now escaped (`\'`) like the rest of the
+  Android strings, so `assembleUniversalGmsDebug` completes again.
+
+## [6.4.13_DE-1.33.47] - 2026-08-17
+
+### Added
+
+- [DE+APK] New "Sync VIVI volume" toggle (Settings → Devices and Settings →
+  Player & audio, on both editions). When off, each device keeps its own
+  in-app volume slider independent; the native OS (system) volume sync is
+  unaffected.
+
+### Fixed
+
+- [DE] The seek slider no longer stays disabled or stuck at the end: the track
+  duration is reported as soon as it is known (before the stream resolves) and
+  the live position is clamped to the track length so it can't overshoot.
+- [DE] Position sync no longer fights itself: the periodic re-sync tick only
+  pushes when the position actually advanced, so a stalled/frozen player can't
+  repeatedly drag the paired device back to the same point.
+
+## [6.4.12_DE-1.33.46] - 2026-08-16
+
+### Fixed
+
+- [APK] Restoring a backup no longer crashes while choosing the file or when
+  reopening the app: the archive is decompressed on a background thread and
+  staged to temp files, then the settings + database are swapped in and the
+  process is killed in a single synchronous block on the main thread. This
+  removes the race where the UI queried the database after it was closed on a
+  background thread (the crash introduced by the previous fix), while still
+  deleting the WAL/SHM sidecars so the restored DB isn't corrupted on launch.
+
+## [6.4.11_DE-1.33.46] - 2026-08-16
+
+### Fixed
+
+- [DE] All in-app notifications now auto-dismiss after the configured time
+  (Settings → Notifications → In-app notification duration): the update
+  banner and the developer-options-unlocked hint previously stayed on screen
+  until dismissed manually, ignoring the setting.
+- [DE] Native notifications keep a single persistent tray icon (created once
+  with the VIVI Music DE logo) instead of adding/removing a temporary icon per
+  notification, so the logo shows reliably and the icon is scaled with
+  high-quality interpolation.
+
+## [6.4.11_DE-1.33.45] - 2026-08-16
+
+### Fixed
+
+- [DE] LAN sync now works when the computer is connected to the phone's
+  hotspot: the desktop advertises the address of the interface that actually
+  routes to the phone (resolved via the outbound-route source address, then
+  preferring Wi-Fi/wlan adapters) instead of the first site-local address,
+  which on multi-homed machines was often a virtual adapter the phone could
+  not reach. Start/stop of the relay is now serialized and the bound-port
+  lookup is guarded, so rapid Stop→Start (or a failed bind) no longer throws
+  and crashes the app — failures surface in the status line instead.
+
+## [6.4.11_DE-1.33.44] - 2026-08-16
+
+### Changed
+
+- [DE] Manual backups now include the date and timestamp in their filename
+  (`vivimusic-de_yyyyMMdd_HHmmss.vivide.backup`) instead of a fixed
+  `vivimusic-de.vivide.backup`. Automatic backups already carried the
+  timestamp, and the stored-backups list shows it as `yyyy-MM-dd HH:mm`.
+
+## [6.4.11_DE-1.33.43] - 2026-08-16
+
+### Fixed
+
+- [APK] Restoring a backup no longer freezes and then corrupts the app: the
+  restore (settings + DB copy) now runs off the main thread instead of blocking
+  the UI, and the WAL/SHM sidecar files are deleted before overwriting the
+  Room database, so a restored `song.db` is no longer mixed with stale journal
+  frames (which corrupted the DB on the next launch and required an
+  uninstall/reinstall). Playback is stopped before the database is touched.
+
+## [6.4.10_DE-1.33.43] - 2026-08-16
+
+### Added
+
+- [DE+APK] Selectable update source: pick whether update checks read from the
+  original repo (`vivizzz007/vivi-music`) or the PiBOH fork
+  (`PiBOH/vivi-music`). Desktop defaults to the fork, mobile defaults to the
+  original. The source is also used for the download/notification URLs.
+
+## [6.4.9_DE-1.33.42] - 2026-08-16
+
+### Added
+
+- [DE] The crash/error dialog now has a "Copy error" button alongside "OK":
+  it copies the full message + stack trace to the clipboard. A global
+  uncaught-exception handler replaces the default AWT "Error" dialog (OK only).
+
+## [6.4.9_DE-1.33.41] - 2026-08-16
+
+### Changed
+
+- [DE] Backups (manual and automatic) now use a single `.vivide.backup` file
+  that contains everything (settings + playlists + account + library). Old
+  `.backup` files are still importable.
+
+### Fixed
+
+- [DE] "Restart now" after restoring a backup now actually relaunches the app:
+  it releases the single-instance lock, starts a new instance (the jpackage
+  launcher when packaged, `java -cp … MainKt` in dev), and then exits.
+
+## [6.4.9_DE-1.33.40] - 2026-08-16
+
+### Fixed
+
+- [DE] Native system notifications now use the real VIVI Music DE logo as their
+  icon instead of a placeholder glyph. `logo_vmde.png` is bundled under
+  `images/` and loaded for the tray icon (scaled, with a fallback).
+
+## [6.4.9_DE-1.33.39] - 2026-08-16
+
+### Added
+
+- [DE+APK] Repeat mode (off / all / one) and shuffle now sync in real time
+  between the phone and the desktop, both ways, like the rest of the playback
+  state. `PlaybackSnapshot` carries `repeatMode` ("OFF"/"ALL"/"ONE") and
+  `isShuffle`; each side applies them on receive and pushes them on change.
+
+## [6.4.8_DE-1.33.38] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] Queue sync now follows last-write-wins like playlists: `PlaybackSnapshot`
+  carries a `queueUpdatedAt` timestamp (shared relay-time frame) and each side
+  only replaces its queue when the remote edit is newer, so a mobile edit can't
+  be overwritten by an older desktop queue (and vice versa). Older peers
+  (`queueUpdatedAt = 0`) still apply unconditionally for compatibility.
+
+## [6.4.7_DE-1.33.37] - 2026-08-16
+
+### Fixed
+
+- [DE] The update notification and the Updates screen now share a single
+  download state (`UpdateState`), so downloading/opening an installer from one
+  is reflected in the other (and vice versa). The notification no longer
+  re-offers a download for an installer the Updates screen already fetched.
+
+## [6.4.7_DE-1.33.36] - 2026-08-16
+
+### Added
+
+- [DE] Full backup & restore, ported from mobile: a backup now includes
+  settings, playlists, account/login and library (ZIP with `settings.json` +
+  `playlists.json`), and old single-JSON `.backup` files are still importable.
+- [DE] Automatic backups: optional weekly backup and an optional "backup before
+  update" that runs automatically before opening the installer. Automatic
+  backups are stored under `~/.vivimusic/backups/` and can be restored or
+  deleted from Settings → Backup.
+
+### Changed
+
+- [DE] Developer options screen reorganized into clear sections (display,
+  monitoring profile, overlay behaviour, title bar) separated by dividers.
+
+## [6.4.7_DE-1.33.35] - 2026-08-16
+
+### Fixed
+
+- [DE] Settings (e.g. where notifications are shown) no longer get forgotten on
+  restart or update: `DesktopSettings` now saves through an atomic
+  read-modify-write (`update`) instead of `save(load().copy(…))`, which could
+  race between the UI thread and the device-sync IO coroutines and silently
+  drop the value the user had just changed.
+
+## [6.4.7_DE-1.33.34] - 2026-08-16
+
+### Fixed
+
+- [DE] The player seek slider no longer snaps to the start or the end: it is
+  disabled until the track duration is known (so it can't degenerate into a
+  0..1 range) and, while dragging, the live playback position is ignored so it
+  can't fight the drag and yank the thumb back.
+
+## [6.4.7_DE-1.33.33] - 2026-08-16
+
+### Fixed
+
+- [DE+APK] The two devices no longer unpair when one screen turns off: while
+  paired, the Android app keeps the screen on (`FLAG_KEEP_SCREEN_ON`) and the
+  desktop keeps the display/system awake (kernel32 `SetThreadExecutionState` on
+  Windows, `caffeinate` on macOS). This stops the OS from sleeping the display
+  and suspending the network, which was tearing down the sync socket.
+
+## [6.4.6_DE-1.33.32] - 2026-08-16
+
+### Changed
+
+- [DE] The CI debug build now restores a persistent debug keystore from the
+  `DEBUG_KEYSTORE` GitHub secret instead of generating a fresh key on every
+  run, so the debug APK keeps the same signature and can be installed over the
+  previous build without uninstalling first. When the secret is absent the
+  workflow still falls back to generating a fresh key, so CI never breaks.
+
+## [6.4.6_DE-1.33.31] - 2026-08-16
+
+### Fixed
+
+- [APK] Scanning a QR code now first disconnects and un-pairs an existing
+  desktop connection, so the new code can pair to a (possibly different)
+  desktop from a clean slate.
+
+## [6.4.5_DE-1.33.31] - 2026-08-16
+
+### Changed
+
+- [DE] On Windows the updater now prefers the Inno Setup `.exe` installer over
+  the `.msi` (lighter and more user-friendly). The `.msi` remains the fallback
+  when a release has no `.exe`.
+
+## [6.4.5_DE-1.33.30] - 2026-08-16
+
+### Fixed
+
+- [DE] The Updates screen no longer offers to re-download an installer that is
+  already on disk: it now detects the previously-downloaded file for the
+  available version and shows "Open installer" directly (the update banner
+  already behaved this way).
+
+## [6.4.5_DE-1.33.29] - 2026-08-16
+
+### Added
+
+- [DE] Notification history: every notification (in-app and native) is recorded
+  and can be reviewed from Settings → Notifications → Notification history, with
+  a "Save notification history" toggle and a "Clear history" action.
+- [DE] Configurable in-app notification auto-dismiss (3/5/10/15/30 seconds,
+  default 5s) in Settings → Notifications.
+
+## [6.4.5_DE-1.33.28] - 2026-08-16
+
+### Changed
+
+- [DE] Windows system volume now drives the **master** volume (the speaker icon
+  in the tray) via WASAPI `IAudioEndpointVolume` instead of WinMM, which only
+  moved the per-app `VIVIMusic` mixer entry. The app's own session is now
+  pinned to 100% so the mixer never quiets VIVI under the master. Sync with
+  the phone remains bidirectional (channel `systemVolume`).
+
+## [6.4.5_DE-1.33.27] - 2026-08-16
+
+### Fixed
+
+- [DE] The Linux `.deb` now installs on Debian: jpackage auto-detected
+  dependencies on ubuntu-latest and emitted Ubuntu's `t64`-renamed package
+  names (e.g. `libasound2t64`, `libglib2.0-0t64`) that don't exist on Debian
+  Bookworm. A post-build step rewrites them to `<name> | <name>t64`
+  alternatives so apt picks whichever name the distro actually provides.
+
+## [6.4.5_DE-1.33.26] - 2026-08-16
+
+### Changed
+
+- [DE] Clearer updater wording: the update button now reads "Check for
+  available updates" (instead of the Android toggle's "Automatically check for
+  updates") and "Open installer" now reads "Close Vivi and open installer",
+  matching what the button actually does. Updated across all languages.
+
+## [6.4.5_DE-1.33.25] - 2026-08-16
+
+### Fixed
+
+- [DE] Critical startup crash on Windows: the WinMM binding looked up
+  `waveOutOpenW`, but `winmm.dll` exports the function with **no A/W suffix**
+  (it takes no string argument, so `waveOutOpenW`/`waveOutOpenA` exist only as
+  C header macros). JNA threw "Error looking up function 'waveOutOpenW'" and the
+  app crashed. Restored the correct `waveOutOpen` symbol and guarded every
+  native call so a missing symbol can never crash the app again.
+
+## [6.4.5_DE-1.33.24] - 2026-08-16
+
+### Changed
+
+- [DE] Translation quality pass: filled in the remaining desktop-only keys
+  (device sync, updates, player basics) that were still falling back to
+  English, and corrected translations whose Android mapping had a different
+  (longer or wrong-context) meaning — e.g. "Check for updates" is now a short
+  button label instead of "check automatically…", "Error" no longer reads
+  "unknown error", and CPU/GPU keep their short technical form.
+
+## [6.4.5_DE-1.33.23] - 2026-08-16
+
+### Fixed
+
+- [DE] Windows Inno Setup installer now always shows the "Select Destination
+  Location" page so the install path is visible (and editable), matching the
+  MSI installer.
+
+## [6.4.5_DE-1.33.22] - 2026-08-16
+
+### Fixed
+
+- [DE] Native (OS) volume now actually syncs on Windows: the WinMM call used
+  `waveOutOpen`, which is a macro — `winmm.dll` only exports `waveOutOpenW`/
+  `waveOutOpenA` — so `Native.load` failed and every native volume read/write
+  silently no-opped. The default wave device is now opened via `waveOutOpenW`
+  (with `StdCallLibrary`).
+- [DE+APK] Volume pushes (in-app `volume` and native `systemVolume`) are now
+  retried instead of being silently dropped: both sides poll volume and only
+  mark it as pushed once the snapshot is actually sent, so a push that lands in
+  the echo-suppression window is re-sent on the next tick. The mobile side is
+  echo-guarded per-field so an applied remote value isn't bounced back.
+
+## [6.4.4_DE-1.33.21] - 2026-08-16
+
+### Added
+
+- [DE] Single-instance guard: launching the app while another instance is
+  already running (or still starting) exits immediately, always keeping the
+  first instance that started.
+- [DE] Notifications now cover **all** app notifications, not just updates:
+  update available, device paired/unpaired and developer-options unlocked all
+  route through the chosen notification mode (main window vs native). Native
+  system notifications are marked "experimental".
+
+### Changed
+
+- [DE] Completed all remaining desktop-only translations (developer options and
+  backup/restore strings) across all 47 supported languages — every key now has
+  a real translation instead of an English fallback.
+- [DE] `Localization.kt` is now emitted as one top-level function per language
+  (instead of a single giant `mapOf`) to stay under the JVM 64KB `<clinit>`
+  limit that caused a "Method too large" compiler error.
+
 ## [6.4.4_DE-1.33.20] - 2026-08-16
 
 ### Fixed

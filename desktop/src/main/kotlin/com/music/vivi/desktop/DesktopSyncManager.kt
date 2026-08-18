@@ -95,8 +95,16 @@ class DesktopSyncManager {
     private var lastSettings: Map<String, String> = emptyMap()
     private var lastLibrary: LibrarySnapshot? = null
 
+    /** Queue fingerprint + last-write-wins timestamp (shared relay-time frame). */
+    private var lastQueueFingerprint: String = ""
+    private var queueUpdatedAt: Long = 0L
+
     @Volatile
     private var suppressPushUntil = 0L
+
+    /** Resolving state of the last snapshot we actually sent (for forcing the
+     *  resolving/ready transition past the echo-suppression window). */
+    private var lastPushedResolving: Boolean? = null
 
     init {
         lastLibrary = DesktopSettings.load().library
@@ -126,7 +134,7 @@ class DesktopSyncManager {
         // Persist only real relay URLs; the ephemeral localhost LAN address
         // must not become the saved default.
         if (!url.startsWith("ws://localhost")) {
-            DesktopSettings.save(DesktopSettings.load().copy(serverUrl = url))
+            DesktopSettings.update { it.copy(serverUrl = url) }
         }
     }
 
@@ -139,36 +147,44 @@ class DesktopSyncManager {
      *  a pairing code so the phone can pair right away. */
     fun startLan() {
         scope.launch {
-            val port = relay.start()
-            _lanRunning.value = true
-            _lanAddress.value = "ws://${lanIpAddress()}:$port"
-            connect("ws://localhost:$port")
-            val c = client ?: return@launch
-            // Wait for the local client to connect, then request the code.
-            // Retry a few times so a startup race (relay still binding, or the
-            // request landing before the session is ready) can't leave the code
-            // missing right after "Start LAN server".
-            repeat(5) {
-                if (_pairCode.value.isNotEmpty()) return@launch
-                withTimeoutOrNull(3_000L) {
-                    c.connectionState.first { it == SyncConnectionState.CONNECTED }
+            try {
+                val port = relay.start()
+                _lanRunning.value = true
+                _lanAddress.value = "ws://${lanIpAddress()}:$port"
+                connect("ws://localhost:$port")
+                val c = client ?: return@launch
+                // Wait for the local client to connect, then request the code.
+                // Retry a few times so a startup race (relay still binding, or the
+                // request landing before the session is ready) can't leave the code
+                // missing right after "Start LAN server".
+                repeat(5) {
+                    if (_pairCode.value.isNotEmpty()) return@launch
+                    withTimeoutOrNull(3_000L) {
+                        c.connectionState.first { it == SyncConnectionState.CONNECTED }
+                    }
+                    if (c.connectionState.value == SyncConnectionState.CONNECTED) {
+                        requestPairingCode()
+                    }
+                    delay(1_000L)
                 }
-                if (c.connectionState.value == SyncConnectionState.CONNECTED) {
-                    requestPairingCode()
-                }
-                delay(1_000L)
+            } catch (e: Exception) {
+                // Surface the failure in the status line instead of letting an
+                // uncaught coroutine exception crash the whole app.
+                _status.value = "LAN error: ${e.message}"
+                _lanRunning.value = false
+                _lanAddress.value = ""
             }
         }
     }
 
     fun stopLan() {
         // Notify the phone it is unpaired, then tear down the relay.
-        scope.launch { relay.stop() }
+        scope.launch { runCatching { relay.stop() } }
         _lanRunning.value = false
         _lanAddress.value = ""
         teardownClient()
         // Stopping the LAN server unpairs both sides.
-        DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+        DesktopSettings.update { it.copy(pairId = "") }
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
@@ -188,7 +204,7 @@ class DesktopSyncManager {
 
     fun unpair() {
         client?.unpair()
-        DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+        DesktopSettings.update { it.copy(pairId = "") }
         _paired.value = false
         _pairCode.value = ""
         _pairCodeExpiresAt.value = 0L
@@ -196,13 +212,51 @@ class DesktopSyncManager {
         _peerDeviceId.value = ""
     }
 
-    /** Update the local playback snapshot and push it to the peer (if paired). */
-    fun updatePlayback(playback: PlaybackSnapshot?) {
+    /**
+     * Update the local playback snapshot and push it to the peer (if paired).
+     *
+     * @return true if the snapshot was actually sent this call; false when it
+     * was dropped (echo-suppression window, not connected, or not paired), so
+     * callers that care (the volume poll loops) can retry.
+     */
+    fun updatePlayback(playback: PlaybackSnapshot?): Boolean {
         lastPlayback = playback?.let { p ->
-            if (p.positionAtMs == 0L) p.copy(positionAtMs = serverNowMs()) else p
+            // Stamp the shared-clock timestamp only when the relay clock offset
+            // is known. If we stamp a raw local clock (offset still converging
+            // or an older relay without PONG echo), the peer extrapolates by the
+            // clock skew and seeks back/forth forever.
+            val stamp = p.positionAtMs == 0L && client?.hasServerOffset == true
+            var snap = if (stamp) p.copy(positionAtMs = serverNowMs()) else p
+            val fp = queueFingerprint(snap)
+            if (fp.isNotEmpty() && fp != lastQueueFingerprint) {
+                // The queue/index changed locally: stamp a fresh LWW timestamp
+                // (shared relay frame) so the peer can compare it with its own.
+                lastQueueFingerprint = fp
+                queueUpdatedAt = serverNowMs()
+            }
+            snap.copy(queueUpdatedAt = queueUpdatedAt)
         }
-        pushSnapshot()
+        // A resolving transition is new, asymmetric information (this device
+        // needs time to buffer while the peer may already be playing). Force it
+        // past the echo-suppression window so the peer learns to hold/start.
+        val resolving = lastPlayback?.isResolving
+        return pushSnapshot(force = resolving != lastPushedResolving)
     }
+
+    /** Last-write-wins timestamp of the local queue (relay frame); 0 = none. */
+    fun queueUpdatedAt(): Long = queueUpdatedAt
+
+    /** Adopts the remote queue's fingerprint + timestamp right after applying it. */
+    fun noteQueueApplied(snapshot: PlaybackSnapshot) {
+        val fp = queueFingerprint(snapshot)
+        if (fp.isNotEmpty()) {
+            lastQueueFingerprint = fp
+            if (snapshot.queueUpdatedAt > 0L) queueUpdatedAt = snapshot.queueUpdatedAt
+        }
+    }
+
+    private fun queueFingerprint(p: PlaybackSnapshot): String =
+        if (p.queue.isEmpty()) "" else p.queue.joinToString("|") { it.id } + "@" + p.queueIndex
 
     /** Update the local settings snapshot and push it to the peer (if paired). */
     fun updateSettings(settings: Map<String, String>) {
@@ -230,7 +284,9 @@ class DesktopSyncManager {
     fun effectivePosition(snapshot: PlaybackSnapshot): Long {
         val base = snapshot.positionMs.coerceAtLeast(0L)
         val at = snapshot.positionAtMs
-        if (at <= 0L || !snapshot.isPlaying) return base
+        // While the peer is resolving its stream the position is frozen, so
+        // extrapolating would race ahead of the peer's actual playback.
+        if (at <= 0L || !snapshot.isPlaying || snapshot.isResolving) return base
         val elapsed = (serverNowMs() - at).coerceAtLeast(0L)
         return (base + elapsed).coerceAtLeast(0L)
     }
@@ -255,11 +311,11 @@ class DesktopSyncManager {
         _connectionState.value = SyncConnectionState.DISCONNECTED
     }
 
-    private fun pushSnapshot() {
-        if (System.currentTimeMillis() < suppressPushUntil) return
-        val c = client ?: return
-        if (c.connectionState.value != SyncConnectionState.CONNECTED) return
-        if (!_paired.value) return
+    private fun pushSnapshot(force: Boolean = false): Boolean {
+        if (!force && System.currentTimeMillis() < suppressPushUntil) return false
+        val c = client ?: return false
+        if (c.connectionState.value != SyncConnectionState.CONNECTED) return false
+        if (!_paired.value) return false
         c.pushSnapshot(
             SyncSnapshot(
                 deviceId = c.deviceId,
@@ -270,6 +326,8 @@ class DesktopSyncManager {
                 library = lastLibrary,
             )
         )
+        lastPushedResolving = lastPlayback?.isResolving
+        return true
     }
 
     private fun handleEvent(event: SyncEvent) {
@@ -290,7 +348,7 @@ class DesktopSyncManager {
                 _pairCodeExpiresAt.value = 0L
                 _peerDeviceName.value = event.peerDeviceName
                 _peerDeviceId.value = event.peerDeviceId
-                DesktopSettings.save(DesktopSettings.load().copy(pairId = event.pairId))
+                DesktopSettings.update { it.copy(pairId = event.pairId) }
                 _status.value = "Paired with ${event.peerDeviceName}"
                 pushSnapshot()
             }
@@ -307,7 +365,7 @@ class DesktopSyncManager {
                 _status.value = "Snapshot received"
                 if (event.snapshot.settings.isNotEmpty()) {
                     _syncedSettings.value = event.snapshot.settings
-                    DesktopSettings.save(DesktopSettings.load().copy(settings = event.snapshot.settings))
+                    DesktopSettings.update { it.copy(settings = event.snapshot.settings) }
                     scope.launch { _incomingSettings.emit(event.snapshot.settings) }
                 }
                 event.snapshot.playback?.let { pb ->
@@ -315,7 +373,7 @@ class DesktopSyncManager {
                 }
                 event.snapshot.library?.let { lib ->
                     _syncedLibrary.value = lib
-                    DesktopSettings.save(DesktopSettings.load().copy(library = lib))
+                    DesktopSettings.update { it.copy(library = lib) }
                     scope.launch { _incomingLibrary.emit(lib) }
                 }
             }
@@ -330,7 +388,7 @@ class DesktopSyncManager {
                     _pairCodeExpiresAt.value = 0L
                     _peerDeviceName.value = ""
                     _peerDeviceId.value = ""
-                    DesktopSettings.save(DesktopSettings.load().copy(pairId = ""))
+                    DesktopSettings.update { it.copy(pairId = "") }
                 }
             }
         }

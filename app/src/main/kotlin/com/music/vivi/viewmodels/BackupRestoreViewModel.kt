@@ -6,11 +6,11 @@
 package com.music.vivi.viewmodels
 
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
-import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.db.InternalDatabase
 import com.music.vivi.db.MusicDatabase
@@ -21,7 +21,6 @@ import com.music.vivi.extensions.div
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.extensions.zipInputStream
 import com.music.vivi.extensions.zipOutputStream
-import com.music.vivi.playback.MusicService
 import com.music.vivi.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +29,10 @@ import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
@@ -45,6 +48,12 @@ data class CsvImportState(
 data class ConvertedSongLog(
     val title: String,
     val artists: String,
+)
+
+data class BackupInfo(
+    val fileName: String,
+    val dateText: String,
+    val versionText: String,
 )
 
 @HiltViewModel
@@ -91,6 +100,49 @@ class BackupRestoreViewModel @Inject constructor(
         restoreFromInputStream(context, inputStream)
     }
 
+    /**
+     * Reads display metadata (name, date, version) for a selected backup file
+     * without touching its contents, so the UI can ask for confirmation before
+     * applying it.
+     */
+    fun readBackupInfo(context: Context, uri: Uri): BackupInfo {
+        val unknown = context.getString(R.string.restore_unknown)
+        var fileName = ""
+        var lastModified = -1L
+        runCatching {
+            context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIdx = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIdx >= 0) fileName = cursor.getString(nameIdx) ?: ""
+                    val lmIdx = cursor.getColumnIndex(android.provider.MediaStore.MediaColumns.DATE_MODIFIED)
+                    if (lmIdx >= 0) lastModified = cursor.getLong(lmIdx) * 1000L
+                }
+            }
+        }
+        val parsedDate = parseBackupDate(fileName)
+        val fallbackDate = if (lastModified > 0) formatMillis(lastModified) else null
+        val dateText = parsedDate ?: fallbackDate ?: unknown
+        val versionText = parseBackupVersion(fileName) ?: unknown
+        return BackupInfo(fileName, dateText, versionText)
+    }
+
+    private fun parseBackupDate(name: String): String? {
+        val match = Regex("""(\d{8})[_\s]?(\d{6})""").find(name) ?: return null
+        val raw = match.groupValues[1] + match.groupValues[2]
+        return runCatching {
+            LocalDateTime.parse(raw, DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))
+                .format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a"))
+        }.getOrNull()
+    }
+
+    private fun parseBackupVersion(name: String): String? =
+        Regex("""\d+\.\d+\.\d+""").find(name)?.value
+
+    private fun formatMillis(millis: Long): String? = runCatching {
+        Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDateTime()
+            .format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a"))
+    }.getOrNull()
+
     fun restoreFromFile(context: Context, file: java.io.File) {
         val inputStream = try {
             java.io.FileInputStream(file)
@@ -106,56 +158,66 @@ class BackupRestoreViewModel @Inject constructor(
     }
 
     private fun restoreFromInputStream(context: Context, raw: java.io.InputStream) {
-        runCatching {
-            raw.use {
-                it.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
-                    var foundAny = false
-                    while (entry != null) {
-                        Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
-                        when (entry.name) {
-                            SETTINGS_FILENAME -> {
-                                Timber.tag("RESTORE").i("Restoring settings to datastore")
-                                foundAny = true
-                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream()
-                                    .use { outputStream ->
-                                        inputStream.copyTo(outputStream)
-                                    }
-                            }
-                            InternalDatabase.DB_NAME -> {
-                                Timber.tag("RESTORE").i("Restoring DB (entry = ${entry.name})")
-                                foundAny = true
-                                // capture path before closing DB to avoid reopening race
-                                val dbPath = database.openHelper.writableDatabase.path
-                                runBlocking(Dispatchers.IO) { database.checkpoint() }
-                                database.close()
-                                Timber.tag("RESTORE").i("Overwriting DB at path: $dbPath")
-                                FileOutputStream(dbPath).use { outputStream ->
-                                    inputStream.copyTo(outputStream)
+        val appContext = context.applicationContext
+        // Decompress the archive to a persistent staging directory on a
+        // background thread, then kill the process. App.onCreate() swaps the
+        // staged files in before Room/DataStore are opened on the next launch.
+        // This avoids closing the shared Room database while the app is still
+        // running, which crashed with in-flight queries ("database is closed").
+        Thread {
+            val pendingDir = java.io.File(appContext.filesDir, PENDING_RESTORE_DIR)
+            val staged = runCatching {
+                pendingDir.deleteRecursively()
+                pendingDir.mkdirs()
+                val tmpDb = java.io.File(pendingDir, InternalDatabase.DB_NAME)
+                val tmpSettings = java.io.File(pendingDir, SETTINGS_FILENAME)
+                var hasDb = false
+                var hasSettings = false
+
+                raw.use {
+                    it.zipInputStream().use { inputStream ->
+                        var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                        while (entry != null) {
+                            Timber.tag("RESTORE").i("Found zip entry: ${entry.name}")
+                            when (entry.name) {
+                                SETTINGS_FILENAME -> {
+                                    hasSettings = true
+                                    FileOutputStream(tmpSettings).use { output -> inputStream.copyTo(output) }
                                 }
-                                Timber.tag("RESTORE").i("DB overwrite complete")
+                                InternalDatabase.DB_NAME -> {
+                                    hasDb = true
+                                    FileOutputStream(tmpDb).use { output -> inputStream.copyTo(output) }
+                                }
+                                else -> Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
                             }
-                            else -> {
-                                Timber.tag("RESTORE").i("Skipping unexpected entry: ${entry.name}")
-                            }
+                            entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                         }
-                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                     }
-                    if (!foundAny) {
-                        Timber.tag("RESTORE").w("No expected entries found in archive")
-                    }
+                }
+                if (!hasDb && !hasSettings) error("No backup entries found in archive")
+                if (hasDb) {
+                    validateStagedDatabase(tmpDb)?.let { error("Corrupt backup: $it") }
                 }
             }
 
-            context.stopService(Intent(context, MusicService::class.java))
-            context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
-            context.startActivity(Intent(context, MainActivity::class.java))
-            exitProcess(0)
-        }.onFailure {
-            reportException(it)
-            Timber.tag("RESTORE").e(it, "Restore failed")
-            Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
-        }
+            Handler(Looper.getMainLooper()).post {
+                staged.onSuccess {
+                    // The staged files are applied by App.onCreate() before the
+                    // database/DataStore are opened on the next launch.
+                    exitProcess(0)
+                }.onFailure { e ->
+                    pendingDir.deleteRecursively()
+                    reportException(e)
+                    Timber.tag("RESTORE").e(e, "Restore failed")
+                    val msg = if (e.message?.startsWith("Corrupt backup:") == true) {
+                        appContext.getString(R.string.restore_failed_corrupt)
+                    } else {
+                        appContext.getString(R.string.restore_failed)
+                    }
+                    Toast.makeText(appContext, msg, Toast.LENGTH_LONG).show()
+                }
+            }
+        }.start()
     }
 
     fun previewCsvFile(context: Context, uri: Uri): CsvImportState {
@@ -329,7 +391,89 @@ class BackupRestoreViewModel @Inject constructor(
         return songs
     }
 
+    /**
+     * Verifies a staged `song.db` is a valid, non-corrupt SQLite database before
+     * it gets swapped in on the next launch (a corrupt file would otherwise crash
+     * Room with a `SQLiteDatabaseCorruptException`). Returns an error message,
+     * or null when the database is valid.
+     */
+    private fun validateStagedDatabase(file: java.io.File): String? {
+        // Fast check: the SQLite header magic ("SQLite format 3\0").
+        val headerOk = runCatching {
+            FileInputStream(file).use { input ->
+                val magic = ByteArray(16)
+                input.read(magic) == 16 &&
+                    String(magic, Charsets.US_ASCII) == "SQLite format 3\u0000"
+            }
+        }.getOrDefault(false)
+        if (!headerOk) return "not a valid SQLite database"
+
+        return runCatching {
+            val staged = android.database.sqlite.SQLiteDatabase.openDatabase(
+                file.absolutePath,
+                null,
+                android.database.sqlite.SQLiteDatabase.OPEN_READONLY,
+            )
+            staged.use { db ->
+                val integrity = db.rawQuery("PRAGMA integrity_check", null).use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getString(0) else "no result"
+                }
+                if (integrity != "ok") return@use "database integrity check failed: $integrity"
+
+                val version = db.rawQuery("PRAGMA user_version", null).use { cursor ->
+                    if (cursor.moveToFirst()) cursor.getLong(0) else -1L
+                }
+                if (version > InternalDatabase.DB_VERSION) {
+                    return@use "database schema version $version is newer than this app supports"
+                }
+                null
+            }
+        }.getOrElse { "could not validate the database: ${it.message ?: "unknown error"}" }
+    }
+
     companion object {
         const val SETTINGS_FILENAME = "settings.preferences_pb"
+        const val PENDING_RESTORE_DIR = "pending_restore"
+
+        /**
+         * Applies a staged backup (settings + database) before Room and
+         * DataStore are opened. Called from App.onCreate() on startup.
+         */
+        fun applyPendingRestoreIfNeeded(context: Context) {
+            val pendingDir = java.io.File(context.filesDir, PENDING_RESTORE_DIR)
+            val stagedSettings = java.io.File(pendingDir, SETTINGS_FILENAME)
+            val stagedDb = java.io.File(pendingDir, InternalDatabase.DB_NAME)
+            if (!stagedSettings.exists() && !stagedDb.exists()) {
+                pendingDir.deleteRecursively()
+                return
+            }
+            val result = runCatching {
+                if (stagedSettings.exists()) {
+                    val target = context.filesDir / "datastore" / SETTINGS_FILENAME
+                    target.parentFile?.mkdirs()
+                    stagedSettings.copyTo(target, overwrite = true)
+                }
+                if (stagedDb.exists()) {
+                    val dbFile = context.getDatabasePath(InternalDatabase.DB_NAME)
+                    dbFile.parentFile?.mkdirs()
+                    java.io.File(dbFile.absolutePath + "-wal").delete()
+                    java.io.File(dbFile.absolutePath + "-shm").delete()
+                    dbFile.delete()
+                    stagedDb.copyTo(dbFile, overwrite = true)
+                }
+                context.filesDir.resolve(PERSISTENT_QUEUE_FILE).delete()
+            }
+            result.onFailure {
+                // Keep the staged backup so the restore can be retried on the
+                // next launch instead of silently losing the user's data.
+                android.util.Log.e(
+                    "BackupRestore",
+                    "Failed to apply pending restore; keeping staged files for retry",
+                    it
+                )
+                return
+            }
+            pendingDir.deleteRecursively()
+        }
     }
 }

@@ -9,17 +9,26 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -30,16 +39,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.music.innertube.models.YouTubeLocale
 import java.io.File
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import kotlin.system.exitProcess
 
 /** YouTube host-language codes (mirrors the Android app's `LanguageCodeToName`). */
 val LanguageCodeToName: Map<String, String> = mapOf(
@@ -269,6 +277,95 @@ fun SettingsLanguageScreen(language: String, onBack: () -> Unit, onLanguageChang
 fun SettingsAppearanceScreen(
     language: String,
     onBack: () -> Unit,
+    selectedFont: AppFont,
+    densityScale: Float,
+    screenTransition: String,
+    onOpenTheme: () -> Unit,
+    onOpenFont: () -> Unit,
+    onOpenCanvas: () -> Unit,
+    onOpenDensity: () -> Unit,
+    onOpenTransitions: () -> Unit,
+    onOpenPlayerDesign: () -> Unit = {},
+) {
+    SettingsSubScreen(language, onBack) {
+        AppearanceSection(
+            language, selectedFont, densityScale, screenTransition,
+            onOpenTheme, onOpenFont, onOpenCanvas, onOpenDensity, onOpenTransitions, onOpenPlayerDesign,
+        )
+    }
+}
+
+@Composable
+fun SettingsWrappedScreen(
+    language: String,
+    onBack: () -> Unit,
+    wrappedStats: WrappedStats = WrappedStats(),
+    showWrappedOnHome: Boolean = false,
+    onShowWrappedOnHomeChange: (Boolean) -> Unit = {},
+) {
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "wrapped_title"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(vertical = 12.dp))
+        WrappedCard(wrappedStats = wrappedStats, language = language)
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Switch(checked = showWrappedOnHome, onCheckedChange = onShowWrappedOnHomeChange)
+            Column(Modifier.clickable { onShowWrappedOnHomeChange(!showWrappedOnHome) }) {
+                Text(Localization.get(language, "wrapped_show_on_home"))
+                Text(
+                    Localization.get(language, "wrapped_show_on_home_desc"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+        Text(
+            Localization.get(language, "wrapped_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        )
+    }
+}
+
+@Composable
+fun SettingsTransitionsScreen(
+    language: String,
+    onBack: () -> Unit,
+    screenTransition: String,
+    onScreenTransitionChange: (String) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        TransitionsScreen(language, screenTransition, onScreenTransitionChange)
+    }
+}
+
+@Composable
+fun SettingsDensityScreen(
+    language: String,
+    onBack: () -> Unit,
+    densityScale: Float,
+    onDensityScaleChange: (Float) -> Unit,
+    gridItemSize: Int,
+    onGridItemSizeChange: (Int) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        DensityScreen(
+            language = language,
+            densityScale = densityScale,
+            onDensityScaleChange = onDensityScaleChange,
+            gridItemSize = gridItemSize,
+            onGridItemSizeChange = onGridItemSizeChange,
+        )
+    }
+}
+
+@Composable
+fun SettingsThemeScreen(
+    language: String,
+    onBack: () -> Unit,
     themeMode: ThemeMode,
     accent: androidx.compose.ui.graphics.Color,
     onThemeModeChange: (ThemeMode) -> Unit,
@@ -277,7 +374,33 @@ fun SettingsAppearanceScreen(
     onPureBlackChange: (Boolean) -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
-        AppearanceSection(language, themeMode, accent, onThemeModeChange, onAccentChange, pureBlack, onPureBlackChange)
+        ThemeSection(language, themeMode, accent, onThemeModeChange, onAccentChange, pureBlack, onPureBlackChange)
+    }
+}
+
+@Composable
+fun SettingsFontScreen(
+    language: String,
+    onBack: () -> Unit,
+    selectedFont: AppFont,
+    onFontChange: (AppFont) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        FontSection(language, selectedFont, onFontChange)
+    }
+}
+
+@Composable
+fun SettingsCanvasScreen(
+    language: String,
+    onBack: () -> Unit,
+    canvasEnabled: Boolean,
+    onCanvasEnabledChange: (Boolean) -> Unit,
+    canvasSource: CanvasSource,
+    onCanvasSourceChange: (CanvasSource) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        CanvasSection(language, canvasEnabled, onCanvasEnabledChange, canvasSource, onCanvasSourceChange)
     }
 }
 
@@ -293,6 +416,13 @@ fun SettingsPlayerScreen(
     onToggleRememberShuffleRepeat: (Boolean) -> Unit,
     persistentQueue: Boolean,
     onTogglePersistentQueue: (Boolean) -> Unit,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+    sliderStyle: String,
+    onSliderStyleChange: (String) -> Unit,
+    onOpenPlayerDesign: () -> Unit,
+    streamCacheMinutes: Int = 10,
+    onStreamCacheMinutesChange: (Int) -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
         PlayerSection(
@@ -305,6 +435,41 @@ fun SettingsPlayerScreen(
             onToggleRememberShuffleRepeat,
             persistentQueue,
             onTogglePersistentQueue,
+            syncViviVolume,
+            onToggleSyncViviVolume,
+            sliderStyle,
+            onSliderStyleChange,
+            onOpenPlayerDesign,
+            streamCacheMinutes,
+            onStreamCacheMinutesChange,
+        )
+    }
+}
+
+@Composable
+fun SettingsPlayerDesignScreen(
+    language: String,
+    onBack: () -> Unit,
+    design: PlayerDesign,
+    onDesignChange: (PlayerDesign) -> Unit,
+    background: PlayerBackgroundStyle,
+    onBackgroundChange: (PlayerBackgroundStyle) -> Unit,
+    rotatingThumbnail: Boolean,
+    onRotatingThumbnailChange: (Boolean) -> Unit,
+    miniPlayerStyle: String,
+    onMiniPlayerStyleChange: (String) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        PlayerDesignScreen(
+            language = language,
+            design = design,
+            onDesignChange = onDesignChange,
+            background = background,
+            onBackgroundChange = onBackgroundChange,
+            rotatingThumbnail = rotatingThumbnail,
+            onRotatingThumbnailChange = onRotatingThumbnailChange,
+            miniPlayerStyle = miniPlayerStyle,
+            onMiniPlayerStyleChange = onMiniPlayerStyleChange,
         )
     }
 }
@@ -322,8 +487,16 @@ fun SettingsAccountScreen(
 }
 
 @Composable
-fun SettingsDevicesScreen(language: String, onBack: () -> Unit, syncManager: DesktopSyncManager) {
-    SettingsSubScreen(language, onBack) { DeviceSyncSection(language, syncManager) }
+fun SettingsDevicesScreen(
+    language: String,
+    onBack: () -> Unit,
+    syncManager: DesktopSyncManager,
+    syncViviVolume: Boolean,
+    onToggleSyncViviVolume: (Boolean) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        DeviceSyncSection(language, syncManager, syncViviVolume, onToggleSyncViviVolume)
+    }
 }
 
 @Composable
@@ -333,10 +506,13 @@ fun SettingsUpdatesScreen(
     updateStatus: UpdateStatus,
     includePreReleases: Boolean,
     updateIntervalHours: Int,
+    updateSource: String,
     onIntervalChange: (Int) -> Unit,
     onTogglePreReleases: (Boolean) -> Unit,
+    onUpdateSourceChange: (String) -> Unit,
     onCheckUpdates: () -> Unit,
     onOpenChangelog: () -> Unit,
+    onOpenCommits: () -> Unit,
 ) {
     // Check for updates every time the section is opened.
     LaunchedEffect(Unit) { onCheckUpdates() }
@@ -346,10 +522,13 @@ fun SettingsUpdatesScreen(
             updateStatus,
             includePreReleases,
             updateIntervalHours,
+            updateSource,
             onIntervalChange,
             onTogglePreReleases,
+            onUpdateSourceChange,
             onCheckUpdates,
             onOpenChangelog,
+            onOpenCommits,
         )
     }
 }
@@ -369,12 +548,50 @@ fun SettingsStorageScreen(language: String, onBack: () -> Unit) {
     SettingsSubScreen(language, onBack) { StorageSection(language) }
 }
 
-/** Backup & restore: export the desktop settings to a file and import them back. */
+/**
+ * Backup & restore: exports/imports a full backup (settings, playlists, account
+ * and library) via [BackupManager], plus the automatic-backup preferences and
+ * the list of stored automatic backups.
+ */
 @Composable
 fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
     val scope = rememberCoroutineScope()
     var busy by remember { mutableStateOf(false) }
     var showRestartDialog by remember { mutableStateOf(false) }
+
+    var autoBackupEnabled by remember { mutableStateOf(DesktopSettings.load().autoBackupEnabled) }
+    var autoBackupWeekly by remember { mutableStateOf(DesktopSettings.load().autoBackupWeekly) }
+    var autoBackupBeforeUpdate by remember { mutableStateOf(DesktopSettings.load().autoBackupBeforeUpdate) }
+
+    var backups by remember { mutableStateOf<List<File>>(emptyList()) }
+    var restoreTarget by remember { mutableStateOf<File?>(null) }
+    var deleteTarget by remember { mutableStateOf<File?>(null) }
+    var pendingRestore by remember { mutableStateOf<File?>(null) }
+    var pendingDelete by remember { mutableStateOf<File?>(null) }
+
+    fun reloadBackups() { backups = BackupManager.listAuto() }
+
+    LaunchedEffect(Unit) { reloadBackups() }
+
+    // Defer destructive actions until the dialog is dismissed, so the list
+    // reflows after the popup window is torn down (avoids the Compose
+    // "layouts are not part of the same hierarchy" crash).
+    LaunchedEffect(restoreTarget) {
+        val f = pendingRestore
+        if (restoreTarget == null && f != null) {
+            pendingRestore = null
+            withContext(Dispatchers.IO) { BackupManager.import(f) }
+            showRestartDialog = true
+        }
+    }
+    LaunchedEffect(deleteTarget) {
+        val f = pendingDelete
+        if (deleteTarget == null && f != null) {
+            pendingDelete = null
+            withContext(Dispatchers.IO) { BackupManager.deleteAuto(f) }
+            reloadBackups()
+        }
+    }
 
     SettingsSubScreen(language, onBack) {
         Text(
@@ -396,7 +613,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
                 busy = true
                 scope.launch {
                     val file = withContext(Dispatchers.IO) { chooseBackupFile(save = true) }
-                    val ok = file != null && withContext(Dispatchers.IO) { exportSettings(file) }
+                    val ok = file != null && withContext(Dispatchers.IO) { BackupManager.export(file) }
                     busy = false
                     DesktopSnackbar.show(Localization.get(language, if (ok) "backup_create_success" else "backup_create_failed"))
                 }
@@ -421,7 +638,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
                 busy = true
                 scope.launch {
                     val file = withContext(Dispatchers.IO) { chooseBackupFile(save = false) }
-                    val ok = file != null && withContext(Dispatchers.IO) { importSettings(file) }
+                    val ok = file != null && withContext(Dispatchers.IO) { BackupManager.import(file) }
                     busy = false
                     if (ok) showRestartDialog = true
                     else DesktopSnackbar.show(Localization.get(language, "restore_failed"))
@@ -438,6 +655,97 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 4.dp),
         )
+
+        HorizontalDivider(Modifier.padding(vertical = 20.dp))
+
+        // Automatic backups
+        Text(Localization.get(language, "auto_backup"), style = MaterialTheme.typography.titleMedium)
+        Text(
+            Localization.get(language, "automatic_backup_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+
+        BackupToggleRow(
+            language = language,
+            titleKey = "enable_automatic_backup",
+            checked = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupEnabled = it
+                DesktopSettings.update { s -> s.copy(autoBackupEnabled = it) }
+            },
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "weekly_backup",
+            descKey = "weekly_backup_desc",
+            checked = autoBackupWeekly,
+            enabled = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupWeekly = it
+                DesktopSettings.update { s -> s.copy(autoBackupWeekly = it) }
+            },
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "backup_before_update",
+            descKey = "backup_before_update_desc",
+            checked = autoBackupBeforeUpdate,
+            enabled = autoBackupEnabled,
+            onCheckedChange = {
+                autoBackupBeforeUpdate = it
+                DesktopSettings.update { s -> s.copy(autoBackupBeforeUpdate = it) }
+            },
+        )
+
+        // Stored automatic backups
+        Text(
+            Localization.get(language, "stored_backups"),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(top = 20.dp),
+        )
+        if (backups.isEmpty()) {
+            Text(
+                Localization.get(language, "backups_empty"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        } else {
+            backups.forEach { file ->
+                val (date, type) = parseAutoBackupName(file.name)
+                Row(
+                    Modifier.fillMaxWidth().padding(top = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(Modifier.weight(1f)) {
+                        Text(date, style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            Localization.get(language, type),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    TextButton(
+                        onClick = {
+                            pendingRestore = file
+                            restoreTarget = file
+                        },
+                    ) {
+                        Text(Localization.get(language, "action_restore"))
+                    }
+                    TextButton(
+                        onClick = {
+                            pendingDelete = file
+                            deleteTarget = file
+                        },
+                    ) {
+                        Text(Localization.get(language, "delete"), color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
     }
 
     if (showRestartDialog) {
@@ -446,7 +754,7 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             title = { Text(Localization.get(language, "restore_success_title")) },
             text = { Text(Localization.get(language, "restore_success")) },
             confirmButton = {
-                Button(onClick = { exitProcess(0) }) {
+                Button(onClick = { restartApplication() }) {
                     Text(Localization.get(language, "restart_now"))
                 }
             },
@@ -457,6 +765,89 @@ fun SettingsBackupScreen(language: String, onBack: () -> Unit) {
             },
         )
     }
+
+    restoreTarget?.let { file ->
+        AlertDialog(
+            onDismissRequest = { restoreTarget = null; pendingRestore = null },
+            title = { Text(Localization.get(language, "action_restore")) },
+            text = { Text(Localization.get(language, "restore_backup_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { restoreTarget = null }) {
+                    Text(Localization.get(language, "action_restore"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { restoreTarget = null; pendingRestore = null }) {
+                    Text(Localization.get(language, "later"))
+                }
+            },
+        )
+    }
+
+    deleteTarget?.let { file ->
+        AlertDialog(
+            onDismissRequest = { deleteTarget = null; pendingDelete = null },
+            title = { Text(Localization.get(language, "delete")) },
+            text = { Text(Localization.get(language, "delete_backup_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { deleteTarget = null }) {
+                    Text(Localization.get(language, "delete"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleteTarget = null; pendingDelete = null }) {
+                    Text(Localization.get(language, "later"))
+                }
+            },
+        )
+    }
+}
+
+/** A labelled switch row used by the backup screen (title + optional description). */
+@Composable
+private fun BackupToggleRow(
+    language: String,
+    titleKey: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+    descKey: String? = null,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 12.dp)
+            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        Column(Modifier.weight(1f)) {
+            Text(Localization.get(language, titleKey))
+            if (descKey != null) {
+                Text(
+                    Localization.get(language, descKey),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/** Extracts a display date + a type key (`backup_type_weekly`/`backup_type_before_update`) from a backup filename. */
+private fun parseAutoBackupName(name: String): Pair<String, String> {
+    val ts = Regex("""(\d{8}_\d{6})\.vivide\.backup$""").find(name)?.groupValues?.getOrNull(1)
+    val date = if (ts != null) {
+        runCatching {
+            LocalDateTime.parse(ts, DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        }.getOrDefault(ts)
+    } else {
+        name
+    }
+    val type = if (name.contains("before_update")) "backup_type_before_update" else "backup_type_weekly"
+    return date to type
 }
 
 /** Native save/open dialog for the backup file (blocks; call on Dispatchers.IO). */
@@ -466,37 +857,13 @@ private fun chooseBackupFile(save: Boolean): File? = runCatching {
         if (save) "Backup settings" else "Restore settings",
         if (save) java.awt.FileDialog.SAVE else java.awt.FileDialog.LOAD,
     )
-    if (save) dialog.file = "vivi-music-de-settings.backup"
+    if (save) dialog.file = BackupManager.defaultBackupFileName()
     dialog.isVisible = true
     val dir = dialog.directory
     val name = dialog.file
     dialog.dispose()
     if (dir != null && name != null) File(dir, name) else null
 }.getOrNull()
-
-/** Writes the current settings to [file] as JSON. */
-private fun exportSettings(file: File): Boolean = runCatching {
-    val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; prettyPrint = true }
-    file.writeText(json.encodeToString(DesktopSyncState.serializer(), DesktopSettings.load()))
-}.isSuccess
-
-/**
- * Imports settings from [file]. Preserves this machine's device id and its
- * first-launch date, and drops any stale pairing, so importing a backup from
- * another machine can't leave the app claiming it is still paired.
- */
-private fun importSettings(file: File): Boolean = runCatching {
-    val json = Json { ignoreUnknownKeys = true }
-    val imported = json.decodeFromString(DesktopSyncState.serializer(), file.readText())
-    val current = DesktopSettings.load()
-    DesktopSettings.save(
-        imported.copy(
-            deviceId = current.deviceId,
-            firstLaunchDate = current.firstLaunchDate,
-            pairId = "",
-        )
-    )
-}.isSuccess
 
 @Composable
 fun SettingsContentScreen(
@@ -520,9 +887,19 @@ fun SettingsLyricsScreen(
     onToggleSyncedLyrics: (Boolean) -> Unit,
     lyricsTextSize: Float,
     onLyricsTextSizeChange: (Float) -> Unit,
+    lyricsLineSpacing: Float = 1.35f,
+    onLyricsLineSpacingChange: (Float) -> Unit = {},
 ) {
     SettingsSubScreen(language, onBack) {
-        LyricsSection(language, syncedLyrics, onToggleSyncedLyrics, lyricsTextSize, onLyricsTextSizeChange)
+        LyricsSection(
+            language,
+            syncedLyrics,
+            onToggleSyncedLyrics,
+            lyricsTextSize,
+            onLyricsTextSizeChange,
+            lyricsLineSpacing,
+            onLyricsLineSpacingChange,
+        )
     }
 }
 
@@ -592,6 +969,8 @@ fun LyricsSection(
     onToggleSyncedLyrics: (Boolean) -> Unit,
     lyricsTextSize: Float,
     onLyricsTextSizeChange: (Float) -> Unit,
+    lyricsLineSpacing: Float = 1.35f,
+    onLyricsLineSpacingChange: (Float) -> Unit = {},
 ) {
     Text(Localization.get(language, "lyrics"), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(top = 12.dp))
     Row(
@@ -619,6 +998,18 @@ fun LyricsSection(
         value = lyricsTextSize,
         onValueChange = onLyricsTextSizeChange,
         valueRange = 12f..32f,
+        modifier = Modifier.fillMaxWidth(),
+    )
+
+    Text(
+        "${Localization.get(language, "lyrics_line_spacing")}: ${String.format("%.2f", lyricsLineSpacing)}",
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.padding(top = 16.dp),
+    )
+    androidx.compose.material3.Slider(
+        value = lyricsLineSpacing,
+        onValueChange = onLyricsLineSpacingChange,
+        valueRange = 1.0f..2.0f,
         modifier = Modifier.fillMaxWidth(),
     )
 }
@@ -710,6 +1101,7 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
         modifier = Modifier.padding(top = 8.dp),
     )
 
+    // Master switch, always visible (unlock is also available from About).
     Row(
         Modifier.fillMaxWidth().padding(top = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -722,11 +1114,10 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
     }
 
     if (enabled) {
-        Text(
-            Localization.get(language, "dev_tools_mode"),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp),
-        )
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Display: where the live stats are shown ----
+        DevSectionHeader(language, "dev_tools_mode")
         Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
@@ -746,11 +1137,10 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             }
         }
 
-        Text(
-            Localization.get(language, "dev_tools_profile"),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(top = 16.dp),
-        )
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Monitoring: how much detail is shown ----
+        DevSectionHeader(language, "dev_tools_profile")
         Row(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
                 onClick = { DeveloperOptions.setProfile(DevToolsProfile.FULL) },
@@ -762,14 +1152,17 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             ) { Text(Localization.get(language, "dev_tools_profile_performance")) }
         }
 
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Overlay behaviour ----
+        DevSectionHeader(language, "dev_tools_movable")
         Row(
-            Modifier.fillMaxWidth().padding(top = 16.dp),
+            Modifier.fillMaxWidth().padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Switch(checked = movable, onCheckedChange = { DeveloperOptions.setOverlayMovable(it) })
             Column(Modifier.clickable { DeveloperOptions.setOverlayMovable(!movable) }) {
-                Text(Localization.get(language, "dev_tools_movable"))
                 Text(
                     Localization.get(language, "dev_tools_movable_desc"),
                     style = MaterialTheme.typography.bodySmall,
@@ -778,14 +1171,17 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
             }
         }
 
+        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+        // ---- Title bar ----
+        DevSectionHeader(language, "dev_tools_title_bar")
         Row(
-            Modifier.fillMaxWidth().padding(top = 16.dp),
+            Modifier.fillMaxWidth().padding(top = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Switch(checked = titleBar, onCheckedChange = { DeveloperOptions.setShowInTitleBar(it) })
             Column(Modifier.clickable { DeveloperOptions.setShowInTitleBar(!titleBar) }) {
-                Text(Localization.get(language, "dev_tools_title_bar"))
                 Text(
                     Localization.get(language, "dev_tools_title_bar_desc"),
                     style = MaterialTheme.typography.bodySmall,
@@ -796,6 +1192,16 @@ fun DeveloperSection(language: String, syncManager: DesktopSyncManager) {
     }
 }
 
+/** Section heading inside the (reorganized) developer options screen. */
+@Composable
+private fun DevSectionHeader(language: String, key: String) {
+    Text(
+        Localization.get(language, key),
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+    )
+}
+
 /** Notification preferences: where update notifications are shown. */
 @Composable
 fun SettingsNotificationsScreen(
@@ -803,6 +1209,12 @@ fun SettingsNotificationsScreen(
     onBack: () -> Unit,
     notificationMode: String,
     onNotificationModeChange: (String) -> Unit,
+    notificationDurationSeconds: Int,
+    onNotificationDurationChange: (Int) -> Unit,
+    saveHistory: Boolean,
+    onSaveHistoryChange: (Boolean) -> Unit,
+    onOpenHistory: () -> Unit,
+    onTestNotification: () -> Unit,
 ) {
     SettingsSubScreen(language, onBack) {
         Text(Localization.get(language, "notifications"), style = MaterialTheme.typography.titleLarge)
@@ -823,16 +1235,189 @@ fun SettingsNotificationsScreen(
         NotificationModeOption(
             language = language,
             title = Localization.get(language, "notification_native"),
+            tag = Localization.get(language, "experimental"),
             selected = notificationMode == "native",
             onClick = { onNotificationModeChange("native") },
         )
+
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = onTestNotification,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(Localization.get(language, "test_notification"))
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Text(
+            Localization.get(language, "notification_duration"),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            Localization.get(language, "notification_duration_desc"),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 2.dp, bottom = 4.dp),
+        )
+        NotificationDurationOption(
+            seconds = 3,
+            selected = notificationDurationSeconds == 3,
+            onClick = { onNotificationDurationChange(3) },
+        )
+        NotificationDurationOption(
+            seconds = 5,
+            selected = notificationDurationSeconds == 5,
+            onClick = { onNotificationDurationChange(5) },
+        )
+        NotificationDurationOption(
+            seconds = 10,
+            selected = notificationDurationSeconds == 10,
+            onClick = { onNotificationDurationChange(10) },
+        )
+        NotificationDurationOption(
+            seconds = 15,
+            selected = notificationDurationSeconds == 15,
+            onClick = { onNotificationDurationChange(15) },
+        )
+        NotificationDurationOption(
+            seconds = 30,
+            selected = notificationDurationSeconds == 30,
+            onClick = { onNotificationDurationChange(30) },
+        )
+
+        Spacer(Modifier.height(16.dp))
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable { onSaveHistoryChange(!saveHistory) }
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                Localization.get(language, "save_notification_history"),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(checked = saveHistory, onCheckedChange = onSaveHistoryChange)
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenHistory)
+                .padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                Localization.get(language, "notification_history"),
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
+
+@Composable
+private fun NotificationDurationOption(seconds: Int, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text("${seconds}s", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (selected) {
+            Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+        }
+    }
+}
+
+/** Scrollable list of recent notifications (in-app and native). */
+@Composable
+fun NotificationHistoryScreen(
+    language: String,
+    onBack: () -> Unit,
+) {
+    var history by remember { mutableStateOf(NotificationHistory.list()) }
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "notification_history"), style = MaterialTheme.typography.titleLarge)
+        Text(
+            Localization.get(language, "notification_history_desc"),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            OutlinedButton(onClick = {
+                NotificationHistory.clear()
+                history = emptyList()
+            }) {
+                Text(Localization.get(language, "clear_history"))
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        if (history.isEmpty()) {
+            Text(
+                Localization.get(language, "history_empty"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = 24.dp),
+            )
+        } else {
+            history.forEach { record -> NotificationHistoryItem(language, record) }
+        }
+    }
+}
+
+@Composable
+private fun NotificationHistoryItem(language: String, record: NotificationRecord) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                record.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                formatNotificationTime(record.timestamp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Text(
+            record.message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Surface(
+            shape = RoundedCornerShape(6.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer,
+            modifier = Modifier.padding(top = 4.dp),
+        ) {
+            Text(
+                if (record.mode == "native") Localization.get(language, "notification_native") else Localization.get(language, "notification_main_window"),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+    }
+}
+
+private fun formatNotificationTime(epochMillis: Long): String = runCatching {
+    val dt = java.time.Instant.ofEpochMilli(epochMillis).atZone(java.time.ZoneId.systemDefault())
+    java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(dt)
+}.getOrDefault("")
 
 @Composable
 private fun NotificationModeOption(
     language: String,
     title: String,
+    tag: String? = null,
     selected: Boolean,
     onClick: () -> Unit,
 ) {
@@ -841,8 +1426,181 @@ private fun NotificationModeOption(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        if (tag != null) {
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Text(
+                    tag,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+        }
         if (selected) {
             Text("✓", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
         }
+    }
+}
+
+/** Privacy sub-screen: listen/search history toggles (port of the mobile PrivacySettings screen). */
+@Composable
+fun SettingsPrivacyScreen(
+    language: String,
+    onBack: () -> Unit,
+    pauseListenHistory: Boolean,
+    onPauseListenHistoryChange: (Boolean) -> Unit,
+    pauseSearchHistory: Boolean,
+    onPauseSearchHistoryChange: (Boolean) -> Unit,
+    onClearSearchHistory: () -> Unit,
+) {
+    var showClearDialog by remember { mutableStateOf(false) }
+
+    if (showClearDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearDialog = false },
+            title = { Text(Localization.get(language, "clear_search_history")) },
+            text = { Text(Localization.get(language, "clear_search_history_confirm")) },
+            confirmButton = {
+                TextButton(onClick = { showClearDialog = false; onClearSearchHistory() }) {
+                    Text(Localization.get(language, "ok"))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearDialog = false }) {
+                    Text(Localization.get(language, "cancel"))
+                }
+            },
+        )
+    }
+
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "privacy"), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            Localization.get(language, "listen_history"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "pause_listen_history",
+            descKey = "pause_listen_history_desc",
+            checked = pauseListenHistory,
+            onCheckedChange = onPauseListenHistoryChange,
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            Localization.get(language, "search_history"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(Modifier.height(8.dp))
+        BackupToggleRow(
+            language = language,
+            titleKey = "pause_search_history",
+            descKey = "pause_search_history_desc",
+            checked = pauseSearchHistory,
+            onCheckedChange = onPauseSearchHistoryChange,
+        )
+        Spacer(Modifier.height(12.dp))
+        OutlinedButton(onClick = { showClearDialog = true }) {
+            Text(Localization.get(language, "clear_search_history"))
+        }
+        Spacer(Modifier.height(16.dp))
+    }
+}
+
+/** Integrations sub-screen: Discord Rich Presence + Last.fm scrobbling. */
+@Composable
+fun SettingsIntegrationsScreen(
+    language: String,
+    onBack: () -> Unit,
+    discordEnabled: Boolean,
+    onDiscordEnabledChange: (Boolean) -> Unit,
+    discordClientId: String,
+    onDiscordClientIdChange: (String) -> Unit,
+    lastfmEnabled: Boolean,
+    onLastfmEnabledChange: (Boolean) -> Unit,
+    lastfmSession: String,
+    onLastfmSessionChange: (String) -> Unit,
+    lastfmNowPlaying: Boolean,
+    onLastfmNowPlayingChange: (Boolean) -> Unit,
+) {
+    SettingsSubScreen(language, onBack) {
+        Text(Localization.get(language, "integrations"), style = MaterialTheme.typography.titleLarge)
+
+        Text(
+            Localization.get(language, "discord_presence"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 16.dp),
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "discord_presence_enable",
+            descKey = "discord_presence_desc",
+            checked = discordEnabled,
+            onCheckedChange = onDiscordEnabledChange,
+        )
+        OutlinedTextField(
+            value = discordClientId,
+            onValueChange = onDiscordClientIdChange,
+            label = { Text(Localization.get(language, "discord_client_id")) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+        if (discordEnabled && discordClientId.isBlank()) {
+            Text(
+                Localization.get(language, "discord_client_id_hint"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            Localization.get(language, "lastfm"),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        BackupToggleRow(
+            language = language,
+            titleKey = "lastfm_enable",
+            descKey = "lastfm_enable_desc",
+            checked = lastfmEnabled,
+            onCheckedChange = onLastfmEnabledChange,
+        )
+        if (lastfmEnabled) {
+            OutlinedTextField(
+                value = lastfmSession,
+                onValueChange = onLastfmSessionChange,
+                label = { Text(Localization.get(language, "lastfm_session")) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            )
+            Text(
+                Localization.get(language, "lastfm_session_hint"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            BackupToggleRow(
+                language = language,
+                titleKey = "lastfm_now_playing",
+                descKey = "lastfm_now_playing_desc",
+                checked = lastfmNowPlaying,
+                onCheckedChange = onLastfmNowPlayingChange,
+            )
+        }
+        Spacer(Modifier.height(16.dp))
     }
 }

@@ -40,6 +40,10 @@ AppUpdatesURL=https://github.com/PiBOH/vivi-music/releases
 DefaultDirName={autopf}\VIVIMusic
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
+; Always show the "Select Destination Location" page so the user can see (and
+; change) the folder the app will install into — matching the MSI installer,
+; which shows the destination path.
+DisableDirPage=no
 OutputDir={#OutputDir}
 OutputBaseFilename=VIVIMusic-{#AppVersion}-setup
 SetupIconFile={#IconFile}
@@ -67,7 +71,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "startmenu"; Description: "Create a Start Menu shortcut"; GroupDescription: "Additional shortcuts:"; Flags: checkedonce
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional shortcuts:"; Flags: unchecked
-Name: "launchafterinstall"; Description: "Start {#AppName} when setup is complete"; GroupDescription: "Installation options:"; Flags: unchecked
 
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -77,7 +80,7 @@ Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: startmenu
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExe}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent; Tasks: launchafterinstall
+Filename: "{app}\{#AppExe}"; Description: "Start {#AppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
 // Uninstall any previously-installed jpackage MSI of this app. The MSI and this

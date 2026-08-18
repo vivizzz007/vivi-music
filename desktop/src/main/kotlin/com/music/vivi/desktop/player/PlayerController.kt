@@ -37,6 +37,8 @@ data class PlayerState(
     val errorDetail: String? = null,
     /** Current load phase (resolving / downloading / none). */
     val loadPhase: LoadPhase = LoadPhase.NONE,
+    /** True while the stream is being resolved/downloaded and audio hasn't started. */
+    val isResolving: Boolean = false,
 ) {
     val current: NowPlaying? get() = queue.getOrNull(index)
     val isLoading: Boolean get() = loadPhase != LoadPhase.NONE
@@ -80,6 +82,14 @@ class PlayerController {
 
     /** Monotonic token identifying the active play session. */
     private var playToken = 0
+
+    /**
+     * videoId currently loaded (or being resolved/loaded) in the [AudioPlayer].
+     * A track restored from the persistent queue has no stream loaded, so
+     * pressing play must trigger a real load instead of a no-op `resume()`.
+     */
+    @Volatile
+    private var loadedVideoId: String? = null
 
     /** Back-navigation history used by "previous" in shuffle mode. */
     private val previousStack = ArrayDeque<Int>()
@@ -153,6 +163,7 @@ class PlayerController {
             newQueue.isEmpty() -> {
                 playToken++
                 player.stop()
+                loadedVideoId = null
                 _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
             }
             index < s.index -> _state.update { it.copy(queue = newQueue, index = it.index - 1) }
@@ -165,6 +176,7 @@ class PlayerController {
         val s = _state.value
         playToken++
         player.stop()
+        loadedVideoId = null
         _state.value = PlayerState(volume = s.volume, isShuffle = s.isShuffle, repeatMode = s.repeatMode)
     }
 
@@ -187,6 +199,19 @@ class PlayerController {
             player.pause()
             _state.update { it.copy(isPlaying = false) }
         } else {
+            startCurrent(s)
+        }
+    }
+
+    /**
+     * Starts the current track. If its stream isn't loaded yet (e.g. it was
+     * restored from the persistent queue, or a previous load failed), trigger a
+     * real resolution + load instead of a no-op `resume()`.
+     */
+    private fun startCurrent(s: PlayerState) {
+        if (loadedVideoId != s.current?.videoId) {
+            playAt(s.queue, s.index, startAtMs = s.positionMs, startPaused = false)
+        } else {
             player.resume()
             _state.update { it.copy(isPlaying = true) }
         }
@@ -195,6 +220,7 @@ class PlayerController {
     fun stop() {
         playToken++
         player.stop()
+        loadedVideoId = null
         _state.update { it.copy(isPlaying = false, positionMs = 0L) }
     }
 
@@ -222,6 +248,24 @@ class PlayerController {
         setPlaying(isPlaying)
     }
 
+    /**
+     * Applies a periodic drift-tic correction: matches play/pause, and only
+     * seeks FORWARD (catch up) when the remote position is ahead by more than
+     * [toleranceMs]. It never seeks backward, so a device that is ahead (the
+     * leader) isn't dragged back by the follower's slightly-stale position.
+     */
+    fun seekRemoteCatchUp(positionMs: Long, isPlaying: Boolean, toleranceMs: Long) {
+        val s = _state.value
+        if (s.current == null) {
+            setPlaying(isPlaying)
+            return
+        }
+        if (isPlaying && positionMs - s.positionMs > toleranceMs) {
+            seekInternal(positionMs)
+        }
+        setPlaying(isPlaying)
+    }
+
     private fun seekInternal(ms: Long): Long? {
         val s = _state.value
         if (s.current == null) return null
@@ -235,8 +279,7 @@ class PlayerController {
         val s = _state.value
         if (s.isPlaying == playing) return
         if (playing) {
-            player.resume()
-            _state.update { it.copy(isPlaying = true) }
+            startCurrent(s)
         } else {
             player.pause()
             _state.update { it.copy(isPlaying = false) }
@@ -267,17 +310,39 @@ class PlayerController {
         persistShuffleRepeat()
     }
 
+    /** Sets the shuffle state (used when applying a remote device-sync snapshot). */
+    fun setShuffle(enabled: Boolean) {
+        val s = _state.value
+        if (s.isShuffle == enabled) return
+        if (!enabled) previousStack.clear()
+        _state.update { it.copy(isShuffle = enabled) }
+        persistShuffleRepeat()
+    }
+
+    /** Sets the repeat mode (used when applying a remote device-sync snapshot). */
+    fun setRepeatMode(mode: RepeatMode) {
+        val s = _state.value
+        if (s.repeatMode == mode) return
+        _state.update { it.copy(repeatMode = mode) }
+        persistShuffleRepeat()
+    }
+
     /** Restores a saved queue without starting playback (persistent queue). */
     fun restoreQueue(tracks: List<NowPlaying>, index: Int) {
         if (tracks.isEmpty()) return
         playToken++
         player.stop()
+        loadedVideoId = null
+        val idx = index.coerceIn(0, tracks.lastIndex)
         _state.update {
             it.copy(
                 queue = tracks,
-                index = index.coerceIn(0, tracks.lastIndex),
+                index = idx,
                 isPlaying = false,
                 positionMs = 0L,
+                // Report the saved duration so the seek slider is usable
+                // immediately, even before the stream is resolved.
+                durationMs = tracks[idx].durationMs,
             )
         }
     }
@@ -289,6 +354,11 @@ class PlayerController {
     fun applyRemotePlayback(tracks: List<NowPlaying>, index: Int, positionMs: Long, isPlaying: Boolean) {
         if (tracks.isEmpty()) return
         val idx = index.coerceIn(0, tracks.lastIndex)
+        // Start right away when the peer is playing: we are the slower device
+        // and the peer will hold for us while WE resolve (see the same-track
+        // `isResolving` handler). Holding here on the peer's transient
+        // resolving state caused a deadlock where both devices paused and
+        // neither ever started.
         playAt(tracks, idx, startAtMs = positionMs.coerceAtLeast(0L), startPaused = !isPlaying)
     }
 
@@ -308,6 +378,7 @@ class PlayerController {
     ) {
         val track = tracks[index]
         val token = ++playToken
+        loadedVideoId = track.videoId
         scope.launch {
             player.stop()
             _state.value = PlayerState(
@@ -315,10 +386,15 @@ class PlayerController {
                 index = index,
                 isPlaying = !startPaused,
                 positionMs = startAtMs,
+                // Report the known duration immediately so the seek slider has
+                // a correct range before the stream resolves (otherwise it shows
+                // as disabled / stuck at the end while positionMs > 0).
+                durationMs = track.durationMs,
                 volume = _state.value.volume,
                 isShuffle = _state.value.isShuffle,
                 repeatMode = _state.value.repeatMode,
                 loadPhase = LoadPhase.RESOLVING,
+                isResolving = true,
             )
 
             val streams = StreamResolver.resolveAacStream(
@@ -332,7 +408,8 @@ class PlayerController {
                     GuestSession.rotate()
                     playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                 } else {
-                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE) }
+                    loadedVideoId = null
+                    _state.update { it.copy(isPlaying = false, errorKey = "stream_error", errorDetail = null, loadPhase = LoadPhase.NONE, isResolving = false) }
                 }
                 return@launch
             }
@@ -352,9 +429,10 @@ class PlayerController {
                             playAtAttempt(tracks, index, startAtMs, startPaused, attempt + 1)
                         }
                     } else {
+                        loadedVideoId = null
                         _state.update { s ->
                             if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                                s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE)
+                                s.copy(isPlaying = false, errorDetail = msg, loadPhase = LoadPhase.NONE, isResolving = false)
                             } else s
                         }
                     }
@@ -362,7 +440,8 @@ class PlayerController {
                 onPosition = { pos ->
                     _state.update { s ->
                         if (s.index == index && s.queue.getOrNull(index)?.videoId == track.videoId) {
-                            s.copy(positionMs = pos)
+                            // First position report means audio is actually flowing.
+                            s.copy(positionMs = pos, isResolving = false)
                         } else s
                     }
                 },
@@ -401,10 +480,14 @@ class PlayerController {
                     previousStack.addLast(s.index)
                     playAt(s.queue, nextIndex)
                 } else {
+                    loadedVideoId = null
                     _state.update { it.copy(isPlaying = false) }
                 }
             }
-            else -> _state.update { it.copy(isPlaying = false) }
+            else -> {
+                loadedVideoId = null
+                _state.update { it.copy(isPlaying = false) }
+            }
         }
     }
 
@@ -418,12 +501,12 @@ class PlayerController {
     private fun persistShuffleRepeat() {
         val s = DesktopSettings.load()
         if (s.rememberShuffleRepeat) {
-            DesktopSettings.save(
-                s.copy(
+            DesktopSettings.update {
+                it.copy(
                     isShuffle = _state.value.isShuffle,
                     repeatModeKey = _state.value.repeatMode.name,
                 )
-            )
+            }
         }
     }
 

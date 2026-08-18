@@ -69,9 +69,9 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          # version.txt: line 1 = mobile version, line 2 = DE version, line 3 = channel.
+          # version.txt: line 1 = mobile version, line 4 = DE version, line 6 = DE channel.
           MOBILE_VERSION="$(sed -n '1p' version.txt | tr -d '\r\n' | xargs)"
-          DE_VERSION="$(sed -n '2p' version.txt | tr -d '\r\n' | xargs)"
+          DE_VERSION="$(sed -n '4p' version.txt | tr -d '\r\n' | xargs)"
           if [[ "$EVENT_NAME" == "workflow_dispatch" && -n "$VERSION_INPUT" ]]; then
             FULL_VERSION="$VERSION_INPUT"
           else
@@ -80,7 +80,7 @@ jobs:
           FULL_VERSION="${FULL_VERSION#v}"
           FULL_VERSION="${FULL_VERSION// /-}"
           # Channel: "stable" (or empty) => stable release, anything else => pre-release.
-          CHANNEL="$(sed -n '3p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
+          CHANNEL="$(sed -n '6p' version.txt | tr -d '\r\n' | xargs | tr '[:upper:]' '[:lower:]')"
           if [[ "$CHANNEL" == "stable" || -z "$CHANNEL" ]]; then
             PRERELEASE=false
             CHANNEL="stable"

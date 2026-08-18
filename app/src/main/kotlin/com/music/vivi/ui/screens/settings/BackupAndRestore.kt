@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -49,6 +52,7 @@ import com.music.vivi.ui.menu.CsvColumnMappingDialog
 import com.music.vivi.ui.menu.CsvImportProgressDialog
 import com.music.vivi.ui.menu.LoadingScreen
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.BackupInfo
 import com.music.vivi.viewmodels.BackupRestoreViewModel
 import com.music.vivi.viewmodels.ConvertedSongLog
 import com.music.vivi.viewmodels.CsvImportState
@@ -86,6 +90,8 @@ fun BackupAndRestore(
     var csvImportProgress by rememberSaveable { mutableIntStateOf(0) }
     val csvRecentLogs = remember { mutableStateListOf<ConvertedSongLog>() }
     var pendingCsvUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pendingRestoreUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var pendingRestoreInfo by remember { mutableStateOf<BackupInfo?>(null) }
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -99,7 +105,8 @@ fun BackupAndRestore(
     val restoreLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
             if (uri != null) {
-                viewModel.restore(context, uri)
+                pendingRestoreInfo = viewModel.readBackupInfo(context, uri)
+                pendingRestoreUri = uri
             }
         }
     val importPlaylistFromCsv =
@@ -154,7 +161,7 @@ fun BackupAndRestore(
                         backupLauncher.launch(
                             "${context.getString(R.string.app_name)}_${
                                 LocalDateTime.now().format(formatter)
-                            }.backup"
+                            }.vividroid.backup"
                         )
                     },
                     isExpressive = true
@@ -163,7 +170,8 @@ fun BackupAndRestore(
                     title = { Text(stringResource(R.string.action_restore)) },
                     icon = painterResource(R.drawable.restore),
                     onClick = {
-                        restoreLauncher.launch(arrayOf("application/octet-stream"))
+                        // Use */* so old .backup files (no registered MIME) always show up.
+                        restoreLauncher.launch(arrayOf("*/*"))
                     },
                     isExpressive = true
                 ),
@@ -242,6 +250,56 @@ fun BackupAndRestore(
         isVisible = isProgressStarted,
         value = progressPercentage,
     )
+
+    // Restore confirmation dialog (shows the backup's date + version before applying)
+    pendingRestoreUri?.let { uri ->
+        AlertDialog(
+            onDismissRequest = {
+                pendingRestoreUri = null
+                pendingRestoreInfo = null
+            },
+            title = { Text(stringResource(R.string.action_restore)) },
+            text = {
+                Column {
+                    pendingRestoreInfo?.let { info ->
+                        if (info.fileName.isNotBlank()) {
+                            Text(
+                                info.fileName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        Text(stringResource(R.string.restore_backup_date, info.dateText))
+                        Text(stringResource(R.string.restore_backup_version, info.versionText))
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    Text(stringResource(R.string.restore_backup_confirm))
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.restore(context, uri)
+                        pendingRestoreUri = null
+                        pendingRestoreInfo = null
+                    }
+                ) {
+                    Text(stringResource(R.string.action_restore))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        pendingRestoreUri = null
+                        pendingRestoreInfo = null
+                    }
+                ) {
+                    Text(stringResource(id = android.R.string.cancel))
+                }
+            }
+        )
+    }
 
     // CSV column mapping dialog
     csvImportState?.let { state ->

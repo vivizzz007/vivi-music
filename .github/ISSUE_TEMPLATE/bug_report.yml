@@ -1,13 +1,15 @@
-name: 🐛 Bug Report
-description: Something is broken? Help us fix it!
-title: "[Bug]: "
-labels: ["bug", "triage"]
+name: 🐛 Bug Report (Mobile)
+description: Something is broken in the Android app? Help us fix it!
+title: "[Bug][APK]: "
+labels: ["bug", "triage", "mobile"]
 body:
   - type: markdown
     attributes:
       value: |
-        ### 🛠️ Bug Report
+        ### 🛠️ Bug Report — Vivi Music (Android)
         Thank you for reporting! Please fill out the form below.
+        > This template is for the **mobile / Android** app.
+        > For the desktop app (Windows / Linux / macOS), use the **🐛 Bug Report (Vivi Music DE)** template.
 
   - type: checkboxes
     id: checklist

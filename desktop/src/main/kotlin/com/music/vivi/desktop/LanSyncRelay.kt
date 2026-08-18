@@ -20,8 +20,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.net.DatagramSocket
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.util.Collections
@@ -62,6 +65,9 @@ class LanSyncRelay {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
+    /** Serializes start/stop so a rapid "Stop → Start" can't interleave and corrupt state. */
+    private val startStopMutex = Mutex()
+
     private var server: EmbeddedServer<*, *>? = null
     private var jmdns: JmDNS? = null
     private var serviceInfo: ServiceInfo? = null
@@ -80,8 +86,8 @@ class LanSyncRelay {
     fun isRunning(): Boolean = server != null
 
     /** Starts the relay on [requestedPort] (0 = ephemeral). Returns the bound port. */
-    suspend fun start(requestedPort: Int = 0): Int {
-        server?.let { return port }
+    suspend fun start(requestedPort: Int = 0): Int = startStopMutex.withLock {
+        server?.let { return@withLock port }
         val created = embeddedServer(Netty, port = requestedPort, host = "0.0.0.0") {
             install(WebSockets)
             routing {
@@ -90,13 +96,22 @@ class LanSyncRelay {
         }
         created.start(wait = false)
         server = created
-        port = created.engine.resolvedConnectors().first().port
-        startMdns(port)
-        return port
+        // `resolvedConnectors()` can briefly be empty right after a non-blocking
+        // start; treat that (or a failed bind) as an error instead of letting
+        // `.first()` throw NoSuchElementException and crash the app.
+        val bound = runCatching { created.engine.resolvedConnectors().first().port }.getOrNull() ?: 0
+        if (bound <= 0) {
+            runCatching { created.stop(100, 100) }
+            server = null
+            error("LAN relay failed to bind a port")
+        }
+        port = bound
+        startMdns(bound)
+        bound
     }
 
-    suspend fun stop() {
-        val s = server ?: return
+    suspend fun stop() = startStopMutex.withLock {
+        val s = server ?: return@withLock
         // Tell any connected peers they are no longer paired before the socket
         // closes, so the phone clears its local pairing state.
         broadcastUnpaired()
@@ -341,12 +356,39 @@ class LanSyncRelay {
     }
 }
 
-/** Best-effort site-local IPv4 address of this machine (shown to the phone). */
-fun lanIpAddress(): String = runCatching {
-    Collections.list(java.net.NetworkInterface.getNetworkInterfaces())
-        .filter { it.isUp && !it.isLoopback }
-        .flatMap { Collections.list(it.inetAddresses) }
-        .filterIsInstance<Inet4Address>()
-        .firstOrNull { it.isSiteLocalAddress }
-        ?.hostAddress
-}.getOrNull() ?: "127.0.0.1"
+/**
+ * Best-effort site-local IPv4 address of this machine that the phone can reach
+ * (shown to the phone / used by mDNS).
+ *
+ * When the computer is connected to the phone's hotspot it is often multi-homed
+ * (Wi-Fi + Ethernet + virtual adapters like VMware/Hyper-V). Picking "the first
+ * site-local address" can therefore return a virtual adapter the phone can't
+ * dial. We instead resolve the source address of the route to the outside
+ * world: a UDP `connect` only resolves the route (no packets are sent), so it
+ * returns the interface actually facing the hotspot/router even while offline.
+ */
+fun lanIpAddress(): String {
+    runCatching {
+        DatagramSocket().use { socket ->
+            socket.connect(InetAddress.getByName("8.8.8.8"), 9)
+            val local = socket.localAddress
+            if (local is Inet4Address && !local.isLoopbackAddress && local.isSiteLocalAddress) {
+                return local.hostAddress
+            }
+        }
+    }
+    // Fallback: prefer wireless/wlan interfaces, then any site-local IPv4.
+    return runCatching {
+        val interfaces = Collections.list(java.net.NetworkInterface.getNetworkInterfaces())
+            .filter { it.isUp && !it.isLoopback }
+        val wireless = interfaces.filter {
+            val n = it.name.lowercase()
+            n.contains("wlan") || n.contains("wi-fi") || n.contains("wireless") ||
+                n.startsWith("wl") || n == "en0" || n == "en1"
+        }
+        (wireless + interfaces).flatMap { Collections.list(it.inetAddresses) }
+            .filterIsInstance<Inet4Address>()
+            .firstOrNull { it.isSiteLocalAddress }
+            ?.hostAddress
+    }.getOrNull() ?: "127.0.0.1"
+}
