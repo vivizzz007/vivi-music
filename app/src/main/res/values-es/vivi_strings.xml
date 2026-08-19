@@ -639,4 +639,19 @@
     <string name="discord_activity_name_description">Nombre personalizado para la actividad (dejar vacío para el valor predeterminado)</string>
     <string name="discord_advanced_mode">Modo avanzado</string>
     <string name="discord_advanced_mode_description">Mostrar opciones de personalización adicionales para Rich Presence</string>
+    <string name="devices">Dispositivos</string>
+    <string name="device_sync">Sincronización de dispositivos</string>
+    <string name="device_sync_desc">Vincula este teléfono con VIVI Music DE en tu ordenador para sincronizar ajustes, cola y biblioteca.</string>
+    <string name="device_sync_server">Servidor de retransmisión</string>
+    <string name="device_sync_discover">Buscar escritorio</string>
+    <string name="device_sync_scan_qr">Escanear código QR</string>
+    <string name="device_sync_generate_code">Generar código</string>
+    <string name="device_sync_join_code">Código de 6 dígitos de tu ordenador</string>
+    <string name="device_sync_pair">Vincular</string>
+    <string name="device_sync_unpair">Desvincular</string>
+    <string name="device_sync_paired">Vinculado</string>
+    <string name="device_sync_not_paired">No vinculado</string>
+    <string name="device_sync_paired_device">Dispositivo vinculado</string>
+    <string name="sync_vivi_volume">Sincronizar volumen de VIVI</string>
+    <string name="sync_vivi_volume_desc">Refleja el control deslizante de volumen de la app entre este teléfono y VIVI Music DE. Desactívalo para mantener el volumen del reproductor independiente en cada dispositivo.</string>
 </resources>

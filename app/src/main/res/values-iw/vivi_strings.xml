@@ -45,4 +45,19 @@
     <string name="lyrics">מילות השיר</string>
     <string name="close">סגור</string>
     <string name="next">הבא</string>
+    <string name="devices">מכשירים</string>
+    <string name="device_sync">סנכרון מכשירים</string>
+    <string name="device_sync_desc">חבר טלפון זה ל-VIVI Music DE במחשב כדי לסנכרן הגדרות, תור וספרייה.</string>
+    <string name="device_sync_server">שרת ממסר</string>
+    <string name="device_sync_discover">מצא מחשב</string>
+    <string name="device_sync_scan_qr">סרוק קוד QR</string>
+    <string name="device_sync_generate_code">צור קוד</string>
+    <string name="device_sync_join_code">קוד בן 6 ספרות מהמחשב שלך</string>
+    <string name="device_sync_pair">חבר</string>
+    <string name="device_sync_unpair">בטל חיבור</string>
+    <string name="device_sync_paired">מחובר</string>
+    <string name="device_sync_not_paired">לא מחובר</string>
+    <string name="device_sync_paired_device">מכשיר מחובר</string>
+    <string name="sync_vivi_volume">סנכרון עוצמת הקול של VIVI</string>
+    <string name="sync_vivi_volume_desc">שיקוף את מחוון עוצמת הקול של האפליקציה בין טלפון זה ל-VIVI Music DE. השבת אותו כדי לשמור על עוצמת הקול של הנגן בכל מכשיר בנפרד.</string>
 </resources>

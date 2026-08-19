@@ -20,4 +20,19 @@
     <string name="continuous">បន្តជាប់គ្នា</string>
     <string name="liked">ចូលចិត្ត</string>
     <string name="offline">បានទាញយក</string>
+    <string name="devices">ឧបករណ៍</string>
+    <string name="device_sync">ធ្វើសមកាលកម្មឧបករណ៍</string>
+    <string name="device_sync_desc">ភ្ជាប់ទូរស័ព្ទនេះជាមួយ VIVI Music DE នៅលើកុំព្យូទ័ររបស់អ្នក ដើម្បីធ្វើសមកាលកម្មការកំណត់ បញ្ជីចាក់ និងបណ្ណាល័យ។</string>
+    <string name="device_sync_server">ម៉ាស៊ីនមេបញ្ជូនបន្ត</string>
+    <string name="device_sync_discover">ស្វែងរកកុំព្យូទ័រ</string>
+    <string name="device_sync_scan_qr">ស្កេនកូដ QR</string>
+    <string name="device_sync_generate_code">បង្កើតកូដ</string>
+    <string name="device_sync_join_code">កូដ 6 ខ្ទង់ពីកុំព្យូទ័ររបស់អ្នក</string>
+    <string name="device_sync_pair">ភ្ជាប់</string>
+    <string name="device_sync_unpair">ផ្តាច់ការភ្ជាប់</string>
+    <string name="device_sync_paired">បានភ្ជាប់</string>
+    <string name="device_sync_not_paired">មិនបានភ្ជាប់</string>
+    <string name="device_sync_paired_device">ឧបករណ៍ដែលបានភ្ជាប់</string>
+    <string name="sync_vivi_volume">ធ្វើសមកាលកម្មសំឡេង VIVI</string>
+    <string name="sync_vivi_volume_desc">ធ្វើឲ្យរបារសំឡេងក្នុងកម្មវិធីដូចគ្នារវាងទូរស័ព្ទនេះ និង VIVI Music DE។ បិទវាដើម្បីរក្សាសំឡេងរបស់កម្មវិធីចាក់នៅលើឧបករណ៍នីមួយៗឱ្យឯករាជ្យ។</string>
 </resources>

@@ -2,4 +2,19 @@
 <resources>
     <string name="forgotten_favorites">Forgotten favourites</string>
     <string name="center">Centre</string>
+    <string name="devices">Devices</string>
+    <string name="device_sync">Device sync</string>
+    <string name="device_sync_desc">Pair this phone with VIVI Music DE on your computer to sync settings, queue and library.</string>
+    <string name="device_sync_server">Relay server</string>
+    <string name="device_sync_discover">Find desktop</string>
+    <string name="device_sync_scan_qr">Scan QR code</string>
+    <string name="device_sync_generate_code">Generate code</string>
+    <string name="device_sync_join_code">6-digit code from your computer</string>
+    <string name="device_sync_pair">Pair</string>
+    <string name="device_sync_unpair">Unpair</string>
+    <string name="device_sync_paired">Paired</string>
+    <string name="device_sync_not_paired">Not paired</string>
+    <string name="device_sync_paired_device">Paired device</string>
+    <string name="sync_vivi_volume">Sync VIVI volume</string>
+    <string name="sync_vivi_volume_desc">Mirror the in-app volume slider between this phone and VIVI Music DE. Disable it to keep each device\'s player volume independent.</string>
 </resources>

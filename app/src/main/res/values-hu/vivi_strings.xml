@@ -277,4 +277,19 @@
     <string name="share_desc">Link megosztása</string>
     <string name="delete_desc">Elem végleges eltávolítása</string>
     <string name="advanced_desc">Tempó és hangmagasság módosítása</string>
+    <string name="devices">Eszközök</string>
+    <string name="device_sync">Eszközszinkronizálás</string>
+    <string name="device_sync_desc">Párosítsd ezt a telefont a számítógépeden futó VIVI Music DE-vel a beállítások, a sor és a könyvtár szinkronizálásához.</string>
+    <string name="device_sync_server">Relay szerver</string>
+    <string name="device_sync_discover">Asztali gép keresése</string>
+    <string name="device_sync_scan_qr">QR-kód beolvasása</string>
+    <string name="device_sync_generate_code">Kód generálása</string>
+    <string name="device_sync_join_code">6 számjegyű kód a számítógépedről</string>
+    <string name="device_sync_pair">Párosítás</string>
+    <string name="device_sync_unpair">Párosítás megszüntetése</string>
+    <string name="device_sync_paired">Párosítva</string>
+    <string name="device_sync_not_paired">Nincs párosítva</string>
+    <string name="device_sync_paired_device">Párosított eszköz</string>
+    <string name="sync_vivi_volume">VIVI hangerő szinkronizálása</string>
+    <string name="sync_vivi_volume_desc">Tükrözd az alkalmazáson belüli hangerő-csúszkát e telefon és a VIVI Music DE között. Kapcsold ki, ha azt szeretnéd, hogy az egyes eszközök lejátszó-hangereje független maradjon.</string>
 </resources>

@@ -644,4 +644,19 @@
     <string name="discord_activity_name_description">Vlastní název aktivity (ponechte prázdné pro výchozí)</string>
     <string name="discord_advanced_mode">Pokročilý režim</string>
     <string name="discord_advanced_mode_description">Zobrazit dodatečné možnosti přizpůsobení pro stav na Discordu</string>
+    <string name="devices">Zařízení</string>
+    <string name="device_sync">Synchronizace zařízení</string>
+    <string name="device_sync_desc">Spárujte tento telefon s VIVI Music DE v počítači a synchronizujte nastavení, frontu a knihovnu.</string>
+    <string name="device_sync_server">Přenosový server</string>
+    <string name="device_sync_discover">Najít počítač</string>
+    <string name="device_sync_scan_qr">Naskenovat QR kód</string>
+    <string name="device_sync_generate_code">Vygenerovat kód</string>
+    <string name="device_sync_join_code">Šestimístný kód z počítače</string>
+    <string name="device_sync_pair">Spárovat</string>
+    <string name="device_sync_unpair">Zrušit párování</string>
+    <string name="device_sync_paired">Spárováno</string>
+    <string name="device_sync_not_paired">Nespárováno</string>
+    <string name="device_sync_paired_device">Spárované zařízení</string>
+    <string name="sync_vivi_volume">Synchronizovat hlasitost VIVI</string>
+    <string name="sync_vivi_volume_desc">Zrcadlete posuvník hlasitosti v aplikaci mezi tímto telefonem a VIVI Music DE. Vypněte jej, aby hlasitost přehrávače každého zařízení zůstala nezávislá.</string>
 </resources>

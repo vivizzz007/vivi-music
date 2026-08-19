@@ -131,4 +131,19 @@
     <string name="shuffle_playlist_first">Zwe playlist/album en aleatoire en premie</string>
     <string name="shuffle_playlist_first_desc">Kan en aleatoire, zwe tou sante depi playlist/album orizinal en premie, apre zwe bann cki similaire</string>
     <string name="show_wrapped_card">Montre Résumé</string>
+    <string name="devices">Bann aparey</string>
+    <string name="device_sync">Sinkronizasion bann aparey</string>
+    <string name="device_sync_desc">Pare sa telefonn-la avek VIVI Music DE lor ou laptop pou sinkroniz bann reglaz, file ek biblitek.</string>
+    <string name="device_sync_server">Servér relé</string>
+    <string name="device_sync_discover">Trouv desktop</string>
+    <string name="device_sync_scan_qr">Sken kod QR</string>
+    <string name="device_sync_generate_code">Zener kod</string>
+    <string name="device_sync_join_code">Kod 6 chif depi ou laptop</string>
+    <string name="device_sync_pair">Pare</string>
+    <string name="device_sync_unpair">Desparé</string>
+    <string name="device_sync_paired">Pared</string>
+    <string name="device_sync_not_paired">Pa ankor pared</string>
+    <string name="device_sync_paired_device">Aparey pared</string>
+    <string name="sync_vivi_volume">Sinkroniz volim VIVI</string>
+    <string name="sync_vivi_volume_desc">Reflet slider volim dan aplikasion ant sa telefonn ek VIVI Music DE. Deaktiv li pou gard volim player sak aparey indepandan.</string>
 </resources>

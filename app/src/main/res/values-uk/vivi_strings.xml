@@ -404,4 +404,19 @@
     <string name="decryption_library_newpipe_desc">Офіційна бібліотека TeamNewPipe. Найактуальніша з урахуванням змін YouTube. Рекомендована за замовчуванням. Автоматичне повернення до PipePipe API у разі невдачі.</string>
     <string name="decryption_library_pipepipe_api">PipePipe API</string>
     <string name="decryption_library_pipepipe_api_desc">Розшифровка на основі API за допомогою MetroExtractor. Швидша, але залежить від зовнішнього API. Автоматичне повернення до NewPipe у разі невдачі.</string>
+    <string name="devices">Пристрої</string>
+    <string name="device_sync">Синхронізація пристроїв</string>
+    <string name="device_sync_desc">Зіставте цей телефон із VIVI Music DE на комп\'ютері, щоб синхронізувати налаштування, чергу та бібліотеку.</string>
+    <string name="device_sync_server">Ретрансляційний сервер</string>
+    <string name="device_sync_discover">Знайти комп\'ютер</string>
+    <string name="device_sync_scan_qr">Сканувати QR-код</string>
+    <string name="device_sync_generate_code">Створити код</string>
+    <string name="device_sync_join_code">6-значний код із комп\'ютера</string>
+    <string name="device_sync_pair">Зіставити</string>
+    <string name="device_sync_unpair">Розірвати пару</string>
+    <string name="device_sync_paired">Зіставлено</string>
+    <string name="device_sync_not_paired">Не зіставлено</string>
+    <string name="device_sync_paired_device">Зіставлений пристрій</string>
+    <string name="sync_vivi_volume">Синхронізувати гучність VIVI</string>
+    <string name="sync_vivi_volume_desc">Віддзеркалюйте повзунок гучності в застосунку між цим телефоном і VIVI Music DE. Вимкніть його, щоб гучність плеєра кожного пристрою залишалася незалежною.</string>
 </resources>

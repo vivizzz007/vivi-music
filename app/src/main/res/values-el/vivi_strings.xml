@@ -394,4 +394,19 @@
     <string name="decryption_library_newpipe_desc">Επίσημη βιβλιοθήκη TeamNewPipe. Πλήρως ενημερωμένη με τις αλλαγές του YouTube. Συνιστάται ως προεπιλογή. Αυτόματη επιστροφή στο PipePipe API σε περίπτωση αποτυχίας.</string>
     <string name="decryption_library_pipepipe_api">PipePipe API</string>
     <string name="decryption_library_pipepipe_api_desc">Αποκρυπτογράφηση βάσει API με χρήση του MetroExtractor. Ταχύτερη, αλλά εξαρτάται από εξωτερικό API. Αυτόματη επιστροφή στο NewPipe σε περίπτωση αποτυχίας.</string>
+    <string name="devices">Συσκευές</string>
+    <string name="device_sync">Συγχρονισμός συσκευών</string>
+    <string name="device_sync_desc">Σύζευξη αυτού του τηλεφώνου με το VIVI Music DE στον υπολογιστή σας για συγχρονισμό ρυθμίσεων, ουράς και βιβλιοθήκης.</string>
+    <string name="device_sync_server">Διακομιστής αναμετάδοσης</string>
+    <string name="device_sync_discover">Εύρεση υπολογιστή</string>
+    <string name="device_sync_scan_qr">Σάρωση κωδικού QR</string>
+    <string name="device_sync_generate_code">Δημιουργία κωδικού</string>
+    <string name="device_sync_join_code">6ψήφιος κωδικός από τον υπολογιστή σας</string>
+    <string name="device_sync_pair">Σύζευξη</string>
+    <string name="device_sync_unpair">Κατάργηση σύζευξης</string>
+    <string name="device_sync_paired">Σε σύζευξη</string>
+    <string name="device_sync_not_paired">Χωρίς σύζευξη</string>
+    <string name="device_sync_paired_device">Συσκευή σε σύζευξη</string>
+    <string name="sync_vivi_volume">Συγχρονισμός έντασης VIVI</string>
+    <string name="sync_vivi_volume_desc">Αντικατοπτρίστε το ρυθμιστικό έντασης της εφαρμογής μεταξύ αυτού του τηλεφώνου και του VIVI Music DE. Απενεργοποιήστε το για να διατηρήσετε ανεξάρτητη την ένταση κάθε συσκευής.</string>
 </resources>

@@ -229,4 +229,19 @@
     <string name="library_album_empty">ਲਾਇਬ੍ਰੇਰੀ ਟੇਪਾਂ ਇੱਥੇ ਦਿਖਣ ਗੀਆਂ</string>
     <string name="library_playlist_empty">ਤੁਹਾਡੀਆਂ ਚਾਲ ਸੂਚੀਆਂ ਇੱਥੇ ਦਿਖਣ ਗਿਆਂ</string>
     <string name="other_versions">ਟੇਪ ਦ੍ਰਿਸ਼</string>
+    <string name="devices">ਡਿਵਾਈਸਾਂ</string>
+    <string name="device_sync">ਡਿਵਾਈਸ ਸਿੰਕ</string>
+    <string name="device_sync_desc">ਸੈਟਿੰਗਾਂ, ਕਤਾਰ ਅਤੇ ਲਾਇਬ੍ਰੇਰੀ ਨੂੰ ਸਿੰਕ ਕਰਨ ਲਈ ਇਸ ਫ਼ੋਨ ਨੂੰ ਆਪਣੇ ਕੰਪਿਊਟਰ ਦੇ VIVI Music DE ਨਾਲ ਜੋੜੋ।</string>
+    <string name="device_sync_server">ਰੀਲੇ ਸਰਵਰ</string>
+    <string name="device_sync_discover">ਡੈਸਕਟਾਪ ਲੱਭੋ</string>
+    <string name="device_sync_scan_qr">QR ਕੋਡ ਸਕੈਨ ਕਰੋ</string>
+    <string name="device_sync_generate_code">ਕੋਡ ਬਣਾਓ</string>
+    <string name="device_sync_join_code">ਆਪਣੇ ਕੰਪਿਊਟਰ ਤੋਂ 6-ਅੰਕਾਂ ਦਾ ਕੋਡ</string>
+    <string name="device_sync_pair">ਜੋੜੋ</string>
+    <string name="device_sync_unpair">ਜੋੜ ਹਟਾਓ</string>
+    <string name="device_sync_paired">ਜੋੜਿਆ ਗਿਆ</string>
+    <string name="device_sync_not_paired">ਜੋੜਿਆ ਨਹੀਂ ਗਿਆ</string>
+    <string name="device_sync_paired_device">ਜੋੜਿਆ ਡਿਵਾਈਸ</string>
+    <string name="sync_vivi_volume">VIVI ਵਾਲੀਅਮ ਸਿੰਕ ਕਰੋ</string>
+    <string name="sync_vivi_volume_desc">ਇਸ ਫ਼ੋਨ ਅਤੇ VIVI Music DE ਵਿਚਕਾਰ ਐਪ ਦੇ ਵਾਲੀਅਮ ਸਲਾਈਡਰ ਨੂੰ ਮਿਰਰ ਕਰੋ। ਹਰੇਕ ਡਿਵਾਈਸ ਦਾ ਪਲੇਅਰ ਵਾਲੀਅਮ ਸੁਤੰਤਰ ਰੱਖਣ ਲਈ ਇਸਨੂੰ ਬੰਦ ਕਰੋ।</string>
 </resources>

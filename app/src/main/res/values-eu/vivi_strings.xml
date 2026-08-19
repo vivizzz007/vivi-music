@@ -199,4 +199,19 @@
     <string name="settings_section_system">Sistema eta Honi buruz</string>
     <string name="audio_offload">Offload desgaitu</string>
     <string name="audio_offload_description">Erabili offload audio-bidea audioa erreproduzitzeko. Hau desgaitzeak energia-kontsumoa handitu dezake, baina erabilgarria izan daiteke audioa erreproduzitzean edo post-prozesamenduan arazoak badituzu</string>
+    <string name="devices">Gailuak</string>
+    <string name="device_sync">Gailuen sinkronizazioa</string>
+    <string name="device_sync_desc">Parekatu telefono hau zure ordenagailuko VIVI Music DE-rekin ezarpenak, ilara eta liburutegia sinkronizatzeko.</string>
+    <string name="device_sync_server">Errelebo-zerbitzaria</string>
+    <string name="device_sync_discover">Aurkitu mahaigaina</string>
+    <string name="device_sync_scan_qr">Eskaneatu QR kodea</string>
+    <string name="device_sync_generate_code">Sortu kodea</string>
+    <string name="device_sync_join_code">Zure ordenagailuko 6 digituko kodea</string>
+    <string name="device_sync_pair">Parekatu</string>
+    <string name="device_sync_unpair">Desparekatu</string>
+    <string name="device_sync_paired">Parekatuta</string>
+    <string name="device_sync_not_paired">Ez parekatuta</string>
+    <string name="device_sync_paired_device">Gailu parekatua</string>
+    <string name="sync_vivi_volume">Sinkronizatu VIVI bolumena</string>
+    <string name="sync_vivi_volume_desc">Ispilatu aplikazioko bolumen-kontrola telefono honen eta VIVI Music DE-ren artean. Desgaitu gailu bakoitzaren erreproduzitzaile-bolumena independente mantentzeko.</string>
 </resources>

@@ -146,4 +146,19 @@
     <string name="show_wrapped_card">Vis Wrapped-kort</string>
     <string name="skip_silence_desc">Hopp forbi stille deler av sanger</string>
     <string name="skip_silence_instant">Hopp over stillhet øyeblikkelig</string>
+    <string name="devices">Enheter</string>
+    <string name="device_sync">Enhetssynkronisering</string>
+    <string name="device_sync_desc">Koble denne telefonen til VIVI Music DE på datamaskinen for å synkronisere innstillinger, kø og bibliotek.</string>
+    <string name="device_sync_server">Reléserver</string>
+    <string name="device_sync_discover">Finn datamaskin</string>
+    <string name="device_sync_scan_qr">Skann QR-kode</string>
+    <string name="device_sync_generate_code">Generer kode</string>
+    <string name="device_sync_join_code">6-sifret kode fra datamaskinen</string>
+    <string name="device_sync_pair">Koble sammen</string>
+    <string name="device_sync_unpair">Koble fra</string>
+    <string name="device_sync_paired">Koblet sammen</string>
+    <string name="device_sync_not_paired">Ikke koblet sammen</string>
+    <string name="device_sync_paired_device">Sammenkoblet enhet</string>
+    <string name="sync_vivi_volume">Synkroniser VIVI-volum</string>
+    <string name="sync_vivi_volume_desc">Speil volumglidebryteren i appen mellom denne telefonen og VIVI Music DE. Deaktiver den for å holde avspillingsvolumet på hver enhet uavhengig.</string>
 </resources>

@@ -201,4 +201,19 @@
     <string name="restore_failed">ব্যাকআপ থেকে পুনরুদ্ধার করতে অক্ষম</string>
     <string name="about">সম্পর্কিত</string>
     <string name="app_version">অ্যাপ সংস্করণ</string>
+    <string name="devices">ডিভাইস</string>
+    <string name="device_sync">ডিভাইস সিঙ্ক</string>
+    <string name="device_sync_desc">সেটিংস, কিউ এবং লাইব্রেরি সিঙ্ক করতে এই ফোনটি আপনার কম্পিউটারের VIVI Music DE-এর সাথে জোড়া দিন।</string>
+    <string name="device_sync_server">রিলে সার্ভার</string>
+    <string name="device_sync_discover">ডেস্কটপ খুঁজুন</string>
+    <string name="device_sync_scan_qr">QR কোড স্ক্যান করুন</string>
+    <string name="device_sync_generate_code">কোড তৈরি করুন</string>
+    <string name="device_sync_join_code">আপনার কম্পিউটার থেকে ৬-সংখ্যার কোড</string>
+    <string name="device_sync_pair">জোড়া দিন</string>
+    <string name="device_sync_unpair">জোড়া ভাঙুন</string>
+    <string name="device_sync_paired">জোড়া হয়েছে</string>
+    <string name="device_sync_not_paired">জোড়া হয়নি</string>
+    <string name="device_sync_paired_device">জোড়া ডিভাইস</string>
+    <string name="sync_vivi_volume">VIVI ভলিউম সিঙ্ক করুন</string>
+    <string name="sync_vivi_volume_desc">এই ফোন এবং VIVI Music DE-এর মধ্যে অ্যাপের ভলিউম স্লাইডারটি মিরর করুন। প্রতিটি ডিভাইসের প্লেয়ার ভলিউম স্বাধীন রাখতে এটি বন্ধ করুন।</string>
 </resources>

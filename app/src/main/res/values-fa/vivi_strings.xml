@@ -169,4 +169,19 @@
     <string name="seek_seconds_addup">افزایش تدریجی زمان پرش</string>
     <string name="about_artist">درباره</string>
     <string name="hide_player_thumbnail">پنهان کردن تصویر پخش کننده</string>
+    <string name="devices">دستگاه‌ها</string>
+    <string name="device_sync">همگام‌سازی دستگاه‌ها</string>
+    <string name="device_sync_desc">برای همگام‌سازی تنظیمات، صف و کتابخانه، این گوشی را با VIVI Music DE روی رایانه خود جفت کنید.</string>
+    <string name="device_sync_server">سرور رله</string>
+    <string name="device_sync_discover">یافتن رایانه</string>
+    <string name="device_sync_scan_qr">اسکن کد QR</string>
+    <string name="device_sync_generate_code">ایجاد کد</string>
+    <string name="device_sync_join_code">کد ۶ رقمی از رایانه شما</string>
+    <string name="device_sync_pair">جفت شدن</string>
+    <string name="device_sync_unpair">لغو جفت شدن</string>
+    <string name="device_sync_paired">جفت شده</string>
+    <string name="device_sync_not_paired">جفت نشده</string>
+    <string name="device_sync_paired_device">دستگاه جفت شده</string>
+    <string name="sync_vivi_volume">همگام‌سازی صدای VIVI</string>
+    <string name="sync_vivi_volume_desc">نوار لغزنده صدای داخل برنامه را بین این گوشی و VIVI Music DE منعکس کنید. برای مستقل نگه داشتن صدای پخش‌کننده هر دستگاه، آن را غیرفعال کنید.</string>
 </resources>

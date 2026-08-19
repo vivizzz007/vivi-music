@@ -634,4 +634,19 @@
     <string name="discord_activity_name_description">Nume personalizat pentru activitate (lasă gol pentru numele prestabilit)</string>
     <string name="discord_advanced_mode">Mod avansat</string>
     <string name="discord_advanced_mode_description">Afișează opțiuni adiționale de personalizare pentru Rich Presence</string>
+    <string name="devices">Dispozitive</string>
+    <string name="device_sync">Sincronizarea dispozitivelor</string>
+    <string name="device_sync_desc">Asociați acest telefon cu VIVI Music DE de pe computer pentru a sincroniza setările, coada și biblioteca.</string>
+    <string name="device_sync_server">Server releu</string>
+    <string name="device_sync_discover">Găsește computerul</string>
+    <string name="device_sync_scan_qr">Scanează codul QR</string>
+    <string name="device_sync_generate_code">Generează codul</string>
+    <string name="device_sync_join_code">Cod de 6 cifre de pe computer</string>
+    <string name="device_sync_pair">Asociază</string>
+    <string name="device_sync_unpair">Anulează asocierea</string>
+    <string name="device_sync_paired">Asociat</string>
+    <string name="device_sync_not_paired">Neasociat</string>
+    <string name="device_sync_paired_device">Dispozitiv asociat</string>
+    <string name="sync_vivi_volume">Sincronizează volumul VIVI</string>
+    <string name="sync_vivi_volume_desc">Oglindiți glisorul de volum din aplicație între acest telefon și VIVI Music DE. Dezactivați-l pentru a menține volumul playerului independent pe fiecare dispozitiv.</string>
 </resources>

@@ -74,6 +74,7 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.lastfm.LastFM
@@ -180,9 +181,12 @@ import coil3.imageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import com.music.vivi.utils.BotDetectionMitigator
 import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.PlaybackLogLevel
+import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.YTPlayerUtils
@@ -407,6 +411,8 @@ class MusicService :
     private var consecutivePlaybackErr = 0
     private var retryJob: Job? = null
     private var retryCount = 0
+    /** Dedupes the visible on-screen error toast so retries don't spam it. */
+    private var lastErrorToastKey: String? = null
     private var silenceSkipJob: Job? = null
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
     private var prefetchJob: Job? = null
@@ -1596,10 +1602,12 @@ class MusicService :
         // within tolerance so it doesn't glitch the audio.
         val currentId = player.currentMetadata?.id
         if (snapshot.trackId != null && currentId == snapshot.trackId && player.mediaItemCount > 0) {
-            // While the desktop is still resolving, its position is frozen: hold
-            // (pause) instead of seeking to a stale point.
+            // While the peer is buffering its position is frozen: skip the seek
+            // to a stale point and keep playing instead of pausing, so a brief
+            // rebuffer doesn't stop local playback. New-track resolution is
+            // handled by the queue-replacement branch below (`playWhenReady =
+            // isPlaying && !isResolving`).
             if (snapshot.isResolving) {
-                player.playWhenReady = false
                 return
             }
             val local = player.currentPosition
@@ -2640,6 +2648,26 @@ class MusicService :
 
         val mediaId = player.currentMediaItem?.mediaId
         Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
+        // Visible, on-screen feedback so the exact error code is seen without
+        // digging into logcat. De-duplicated per (track, code) so the retry
+        // loop doesn't spam a toast per attempt.
+        val errorToastKey = "$mediaId:${error.errorCode}"
+        if (errorToastKey != lastErrorToastKey) {
+            lastErrorToastKey = errorToastKey
+            val codeName = error.errorCodeName.removePrefix("ERROR_CODE_")
+            val summary = "Playback error $codeName (${error.errorCode})"
+            // "Source error" is just the media3 wrapper; the real reason (403,
+            // connection reset, premature end of stream, …) is nested two levels
+            // down in the cause chain.
+            val detail = error.cause?.cause?.message
+                ?: error.cause?.message
+                ?: error.message
+                ?: "unknown"
+            PlaybackLogManager.log(PlaybackLogLevel.ERROR, summary, detail)
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(this@MusicService, "$summary: $detail", Toast.LENGTH_LONG).show()
+            }
+        }
         reportException(error)
 
         // Check if this song has failed too many times
@@ -2721,13 +2749,6 @@ class MusicService :
             Timber.tag(TAG).e(e, "Failed to clear player cache for $mediaId")
         }
 
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-            Timber.tag(TAG).d("Cleared decryption caches for $mediaId")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches for $mediaId")
-        }
     }
 
     /**
@@ -2916,36 +2937,29 @@ class MusicService :
     /**
      * Handles expired URL (403) errors by clearing caches and retrying.
      */
+    /** Rotates the guest identity, then re-seeks and re-prepares the track. */
+    private suspend fun reResolveCurrentTrack(mediaId: String, reason: String) {
+        // Rotate the guest identity so a bot-flagged/expired googlevideo URL
+        // isn't returned verbatim again.
+        if (YouTube.cookie == null) BotDetectionMitigator.rotateGuestSession()
+        val currentPosition = player.currentPosition
+        val currentIndex = player.currentMediaItemIndex
+        player.seekTo(currentIndex, currentPosition)
+        player.prepare()
+        Timber.tag(TAG).d("Retrying playback for $mediaId after $reason")
+    }
+
     private fun handleExpiredUrlError(mediaId: String?) {
         if (mediaId == null) {
             handleFinalFailure()
             return
         }
-
         incrementRetryCount(mediaId)
-
-        // Clear the cached URL
         songUrlCache.remove(mediaId)
-        Timber.tag(TAG).d("Cleared cached URL for $mediaId")
-
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
-        }
-
         retryJob?.cancel()
         retryJob = scope.launch {
             delay(RETRY_DELAY_MS)
-
-            // Seek to current position to force URL re-resolution
-            val currentPosition = player.currentPosition
-            val currentIndex = player.currentMediaItemIndex
-            player.seekTo(currentIndex, currentPosition)
-            player.prepare()
-
-            Timber.tag(TAG).d("Retrying playback for $mediaId after 403 error")
+            reResolveCurrentTrack(mediaId, "403 error")
         }
     }
 
@@ -2957,20 +2971,12 @@ class MusicService :
             handleFinalFailure()
             return
         }
-
         incrementRetryCount(mediaId)
-
         retryJob?.cancel()
         retryJob = scope.launch {
             performAggressiveCacheClear(mediaId)
             delay(RETRY_DELAY_MS)
-
-            val currentPosition = player.currentPosition
-            val currentIndex = player.currentMediaItemIndex
-            player.seekTo(currentIndex, currentPosition)
-            player.prepare()
-
-            Timber.tag(TAG).d("Retrying playback for $mediaId after generic IO error")
+            reResolveCurrentTrack(mediaId, "generic IO error")
         }
     }
 
@@ -3039,7 +3045,7 @@ class MusicService :
                                         } ?: response.request
                                     }
                                     .build(),
-                            ),
+                            ).setUserAgent(YouTubeClient.USER_AGENT_WEB),
                         ),
                     ),
             ).setCacheWriteDataSinkFactory(null)

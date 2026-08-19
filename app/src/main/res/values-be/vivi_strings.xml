@@ -67,4 +67,19 @@
     <string name="select">Выбраць усё</string>
     <string name="link_copied">Спасылка скапіравана ў буфер абмену</string>
     <string name="now_playing">Зараз грае</string>
+    <string name="devices">Прылады</string>
+    <string name="device_sync">Сінхранізацыя прылад</string>
+    <string name="device_sync_desc">Спаруйце гэты тэлефон з VIVI Music DE на кампутары, каб сінхранізаваць налады, чаргу і бібліятэку.</string>
+    <string name="device_sync_server">Рэлейны сервер</string>
+    <string name="device_sync_discover">Знайсці камп\'ютар</string>
+    <string name="device_sync_scan_qr">Сканаваць QR-код</string>
+    <string name="device_sync_generate_code">Стварыць код</string>
+    <string name="device_sync_join_code">6-значны код з камп\'ютара</string>
+    <string name="device_sync_pair">Спарыць</string>
+    <string name="device_sync_unpair">Раз\'яднаць</string>
+    <string name="device_sync_paired">Спаравана</string>
+    <string name="device_sync_not_paired">Не спаравана</string>
+    <string name="device_sync_paired_device">Спараваная прылада</string>
+    <string name="sync_vivi_volume">Сінхранізаваць гучнасць VIVI</string>
+    <string name="sync_vivi_volume_desc">Адлюстроўвайце паўзунок гучнасці ў дадатку паміж гэтым тэлефонам і VIVI Music DE. Адключыце, каб гучнасць плэера кожнай прылады заставалася незалежнай.</string>
 </resources>

@@ -416,4 +416,19 @@
     <string name="delete_desc">Xóa vĩnh viễn vật này</string>
     <string name="advanced_desc">Đổi nhịp độ và cao độ của bài hát</string>
     <string name="equalizer_desc">Chỉnh độ cân bằng của âm thanh</string>
+    <string name="devices">Thiết bị</string>
+    <string name="device_sync">Đồng bộ thiết bị</string>
+    <string name="device_sync_desc">Ghép đôi điện thoại này với VIVI Music DE trên máy tính để đồng bộ cài đặt, hàng đợi và thư viện.</string>
+    <string name="device_sync_server">Máy chủ chuyển tiếp</string>
+    <string name="device_sync_discover">Tìm máy tính</string>
+    <string name="device_sync_scan_qr">Quét mã QR</string>
+    <string name="device_sync_generate_code">Tạo mã</string>
+    <string name="device_sync_join_code">Mã 6 chữ số từ máy tính của bạn</string>
+    <string name="device_sync_pair">Ghép đôi</string>
+    <string name="device_sync_unpair">Hủy ghép đôi</string>
+    <string name="device_sync_paired">Đã ghép đôi</string>
+    <string name="device_sync_not_paired">Chưa ghép đôi</string>
+    <string name="device_sync_paired_device">Thiết bị đã ghép đôi</string>
+    <string name="sync_vivi_volume">Đồng bộ âm lượng VIVI</string>
+    <string name="sync_vivi_volume_desc">Phản chiếu thanh trượt âm lượng trong ứng dụng giữa điện thoại này và VIVI Music DE. Tắt nó để giữ âm lượng trình phát của từng thiết bị độc lập.</string>
 </resources>

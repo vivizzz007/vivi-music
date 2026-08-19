@@ -586,4 +586,19 @@
     <string name="listen_together_in_top_bar_desc">Gemeinsam hören in der oberen App-Leiste anstelle der Navigationsleiste anzeigen</string>
     <string name="player_background_solid">Einfärbig</string>
     <string name="prevent_duplicate_tracks_in_queue">Doppelte Songs in der Warteschlange vermeiden</string>
+    <string name="devices">Geräte</string>
+    <string name="device_sync">Geräte-Synchronisierung</string>
+    <string name="device_sync_desc">Kopple dieses Telefon mit VIVI Music DE auf deinem Computer, um Einstellungen, Warteschlange und Bibliothek zu synchronisieren.</string>
+    <string name="device_sync_server">Relay-Server</string>
+    <string name="device_sync_discover">Desktop finden</string>
+    <string name="device_sync_scan_qr">QR-Code scannen</string>
+    <string name="device_sync_generate_code">Code generieren</string>
+    <string name="device_sync_join_code">6-stelliger Code von deinem Computer</string>
+    <string name="device_sync_pair">Koppeln</string>
+    <string name="device_sync_unpair">Kopplung aufheben</string>
+    <string name="device_sync_paired">Gekoppelt</string>
+    <string name="device_sync_not_paired">Nicht gekoppelt</string>
+    <string name="device_sync_paired_device">Gekoppeltes Gerät</string>
+    <string name="sync_vivi_volume">VIVI-Lautstärke synchronisieren</string>
+    <string name="sync_vivi_volume_desc">Spiegle den Lautstärkeregler der App zwischen diesem Telefon und VIVI Music DE. Deaktiviere ihn, damit die Player-Lautstärke jedes Geräts unabhängig bleibt.</string>
 </resources>

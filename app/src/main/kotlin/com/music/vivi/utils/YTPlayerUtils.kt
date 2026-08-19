@@ -12,11 +12,15 @@ import com.music.innertube.NewPipeExtractor
 import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
+import com.music.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
+import com.music.innertube.models.YouTubeClient.Companion.ANDROID_NO_SDK
 import com.music.vivi.utils.BotDetectionMitigator
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.music.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.music.innertube.models.YouTubeClient.Companion.IOS
+import com.music.innertube.models.YouTubeClient.Companion.IOS_MUSIC
+import com.music.innertube.models.YouTubeClient.Companion.VISIONOS
 import com.music.innertube.models.YouTubeClient.Companion.IPADOS
 import com.music.innertube.models.YouTubeClient.Companion.MOBILE
 import com.music.innertube.models.YouTubeClient.Companion.TVHTML5
@@ -105,6 +109,12 @@ object YTPlayerUtils {
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         ANDROID_VR_1_61_48,
+        VISIONOS,
+        // Music-specific clients resolve tracks that the generic clients report
+        // as "Video non disponibile" (music-only / YouTube-Music-signed URLs).
+        // The desktop edition uses these and plays those tracks reliably.
+        IOS_MUSIC,
+        ANDROID_MUSIC,
         WEB_REMIX,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,  // Try embedded player first for age-restricted content
         TVHTML5,
@@ -114,6 +124,7 @@ object YTPlayerUtils {
         MOBILE,
         IOS,
         WEB,
+        ANDROID_NO_SDK,
         WEB_CREATOR
     )
     data class PlaybackData(
@@ -346,12 +357,84 @@ object YTPlayerUtils {
             PlaybackLogManager.log(PlaybackLogLevel.BOT, "Playback failed for guest", "Triggering bot detection mitigation (rotating guest session)")
             BotDetectionMitigator.rotateGuestSession()
             val retryResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager)
-            retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
-            return retryResult
+            if (retryResult.isSuccess) {
+                retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+                return retryResult
+            }
         }
         
         firstAttempt.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+
+        // Last resort: every innerTube client was bot-flagged ("Video
+        // unavailable"). NewPipe resolves its own signature independently, so it
+        // works where the shared clients don't — the desktop edition uses
+        // NewPipe first for exactly this reason.
+        if (firstAttempt.isFailure) {
+            val newPipeData = runCatching { resolveViaNewPipe(videoId) }.getOrNull()
+            if (newPipeData != null) {
+                PlaybackLogManager.log(
+                    PlaybackLogLevel.BOT,
+                    "NewPipe fallback",
+                    "Using NewPipe stream URL after innerTube clients failed",
+                )
+                return Result.success(newPipeData)
+            }
+        }
+
         return firstAttempt
+    }
+
+    /** Resolves a playable stream via NewPipe alone, used when every innerTube
+     *  client is bot-flagged ("Video unavailable"). NewPipe resolves its own
+     *  player response and signature, so it works where the shared clients don't. */
+    private fun resolveViaNewPipe(videoId: String): PlaybackData? {
+        val streams = runCatching { YouTube.getNewPipeStreamUrls(videoId) }.getOrNull()
+            ?: return null
+        val audioItags = listOf(141, 140, 251, 250, 249, 139, 171)
+        val picked = audioItags.firstNotNullOfOrNull { tag ->
+            streams.firstOrNull { it.first == tag }
+        } ?: streams.firstOrNull { it.first in audioItags } ?: return null
+        val itag = picked.first
+        val url = picked.second
+
+        val (mimeType, bitrate) = when (itag) {
+            141 -> "audio/mp4; codecs=\"mp4a.40.2\"" to 256000
+            140 -> "audio/mp4; codecs=\"mp4a.40.2\"" to 129000
+            139 -> "audio/mp4; codecs=\"mp4a.40.5\"" to 64000
+            251 -> "audio/webm; codecs=\"opus\"" to 160000
+            250 -> "audio/webm; codecs=\"opus\"" to 64000
+            else -> "audio/webm; codecs=\"opus\"" to 48000
+        }
+        val format = PlayerResponse.StreamingData.Format(
+            itag = itag,
+            url = url,
+            mimeType = mimeType,
+            bitrate = bitrate,
+            width = null,
+            height = null,
+            contentLength = null,
+            quality = "",
+            fps = null,
+            qualityLabel = null,
+            averageBitrate = null,
+            audioQuality = null,
+            approxDurationMs = null,
+            audioSampleRate = null,
+            audioChannels = null,
+            loudnessDb = null,
+            lastModified = null,
+            signatureCipher = null,
+            cipher = null,
+            audioTrack = null,
+        )
+        return PlaybackData(
+            audioConfig = null,
+            videoDetails = null,
+            playbackTracking = null,
+            format = format,
+            streamUrl = url,
+            streamExpiresInSeconds = 21600,
+        )
     }
 
     private suspend fun resolvePlaybackData(
@@ -725,6 +808,21 @@ object YTPlayerUtils {
             throw Exception("Could not find stream url")
         }
 
+        // Prefer a NewPipe-signed URL for the selected audio format. NewPipe
+        // resolves its own signature (browser-like UA, fresh n/sig params) and
+        // its URLs are far less prone to CDN bot-flagging than the shared
+        // ANDROID_VR client. This mirrors the desktop edition, which resolves
+        // NewPipe first and plays reliably. The client URL stays as fallback.
+        val newPipeUrl = runCatching {
+            val urls = YouTube.getNewPipeStreamUrls(videoId)
+            urls.firstOrNull { it.first == format.itag }?.second
+                ?: urls.firstOrNull { it.first == 140 || it.first == 141 || it.first == 251 }?.second
+        }.getOrNull()
+        if (!newPipeUrl.isNullOrBlank()) {
+            Timber.tag(logTag).d("Using NewPipe-signed stream URL (format itag ${format.itag})")
+            streamUrl = newPipeUrl
+        }
+
         Timber.tag(logTag).d("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
         PlaybackData(
             audioConfig,
@@ -904,9 +1002,5 @@ object YTPlayerUtils {
 
         Timber.tag(logTag).e("Failed to get stream URL")
         return null
-    }
-
-    fun forceRefreshForVideo(videoId: String) {
-        Timber.tag(logTag).d("Force refreshing for videoId: $videoId")
     }
 }

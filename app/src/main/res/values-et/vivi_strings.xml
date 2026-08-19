@@ -172,4 +172,19 @@
     <string name="share_playlist_desc">Jaga esitlusloendit teistega</string>
     <string name="delete_playlist_desc">Kustuta see esitlusloend jäädavalt</string>
     <string name="sync_playlist_desc">Sünkroniseeri esitlusloend Youtube Music\'ga</string>
+    <string name="devices">Seadmed</string>
+    <string name="device_sync">Seadmete sünkroonimine</string>
+    <string name="device_sync_desc">Sidu see telefon arvutis oleva VIVI Music DE-ga, et sünkroonida seaded, järjekord ja teek.</string>
+    <string name="device_sync_server">Vaheserver</string>
+    <string name="device_sync_discover">Otsi arvutit</string>
+    <string name="device_sync_scan_qr">Skanni QR-koodi</string>
+    <string name="device_sync_generate_code">Genereeri kood</string>
+    <string name="device_sync_join_code">6-kohaline kood arvutist</string>
+    <string name="device_sync_pair">Sida</string>
+    <string name="device_sync_unpair">Lõpeta sidumine</string>
+    <string name="device_sync_paired">Seotud</string>
+    <string name="device_sync_not_paired">Pole seotud</string>
+    <string name="device_sync_paired_device">Seotud seade</string>
+    <string name="sync_vivi_volume">VIVI helitugevuse sünkroonimine</string>
+    <string name="sync_vivi_volume_desc">Peegelda rakendusesisest helitugevuse liugurit selle telefoni ja VIVI Music DE vahel. Keela see, et iga seadme mängija helitugevus jääks sõltumatuks.</string>
 </resources>

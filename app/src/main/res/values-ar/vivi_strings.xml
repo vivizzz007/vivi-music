@@ -654,4 +654,19 @@
     <string name="discord_activity_name_description">اسم مخصص للنشاط (اتركه فارغًا للافتراضي)</string>
     <string name="discord_advanced_mode">الوضع المتقدم</string>
     <string name="discord_advanced_mode_description">عرض خيارات تخصيص إضافية لـ Rich Presence</string>
+    <string name="devices">الأجهزة</string>
+    <string name="device_sync">مزامنة الأجهزة</string>
+    <string name="device_sync_desc">اقرن هذا الهاتف مع VIVI Music DE على حاسوبك لمزامنة الإعدادات وقائمة الانتظار والمكتبة.</string>
+    <string name="device_sync_server">خادم الترحيل</string>
+    <string name="device_sync_discover">البحث عن سطح المكتب</string>
+    <string name="device_sync_scan_qr">مسح رمز QR</string>
+    <string name="device_sync_generate_code">إنشاء رمز</string>
+    <string name="device_sync_join_code">رمز من 6 أرقام من حاسوبك</string>
+    <string name="device_sync_pair">إقران</string>
+    <string name="device_sync_unpair">إلغاء الإقران</string>
+    <string name="device_sync_paired">مقترن</string>
+    <string name="device_sync_not_paired">غير مقترن</string>
+    <string name="device_sync_paired_device">الجهاز المقترن</string>
+    <string name="sync_vivi_volume">مزامنة مستوى صوت VIVI</string>
+    <string name="sync_vivi_volume_desc">عكس شريط مستوى الصوت داخل التطبيق بين هذا الهاتف وVIVI Music DE. عطّله لإبقاء مستوى صوت المشغل مستقلاً لكل جهاز.</string>
 </resources>

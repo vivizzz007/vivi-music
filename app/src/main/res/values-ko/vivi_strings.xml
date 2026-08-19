@@ -73,4 +73,19 @@
     <string name="lyrics_text_size">가사 글씨 크기</string>
     <string name="lyrics_line_spacing">가사 줄간격</string>
     <string name="karaoke">노래방</string>
+    <string name="devices">기기</string>
+    <string name="device_sync">기기 동기화</string>
+    <string name="device_sync_desc">설정, 대기열 및 라이브러리를 동기화하려면 이 휴대전화를 컴퓨터의 VIVI Music DE와 페어링하세요.</string>
+    <string name="device_sync_server">릴레이 서버</string>
+    <string name="device_sync_discover">데스크톱 찾기</string>
+    <string name="device_sync_scan_qr">QR 코드 스캔</string>
+    <string name="device_sync_generate_code">코드 생성</string>
+    <string name="device_sync_join_code">컴퓨터의 6자리 코드</string>
+    <string name="device_sync_pair">페어링</string>
+    <string name="device_sync_unpair">페어링 해제</string>
+    <string name="device_sync_paired">페어링됨</string>
+    <string name="device_sync_not_paired">페어링 안 됨</string>
+    <string name="device_sync_paired_device">페어링된 기기</string>
+    <string name="sync_vivi_volume">VIVI 볼륨 동기화</string>
+    <string name="sync_vivi_volume_desc">이 휴대전화와 VIVI Music DE 간에 앱 내 볼륨 슬라이더를 미러링합니다. 각 기기의 플레이어 볼륨을 독립적으로 유지하려면 끄세요.</string>
 </resources>

@@ -53,4 +53,19 @@
     <string name="already_in_playlist">Nasa playlist na:</string>
     <string name="album_cover_desc">Cover ng Album</string>
     <string name="remote_history">Remote</string>
+    <string name="devices">Mga device</string>
+    <string name="device_sync">Pag-sync ng device</string>
+    <string name="device_sync_desc">Ipares ang teleponong ito sa VIVI Music DE sa iyong computer para i-sync ang mga setting, queue at library.</string>
+    <string name="device_sync_server">Relay server</string>
+    <string name="device_sync_discover">Hanapin ang desktop</string>
+    <string name="device_sync_scan_qr">I-scan ang QR code</string>
+    <string name="device_sync_generate_code">Bumuo ng code</string>
+    <string name="device_sync_join_code">6-digit na code mula sa iyong computer</string>
+    <string name="device_sync_pair">Ipares</string>
+    <string name="device_sync_unpair">I-unpair</string>
+    <string name="device_sync_paired">Nakapares</string>
+    <string name="device_sync_not_paired">Hindi nakapares</string>
+    <string name="device_sync_paired_device">Nakapares na device</string>
+    <string name="sync_vivi_volume">I-sync ang volume ng VIVI</string>
+    <string name="sync_vivi_volume_desc">I-mirror ang volume slider ng app sa pagitan ng teleponong ito at VIVI Music DE. I-disable ito para manatiling hiwalay ang volume ng player ng bawat device.</string>
 </resources>

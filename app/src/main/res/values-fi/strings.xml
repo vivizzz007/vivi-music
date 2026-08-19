@@ -279,4 +279,19 @@
     <string name="new_version_available">Uusi versio saatavilla</string>
     <string name="translation_models">Käännösmallit</string>
     <string name="clear_translation_models">Tyhjennä käännösmallit</string>
+    <string name="devices">Laitteet</string>
+    <string name="device_sync">Laitteiden synkronointi</string>
+    <string name="device_sync_desc">Yhdistä tämä puhelin tietokoneesi VIVI Music DE:hen synkronoidaksesi asetukset, jonon ja kirjaston.</string>
+    <string name="device_sync_server">Välityspalvelin</string>
+    <string name="device_sync_discover">Etsi tietokone</string>
+    <string name="device_sync_scan_qr">Skannaa QR-koodi</string>
+    <string name="device_sync_generate_code">Luo koodi</string>
+    <string name="device_sync_join_code">6-numeroinen koodi tietokoneeltasi</string>
+    <string name="device_sync_pair">Yhdistä</string>
+    <string name="device_sync_unpair">Katkaise yhteys</string>
+    <string name="device_sync_paired">Yhdistetty</string>
+    <string name="device_sync_not_paired">Ei yhdistetty</string>
+    <string name="device_sync_paired_device">Yhdistetty laite</string>
+    <string name="sync_vivi_volume">Synkronoi VIVI-äänenvoimakkuus</string>
+    <string name="sync_vivi_volume_desc">Peilaa sovelluksen äänenvoimakkuuden liukusäädin tämän puhelimen ja VIVI Music DE:n välillä. Poista se käytöstä pitääksesi kunkin laitteen soittimen äänenvoimakkuuden erillisenä.</string>
 </resources>

@@ -274,4 +274,19 @@
     <string name="add_to_queue_desc">Voeg toe aan het einde van je wachtrij</string>
     <string name="share_desc">Deel een link naar dit item</string>
     <string name="delete_desc">Dit item permanent verwijderen</string>
+    <string name="devices">Apparaten</string>
+    <string name="device_sync">Apparaatsynchronisatie</string>
+    <string name="device_sync_desc">Koppel deze telefoon aan VIVI Music DE op je computer om instellingen, wachtrij en bibliotheek te synchroniseren.</string>
+    <string name="device_sync_server">Relayserver</string>
+    <string name="device_sync_discover">Computer zoeken</string>
+    <string name="device_sync_scan_qr">QR-code scannen</string>
+    <string name="device_sync_generate_code">Code genereren</string>
+    <string name="device_sync_join_code">6-cijferige code van je computer</string>
+    <string name="device_sync_pair">Koppelen</string>
+    <string name="device_sync_unpair">Ontkoppelen</string>
+    <string name="device_sync_paired">Gekoppeld</string>
+    <string name="device_sync_not_paired">Niet gekoppeld</string>
+    <string name="device_sync_paired_device">Gekoppeld apparaat</string>
+    <string name="sync_vivi_volume">VIVI-volume synchroniseren</string>
+    <string name="sync_vivi_volume_desc">Spiegel de volumeschuifregelaar in de app tussen deze telefoon en VIVI Music DE. Schakel het uit om het volume van elke speler onafhankelijk te houden.</string>
 </resources>

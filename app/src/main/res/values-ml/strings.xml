@@ -279,4 +279,19 @@
     <string name="new_version_available">പുതിയ വേർഷൻ ലഭ്യമാണ്</string>
     <string name="translation_models">വിവർത്തന പദ്ധതികൾ</string>
     <string name="clear_translation_models">വിവർത്തന പദ്ധതികൾ കളയുക</string>
+    <string name="devices">ഉപകരണങ്ങൾ</string>
+    <string name="device_sync">ഉപകരണ സമന്വയം</string>
+    <string name="device_sync_desc">ക്രമീകരണങ്ങളും ക്യൂവും ലൈബ്രറിയും സമന്വയിപ്പിക്കാൻ ഈ ഫോൺ കമ്പ്യൂട്ടറിലെ VIVI Music DE-യുമായി ജോടിയാക്കുക.</string>
+    <string name="device_sync_server">റിലേ സെർവർ</string>
+    <string name="device_sync_discover">ഡെസ്ക്ടോപ്പ് കണ്ടെത്തുക</string>
+    <string name="device_sync_scan_qr">QR കോഡ് സ്കാൻ ചെയ്യുക</string>
+    <string name="device_sync_generate_code">കോഡ് സൃഷ്ടിക്കുക</string>
+    <string name="device_sync_join_code">നിങ്ങളുടെ കമ്പ്യൂട്ടറിൽ നിന്നുള്ള 6 അക്ക കോഡ്</string>
+    <string name="device_sync_pair">ജോടിയാക്കുക</string>
+    <string name="device_sync_unpair">ജോടി വേർപെടുത്തുക</string>
+    <string name="device_sync_paired">ജോടിയാക്കി</string>
+    <string name="device_sync_not_paired">ജോടിയാക്കിയിട്ടില്ല</string>
+    <string name="device_sync_paired_device">ജോടിയാക്കിയ ഉപകരണം</string>
+    <string name="sync_vivi_volume">VIVI വോളിയം സമന്വയിപ്പിക്കുക</string>
+    <string name="sync_vivi_volume_desc">ഈ ഫോണും VIVI Music DE-യും തമ്മിൽ ആപ്പിനുള്ളിലെ വോളിയം സ്ലൈഡർ പ്രതിഫലിപ്പിക്കുക. ഓരോ ഉപകരണത്തിന്റെയും പ്ലെയർ വോളിയം സ്വതന്ത്രമായി നിലനിർത്താൻ ഇത് അപ്രാപ്തമാക്കുക.</string>
 </resources>

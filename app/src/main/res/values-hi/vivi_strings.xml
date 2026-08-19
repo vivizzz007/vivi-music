@@ -8,4 +8,19 @@
     <string name="unknown_item_type">अज्ञात वस्तु प्रकार</string>
     <string name="retry_button">पुन: प्रयास करें</string>
     <string name="album_cover_desc">एल्बम आवरण</string>
+    <string name="devices">डिवाइस</string>
+    <string name="device_sync">डिवाइस सिंक</string>
+    <string name="device_sync_desc">सेटिंग्स, क्यू और लाइब्रेरी सिंक करने के लिए इस फ़ोन को अपने कंप्यूटर के VIVI Music DE के साथ जोड़ें।</string>
+    <string name="device_sync_server">रिले सर्वर</string>
+    <string name="device_sync_discover">डेस्कटॉप खोजें</string>
+    <string name="device_sync_scan_qr">QR कोड स्कैन करें</string>
+    <string name="device_sync_generate_code">कोड जनरेट करें</string>
+    <string name="device_sync_join_code">आपके कंप्यूटर से 6 अंकों का कोड</string>
+    <string name="device_sync_pair">जोड़ें</string>
+    <string name="device_sync_unpair">जोड़ी हटाएँ</string>
+    <string name="device_sync_paired">जोड़ा गया</string>
+    <string name="device_sync_not_paired">जोड़ा नहीं गया</string>
+    <string name="device_sync_paired_device">जोड़ा गया डिवाइस</string>
+    <string name="sync_vivi_volume">VIVI वॉल्यूम सिंक करें</string>
+    <string name="sync_vivi_volume_desc">इस फ़ोन और VIVI Music DE के बीच ऐप के वॉल्यूम स्लाइडर को प्रतिबिंबित करें। प्रत्येक डिवाइस का प्लेयर वॉल्यूम स्वतंत्र रखने के लिए इसे बंद करें।</string>
 </resources>

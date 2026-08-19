@@ -629,4 +629,19 @@
     <string name="lyrics_romanize_hindi">ถอดเสียงเนื้อเพลงภาษาฮินดี</string>
     <string name="lyrics_romanize_punjabi">ถอดเสียงเนื้อเพลงภาษาปัญจาบ</string>
     <string name="lyrics_romanize_as_main">แสดงเนื้อเพลงที่ถอดเสียงเป็นหลัก</string>
+    <string name="devices">อุปกรณ์</string>
+    <string name="device_sync">ซิงค์อุปกรณ์</string>
+    <string name="device_sync_desc">จับคู่โทรศัพท์นี้กับ VIVI Music DE บนคอมพิวเตอร์ของคุณเพื่อซิงค์การตั้งค่า คิว และคลัง</string>
+    <string name="device_sync_server">เซิร์ฟเวอร์รีเลย์</string>
+    <string name="device_sync_discover">ค้นหาเดสก์ท็อป</string>
+    <string name="device_sync_scan_qr">สแกนคิวอาร์โค้ด</string>
+    <string name="device_sync_generate_code">สร้างรหัส</string>
+    <string name="device_sync_join_code">รหัส 6 หลักจากคอมพิวเตอร์ของคุณ</string>
+    <string name="device_sync_pair">จับคู่</string>
+    <string name="device_sync_unpair">เลิกจับคู่</string>
+    <string name="device_sync_paired">จับคู่แล้ว</string>
+    <string name="device_sync_not_paired">ยังไม่จับคู่</string>
+    <string name="device_sync_paired_device">อุปกรณ์ที่จับคู่แล้ว</string>
+    <string name="sync_vivi_volume">ซิงค์ระดับเสียง VIVI</string>
+    <string name="sync_vivi_volume_desc">สะท้อนแถบเลื่อนระดับเสียงในแอประหว่างโทรศัพท์นี้กับ VIVI Music DE ปิดใช้งานเพื่อให้ระดับเสียงของเครื่องเล่นแต่ละเครื่องเป็นอิสระต่อกัน</string>
 </resources>

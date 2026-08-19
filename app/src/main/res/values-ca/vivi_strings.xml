@@ -639,4 +639,19 @@
     <string name="lyrics_romanize_punjabi">Romanitza lletra en Panjabi</string>
     <string name="lyrics_romanize_as_main">Mostra lletres romanitzades principalment</string>
     <string name="discord_information_warning">Aquesta funcionalitat utilitza la llibreria KizzyRPC per a connectar-se als ports de Discord i configurar el vostre estatus de Rich Presence. Encara que no s\'ha informat de cap suspensió de comptes per aquest tipus d\'ús, aquest mètode no està oficialment acceptat per Discord i es podria considerar una violació dels seus Termes d\'ús. El vostre token s\'extrau localment i mai s\'envia a servidors de terceres parts. Actue sota la seua pròpia consideració.</string>
+    <string name="devices">Dispositius</string>
+    <string name="device_sync">Sincronització de dispositius</string>
+    <string name="device_sync_desc">Vincula aquest telèfon amb VIVI Music DE a l\'ordinador per sincronitzar ajustos, cua i biblioteca.</string>
+    <string name="device_sync_server">Servidor de retransmissió</string>
+    <string name="device_sync_discover">Cerca l\'escriptori</string>
+    <string name="device_sync_scan_qr">Escaneja el codi QR</string>
+    <string name="device_sync_generate_code">Genera el codi</string>
+    <string name="device_sync_join_code">Codi de 6 dígits del teu ordinador</string>
+    <string name="device_sync_pair">Vincula</string>
+    <string name="device_sync_unpair">Desvincula</string>
+    <string name="device_sync_paired">Vinculat</string>
+    <string name="device_sync_not_paired">No vinculat</string>
+    <string name="device_sync_paired_device">Dispositiu vinculat</string>
+    <string name="sync_vivi_volume">Sincronitza el volum de VIVI</string>
+    <string name="sync_vivi_volume_desc">Reflecteix el control lliscant de volum de l\'app entre aquest telèfon i VIVI Music DE. Desactiva\'l per mantenir el volum del reproductor independent a cada dispositiu.</string>
 </resources>

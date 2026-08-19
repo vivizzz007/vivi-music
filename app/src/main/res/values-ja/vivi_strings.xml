@@ -629,4 +629,19 @@
     <string name="lyrics_romanize_hindi">ヒンディー語の歌詞にローマ字を追加</string>
     <string name="lyrics_romanize_punjabi">パンジャブ語の歌詞にローマ字を追加</string>
     <string name="lyrics_romanize_as_main">ローマ字の歌詞をメインに表示</string>
+    <string name="devices">デバイス</string>
+    <string name="device_sync">デバイス同期</string>
+    <string name="device_sync_desc">設定・キュー・ライブラリを同期するには、このスマホをパソコンの VIVI Music DE とペアリングしてください。</string>
+    <string name="device_sync_server">リレーサーバー</string>
+    <string name="device_sync_discover">デスクトップを探す</string>
+    <string name="device_sync_scan_qr">QRコードをスキャン</string>
+    <string name="device_sync_generate_code">コードを生成</string>
+    <string name="device_sync_join_code">パソコンに表示される6桁のコード</string>
+    <string name="device_sync_pair">ペアリング</string>
+    <string name="device_sync_unpair">ペアリング解除</string>
+    <string name="device_sync_paired">ペアリング済み</string>
+    <string name="device_sync_not_paired">未ペアリング</string>
+    <string name="device_sync_paired_device">ペアリング済みデバイス</string>
+    <string name="sync_vivi_volume">VIVI 音量を同期</string>
+    <string name="sync_vivi_volume_desc">このスマホと VIVI Music DE の間でアプリ内の音量スライダーをミラーリングします。各デバイスのプレイヤー音量を独立させるにはオフにしてください。</string>
 </resources>

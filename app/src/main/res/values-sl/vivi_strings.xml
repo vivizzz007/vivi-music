@@ -323,4 +323,19 @@
     <string name="progress_percent">Napredek: %s%%</string>
     <string name="listening_to_vivimusic">Poslušaš vivimusic</string>
     <string name="listen_on_youtube_music">Poslušaj v YouTube Music</string>
+    <string name="devices">Naprave</string>
+    <string name="device_sync">Sinhronizacija naprav</string>
+    <string name="device_sync_desc">Seznanite ta telefon z VIVI Music DE v računalniku za sinhronizacijo nastavitev, čakalne vrste in knjižnice.</string>
+    <string name="device_sync_server">Preusmerjevalni strežnik</string>
+    <string name="device_sync_discover">Poišči računalnik</string>
+    <string name="device_sync_scan_qr">Skeniraj kodo QR</string>
+    <string name="device_sync_generate_code">Ustvari kodo</string>
+    <string name="device_sync_join_code">6-mestna koda iz računalnika</string>
+    <string name="device_sync_pair">Seznami</string>
+    <string name="device_sync_unpair">Prekini seznanitev</string>
+    <string name="device_sync_paired">Seznanjeno</string>
+    <string name="device_sync_not_paired">Ni seznanjeno</string>
+    <string name="device_sync_paired_device">Seznanjena naprava</string>
+    <string name="sync_vivi_volume">Sinhroniziraj glasnost VIVI</string>
+    <string name="sync_vivi_volume_desc">Zrcali drsnik za glasnost v aplikaciji med tem telefonom in VIVI Music DE. Onemogoči ga, da glasnost predvajalnika vsake naprave ostane neodvisna.</string>
 </resources>

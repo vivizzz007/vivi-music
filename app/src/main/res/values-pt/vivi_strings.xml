@@ -392,4 +392,19 @@
     <string name="crossfade">Transição suave</string>
     <string name="crossfade_desc">Transição suave entre músicas</string>
     <string name="crossfade_duration">Duração da transição suave</string>
+    <string name="devices">Dispositivos</string>
+    <string name="device_sync">Sincronização de dispositivos</string>
+    <string name="device_sync_desc">Emparelhe este telemóvel com o VIVI Music DE no seu computador para sincronizar definições, fila e biblioteca.</string>
+    <string name="device_sync_server">Servidor de retransmissão</string>
+    <string name="device_sync_discover">Encontrar computador</string>
+    <string name="device_sync_scan_qr">Ler código QR</string>
+    <string name="device_sync_generate_code">Gerar código</string>
+    <string name="device_sync_join_code">Código de 6 dígitos do seu computador</string>
+    <string name="device_sync_pair">Emparelhar</string>
+    <string name="device_sync_unpair">Desemparelhar</string>
+    <string name="device_sync_paired">Emparelhado</string>
+    <string name="device_sync_not_paired">Não emparelhado</string>
+    <string name="device_sync_paired_device">Dispositivo emparelhado</string>
+    <string name="sync_vivi_volume">Sincronizar volume do VIVI</string>
+    <string name="sync_vivi_volume_desc">Espelhe o controlo deslizante de volume da aplicação entre este telemóvel e o VIVI Music DE. Desative-o para manter o volume do leitor independente em cada dispositivo.</string>
 </resources>

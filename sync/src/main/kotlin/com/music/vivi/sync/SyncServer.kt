@@ -29,6 +29,11 @@ object SyncServer {
      * A received position within this tolerance of the local position is
      * treated as already in-sync: the seek is skipped (only play/pause is
      * applied) so periodic re-sync ticks don't cause audible seek glitches.
+     *
+     * 250ms proved too tight: on a jittery phone hotspot the estimated relay
+     * clock offset fluctuates by hundreds of ms, so the follower kept jumping
+     * forward every tick. 1s matches the "sync to the second" target and only
+     * corrects genuine drift, not offset-measurement noise.
      */
-    const val RESYNC_TOLERANCE_MS = 250L
+    const val RESYNC_TOLERANCE_MS = 1000L
 }

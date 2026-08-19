@@ -629,4 +629,19 @@
     <string name="lyrics_romanize_punjabi">使用旁遮普语（罗马音）</string>
     <string name="lyrics_romanize_as_main">将罗马化歌词设为主要显示</string>
     <string name="player_background_solid">纯色</string>
+    <string name="devices">设备</string>
+    <string name="device_sync">设备同步</string>
+    <string name="device_sync_desc">将此手机与电脑上的 VIVI Music DE 配对，以同步设置、队列和媒体库。</string>
+    <string name="device_sync_server">中继服务器</string>
+    <string name="device_sync_discover">查找桌面端</string>
+    <string name="device_sync_scan_qr">扫描二维码</string>
+    <string name="device_sync_generate_code">生成代码</string>
+    <string name="device_sync_join_code">来自电脑的 6 位代码</string>
+    <string name="device_sync_pair">配对</string>
+    <string name="device_sync_unpair">取消配对</string>
+    <string name="device_sync_paired">已配对</string>
+    <string name="device_sync_not_paired">未配对</string>
+    <string name="device_sync_paired_device">已配对设备</string>
+    <string name="sync_vivi_volume">同步 VIVI 音量</string>
+    <string name="sync_vivi_volume_desc">在此手机与 VIVI Music DE 之间镜像应用内音量滑块。禁用它可让每台设备的播放器音量保持独立。</string>
 </resources>

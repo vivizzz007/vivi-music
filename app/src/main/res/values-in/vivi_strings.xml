@@ -624,4 +624,19 @@
     <string name="enable">Aktifkan</string>
     <string name="prevent_duplicate_tracks_in_queue">Cegah lagu yang sama di antrean</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">Saat menambahkan lagu ke antrean, hapus kemunculannya sebelumnya jika lagu tersebut sudah ada dalam antrean</string>
+    <string name="devices">Perangkat</string>
+    <string name="device_sync">Sinkronisasi perangkat</string>
+    <string name="device_sync_desc">Pasangkan ponsel ini dengan VIVI Music DE di komputer Anda untuk menyinkronkan pengaturan, antrean, dan pustaka.</string>
+    <string name="device_sync_server">Server relai</string>
+    <string name="device_sync_discover">Temukan desktop</string>
+    <string name="device_sync_scan_qr">Pindai kode QR</string>
+    <string name="device_sync_generate_code">Buat kode</string>
+    <string name="device_sync_join_code">Kode 6 digit dari komputer Anda</string>
+    <string name="device_sync_pair">Pasangkan</string>
+    <string name="device_sync_unpair">Putuskan pasangan</string>
+    <string name="device_sync_paired">Terpasang</string>
+    <string name="device_sync_not_paired">Tidak terpasang</string>
+    <string name="device_sync_paired_device">Perangkat terpasang</string>
+    <string name="sync_vivi_volume">Sinkronkan volume VIVI</string>
+    <string name="sync_vivi_volume_desc">Cerminkan penggeser volume dalam aplikasi antara ponsel ini dan VIVI Music DE. Nonaktifkan untuk menjaga volume pemutar setiap perangkat tetap independen.</string>
 </resources>

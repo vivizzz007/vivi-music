@@ -48,4 +48,19 @@
     <string name="about_artist">বিষয়</string>
     <string name="show_more">অধিক দেখুৱাওক</string>
     <string name="show_less">কম দেখুৱাওক</string>
+    <string name="devices">ডিভাইচ</string>
+    <string name="device_sync">ডিভাইচ চিংক</string>
+    <string name="device_sync_desc">ছেটিংছ, শাৰী আৰু লাইব্ৰেৰী চিংক কৰিবলৈ এই ফোনটো আপোনাৰ কম্পিউটাৰৰ VIVI Music DE ৰ লগত যোৰা লগাওক।</string>
+    <string name="device_sync_server">ৰিলে ছাৰ্ভাৰ</string>
+    <string name="device_sync_discover">ডেস্কটপ বিচাৰক</string>
+    <string name="device_sync_scan_qr">QR ক\'ড স্কেন কৰক</string>
+    <string name="device_sync_generate_code">ক\'ড সৃষ্টি কৰক</string>
+    <string name="device_sync_join_code">আপোনাৰ কম্পিউটাৰৰ পৰা ৬ অংকৰ ক\'ড</string>
+    <string name="device_sync_pair">যোৰা লগাওক</string>
+    <string name="device_sync_unpair">যোৰা ভাঙক</string>
+    <string name="device_sync_paired">যোৰা লগাইছে</string>
+    <string name="device_sync_not_paired">যোৰা লগোৱা নাই</string>
+    <string name="device_sync_paired_device">যোৰা লগোৱা ডিভাইচ</string>
+    <string name="sync_vivi_volume">VIVI ভলিউম চিংক কৰক</string>
+    <string name="sync_vivi_volume_desc">এই ফোন আৰু VIVI Music DE ৰ মাজত এপৰ ভিতৰৰ ভলিউম স্লাইডাৰখন প্ৰতিফলিত কৰক। প্ৰতিটো ডিভাইচৰ প্লেয়াৰ ভলিউম স্বাধীন ৰাখিবলৈ ইয়াক নিষ্ক্ৰিয় কৰক।</string>
 </resources>

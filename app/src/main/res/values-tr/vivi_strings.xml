@@ -790,4 +790,19 @@
     <string name="commits">Commit\'ler</string>
     <string name="view_commit_history">Ana daldaki son değişikliklere göz atın</string>
 
+    <string name="devices">Cihazlar</string>
+    <string name="device_sync">Cihaz senkronizasyonu</string>
+    <string name="device_sync_desc">Ayarları, kuyruğu ve kitaplığı senkronize etmek için bu telefonu bilgisayarınızdaki VIVI Music DE ile eşleştirin.</string>
+    <string name="device_sync_server">Aktarma sunucusu</string>
+    <string name="device_sync_discover">Masaüstünü bul</string>
+    <string name="device_sync_scan_qr">QR kodunu tara</string>
+    <string name="device_sync_generate_code">Kod oluştur</string>
+    <string name="device_sync_join_code">Bilgisayarınızdan 6 haneli kod</string>
+    <string name="device_sync_pair">Eşleştir</string>
+    <string name="device_sync_unpair">Eşleştirmeyi kaldır</string>
+    <string name="device_sync_paired">Eşleştirildi</string>
+    <string name="device_sync_not_paired">Eşleştirilmedi</string>
+    <string name="device_sync_paired_device">Eşleştirilen cihaz</string>
+    <string name="sync_vivi_volume">VIVI ses düzeyini senkronize et</string>
+    <string name="sync_vivi_volume_desc">Uygulama içi ses kaydırıcısını bu telefon ile VIVI Music DE arasında yansıt. Her cihazın oynatıcı sesini bağımsız tutmak için devre dışı bırak.</string>
 </resources>

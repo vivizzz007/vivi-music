@@ -178,4 +178,19 @@
     <string name="updater">Ažuriranja</string>
     <string name="check_for_updates">Automatska provjera ažuriranja</string>
     <string name="integrations">Ugradnja</string>
+    <string name="devices">Uređaji</string>
+    <string name="device_sync">Sinkronizacija uređaja</string>
+    <string name="device_sync_desc">Uparite ovaj telefon s VIVI Music DE na računalu kako biste sinkronizirali postavke, red čekanja i biblioteku.</string>
+    <string name="device_sync_server">Relejni poslužitelj</string>
+    <string name="device_sync_discover">Pronađi računalo</string>
+    <string name="device_sync_scan_qr">Skeniraj QR kod</string>
+    <string name="device_sync_generate_code">Generiraj kod</string>
+    <string name="device_sync_join_code">6-znamenkasti kod s računala</string>
+    <string name="device_sync_pair">Uparite</string>
+    <string name="device_sync_unpair">Prekini uparivanje</string>
+    <string name="device_sync_paired">Upareno</string>
+    <string name="device_sync_not_paired">Nije upareno</string>
+    <string name="device_sync_paired_device">Upareni uređaj</string>
+    <string name="sync_vivi_volume">Sinkroniziraj VIVI glasnoću</string>
+    <string name="sync_vivi_volume_desc">Ogledalno sinkroniziraj klizač glasnoće u aplikaciji između ovog telefona i VIVI Music DE. Isključi ga da glasnoća svakog uređaja ostane neovisna.</string>
 </resources>

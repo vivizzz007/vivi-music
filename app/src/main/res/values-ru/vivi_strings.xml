@@ -644,4 +644,19 @@
     <string name="lyrics_romanize_hindi">Романизировать тексты на хинди</string>
     <string name="lyrics_romanize_punjabi">Романизировать тексты на панджаби</string>
     <string name="lyrics_romanize_as_main">Показывать романизированные тексты как основные</string>
+    <string name="devices">Устройства</string>
+    <string name="device_sync">Синхронизация устройств</string>
+    <string name="device_sync_desc">Сопрягите этот телефон с VIVI Music DE на компьютере, чтобы синхронизировать настройки, очередь и библиотеку.</string>
+    <string name="device_sync_server">Ретрансляционный сервер</string>
+    <string name="device_sync_discover">Найти компьютер</string>
+    <string name="device_sync_scan_qr">Сканировать QR-код</string>
+    <string name="device_sync_generate_code">Создать код</string>
+    <string name="device_sync_join_code">6-значный код с компьютера</string>
+    <string name="device_sync_pair">Сопрячь</string>
+    <string name="device_sync_unpair">Разорвать пару</string>
+    <string name="device_sync_paired">Сопряжено</string>
+    <string name="device_sync_not_paired">Не сопряжено</string>
+    <string name="device_sync_paired_device">Сопряжённое устройство</string>
+    <string name="sync_vivi_volume">Синхронизировать громкость VIVI</string>
+    <string name="sync_vivi_volume_desc">Отражайте ползунок громкости в приложении между этим телефоном и VIVI Music DE. Отключите его, чтобы громкость плеера каждого устройства оставалась независимой.</string>
 </resources>

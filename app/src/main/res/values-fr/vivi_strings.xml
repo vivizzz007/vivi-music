@@ -1000,4 +1000,19 @@ est irréversible.
     <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
     <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
     <string name="font_plus_jakarta_sans_desc">Une police sans empattement géométrique haut de gamme aux lignes chaleureuses.</string>
+    <string name="devices">Appareils</string>
+    <string name="device_sync">Synchronisation des appareils</string>
+    <string name="device_sync_desc">Associez ce téléphone à VIVI Music DE sur votre ordinateur pour synchroniser les réglages, la file et la bibliothèque.</string>
+    <string name="device_sync_server">Serveur relais</string>
+    <string name="device_sync_discover">Trouver le bureau</string>
+    <string name="device_sync_scan_qr">Scanner le code QR</string>
+    <string name="device_sync_generate_code">Générer le code</string>
+    <string name="device_sync_join_code">Code à 6 chiffres de votre ordinateur</string>
+    <string name="device_sync_pair">Associer</string>
+    <string name="device_sync_unpair">Dissocier</string>
+    <string name="device_sync_paired">Associé</string>
+    <string name="device_sync_not_paired">Non associé</string>
+    <string name="device_sync_paired_device">Appareil associé</string>
+    <string name="sync_vivi_volume">Synchroniser le volume de VIVI</string>
+    <string name="sync_vivi_volume_desc">Reflétez le curseur de volume de l\'app entre ce téléphone et VIVI Music DE. Désactivez-le pour garder le volume du lecteur indépendant sur chaque appareil.</string>
 </resources>

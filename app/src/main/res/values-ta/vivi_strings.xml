@@ -23,4 +23,19 @@
     <string name="remote_history">புறம்</string>
     <string name="sync_playlist">ஒத்திசைவு பாடல்கள்</string>
     <string name="sync_disabled">ஒத்திசைவு முடக்கப்பட்டுள்ளது</string>
+    <string name="devices">சாதனங்கள்</string>
+    <string name="device_sync">சாதன ஒத்திசைவு</string>
+    <string name="device_sync_desc">அமைப்புகள், வரிசை மற்றும் நூலகத்தை ஒத்திசைக்க இந்த ஃபோனை உங்கள் கணினியில் உள்ள VIVI Music DE உடன் இணைக்கவும்.</string>
+    <string name="device_sync_server">ரிலே சேவையகம்</string>
+    <string name="device_sync_discover">டெஸ்க்டாப்பைக் கண்டறி</string>
+    <string name="device_sync_scan_qr">QR குறியீட்டை ஸ்கேன் செய்</string>
+    <string name="device_sync_generate_code">குறியீட்டை உருவாக்கு</string>
+    <string name="device_sync_join_code">உங்கள் கணினியிலிருந்து 6 இலக்கக் குறியீடு</string>
+    <string name="device_sync_pair">இணை</string>
+    <string name="device_sync_unpair">இணைப்பை நீக்கு</string>
+    <string name="device_sync_paired">இணைக்கப்பட்டது</string>
+    <string name="device_sync_not_paired">இணைக்கப்படவில்லை</string>
+    <string name="device_sync_paired_device">இணைக்கப்பட்ட சாதனம்</string>
+    <string name="sync_vivi_volume">VIVI ஒலியளவை ஒத்திசை</string>
+    <string name="sync_vivi_volume_desc">இந்த ஃபோனுக்கும் VIVI Music DE-க்கும் இடையே ஆப்ஸின் ஒலி ஸ்லைடரைப் பிரதிபலிக்கவும். ஒவ்வொரு சாதனத்தின் பிளேயர் ஒலியும் தனித்தனியாக இருக்க இதை முடக்கவும்.</string>
 </resources>

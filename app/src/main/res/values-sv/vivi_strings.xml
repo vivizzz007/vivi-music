@@ -181,4 +181,19 @@
     <string name="auto_scroll">Synka en gång till</string>
     <string name="show_uploaded_playlist">Visa spellista \"Uppladdade\"</string>
     <string name="shuffle_playlist_first">Blanda spellistan/albumet först</string>
+    <string name="devices">Enheter</string>
+    <string name="device_sync">Enhetssynkronisering</string>
+    <string name="device_sync_desc">Para ihop den här telefonen med VIVI Music DE på datorn för att synkronisera inställningar, kö och bibliotek.</string>
+    <string name="device_sync_server">Reläserver</string>
+    <string name="device_sync_discover">Hitta dator</string>
+    <string name="device_sync_scan_qr">Skanna QR-kod</string>
+    <string name="device_sync_generate_code">Generera kod</string>
+    <string name="device_sync_join_code">6-siffrig kod från datorn</string>
+    <string name="device_sync_pair">Para ihop</string>
+    <string name="device_sync_unpair">Koppla från</string>
+    <string name="device_sync_paired">Ihopparad</string>
+    <string name="device_sync_not_paired">Inte ihopparad</string>
+    <string name="device_sync_paired_device">Ihopparad enhet</string>
+    <string name="sync_vivi_volume">Synkronisera VIVI-volym</string>
+    <string name="sync_vivi_volume_desc">Spegla volymreglaget i appen mellan den här telefonen och VIVI Music DE. Inaktivera det för att hålla spelarens volym oberoende på varje enhet.</string>
 </resources>

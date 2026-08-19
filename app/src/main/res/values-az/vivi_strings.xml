@@ -73,4 +73,19 @@
     <string name="similar_content">Oxşar kontent</string>
     <string name="login_settings">Giriş parametrləri</string>
     <string name="general_settings">Ümumi parametrlər</string>
+    <string name="devices">Cihazlar</string>
+    <string name="device_sync">Cihaz sinxronizasiyası</string>
+    <string name="device_sync_desc">Parametrləri, növbəni və kitabxananı sinxronlaşdırmaq üçün bu telefonu kompüterinizdəki VIVI Music DE ilə qoşalaşdırın.</string>
+    <string name="device_sync_server">Relay server</string>
+    <string name="device_sync_discover">Masaüstünü tap</string>
+    <string name="device_sync_scan_qr">QR kodu skan et</string>
+    <string name="device_sync_generate_code">Kod yarat</string>
+    <string name="device_sync_join_code">Kompüterinizdən 6 rəqəmli kod</string>
+    <string name="device_sync_pair">Qoşalaşdır</string>
+    <string name="device_sync_unpair">Qoşalaşdırmanı ləğv et</string>
+    <string name="device_sync_paired">Qoşalaşdırıldı</string>
+    <string name="device_sync_not_paired">Qoşalaşdırılmayıb</string>
+    <string name="device_sync_paired_device">Qoşalaşdırılmış cihaz</string>
+    <string name="sync_vivi_volume">VIVI səs səviyyəsini sinxronlaşdır</string>
+    <string name="sync_vivi_volume_desc">Tətbiqdaxili səs sürgüsünü bu telefon və VIVI Music DE arasında əks etdir. Hər cihazın pleyer səsini müstəqil saxlamaq üçün onu söndür.</string>
 </resources>

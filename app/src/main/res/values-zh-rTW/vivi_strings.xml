@@ -300,4 +300,19 @@
     <string name="tap_to_open">點擊開啟 vivimusic</string>
     <string name="persistent_shuffle_desc">在開始播放新歌曲或播放清單時，仍維持隨機播放狀態</string>
     <string name="persistent_shuffle_title">固定隨機播放</string>
+    <string name="devices">裝置</string>
+    <string name="device_sync">裝置同步</string>
+    <string name="device_sync_desc">將此手機與電腦上的 VIVI Music DE 配對，以同步設定、佇列和媒體庫。</string>
+    <string name="device_sync_server">中繼伺服器</string>
+    <string name="device_sync_discover">尋找桌面端</string>
+    <string name="device_sync_scan_qr">掃描 QR 碼</string>
+    <string name="device_sync_generate_code">產生代碼</string>
+    <string name="device_sync_join_code">來自電腦的 6 位代碼</string>
+    <string name="device_sync_pair">配對</string>
+    <string name="device_sync_unpair">取消配對</string>
+    <string name="device_sync_paired">已配對</string>
+    <string name="device_sync_not_paired">未配對</string>
+    <string name="device_sync_paired_device">已配對裝置</string>
+    <string name="sync_vivi_volume">同步 VIVI 音量</string>
+    <string name="sync_vivi_volume_desc">在此手機與 VIVI Music DE 之間鏡像應用內音量滑桿。停用它可讓每台裝置的播放器音量保持獨立。</string>
 </resources>

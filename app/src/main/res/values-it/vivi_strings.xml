@@ -639,4 +639,19 @@
     <string name="lyrics_romanize_hindi">Romanizza testo in hindi</string>
     <string name="lyrics_romanize_punjabi">Romanizza testo in punjabi</string>
     <string name="lyrics_romanize_as_main">Mostra i testi romanizzati come principali</string>
+    <string name="devices">Dispositivi</string>
+    <string name="device_sync">Sincronizzazione dispositivi</string>
+    <string name="device_sync_desc">Associa questo telefono a VIVI Music DE sul computer per sincronizzare impostazioni, coda e libreria.</string>
+    <string name="device_sync_server">Server relay</string>
+    <string name="device_sync_discover">Trova desktop</string>
+    <string name="device_sync_scan_qr">Scansiona codice QR</string>
+    <string name="device_sync_generate_code">Genera codice</string>
+    <string name="device_sync_join_code">Codice a 6 cifre dal computer</string>
+    <string name="device_sync_pair">Associa</string>
+    <string name="device_sync_unpair">Dissocia</string>
+    <string name="device_sync_paired">Associato</string>
+    <string name="device_sync_not_paired">Non associato</string>
+    <string name="device_sync_paired_device">Dispositivo associato</string>
+    <string name="sync_vivi_volume">Sincronizza volume VIVI</string>
+    <string name="sync_vivi_volume_desc">Rispecchia il cursore del volume dell\'app tra questo telefono e VIVI Music DE. Disattivalo per mantenere indipendente il volume del lettore di ogni dispositivo.</string>
 </resources>

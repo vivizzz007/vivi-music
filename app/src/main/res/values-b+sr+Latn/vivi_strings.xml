@@ -98,4 +98,19 @@
     <string name="new_mini_player_design">Novi dizajn mini-plejera</string>
     <string name="primary_color_style">Primarna boja</string>
     <string name="tertiary_color_style">Tercijalna boja</string>
+    <string name="devices">Uređaji</string>
+    <string name="device_sync">Sinhronizacija uređaja</string>
+    <string name="device_sync_desc">Uparite ovaj telefon sa VIVI Music DE na računaru da biste sinhronizovali podešavanja, red čekanja i biblioteku.</string>
+    <string name="device_sync_server">Relejni server</string>
+    <string name="device_sync_discover">Pronađi računar</string>
+    <string name="device_sync_scan_qr">Skeniraj QR kod</string>
+    <string name="device_sync_generate_code">Generiši kod</string>
+    <string name="device_sync_join_code">6-cifreni kod sa računara</string>
+    <string name="device_sync_pair">Upari</string>
+    <string name="device_sync_unpair">Prekini uparivanje</string>
+    <string name="device_sync_paired">Upareno</string>
+    <string name="device_sync_not_paired">Nije upareno</string>
+    <string name="device_sync_paired_device">Upareni uređaj</string>
+    <string name="sync_vivi_volume">Sinhronizuj VIVI jačinu zvuka</string>
+    <string name="sync_vivi_volume_desc">Ogledalno sinhronizuj klizač jačine zvuka u aplikaciji između ovog telefona i VIVI Music DE. Isključi ga da jačina zvuka svakog uređaja ostane nezavisna.</string>
 </resources>

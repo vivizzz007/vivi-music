@@ -344,4 +344,19 @@
     <string name="min_playback_duration_title">Minimalus atkūrimo laikas</string>
     <string name="min_playback_duration_description">Minimalus dainos ilgis, kurį reikia sugroti, kad ji būtų laikoma „sugrota“</string>
     <string name="percentage_format">%d%%</string>
+    <string name="devices">Įrenginiai</string>
+    <string name="device_sync">Įrenginių sinchronizavimas</string>
+    <string name="device_sync_desc">Susiekite šį telefoną su VIVI Music DE kompiuteryje, kad sinchronizuotumėte nustatymus, eilę ir biblioteką.</string>
+    <string name="device_sync_server">Relės serveris</string>
+    <string name="device_sync_discover">Rasti kompiuterį</string>
+    <string name="device_sync_scan_qr">Nuskaityti QR kodą</string>
+    <string name="device_sync_generate_code">Generuoti kodą</string>
+    <string name="device_sync_join_code">6 skaitmenų kodas iš kompiuterio</string>
+    <string name="device_sync_pair">Susieti</string>
+    <string name="device_sync_unpair">Atsieti</string>
+    <string name="device_sync_paired">Susieta</string>
+    <string name="device_sync_not_paired">Nesusieta</string>
+    <string name="device_sync_paired_device">Susietas įrenginys</string>
+    <string name="sync_vivi_volume">Sinchronizuoti VIVI garsumą</string>
+    <string name="sync_vivi_volume_desc">Veidrodinkite programos garsumo slankiklį tarp šio telefono ir VIVI Music DE. Išjunkite, kad kiekvieno įrenginio grotuvo garsumas liktų nepriklausomas.</string>
 </resources>

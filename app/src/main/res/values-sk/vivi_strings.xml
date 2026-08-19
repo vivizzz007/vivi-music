@@ -330,4 +330,19 @@
     <string name="show_less">Ukázať menej</string>
     <string name="about_artist">O umelcovi</string>
     <string name="enable">Povoliť</string>
+    <string name="devices">Zariadenia</string>
+    <string name="device_sync">Synchronizácia zariadení</string>
+    <string name="device_sync_desc">Spárujte tento telefón s VIVI Music DE v počítači a synchronizujte nastavenia, front a knižnicu.</string>
+    <string name="device_sync_server">Prenosový server</string>
+    <string name="device_sync_discover">Nájsť počítač</string>
+    <string name="device_sync_scan_qr">Naskenovať QR kód</string>
+    <string name="device_sync_generate_code">Vygenerovať kód</string>
+    <string name="device_sync_join_code">6-miestny kód z počítača</string>
+    <string name="device_sync_pair">Spárovať</string>
+    <string name="device_sync_unpair">Zrušiť párovanie</string>
+    <string name="device_sync_paired">Spárované</string>
+    <string name="device_sync_not_paired">Nespárované</string>
+    <string name="device_sync_paired_device">Spárované zariadenie</string>
+    <string name="sync_vivi_volume">Synchronizovať hlasitosť VIVI</string>
+    <string name="sync_vivi_volume_desc">Zrkadlite posuvník hlasitosti v aplikácii medzi týmto telefónom a VIVI Music DE. Vypnite ho, aby hlasitosť prehrávača každého zariadenia zostala nezávislá.</string>
 </resources>

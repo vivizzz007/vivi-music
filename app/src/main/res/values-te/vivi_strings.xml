@@ -82,4 +82,19 @@
     <string name="secondary_color_style">ద్వితీయ</string>
     <string name="default_style">డిఫాల్ట్</string>
     <string name="seek_seconds_addup_description">సక్రియమైనట్లయితే, ప్రతి సీక్ స్కిప్‌కి 5 అదనపు సెకండ్లను క్రమంగా జోడిస్తుంది</string>
+    <string name="devices">పరికరాలు</string>
+    <string name="device_sync">పరికర సమకాలీకరణ</string>
+    <string name="device_sync_desc">సెట్టింగ్లు, క్యూ మరియు లైబ్రరీని సమకాలీకరించడానికి ఈ ఫోన్ను మీ కంప్యూటర్లోని VIVI Music DEతో జత చేయండి.</string>
+    <string name="device_sync_server">రిలే సర్వర్</string>
+    <string name="device_sync_discover">డెస్క్టాప్ను కనుగొను</string>
+    <string name="device_sync_scan_qr">QR కోడ్ను స్కాన్ చేయండి</string>
+    <string name="device_sync_generate_code">కోడ్ను రూపొందించు</string>
+    <string name="device_sync_join_code">మీ కంప్యూటర్ నుండి 6 అంకెల కోడ్</string>
+    <string name="device_sync_pair">జత చేయి</string>
+    <string name="device_sync_unpair">జతను తొలగించు</string>
+    <string name="device_sync_paired">జత చేయబడింది</string>
+    <string name="device_sync_not_paired">జత చేయబడలేదు</string>
+    <string name="device_sync_paired_device">జత చేసిన పరికరం</string>
+    <string name="sync_vivi_volume">VIVI వాల్యూమ్ను సమకాలీకరించు</string>
+    <string name="sync_vivi_volume_desc">ఈ ఫోన్ మరియు VIVI Music DE మధ్య యాప్లోని వాల్యూమ్ స్లయిడర్ను ప్రతిబింబించండి. ప్రతి పరికరం యొక్క ప్లేయర్ వాల్యూమ్ స్వతంత్రంగా ఉంచడానికి దీన్ని నిలిపివేయండి.</string>
 </resources>
