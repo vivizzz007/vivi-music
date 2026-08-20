@@ -582,14 +582,14 @@ fun ExpressiveSongRow(
             )
         }
 
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
         // 3. Total Time (duration)
         Text(
             text = makeTimeString(song.song.duration * 1000L),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(end = 4.dp)
+            modifier = Modifier.offset(x = 4.dp)
         )
 
         // 4. Trailing Content (more_vert or Checkbox)
