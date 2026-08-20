@@ -313,10 +313,11 @@ fun LyricsV2(
                     contentAlignment = Alignment.TopCenter,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val topPadding = (maxHeight * 0.20f).coerceAtLeast(140.dp)
-                    val bottomPadding = (maxHeight * 0.65f) + contentPadding.calculateBottomPadding()
+                    val targetTopRatio = 0.32f
+                    val topPadding = (maxHeight * targetTopRatio) + contentPadding.calculateTopPadding()
+                    val bottomPadding = (maxHeight * (1f - targetTopRatio)) + contentPadding.calculateBottomPadding()
 
-                    // Smooth Spring Scroll Physics (Anchored to ~20% Top Viewport Position)
+                    // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
                     LaunchedEffect(currentLineIndex, isAutoScrollEnabled) {
                         if (currentLineIndex != -1 && isAutoScrollEnabled) {
                             val targetIndex = maxOf(0, currentLineIndex)
@@ -326,7 +327,7 @@ fun LyricsV2(
                                 if (itemInfo != null) {
                                     val viewportHeight =
                                         listState.layoutInfo.viewportEndOffset - listState.layoutInfo.viewportStartOffset
-                                    val targetTopOffset = viewportHeight * 0.20f
+                                    val targetTopOffset = viewportHeight * targetTopRatio
                                     val center =
                                         listState.layoutInfo.viewportStartOffset + targetTopOffset
                                     val itemCenter = itemInfo.offset + itemInfo.size / 2
