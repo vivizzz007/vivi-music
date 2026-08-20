@@ -40,6 +40,7 @@ import java.util.Locale
 fun ArtistVideo(
     videoUrl: String,
     modifier: Modifier = Modifier,
+    resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
     onClick: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -129,7 +130,7 @@ fun ArtistVideo(
             factory = { viewContext ->
                 AspectRatioFrameLayout(viewContext).apply {
                     layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
-                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                    this.resizeMode = resizeMode
 
                     val textureView = TextureView(viewContext).apply {
                         layoutParams = ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT)
@@ -137,6 +138,11 @@ fun ArtistVideo(
                     addView(textureView)
                     exoPlayer.setVideoTextureView(textureView)
                     setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                }
+            },
+            update = { view ->
+                if (view.resizeMode != resizeMode) {
+                    view.resizeMode = resizeMode
                 }
             },
             modifier = Modifier
