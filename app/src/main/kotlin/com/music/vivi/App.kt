@@ -33,6 +33,7 @@ import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.ViviPrefCache
+import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
@@ -70,15 +71,10 @@ class App : Application(), SingletonImageLoader.Factory {
         // Install crash handler first
         CrashHandler.install(this)
 
-        // Initialize cacheDir for YouTubeExtractor JS decipher caching
-        com.music.innertube.YouTubeExtractor.cacheDir = cacheDir
+        // Initialize cipher deobfuscator for WEB_REMIX streaming
+        CipherDeobfuscator.initialize(this)
 
         Timber.plant(Timber.DebugTree())
-
-        // Pre-warm decipher scripts in the background so first song plays instantly
-        applicationScope.launch(Dispatchers.IO) {
-            runCatching { com.music.innertube.YouTubeExtractor.ensureInitialized() }
-        }
 
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {

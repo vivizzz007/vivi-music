@@ -76,6 +76,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.strategy.ContentHints
 import com.music.lastfm.LastFM
 import com.music.vivi.MainActivity
 import com.music.vivi.R
@@ -132,6 +133,7 @@ import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
+import com.music.innertube.models.YouTubeClient
 import okhttp3.Dns
 import java.net.InetAddress
 import java.net.Inet4Address
@@ -392,7 +394,7 @@ class MusicService :
     private var prefetchJob: Job? = null
 
     // URL cache for stream URLs - class-level so it can be invalidated on errors
-    private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    private val songUrlCache = StreamUrlCache()
 
     private val sessionKey = java.util.UUID.randomUUID().toString()
     private fun cacheKey(mediaId: String) = "${sessionKey}:$mediaId"
@@ -638,7 +640,7 @@ class MusicService :
                     Timber.tag("MusicService").i("RELOADING STREAM: $mediaId at position ${currentPosition}ms")
 
                     // Clear cached URL to force fresh fetch
-                    songUrlCache.remove(mediaId)
+                    songUrlCache.invalidate(mediaId)
 
                     // CRITICAL: Clear caches synchronously to prevent format parsing errors
                     runBlocking(Dispatchers.IO) {
@@ -685,7 +687,7 @@ class MusicService :
                     val wasPlaying = player.isPlaying
 
                     // Clear cached URL
-                    songUrlCache.remove(mediaId)
+                    songUrlCache.invalidate(mediaId)
 
                     // Reload player
                     player.stop()
@@ -2049,7 +2051,7 @@ class MusicService :
 
         // Nothing to do — URL is already cached and hasn't expired
         val cachedEntry = songUrlCache[nextMediaId]
-        if (cachedEntry != null && cachedEntry.second > System.currentTimeMillis()) return
+        if (cachedEntry != null) return
 
         prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
             Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
@@ -2064,9 +2066,13 @@ class MusicService :
             result.getOrNull()?.getOrNull()?.let { playbackData ->
                 // Only write to cache if the job wasn't cancelled while we were resolving
                 if (isActive) {
-                    songUrlCache[nextMediaId] =
-                        playbackData.streamUrl to
-                            System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                    songUrlCache.put(
+                        mediaId = nextMediaId,
+                        url = playbackData.streamUrl,
+                        requestHeaders = playbackData.streamHeaders,
+                        clientName = playbackData.streamClient,
+                        expiresInSeconds = playbackData.streamExpiresInSeconds,
+                    )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
 
                     playbackData.format?.let { format ->
@@ -2484,7 +2490,7 @@ class MusicService :
         Timber.tag(TAG).d("Performing aggressive cache clear for $mediaId")
 
         // Clear URL cache
-        songUrlCache.remove(mediaId)
+        songUrlCache.invalidate(mediaId)
 
         // Clear player cache
         try {
@@ -2698,7 +2704,7 @@ class MusicService :
         incrementRetryCount(mediaId)
 
         // Clear the cached URL
-        songUrlCache.remove(mediaId)
+        songUrlCache.invalidate(mediaId)
         Timber.tag(TAG).d("Cleared cached URL for $mediaId")
 
         // Clear decryption caches
@@ -2833,6 +2839,12 @@ class MusicService :
     }
 
     private suspend fun performInstantSilenceSkip() {
+        if (player.playbackState == Player.STATE_BUFFERING || !player.isPlaying) {
+            val silenceProcessor = playerSilenceProcessors[player]
+            silenceProcessor?.resetTracking()
+            return
+        }
+
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: return
         if (duration <= INSTANT_SILENCE_SKIP_STEP_MS) return
 
@@ -2908,32 +2920,45 @@ class MusicService :
             val shouldBypassCache = bypassCacheForQualityChange.contains(mediaId)
 
             if (!shouldBypassCache) {
-                if (downloadCache.isCached(
-                        mediaId,
-                        dataSpec.position,
-                        if (dataSpec.length >= 0) dataSpec.length else 1
-                    ) ||
-                    playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
+                val contentLength = runBlocking(Dispatchers.IO) {
+                    database.song(mediaId).first()?.format?.contentLength
+                }
+                val requiredLength = when {
+                    dataSpec.length >= 0 -> dataSpec.length
+                    contentLength != null -> (contentLength - dataSpec.position).coerceAtLeast(1)
+                    else -> CHUNK_LENGTH
+                }
+
+                if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength) ||
+                    playerCache.isCached(mediaId, dataSpec.position, requiredLength)
                 ) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
+                songUrlCache[mediaId]?.let { cachedStream ->
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                    return@Factory dataSpec.withUri(it.first.toUri())
+                    return@Factory dataSpec
+                        .withUri(cachedStream.url.toUri())
+                        .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
                 }
             } else {
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
             }
 
+            val cacheGeneration = songUrlCache.generation(mediaId)
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData = runBlocking(Dispatchers.IO) {
+                val song = database.getSongByIdBlocking(mediaId)?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     context = this@MusicService,
+                    contentHints = ContentHints(
+                        isExplicit = song?.explicit,
+                        isUploaded = song?.isUploaded,
+                    ),
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -3007,9 +3032,23 @@ class MusicService :
 
                 val streamUrl = nonNullPlayback.streamUrl
 
-                songUrlCache[mediaId] =
-                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
-                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                songUrlCache.put(
+                    mediaId = mediaId,
+                    url = streamUrl,
+                    requestHeaders = nonNullPlayback.streamHeaders,
+                    clientName = nonNullPlayback.streamClient,
+                    expiresInSeconds = nonNullPlayback.streamExpiresInSeconds,
+                    expectedGeneration = cacheGeneration,
+                )
+
+                val cachedStream = songUrlCache[mediaId]
+                if (cachedStream != null) {
+                    return@Factory dataSpec
+                        .withUri(cachedStream.url.toUri())
+                        .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
+                }
+
+                return@Factory dataSpec.withUri(streamUrl.toUri())
             }
         }
     }
@@ -3340,6 +3379,8 @@ class MusicService :
         reason: Int
     ) {
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
+            silenceSkipJob?.cancel()
+            playerSilenceProcessors[player]?.resetTracking()
             scheduleCrossfade()
         }
     }
