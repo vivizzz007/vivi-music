@@ -492,7 +492,7 @@ fun ExpressiveSongRow(
             .padding(horizontal = 16.dp)
             .clip(shape)
             .background(backgroundColor)
-            .padding(horizontal = 16.dp)
+            .padding(start = 12.dp, end = 4.dp)
     ) {
         // 1. Thumbnail, index number or visualizer on the left
         if (expressiveSongAlbumImage) {
@@ -589,7 +589,7 @@ fun ExpressiveSongRow(
             text = makeTimeString(song.song.duration * 1000L),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier.padding(end = 4.dp)
         )
 
         // 4. Trailing Content (more_vert or Checkbox)
