@@ -241,13 +241,13 @@ fun AppleMiniPlayer(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 8.dp),
+                modifier = Modifier.fillMaxSize().padding(horizontal = 8.dp, vertical = 5.dp),
             ) {
                 // Cookie 4-Sided Thumbnail
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(54.dp)
                         .clip(MaterialShapes.Cookie4Sided.toShape())
                         .background(color = outlineColor.copy(alpha = 0.2f))
                 ) {
