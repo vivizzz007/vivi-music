@@ -242,6 +242,7 @@ fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    subtitleColor: Color = Color.Unspecified,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -250,7 +251,7 @@ fun ListItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                color = if (subtitleColor != Color.Unspecified) subtitleColor else MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -1091,6 +1092,7 @@ fun MediaMetadataListItem(
     isPlaying: Boolean = false,
     shape: Shape = RectangleShape,
     backgroundColor: Color = Color.Unspecified,
+    subtitleColor: Color = Color.Unspecified,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     ListItem(
@@ -1129,7 +1131,8 @@ fun MediaMetadataListItem(
         modifier = modifier,
         isActive = isActive,
         shape = shape,
-        backgroundColor = backgroundColor
+        backgroundColor = backgroundColor,
+        subtitleColor = subtitleColor
     )
 }
 
