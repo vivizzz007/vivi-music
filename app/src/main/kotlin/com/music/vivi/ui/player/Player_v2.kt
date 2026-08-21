@@ -468,15 +468,7 @@ fun PlayerV2(
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
 
-                                        // CastButton — mirrors Thumbnail.kt ThumbnailHeader
-                                        if (enableGoogleCast) {
-                                            CastButton(
-                                                modifier = Modifier.size(24.dp),
-                                                tintColor = adaptivePrimary
-                                            )
-                                            Spacer(modifier = Modifier.width(8.dp))
-                                        }
-        
+
                                         Box(
                                             modifier = Modifier
                                                 .size(40.dp)
