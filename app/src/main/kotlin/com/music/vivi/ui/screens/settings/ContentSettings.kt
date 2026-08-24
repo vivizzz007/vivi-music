@@ -73,6 +73,7 @@ import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.EnablePaxsenixKey
+import com.music.vivi.constants.EnableUnisonKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -152,6 +153,7 @@ fun ContentSettings(
     val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
+    val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
     val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(
         key = LyricsProviderOrderKey,
         defaultValue = "",
@@ -361,7 +363,7 @@ fun ContentSettings(
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "SimpMusic", "LrcLib", "Kugou")
+        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "SimpMusic", "LrcLib", "Kugou", "Unison")
         val enabledProviders = setOfNotNull(
             "LrcLib".takeIf { enableLrclib },
             "Kugou".takeIf { enableKugou },
@@ -370,6 +372,7 @@ fun ContentSettings(
             "SimpMusic".takeIf { enableSimpMusic },
             "YouLyPlus".takeIf { enableYouLyPlus },
             "Paxsenix".takeIf { enablePaxsenix },
+            "Unison".takeIf { enableUnison },
         )
 
         // Build a normalized order: saved order first (only known providers), then any missing ones
@@ -1106,6 +1109,29 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnablePaxsenixChange(!enablePaxsenix) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text("Unison") },
+                    description = { Text("Crowdsourced community lyrics with voting & confidence scores") },
+                    trailingContent = {
+                        Switch(
+                            checked = enableUnison,
+                            onCheckedChange = onEnableUnisonChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableUnison) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableUnisonChange(!enableUnison) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),

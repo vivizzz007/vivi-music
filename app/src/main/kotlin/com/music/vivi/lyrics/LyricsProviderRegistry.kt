@@ -21,6 +21,7 @@ object LyricsProviderRegistry {
         "SimpMusic"       to SimpMusicLyricsProvider,
         "LrcLib"          to LrcLibLyricsProvider,
         "Kugou"           to KuGouLyricsProvider,
+        "Unison"          to UnisonLyricsProvider,
         "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
         "YouTubeMusic"    to YouTubeLyricsProvider,
     )
@@ -45,6 +46,7 @@ object LyricsProviderRegistry {
         "SimpMusic",
         "LrcLib",
         "Kugou",
+        "Unison",
         "YouTubeSubtitle",
         "YouTubeMusic",
     )
@@ -61,6 +63,7 @@ object LyricsProviderRegistry {
         PreferredLyricsProvider.SIMPMUSIC     -> "SimpMusic"
         PreferredLyricsProvider.YOULYPLUS     -> "YouLyPlus"
         PreferredLyricsProvider.PAXSENIX      -> "Paxsenix"
+        PreferredLyricsProvider.UNISON        -> "Unison"
     }
 
     /** Returns the human-readable display name for a registry provider key. */
@@ -72,6 +75,7 @@ object LyricsProviderRegistry {
         "SimpMusic"       -> "SimpMusic"
         "LrcLib"          -> "LrcLib"
         "Kugou"           -> "KuGou"
+        "Unison"          -> "Unison"
         "YouTubeSubtitle" -> "YouTube Subtitle"
         "YouTubeMusic"    -> "YouTube Music"
         else              -> name
