@@ -41,6 +41,7 @@ import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.VisitorDataKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -87,7 +88,7 @@ fun LoginScreen(
 
                                 // Initialize YouTube object with new authentication data
                                 YouTube.cookie = innerTubeCookie
-                                YouTube.dataSyncId = dataSyncId
+                                YouTube.dataSyncId = normalizeDataSyncId(dataSyncId)
                                 YouTube.visitorData = visitorData
 
                                 Timber.d("Login: YouTube object initialized, validating...")
@@ -137,7 +138,7 @@ fun LoginScreen(
                     @JavascriptInterface
                     fun onRetrieveDataSyncId(newDataSyncId: String?) {
                         if (newDataSyncId != null) {
-                            dataSyncId = newDataSyncId.substringBefore("||")
+                            dataSyncId = newDataSyncId
                         }
                     }
                 }, "Android")
