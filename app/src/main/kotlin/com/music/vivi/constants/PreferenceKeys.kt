@@ -445,7 +445,6 @@ enum class PreferredLyricsProvider {
     KUGOU,
     BETTER_LYRICS,
     MUSIXMATCH,
-    SIMPMUSIC,
     YOULYPLUS,
     PAXSENIX,
     UNISON,
