@@ -60,7 +60,7 @@ import kotlinx.coroutines.delay
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.menu.LyricsMenu
-import com.music.vivi.ui.menu.PlayerMenu
+import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
@@ -497,7 +497,7 @@ fun PlayerV2(
                                         IconButton(
                                             onClick = {
                                                 menuState.show {
-                                                    PlayerMenu(
+                                                    OldPlayerMenu(
                                                         mediaMetadata = mediaMetadata,
                                                         navController = navController,
                                                         playerBottomSheetState = state,
@@ -611,7 +611,7 @@ fun PlayerV2(
                                             onClick = {
                                                 if (targetState == PlayerInternalState.QUEUE) {
                                                     menuState.show {
-                                                        PlayerMenu(
+                                                        OldPlayerMenu(
                                                             mediaMetadata = mediaMetadata,
                                                             navController = navController,
                                                             playerBottomSheetState = state,
