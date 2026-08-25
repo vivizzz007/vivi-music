@@ -546,6 +546,7 @@ fun PlayerV2(
                                             )
                                             .background(adaptiveSurface, RoundedCornerShape(8.dp))
                                             .clip(RoundedCornerShape(8.dp))
+                                            .clickable { playerState = PlayerInternalState.COVER }
                                     ) {
                                         AsyncImage(
                                             model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
