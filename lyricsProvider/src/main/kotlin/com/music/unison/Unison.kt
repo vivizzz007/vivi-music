@@ -117,12 +117,12 @@ object Unison {
      * - LRC / plain → returned as-is
      */
     private fun convertLyrics(raw: String, format: String?): String {
-        return when (format?.lowercase()) {
-            "ttml" -> {
-                val parsed = TTMLParser.parseTTML(raw)
-                if (parsed.isNotEmpty()) TTMLParser.toLRC(parsed) else raw
-            }
-            else -> raw
+        val isTtml = format?.lowercase() == "ttml" || raw.trimStart().startsWith("<tt", ignoreCase = true)
+        return if (isTtml) {
+            val parsed = TTMLParser.parseTTML(raw)
+            if (parsed.isNotEmpty()) TTMLParser.toLRC(parsed) else raw
+        } else {
+            raw
         }
     }
 
