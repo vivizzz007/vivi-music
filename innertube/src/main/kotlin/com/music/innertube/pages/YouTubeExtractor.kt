@@ -193,7 +193,7 @@ object YouTubeExtractor {
         // ── Cache miss: resolve player JS URL from network ──
         println("[YouTubeExtractor] Cache miss — resolving YouTube player JS URL...")
         val iframeApi = fetchUrl("https://www.youtube.com/iframe_api")
-        val hashMatch = Regex("""player\/([a-z0-9]{8})\/""").find(iframeApi)
+        val hashMatch = Regex("""player\\?/([a-z0-9]{8})\\?/""").find(iframeApi)
         val playerJsUrl = if (hashMatch != null) {
             val url = "https://www.youtube.com/s/player/${hashMatch.groupValues[1]}/player_ias.vflset/en_GB/base.js"
             println("[YouTubeExtractor] Found player JS URL via iframe_api: $url")
@@ -201,9 +201,9 @@ object YouTubeExtractor {
         } else {
             println("[YouTubeExtractor] iframe_api regex match failed. Trying watch embed fallback...")
             val embedPage = fetchUrl("https://www.youtube.com/embed/dQw4w9WgXcQ")
-            val embedMatch = Regex(""""jsUrl":"(/s/player/[A-Za-z0-9]+/player_ias\.vflset/[A-Za-z_-]+/base\.js)"""").find(embedPage)
+            val embedMatch = Regex(""""jsUrl":"/s/player/([A-Za-z0-9]{8})/""").find(embedPage)
             if (embedMatch != null) {
-                val url = "https://www.youtube.com" + embedMatch.groupValues[1]
+                val url = "https://www.youtube.com/s/player/${embedMatch.groupValues[1]}/player_ias.vflset/en_GB/base.js"
                 println("[YouTubeExtractor] Found player JS URL via embed page fallback: $url")
                 url
             } else {

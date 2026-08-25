@@ -53,9 +53,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import java.time.LocalDateTime
+import java.util.Collections
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
+import timber.log.Timber
 
 @Singleton
 class DownloadUtil
@@ -70,7 +72,13 @@ constructor(
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
     private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
-    private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    private val songUrlCache = Collections.synchronizedMap(
+        object : LinkedHashMap<String, Pair<String, Long>>(0, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<String, Long>>): Boolean {
+                return size > 500
+            }
+        }
+    )
     // Keep a reference to context so we can read DataStore prefs for JioSaavn support
     private val appContext: Context = context
 
@@ -115,19 +123,29 @@ constructor(
                 return@Factory dataSpec
             }
 
-            songUrlCache[mediaId]?.takeIf { it.second < System.currentTimeMillis() }?.let {
+            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
                 return@Factory dataSpec.withUri(it.first.toUri())
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {
-                YTPlayerUtils.playerResponseForPlayback(
+                suspend fun resolve() = YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     // Pass context so the JioSaavn intercept fires when the toggle is ON
                     context = appContext,
-                )
-            }.getOrThrow()
+                ).getOrThrow()
+
+                try {
+                    resolve()
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.tag("DownloadUtil").w(e, "Resolve failed for $mediaId, invalidating URL cache and retrying once")
+                    songUrlCache.remove(mediaId)
+                    resolve()
+                }
+            }
             val format = playbackData.format
 
             database.query {
@@ -185,10 +203,14 @@ constructor(
             val streamUrl = if (playbackData.isSaavnStream) {
                 playbackData.streamUrl
             } else {
-                "${playbackData.streamUrl}&range=0-${format.contentLength ?: 10_000_000}"
+                playbackData.streamUrl.toUri().buildUpon()
+                    .appendQueryParameter("range", "0-${format.contentLength ?: 10_000_000}")
+                    .build()
+                    .toString()
             }
 
-            songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L
+            songUrlCache[mediaId] = streamUrl to
+                (System.currentTimeMillis() + playbackData.streamExpiresInSeconds * 1000L)
             dataSpec.withUri(streamUrl.toUri())
         }
 

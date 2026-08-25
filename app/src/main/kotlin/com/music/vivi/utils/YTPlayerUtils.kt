@@ -32,6 +32,7 @@ import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.utils.YTPlayerUtils.MAIN_CLIENT
 import com.music.vivi.utils.YTPlayerUtils.STREAM_FALLBACK_CLIENTS
 import com.music.vivi.utils.YTPlayerUtils.validateStatus
+import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.potoken.PoTokenGenerator
 import com.music.vivi.utils.potoken.PoTokenResult
 import com.music.vivi.utils.PlaybackLogLevel
@@ -50,6 +51,8 @@ import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
 import java.io.IOException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -86,7 +89,9 @@ object YTPlayerUtils {
         .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
-    private val poTokenGenerator = PoTokenGenerator()
+    internal val poTokenGenerator = PoTokenGenerator()
+
+    private val selfHealScope = CoroutineScope(SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
 
     /**
      * Client used for fast, low-latency stream resolution.
@@ -605,7 +610,9 @@ object YTPlayerUtils {
                 if (currentClient.useWebPoTokens) {
                     try {
                         Timber.tag(logTag).d("Applying n-transform to stream URL for ${currentClient.clientName}")
-                        val transformed = com.music.innertube.YouTubeExtractor.deobfuscateUrlNParam(streamUrl!!)
+                        val cipherTransformed = runCatching { CipherDeobfuscator.transformNParamInUrl(streamUrl!!) }.getOrNull()
+                        val transformed = cipherTransformed?.takeIf { it != streamUrl }
+                            ?: com.music.innertube.YouTubeExtractor.deobfuscateUrlNParam(streamUrl!!)
                         if (transformed != streamUrl) {
                             streamUrl = transformed
                             Timber.tag(logTag).d("N-transform applied successfully")
@@ -665,9 +672,10 @@ object YTPlayerUtils {
                     if (currentClient.useWebPoTokens) {
                         var nTransformWorked = false
 
-                        // Try YouTubeExtractor n-transform
                         try {
-                            val nTransformed = com.music.innertube.YouTubeExtractor.deobfuscateUrlNParam(streamUrl!!)
+                            val nTransformed = runCatching { CipherDeobfuscator.transformNParamInUrl(streamUrl!!) }.getOrNull()
+                                ?.takeIf { it != streamUrl }
+                                ?: com.music.innertube.YouTubeExtractor.deobfuscateUrlNParam(streamUrl!!)
                             if (nTransformed != streamUrl) {
                                 Timber.tag(logTag).d("YouTubeExtractor n-transform applied, re-validating...")
                                 if (validateStatus(nTransformed)) {
@@ -858,6 +866,11 @@ object YTPlayerUtils {
         val signatureCipher = format.signatureCipher ?: format.cipher
         if (!signatureCipher.isNullOrEmpty()) {
             Timber.tag(logTag).d("Format has signatureCipher, using custom deobfuscation")
+            val cipherUrl = runCatching { CipherDeobfuscator.deobfuscateStreamUrl(signatureCipher, videoId) }.getOrNull()
+            if (!cipherUrl.isNullOrEmpty()) {
+                Timber.tag(logTag).d("Stream URL obtained via CipherDeobfuscator")
+                return cipherUrl
+            }
             val customDeobfuscatedUrl = com.music.innertube.YouTubeExtractor.decryptUrl(signatureCipher)
             if (customDeobfuscatedUrl.isNotEmpty()) {
                 Timber.tag(logTag).d("Stream URL obtained via custom cipher deobfuscation")
@@ -908,5 +921,6 @@ object YTPlayerUtils {
 
     fun forceRefreshForVideo(videoId: String) {
         Timber.tag(logTag).d("Force refreshing for videoId: $videoId")
+        selfHealScope.launch { runCatching { CipherDeobfuscator.forceRefreshConfig() } }
     }
 }

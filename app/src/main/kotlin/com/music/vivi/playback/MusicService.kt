@@ -2425,6 +2425,7 @@ class MusicService :
 
         // Aggressive cache clearing for all playback errors
         if (mediaId != null) {
+            player.stop()
             performAggressiveCacheClear(mediaId)
         }
 
