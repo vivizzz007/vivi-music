@@ -35,6 +35,7 @@ import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.ViviPrefCache
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -169,11 +170,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 .map { it[DataSyncIdKey] }
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
-                    YouTube.dataSyncId = dataSyncId?.let {
-                        it.takeIf { !it.contains("||") }
-                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
-                            ?: it.substringAfter("||")
-                    }
+                    YouTube.dataSyncId = normalizeDataSyncId(dataSyncId)
                 }
         }
 
