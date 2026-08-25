@@ -59,7 +59,7 @@ object TTMLParser {
             val builder = factory.newDocumentBuilder()
             val doc = builder.parse(ttml.byteInputStream())
             
-            val pElements = doc.getElementsByTagName("p")
+            val pElements = doc.getElementsByTagNameNS("*", "p")
             
             for (i in 0 until pElements.length) {
                 val pElement = pElements.item(i) as? Element ?: continue
@@ -82,7 +82,7 @@ object TTMLParser {
                     when (node.nodeType) {
                         Node.ELEMENT_NODE -> {
                             val span = node as? Element
-                            if (span?.tagName?.lowercase() == "span") {
+                            if (span?.localName?.lowercase() == "span") {
                                 // Check for background vocal role (ttm:role="x-bg")
                                 val role = span.getAttributeByLocalName("role")
                                 
@@ -167,7 +167,7 @@ object TTMLParser {
             val node = childNodes.item(j)
             if (node.nodeType == Node.ELEMENT_NODE) {
                 val innerSpan = node as? Element
-                if (innerSpan?.tagName?.lowercase() == "span") {
+                if (innerSpan?.localName?.lowercase() == "span") {
                     val role = innerSpan.getAttributeByLocalName("role")
                     
                     // Skip translation and romanization spans
@@ -228,7 +228,7 @@ object TTMLParser {
                 val role = el?.getAttributeByLocalName("role") ?: ""
                 // Skip background, translation, and romanization spans
                 if (role != "x-bg" && role != "x-translation" && role != "x-roman") {
-                    if (el?.tagName?.lowercase() == "span") {
+                    if (el?.localName?.lowercase() == "span") {
                         sb.append(el.textContent ?: "")
                     }
                 }
