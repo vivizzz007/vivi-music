@@ -70,7 +70,6 @@ import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableMusixmatchKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
-import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.EnablePaxsenixKey
 import com.music.vivi.constants.EnableUnisonKey
@@ -150,7 +149,6 @@ fun ContentSettings(
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
-    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
@@ -363,13 +361,12 @@ fun ContentSettings(
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "SimpMusic", "LrcLib", "Kugou", "Unison")
+        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "Kugou", "Unison")
         val enabledProviders = setOfNotNull(
             "LrcLib".takeIf { enableLrclib },
             "Kugou".takeIf { enableKugou },
             "BetterLyrics".takeIf { enableBetterLyrics },
             "Musixmatch".takeIf { enableMusixmatch },
-            "SimpMusic".takeIf { enableSimpMusic },
             "YouLyPlus".takeIf { enableYouLyPlus },
             "Paxsenix".takeIf { enablePaxsenix },
             "Unison".takeIf { enableUnison },
@@ -1040,29 +1037,6 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableMusixmatchChange(!enableMusixmatch) },
-                    isExpressive = true,
-                    descriptionBelow = true
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
-                    title = { Text(stringResource(R.string.enable_simpmusic)) },
-                    description = { Text(stringResource(R.string.enable_simpmusic_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = enableSimpMusic,
-                            onCheckedChange = onEnableSimpMusicChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (enableSimpMusic) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onEnableSimpMusicChange(!enableSimpMusic) },
                     isExpressive = true,
                     descriptionBelow = true
                 ),
