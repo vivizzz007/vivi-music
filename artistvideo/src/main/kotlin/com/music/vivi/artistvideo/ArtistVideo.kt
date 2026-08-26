@@ -88,17 +88,10 @@ fun ArtistVideo(
 
     LaunchedEffect(videoUrl, exoPlayer) {
         val normalized = videoUrl.trim()
-        val mimeType =
-            when {
-                normalized.lowercase(Locale.ROOT).contains("m3u8") -> MimeTypes.APPLICATION_M3U8
-                normalized.lowercase(Locale.ROOT).contains("mp4") -> MimeTypes.VIDEO_MP4
-                else -> MimeTypes.APPLICATION_M3U8
-            }
 
         val mediaItem =
             MediaItem.Builder()
                 .setUri(normalized)
-                .setMimeType(mimeType)
                 .build()
 
         exoPlayer.stop()
