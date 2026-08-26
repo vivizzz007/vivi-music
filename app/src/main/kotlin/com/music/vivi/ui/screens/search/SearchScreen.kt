@@ -39,12 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabPosition
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.Composable
@@ -90,32 +85,15 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.viewmodels.MoodAndGenresViewModel
-import com.music.vivi.viewmodels.ExploreViewModel
 import com.music.vivi.ui.screens.search.suggestions.SuggestionsTabContent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
-import androidx.compose.runtime.collectAsState
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
-import com.music.vivi.ui.component.LocalMenuState
-import com.music.vivi.ui.component.YouTubeGridItem
-import com.music.vivi.ui.menu.YouTubeAlbumMenu
-import com.music.vivi.constants.GridThumbnailHeight
-import com.music.vivi.constants.GridItemsSizeKey
-import com.music.vivi.constants.GridItemSize
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -139,7 +117,6 @@ fun SearchScreen(
     val pauseSearchHistory by rememberPreference(PauseSearchHistoryKey, defaultValue = false)
     var isFirstLaunch by rememberSaveable { mutableStateOf(true) }
     
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
     var searchActive by rememberSaveable { mutableStateOf(false) }
     var showSearchContent by remember { mutableStateOf(false) }
 
@@ -342,57 +319,7 @@ fun SearchScreen(
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = !searchActive,
-                    enter = expandVertically(animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing)) + fadeIn(),
-                    exit = shrinkVertically(animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing)) + fadeOut()
-                ) {
-                    Column {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        SecondaryTabRow(
-                            selectedTabIndex = selectedTabIndex,
-                            containerColor = Color.Transparent,
-                            indicator = {
-                                Box(
-                                    modifier = Modifier
-                                        .tabIndicatorOffset(selectedTabIndex)
-                                        .fillMaxWidth(),
-                                    contentAlignment = Alignment.BottomCenter
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(32.dp)
-                                            .height(3.dp)
-                                            .clip(RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp))
-                                            .background(MaterialTheme.colorScheme.primary)
-                                    )
-                                }
-                            }
-                        ) {
-                            Tab(
-                                selected = selectedTabIndex == 0,
-                                onClick = { selectedTabIndex = 0 },
-                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                text = { Text(stringResource(R.string.tab_explore)) }
-                            )
-                            Tab(
-                                selected = selectedTabIndex == 1,
-                                onClick = { selectedTabIndex = 1 },
-                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                text = { Text(stringResource(R.string.tab_Suggestions)) }
-                            )
-                            Tab(
-                                selected = selectedTabIndex == 2,
-                                onClick = { selectedTabIndex = 2 },
-                                selectedContentColor = MaterialTheme.colorScheme.primary,
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                text = { Text(stringResource(R.string.tab_album)) }
-                            )
-                        }
-                    }
-                }
+
             }
         },
         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
@@ -406,11 +333,7 @@ fun SearchScreen(
         ) {
             if (!searchActive) {
                 val tabPadding = PaddingValues(bottom = bottomPadding)
-                when (selectedTabIndex) {
-                    0 -> ExploreTabContent(navController = navController, contentPadding = tabPadding)
-                    1 -> SuggestionsTabContent(navController = navController, contentPadding = tabPadding)
-                    2 -> AlbumsTabContent(navController = navController, contentPadding = tabPadding)
-                }
+                SuggestionsTabContent(navController = navController, contentPadding = tabPadding)
             }
         }
     }
@@ -452,147 +375,6 @@ fun SearchScreen(
         
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-}
-
-@Composable
-fun ExploreTabContent(
-    navController: NavController,
-    viewModel: MoodAndGenresViewModel = hiltViewModel(),
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-) {
-    val moodAndGenresList by viewModel.moodAndGenres.collectAsState()
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = contentPadding
-    ) {
-        moodAndGenresList?.forEach { section ->
-            item {
-                NavigationTitle(title = section.title)
-            }
-            // chunk items into rows of 2
-            val rows = section.items.chunked(2)
-            items(rows) { row ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 6.dp)
-                ) {
-                    row.forEach { item ->
-                        Box(
-                            contentAlignment = Alignment.CenterStart,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(6.dp)
-                                .height(64.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.surfaceContainer)
-                                .clickable {
-                                    navController.navigate(
-                                        "youtube_browse/${item.endpoint.browseId}?params=${item.endpoint.params}"
-                                    )
-                                }
-                                .padding(horizontal = 14.dp)
-                        ) {
-                            Text(
-                                text = item.title,
-                                style = MaterialTheme.typography.labelLarge,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                    // fill empty slot if row has only 1 item
-                    repeat(2 - row.size) {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-            }
-        }
-
-        if (moodAndGenresList == null) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularWavyProgressIndicator()
-                }
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-    }
-}
-
-@Composable
-fun AlbumsTabContent(
-    navController: NavController,
-    viewModel: ExploreViewModel = hiltViewModel(),
-    contentPadding: PaddingValues = PaddingValues(0.dp)
-) {
-    val menuState = LocalMenuState.current
-    val haptic = LocalHapticFeedback.current
-    val playerConnection = LocalPlayerConnection.current
-    val mediaMetadata by (playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) })
-    val isPlaying by (playerConnection?.isEffectivelyPlaying?.collectAsState() ?: remember { mutableStateOf(false) })
-    val coroutineScope = rememberCoroutineScope()
-    
-    val explorePage by viewModel.explorePage.collectAsState()
-    val newReleaseAlbums = explorePage?.newReleaseAlbums
-
-    val gridItemSize by rememberEnumPreference(GridItemsSizeKey, GridItemSize.BIG)
-
-    if (newReleaseAlbums == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularWavyProgressIndicator()
-        }
-    } else {
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(minSize = GridThumbnailHeight + if (gridItemSize == GridItemSize.BIG) 24.dp else (-24).dp),
-            contentPadding = PaddingValues(
-                start = 12.dp,
-                top = 12.dp,
-                end = 12.dp,
-                bottom = 12.dp + contentPadding.calculateBottomPadding()
-            ),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(
-                items = newReleaseAlbums.distinctBy { it.id },
-                key = { it.id }
-            ) { album ->
-                YouTubeGridItem(
-                    item = album,
-                    isActive = mediaMetadata?.album?.id == album.id,
-                    isPlaying = isPlaying,
-                    coroutineScope = coroutineScope,
-                    fillMaxWidth = true,
-                    modifier = Modifier
-                        .combinedClickable(
-                            onClick = {
-                                navController.navigate("album/${album.id}")
-                            },
-                            onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                menuState.show {
-                                    YouTubeAlbumMenu(
-                                        albumItem = album,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss,
-                                    )
-                                }
-                            },
-                        )
-                )
-            }
         }
     }
 }
