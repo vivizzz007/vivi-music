@@ -26,8 +26,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.width
@@ -95,7 +95,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 
-@OptIn(ExperimentalMaterial3Api::class)
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
@@ -118,28 +120,16 @@ fun SearchScreen(
     var isFirstLaunch by rememberSaveable { mutableStateOf(true) }
     
     var searchActive by rememberSaveable { mutableStateOf(false) }
-    var showSearchContent by remember { mutableStateOf(false) }
-
-    LaunchedEffect(searchActive) {
-        if (searchActive) {
-            // Small delay to let the initial expansion animation run smoothly
-            // before composing the potentially heavy search results/history
-            kotlinx.coroutines.delay(100)
-            showSearchContent = true
-        } else {
-            showSearchContent = false
-        }
-    }
 
     val searchBarHorizontalPadding by animateDpAsState(
         targetValue = if (searchActive) 0.dp else 16.dp,
-        animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "SearchBarHorizontalPadding"
     )
-    val searchBarTopPadding by animateDpAsState(
+    val searchBarVerticalPadding by animateDpAsState(
         targetValue = if (searchActive) 0.dp else 8.dp,
-        animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing),
-        label = "SearchBarTopPadding"
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "SearchBarVerticalPadding"
     )
 
     val onSearch: (String) -> Unit = remember {
@@ -220,11 +210,7 @@ fun SearchScreen(
 
     Scaffold(
         topBar = {
-            Column(
-                modifier = Modifier
-                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
-            ) {
-                SearchBar(
+            SearchBar(
                     query = query.text,
                     onQueryChange = { query = TextFieldValue(it) },
                     onSearch = { 
@@ -294,33 +280,28 @@ fun SearchScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = searchBarHorizontalPadding)
-                        .padding(top = searchBarTopPadding)
+                        .padding(vertical = searchBarVerticalPadding)
                 ) {
-                    if (showSearchContent) {
-                        when (searchSource) {
-                            SearchSource.LOCAL -> LocalSearchScreen(
-                                query = query.text,
-                                navController = navController,
-                                onDismiss = { searchActive = false },
-                                pureBlack = pureBlack
-                            )
-                            SearchSource.ONLINE -> OnlineSearchScreen(
-                                query = query.text,
-                                onQueryChange = { query = it },
-                                navController = navController,
-                                onSearch = {
-                                    onSearchFromSuggestion(it)
-                                    searchActive = false
-                                },
-                                onDismiss = { searchActive = false },
-                                pureBlack = pureBlack
-                            )
-                        }
+                    when (searchSource) {
+                        SearchSource.LOCAL -> LocalSearchScreen(
+                            query = query.text,
+                            navController = navController,
+                            onDismiss = { searchActive = false },
+                            pureBlack = pureBlack
+                        )
+                        SearchSource.ONLINE -> OnlineSearchScreen(
+                            query = query.text,
+                            onQueryChange = { query = it },
+                            navController = navController,
+                            onSearch = {
+                                onSearchFromSuggestion(it)
+                                searchActive = false
+                            },
+                            onDismiss = { searchActive = false },
+                            pureBlack = pureBlack
+                        )
                     }
                 }
-
-
-            }
         },
         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -331,10 +312,8 @@ fun SearchScreen(
                 .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
-            if (!searchActive) {
-                val tabPadding = PaddingValues(bottom = bottomPadding)
-                SuggestionsTabContent(navController = navController, contentPadding = tabPadding)
-            }
+            val tabPadding = PaddingValues(bottom = bottomPadding)
+            SuggestionsTabContent(navController = navController, contentPadding = tabPadding)
         }
     }
 

@@ -118,6 +118,7 @@ import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
+import com.music.vivi.db.entities.EventWithSong
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
@@ -1406,6 +1407,49 @@ fun LocalAlbumsGrid(
     fillMaxWidth = fillMaxWidth,
     modifier = modifier
 )
+
+@Composable
+fun RecentSearchGridItem(
+    event: EventWithSong,
+    modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+) {
+    Column(
+        modifier = modifier
+            .padding(4.dp)
+            .width(96.dp)
+    ) {
+        BoxWithConstraints(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+        ) {
+            ItemThumbnail(
+                thumbnailUrl = event.song.song.thumbnailUrl,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = RoundedCornerShape(ThumbnailCornerRadius),
+                modifier = Modifier.fillMaxSize()
+            )
+            if (!isActive) {
+                OverlayPlayButton(visible = true)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = event.song.song.title,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.basicMarquee().fillMaxWidth()
+        )
+    }
+}
 
 @Composable
 fun ItemThumbnail(

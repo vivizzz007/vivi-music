@@ -26,7 +26,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import com.music.vivi.db.entities.EventWithSong
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -44,49 +47,66 @@ constructor(
 
     init {
         viewModelScope.launch {
-            query
-                .flatMapLatest { query ->
-                    if (query.isEmpty()) {
-                        database.searchHistory().map { history ->
-                            SearchSuggestionViewState(
-                                history = history,
-                            )
-                        }
-                    } else {
-                        val parsedUrl = YouTubeUrlParser.parse(query)
-                        val parsedItem = if (parsedUrl != null) fetchParsedUrlItem(parsedUrl) else null
-                        
-                        val result = if (parsedUrl != null) null else YouTube.searchSuggestions(query).getOrNull()
-                        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-                        val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-
-                        database
-                            .searchHistory(query)
-                            .map { it.take(3) }
-                            .map { history ->
+            combine(
+                query
+                    .flatMapLatest { query ->
+                        if (query.isEmpty()) {
+                            database.searchHistory().map { history ->
                                 SearchSuggestionViewState(
                                     history = history,
-                                    suggestions =
-                                    result
-                                        ?.queries
-                                        ?.filter { suggestionQuery ->
-                                            history.none { it.query == suggestionQuery }
-                                        }.orEmpty(),
-                                    items = listOfNotNull(parsedItem) +
-                                    result
-                                        ?.recommendedItems
-                                        ?.distinctBy { it.id }
-                                        ?.filter { it.id != parsedItem?.id }
-                                        ?.filterExplicit(hideExplicit)
-                                        ?.filterVideoSongs(hideVideoSongs)
-                                        .orEmpty(),
-                                    isFromLink = parsedUrl != null
                                 )
                             }
+                        } else {
+                            val parsedUrl = YouTubeUrlParser.parse(query)
+                            val parsedItem = if (parsedUrl != null) fetchParsedUrlItem(parsedUrl) else null
+                            
+                            val result = if (parsedUrl != null) null else YouTube.searchSuggestions(query).getOrNull()
+                            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                            val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+
+                            database
+                                .searchHistory(query)
+                                .map { it.take(3) }
+                                .map { history ->
+                                    SearchSuggestionViewState(
+                                        history = history,
+                                        suggestions =
+                                        result
+                                            ?.queries
+                                            ?.filter { suggestionQuery ->
+                                                history.none { it.query == suggestionQuery }
+                                            }.orEmpty(),
+                                        items = listOfNotNull(parsedItem) +
+                                        result
+                                            ?.recommendedItems
+                                            ?.distinctBy { it.id }
+                                            ?.filter { it.id != parsedItem?.id }
+                                            ?.filterExplicit(hideExplicit)
+                                            ?.filterVideoSongs(hideVideoSongs)
+                                            .orEmpty(),
+                                        isFromLink = parsedUrl != null
+                                    )
+                                }
+                        }
+                    },
+                context.dataStore.data
+                    .map { prefs ->
+                        val ids = prefs[com.music.vivi.constants.SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                        ids.take(9).mapNotNull { id ->
+                            database.getSongByIdBlocking(id)?.let { song ->
+                                EventWithSong(
+                                    com.music.vivi.db.entities.Event(songId = id, timestamp = java.time.LocalDateTime.now(), playTime = 0),
+                                    song
+                                )
+                            }
+                        }
                     }
-                }.collect {
-                    _viewState.value = it
-                }
+                    .flowOn(kotlinx.coroutines.Dispatchers.IO)
+            ) { state, recentEvents ->
+                state.copy(recentEvents = recentEvents)
+            }.collect {
+                _viewState.value = it
+            }
         }
     }
 
@@ -116,5 +136,6 @@ data class SearchSuggestionViewState(
     val history: List<SearchHistory> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
+    val recentEvents: List<EventWithSong> = emptyList(),
     val isFromLink: Boolean = false,
 )

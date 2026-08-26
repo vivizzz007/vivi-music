@@ -271,6 +271,7 @@ val LastFullSyncKey = longPreferencesKey("last_full_sync")
 const val SYNC_COOLDOWN = 30 * 60L
 
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
+val SearchListenHistoryKey = stringPreferencesKey("searchListenHistory")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
 
