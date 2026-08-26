@@ -359,8 +359,6 @@
     <string name="show_artist_description">Afișează descrierea artistului</string>
     <string name="show_artist_subscriber_count">Afișează numărul de abonați</string>
     <string name="show_artist_monthly_listeners">Afișează numărul de ascultători lunari</string>
-    <string name="enable_simpmusic">Activează SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Folosește furnizorul SimpMusic Lyrics pentru versuri sincronizate</string>
     <string name="skip_silence_desc">Avansează rapid prin părțile silențioase ale melodiilor</string>
     <string name="skip_silence_instant">Omite liniștea instant</string>
     <string name="skip_silence_instant_desc">Sari direct peste momentele silențioase în loc să mărești viteza de redare</string>

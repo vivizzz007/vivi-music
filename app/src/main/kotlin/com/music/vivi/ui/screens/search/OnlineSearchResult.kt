@@ -12,6 +12,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +34,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
@@ -62,6 +63,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
+import com.music.vivi.db.entities.Event
+import java.time.LocalDateTime
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
@@ -98,8 +101,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
+import androidx.compose.ui.platform.LocalContext
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
+import com.music.vivi.constants.SearchListenHistoryKey
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnlineSearchResult(
     navController: NavController,
@@ -113,6 +123,7 @@ fun OnlineSearchResult(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
 
@@ -124,13 +135,13 @@ fun OnlineSearchResult(
     // Same animated padding as SearchScreen — pill expands edge-to-edge on activation
     val searchBarHorizontalPadding by animateDpAsState(
         targetValue = if (searchActive) 0.dp else 16.dp,
-        animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing),
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "SearchBarHorizontalPadding"
     )
-    val searchBarTopPadding by animateDpAsState(
+    val searchBarVerticalPadding by animateDpAsState(
         targetValue = if (searchActive) 0.dp else 8.dp,
-        animationSpec = tween(durationMillis = 245, easing = FastOutSlowInEasing),
-        label = "SearchBarTopPadding"
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "SearchBarVerticalPadding"
     )
 
     // Extract query from navigation arguments
@@ -266,6 +277,17 @@ fun OnlineSearchResult(
                                             item.toMediaMetadata()
                                         )
                                     )
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val metadata = item.toMediaMetadata()
+                                        database.query {
+                                            insert(metadata)
+                                        }
+                                        context.dataStore.edit { prefs ->
+                                            val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                            val newList = (listOf(item.id) + current.filter { it != item.id }).take(9)
+                                            prefs[SearchListenHistoryKey] = newList.joinToString(",")
+                                        }
+                                    }
                                 }
                             }
 
@@ -282,13 +304,7 @@ fun OnlineSearchResult(
 
     Scaffold(
         topBar = {
-            // Wrap in a Column with a background so the area behind the SearchBar
-            // matches the screen colour during the expansion animation
-            Column(
-                modifier = Modifier
-                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
-            ) {
-                SearchBar(
+            SearchBar(
                     query = query.text,
                     onQueryChange = { newText ->
                         query = TextFieldValue(newText, TextRange(newText.length))
@@ -347,7 +363,7 @@ fun OnlineSearchResult(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = searchBarHorizontalPadding)
-                        .padding(top = searchBarTopPadding)
+                        .padding(vertical = searchBarVerticalPadding)
                 ) {
                     // Content shown inside the SearchBar when active (expanded):
                     // reuses the same OnlineSearchScreen suggestion list
@@ -363,7 +379,6 @@ fun OnlineSearchResult(
                         pureBlack = pureBlack
                     )
                 }
-            }
         },
         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
     ) { paddingValues ->

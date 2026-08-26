@@ -118,6 +118,7 @@ import com.music.vivi.constants.SwipeToSongKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
+import com.music.vivi.db.entities.EventWithSong
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
@@ -242,6 +243,7 @@ fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    subtitleColor: Color = Color.Unspecified,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -250,7 +252,7 @@ fun ListItem(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
+                color = if (subtitleColor != Color.Unspecified) subtitleColor else MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -492,7 +494,7 @@ fun ExpressiveSongRow(
             .padding(horizontal = 16.dp)
             .clip(shape)
             .background(backgroundColor)
-            .padding(horizontal = 16.dp)
+            .padding(start = 12.dp, end = 4.dp)
     ) {
         // 1. Thumbnail, index number or visualizer on the left
         if (expressiveSongAlbumImage) {
@@ -582,14 +584,14 @@ fun ExpressiveSongRow(
             )
         }
 
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(12.dp))
 
         // 3. Total Time (duration)
         Text(
             text = makeTimeString(song.song.duration * 1000L),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.padding(end = 8.dp)
+            modifier = Modifier.offset(x = 4.dp)
         )
 
         // 4. Trailing Content (more_vert or Checkbox)
@@ -1091,6 +1093,7 @@ fun MediaMetadataListItem(
     isPlaying: Boolean = false,
     shape: Shape = RectangleShape,
     backgroundColor: Color = Color.Unspecified,
+    subtitleColor: Color = Color.Unspecified,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     ListItem(
@@ -1129,7 +1132,8 @@ fun MediaMetadataListItem(
         modifier = modifier,
         isActive = isActive,
         shape = shape,
-        backgroundColor = backgroundColor
+        backgroundColor = backgroundColor,
+        subtitleColor = subtitleColor
     )
 }
 
@@ -1403,6 +1407,49 @@ fun LocalAlbumsGrid(
     fillMaxWidth = fillMaxWidth,
     modifier = modifier
 )
+
+@Composable
+fun RecentSearchGridItem(
+    event: EventWithSong,
+    modifier: Modifier = Modifier,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+) {
+    Column(
+        modifier = modifier
+            .padding(4.dp)
+            .width(96.dp)
+    ) {
+        BoxWithConstraints(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+        ) {
+            ItemThumbnail(
+                thumbnailUrl = event.song.song.thumbnailUrl,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = RoundedCornerShape(ThumbnailCornerRadius),
+                modifier = Modifier.fillMaxSize()
+            )
+            if (!isActive) {
+                OverlayPlayButton(visible = true)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = event.song.song.title,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.basicMarquee().fillMaxWidth()
+        )
+    }
+}
 
 @Composable
 fun ItemThumbnail(

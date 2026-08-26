@@ -361,8 +361,6 @@
     <string name="show_artist_monthly_listeners">Mostrar ouvintes mensais</string>
     <string name="crop_album_art">Cortar Capa do Álbum</string>
     <string name="crop_album_art_desc">Forçar uma proporção quadrada cortando as miniaturas de vídeos</string>
-    <string name="enable_simpmusic">Habilitar SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Usar o provedor SimpMusic Lyrics para letras sincronizadas</string>
     <string name="skip_silence_instant">Saltar instantâneamente silêncio</string>
     <string name="persistent_shuffle_title">Modo aleatório persistente</string>
     <string name="persistent_shuffle_desc">Manter o modo aleatório ligado quando começarem novas músicas ou listas de reprodução</string>

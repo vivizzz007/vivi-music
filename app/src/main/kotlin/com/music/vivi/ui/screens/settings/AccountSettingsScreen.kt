@@ -106,14 +106,6 @@ fun AccountSettingsScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = {}) {
-                        Icon(
-                            painterResource(R.drawable.more_vert),
-                            contentDescription = null
-                        )
-                    }
-                },
                 scrollBehavior = scrollBehavior
             )
         }
@@ -179,7 +171,7 @@ fun AccountSettingsScreen(
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = if (accountEmail.isNotBlank()) accountEmail else accountChannelHandle,
+                            text = stringResource(R.string.account),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

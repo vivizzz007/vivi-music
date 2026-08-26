@@ -18,6 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -73,7 +75,7 @@ fun QueueV2(
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     
-    var locked by rememberPreference(QueueEditLockKey, false)
+    var locked by rememberPreference(QueueEditLockKey, true)
 
     // Sleep Timer
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -171,6 +173,7 @@ fun QueueV2(
         }
     }
 
+    CompositionLocalProvider(LocalContentColor provides adaptivePrimary) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -178,7 +181,7 @@ fun QueueV2(
     ) {
         // Fixed Top Control Pills
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val pillShape = RoundedCornerShape(16.dp)
@@ -251,7 +254,7 @@ fun QueueV2(
 
         // Queue Header Row
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 12.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -304,19 +307,13 @@ fun QueueV2(
                     }
 
                     val content: @Composable () -> Unit = {
-                        val glassBg = if (playerBackground == PlayerBackgroundStyle.DEFAULT) {
-                            Color.Unspecified
-                        } else {
-                            if (isActive) adaptiveSurface.copy(alpha = 0.4f) else adaptiveSurface.copy(alpha = 0.15f)
-                        }
-
                         MediaMetadataListItem(
                             mediaMetadata = window.mediaItem.metadata!!,
                             isSelected = false,
                             isActive = isActive,
                             isPlaying = isPlaying && isActive,
-                            backgroundColor = glassBg,
-                            shape = listItemShape(index, mutableQueueWindows.size),
+                            backgroundColor = Color.Transparent,
+                            subtitleColor = adaptiveSecondary,
                             trailingContent = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(
@@ -359,7 +356,6 @@ fun QueueV2(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp)
                                 .clickable {
                                     playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
                                     playerConnection.player.playWhenReady = true
@@ -384,7 +380,6 @@ fun QueueV2(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .padding(vertical = 4.dp, horizontal = 16.dp)
-                                        .clip(listItemShape(index, mutableQueueWindows.size))
                                         .background(color),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
@@ -409,7 +404,8 @@ fun QueueV2(
                 }
             }
             // end of queue
-        }
+            } // end Column
+    } // end CompositionLocalProvider
     }
 
     if (showSleepTimerDialog) {

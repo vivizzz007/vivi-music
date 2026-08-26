@@ -380,8 +380,8 @@ fun ArtistScreen(
                                                 ArtistVideo(
                                                     videoUrl = videoUrl,
                                                     modifier = Modifier
-                                                        .width(45.dp)
-                                                        .height(45.dp),
+                                                        .height(45.dp)
+                                                        .aspectRatio(16f / 9f),
                                                     onClick = {
                                                         val watchEndpoint = artistVideoSong?.endpoint
                                                             ?: artistPage?.artist?.radioEndpoint

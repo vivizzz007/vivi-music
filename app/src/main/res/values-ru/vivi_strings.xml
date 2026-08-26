@@ -357,8 +357,6 @@
     <string name="error_file_open">Не удалось открыть файл: %1$s</string>
     <string name="import_error_title">Ошибка импорта</string>
     <string name="pause_music_when_media_is_muted">Останавливать воспроизведение при отключении звука</string>
-    <string name="enable_simpmusic">Включить SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Использовать SimpMusic Lyrics для синхронизации текстов</string>
     <string name="no_song_playing">Сейчас ничего не играет</string>
     <string name="album_art">Обложка альбома</string>
     <string name="tap_to_open">Нажмите, чтобы открыть vivimusic</string>

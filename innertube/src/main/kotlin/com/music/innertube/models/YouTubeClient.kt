@@ -22,11 +22,15 @@ data class YouTubeClient(
     val useSignatureTimestamp: Boolean = false,
     val isEmbedded: Boolean = false,
     val useWebPoTokens: Boolean = false,
+    val requirePoToken: Boolean = false,
+    val includeUserAgentInContext: Boolean = false,
 ) {
     fun toContext(locale: YouTubeLocale, visitorData: String?, dataSyncId: String?) = Context(
+        thirdParty = if (isEmbedded) Context.ThirdParty(embedUrl = "https://www.reddit.com/") else null,
         client = Context.Client(
             clientName = clientName,
             clientVersion = clientVersion,
+            userAgent = if (includeUserAgentInContext) userAgent else null,
             osName = osName,
             osVersion = osVersion,
             deviceMake = deviceMake,
@@ -73,17 +77,28 @@ data class YouTubeClient(
             loginSupported = true,
             loginRequired = true,
             useSignatureTimestamp = true,
+            useWebPoTokens = true,
         )
 
         val TVHTML5 = YouTubeClient(
             clientName = "TVHTML5",
             clientVersion = "7.20260213.00.00",
             clientId = "7",
-            userAgent = "Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 (KHTML, like Gecko) SamsungBrowser/9.2 TV Safari/605.1.15",
+            userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)",
             loginSupported = true,
-            loginRequired = true,
             useSignatureTimestamp = true,
             useWebPoTokens = true,
+            includeUserAgentInContext = true,
+        )
+
+        val TVHTML5_SIMPLY = YouTubeClient(
+            clientName = "TVHTML5_SIMPLY",
+            clientVersion = "1.0",
+            clientId = "75",
+            userAgent = TVHTML5.userAgent,
+            useSignatureTimestamp = true,
+            useWebPoTokens = true,
+            requirePoToken = true,
         )
 
         /**
@@ -139,7 +154,24 @@ data class YouTubeClient(
             clientId = "28",
             userAgent = "com.google.android.apps.youtube.vr.oculus/1.61.48 (Linux; U; Android 12; en_US; Oculus Quest 3; Build/SQ3A.220605.009.A1; Cronet/132.0.6808.3)",
             loginSupported = false,
-            useSignatureTimestamp = false
+            useSignatureTimestamp = false,
+            includeUserAgentInContext = true,
+        )
+
+        val ANDROID_VR_1_65_10 = YouTubeClient(
+            clientName = "ANDROID_VR",
+            clientVersion = "1.65.10",
+            clientId = "28",
+            userAgent = "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            osName = "Android",
+            osVersion = "12L",
+            deviceMake = "Oculus",
+            deviceModel = "Quest 3",
+            androidSdkVersion = "32",
+            friendlyName = "Android VR 1.65",
+            loginSupported = false,
+            useSignatureTimestamp = false,
+            includeUserAgentInContext = true,
         )
 
         /**
@@ -241,26 +273,6 @@ data class YouTubeClient(
             loginSupported = false,
             useSignatureTimestamp = false,
             packageName = "com.google.ios.youtube"
-        )
-
-        val ANDROID_MUSIC = YouTubeClient(
-            clientName = "ANDROID_MUSIC",
-            clientVersion = "6.37.50",
-            clientId = "73",
-            userAgent = "com.google.android.apps.youtube.music/6.37.50 (Linux; U; Android 14) gzip",
-            friendlyName = "Android Music",
-            loginSupported = true,
-            useSignatureTimestamp = true
-        )
-
-        val IOS_MUSIC = YouTubeClient(
-            clientName = "IOS_MUSIC",
-            clientVersion = "6.37.1",
-            clientId = "74",
-            userAgent = "com.google.ios.youtubemusic/6.37.1 (iPhone16,2; U; CPU iOS 18_2 like Mac OS X;)",
-            friendlyName = "iOS Music",
-            loginSupported = true,
-            useSignatureTimestamp = true
         )
     }
 }

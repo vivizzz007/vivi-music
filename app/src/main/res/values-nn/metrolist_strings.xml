@@ -222,8 +222,6 @@
     <string name="show_artist_monthly_listeners">Syn månadlege lydarar</string>
     <string name="enable_wavy_slider">Slå på snirklete glidebrytar</string>
     <string name="wavy">Snirklete</string>
-    <string name="enable_simpmusic">Slå på songtekster frå SimpMusic</string>
-    <string name="enable_simpmusic_desc">Nøyt songtekster frå SimpMusic-tilbydaren for synkroniserte songtekster</string>
     <string name="skip_silence_desc">Hoppa fram gjennom ljodlause luter av songar</string>
     <string name="skip_silence_instant">Hoppa over togn momentant</string>
     <string name="skip_silence_instant_desc">Hoppa fram under togn i songen i staden for å auka avspelingsfarta</string>
