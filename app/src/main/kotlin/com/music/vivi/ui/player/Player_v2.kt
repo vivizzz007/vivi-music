@@ -47,6 +47,7 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.EnableGoogleCastKey
+import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -192,6 +193,7 @@ fun PlayerV2(
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
+    val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
 
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
     
@@ -404,17 +406,31 @@ fun PlayerV2(
                                             onSwipeRight = { if (canSkipPrevious) playerConnection.player.seekToPrevious() }
                                         )
                                 ) {
-                                    AsyncImage(
-                                        model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                        contentDescription = "Cover Art",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    PlayerV2Canvas(
-                                        mediaMetadata = mediaMetadata,
-                                        isPlaying = isPlaying,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                                    if (hidePlayerThumbnail) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(72.dp),
+                                                tint = adaptivePrimary.copy(alpha = 0.5f)
+                                            )
+                                        }
+                                    } else {
+                                        AsyncImage(
+                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                            contentDescription = "Cover Art",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        PlayerV2Canvas(
+                                            mediaMetadata = mediaMetadata,
+                                            isPlaying = isPlaying,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
                                 }
                                 
                                 Spacer(modifier = Modifier.weight(1f)) // Allows the content to lock down
@@ -548,17 +564,31 @@ fun PlayerV2(
                                             .clip(RoundedCornerShape(8.dp))
                                             .clickable { playerState = PlayerInternalState.COVER }
                                     ) {
-                                        AsyncImage(
-                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                            contentDescription = "Cover Art",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        PlayerV2Canvas(
-                                            mediaMetadata = mediaMetadata,
-                                            isPlaying = isPlaying,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(32.dp),
+                                                    tint = adaptivePrimary.copy(alpha = 0.5f)
+                                                )
+                                            }
+                                        } else {
+                                            AsyncImage(
+                                                model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                                contentDescription = "Cover Art",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            PlayerV2Canvas(
+                                                mediaMetadata = mediaMetadata,
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
