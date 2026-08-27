@@ -213,6 +213,7 @@ import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
 import com.music.vivi.viewmodels.HistoryViewModel
 import com.music.vivi.viewmodels.HomeViewModel
+import com.music.vivi.ui.screens.search.suggestions.SuggestionsViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -556,6 +557,9 @@ class MainActivity : ComponentActivity() {
                 // Pre-warm HistoryViewModel at Activity scope so history data loads
                 // in background immediately — zero lag when user taps the history icon
                 hiltViewModel<HistoryViewModel>()
+                // Pre-warm SuggestionsViewModel at Activity scope so suggestions data loads
+                // in background immediately — zero lag when user opens the Search screen
+                hiltViewModel<SuggestionsViewModel>()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }

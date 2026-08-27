@@ -365,8 +365,6 @@
     <string name="show_artist_monthly_listeners">Miesięczna liczba słuchaczy</string>
     <string name="crop_album_art">Przytnij okładkę</string>
     <string name="crop_album_art_desc">Wymuś kwadratowe miniatury wideo</string>
-    <string name="enable_simpmusic">Pokazuj teksty z SimpMusic</string>
-    <string name="enable_simpmusic_desc">Synchronizacja tekstów z SimpMusic</string>
     <string name="skip_silence_desc">Pomijaj ciszę w utworach</string>
     <string name="skip_silence_instant">Natychmiast pomijaj ciszę</string>
     <string name="like">Polub</string>

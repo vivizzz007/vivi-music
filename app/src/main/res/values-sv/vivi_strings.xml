@@ -176,8 +176,6 @@
     <string name="lyrics_glow_effect_desc">Tilläg glödande animation och stunsade effekt till akriva låttexter</string>
     <string name="enable_better_lyrics">Slå på Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Använd Better Lyrics provinatör för att ha ord för ord synkade låttexter</string>
-    <string name="enable_simpmusic">Slå på SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Använd SimpMusic Lyrics provintör för att ha synkat låttexter</string>
     <string name="auto_scroll">Synka en gång till</string>
     <string name="show_uploaded_playlist">Visa spellista \"Uppladdade\"</string>
     <string name="shuffle_playlist_first">Blanda spellistan/albumet först</string>

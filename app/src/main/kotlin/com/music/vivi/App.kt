@@ -33,6 +33,7 @@ import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.ViviPrefCache
+import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.cipher.PlayerDatesStore
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.normalizeDataSyncId
@@ -72,21 +73,16 @@ class App : Application(), SingletonImageLoader.Factory {
         // Install crash handler first
         CrashHandler.install(this)
 
-        // Initialize cacheDir for YouTubeExtractor JS decipher caching
-        com.music.innertube.YouTubeExtractor.cacheDir = cacheDir
-
-        com.music.vivi.utils.cipher.CipherDeobfuscator.initialize(this)
+        // Initialize cipher deobfuscator for WEB_REMIX streaming
+        CipherDeobfuscator.initialize(this)
         PlayerDatesStore.initialize(this)
 
         Timber.plant(Timber.DebugTree())
 
         // Pre-warm decipher scripts in the background so first song plays instantly
         applicationScope.launch(Dispatchers.IO) {
-            runCatching { com.music.innertube.YouTubeExtractor.ensureInitialized() }
-        }
-        applicationScope.launch(Dispatchers.IO) {
             kotlinx.coroutines.delay(1_500)
-            runCatching { com.music.vivi.utils.cipher.CipherDeobfuscator.prewarm() }
+            runCatching { CipherDeobfuscator.prewarm() }
                 .onFailure { Timber.w(it, "CipherDeobfuscator prewarm failed") }
         }
         applicationScope.launch(Dispatchers.IO) {
@@ -101,6 +97,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 com.music.vivi.utils.YTPlayerUtils.poTokenGenerator.getWebClientPoToken("jNQXAC9IVRw", visitorData)
             }.onFailure { Timber.w(it, "PoToken prewarm skipped") }
         }
+
 
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {

@@ -276,7 +276,6 @@
         <b>🎖️ Foundational Projects</b>
         <ul>
           <li><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful synced lyrics and YouTube Music integration.</li>
-          <li><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration logic.</li>
           <li><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For smooth in-app lyrics styling.</li>
           <li><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For the premium Apple Music-style visualizer canvas.</li>
         </ul>

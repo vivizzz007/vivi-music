@@ -281,8 +281,6 @@
     <string name="wavy">Wavy</string>
     <string name="visit_vivimusic">訪問 vivimusic</string>
     <string name="enable_dynamic_icon">啟用動態 icon</string>
-    <string name="enable_simpmusic">啟用 SimpMusic 歌詞</string>
-    <string name="enable_simpmusic_desc">使用 SimpMusic 以同步歌詞</string>
     <string name="skip_silence_instant">跳過靜音片段</string>
     <string name="skip_silence_desc">快轉歌曲中的靜音片段</string>
     <string name="skip_silence_instant_desc">在靜音片段時直接跳轉，而非加速快轉</string>

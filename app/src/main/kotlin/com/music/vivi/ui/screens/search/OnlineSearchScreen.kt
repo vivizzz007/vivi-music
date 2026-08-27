@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -55,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.innertube.models.AlbumItem
+import com.music.innertube.models.Artist
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
@@ -66,22 +69,32 @@ import com.music.vivi.constants.SuggestionItemHeight
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.LocalMenuState
+import com.music.vivi.ui.component.RecentSearchGridItem
 import com.music.vivi.ui.component.YouTubeListItem
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.getGroupedShape
 import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
+import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.utils.YouTubeUrlParser
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.launch
+import androidx.compose.ui.platform.LocalContext
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
+import com.music.vivi.constants.SearchListenHistoryKey
+import com.music.vivi.db.entities.Event
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
@@ -99,6 +112,7 @@ fun OnlineSearchScreen(
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
 
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val haptic = LocalHapticFeedback.current
@@ -136,6 +150,79 @@ fun OnlineSearchScreen(
             .fillMaxSize()
             .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.background)
     ) {
+        if (viewState.recentEvents.isNotEmpty() && query.isEmpty()) {
+            item(key = "recent_events_header") {
+                Text(
+                    text = stringResource(R.string.search_listen_history),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp).animateItem()
+                )
+            }
+            item(key = "recent_events_row") {
+                val lazyRowState = rememberLazyListState()
+                LazyRow(
+                    state = lazyRowState,
+                    modifier = Modifier.fillMaxWidth().animateItem(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp)
+                ) {
+                    items(viewState.recentEvents, key = { it.song.song.id }) { event ->
+                        RecentSearchGridItem(
+                            event = event,
+                            isActive = event.song.song.id == mediaMetadata?.id,
+                            isPlaying = event.song.song.id == mediaMetadata?.id && isPlaying,
+                            modifier = Modifier.combinedClickable(
+                                onClick = {
+                                    if (event.song.song.id == mediaMetadata?.id) {
+                                        playerConnection.togglePlayPause()
+                                    } else {
+                                        scope.launch(Dispatchers.IO) {
+                                            val metadata = event.song.toMediaMetadata()
+                                            database.query {
+                                                insert(metadata)
+                                            }
+                                            context.dataStore.edit { prefs ->
+                                                val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                                val newList = (listOf(event.song.song.id) + current.filter { it != event.song.song.id }).take(9)
+                                                prefs[SearchListenHistoryKey] = newList.joinToString(",")
+                                            }
+                                        }
+                                        playerConnection.playQueue(
+                                            YouTubeQueue.radio(event.song.toMediaMetadata())
+                                        )
+                                        onDismiss()
+                                    }
+                                },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    menuState.show {
+                                        YouTubeSongMenu(
+                                            song = SongItem(
+                                                id = event.song.song.id,
+                                                title = event.song.song.title,
+                                                artists = event.song.artists.map { Artist(id = it.id, name = it.name) },
+                                                album = null,
+                                                duration = event.song.song.duration,
+                                                thumbnail = event.song.song.thumbnailUrl ?: "",
+                                                explicit = event.song.song.explicit,
+                                                endpoint = WatchEndpoint(videoId = event.song.song.id)                                                
+                                            ),
+                                            navController = navController,
+                                            onDismiss = {
+                                                menuState.dismiss()
+                                                onDismiss()
+                                            }
+                                        )
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         if (viewState.history.isNotEmpty()) {
             item(key = "history_header") {
                 Text(
@@ -290,6 +377,17 @@ fun OnlineSearchScreen(
                                     if (item.id == mediaMetadata?.id) {
                                         playerConnection.togglePlayPause()
                                     } else {
+                                        scope.launch(Dispatchers.IO) {
+                                            val metadata = item.toMediaMetadata()
+                                            database.query {
+                                                insert(metadata)
+                                            }
+                                            context.dataStore.edit { prefs ->
+                                                val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                                val newList = (listOf(item.id) + current.filter { it != item.id }).take(9)
+                                                prefs[SearchListenHistoryKey] = newList.joinToString(",")
+                                            }
+                                        }
                                         playerConnection.playQueue(
                                             YouTubeQueue.radio(item.toMediaMetadata())
                                         )

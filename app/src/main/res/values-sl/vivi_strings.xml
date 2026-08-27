@@ -200,8 +200,6 @@
     <string name="lyrics_glow_effect_desc">Dodaj svetlečo animacijo in učinek poskakovanja aktivnemu besedilu</string>
     <string name="enable_better_lyrics">Omogoči Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Uporabi ponudnika Better Lyrics za besedila, sinhronizirana po besedah</string>
-    <string name="enable_simpmusic">Omogoči SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Uporabi ponudnika SimpMusic Lyrics za sinhronizirana besedila</string>
     <string name="auto_scroll">Ponovno sinhroniziraj</string>
     <string name="show_uploaded_playlist">Prikaži seznam predvajanja \"Naloženo\"</string>
     <string name="shuffle_playlist_first">Najprej premešaj seznam predvajanja/album</string>

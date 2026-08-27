@@ -18,9 +18,9 @@ object LyricsProviderRegistry {
         "Paxsenix"        to PaxSenixLyricsProvider,
         "BetterLyrics"    to BetterLyricsProvider,
         "Musixmatch"      to MusixmatchLyricsProvider,
-        "SimpMusic"       to SimpMusicLyricsProvider,
         "LrcLib"          to LrcLibLyricsProvider,
         "Kugou"           to KuGouLyricsProvider,
+        "Unison"          to UnisonLyricsProvider,
         "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
         "YouTubeMusic"    to YouTubeLyricsProvider,
     )
@@ -42,9 +42,9 @@ object LyricsProviderRegistry {
         "YouLyPlus",
         "Paxsenix",
         "BetterLyrics",
-        "SimpMusic",
         "LrcLib",
         "Kugou",
+        "Unison",
         "YouTubeSubtitle",
         "YouTubeMusic",
     )
@@ -58,9 +58,9 @@ object LyricsProviderRegistry {
         PreferredLyricsProvider.KUGOU         -> "Kugou"
         PreferredLyricsProvider.BETTER_LYRICS -> "BetterLyrics"
         PreferredLyricsProvider.MUSIXMATCH    -> "Musixmatch"
-        PreferredLyricsProvider.SIMPMUSIC     -> "SimpMusic"
         PreferredLyricsProvider.YOULYPLUS     -> "YouLyPlus"
         PreferredLyricsProvider.PAXSENIX      -> "Paxsenix"
+        PreferredLyricsProvider.UNISON        -> "Unison"
     }
 
     /** Returns the human-readable display name for a registry provider key. */
@@ -69,9 +69,9 @@ object LyricsProviderRegistry {
         "Paxsenix"        -> "PaxSenix"
         "BetterLyrics"    -> "Better Lyrics"
         "Musixmatch"      -> "Musixmatch"
-        "SimpMusic"       -> "SimpMusic"
         "LrcLib"          -> "LrcLib"
         "Kugou"           -> "KuGou"
+        "Unison"          -> "Unison"
         "YouTubeSubtitle" -> "YouTube Subtitle"
         "YouTubeMusic"    -> "YouTube Music"
         else              -> name

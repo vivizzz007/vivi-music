@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.newpipeextractor) {
         exclude(group = "com.google.protobuf", module = "protobuf-java")
     }
-    implementation(libs.rhino)
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)

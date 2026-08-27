@@ -243,8 +243,6 @@
     <string name="lyrics_glow_effect_desc">再生中の歌詞を発光させて強調します</string>
     <string name="enable_better_lyrics">歌詞の提供元にBetter Lyricsを使用</string>
     <string name="enable_better_lyrics_desc">単語ごとに同期した歌詞の表示にBetter Lyricsを使用します</string>
-    <string name="enable_simpmusic">歌詞の提供元にSimpMusic Lyricsを使用</string>
-    <string name="enable_simpmusic_desc">単語ごとに同期した歌詞の表示にSimpMusic Lyricsを使用します</string>
     <string name="auto_scroll">同期</string>
     <string name="shuffle_playlist_first_desc">シャッフル再生時、プレイリストやアルバム内の曲をすべて再生したあとに似た曲を再生します</string>
     <string name="shuffle_playlist_first">プレイリスト/アルバムの曲を優先</string>

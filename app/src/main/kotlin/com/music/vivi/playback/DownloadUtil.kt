@@ -26,6 +26,8 @@ import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
+import com.music.innertube.models.YouTubeClient
+import com.music.innertube.strategy.ContentHints
 import okhttp3.Dns
 import java.net.InetAddress
 import java.net.Inet4Address
@@ -53,11 +55,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import java.time.LocalDateTime
-import java.util.Collections
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 @Singleton
 class DownloadUtil
@@ -72,13 +72,7 @@ constructor(
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
     private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
-    private val songUrlCache = Collections.synchronizedMap(
-        object : LinkedHashMap<String, Pair<String, Long>>(0, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Pair<String, Long>>): Boolean {
-                return size > 500
-            }
-        }
-    )
+    private val songUrlCache = StreamUrlCache()
     // Keep a reference to context so we can read DataStore prefs for JioSaavn support
     private val appContext: Context = context
 
@@ -123,30 +117,54 @@ constructor(
                 return@Factory dataSpec
             }
 
-            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                return@Factory dataSpec.withUri(it.first.toUri())
+            songUrlCache[mediaId]?.let { cachedStream ->
+                return@Factory dataSpec
+                    .withUri(cachedStream.url.toUri())
+                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
             }
+            val cacheGeneration = songUrlCache.generation(mediaId)
 
             val playbackData = runBlocking(Dispatchers.IO) {
-                suspend fun resolve() = YTPlayerUtils.playerResponseForPlayback(
+                val song = database.getSongByIdBlocking(mediaId)?.song
+                YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
-                    // Pass context so the JioSaavn intercept fires when the toggle is ON
                     context = appContext,
-                ).getOrThrow()
-
-                try {
-                    resolve()
-                } catch (e: kotlinx.coroutines.CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Timber.tag("DownloadUtil").w(e, "Resolve failed for $mediaId, invalidating URL cache and retrying once")
-                    songUrlCache.remove(mediaId)
-                    resolve()
-                }
-            }
+                    contentHints = ContentHints(
+                        isExplicit = song?.explicit,
+                        isUploaded = song?.isUploaded,
+                    ),
+                )
+            }.getOrThrow()
             val format = playbackData.format
+
+            val actualContentLength = format.contentLength ?: run {
+                var length: Long? = null
+                val client = OkHttpClient.Builder()
+                    .proxy(YouTube.proxy)
+                    .proxyAuthenticator { _, response ->
+                        YouTube.proxyAuth?.let { auth ->
+                            response.request.newBuilder()
+                                .header("Proxy-Authorization", auth)
+                                .build()
+                        } ?: response.request
+                    }
+                    .build()
+                val request = okhttp3.Request.Builder()
+                    .head()
+                    .url(playbackData.streamUrl)
+                    .apply {
+                        playbackData.streamHeaders.forEach { (name, value) ->
+                            header(name, value)
+                        }
+                    }
+                    .build()
+                client.newCall(request).execute().use { response ->
+                    length = response.header("Content-Length")?.toLongOrNull()
+                }
+                length ?: 0L
+            }
 
             database.query {
                 upsert(
@@ -157,7 +175,7 @@ constructor(
                         codecs = format.mimeType.split("codecs=").getOrNull(1)?.removeSurrounding("\"") ?: "mp4a.40.2",
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
-                        contentLength = format.contentLength ?: 0L,
+                        contentLength = actualContentLength,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
@@ -203,14 +221,25 @@ constructor(
             val streamUrl = if (playbackData.isSaavnStream) {
                 playbackData.streamUrl
             } else {
-                playbackData.streamUrl.toUri().buildUpon()
-                    .appendQueryParameter("range", "0-${format.contentLength ?: 10_000_000}")
-                    .build()
-                    .toString()
+                "${playbackData.streamUrl}&range=0-${format.contentLength ?: 10_000_000}"
             }
 
-            songUrlCache[mediaId] = streamUrl to
-                (System.currentTimeMillis() + playbackData.streamExpiresInSeconds * 1000L)
+            songUrlCache.put(
+                mediaId = mediaId,
+                url = streamUrl,
+                requestHeaders = playbackData.streamHeaders,
+                clientName = playbackData.streamClient,
+                expiresInSeconds = playbackData.streamExpiresInSeconds,
+                expectedGeneration = cacheGeneration,
+            )
+
+            val cachedStream = songUrlCache[mediaId]
+            if (cachedStream != null) {
+                return@Factory dataSpec
+                    .withUri(cachedStream.url.toUri())
+                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
+            }
+
             dataSpec.withUri(streamUrl.toUri())
         }
 

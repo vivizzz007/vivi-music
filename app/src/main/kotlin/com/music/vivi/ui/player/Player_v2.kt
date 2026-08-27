@@ -47,6 +47,7 @@ import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.EnableGoogleCastKey
+import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -60,7 +61,7 @@ import kotlinx.coroutines.delay
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.menu.LyricsMenu
-import com.music.vivi.ui.menu.PlayerMenu
+import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
@@ -120,6 +121,19 @@ fun PlayerV2(
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
+
+    // Cast state — mirrors Player.kt lines 366-378
+    val castHandler = remember(playerConnection) {
+        try { playerConnection.service.castConnectionHandler } catch (e: Exception) { null }
+    }
+    val isCasting by castHandler?.isCasting?.collectAsState() ?: remember { mutableStateOf(false) }
+    val castPosition by castHandler?.castPosition?.collectAsState() ?: remember { mutableLongStateOf(0L) }
+    val castDuration by castHandler?.castDuration?.collectAsState() ?: remember { mutableLongStateOf(0L) }
+    val castIsPlaying by castHandler?.castIsPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
+    val castIsBuffering by castHandler?.castIsBuffering?.collectAsState() ?: remember { mutableStateOf(false) }
+    val castVolume by castHandler?.castVolume?.collectAsState() ?: remember { mutableFloatStateOf(1f) }
+    val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
+    var lastManualSeekTime by remember { mutableLongStateOf(0L) }
     
     androidx.activity.compose.BackHandler(enabled = playerState != PlayerInternalState.COVER) {
         playerState = PlayerInternalState.COVER
@@ -168,7 +182,7 @@ fun PlayerV2(
 
     val storedPlayerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.DEFAULT
+        defaultValue = PlayerBackgroundStyle.GRADIENT
     )
     val playerBackground = if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
         PlayerBackgroundStyle.DEFAULT
@@ -179,6 +193,7 @@ fun PlayerV2(
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
+    val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
 
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
     
@@ -230,12 +245,37 @@ fun PlayerV2(
         }
     }
     
-    LaunchedEffect(Unit) {
-        while (isActive) {
+    // Position update — only poll local player when not casting
+    LaunchedEffect(isPlaying, isCasting) {
+        if (!isCasting && isPlaying) {
+            while (isActive) {
+                delay(100)
+                if (sliderPosition == null) {
+                    val rawDuration = playerConnection.player.duration
+                    position = playerConnection.player.currentPosition.coerceAtLeast(0L)
+                    duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+                }
+            }
+        }
+    }
+
+    // Also update once on song change
+    LaunchedEffect(mediaMetadata?.id) {
+        if (!isCasting) {
             val rawDuration = playerConnection.player.duration
             position = playerConnection.player.currentPosition.coerceAtLeast(0L)
             duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
-            delay(50)
+        }
+    }
+
+    // Sync cast position+duration when casting, with a debounce after manual seeks
+    LaunchedEffect(isCasting, castPosition, castDuration) {
+        if (isCasting && sliderPosition == null) {
+            val timeSinceManualSeek = System.currentTimeMillis() - lastManualSeekTime
+            if (timeSinceManualSeek > 1500) {
+                position = castPosition
+                if (castDuration > 0) duration = castDuration
+            }
         }
     }
 
@@ -366,17 +406,31 @@ fun PlayerV2(
                                             onSwipeRight = { if (canSkipPrevious) playerConnection.player.seekToPrevious() }
                                         )
                                 ) {
-                                    AsyncImage(
-                                        model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                        contentDescription = "Cover Art",
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    PlayerV2Canvas(
-                                        mediaMetadata = mediaMetadata,
-                                        isPlaying = isPlaying,
-                                        modifier = Modifier.fillMaxSize()
-                                    )
+                                    if (hidePlayerThumbnail) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(72.dp),
+                                                tint = adaptivePrimary.copy(alpha = 0.5f)
+                                            )
+                                        }
+                                    } else {
+                                        AsyncImage(
+                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                            contentDescription = "Cover Art",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                        PlayerV2Canvas(
+                                            mediaMetadata = mediaMetadata,
+                                            isPlaying = isPlaying,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    }
                                 }
                                 
                                 Spacer(modifier = Modifier.weight(1f)) // Allows the content to lock down
@@ -429,7 +483,8 @@ fun PlayerV2(
                                         )
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
-        
+
+
                                         Box(
                                             modifier = Modifier
                                                 .size(40.dp)
@@ -458,7 +513,7 @@ fun PlayerV2(
                                         IconButton(
                                             onClick = {
                                                 menuState.show {
-                                                    PlayerMenu(
+                                                    OldPlayerMenu(
                                                         mediaMetadata = mediaMetadata,
                                                         navController = navController,
                                                         playerBottomSheetState = state,
@@ -490,7 +545,7 @@ fun PlayerV2(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                                        .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(
@@ -507,18 +562,33 @@ fun PlayerV2(
                                             )
                                             .background(adaptiveSurface, RoundedCornerShape(8.dp))
                                             .clip(RoundedCornerShape(8.dp))
+                                            .clickable { playerState = PlayerInternalState.COVER }
                                     ) {
-                                        AsyncImage(
-                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                            contentDescription = "Cover Art",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        PlayerV2Canvas(
-                                            mediaMetadata = mediaMetadata,
-                                            isPlaying = isPlaying,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(32.dp),
+                                                    tint = adaptivePrimary.copy(alpha = 0.5f)
+                                                )
+                                            }
+                                        } else {
+                                            AsyncImage(
+                                                model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                                contentDescription = "Cover Art",
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                            PlayerV2Canvas(
+                                                mediaMetadata = mediaMetadata,
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
@@ -571,7 +641,7 @@ fun PlayerV2(
                                             onClick = {
                                                 if (targetState == PlayerInternalState.QUEUE) {
                                                     menuState.show {
-                                                        PlayerMenu(
+                                                        OldPlayerMenu(
                                                             mediaMetadata = mediaMetadata,
                                                             navController = navController,
                                                             playerBottomSheetState = state,
@@ -687,7 +757,12 @@ fun PlayerV2(
                         onValueChangeFinished = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition?.let { pos ->
-                                    playerConnection.player.seekTo(pos)
+                                    if (isCasting) {
+                                        castHandler?.seekTo(pos)
+                                        lastManualSeekTime = System.currentTimeMillis()
+                                    } else {
+                                        playerConnection.player.seekTo(pos)
+                                    }
                                     position = pos
                                     sliderPosition = null
                                 }
@@ -728,7 +803,12 @@ fun PlayerV2(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { if (!isListenTogetherGuest && canSkipPrevious) playerConnection.player.seekToPrevious() },
+                            onClick = {
+                                if (!isListenTogetherGuest) {
+                                    if (isCasting) castHandler?.skipToPrevious()
+                                    else if (canSkipPrevious) playerConnection.player.seekToPrevious()
+                                }
+                            },
                             enabled = !isListenTogetherGuest && canSkipPrevious,
                             modifier = Modifier
                                 .size(64.dp)
@@ -741,6 +821,8 @@ fun PlayerV2(
                             onClick = {
                                 if (isListenTogetherGuest) {
                                     playerConnection.toggleMute()
+                                } else if (isCasting) {
+                                    if (castIsPlaying) castHandler?.pause() else castHandler?.play()
                                 } else {
                                     playerConnection.player.togglePlayPause()
                                 }
@@ -756,8 +838,8 @@ fun PlayerV2(
                                 )
                             } else {
                                 Icon(
-                                    painter = painterResource(if (isPlaying) R.drawable.pause_applemusic else R.drawable.play_applemusic),
-                                    contentDescription = if (isPlaying) "Pause" else "Play",
+                                    painter = painterResource(if (effectiveIsPlaying) R.drawable.pause_applemusic else R.drawable.play_applemusic),
+                                    contentDescription = if (effectiveIsPlaying) "Pause" else "Play",
                                     modifier = Modifier.size(80.dp),
                                     tint = adaptivePrimary
                                 )
@@ -765,7 +847,12 @@ fun PlayerV2(
                         }
                 
                         IconButton(
-                            onClick = { if (!isListenTogetherGuest && canSkipNext) playerConnection.player.seekToNext() },
+                            onClick = {
+                                if (!isListenTogetherGuest) {
+                                    if (isCasting) castHandler?.skipToNext()
+                                    else if (canSkipNext) playerConnection.player.seekToNext()
+                                }
+                            },
                             enabled = !isListenTogetherGuest && canSkipNext,
                             modifier = Modifier
                                 .size(64.dp)
@@ -797,11 +884,17 @@ fun PlayerV2(
                         )
                         
                         Slider(
-                            value = if (isVolActive) systemVolume else animatedVolume,
+                            value = if (isCasting) castVolume
+                                    else if (isVolActive) systemVolume
+                                    else animatedVolume,
                             onValueChange = { newValue ->
-                                systemVolume = newValue
-                                val targetVolume = (newValue * maxSystemVolume).toInt()
-                                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, targetVolume, 0)
+                                if (isCasting) {
+                                    castHandler?.setVolume(newValue)
+                                } else {
+                                    systemVolume = newValue
+                                    val targetVolume = (newValue * maxSystemVolume).toInt()
+                                    audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, targetVolume, 0)
+                                }
                             },
                             interactionSource = volumeInteractionSource,
                             thumb = { Spacer(modifier = Modifier.size(0.dp)) },

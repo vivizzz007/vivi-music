@@ -50,29 +50,29 @@ fun PlayerV2Canvas(
 
         val fetched = withContext(Dispatchers.IO) {
             val songTitle = mediaMetadata.title ?: ""
-            val artistName = mediaMetadata.artists.firstOrNull()?.name ?: ""
+            val artistName = mediaMetadata.artists.joinToString { it.name }.ifBlank { mediaMetadata.artists.firstOrNull()?.name ?: "" }
             val albumName = albumTitle ?: ""
 
             when (canvasSource) {
                 CanvasSource.AUTO -> {
                     AppleMusicCanvasProvider.getBySongArtist(songTitle, artistName, albumName, storefront)
-                        ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: TidalCanvasProvider.getBySongArtist(songTitle, artistName, albumName)
-                            ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                         ?: ViviMusicCanvasProvider.getBySongArtist(songTitle, artistName, albumName)
-                            ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.APPLE_MUSIC -> {
                     AppleMusicCanvasProvider.getBySongArtist(songTitle, artistName, albumName, storefront)
-                        ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.VIVIMUSIC -> {
                     ViviMusicCanvasProvider.getBySongArtist(songTitle, artistName, albumName)
-                        ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 CanvasSource.TIDAL -> {
                     TidalCanvasProvider.getBySongArtist(songTitle, artistName, albumName)
-                        ?.takeIf { !it.animated.isNullOrBlank() || !it.animatedTall.isNullOrBlank() }
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
                 else -> null
             }

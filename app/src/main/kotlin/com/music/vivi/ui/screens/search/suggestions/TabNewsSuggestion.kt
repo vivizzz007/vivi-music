@@ -59,18 +59,23 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
 import kotlin.math.abs
 import java.net.URLEncoder
+import androidx.activity.compose.LocalActivity
+import androidx.lifecycle.ViewModelStoreOwner
+import com.music.innertube.models.AlbumItem
+import com.music.vivi.ui.component.NavigationTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SuggestionsTabContent(
     navController: NavController,
-    viewModel: SuggestionsViewModel = hiltViewModel(),
+    viewModel: SuggestionsViewModel = hiltViewModel(LocalActivity.current as ViewModelStoreOwner),
     contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     val suggestionTracks by viewModel.suggestionTracks.collectAsState()
     val suggestionArtists by viewModel.suggestionArtists.collectAsState()
     val suggestionAlbums by viewModel.suggestionAlbums.collectAsState()
     val suggestionVideos by viewModel.suggestionVideos.collectAsState()
+    val youtubeNewReleases by viewModel.youtubeNewReleases.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val isManualLoading by viewModel.isManualLoading.collectAsState()
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
@@ -132,6 +137,21 @@ fun SuggestionsTabContent(
                         onMoreClick = {
                             val code = if (regionCode == "system") java.util.Locale.getDefault().country.lowercase() else regionCode.lowercase()
                             uriHandler.openUri("https://music.apple.com/$code/charts")
+                        }
+                    )
+                }
+            }
+
+            youtubeNewReleases?.let { albums ->
+                item {
+                    YouTubeLatestAlbumsSection(
+                        albums = albums,
+                        onAlbumClick = { album ->
+                            android.widget.Toast.makeText(context, "Loading ${album.title}...", android.widget.Toast.LENGTH_SHORT).show()
+                            navController.navigate("album/${album.id}")
+                        },
+                        onMoreClick = {
+                            navController.navigate("new_release")
                         }
                     )
                 }
@@ -241,16 +261,21 @@ fun TrendingAppleMusicSection(
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = "Apple Music Top 100",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 32.dp)
-        )
-        Text(
-            text = SuggestionRegionSlugToName[countryCode] ?: "Global Charts",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.suggestions),
+                style = MaterialTheme.typography.titleLarge
+            )
+        }
+        Spacer(modifier = Modifier.height(2.dp))
         HorizontalPager(
             state = pagerState,
             verticalAlignment = Alignment.Top,
@@ -258,17 +283,14 @@ fun TrendingAppleMusicSection(
         ) { page ->
             Column(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
             ) {
                 val startIdx = page * 5
                 val endIdx = minOf(startIdx + 5, totalItems)
                 for (i in startIdx until endIdx) {
                     val isMoreCard = i == 29
-                    val isTop = i == startIdx
                     val isBottom = i == endIdx - 1
                     val shape = when {
-                        isTop && isBottom -> RoundedCornerShape(24.dp)
-                        isTop -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
                         isBottom -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
                         else -> RoundedCornerShape(4.dp)
                     }
@@ -340,15 +362,17 @@ fun TopArtistsSection(
 ) {
     if (artists.isEmpty()) return
     Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Trending Artists",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             items(artists) { artist ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(100.dp).clickable { onArtistClick(artist) }) {
@@ -381,6 +405,7 @@ fun TopArtistsSection(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -392,15 +417,17 @@ fun TrendingAlbumsSection(
 ) {
     if (albums.isEmpty()) return
     Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Trending Albums",
             style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
         LazyRow(
             contentPadding = PaddingValues(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             items(albums) { album ->
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(120.dp).clickable { onAlbumClick(album) }) {
@@ -433,7 +460,6 @@ fun TrendingAlbumsSection(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .width(100.dp)
-                        .padding(bottom = 20.dp)
                         .clickable { onMoreClick() }
                 ) {
                     Box(
@@ -461,6 +487,7 @@ fun TrendingAlbumsSection(
                 }
             }
         }
+        Spacer(Modifier.height(16.dp))
     }
 }
 
@@ -572,5 +599,65 @@ fun TrendingVideosSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun YouTubeLatestAlbumsSection(
+    albums: List<AlbumItem>,
+    onAlbumClick: (AlbumItem) -> Unit,
+    onMoreClick: () -> Unit
+) {
+    if (albums.isEmpty()) return
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(Modifier.height(16.dp))
+        NavigationTitle(
+            title = "New Releases",
+            onClick = onMoreClick
+        )
+        Spacer(Modifier.height(16.dp))
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(albums) { album ->
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .width(120.dp)
+                        .clickable { onAlbumClick(album) }
+                ) {
+                    AsyncImage(
+                        model = album.thumbnail,
+                        contentDescription = album.title,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = album.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = album.artists?.joinToString { it.name } ?: "",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
