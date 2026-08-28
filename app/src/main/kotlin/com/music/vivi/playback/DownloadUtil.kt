@@ -26,8 +26,6 @@ import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
-import com.music.innertube.models.YouTubeClient
-import com.music.innertube.strategy.ContentHints
 import okhttp3.Dns
 import java.net.InetAddress
 import java.net.Inet4Address
@@ -72,7 +70,7 @@ constructor(
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
     private val ipVersion by enumPreference(context, IpVersionKey, IpVersion.AUTO)
-    private val songUrlCache = StreamUrlCache()
+    private val songUrlCache = HashMap<String, Pair<String, Long>>()
     // Keep a reference to context so we can read DataStore prefs for JioSaavn support
     private val appContext: Context = context
 
@@ -117,54 +115,20 @@ constructor(
                 return@Factory dataSpec
             }
 
-            songUrlCache[mediaId]?.let { cachedStream ->
-                return@Factory dataSpec
-                    .withUri(cachedStream.url.toUri())
-                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
+            songUrlCache[mediaId]?.takeIf { it.second < System.currentTimeMillis() }?.let {
+                return@Factory dataSpec.withUri(it.first.toUri())
             }
-            val cacheGeneration = songUrlCache.generation(mediaId)
 
             val playbackData = runBlocking(Dispatchers.IO) {
-                val song = database.getSongByIdBlocking(mediaId)?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    // Pass context so the JioSaavn intercept fires when the toggle is ON
                     context = appContext,
-                    contentHints = ContentHints(
-                        isExplicit = song?.explicit,
-                        isUploaded = song?.isUploaded,
-                    ),
                 )
             }.getOrThrow()
             val format = playbackData.format
-
-            val actualContentLength = format.contentLength ?: run {
-                var length: Long? = null
-                val client = OkHttpClient.Builder()
-                    .proxy(YouTube.proxy)
-                    .proxyAuthenticator { _, response ->
-                        YouTube.proxyAuth?.let { auth ->
-                            response.request.newBuilder()
-                                .header("Proxy-Authorization", auth)
-                                .build()
-                        } ?: response.request
-                    }
-                    .build()
-                val request = okhttp3.Request.Builder()
-                    .head()
-                    .url(playbackData.streamUrl)
-                    .apply {
-                        playbackData.streamHeaders.forEach { (name, value) ->
-                            header(name, value)
-                        }
-                    }
-                    .build()
-                client.newCall(request).execute().use { response ->
-                    length = response.header("Content-Length")?.toLongOrNull()
-                }
-                length ?: 0L
-            }
 
             database.query {
                 upsert(
@@ -175,7 +139,7 @@ constructor(
                         codecs = format.mimeType.split("codecs=").getOrNull(1)?.removeSurrounding("\"") ?: "mp4a.40.2",
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
-                        contentLength = actualContentLength,
+                        contentLength = format.contentLength ?: 0L,
                         loudnessDb = playbackData.audioConfig?.loudnessDb,
                         perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
@@ -224,22 +188,7 @@ constructor(
                 "${playbackData.streamUrl}&range=0-${format.contentLength ?: 10_000_000}"
             }
 
-            songUrlCache.put(
-                mediaId = mediaId,
-                url = streamUrl,
-                requestHeaders = playbackData.streamHeaders,
-                clientName = playbackData.streamClient,
-                expiresInSeconds = playbackData.streamExpiresInSeconds,
-                expectedGeneration = cacheGeneration,
-            )
-
-            val cachedStream = songUrlCache[mediaId]
-            if (cachedStream != null) {
-                return@Factory dataSpec
-                    .withUri(cachedStream.url.toUri())
-                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
-            }
-
+            songUrlCache[mediaId] = streamUrl to playbackData.streamExpiresInSeconds * 1000L
             dataSpec.withUri(streamUrl.toUri())
         }
 

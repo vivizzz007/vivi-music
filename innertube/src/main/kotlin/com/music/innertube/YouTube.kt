@@ -154,13 +154,21 @@ object YouTube {
 
         val shelfSummaries = contents.mapNotNull { it ->
             if (it.musicCardShelfRenderer != null) {
+                val isArtistCard = it.musicCardShelfRenderer.onTap?.browseEndpoint?.isArtistEndpoint == true
+                val implicitArtist = if (isArtistCard) {
+                    Artist(
+                        name = it.musicCardShelfRenderer.title?.runs?.firstOrNull()?.text ?: "",
+                        id = it.musicCardShelfRenderer.onTap?.browseEndpoint?.browseId
+                    )
+                } else null
+
                 SearchSummary(
                     title = it.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: YouTubeConstants.DEFAULT_TOP_RESULT,
                     items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(it.musicCardShelfRenderer))
                         .plus(
                             it.musicCardShelfRenderer.contents
-                                ?.mapNotNull { it.musicResponsiveListItemRenderer }
-                                ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
+                                ?.mapNotNull { content -> content.musicResponsiveListItemRenderer }
+                                ?.mapNotNull { renderer -> SearchSummaryPage.fromMusicResponsiveListItemRenderer(renderer, implicitArtist) }
                                 .orEmpty()
                         )
                         .distinctBy { it.id }
@@ -1311,13 +1319,8 @@ object YouTube {
             )]
         }.joinToString("")
 
-        val playbackUrl = playbackTracking.replace(
-            "https://s.youtube.com",
-            "https://music.youtube.com",
-        )
-
         innerTube.registerPlayback(
-            url = playbackUrl,
+            url = playbackTracking,
             playlistId = playlistId,
             cpn = cpn
         )
