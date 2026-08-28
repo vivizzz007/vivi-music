@@ -46,7 +46,10 @@ data class YouTubeClient(
     )
 
     companion object {
-        const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
+        // Chrome/Brave user agent — YouTube trusts Chromium-based UA fingerprints
+        const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+        const val USER_AGENT_MOBILE_WEB = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.7151.78 Mobile Safari/537.36"
+        const val SEC_CH_UA = "\"Chromium\";v=\"137\", \"Not/A)Brand\";v=\"24\""
 
         const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
@@ -61,12 +64,26 @@ data class YouTubeClient(
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
-            clientVersion = "1.20260213.01.00",
+            clientVersion = "1.20260828.01.00",
             clientId = "67",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
             useSignatureTimestamp = true,
             useWebPoTokens = true,
+        )
+
+        /**
+         * YouTube Mobile Web client — does NOT require PoToken for unauthenticated streaming.
+         * This is the equivalent of what Brave/Chrome Mobile sends when playing YouTube without login.
+         * Uses clientId=2 which YouTube treats as a trusted mobile browser.
+         */
+        val MWEB = YouTubeClient(
+            clientName = "MWEB",
+            clientVersion = "2.20260828.03.00",
+            clientId = "2",
+            userAgent = USER_AGENT_MOBILE_WEB,
+            loginSupported = false,
+            useSignatureTimestamp = true,
         )
 
         val WEB_CREATOR = YouTubeClient(
