@@ -1363,10 +1363,17 @@ object YouTube {
     }
 
     suspend fun accountInfo(): Result<AccountInfo> = runCatching {
-        innerTube.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
-            .actions[0].openPopupAction.popup.multiPageMenuRenderer
-            .header?.activeAccountHeaderRenderer
-            ?.toAccountInfo()!!
+        val menu = innerTube.accountMenu(WEB_REMIX).body<AccountMenuResponse>()
+        val account = menu.actions.firstOrNull()
+            ?.openPopupAction?.popup?.multiPageMenuRenderer
+            ?.header?.activeAccountHeaderRenderer
+            ?.toAccountInfo()
+        // A guest/unauthenticated response has sections but no active-account
+        // header: report it explicitly instead of crashing with a bare NPE that
+        // surfaces as a generic "unknown error".
+        account ?: throw IllegalStateException(
+            "Not signed in: account_menu returned no active account (the session cookie did not authenticate the request)"
+        )
     }
 
     suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
