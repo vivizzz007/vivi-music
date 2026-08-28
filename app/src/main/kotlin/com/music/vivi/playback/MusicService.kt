@@ -1677,6 +1677,31 @@ class MusicService :
         }
     }
 
+    
+    /**
+     * Marks [mediaId] as belonging to the Cache Playlist by setting [dateDownload],
+     * but ONLY if the full file (byte 0 through contentLength) is actually present
+     * in playerCache. This must only be called from a genuine "track finished
+     * naturally" signal (see onMediaItemTransition's AUTO-reason handling) —
+     * never from raw dataSpec/chunk resolution, since the player's background
+     * prefetch can finish downloading a short file in seconds, long before the
+     * user has actually listened to it (or even if they skipped away early).
+     *
+     * No-op if already marked downloaded, or if we don't yet know the file's
+     * contentLength (FormatEntity not fetched yet).
+     */
+
+    private suspend fun markCachedIfFullyDownloaded(mediaId: String) {
+        val song = database.song(mediaId).first() ?: return
+        if (song.song.dateDownload != null || song.song.isDownloaded) return
+        val contentLength = song.format?.contentLength ?: return
+        // Do not use runBlocking here, just suspend function call
+        if (!playerCache.isCached(mediaId, 0, contentLength)) return
+        database.query {
+            update(song.song.copy(dateDownload = java.time.LocalDateTime.now()))
+        }
+    }
+
     fun addToQueue(items: List<MediaItem>) {
         // Remove duplicates if enabled
         if (dataStore.get(PreventDuplicateTracksInQueueKey, false)) {
@@ -1881,6 +1906,11 @@ class MusicService :
     ) {
         // Force Repeat One if the player ignored it and auto-advanced
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+            if (previousMediaItemIndex != C.INDEX_UNSET && previousMediaItemIndex < player.mediaItemCount) {
+                val finishedMediaId = player.getMediaItemAt(previousMediaItemIndex).mediaId
+                scope.launch(Dispatchers.IO) { markCachedIfFullyDownloaded(finishedMediaId) }
+            }
+
             val repeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
             if (repeatMode == REPEAT_MODE_ONE &&
                 previousMediaItemIndex != C.INDEX_UNSET &&
