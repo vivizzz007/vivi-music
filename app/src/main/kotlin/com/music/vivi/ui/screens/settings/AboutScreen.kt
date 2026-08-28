@@ -288,7 +288,7 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.telegram), // add a telegram icon drawable
                     title = { Text(stringResource(R.string.telegram_channel)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicde") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") },
                     isExpressive = true,
                     isExternalLink = true
                 )
