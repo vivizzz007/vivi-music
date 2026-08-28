@@ -175,10 +175,9 @@ inline fun ListItem(
         modifier = modifier
             .padding(vertical = 2.dp)
             .height(ListItemHeight)
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 16.dp)
             .clip(shape)
             .background(color = containerColor)
-            .padding(horizontal = 8.dp)
     ) {
         Box(
             modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
@@ -492,9 +491,9 @@ fun ExpressiveSongRow(
         modifier = modifier
             .padding(vertical = 1.dp)
             .height(56.dp)
+            .padding(horizontal = 16.dp)
             .clip(shape)
             .background(backgroundColor)
-            .padding(horizontal = 16.dp)
             .padding(start = 12.dp, end = 4.dp)
     ) {
         // 1. Thumbnail, index number or visualizer on the left

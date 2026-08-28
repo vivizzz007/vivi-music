@@ -24,7 +24,7 @@ fun setAppLocale(context: Context, locale: Locale) {
     context.resources.updateConfiguration(config, context.resources.displayMetrics)
 }
 
-fun listItemShape(index: Int, count: Int, radius: Dp = 14.dp): Shape {
+fun listItemShape(index: Int, count: Int, radius: Dp = 24.dp): Shape {
     val smoothness = 60
     return when {
         count == 1 -> AbsoluteSmoothCornerShape(
