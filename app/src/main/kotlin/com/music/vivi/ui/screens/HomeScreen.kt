@@ -1103,7 +1103,8 @@ fun HomeScreen(
                                     val itemsPerPage = columns * rows
                                     val itemWidth = availableWidth / columns
 
-                                    val pagerState = rememberPagerState(pageCount = { (items.size + itemsPerPage - 1) / itemsPerPage })
+                                    val totalSlots = items.size + 1 // +1 for the Randomize button
+                                    val pagerState = rememberPagerState(pageCount = { (totalSlots + itemsPerPage - 1) / itemsPerPage })
 
                                     Column(
                                         modifier =
@@ -1120,16 +1121,14 @@ fun HomeScreen(
                                                     .fillMaxWidth()
                                                     .height(itemWidth * rows),
                                         ) { page ->
-                                            val pageStartIndex = page * itemsPerPage
-                                            val pageItems = items.drop(pageStartIndex).take(itemsPerPage)
-
                                             Column(modifier = Modifier.fillMaxSize()) {
                                                 for (row in 0 until rows) {
                                                     Row(modifier = Modifier.fillMaxWidth()) {
                                                         for (col in 0 until columns) {
                                                             val itemIndex = row * columns + col
+                                                            val globalItemIndex = page * itemsPerPage + itemIndex
 
-                                                            val isRandomizeSlot = (page == 0 && itemIndex == itemsPerPage - 1)
+                                                            val isRandomizeSlot = (globalItemIndex == itemsPerPage - 1)
 
                                                             if (isRandomizeSlot) {
                                                                 Box(
@@ -1172,9 +1171,11 @@ fun HomeScreen(
                                                                         }
                                                                     )
                                                                 }
-                                                            } else if (itemIndex < pageItems.size) {
-                                                                val item = pageItems[itemIndex]
-                                                                val isPinned by database.speedDialDao.isPinned(item.id).collectAsState(initial = false)
+                                                            } else {
+                                                                val actualIndex = if (globalItemIndex < itemsPerPage - 1) globalItemIndex else globalItemIndex - 1
+                                                                if (actualIndex < items.size) {
+                                                                    val item = items[actualIndex]
+                                                                    val isPinned by database.speedDialDao.isPinned(item.id).collectAsState(initial = false)
 
                                                                 Box(
                                                                     modifier = Modifier
@@ -1242,6 +1243,7 @@ fun HomeScreen(
                                                                 }
                                                             } else {
                                                                 Spacer(modifier = Modifier.width(itemWidth))
+                                                            }
                                                             }
                                                         }
                                                     }
