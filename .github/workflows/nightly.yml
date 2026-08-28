@@ -1,0 +1,108 @@
+name: Nightly GMS Release Build
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Midnight UTC
+  workflow_dispatch: # Allows manual triggering
+
+jobs:
+  build_nightly:
+    name: Build Universal GMS Release
+    runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 2 # needed for checking recent commits
+
+      - name: Check for new commits
+        id: check_commits
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            # Get the timestamp of the latest commit
+            LATEST_COMMIT=$(git log -1 --format=%ct)
+            CURRENT_TIME=$(date +%s)
+            diff=$((CURRENT_TIME - LATEST_COMMIT))
+
+            # 24 hours = 86400 seconds
+            if [ $diff -gt 86400 ]; then
+              echo "No new commits in the last 24 hours."
+              echo "cancel=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "New commits found!"
+              echo "cancel=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            # For manual triggers, always run
+            echo "cancel=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK 21
+        if: steps.check_commits.outputs.cancel == 'false'
+        uses: actions/setup-java@v5
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set Up Gradle
+        if: steps.check_commits.outputs.cancel == 'false'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-disabled: true
+
+      - name: Setup FFTW for Android
+        if: steps.check_commits.outputs.cancel == 'false'
+        uses: ./.github/actions/setup-fftw
+
+      - name: Grant execute permission for gradlew
+        if: steps.check_commits.outputs.cancel == 'false'
+        run: chmod +x gradlew
+
+      - name: Generate debug.keystore
+        if: steps.check_commits.outputs.cancel == 'false'
+        run: |
+          mkdir -p ~/.android
+          keytool -genkey -v \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Build Universal GMS Release APK
+        if: steps.check_commits.outputs.cancel == 'false'
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          ./gradlew assembleUniversalGmsRelease -Pnightly=true --no-configuration-cache --console=plain --warning-mode summary -x lint
+
+      - name: Sign APK
+        if: steps.check_commits.outputs.cancel == 'false'
+        id: sign_app
+        uses: ilharp/sign-android-release@v2.0.0
+        with:
+          releaseDir: app/build/outputs/apk/universalGms/release/
+          signingKey: ${{ secrets.KEYSTORE }}
+          keyAlias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          buildToolsVersion: 35.0.0
+
+      - name: Prepare Artifact
+        if: steps.check_commits.outputs.cancel == 'false'
+        run: |
+          mkdir -p app/build/outputs/apk/universalGms/release/out
+          cp "${{ steps.sign_app.outputs.signedFile }}" app/build/outputs/apk/universalGms/release/out/vivi-music-gms-nightly.apk
+
+      - name: Upload Signed APK
+        if: steps.check_commits.outputs.cancel == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vivi-music-gms-nightly
+          path: app/build/outputs/apk/universalGms/release/out/vivi-music-gms-nightly.apk
