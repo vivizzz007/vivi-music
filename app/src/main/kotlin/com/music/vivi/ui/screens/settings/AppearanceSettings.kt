@@ -477,7 +477,7 @@ fun AppearanceSettings(
             values = MiniPlayerDesignOption.values().toList(),
             valueText = {
                 when (it) {
-                    MiniPlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
+                    MiniPlayerDesignOption.CLASSIC -> stringResource(R.string.classic_mini_player)
                     MiniPlayerDesignOption.NEW -> stringResource(R.string.new_mini_player_design)
                     MiniPlayerDesignOption.APPLE -> stringResource(R.string.apple_mini_player_design)
                 }
