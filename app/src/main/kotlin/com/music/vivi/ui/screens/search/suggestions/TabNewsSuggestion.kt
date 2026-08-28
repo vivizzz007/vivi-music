@@ -59,6 +59,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInRoot
 import kotlin.math.abs
 import java.net.URLEncoder
+import androidx.compose.runtime.LaunchedEffect
 import androidx.activity.compose.LocalActivity
 import androidx.lifecycle.ViewModelStoreOwner
 import com.music.innertube.models.AlbumItem
@@ -86,6 +87,9 @@ fun SuggestionsTabContent(
         defaultValue = "system"
     )
 
+    LaunchedEffect(regionCode) {
+        viewModel.refresh(regionCode)
+    }
 
     val pullToRefreshState = rememberPullToRefreshState()
     val scope = rememberCoroutineScope()
