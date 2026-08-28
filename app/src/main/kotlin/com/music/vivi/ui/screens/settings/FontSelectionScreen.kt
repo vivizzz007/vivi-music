@@ -37,7 +37,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppFont
 import com.music.vivi.constants.SelectedFontKey
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.theme.GoogleSansFontFamily
 import com.music.vivi.ui.theme.SansFlexFontFamily
@@ -117,12 +117,10 @@ fun FontSelectionScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // Options settings group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.font_selection),
             items = listOf(
                 Material3SettingsItem(
-                    isExpressive = true,
-                    descriptionBelow = true,
                     leadingContent = {
                         AnimatedRadioButton(
                             selected = selectedFont == AppFont.SYSTEM.value,
@@ -144,8 +142,6 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.SYSTEM.value) }
                 ),
                 Material3SettingsItem(
-                    isExpressive = true,
-                    descriptionBelow = true,
                     leadingContent = {
                         AnimatedRadioButton(
                             selected = selectedFont == AppFont.GOOGLE_SANS.value,
@@ -167,8 +163,6 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.GOOGLE_SANS.value) }
                 ),
                 Material3SettingsItem(
-                    isExpressive = true,
-                    descriptionBelow = true,
                     leadingContent = {
                         AnimatedRadioButton(
                             selected = selectedFont == AppFont.SANS_FLEX.value,
@@ -190,8 +184,6 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.SANS_FLEX.value) }
                 ),
                 Material3SettingsItem(
-                    isExpressive = true,
-                    descriptionBelow = true,
                     leadingContent = {
                         AnimatedRadioButton(
                             selected = selectedFont == AppFont.OUTFIT.value,
@@ -213,8 +205,6 @@ fun FontSelectionScreen(
                     onClick = { onSelectedFontChange(AppFont.OUTFIT.value) }
                 ),
                 Material3SettingsItem(
-                    isExpressive = true,
-                    descriptionBelow = true,
                     leadingContent = {
                         AnimatedRadioButton(
                             selected = selectedFont == AppFont.PLUS_JAKARTA_SANS.value,

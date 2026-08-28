@@ -110,7 +110,7 @@ fun Material3SettingsGroup(
  * Individual settings item row with Material 3 styling
  */
 @Composable
-private fun Material3SettingsItemRow(
+internal fun Material3SettingsItemRow(
     item: Material3SettingsItem,
     minHeight: Dp? = null
 ) {
@@ -251,7 +251,7 @@ private fun Material3SettingsItemRow(
  * Individual settings item row styled like ExpressiveSongRow (small icons, direct rendering, clean typography)
  */
 @Composable
-private fun ExpressiveSettingsItemRow(
+internal fun ExpressiveSettingsItemRow(
     item: Material3SettingsItem,
     minHeight: Dp? = null
 ) {

@@ -53,7 +53,7 @@ import com.music.vivi.constants.MaxSongCacheSizeKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
@@ -290,29 +290,27 @@ fun StorageSettings(
                 )
             )
         )
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.storage),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.storage),
                     title = { Text(stringResource(R.string.downloaded_songs)) },
-                    description = {
+                    trailingContent = {
                         Text(text = formatFileSize(downloadCacheSize))
-                    },
-                    isExpressive = true
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_all_downloads)) },
                     onClick = {
                         clearDownloads = true
-                    },
-                    isExpressive = true
+                    }
                 )
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.song_cache),
             items = listOf(
                 Material3SettingsItem(
@@ -370,22 +368,19 @@ fun StorageSettings(
                                 style = MaterialTheme.typography.bodyMedium,
                              )
                         }
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_song_cache)) },
                     onClick = {
                         clearCacheDialog = true
-                    },
-                    isExpressive = true
+                    }
                 )
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.image_cache),
             items = listOf(
                 Material3SettingsItem(
@@ -434,9 +429,7 @@ fun StorageSettings(
                                 style = MaterialTheme.typography.bodyMedium,
                             )
                         }
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
@@ -444,8 +437,7 @@ fun StorageSettings(
                     onClick = {
                         android.util.Log.d("StorageSettings", "Clear image cache button clicked!")
                         clearImageCacheDialog = true
-                    },
-                    isExpressive = true
+                    }
                 )
             )
         )

@@ -40,7 +40,7 @@ import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.constants.SaavnAudioQuality
 import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.utils.backToMain
@@ -120,7 +120,7 @@ fun JioSettings(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Options settings group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.saavn_audio_quality),
             items = listOf(
                 Material3SettingsItem(
@@ -133,8 +133,7 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_320.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_320) },
-                    isExpressive = true
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_320) }
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -146,8 +145,7 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_160.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_160) },
-                    isExpressive = true
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_160) }
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -159,8 +157,7 @@ fun JioSettings(
                     },
                     title = { Text(SaavnAudioQuality.QUALITY_96.toLabel()) },
                     enabled = saavnEnabled,
-                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_96) },
-                    isExpressive = true
+                    onClick = { onSaavnQualityChange(SaavnAudioQuality.QUALITY_96) }
                 )
             )
         )

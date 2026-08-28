@@ -67,10 +67,11 @@ import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
@@ -235,23 +236,18 @@ fun PlayerSettings(
         var showCrossfadeBetaDialog by remember { mutableStateOf(false) }
 
         if (showCrossfadeBetaDialog) {
-            DefaultDialog(
+            ActionPromptDialog(
                 onDismiss = { showCrossfadeBetaDialog = false },
-                title = { Text(stringResource(R.string.crossfade_beta_title)) },
-                buttons = {
-                    TextButton(onClick = { showCrossfadeBetaDialog = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                    TextButton(onClick = {
-                        showCrossfadeBetaDialog = false
-                        onCrossfadeEnabledChange(true)
-                    }) {
-                        Text(stringResource(R.string.enable))
-                    }
+                title = stringResource(R.string.crossfade_beta_title),
+                onCancel = { showCrossfadeBetaDialog = false },
+                onConfirm = {
+                    showCrossfadeBetaDialog = false
+                    onCrossfadeEnabledChange(true)
+                },
+                content = {
+                    Text(stringResource(R.string.crossfade_beta_message))
                 }
-            ) {
-                Text(stringResource(R.string.crossfade_beta_message))
-            }
+            )
         }
 
         Spacer(
@@ -262,13 +258,13 @@ fun PlayerSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.player),
             items = buildList {
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_quality)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             when (audioQuality) {
                                 AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
@@ -277,14 +273,13 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { showAudioQualityDialog = true },
-                    isExpressive = true
+                    onClick = { showAudioQualityDialog = true }
                 ))
                 // JioSaavn settings navigation
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.jiosaavn_settings)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             if (saavnEnabled) {
                                 saavnQuality.toLabel()
@@ -293,8 +288,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { navController.navigate("settings/player/jio") },
-                    isExpressive = true
+                    onClick = { navController.navigate("settings/player/jio") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
@@ -328,9 +322,7 @@ fun PlayerSettings(
                         } else {
                             onCrossfadeEnabledChange(false)
                         }
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ))
                 if (crossfadeEnabled) {
                     add(Material3SettingsItem(
@@ -346,9 +338,7 @@ fun PlayerSettings(
                                     steps = 14
                                 )
                             }
-                        },
-                        isExpressive = true,
-                        descriptionBelow = true
+                        }
                     ))
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.album),
@@ -369,9 +359,7 @@ fun PlayerSettings(
                                 }
                             )
                         },
-                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) },
-                        isExpressive = true,
-                        descriptionBelow = true
+                        onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
                     ))
                 }
                 add(Material3SettingsItem(
@@ -386,9 +374,7 @@ fun PlayerSettings(
                                 valueRange = 1f..100f
                             )
                         }
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.fast_forward),
@@ -409,9 +395,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onSkipSilenceChange(!skipSilence) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onSkipSilenceChange(!skipSilence) }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),
@@ -433,9 +417,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { if (skipSilence) onSkipSilenceInstantChange(!skipSilenceInstant) }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_up),
@@ -455,8 +437,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAudioNormalizationChange(!audioNormalization) },
-                    isExpressive = true
+                    onClick = { onAudioNormalizationChange(!audioNormalization) }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
@@ -483,9 +464,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
                 ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {
@@ -508,9 +487,7 @@ fun PlayerSettings(
                                 }
                             )
                         },
-                        onClick = { onEnableGoogleCastChange(!enableGoogleCast) },
-                        isExpressive = true,
-                        descriptionBelow = true
+                        onClick = { onEnableGoogleCastChange(!enableGoogleCast) }
                     ))
                 }
                 add(Material3SettingsItem(
@@ -532,24 +509,20 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onSeekExtraSeconds(!seekExtraSeconds) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onSeekExtraSeconds(!seekExtraSeconds) }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.viviequlizer),
                     title = { Text(stringResource(R.string.vivi_equalizer)) },
                     description = { Text(stringResource(R.string.vivi_equalizer_desc)) },
-                    onClick = { navController.navigate("settings/equalizer") },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { navController.navigate("settings/equalizer") }
                 ))
             }
         )
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.queue),
             items = listOf(
                 Material3SettingsItem(
@@ -571,9 +544,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPersistentQueueChange(!persistentQueue) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onPersistentQueueChange(!persistentQueue) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.playlist_add),
@@ -594,9 +565,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoLoadMoreChange(!autoLoadMore) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onAutoLoadMoreChange(!autoLoadMore) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.repeat),
@@ -617,9 +586,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onDisableLoadMoreWhenRepeatAllChange(!disableLoadMoreWhenRepeatAll) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.download),
@@ -640,9 +607,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onAutoDownloadOnLikeChange(!autoDownloadOnLike) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.similar),
@@ -663,9 +628,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { similarContentEnabledChange(!similarContentEnabled) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { similarContentEnabledChange(!similarContentEnabled) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -686,9 +649,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onPersistentShuffleAcrossQueuesChange(!persistentShuffleAcrossQueues) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -709,9 +670,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onRememberShuffleAndRepeatChange(!rememberShuffleAndRepeat) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.shuffle),
@@ -732,9 +691,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onShufflePlaylistFirstChange(!shufflePlaylistFirst) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
@@ -755,9 +712,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onPreventDuplicateTracksInQueueChange(!preventDuplicateTracksInQueue) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.skip_next),
@@ -778,16 +733,14 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onAutoSkipNextOnErrorChange(!autoSkipNextOnError) }
                 )
             )
         )
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(
@@ -808,8 +761,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) },
-                    isExpressive = true
+                    onClick = { onStopMusicOnTaskClearChange(!stopMusicOnTaskClear) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_off_pause),
@@ -829,8 +781,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onPauseOnMuteChange(!pauseOnMute) },
-                    isExpressive = true
+                    onClick = { onPauseOnMuteChange(!pauseOnMute) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.bluetooth),
@@ -850,8 +801,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) },
-                    isExpressive = true
+                    onClick = { onResumeOnBluetoothConnectChange(!resumeOnBluetoothConnect) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
@@ -871,8 +821,7 @@ fun PlayerSettings(
                             }
                         )
                     },
-                    onClick = { onKeepScreenOnChange(!keepScreenOn) },
-                    isExpressive = true
+                    onClick = { onKeepScreenOnChange(!keepScreenOn) }
                 )
             )
         )

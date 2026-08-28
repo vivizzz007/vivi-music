@@ -55,7 +55,7 @@ import com.music.vivi.constants.EnableNotificationsKey
 import com.music.vivi.constants.NewReleaseNotificationsKey
 import com.music.vivi.constants.TasteBasedReleaseNotificationsKey
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.utils.backToMain
@@ -228,8 +228,7 @@ fun NotificationPermission(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Checkbox settings group for updates and download notifications
-        Material3SettingsGroup(
-            title = stringResource(R.string.notification_settings),
+        ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.update_notifications)) },
@@ -246,9 +245,7 @@ fun NotificationPermission(
                         val newValue = !updateNotificationsEnabled
                         updateNotificationsEnabled = newValue
                         saveUpdateNotificationsSetting(context, newValue)
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.download_notifications)) },
@@ -265,9 +262,7 @@ fun NotificationPermission(
                         val newValue = !downloadNotificationsEnabled
                         downloadNotificationsEnabled = newValue
                         saveDownloadNotificationsSetting(context, newValue)
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.new_release_notifications)) },
@@ -282,9 +277,7 @@ fun NotificationPermission(
                     enabled = isNotificationsActive,
                     onClick = {
                         onNewReleaseNotificationsChange(!newReleaseNotificationsEnabled)
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.taste_based_release_notifications)) },
@@ -299,9 +292,7 @@ fun NotificationPermission(
                     enabled = isNotificationsActive,
                     onClick = {
                         onTasteBasedReleaseNotificationsChange(!tasteBasedReleaseNotificationsEnabled)
-                    },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    }
                 )
             )
         )
