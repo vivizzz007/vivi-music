@@ -2741,8 +2741,7 @@ class MusicService :
                             ),
                         ),
                     ),
-            ).setCacheWriteDataSinkFactory(null)
-            .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
+            ).setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
     // Flag to prevent queue saving during silence skip operations
     private var isSilenceSkipping = false
