@@ -959,7 +959,7 @@ fun PlayerV2(
                             modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
                         ) {
                             Icon(
-                                Icons.Default.Bluetooth, 
+                                painter = painterResource(R.drawable.headphones_apple), 
                                 contentDescription = "Audio Device", 
                                 tint = adaptiveSecondary, 
                                 modifier = Modifier.size(28.dp)
@@ -989,7 +989,7 @@ fun PlayerV2(
                             modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.speaker_apple),
+                                painter = painterResource(R.drawable.home_speaker_devices),
                                 contentDescription = "Speaker", 
                                 tint = adaptiveSecondary, 
                                 modifier = Modifier.size(28.dp)
