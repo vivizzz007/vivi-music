@@ -86,9 +86,6 @@ fun SuggestionsTabContent(
         defaultValue = "system"
     )
 
-    androidx.compose.runtime.LaunchedEffect(regionCode) {
-        viewModel.refresh(regionCode)
-    }
 
     val pullToRefreshState = rememberPullToRefreshState()
     val scope = rememberCoroutineScope()
