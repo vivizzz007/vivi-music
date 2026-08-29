@@ -630,7 +630,7 @@
     <string name="listen_together_username">Username</string>
     <string name="listen_together_connected">Connected</string>
     <string name="listen_together_reconnecting">Reconnecting…</string>
-    <string name="listen_together_disconnected">Disconnected</string>
+    <string name="listen_together_disconnected">Offline</string>
     <string name="listen_together_connecting">Connecting…</string>
     <string name="listen_together_error">Connection error</string>
     <string name="listen_together_create_room">Create room</string>
@@ -655,7 +655,7 @@
     <string name="listen_together_in_top_bar">Listen Together in top bar</string>
     <string name="listen_together_in_top_bar_desc">Show Listen Together in top app bar instead of navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real-time. Create a room to be the host or join an existing room with a code.</string>
-    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app.</string>
+    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app, or if you connect to the server but remain idle without joining a room for 15 minutes.</string>
     <string name="listen_together_not_configured">Listen Together is not configured. Please set up the server URL in Settings → Integrations → Listen Together.</string>
     <string name="listen_together_suggestion_received">%1$s requested %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion sent to host!</string>
@@ -956,7 +956,7 @@
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
-    <string name="comments">Comments</string>
+    <string name="comments">Chat</string>
     <string name="no_comments">No comments found</string>
     <string name="type_message">Type a message…</string>
     <string name="send">Send</string>

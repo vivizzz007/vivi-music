@@ -23,6 +23,7 @@ import androidx.core.content.getSystemService
 import androidx.datastore.preferences.core.edit
 import com.music.vivi.R
 import com.music.vivi.constants.ListenTogetherAutoApprovalKey
+import com.music.vivi.constants.ListenTogetherAvatarIndexKey
 import com.music.vivi.constants.ListenTogetherIsHostKey
 import com.music.vivi.constants.ListenTogetherRoomCodeKey
 import com.music.vivi.constants.ListenTogetherServerUrlKey
@@ -525,14 +526,15 @@ class ListenTogetherClient @Inject constructor(
         val action = pendingAction ?: return
         pendingAction = null
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         when (action) {
             is PendingAction.CreateRoom -> {
                 log(LogLevel.INFO, "Executing pending create room", action.username)
-                sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(action.username))
+                sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(action.username, avatarIndex))
             }
             is PendingAction.JoinRoom -> {
                 log(LogLevel.INFO, "Executing pending join room", "${action.roomCode} as ${action.username}")
-                sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(action.roomCode.uppercase(), action.username))
+                sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(action.roomCode.uppercase(), action.username, avatarIndex))
             }
         }
     }
@@ -798,10 +800,11 @@ class ListenTogetherClient @Inject constructor(
                     wasHost = true
                     sessionStartTime = System.currentTimeMillis()
                     
+                    val hostAvatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
                     _roomState.value = RoomState(
                         roomCode = payload.roomCode,
                         hostId = payload.userId,
-                        users = listOf(UserInfo(payload.userId, storedUsername ?: "", true)),
+                        users = listOf(UserInfo(payload.userId, storedUsername ?: "", true, avatarIndex = hostAvatarIndex)),
                         isPlaying = false,
                         position = 0,
                         lastUpdate = System.currentTimeMillis(),
@@ -884,7 +887,7 @@ class ListenTogetherClient @Inject constructor(
                 MessageTypes.USER_JOINED -> {
                     val payload = codec.decodePayload(msgType, payloadBytes, detectedFormat) as? UserJoinedPayload ?: return
                     _roomState.value = _roomState.value?.copy(
-                        users = _roomState.value!!.users + UserInfo(payload.userId, payload.username, false)
+                        users = _roomState.value!!.users + UserInfo(payload.userId, payload.username, false, avatarIndex = payload.avatarIndex)
                     )
                     _pendingJoinRequests.value = _pendingJoinRequests.value.filter { it.userId != payload.userId }
                     
@@ -1216,8 +1219,9 @@ class ListenTogetherClient @Inject constructor(
         
         storedUsername = username
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         if (_connectionState.value == ConnectionState.CONNECTED) {
-            sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(username))
+            sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(username, avatarIndex))
         } else {
             log(LogLevel.INFO, "Not connected, queueing create room action")
             pendingAction = PendingAction.CreateRoom(username)
@@ -1242,8 +1246,9 @@ class ListenTogetherClient @Inject constructor(
 
         storedUsername = username
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         if (_connectionState.value == ConnectionState.CONNECTED) {
-            sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(roomCode.uppercase(), username))
+            sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(roomCode.uppercase(), username, avatarIndex))
         } else {
             log(LogLevel.INFO, "Not connected, queueing join room action")
             pendingAction = PendingAction.JoinRoom(roomCode, username)

@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -106,6 +107,9 @@ class ListenTogetherManager @Inject constructor(
 
     // Track if a buffer-complete arrived before the pending sync was ready
     private var bufferCompleteReceivedForTrack: String? = null
+
+    // Idle disconnect job to save resources
+    private var idleDisconnectJob: Job? = null
 
     // Expose client state
     val connectionState = client.connectionState
@@ -362,6 +366,22 @@ class ListenTogetherManager @Inject constructor(
                     handleEvent(event)
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error handling event: $event")
+                }
+            }
+        }
+
+        // Idle Disconnect Timer (15 minutes) - saves resources if user connects but never joins
+        scope.launch {
+            combine(connectionState, client.roomState) { cState, rState ->
+                cState to rState
+            }.collect { (cState, rState) ->
+                idleDisconnectJob?.cancel()
+                if (cState == ConnectionState.CONNECTED && rState == null) {
+                    idleDisconnectJob = scope.launch {
+                        delay(15 * 60 * 1000L) // 15 minutes
+                        Timber.tag(TAG).w("Idle disconnect timeout reached (15m without joining a room). Disconnecting...")
+                        disconnect()
+                    }
                 }
             }
         }

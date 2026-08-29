@@ -102,8 +102,11 @@ data class UserInfo(
     @SerialName("user_id") val userId: String,
     val username: String,
     @SerialName("is_host") val isHost: Boolean,
-    @SerialName("is_connected") val isConnected: Boolean = true
-)
+    @SerialName("is_connected") val isConnected: Boolean = true,
+    @SerialName("avatar_index") val avatarIndex: Int = 0
+) {
+    val cleanUsername: String get() = username
+}
 
 /**
  * Room state
@@ -125,13 +128,15 @@ data class RoomState(
 
 @Serializable
 data class CreateRoomPayload(
-    val username: String
+    val username: String,
+    @SerialName("avatar_index") val avatarIndex: Int = 0
 )
 
 @Serializable
 data class JoinRoomPayload(
     @SerialName("room_code") val roomCode: String,
-    val username: String
+    val username: String,
+    @SerialName("avatar_index") val avatarIndex: Int = 0
 )
 
 @Serializable
@@ -236,8 +241,11 @@ data class RoomCreatedPayload(
 @Serializable
 data class JoinRequestPayload(
     @SerialName("user_id") val userId: String,
-    val username: String
-)
+    val username: String,
+    @SerialName("avatar_index") val avatarIndex: Int = 0
+) {
+    val cleanUsername: String get() = username
+}
 
 @Serializable
 data class JoinApprovedPayload(
@@ -255,7 +263,8 @@ data class JoinRejectedPayload(
 @Serializable
 data class UserJoinedPayload(
     @SerialName("user_id") val userId: String,
-    val username: String
+    val username: String,
+    @SerialName("avatar_index") val avatarIndex: Int = 0
 )
 
 @Serializable
