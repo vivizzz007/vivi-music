@@ -130,6 +130,13 @@ class ListenTogetherManager @Inject constructor(
     // Chat state
     private val _chatMessages = MutableStateFlow<List<ChatMessagePayload>>(emptyList())
     val chatMessages = _chatMessages
+
+    private val _unreadMessageCount = MutableStateFlow(0)
+    val unreadMessageCount: kotlinx.coroutines.flow.StateFlow<Int> = _unreadMessageCount
+
+    fun markChatAsRead() {
+        _unreadMessageCount.value = 0
+    }
     
     private val playerListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -722,6 +729,9 @@ class ListenTogetherManager @Inject constructor(
             is ListenTogetherEvent.ChatMessageReceived -> {
                 Timber.tag(TAG).d("Chat message received from ${event.payload.username}")
                 _chatMessages.value = _chatMessages.value + event.payload
+                if (event.payload.userId != userId.value) {
+                    _unreadMessageCount.value++
+                }
             }
 
             else -> { /* Other events handled by UI */ }
@@ -749,6 +759,7 @@ class ListenTogetherManager @Inject constructor(
         lastSyncActionTime = 0L  // Reset sync debouncing
         ++currentTrackGeneration  // Increment to invalidate any pending track-change coroutines
         _chatMessages.value = emptyList() // Clear chat on room leave
+        _unreadMessageCount.value = 0
     }
 
     private fun updateGuestMuteState() {

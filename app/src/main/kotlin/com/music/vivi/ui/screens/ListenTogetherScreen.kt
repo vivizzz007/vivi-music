@@ -152,6 +152,7 @@ fun ListenTogetherScreen(
     val userId by listenTogetherManager.userId.collectAsState()
     val pendingJoinRequests by listenTogetherManager.pendingJoinRequests.collectAsState()
     val pendingSuggestions by listenTogetherManager.pendingSuggestions.collectAsState()
+    val unreadMessageCount by listenTogetherManager.unreadMessageCount.collectAsState()
 
     val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = true)
     val shouldShowTopBar = showTopBar || listenTogetherInTopBar
@@ -355,7 +356,8 @@ fun ListenTogetherScreen(
                         roomCode = room.roomCode,
                         isHost = isHost,
                         context = context,
-                        navController = navController
+                        navController = navController,
+                        unreadMessageCount = unreadMessageCount
                     )
                 }
 
@@ -677,7 +679,8 @@ private fun RoomStatusCard(
     roomCode: String,
     isHost: Boolean,
     context: Context,
-    navController: NavController
+    navController: NavController,
+    unreadMessageCount: Int
 ) {
     // Action Row without the bulky card background
     Column(
@@ -710,11 +713,21 @@ private fun RoomStatusCard(
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
                     modifier = modifier
                 ) {
-                    Icon(
-                        painterResource(R.drawable.chat_msg),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    androidx.compose.material3.BadgedBox(
+                        badge = {
+                            if (unreadMessageCount > 0) {
+                                androidx.compose.material3.Badge {
+                                    Text(unreadMessageCount.toString())
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.chat_msg),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
                     Spacer(Modifier.width(6.dp))
                     Text(
                         text = stringResource(R.string.comments),
