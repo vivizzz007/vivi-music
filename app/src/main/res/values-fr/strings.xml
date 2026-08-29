@@ -127,6 +127,7 @@
     <string name="remove_from_playlist">Supprimer de la playlist</string>
     <string name="remove_from_queue">Supprimer de la file d\'attente</string>
     <string name="search_online">Rechercher en ligne</string>
+    <string name="search_listen_history">Replongez-y</string>
     <string name="action_sync">Synchronisation</string>
     <string name="advanced">Avancé</string>
     <string name="tempo_and_pitch">Tempo et Hauteur</string>
@@ -291,6 +292,8 @@
     <string name="content">Contenu</string>
     <string name="action_logout">Déconnexion</string>
     <string name="action_login">Connexion</string>
+    <string name="login_confirm">Confirmer la connexion</string>
+    <string name="login_brand_account_hint">Si vous souhaitez utiliser un compte de marque, sélectionnez-le dans le menu des comptes ci-dessus, puis appuyez sur la coche pour confirmer.</string>
     <string name="login">Se connecter</string>
     <string name="show_audio_quality_badge">Afficher le badge de qualité audio</string>
     <string name="not_logged_in">Non connecté</string>
