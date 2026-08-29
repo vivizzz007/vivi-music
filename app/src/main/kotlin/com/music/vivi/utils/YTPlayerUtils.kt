@@ -55,6 +55,8 @@ import java.net.ProxySelector
 import java.net.SocketAddress
 import java.net.URI
 import java.io.IOException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -91,7 +93,9 @@ object YTPlayerUtils {
         .readTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
         .build()
 
-    private val poTokenGenerator = PoTokenGenerator()
+    internal val poTokenGenerator = PoTokenGenerator()
+
+    private val selfHealScope = CoroutineScope(SupervisorJob() + kotlinx.coroutines.Dispatchers.IO)
 
     /**
      * Client used for fast, low-latency stream resolution.
@@ -969,5 +973,6 @@ object YTPlayerUtils {
 
     fun forceRefreshForVideo(videoId: String) {
         Timber.tag(logTag).d("Force refreshing for videoId: $videoId")
+        selfHealScope.launch { runCatching { CipherDeobfuscator.forceRefreshConfig() } }
     }
 }

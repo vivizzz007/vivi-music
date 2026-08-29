@@ -30,7 +30,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
+import androidx.media3.datasource.HttpDataSource
 import com.music.vivi.R
+
+private fun httpResponseCodeOf(error: PlaybackException): Int? {
+    var cause: Throwable? = error.cause
+    while (cause != null) {
+        if (cause is HttpDataSource.InvalidResponseCodeException) {
+            return cause.responseCode
+        }
+        cause = cause.cause
+    }
+    return null
+}
 
 @Composable
 fun PlaybackError(
@@ -38,25 +50,25 @@ fun PlaybackError(
     retry: () -> Unit,
 ) {
     // Build detailed error info for debugging
-    val rawErrorMessage = error.cause?.cause?.message 
-        ?: error.cause?.message 
-        ?: error.message 
+    val rawErrorMessage = error.cause?.cause?.message
+        ?: error.cause?.message
+        ?: error.message
         ?: stringResource(R.string.error_unknown)
-    
-    // Check if this is an age-restricted content error
-    // Age-restricted content typically returns 403 Forbidden or contains age-related messages
-    val isAgeRestricted = rawErrorMessage.contains("age", ignoreCase = true) ||
-            rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("LOGIN_REQUIRED", ignoreCase = true) ||
+
+    val httpResponseCode = httpResponseCodeOf(error)
+
+    val isAgeRestricted = rawErrorMessage.contains("Sign in to confirm your age", ignoreCase = true) ||
             rawErrorMessage.contains("confirm your age", ignoreCase = true) ||
-            rawErrorMessage.contains("403", ignoreCase = true) ||
-            rawErrorMessage.contains("Response code: 403", ignoreCase = true) ||
-            error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
-    
-    val errorMessage = if (isAgeRestricted) {
-        "This app does not support playing age-restricted songs. We are working on fixing this issue."
-    } else {
-        rawErrorMessage
+            rawErrorMessage.contains("age-restricted", ignoreCase = true) ||
+            rawErrorMessage.contains("AGE_CHECK_REQUIRED", ignoreCase = true) ||
+            rawErrorMessage.contains("AGE_VERIFICATION_REQUIRED", ignoreCase = true)
+
+    val errorMessage = when {
+        isAgeRestricted ->
+            "This app does not support playing age-restricted songs. We are working on fixing this issue."
+        httpResponseCode != null ->
+            "Playback failed (HTTP $httpResponseCode). $rawErrorMessage"
+        else -> rawErrorMessage
     }
     
     Column(

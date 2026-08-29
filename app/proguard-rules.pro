@@ -12,6 +12,10 @@
     @android.webkit.JavascriptInterface public *;
 }
 -keep class com.music.vivi.utils.potoken.** { *; }
+-keepclassmembers class com.music.vivi.utils.cipher.CipherWebView {
+    @android.webkit.JavascriptInterface public *;
+}
+-keep class com.music.vivi.utils.cipher.** { *; }
 
 # Keep coroutine continuation for WebView callbacks
 -keepclassmembers class * {

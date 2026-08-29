@@ -3,10 +3,12 @@ package com.music.vivi.utils.potoken
 import android.webkit.CookieManager
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 
 class PoTokenGenerator {
@@ -29,8 +31,29 @@ class PoTokenGenerator {
         }
 
         return try {
-            Timber.tag(TAG).d("Calling runBlocking to generate poToken...")
-            runBlocking { getWebClientPoToken(videoId, sessionId, forceRecreate = false) }
+            Timber.tag(TAG).d("Calling runBlocking to generate poToken (timeout=${POTOKEN_TIMEOUT_MS}ms)...")
+            runBlocking {
+                withTimeout(POTOKEN_TIMEOUT_MS) {
+                    getWebClientPoToken(videoId, sessionId, forceRecreate = false)
+                }
+            }
+        } catch (e: TimeoutCancellationException) {
+            Timber.tag(TAG).w("poToken generation timed out after ${POTOKEN_TIMEOUT_MS}ms; proceeding without PoToken")
+            runBlocking {
+                webPoTokenGenLock.withLock {
+                    try {
+                        withContext(Dispatchers.Main) {
+                            webPoTokenGenerator?.close()
+                        }
+                    } catch (closeEx: Exception) {
+                        Timber.tag(TAG).e(closeEx, "Exception closing PoTokenWebView during timeout cleanup")
+                    }
+                    webPoTokenGenerator = null
+                    webPoTokenStreamingPot = null
+                    webPoTokenSessionId = null
+                }
+            }
+            null
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "poToken generation exception: ${e.javaClass.simpleName}: ${e.message}")
             when (e) {
@@ -44,6 +67,10 @@ class PoTokenGenerator {
         }
     }
 
+    private companion object {
+        const val POTOKEN_TIMEOUT_MS = 8_000L
+    }
+
     /**
      * @param forceRecreate whether to force the recreation of [webPoTokenGenerator], to be used in
      * case the current [webPoTokenGenerator] threw an error last time
@@ -55,23 +82,36 @@ class PoTokenGenerator {
         val (poTokenGenerator, streamingPot, hasBeenRecreated) =
             webPoTokenGenLock.withLock {
                 val shouldRecreate =
-                    forceRecreate || webPoTokenGenerator == null || webPoTokenGenerator!!.isExpired || webPoTokenSessionId != sessionId
+                    forceRecreate || webPoTokenGenerator == null || webPoTokenGenerator!!.isExpired || webPoTokenGenerator!!.isDead || webPoTokenSessionId != sessionId
 
                 if (shouldRecreate) {
                     Timber.tag(TAG).d("Creating new PoTokenWebView (forceRecreate=$forceRecreate)")
+
                     webPoTokenSessionId = sessionId
+                    webPoTokenStreamingPot = null
 
                     withContext(Dispatchers.Main) {
                         webPoTokenGenerator?.close()
                     }
+                    webPoTokenGenerator = null
 
                     // create a new webPoTokenGenerator
                     webPoTokenGenerator = PoTokenWebView.getNewPoTokenGenerator(CipherDeobfuscator.appContext)
 
                     // The streaming poToken needs to be generated exactly once before generating
                     // any other (player) tokens.
-                    webPoTokenStreamingPot = webPoTokenGenerator!!.generatePoToken(webPoTokenSessionId!!)
-                    Timber.tag(TAG).d("Streaming poToken generated for sessionId=${webPoTokenSessionId?.take(20)}...")
+                    try {
+                        webPoTokenStreamingPot = webPoTokenGenerator!!.generatePoToken(webPoTokenSessionId!!)
+                        Timber.tag(TAG).d("Streaming poToken generated for sessionId=${webPoTokenSessionId?.take(20)}...")
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).e(e, "Failed to generate streaming poToken")
+                        withContext(Dispatchers.Main) {
+                            runCatching { webPoTokenGenerator?.close() }
+                        }
+                        webPoTokenGenerator = null
+                        webPoTokenStreamingPot = null
+                        throw e
+                    }
                 }
 
                 Triple(webPoTokenGenerator!!, webPoTokenStreamingPot!!, shouldRecreate)

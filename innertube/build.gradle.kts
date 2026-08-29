@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.music.innertube"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 26
@@ -29,7 +29,9 @@ dependencies {
     implementation(libs.ktor.serialization.json)
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
-    implementation(libs.newpipeextractor)
+    implementation(libs.newpipeextractor) {
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+    }
     testImplementation(libs.junit)
 
     coreLibraryDesugaring(libs.desugaring)
