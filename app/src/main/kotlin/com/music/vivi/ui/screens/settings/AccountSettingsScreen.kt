@@ -249,8 +249,7 @@ fun AccountSettingsScreen(
             // Tab Panels
             if (selectedTab == AccountTab.RECOMMENDED) {
                 if (isLoggedIn) {
-                    // Toggles & Log Out wrapped inside standard Material3SettingsGroup
-                    Material3SettingsGroup(
+                    ExpressiveSettingGroup(
                         items = listOf(
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.add_circle),
@@ -277,8 +276,7 @@ fun AccountSettingsScreen(
                                     val newValue = !useLoginForBrowse
                                     YouTube.useLoginForBrowse = newValue
                                     onUseLoginForBrowseChange(newValue)
-                                },
-                                isExpressive = true
+                                }
                             ),
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.cached),
@@ -298,14 +296,12 @@ fun AccountSettingsScreen(
                                         }
                                     )
                                 },
-                                onClick = { onYtmSyncChange(!ytmSync) },
-                                isExpressive = true
+                                onClick = { onYtmSyncChange(!ytmSync) }
                             ),
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.logout),
                                 title = { Text(stringResource(R.string.action_logout)) },
-                                onClick = { showLogoutDialog = true },
-                                isExpressive = true
+                                onClick = { showLogoutDialog = true }
                             )
                         )
                     )
@@ -383,7 +379,7 @@ fun AccountSettingsScreen(
                     modifier = Modifier.padding(start = 8.dp, top = 8.dp, bottom = 8.dp)
                 )
 
-                Material3SettingsGroup(
+                ExpressiveSettingGroup(
                     items = listOf(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.token),
@@ -400,14 +396,12 @@ fun AccountSettingsScreen(
                                 if (!isLoggedIn) showTokenEditor = true
                                 else if (!showToken) showToken = true
                                 else showTokenEditor = true
-                            },
-                            isExpressive = true
+                            }
                         ),
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.integration),
                             title = { Text(stringResource(R.string.integrations)) },
-                            onClick = { navController.navigate("settings/integrations") },
-                            isExpressive = true
+                            onClick = { navController.navigate("settings/integrations") }
                         )
                     )
                 )
