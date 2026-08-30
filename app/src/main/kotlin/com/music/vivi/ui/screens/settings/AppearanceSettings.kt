@@ -1730,7 +1730,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_animation_style)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (lyricsAnimationStyle) {
                                 LyricsAnimationStyle.NONE -> stringResource(R.string.none)
