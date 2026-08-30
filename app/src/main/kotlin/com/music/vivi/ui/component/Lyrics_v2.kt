@@ -326,6 +326,8 @@ fun LyricsV2(
                     }
                 }
 
+                val isLyricsProviderShown = currentLyrics?.provider != null && currentLyrics?.provider != "Unknown"
+
                 // If plain text (not synced), just render a static list
                 if (lines.isNotEmpty() && lines.all { it.time == 0L }) {
                     LazyColumn(
@@ -337,6 +339,20 @@ fun LyricsV2(
                             end = 24.dp
                         )
                     ) {
+                        if (isLyricsProviderShown) {
+                            item {
+                                Text(
+                                    text = "Lyrics from ${currentLyrics?.provider}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = adaptivePrimary.copy(alpha = 0.6f),
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 12.dp)
+                                )
+                            }
+                        }
                         items(lines.size) { index ->
                             Text(
                                 text = lines[index].text,
@@ -426,6 +442,8 @@ fun LyricsV2(
                     result
                 }
 
+                val providerOffset = if (isLyricsProviderShown) 1 else 0
+
                 BoxWithConstraints(
                     contentAlignment = Alignment.TopCenter,
                     modifier = Modifier.fillMaxSize()
@@ -437,7 +455,7 @@ fun LyricsV2(
                     // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
                     LaunchedEffect(currentLineIndex, isAutoScrollEnabled) {
                         if (currentLineIndex != -1 && isAutoScrollEnabled && !isGuest) {
-                            val targetIndex = maxOf(0, currentLineIndex)
+                            val targetIndex = maxOf(0, currentLineIndex) + providerOffset
                             try {
                                 val itemInfo =
                                     listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
@@ -499,6 +517,20 @@ fun LyricsV2(
                             bottom = bottomPadding
                         )
                     ) {
+                        if (isLyricsProviderShown) {
+                            item {
+                                Text(
+                                    text = "Lyrics from ${currentLyrics?.provider}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = adaptivePrimary.copy(alpha = 0.6f),
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 24.dp, vertical = 12.dp)
+                                )
+                            }
+                        }
                         items(mergedLyricsList.size) { listIndex ->
                             val item = mergedLyricsList[listIndex]
                             when (item) {
@@ -757,7 +789,7 @@ fun LyricsV2(
                                             listState.animateScrollToItem(
                                                 maxOf(
                                                     0,
-                                                    currentLineIndex - 2
+                                                    currentLineIndex - 2 + providerOffset
                                                 )
                                             )
                                         } catch (e: Exception) {
