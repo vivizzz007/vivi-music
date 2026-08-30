@@ -8,7 +8,7 @@ package com.music.vivi.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.datasource.cache.Cache
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.MusicDatabase
@@ -32,8 +32,8 @@ import javax.inject.Inject
 class CachePlaylistViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache
+    @PlayerCache private val playerCache: Cache,
+    @DownloadCache private val downloadCache: Cache
 ) : ViewModel() {
 
     private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
