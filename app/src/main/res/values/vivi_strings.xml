@@ -1089,4 +1089,6 @@
     <string name="account_settings_desc_about">Version information and legal details</string>
     <string name="action_view_update">View</string>
     <string name="new_version_found">New version found</string>
+    <string name="support">Support</string>
+    <string name="support_desc">Support app development</string>
 </resources>

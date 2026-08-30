@@ -160,8 +160,8 @@ fun AboutScreen(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.favorite),
-                    title = { Text("Support") },
-                    description = { Text("If you enjoy the app, consider supporting its development") },
+                    title = { Text(stringResource(R.string.support)) },
+                    description = { Text(stringResource(R.string.support_desc)) },
                     onClick = { showSupportDialog = true }
                 ),
                 Material3SettingsItem(

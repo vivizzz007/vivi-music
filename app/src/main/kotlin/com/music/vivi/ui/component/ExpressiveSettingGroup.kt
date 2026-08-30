@@ -26,8 +26,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.music.vivi.R
 import com.music.vivi.utils.listItemShape
 
 /**
@@ -114,7 +116,32 @@ fun ExpressiveSettingGroup(
                         }
                     },
                     supportingContent = item.description,
-                    trailingContent = item.trailingContent,
+                    trailingContent = item.trailingContent?.let { trailing ->
+                        {
+                            ProvideTextStyle(
+                                MaterialTheme.typography.bodyLarge.copy(
+                                    color = if (!item.enabled)
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                trailing()
+                            }
+                        }
+                    } ?: if (item.isExternalLink && item.onClick != null) {
+                        {
+                            Icon(
+                                painter = painterResource(R.drawable.hyper_link),
+                                contentDescription = null,
+                                tint = if (!item.enabled)
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                else
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    } else null,
                     colors = ListItemDefaults.colors(
                         containerColor = Color.Transparent
                     )

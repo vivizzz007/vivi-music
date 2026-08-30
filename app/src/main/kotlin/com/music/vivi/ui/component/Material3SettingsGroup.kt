@@ -240,9 +240,29 @@ internal fun Material3SettingsItemRow(
         }
 
         // Trailing content
-        item.trailingContent?.let { trailing ->
+        if (item.trailingContent != null) {
             Spacer(modifier = Modifier.width(8.dp))
-            trailing()
+            ProvideTextStyle(
+                MaterialTheme.typography.bodyLarge.copy(
+                    color = if (!item.enabled)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                item.trailingContent.invoke()
+            }
+        } else if (item.isExternalLink && item.onClick != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                painter = painterResource(R.drawable.hyper_link),
+                contentDescription = null,
+                tint = if (!item.enabled)
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                else
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -348,17 +368,26 @@ internal fun ExpressiveSettingsItemRow(
         // Trailing content
         if (item.trailingContent != null) {
             Spacer(modifier = Modifier.width(8.dp))
-            item.trailingContent.invoke()
+            ProvideTextStyle(
+                MaterialTheme.typography.bodyLarge.copy(
+                    color = if (!item.enabled)
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            ) {
+                item.trailingContent.invoke()
+            }
         } else if (item.isExternalLink && item.onClick != null) {
             Spacer(modifier = Modifier.width(8.dp))
             Icon(
-                painter = painterResource(R.drawable.open_in_new_icon),
+                painter = painterResource(R.drawable.hyper_link),
                 contentDescription = null,
                 tint = if (!item.enabled)
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                 else
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
     }
