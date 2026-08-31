@@ -24,7 +24,7 @@
     <string name="whats_new">Quoi de neuf ?</string>
     <string name="update_available">Mise à jour</string>
     <string name="checking_for_updates">Recherche de mises à jour…</string>
-    <string name="cant_check_updates">Can\'t check for\nupdates</string>
+    <string name="cant_check_updates">Paye le développeur, \nil vous tiendra au courant des mises à jour</string>
     <string name="app_up_to_date">L\'application est à jour</string>
     <string name="version">Version %1$s</string>
     <string name="released">Date de sortie : %1$s</string>
@@ -73,7 +73,7 @@
     <string name="donate">Faire un don</string>
     <string name="support_development">Soutenir le développement</string>
     <string name="beta_updates">Mises à jour de la version bêta</string>
-    <string name="beta_updates_subtitle">Activez cette option si vous souhaitez recevoir les mises à jour bêta (par exemple, b5.0.1)</string>
+    <string name="beta_updates_subtitle">Recevoir les mises à jour de la version bêta</string>
     <string name="on_latest_version">Vous utilisez la dernière version.</string>
     <string name="current_version_v">Version actuelle : %1$s</string>
     <string name="update_to_v">Mise à jour disponible %1$s</string>
@@ -82,7 +82,7 @@
     <string name="update_size_v">Taille : %1$s Mo</string>
 
     <!-- Notification Permission Settings -->
-    <string name="notification_settings">Autorisation de notification</string>
+    <string name="notification_settings">Paramètres de notification</string>
     <string name="notification_settings_summary">Configurer les paramètres de notification.</string>
     <string name="notification_settings_desc">Configurez et gérez les notifications concernant les mises à jour de l\'application, les versions bêta et la progression des téléchargements. La désactivation des notifications empêchera l\'affichage des mises à jour d\'état en arrière-plan.</string>
     <string name="enable_notifications">Activer les notifications</string>
