@@ -125,7 +125,6 @@
     <string name="max_selection_limit">Limite máximo de seleção</string>
     <string name="share_selected">Compartilhar selecionado</string>
     <string name="customize_colors">Customizar cores</string>
-    <string name="more_options">Mais opções</string>
     <string name="text_color">Cor do texto</string>
     <string name="secondary_text_color">Cor secundária do texto</string>
     <string name="background_color">Cor de fundo</string>
@@ -208,7 +207,6 @@
     <string name="updater">Atualizador</string>
     <string name="check_for_updates">Conferir se há atualizações automaticamente</string>
     <string name="lyrics_romanize_macedonian">Romanizar letras em Macedônio</string>
-    <string name="update_notifications">Ativar notificações de atualizações</string>
     <string name="update_available_title">Atualização disponível</string>
     <string name="update_channel_name">Atualizações do aplicativo</string>
     <string name="update_channel_desc">Notificações sobre novas versões</string>
