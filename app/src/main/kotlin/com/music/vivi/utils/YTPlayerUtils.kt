@@ -760,6 +760,10 @@ object YTPlayerUtils {
             streamHeaders = successClient?.streamHeaders().orEmpty(),
         )
     }.onFailure { e ->
+        if (e is kotlinx.coroutines.CancellationException || e is java.lang.InterruptedException) {
+            Timber.tag(logTag).d("Playback resolution cancelled by coroutine")
+            throw e
+        }
         Timber.tag(logTag).e(e, "Playback resolution failed")
         PlaybackLogManager.log(PlaybackLogLevel.ERROR, "Playback failed", "${e::class.simpleName}: ${e.message}")
         

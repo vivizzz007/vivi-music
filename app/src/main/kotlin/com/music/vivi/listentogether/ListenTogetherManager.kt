@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -107,6 +108,9 @@ class ListenTogetherManager @Inject constructor(
     // Track if a buffer-complete arrived before the pending sync was ready
     private var bufferCompleteReceivedForTrack: String? = null
 
+    // Idle disconnect job to save resources
+    private var idleDisconnectJob: Job? = null
+
     // Expose client state
     val connectionState = client.connectionState
     val roomState = client.roomState
@@ -126,6 +130,13 @@ class ListenTogetherManager @Inject constructor(
     // Chat state
     private val _chatMessages = MutableStateFlow<List<ChatMessagePayload>>(emptyList())
     val chatMessages = _chatMessages
+
+    private val _unreadMessageCount = MutableStateFlow(0)
+    val unreadMessageCount: kotlinx.coroutines.flow.StateFlow<Int> = _unreadMessageCount
+
+    fun markChatAsRead() {
+        _unreadMessageCount.value = 0
+    }
     
     private val playerListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -362,6 +373,22 @@ class ListenTogetherManager @Inject constructor(
                     handleEvent(event)
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error handling event: $event")
+                }
+            }
+        }
+
+        // Idle Disconnect Timer (15 minutes) - saves resources if user connects but never joins
+        scope.launch {
+            combine(connectionState, client.roomState) { cState, rState ->
+                cState to rState
+            }.collect { (cState, rState) ->
+                idleDisconnectJob?.cancel()
+                if (cState == ConnectionState.CONNECTED && rState == null) {
+                    idleDisconnectJob = scope.launch {
+                        delay(15 * 60 * 1000L) // 15 minutes
+                        Timber.tag(TAG).w("Idle disconnect timeout reached (15m without joining a room). Disconnecting...")
+                        disconnect()
+                    }
                 }
             }
         }
@@ -702,6 +729,9 @@ class ListenTogetherManager @Inject constructor(
             is ListenTogetherEvent.ChatMessageReceived -> {
                 Timber.tag(TAG).d("Chat message received from ${event.payload.username}")
                 _chatMessages.value = _chatMessages.value + event.payload
+                if (event.payload.userId != userId.value) {
+                    _unreadMessageCount.value++
+                }
             }
 
             else -> { /* Other events handled by UI */ }
@@ -729,6 +759,7 @@ class ListenTogetherManager @Inject constructor(
         lastSyncActionTime = 0L  // Reset sync debouncing
         ++currentTrackGeneration  // Increment to invalidate any pending track-change coroutines
         _chatMessages.value = emptyList() // Clear chat on room leave
+        _unreadMessageCount.value = 0
     }
 
     private fun updateGuestMuteState() {

@@ -371,10 +371,24 @@
     <string name="settings_section_player_content">Player &amp; Content</string>
     <string name="settings_section_storage">Storage &amp; Data</string>
     <string name="settings_section_system">System &amp; About</string>
+    <string name="setting_account_desc">Manage logged-in profiles</string>
+    <string name="setting_appearance_desc">Customize themes and layout</string>
+    <string name="setting_player_desc">Audio quality and equalizer</string>
+    <string name="setting_listen_together_desc">Listen with friends</string>
+    <string name="setting_content_desc">Language and library</string>
+    <string name="setting_ai_lyrics_translation_desc">Setup AI translations</string>
+    <string name="setting_privacy_desc">Security and data</string>
+    <string name="setting_storage_desc">Cache and downloads</string>
+    <string name="setting_data_saver_desc">Restrict network usage</string>
+    <string name="setting_backup_restore_desc">Import/export settings</string>
+    <string name="setting_about_desc">App version and info</string>
+    <string name="setting_auto_update_desc">Automatically check for new app releases</string>
+    <string name="setting_beta_updates_desc">Opt-in to experimental beta builds</string>
 
     <!-- Updater -->
     <string name="updater">Updater</string>
     <string name="check_for_updates">Automatically check for updates</string>
+    <string name="error_checking_updates">Error checking for updates</string>
     <string name="update_available_title">Update available</string>
     <string name="update_channel_name">App updates</string>
     <string name="update_channel_desc">Notifications about new versions</string>
@@ -616,7 +630,7 @@
     <string name="listen_together_username">Username</string>
     <string name="listen_together_connected">Connected</string>
     <string name="listen_together_reconnecting">Reconnecting…</string>
-    <string name="listen_together_disconnected">Disconnected</string>
+    <string name="listen_together_disconnected">Offline</string>
     <string name="listen_together_connecting">Connecting…</string>
     <string name="listen_together_error">Connection error</string>
     <string name="listen_together_create_room">Create room</string>
@@ -641,7 +655,7 @@
     <string name="listen_together_in_top_bar">Listen Together in top bar</string>
     <string name="listen_together_in_top_bar_desc">Show Listen Together in top app bar instead of navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real-time. Create a room to be the host or join an existing room with a code.</string>
-    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app.</string>
+    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app, or if you connect to the server but remain idle without joining a room for 15 minutes.</string>
     <string name="listen_together_not_configured">Listen Together is not configured. Please set up the server URL in Settings → Integrations → Listen Together.</string>
     <string name="listen_together_suggestion_received">%1$s requested %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion sent to host!</string>
@@ -942,7 +956,7 @@
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
-    <string name="comments">Comments</string>
+    <string name="comments">Chat</string>
     <string name="no_comments">No comments found</string>
     <string name="type_message">Type a message…</string>
     <string name="send">Send</string>
@@ -1075,4 +1089,35 @@
     <string name="account_settings_desc_about">Version information and legal details</string>
     <string name="action_view_update">View</string>
     <string name="new_version_found">New version found</string>
+    <string name="support">Support</string>
+    <string name="support_desc">Support app development</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsorblock">SponsorBlock</string>
+    <string name="sponsorblock_desc">Automatically skip sponsor ads and non-music sections in video songs</string>
+    <string name="enable_sponsorblock">SponsorBlock</string>
+    <string name="enable_sponsorblock_desc">Crowdsourced segment skipping for YouTube music videos</string>
+    <string name="sponsorblock_categories">Categories to Skip</string>
+    <string name="sponsorblock_skip_non_music">Non-music video sections</string>
+    <string name="sponsorblock_skip_non_music_desc">Skip dialogues, spoken intros, and video scenes in music videos</string>
+    <string name="sponsorblock_skip_sponsor">Sponsor advertisements</string>
+    <string name="sponsorblock_skip_sponsor_desc">Skip sponsored promotional announcements</string>
+    <string name="sponsorblock_skip_selfpromo">Self-promotion &amp; merch</string>
+    <string name="sponsorblock_skip_selfpromo_desc">Skip merch plugs and channel promotion</string>
+    <string name="sponsorblock_skip_interaction">Subscribe &amp; like reminders</string>
+    <string name="sponsorblock_skip_interaction_desc">Skip calls to action to subscribe or like</string>
+    <string name="sponsorblock_skip_intro_outro">Intros &amp; Outro credits</string>
+    <string name="sponsorblock_skip_intro_outro_desc">Skip intermission cards and end credits</string>
+    <string name="sponsorblock_skip_preview_filler">Previews &amp; Filler</string>
+    <string name="sponsorblock_skip_preview_filler_desc">Skip recap previews and filler commentary</string>
+    <string name="sponsorblock_show_toast">Show skip notification</string>
+    <string name="sponsorblock_show_toast_desc">Display a message when a segment is skipped</string>
+    <string name="sponsorblock_server_url">SponsorBlock API URL</string>
+    <string name="sponsorblock_skipped_non_music">Skipped non-music section</string>
+    <string name="sponsorblock_skipped_sponsor">Skipped sponsor segment</string>
+    <string name="sponsorblock_skipped_selfpromo">Skipped self-promotion segment</string>
+    <string name="sponsorblock_skipped_interaction">Skipped interaction reminder</string>
+    <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
+    <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
+    <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
 </resources>

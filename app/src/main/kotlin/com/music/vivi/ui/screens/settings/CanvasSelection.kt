@@ -48,7 +48,7 @@ import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.ui.component.ExpressiveIconButton
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.utils.backToMain
@@ -129,7 +129,7 @@ fun CanvasSelection(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Options settings group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.canvas_source),
             items = listOf(
                 Material3SettingsItem(
@@ -143,9 +143,7 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_auto)) },
                     description = { Text(stringResource(R.string.canvas_source_auto_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.AUTO) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onCanvasSourceChange(CanvasSource.AUTO) }
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -158,9 +156,7 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_apple_music)) },
                     description = { Text(stringResource(R.string.canvas_source_apple_music_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.APPLE_MUSIC) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onCanvasSourceChange(CanvasSource.APPLE_MUSIC) }
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -173,9 +169,7 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_vivimusic)) },
                     description = { Text(stringResource(R.string.canvas_source_vivimusic_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.VIVIMUSIC) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onCanvasSourceChange(CanvasSource.VIVIMUSIC) }
                 ),
                 Material3SettingsItem(
                     leadingContent = {
@@ -188,9 +182,7 @@ fun CanvasSelection(
                     title = { Text(stringResource(R.string.canvas_source_tidal)) },
                     description = { Text(stringResource(R.string.canvas_source_tidal_desc)) },
                     enabled = canvasThumbnailAnimation,
-                    onClick = { onCanvasSourceChange(CanvasSource.TIDAL) },
-                    isExpressive = true,
-                    descriptionBelow = true
+                    onClick = { onCanvasSourceChange(CanvasSource.TIDAL) }
                 )
             )
         )

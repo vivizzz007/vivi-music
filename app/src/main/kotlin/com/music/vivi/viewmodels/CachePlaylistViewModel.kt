@@ -44,36 +44,41 @@ class CachePlaylistViewModel @Inject constructor(
             while (true) {
                 val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                 val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
-                val cachedIds = playerCache.keys.toSet()
-                val downloadedIds = downloadCache.keys.toSet()
-                val pureCacheIds = cachedIds.subtract(downloadedIds)
 
-                val songs = if (pureCacheIds.isNotEmpty()) {
-                    database.getSongsByIds(pureCacheIds.toList())
-                } else {
-                    emptyList()
-                }
+                val candidateIds = playerCache.keys.toSet() + downloadCache.keys.toSet()
+                val songs =
+                    if (candidateIds.isNotEmpty()) {
+                        database.getSongsByIds(candidateIds.toList())
+                    } else {
+                        emptyList()
+                    }
 
-                val completeSongs = songs.filter {
-                    val contentLength = it.format?.contentLength
-                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
-                }
+                val flagged = songs.filter { it.song.dateDownload != null }
+                val stillValid = mutableListOf<Song>()
 
-                if (completeSongs.isNotEmpty()) {
-                    database.query {
-                        completeSongs.forEach {
-                            if (it.song.dateDownload == null) {
-                                update(it.song.copy(dateDownload = LocalDateTime.now()))
-                            }
-                        }
+                for (song in flagged) {
+                    val contentLength = song.format?.contentLength
+                    val stillCached =
+                        song.song.isDownloaded ||
+                            (
+                                contentLength != null &&
+                                    (
+                                        downloadCache.isCached(song.song.id, 0, contentLength) ||
+                                            playerCache.isCached(song.song.id, 0, contentLength)
+                                    )
+                            )
+                    if (stillCached) {
+                        stillValid += song
+                    } else {
+                        database.query { update(song.song.copy(dateDownload = null)) }
                     }
                 }
 
-                _cachedSongs.value = completeSongs
-                    .filter { it.song.dateDownload != null }
-                    .sortedByDescending { it.song.dateDownload }
-                    .filterExplicit(hideExplicit)
-                    .filterVideoSongs(hideVideoSongs)
+                _cachedSongs.value =
+                    stillValid
+                        .sortedByDescending { it.song.dateDownload }
+                        .filterExplicit(hideExplicit)
+                        .filterVideoSongs(hideVideoSongs)
 
                 delay(1000)
             }

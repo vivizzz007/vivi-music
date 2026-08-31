@@ -388,7 +388,6 @@ private fun SpotifyLoginSheet(
     }
 
     ModalBottomSheet(
-        modifier = Modifier.fillMaxHeight(),
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
@@ -397,7 +396,7 @@ private fun SpotifyLoginSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
+                .fillMaxHeight(0.9f)
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -419,6 +418,10 @@ private fun SpotifyLoginSheet(
                     .clip(MaterialTheme.shapes.large),
                 factory = { context ->
                     WebView(context).apply {
+                        layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
+                        )
                         val cookieManager = CookieManager.getInstance()
                         cookieManager.setAcceptCookie(true)
                         cookieManager.setAcceptThirdPartyCookies(this, true)
@@ -478,6 +481,7 @@ private fun SpotifyLoginSheet(
                                 captureCookies(url)
                             }
                         }
+                        webChromeClient = android.webkit.WebChromeClient()
                         webView = this
                         cookieManager.removeAllCookies(null)
                         cookieManager.flush()

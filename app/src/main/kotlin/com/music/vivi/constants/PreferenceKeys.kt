@@ -129,6 +129,17 @@ val AudioOffload = booleanPreferencesKey("enableOffload")
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
 val SaavnAudioQualityKey    = stringPreferencesKey("saavnAudioQuality")
 
+// SponsorBlock settings
+val EnableSponsorBlockKey = booleanPreferencesKey("enableSponsorBlock")
+val SponsorBlockServerUrlKey = stringPreferencesKey("sponsorBlockServerUrl")
+val SponsorBlockSkipNonMusicKey = booleanPreferencesKey("sponsorBlockSkipNonMusic")
+val SponsorBlockSkipSponsorKey = booleanPreferencesKey("sponsorBlockSkipSponsor")
+val SponsorBlockSkipSelfPromoKey = booleanPreferencesKey("sponsorBlockSkipSelfPromo")
+val SponsorBlockSkipInteractionKey = booleanPreferencesKey("sponsorBlockSkipInteraction")
+val SponsorBlockSkipIntroOutroKey = booleanPreferencesKey("sponsorBlockSkipIntroOutro")
+val SponsorBlockSkipPreviewFillerKey = booleanPreferencesKey("sponsorBlockSkipPreviewFiller")
+val SponsorBlockShowToastKey = booleanPreferencesKey("sponsorBlockShowToast")
+
 // Cipher Deobfuscation settings
 val EnableAutoCipherFetchKey = booleanPreferencesKey("enableAutoCipherFetch")
 val CipherLastUpdatedKey = longPreferencesKey("cipher_last_updated")
@@ -211,6 +222,7 @@ val EnableGoogleCastKey = booleanPreferencesKey("enableGoogleCast")
 // Listen Together
 val ListenTogetherServerUrlKey = stringPreferencesKey("listenTogetherServerUrl")
 val ListenTogetherUsernameKey = stringPreferencesKey("listenTogetherUsername")
+val ListenTogetherAvatarIndexKey = intPreferencesKey("listenTogetherAvatarIndex")
 val EnableListenTogetherKey = booleanPreferencesKey("enableListenTogether")
 val ListenTogetherAutoApprovalKey = booleanPreferencesKey("listenTogetherAutoApproval")
 val ListenTogetherSyncVolumeKey = booleanPreferencesKey("listenTogetherSyncVolume")

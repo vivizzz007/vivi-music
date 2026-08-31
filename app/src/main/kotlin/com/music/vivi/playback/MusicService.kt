@@ -76,7 +76,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
-import com.music.innertube.strategy.ContentHints
 import com.music.lastfm.LastFM
 import com.music.vivi.MainActivity
 import com.music.vivi.R
@@ -131,9 +130,19 @@ import com.music.vivi.constants.PreventDuplicateTracksInQueueKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.EnableSponsorBlockKey
+import com.music.vivi.constants.SponsorBlockServerUrlKey
+import com.music.vivi.constants.SponsorBlockSkipNonMusicKey
+import com.music.vivi.constants.SponsorBlockSkipSponsorKey
+import com.music.vivi.constants.SponsorBlockSkipSelfPromoKey
+import com.music.vivi.constants.SponsorBlockSkipInteractionKey
+import com.music.vivi.constants.SponsorBlockSkipIntroOutroKey
+import com.music.vivi.constants.SponsorBlockSkipPreviewFillerKey
+import com.music.vivi.constants.SponsorBlockShowToastKey
+import com.music.vivi.sponsorblock.SponsorBlockApi
+import com.music.vivi.sponsorblock.SponsorSegment
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
-import com.music.innertube.models.YouTubeClient
 import okhttp3.Dns
 import java.net.InetAddress
 import java.net.Inet4Address
@@ -171,10 +180,6 @@ import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
 import com.music.vivi.playback.queues.filterVideoSongs
-import coil3.imageLoader
-import coil3.request.CachePolicy
-import coil3.request.ImageRequest
-import coil3.request.allowHardware
 import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.NetworkConnectivityObserver
@@ -253,11 +258,6 @@ class MusicService :
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
 
     private lateinit var audioManager: AudioManager
-    // Wi-Fi Lock: Prevents modern Wi-Fi 6/7 routers from putting the Wi-Fi chip into
-    // low-power sleep mode while music is actively streaming in the background.
-    // Without this, the router's power-saving protocol (Target Wake Time) causes
-    // packet delays, leading to audio buffering or playback stopping after the screen turns off.
-    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
     private var audioFocusRequest: AudioFocusRequest? = null
     private var lastAudioFocusState = AudioManager.AUDIOFOCUS_NONE
     private var wasPlayingBeforeAudioFocusLoss = false
@@ -394,18 +394,7 @@ class MusicService :
     private var prefetchJob: Job? = null
 
     // URL cache for stream URLs - class-level so it can be invalidated on errors
-    private val songUrlCache = StreamUrlCache()
-
-    private val sessionKey = java.util.UUID.randomUUID().toString()
-    private fun cacheKey(mediaId: String) = "${sessionKey}:$mediaId"
-
-    private val playbackUrlCache = java.util.Collections.synchronizedMap(
-        object : java.util.LinkedHashMap<String, String>(0, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
-                return size > 500
-            }
-        }
-    )
+    private val songUrlCache = HashMap<String, Pair<String, Long>>()
 
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
@@ -640,7 +629,7 @@ class MusicService :
                     Timber.tag("MusicService").i("RELOADING STREAM: $mediaId at position ${currentPosition}ms")
 
                     // Clear cached URL to force fresh fetch
-                    songUrlCache.invalidate(mediaId)
+                    songUrlCache.remove(mediaId)
 
                     // CRITICAL: Clear caches synchronously to prevent format parsing errors
                     runBlocking(Dispatchers.IO) {
@@ -687,7 +676,7 @@ class MusicService :
                     val wasPlaying = player.isPlaying
 
                     // Clear cached URL
-                    songUrlCache.invalidate(mediaId)
+                    songUrlCache.remove(mediaId)
 
                     // Reload player
                     player.stop()
@@ -711,7 +700,7 @@ class MusicService :
             }
         }
 
-        currentSong.debounce(50).collect(scope) { song ->
+        currentSong.debounce(1000).collect(scope) { song ->
             updateNotification()
             updateWidgetUI(player.isPlaying)
         }
@@ -759,6 +748,90 @@ class MusicService :
                     silenceSkipJob?.cancel()
                 }
             }
+
+        // SponsorBlock automatic segment skipping flow
+        var sponsorBlockJob: Job? = null
+        combine(
+            currentMediaMetadata,
+            dataStore.data.map { prefs ->
+                SponsorBlockConfig(
+                    enabled = prefs[EnableSponsorBlockKey] ?: true,
+                    serverUrl = prefs[SponsorBlockServerUrlKey] ?: "https://sponsor.ajay.app",
+                    skipNonMusic = prefs[SponsorBlockSkipNonMusicKey] ?: true,
+                    skipSponsor = prefs[SponsorBlockSkipSponsorKey] ?: true,
+                    skipSelfPromo = prefs[SponsorBlockSkipSelfPromoKey] ?: true,
+                    skipInteraction = prefs[SponsorBlockSkipInteractionKey] ?: true,
+                    skipIntroOutro = prefs[SponsorBlockSkipIntroOutroKey] ?: true,
+                    skipPreviewFiller = prefs[SponsorBlockSkipPreviewFillerKey] ?: false,
+                    showToast = prefs[SponsorBlockShowToastKey] ?: true
+                )
+            }.distinctUntilChanged()
+        ) { metadata, config ->
+            metadata to config
+        }.collectLatest(scope) { (metadata, config) ->
+            sponsorBlockJob?.cancel()
+            sponsorBlockJob = null
+
+            if (!config.enabled || metadata == null) {
+                return@collectLatest
+            }
+
+            val categories = mutableListOf<String>()
+            if (config.skipNonMusic) categories.add("music_offtopic")
+            if (config.skipSponsor) categories.add("sponsor")
+            if (config.skipSelfPromo) categories.add("selfpromo")
+            if (config.skipInteraction) categories.add("interaction")
+            if (config.skipIntroOutro) {
+                categories.add("intro")
+                categories.add("outro")
+            }
+            if (config.skipPreviewFiller) {
+                categories.add("preview")
+                categories.add("filler")
+            }
+
+            if (categories.isEmpty()) {
+                return@collectLatest
+            }
+
+            val result = SponsorBlockApi.getSkipSegments(metadata.id, categories, config.serverUrl)
+            val segments = result.getOrDefault(emptyList())
+
+            if (segments.isNotEmpty()) {
+                sponsorBlockJob = scope.launch {
+                    val skippedUuids = mutableSetOf<String>()
+                    while (isActive) {
+                        if (player.isPlaying) {
+                            val currentPos = player.currentPosition
+                            val segmentToSkip = segments.find { segment ->
+                                currentPos >= segment.startMs && currentPos < (segment.endMs - 300) && !skippedUuids.contains(segment.uuid)
+                            }
+
+                            if (segmentToSkip != null) {
+                                skippedUuids.add(segmentToSkip.uuid)
+                                withContext(Dispatchers.Main) {
+                                    player.seekTo(segmentToSkip.endMs)
+                                    if (config.showToast) {
+                                        val messageRes = when (segmentToSkip.category) {
+                                            "music_offtopic" -> R.string.sponsorblock_skipped_non_music
+                                            "sponsor" -> R.string.sponsorblock_skipped_sponsor
+                                            "selfpromo" -> R.string.sponsorblock_skipped_selfpromo
+                                            "interaction" -> R.string.sponsorblock_skipped_interaction
+                                            "intro" -> R.string.sponsorblock_skipped_intro
+                                            "outro" -> R.string.sponsorblock_skipped_outro
+                                            else -> R.string.sponsorblock_skipped_segment
+                                        }
+                                        Toast.makeText(this@MusicService, getString(messageRes), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
+                        delay(250)
+                    }
+                }
+            }
+        }
+        // end of sponser block
 
         combine(
             currentFormat,
@@ -1699,6 +1772,31 @@ class MusicService :
         }
     }
 
+    
+    /**
+     * Marks [mediaId] as belonging to the Cache Playlist by setting [dateDownload],
+     * but ONLY if the full file (byte 0 through contentLength) is actually present
+     * in playerCache. This must only be called from a genuine "track finished
+     * naturally" signal (see onMediaItemTransition's AUTO-reason handling) —
+     * never from raw dataSpec/chunk resolution, since the player's background
+     * prefetch can finish downloading a short file in seconds, long before the
+     * user has actually listened to it (or even if they skipped away early).
+     *
+     * No-op if already marked downloaded, or if we don't yet know the file's
+     * contentLength (FormatEntity not fetched yet).
+     */
+
+    private suspend fun markCachedIfFullyDownloaded(mediaId: String) {
+        val song = database.song(mediaId).first() ?: return
+        if (song.song.dateDownload != null || song.song.isDownloaded) return
+        val contentLength = song.format?.contentLength ?: return
+        // Do not use runBlocking here, just suspend function call
+        if (!playerCache.isCached(mediaId, 0, contentLength)) return
+        database.query {
+            update(song.song.copy(dateDownload = java.time.LocalDateTime.now()))
+        }
+    }
+
     fun addToQueue(items: List<MediaItem>) {
         // Remove duplicates if enabled
         if (dataStore.get(PreventDuplicateTracksInQueueKey, false)) {
@@ -1870,40 +1968,6 @@ class MusicService :
         }
     }
 
-    /**
-     * Acquires a high-performance Wi-Fi lock when playback starts.
-     *
-     * WIFI_MODE_FULL_HIGH_PERF tells the system to keep the Wi-Fi chip fully
-     * active with minimal latency — disabling power-saving sleep cycles.
-     * This is called every time [player.isPlaying] becomes true.
-     */
-    private fun acquireWifiLock() {
-        if (wifiLock == null) {
-            val wifiManager = applicationContext.getSystemService(android.net.wifi.WifiManager::class.java)
-            wifiLock = wifiManager?.createWifiLock(
-                android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF,
-                "vivi_music:wifi_lock"
-            )
-        }
-        if (wifiLock?.isHeld == false) {
-            wifiLock?.acquire()
-            Timber.tag(TAG).d("Wi-Fi lock acquired")
-        }
-    }
-
-    /**
-     * Releases the Wi-Fi lock when playback is paused, stopped, or the service is destroyed.
-     *
-     * Releasing the lock allows the device to return to normal Wi-Fi power-saving
-     * behaviour, preserving battery when music is not playing.
-     */
-    private fun releaseWifiLock() {
-        if (wifiLock?.isHeld == true) {
-            wifiLock?.release()
-            Timber.tag(TAG).d("Wi-Fi lock released")
-        }
-    }
-
     private fun openAudioEffectSession() {
         if (isAudioEffectSessionOpened) return
         isAudioEffectSessionOpened = true
@@ -1937,6 +2001,11 @@ class MusicService :
     ) {
         // Force Repeat One if the player ignored it and auto-advanced
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+            if (previousMediaItemIndex != C.INDEX_UNSET && previousMediaItemIndex < player.mediaItemCount) {
+                val finishedMediaId = player.getMediaItemAt(previousMediaItemIndex).mediaId
+                scope.launch(Dispatchers.IO) { markCachedIfFullyDownloaded(finishedMediaId) }
+            }
+
             val repeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
             if (repeatMode == REPEAT_MODE_ONE &&
                 previousMediaItemIndex != C.INDEX_UNSET &&
@@ -2005,24 +2074,6 @@ class MusicService :
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
-
-        // Eagerly push updated custom layout so notification buttons (like/repeat/shuffle)
-        // reflect the new track immediately — before the 50ms debounced observer fires.
-        updateNotification()
-
-        // Pre-warm album art into Coil's memory cache so the notification bitmap is
-        // ready before DefaultMediaNotificationProvider requests it, avoiding a
-        // visible artwork-loading delay in the control panel.
-        mediaItem?.mediaMetadata?.artworkUri?.let { artworkUri ->
-            val request = ImageRequest.Builder(this)
-                .data(artworkUri)
-                .allowHardware(false)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .size(256, 256)
-                .build()
-            applicationContext.imageLoader.enqueue(request)
-        }
     }
 
     /**
@@ -2051,7 +2102,7 @@ class MusicService :
 
         // Nothing to do — URL is already cached and hasn't expired
         val cachedEntry = songUrlCache[nextMediaId]
-        if (cachedEntry != null) return
+        if (cachedEntry != null && cachedEntry.second > System.currentTimeMillis()) return
 
         prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
             Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
@@ -2066,13 +2117,9 @@ class MusicService :
             result.getOrNull()?.getOrNull()?.let { playbackData ->
                 // Only write to cache if the job wasn't cancelled while we were resolving
                 if (isActive) {
-                    songUrlCache.put(
-                        mediaId = nextMediaId,
-                        url = playbackData.streamUrl,
-                        requestHeaders = playbackData.streamHeaders,
-                        clientName = playbackData.streamClient,
-                        expiresInSeconds = playbackData.streamExpiresInSeconds,
-                    )
+                    songUrlCache[nextMediaId] =
+                        playbackData.streamUrl to
+                            System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
 
                     playbackData.format?.let { format ->
@@ -2189,10 +2236,8 @@ class MusicService :
             updateWidgetUI(player.isPlaying)
             if (player.isPlaying) {
                 startWidgetUpdates()
-                acquireWifiLock()
             } else {
                 stopWidgetUpdates()
-                releaseWifiLock()
             }
             if (!player.isPlaying && !events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope.launch {
@@ -2490,7 +2535,7 @@ class MusicService :
         Timber.tag(TAG).d("Performing aggressive cache clear for $mediaId")
 
         // Clear URL cache
-        songUrlCache.invalidate(mediaId)
+        songUrlCache.remove(mediaId)
 
         // Clear player cache
         try {
@@ -2704,7 +2749,7 @@ class MusicService :
         incrementRetryCount(mediaId)
 
         // Clear the cached URL
-        songUrlCache.invalidate(mediaId)
+        songUrlCache.remove(mediaId)
         Timber.tag(TAG).d("Cleared cached URL for $mediaId")
 
         // Clear decryption caches
@@ -2839,12 +2884,6 @@ class MusicService :
     }
 
     private suspend fun performInstantSilenceSkip() {
-        if (player.playbackState == Player.STATE_BUFFERING || !player.isPlaying) {
-            val silenceProcessor = playerSilenceProcessors[player]
-            silenceProcessor?.resetTracking()
-            return
-        }
-
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: return
         if (duration <= INSTANT_SILENCE_SKIP_STEP_MS) return
 
@@ -2930,35 +2969,27 @@ class MusicService :
                 }
 
                 if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength) ||
-                    playerCache.isCached(mediaId, dataSpec.position, requiredLength)
+                    playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
                 ) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.let { cachedStream ->
+                songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                    return@Factory dataSpec
-                        .withUri(cachedStream.url.toUri())
-                        .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
+                    return@Factory dataSpec.withUri(it.first.toUri())
                 }
             } else {
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
             }
 
-            val cacheGeneration = songUrlCache.generation(mediaId)
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData = runBlocking(Dispatchers.IO) {
-                val song = database.getSongByIdBlocking(mediaId)?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     context = this@MusicService,
-                    contentHints = ContentHints(
-                        isExplicit = song?.explicit,
-                        isUploaded = song?.isUploaded,
-                    ),
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -3001,7 +3032,6 @@ class MusicService :
                     Timber.tag(TAG).w("No loudness data available from YouTube for video: $mediaId")
                 }
 
-                val playbackTrackingUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                 database.query {
                     upsert(
                         FormatEntity(
@@ -3014,15 +3044,10 @@ class MusicService :
                             contentLength = format.contentLength ?: 0L,
                             loudnessDb = loudnessDb,
                             perceptualLoudnessDb = perceptualLoudnessDb,
-                            playbackUrl = playbackTrackingUrl
+                            playbackUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                         )
                     )
                 }
-
-                playbackTrackingUrl?.let {
-                    playbackUrlCache[cacheKey(mediaId)] = it
-                }
-
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId, nonNullPlayback) }
 
                 // Clear bypass flag now that we've fetched fresh stream
@@ -3032,23 +3057,9 @@ class MusicService :
 
                 val streamUrl = nonNullPlayback.streamUrl
 
-                songUrlCache.put(
-                    mediaId = mediaId,
-                    url = streamUrl,
-                    requestHeaders = nonNullPlayback.streamHeaders,
-                    clientName = nonNullPlayback.streamClient,
-                    expiresInSeconds = nonNullPlayback.streamExpiresInSeconds,
-                    expectedGeneration = cacheGeneration,
-                )
-
-                val cachedStream = songUrlCache[mediaId]
-                if (cachedStream != null) {
-                    return@Factory dataSpec
-                        .withUri(cachedStream.url.toUri())
-                        .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
-                }
-
-                return@Factory dataSpec.withUri(streamUrl.toUri())
+                songUrlCache[mediaId] =
+                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
+                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
             }
         }
     }
@@ -3118,19 +3129,15 @@ class MusicService :
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs) {
             CoroutineScope(Dispatchers.IO).launch {
-                val playbackUrl = playbackUrlCache[cacheKey(mediaItem.mediaId)]
+                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
                     ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
                         .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-
-                if (playbackUrl == null) {
-                    Timber.tag(TAG).w("No playback tracking URL available for ${mediaItem.mediaId}, skipping YouTube history registration")
-                    return@launch
+                playbackUrl?.let {
+                    YouTube.registerPlayback(null, playbackUrl)
+                        .onFailure {
+                            reportException(it)
+                        }
                 }
-
-                YouTube.registerPlayback(null, playbackUrl)
-                    .onFailure {
-                        reportException(it)
-                    }
             }
         }
     }
@@ -3228,7 +3235,6 @@ class MusicService :
         }
         discordRpc = null
         connectivityObserver.unregister()
-        releaseWifiLock()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
         mediaSession.release()
@@ -3379,8 +3385,6 @@ class MusicService :
         reason: Int
     ) {
         if (reason == Player.DISCONTINUITY_REASON_SEEK) {
-            silenceSkipJob?.cancel()
-            playerSilenceProcessors[player]?.resetTracking()
             scheduleCrossfade()
         }
     }
@@ -3574,3 +3578,15 @@ class MusicService :
             private set
     }
 }
+
+private data class SponsorBlockConfig(
+    val enabled: Boolean,
+    val serverUrl: String,
+    val skipNonMusic: Boolean,
+    val skipSponsor: Boolean,
+    val skipSelfPromo: Boolean,
+    val skipInteraction: Boolean,
+    val skipIntroOutro: Boolean,
+    val skipPreviewFiller: Boolean,
+    val showToast: Boolean,
+)

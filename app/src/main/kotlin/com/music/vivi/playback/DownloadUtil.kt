@@ -15,6 +15,7 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.ResolvingDataSource
+import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -26,8 +27,6 @@ import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
-import com.music.innertube.models.YouTubeClient
-import com.music.innertube.strategy.ContentHints
 import okhttp3.Dns
 import java.net.InetAddress
 import java.net.Inet4Address
@@ -54,6 +53,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import timber.log.Timber
 import java.time.LocalDateTime
 import java.util.concurrent.Executor
 import javax.inject.Inject
@@ -85,6 +85,7 @@ constructor(
             CacheDataSource
                 .Factory()
                 .setCache(playerCache)
+                .setCacheWriteDataSinkFactory(null) // PREVENTS DEADLOCKS! Don't write to playerCache here; just read from it!
                 .setUpstreamDataSourceFactory(
                     OkHttpDataSource.Factory(
                         OkHttpClient.Builder()
@@ -112,29 +113,29 @@ constructor(
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
+            Timber.tag("DownloadDiagnostics").d("dataSourceFactory triggered for mediaId=$mediaId, position=${dataSpec.position}, length=${dataSpec.length}")
 
             if (playerCache.isCached(mediaId, dataSpec.position, length)) {
+                Timber.tag("DownloadDiagnostics").d("Stream already heavily cached in playerCache: $mediaId")
                 return@Factory dataSpec
             }
 
             songUrlCache[mediaId]?.let { cachedStream ->
+                Timber.tag("DownloadDiagnostics").d("Using cached stream URL from valid songUrlCache for $mediaId")
                 return@Factory dataSpec
                     .withUri(cachedStream.url.toUri())
                     .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
             }
+            Timber.tag("DownloadDiagnostics").w("No valid cached URL found for $mediaId. Triggering heavy network playback resolution!")
             val cacheGeneration = songUrlCache.generation(mediaId)
 
             val playbackData = runBlocking(Dispatchers.IO) {
-                val song = database.getSongByIdBlocking(mediaId)?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
+                    // Pass context so the JioSaavn intercept fires when the toggle is ON
                     context = appContext,
-                    contentHints = ContentHints(
-                        isExplicit = song?.explicit,
-                        isUploaded = song?.isUploaded,
-                    ),
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -163,7 +164,7 @@ constructor(
                 client.newCall(request).execute().use { response ->
                     length = response.header("Content-Length")?.toLongOrNull()
                 }
-                length ?: 0L
+                length ?: error("Failed to retrieve content length")
             }
 
             database.query {
@@ -183,24 +184,19 @@ constructor(
                 )
 
                 val now = LocalDateTime.now()
+                // Metadata registration only — dateDownload is intentionally NOT set here.
+                // It belongs solely to onDownloadChanged()'s STATE_COMPLETED branch below,
+                // which only fires once the download has actually finished.
                 val existing = getSongByIdBlocking(mediaId)?.song
 
-                val updatedSong = if (existing != null) {
-                    if (existing.dateDownload == null) {
-                        existing.copy(dateDownload = now)
-                    } else {
-                        existing
-                    }
-                } else {
-                    SongEntity(
-                        id = mediaId,
-                        title = playbackData.videoDetails?.title ?: "Unknown",
-                        duration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0,
-                        thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
-                        dateDownload = now,
-                        isDownloaded = false
-                    )
-                }
+                val updatedSong = existing ?: SongEntity(
+                    id = mediaId,
+                    title = playbackData.videoDetails?.title ?: "Unknown",
+                    duration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0,
+                    thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
+                    dateDownload = null,
+                    isDownloaded = false
+                )
 
                 upsert(updatedSong)
 
@@ -215,13 +211,10 @@ constructor(
                 }
             }
 
-            // For YouTube streams: append the &range= param so the download cache can
-            // handle progressive HTTP range requests. For JioSaavn streams the CDN
-            // doesn't need it and contentLength is null, so skip it.
             val streamUrl = if (playbackData.isSaavnStream) {
                 playbackData.streamUrl
             } else {
-                "${playbackData.streamUrl}&range=0-${format.contentLength ?: 10_000_000}"
+                "${playbackData.streamUrl}&range=0-${actualContentLength}"
             }
 
             songUrlCache.put(
@@ -232,15 +225,9 @@ constructor(
                 expiresInSeconds = playbackData.streamExpiresInSeconds,
                 expectedGeneration = cacheGeneration,
             )
-
-            val cachedStream = songUrlCache[mediaId]
-            if (cachedStream != null) {
-                return@Factory dataSpec
-                    .withUri(cachedStream.url.toUri())
-                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
-            }
-
-            dataSpec.withUri(streamUrl.toUri())
+            dataSpec
+                .withUri(streamUrl.toUri())
+                .withRequestHeaders(dataSpec.httpRequestHeaders + playbackData.streamHeaders)
         }
 
     val downloadNotificationHelper =
@@ -263,6 +250,18 @@ constructor(
                         download: Download,
                         finalException: Exception?,
                     ) {
+                        Timber.tag("DownloadDiagnostics").d(
+                            "onDownloadChanged [%s]: state = %s, progress = %.2f%%, exception = %s",
+                            download.request.id,
+                            downloadStateToString(download.state),
+                            download.percentDownloaded,
+                            finalException?.message ?: "None"
+                        )
+                        
+                        if (download.state == Download.STATE_FAILED && finalException.isExpiredStreamError()) {
+                            songUrlCache.invalidate(download.request.id)
+                        }
+
                         downloads.update { map ->
                             map.toMutableMap().apply {
                                 set(download.request.id, download)
@@ -284,6 +283,30 @@ constructor(
                             }
                         }
                     }
+
+                    override fun onDownloadRemoved(
+                        downloadManager: DownloadManager,
+                        download: Download,
+                    ) {
+                        val downloadId = download.request.id
+                        Timber.tag("DownloadDiagnostics").d("onDownloadRemoved [%s]: App requested download removal", downloadId)
+                        songUrlCache.invalidate(downloadId)
+
+                        scope.launch {
+                            runCatching {
+                                database.updateDownloadedInfo(downloadId, false, null)
+                            }.onSuccess {
+                                downloads.update { map ->
+                                    map.toMutableMap().apply {
+                                        remove(downloadId)
+                                    }
+                                }
+                                Timber.tag("DownloadUtil").d("Successfully removed download $downloadId from in-memory map")
+                            }.onFailure { error ->
+                                Timber.tag("DownloadUtil").e(error, "Failed to update database for removed download $downloadId, keeping in-memory entry")
+                            }
+                        }
+                    }
                 }
             )
         }
@@ -301,5 +324,31 @@ constructor(
 
     fun release() {
         scope.cancel()
+    }
+
+    private fun Throwable?.isExpiredStreamError(): Boolean {
+        var current = this
+        while (current != null) {
+            if (current is HttpDataSource.InvalidResponseCodeException &&
+                (current.responseCode == 403 || current.responseCode == 410)
+            ) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
+    }
+}
+
+private fun downloadStateToString(state: Int): String {
+    return when (state) {
+        Download.STATE_QUEUED -> "QUEUED"
+        Download.STATE_STOPPED -> "STOPPED"
+        Download.STATE_DOWNLOADING -> "DOWNLOADING"
+        Download.STATE_COMPLETED -> "COMPLETED"
+        Download.STATE_FAILED -> "FAILED"
+        Download.STATE_REMOVING -> "REMOVING"
+        Download.STATE_RESTARTING -> "RESTARTING"
+        else -> "UNKNOWN ($state)"
     }
 }

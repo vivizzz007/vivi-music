@@ -34,6 +34,7 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import com.music.vivi.constants.SuggestionRegionKey
 
 @HiltViewModel
 class SuggestionsViewModel @Inject constructor(
@@ -65,7 +66,8 @@ class SuggestionsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            refresh(countryCode = "system", force = false)
+            val regionCode = context.dataStore.get(SuggestionRegionKey, "system")
+            refresh(countryCode = regionCode, force = false)
         }
     }
 
@@ -76,8 +78,11 @@ class SuggestionsViewModel @Inject constructor(
             countryCode.lowercase()
         }
 
-        // Allow refresh if force is true OR if we are switching regions
-        if (_isLoading.value && !force && currentLoadedRegion == resolvedCode) return
+        // Abort if we already loaded this region (unless forced)
+        if (!force && currentLoadedRegion == resolvedCode) return
+        
+        // Abort if a load is currently happening
+        if (_isLoading.value) return
         
         viewModelScope.launch(Dispatchers.IO) {
             _isLoading.value = true

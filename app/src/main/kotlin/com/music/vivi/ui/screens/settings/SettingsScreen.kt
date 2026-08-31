@@ -6,20 +6,25 @@
 package com.music.vivi.ui.screens.settings
 
 import com.music.vivi.R
-import android.content.ActivityNotFoundException
-import android.content.Intent
 import android.os.Build
-import android.provider.Settings
-import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -28,19 +33,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.screens.Screens
 import com.music.vivi.ui.utils.backToMain
@@ -56,7 +59,6 @@ fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val isAndroid12OrLater = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
@@ -93,7 +95,8 @@ fun SettingsScreen(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Spacer(
             Modifier.windowInsetsPadding(
@@ -108,11 +111,12 @@ fun SettingsScreen(
                 fontWeight = FontWeight.SemiBold
             ),
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 16.dp)
+            modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 4.dp)
         )
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // All Settings Items combined
-        Material3SettingsGroup(
+        // Group 1: Important / Account
+        ExpressiveSettingGroup(
             itemMinHeight = 64.dp,
             items = buildList {
                 add(
@@ -129,96 +133,116 @@ fun SettingsScreen(
                                 Text(stringResource(R.string.app_update_uptodate))
                             }
                         },
-                        onClick = { navController.navigate("settings/update") },
-                        isExpressive = true
-                    )
-                )
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.palette),
-                        title = { Text(stringResource(R.string.appearance)) },
-                        onClick = { navController.navigate("settings/appearance") },
-                        isExpressive = true
-                    )
-                )
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.play),
-                        title = { Text(stringResource(R.string.player_and_audio)) },
-                        onClick = { navController.navigate("settings/player") },
-                        isExpressive = true
+                        onClick = { navController.navigate("settings/update") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.google),
                         title = { Text(stringResource(R.string.account)) },
-                        onClick = { navController.navigate("settings/account") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_account_desc)) },
+                        onClick = { navController.navigate("settings/account") }
+                    )
+                )
+            }
+        )
+
+        // Group 2: Media & Player Experience
+        ExpressiveSettingGroup(
+            itemMinHeight = 64.dp,
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.palette),
+                        title = { Text(stringResource(R.string.appearance)) },
+                        description = { Text(stringResource(R.string.setting_appearance_desc)) },
+                        onClick = { navController.navigate("settings/appearance") }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.earbud_case),
+                        title = { Text(stringResource(R.string.player_and_audio)) },
+                        description = { Text(stringResource(R.string.setting_player_desc)) },
+                        onClick = { navController.navigate("settings/player") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.group),
                         title = { Text(stringResource(R.string.listen_together)) },
-                        onClick = { navController.navigate(Screens.ListenTogether.route) },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_listen_together_desc)) },
+                        onClick = { navController.navigate(Screens.ListenTogether.route) }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.content)) },
-                        onClick = { navController.navigate("settings/content") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_content_desc)) },
+                        onClick = { navController.navigate("settings/content") }
                     )
                 )
+            }
+        )
+
+        // Group 3: Features & Data
+        ExpressiveSettingGroup(
+            itemMinHeight = 64.dp,
+            items = buildList {
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.translate),
                         title = { Text(stringResource(R.string.ai_lyrics_translation)) },
-                        onClick = { navController.navigate("settings/ai") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_ai_lyrics_translation_desc)) },
+                        onClick = { navController.navigate("settings/ai") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.security),
                         title = { Text(stringResource(R.string.privacy)) },
-                        onClick = { navController.navigate("settings/privacy") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_privacy_desc)) },
+                        onClick = { navController.navigate("settings/privacy") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.storage),
                         title = { Text(stringResource(R.string.storage)) },
-                        onClick = { navController.navigate("settings/storage") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_storage_desc)) },
+                        onClick = { navController.navigate("settings/storage") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.energy_savings_leaf),
                         title = { Text(stringResource(R.string.data_saver)) },
-                        onClick = { navController.navigate("settings/datasaver") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_data_saver_desc)) },
+                        onClick = { navController.navigate("settings/datasaver") }
                     )
                 )
+            }
+        )
+
+        // Group 4: System & Support
+        ExpressiveSettingGroup(
+            itemMinHeight = 64.dp,
+            items = buildList {
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.restore),
                         title = { Text(stringResource(R.string.backup_restore)) },
-                        onClick = { navController.navigate("settings/backup_restore") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_backup_restore_desc)) },
+                        onClick = { navController.navigate("settings/backup_restore") }
                     )
                 )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.info),
                         title = { Text(stringResource(R.string.about)) },
-                        onClick = { navController.navigate("settings/about") },
-                        isExpressive = true
+                        description = { Text(stringResource(R.string.setting_about_desc)) },
+                        onClick = { navController.navigate("settings/about") }
                     )
                 )
             }

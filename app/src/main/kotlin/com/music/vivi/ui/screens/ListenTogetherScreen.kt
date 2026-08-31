@@ -5,17 +5,25 @@
 
 package com.music.vivi.ui.screens
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +49,11 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import com.music.vivi.ui.component.DefaultDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,18 +61,27 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton as MaterialIconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -71,6 +93,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -87,22 +113,30 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AppBarHeight
 import com.music.vivi.constants.ListenTogetherInTopBarKey
+import com.music.vivi.constants.ListenTogetherAvatarIndexKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
 import com.music.vivi.listentogether.ConnectionState
 import com.music.vivi.listentogether.JoinRequestPayload
 import com.music.vivi.listentogether.ListenTogetherEvent
 import com.music.vivi.listentogether.SuggestionReceivedPayload
 import com.music.vivi.listentogether.UserInfo
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.utils.listItemShape
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.viewmodels.ListenTogetherViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ListenTogetherScreen(
     navController: NavController,
-    showTopBar: Boolean = false
+    showTopBar: Boolean = false,
+    viewModel: ListenTogetherViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -118,20 +152,23 @@ fun ListenTogetherScreen(
     val userId by listenTogetherManager.userId.collectAsState()
     val pendingJoinRequests by listenTogetherManager.pendingJoinRequests.collectAsState()
     val pendingSuggestions by listenTogetherManager.pendingSuggestions.collectAsState()
+    val unreadMessageCount by listenTogetherManager.unreadMessageCount.collectAsState()
 
     val (listenTogetherInTopBar) = rememberPreference(ListenTogetherInTopBarKey, defaultValue = true)
     val shouldShowTopBar = showTopBar || listenTogetherInTopBar
     
+    val (listenTogetherAvatarIndex) = rememberPreference(ListenTogetherAvatarIndexKey, 0)
+    
     var savedUsername by rememberPreference(ListenTogetherUsernameKey, "")
-    var roomCodeInput by rememberSaveable { mutableStateOf("") }
-    var usernameInput by rememberSaveable { mutableStateOf(savedUsername) }
+    val roomCodeInput by viewModel.roomCodeInput.collectAsState()
+    val usernameInput by viewModel.usernameInput.collectAsState()
 
-    var isCreatingRoom by rememberSaveable { mutableStateOf(false) }
-    var isJoiningRoom by rememberSaveable { mutableStateOf(false) }
-    var joinErrorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    val isCreatingRoom by viewModel.isCreatingRoom.collectAsState()
+    val isJoiningRoom by viewModel.isJoiningRoom.collectAsState()
+    val joinErrorMessage by viewModel.joinErrorMessage.collectAsState()
 
-    var selectedUserForMenu by rememberSaveable { mutableStateOf<String?>(null) }
-    var selectedUsername by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedUserForMenu by viewModel.selectedUserForMenu.collectAsState()
+    val selectedUsername by viewModel.selectedUsername.collectAsState()
 
     val waitingForApprovalText = stringResource(R.string.waiting_for_approval)
     val invalidRoomCodeText = stringResource(R.string.invalid_room_code)
@@ -139,34 +176,16 @@ fun ListenTogetherScreen(
 
     LaunchedEffect(savedUsername) {
         if (usernameInput.isBlank() && savedUsername.isNotBlank()) {
-            usernameInput = savedUsername
+            viewModel.usernameInput.value = savedUsername
         }
     }
 
     LaunchedEffect(listenTogetherManager) {
         listenTogetherManager.events.collect { event ->
-            when (event) {
-                is ListenTogetherEvent.JoinRejected -> {
-                    val reason = event.reason
-                    joinErrorMessage = when {
-                        reason.isNullOrBlank() -> joinRequestDeniedText
-                        reason.contains("invalid", ignoreCase = true) -> invalidRoomCodeText
-                        else -> "$joinRequestDeniedText: $reason"
-                    }
-                    isJoiningRoom = false
-                    isCreatingRoom = false
-                }
-                is ListenTogetherEvent.JoinApproved -> {
-                    isJoiningRoom = false
-                    joinErrorMessage = null
-                }
-                is ListenTogetherEvent.RoomCreated -> {
-                    isCreatingRoom = false
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
-                    clipboard.setPrimaryClip(clip)
-                }
-                else -> {}
+            if (event is ListenTogetherEvent.RoomCreated) {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                val clip = ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
+                clipboard.setPrimaryClip(clip)
             }
         }
     }
@@ -182,8 +201,8 @@ fun ListenTogetherScreen(
                 selectedUserForMenu?.let {
                     listenTogetherManager.kickUser(it, "Removed by host")
                 }
-                selectedUserForMenu = null
-                selectedUsername = null
+                viewModel.selectedUserForMenu.value = null
+                viewModel.selectedUsername.value = null
             },
             onPermanentKick = {
                 selectedUserForMenu?.let { userId ->
@@ -192,19 +211,19 @@ fun ListenTogetherScreen(
                         listenTogetherManager.kickUser(userId, R.string.user_blocked_by_host.toString())
                     }
                 }
-                selectedUserForMenu = null
-                selectedUsername = null
+                viewModel.selectedUserForMenu.value = null
+                viewModel.selectedUsername.value = null
             },
             onTransferOwnership = {
                 selectedUserForMenu?.let {
                     listenTogetherManager.transferHost(it)
                 }
-                selectedUserForMenu = null
-                selectedUsername = null
+                viewModel.selectedUserForMenu.value = null
+                viewModel.selectedUsername.value = null
             },
             onDismiss = {
-                selectedUserForMenu = null
-                selectedUsername = null
+                viewModel.selectedUserForMenu.value = null
+                viewModel.selectedUsername.value = null
             }
         )
     }
@@ -237,9 +256,9 @@ fun ListenTogetherScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header
+        // Header (always visible)
         item {
-            HeaderSection(isInRoom = isInRoom)
+            HeaderSection()
         }
 
         // Connection status card
@@ -252,7 +271,7 @@ fun ListenTogetherScreen(
             )
         }
 
-        if (connectionState == ConnectionState.CONNECTED && !isInRoom) {
+        if (connectionState == ConnectionState.CONNECTED) {
             item {
                 Text(
                     text = stringResource(R.string.listen_together_background_disconnect_note),
@@ -264,15 +283,81 @@ fun ListenTogetherScreen(
             }
         }
 
+        // Join/Create section (always visible, morphs based on state)
+        item {
+            JoinCreateRoomSection(
+                usernameInput = usernameInput,
+                onUsernameChange = { viewModel.usernameInput.value = it },
+                roomCodeInput = roomCodeInput,
+                onRoomCodeChange = { viewModel.roomCodeInput.value = it },
+                savedUsername = savedUsername,
+                isJoiningRoom = isJoiningRoom,
+                joinErrorMessage = joinErrorMessage,
+                waitingForApprovalText = waitingForApprovalText,
+                bringIntoViewRequester = bringIntoViewRequester,
+                isInRoom = isInRoom,
+                activeRoomCode = roomState?.roomCode ?: "",
+                onCreateRoom = {
+                    val username = usernameInput.takeIf { it.isNotBlank() } ?: savedUsername
+                    val finalUsername = username.trim()
+                    if (finalUsername.isNotBlank()) {
+                        savedUsername = finalUsername
+                        Toast.makeText(context, R.string.creating_room, Toast.LENGTH_SHORT).show()
+                        viewModel.isCreatingRoom.value = true
+                        viewModel.isJoiningRoom.value = false
+                        viewModel.joinErrorMessage.value = null
+                        listenTogetherManager.connect()
+                        listenTogetherManager.createRoom(finalUsername)
+                    } else {
+                        Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onJoinRoom = {
+                    val username = usernameInput.takeIf { it.isNotBlank() } ?: savedUsername
+                    val finalUsername = username.trim()
+                    if (finalUsername.isNotBlank()) {
+                        savedUsername = finalUsername
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.joining_room, roomCodeInput),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.isJoiningRoom.value = true
+                        viewModel.isCreatingRoom.value = false
+                        viewModel.joinErrorMessage.value = null
+                        listenTogetherManager.connect()
+                        listenTogetherManager.joinRoom(roomCodeInput, finalUsername)
+                    } else {
+                        Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onLeaveRoom = { listenTogetherManager.leaveRoom() },
+                onCancelJoin = {
+                    if (isJoiningRoom) {
+                        viewModel.isJoiningRoom.value = false
+                        viewModel.joinErrorMessage.value = null
+                        listenTogetherManager.leaveRoom()
+                    }
+                },
+                onFieldFocused = {
+                    coroutineScope.launch {
+                        bringIntoViewRequester.bringIntoView()
+                    }
+                }
+            )
+        }
+
+        // Room details (visible when in a room)
         if (isInRoom) {
-            // Room status card
             roomState?.let { room ->
+                // Room status (copy/share/chat actions)
                 item {
                     RoomStatusCard(
                         roomCode = room.roomCode,
                         isHost = isHost,
                         context = context,
-                        navController = navController
+                        navController = navController,
+                        unreadMessageCount = unreadMessageCount
                     )
                 }
 
@@ -286,8 +371,8 @@ fun ListenTogetherScreen(
                         currentUserId = currentUserIdValue,
                         onUserClick = { clickedUserId, username ->
                             if (isHost && clickedUserId != currentUserIdValue) {
-                                selectedUserForMenu = clickedUserId
-                                selectedUsername = username
+                                viewModel.selectedUserForMenu.value = clickedUserId
+                                viewModel.selectedUsername.value = username
                             }
                         }
                     )
@@ -314,97 +399,29 @@ fun ListenTogetherScreen(
                         )
                     }
                 }
-
-                // Leave room button
-                item {
-                    Button(
-                        onClick = { listenTogetherManager.leaveRoom() },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.logout),
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            stringResource(R.string.leave_room),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-            }
-        } else {
-            // Join/Create room section
-            item {
-                JoinCreateRoomSection(
-                    usernameInput = usernameInput,
-                    onUsernameChange = { usernameInput = it },
-                    roomCodeInput = roomCodeInput,
-                    onRoomCodeChange = { roomCodeInput = it },
-                    savedUsername = savedUsername,
-                    isJoiningRoom = isJoiningRoom,
-                    joinErrorMessage = joinErrorMessage,
-                    waitingForApprovalText = waitingForApprovalText,
-                    bringIntoViewRequester = bringIntoViewRequester,
-                    onCreateRoom = {
-                        val username = usernameInput.takeIf { it.isNotBlank() } ?: savedUsername
-                        val finalUsername = username.trim()
-                        if (finalUsername.isNotBlank()) {
-                            savedUsername = finalUsername
-                            Toast.makeText(context, R.string.creating_room, Toast.LENGTH_SHORT).show()
-                            isCreatingRoom = true
-                            isJoiningRoom = false
-                            joinErrorMessage = null
-                            listenTogetherManager.connect()
-                            listenTogetherManager.createRoom(finalUsername)
-                        } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onJoinRoom = {
-                        val username = usernameInput.takeIf { it.isNotBlank() } ?: savedUsername
-                        val finalUsername = username.trim()
-                        if (finalUsername.isNotBlank()) {
-                            savedUsername = finalUsername
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.joining_room, roomCodeInput),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            isJoiningRoom = true
-                            isCreatingRoom = false
-                            joinErrorMessage = null
-                            listenTogetherManager.connect()
-                            listenTogetherManager.joinRoom(roomCodeInput, finalUsername)
-                        } else {
-                            Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    onFieldFocused = {
-                        coroutineScope.launch {
-                            bringIntoViewRequester.bringIntoView()
-                        }
-                    }
-                )
             }
         }
 
         // Settings link
         item {
-            SettingsLinkCard(
-                onClick = { navController.navigate("settings/integrations/listen_together") }
+            ExpressiveSettingGroup(
+                items = listOf(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.diversity_listen_together),
+                        title = { Text(stringResource(R.string.settings)) },
+                        description = { Text(stringResource(R.string.listen_together_settings_desc)) },
+                        onClick = { navController.navigate("settings/integrations/listen_together") }
+                    )
+                )
             )
         }
     }
 
     if (shouldShowTopBar) {
         TopAppBar(
-            title = { Text(stringResource(R.string.together)) },
+            title = {
+//                Text(stringResource(R.string.together))
+            },
             navigationIcon = {
                 IconButton(
                     onClick = navController::navigateUp,
@@ -415,7 +432,10 @@ fun ListenTogetherScreen(
                         contentDescription = null
                     )
                 }
-            }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent
+            )
         )
     }
 }
@@ -455,8 +475,7 @@ private fun NotConfiguredContent() {
 }
 
 @Composable
-private fun HeaderSection(isInRoom: Boolean = false) {
-    if (isInRoom) return
+private fun HeaderSection() {
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -508,7 +527,14 @@ private fun ConnectionStatusCard(
     onDisconnect: () -> Unit,
     onReconnect: () -> Unit
 ) {
-    Card(
+    val iconTint = when (connectionState) {
+        ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primary
+        ConnectionState.CONNECTING, ConnectionState.RECONNECTING -> MaterialTheme.colorScheme.tertiary
+        ConnectionState.ERROR -> MaterialTheme.colorScheme.error
+        ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .animateContentSize(
@@ -516,109 +542,131 @@ private fun ConnectionStatusCard(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
                     stiffness = Spring.StiffnessLow
                 )
-            ),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = when (connectionState) {
-                ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primaryContainer
-                ConnectionState.CONNECTING, ConnectionState.RECONNECTING -> MaterialTheme.colorScheme.secondaryContainer
-                ConnectionState.ERROR -> MaterialTheme.colorScheme.errorContainer
-                ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.surfaceContainerHigh
-            }
-        )
+            )
+            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 0.dp, bottomEnd = 0.dp))
+            .background(
+                if (connectionState == ConnectionState.ERROR) {
+                    MaterialTheme.colorScheme.errorContainer
+                } else {
+                    MaterialTheme.colorScheme.surfaceVariant
+                }
+            )
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Top area: Text on left, Icon on right
             Row(
+                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = when (connectionState) {
+                            ConnectionState.CONNECTED -> stringResource(R.string.listen_together_connected)
+                            ConnectionState.CONNECTING -> stringResource(R.string.listen_together_connecting)
+                            ConnectionState.RECONNECTING -> stringResource(R.string.listen_together_reconnecting)
+                            ConnectionState.ERROR -> stringResource(R.string.listen_together_error)
+                            ConnectionState.DISCONNECTED -> stringResource(R.string.listen_together_disconnected)
+                        },
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = iconTint
+                    )
+                    
+                    if (connectionState == ConnectionState.CONNECTING || 
+                        connectionState == ConnectionState.RECONNECTING) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .clip(RoundedCornerShape(8.dp)),
+                            color = iconTint
+                        )
+                    }
+                }
+                
                 Box(
                     modifier = Modifier
-                        .size(10.dp)
-                        .clip(CircleShape)
-                        .background(
-                            color = when (connectionState) {
-                                ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primary
-                                ConnectionState.CONNECTING, ConnectionState.RECONNECTING -> MaterialTheme.colorScheme.tertiary
-                                ConnectionState.ERROR -> MaterialTheme.colorScheme.error
-                                ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.outline
+                        .size(40.dp)
+                        .background(iconTint.copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            when (connectionState) {
+                                ConnectionState.CONNECTED -> R.drawable.cloud_lock_listentogether
+                                ConnectionState.ERROR -> R.drawable.server_error
+                                ConnectionState.DISCONNECTED -> R.drawable.cloud_off_listentogether
+                                else -> R.drawable.connecting_server
                             }
-                        )
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = when (connectionState) {
-                        ConnectionState.CONNECTED -> stringResource(R.string.listen_together_connected)
-                        ConnectionState.CONNECTING -> stringResource(R.string.listen_together_connecting)
-                        ConnectionState.RECONNECTING -> stringResource(R.string.listen_together_reconnecting)
-                        ConnectionState.ERROR -> stringResource(R.string.listen_together_error)
-                        ConnectionState.DISCONNECTED -> stringResource(R.string.listen_together_disconnected)
-                    },
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = when (connectionState) {
-                        ConnectionState.CONNECTED -> MaterialTheme.colorScheme.primary
-                        ConnectionState.CONNECTING, ConnectionState.RECONNECTING -> MaterialTheme.colorScheme.tertiary
-                        ConnectionState.ERROR -> MaterialTheme.colorScheme.error
-                        ConnectionState.DISCONNECTED -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                        ),
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
-
-            if (connectionState == ConnectionState.CONNECTING || connectionState == ConnectionState.RECONNECTING) {
-                Spacer(modifier = Modifier.height(12.dp))
-                LinearProgressIndicator(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp)),
+            
+            // Bottom Actions
+            if (connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.ERROR) {
+                Surface(
+                    onClick = onConnect,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.ERROR) {
-                    Button(
-                        onClick = onConnect,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.padding(vertical = 12.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.link),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                        Text(
+                            text = stringResource(R.string.connect),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.connect), fontWeight = FontWeight.SemiBold)
                     }
-                } else {
-                    Button(
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
                         onClick = onDisconnect,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                        color = MaterialTheme.colorScheme.secondaryContainer
                     ) {
-                        Text(stringResource(R.string.disconnect), fontWeight = FontWeight.SemiBold)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.disconnect),
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
                     }
-                    FilledTonalButton(
+                    Surface(
                         onClick = onReconnect,
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.primary
                     ) {
-                        Text("Reconnect", fontWeight = FontWeight.SemiBold)
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = "Reconnect",
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                 }
             }
@@ -631,120 +679,129 @@ private fun RoomStatusCard(
     roomCode: String,
     isHost: Boolean,
     context: Context,
-    navController: NavController
+    navController: NavController,
+    unreadMessageCount: Int
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-        )
+    // Action Row without the bulky card background
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = stringResource(R.string.room_code),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = roomCode,
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 6.sp,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = if (isHost)
-                    stringResource(R.string.listen_together_you_are_host)
-                else
-                    stringResource(R.string.listen_together_you_are_guest),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = { navController.navigate("listen_together/chat") },
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth(0.8f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                    contentColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.chat_msg),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.comments),
-                    fontWeight = FontWeight.Bold
-                )
+            // Action Row
+            val inviteLink = remember(roomCode) {
+                "https://vivimusic-listen-together.onrender.com/listen?code=$roomCode"
             }
+            
+            // Fixed width for equal sizing horizontally
+            val modifier = Modifier.weight(1f)
 
-            if (isHost) {
-                Spacer(modifier = Modifier.height(16.dp))
-                val inviteLink = remember(roomCode) {
-                    "https://vivimusic-listen-together.onrender.com/listen?code=$roomCode"
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-                    modifier = Modifier.fillMaxWidth()
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Chat Action
+                FilledTonalButton(
+                    onClick = { navController.navigate("listen_together/chat") },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+                    modifier = modifier
                 ) {
-                    FilledTonalButton(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Listen Together Link", inviteLink)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
-                        },
-                        shape = RoundedCornerShape(12.dp)
+                    androidx.compose.material3.BadgedBox(
+                        badge = {
+                            if (unreadMessageCount > 0) {
+                                androidx.compose.material3.Badge {
+                                    Text(unreadMessageCount.toString())
+                                }
+                            }
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.link),
-                            contentDescription = stringResource(R.string.copy_link),
+                            painterResource(R.drawable.chat_msg),
+                            contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.copy_link))
                     }
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.comments),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
-                    FilledTonalButton(
-                        onClick = {
-                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText("Room Code", roomCode)
-                            clipboard.setPrimaryClip(clip)
-                            Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
-                        },
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.content_copy),
-                            contentDescription = stringResource(R.string.copy_code),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.copy_code))
-                    }
+                // Copy Link Action
+                FilledTonalButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Listen Together Link", inviteLink)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+                    modifier = modifier
+                ) {
+                    Icon(
+                        painterResource(R.drawable.link),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.copy_link),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Copy Code Action
+                FilledTonalButton(
+                    onClick = {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Room Code", roomCode)
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 12.dp),
+                    modifier = modifier
+                ) {
+                    Icon(
+                        painterResource(R.drawable.content_copy),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(R.string.copy_code),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
     }
-}
 
 @Composable
 private fun ConnectedUsersSection(
@@ -782,7 +839,7 @@ private fun ConnectedUsersSection(
                         user = user,
                         isCurrentUser = user.userId == currentUserId,
                         isClickable = isHost && user.userId != currentUserId,
-                        onClick = { onUserClick(user.userId, user.username) }
+                        onClick = { onUserClick(user.userId, user.cleanUsername) }
                     )
                 }
             }
@@ -790,6 +847,7 @@ private fun ConnectedUsersSection(
     }
 }
 
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 private fun UserAvatar(
     user: UserInfo,
@@ -808,27 +866,39 @@ private fun UserAvatar(
         ) {
             Surface(
                 modifier = Modifier.size(56.dp),
-                shape = CircleShape,
+                shape = MaterialShapes.Cookie4Sided.toShape(),
                 color = when {
                     user.isHost -> MaterialTheme.colorScheme.primary
                     isCurrentUser -> MaterialTheme.colorScheme.secondary
-                    else -> MaterialTheme.colorScheme.surfaceVariant
+                    else -> MaterialTheme.colorScheme.tertiaryContainer
                 }
             ) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    Text(
-                        text = user.username.take(1).uppercase(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            user.isHost -> MaterialTheme.colorScheme.onPrimary
-                            isCurrentUser -> MaterialTheme.colorScheme.onSecondary
-                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        }
-                    )
+                    val resolvedAvatarIndex = user.avatarIndex
+                    val avatarOptions = remember { listOf(R.drawable.person, R.drawable.man, R.drawable.woman, R.drawable.man_1, R.drawable.man_2, R.drawable.man_3, R.drawable.man_4, R.drawable.man_5, R.drawable.man_6, R.drawable.woman_1, R.drawable.woman_2, R.drawable.woman_3, R.drawable.woman_4, R.drawable.luxury_women) }
+                    
+                    if (resolvedAvatarIndex == 0) {
+                        Text(
+                            text = user.cleanUsername.take(1).uppercase(),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = when {
+                                user.isHost -> MaterialTheme.colorScheme.onPrimary
+                                isCurrentUser -> MaterialTheme.colorScheme.onSecondary
+                                else -> MaterialTheme.colorScheme.onTertiaryContainer
+                            }
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(avatarOptions.getOrElse(resolvedAvatarIndex) { R.drawable.person }),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 }
             }
 
@@ -861,7 +931,7 @@ private fun UserAvatar(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = user.username,
+            text = user.cleanUsername,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = if (isCurrentUser) FontWeight.Bold else FontWeight.Medium,
             color = if (user.isHost) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
@@ -917,6 +987,9 @@ private fun PendingJoinRequestsSection(
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
+                    val resolvedAvatarIndex = request.avatarIndex
+                    val avatarOptions = remember { listOf(R.drawable.person, R.drawable.man, R.drawable.woman, R.drawable.man_1, R.drawable.man_2, R.drawable.man_3, R.drawable.man_4, R.drawable.man_5, R.drawable.man_6, R.drawable.woman_1, R.drawable.woman_2, R.drawable.woman_3, R.drawable.woman_4, R.drawable.luxury_women) }
+                    
                     Surface(
                         modifier = Modifier.size(40.dp),
                         shape = CircleShape,
@@ -926,17 +999,26 @@ private fun PendingJoinRequestsSection(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier.fillMaxSize()
                         ) {
-                            Text(
-                                text = request.username.take(1).uppercase(),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSecondary
-                            )
+                            if (resolvedAvatarIndex == 0) {
+                                Text(
+                                    text = request.cleanUsername.take(1).uppercase(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondary
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(avatarOptions.getOrElse(resolvedAvatarIndex) { R.drawable.person }),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        text = request.username,
+                        text = request.cleanUsername,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.weight(1f)
@@ -1050,13 +1132,22 @@ private fun JoinCreateRoomSection(
     joinErrorMessage: String?,
     waitingForApprovalText: String,
     bringIntoViewRequester: BringIntoViewRequester,
+    isInRoom: Boolean = false,
+    activeRoomCode: String = "",
     onCreateRoom: () -> Unit,
     onJoinRoom: () -> Unit,
+    onLeaveRoom: () -> Unit = {},
+    onCancelJoin: () -> Unit = {},
     onFieldFocused: () -> Unit = {}
 ) {
+    val avatarIndex by rememberPreference(ListenTogetherAvatarIndexKey, 0)
+    val avatarOptions = remember { listOf(R.drawable.person, R.drawable.man, R.drawable.woman, R.drawable.man_1, R.drawable.man_2, R.drawable.man_3, R.drawable.man_4, R.drawable.man_5, R.drawable.man_6, R.drawable.woman_1, R.drawable.woman_2, R.drawable.woman_3, R.drawable.woman_4, R.drawable.luxury_women) }
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
@@ -1068,23 +1159,63 @@ private fun JoinCreateRoomSection(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Username input
+            val usernameBorderColor by androidx.compose.animation.animateColorAsState(
+                targetValue = if (isInRoom) MaterialTheme.colorScheme.outline.copy(alpha = 0.3f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "usernameBorderColor"
+            )
+            val usernameContainerColor by androidx.compose.animation.animateColorAsState(
+                targetValue = if (isInRoom) MaterialTheme.colorScheme.surfaceContainerLowest else MaterialTheme.colorScheme.surfaceContainerLow,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "usernameContainerColor"
+            )
+            val usernameIconTint by androidx.compose.animation.animateColorAsState(
+                targetValue = if (isInRoom) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "usernameIconTint"
+            )
+
+            // Username input — read-only when in room
             OutlinedTextField(
-                value = usernameInput,
-                onValueChange = onUsernameChange,
+                value = if (isInRoom) (usernameInput.takeIf { it.isNotBlank() } ?: savedUsername) else usernameInput,
+                onValueChange = if (isInRoom) { _ -> } else onUsernameChange,
+                readOnly = isInRoom,
                 label = { Text(stringResource(R.string.username)) },
                 placeholder = { Text(stringResource(R.string.enter_username)) },
                 leadingIcon = {
-                    Icon(
-                        painterResource(R.drawable.person),
-                        null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    if (avatarIndex == 0) {
+                        Icon(
+                            painterResource(R.drawable.person),
+                            null,
+                            tint = usernameIconTint
+                        )
+                    } else {
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(avatarOptions.getOrElse(avatarIndex) { R.drawable.person }),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp).clip(androidx.compose.foundation.shape.CircleShape),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 },
                 trailingIcon = {
-                    if (usernameInput.isNotBlank()) {
-                        MaterialIconButton(onClick = { onUsernameChange("") }) {
-                            Icon(painterResource(R.drawable.close), null)
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = isInRoom,
+                        label = "usernameTrailingIcon"
+                    ) { inRoom ->
+                        if (inRoom) {
+                            Icon(
+                                painterResource(R.drawable.lock),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        } else if (usernameInput.isNotBlank()) {
+                            MaterialIconButton(onClick = { onUsernameChange("") }) {
+                                Icon(painterResource(R.drawable.close), null, tint = MaterialTheme.colorScheme.tertiary)
+                            }
+                        } else {
+                            Spacer(Modifier.size(18.dp))
                         }
                     }
                 },
@@ -1092,52 +1223,209 @@ private fun JoinCreateRoomSection(
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    unfocusedBorderColor = usernameBorderColor,
+                    focusedContainerColor = usernameContainerColor,
+                    unfocusedContainerColor = usernameContainerColor,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onFocusChanged { if (it.isFocused) onFieldFocused() }
+                    .onFocusChanged { if (it.isFocused && !isInRoom) onFieldFocused() }
             )
 
-            // Room code input
-            OutlinedTextField(
-                value = roomCodeInput,
-                onValueChange = { if (it.length <= 8) onRoomCodeChange(it.uppercase()) },
-                label = { Text(stringResource(R.string.room_code)) },
-                placeholder = { Text(stringResource(R.string.enter_room_code)) },
-                leadingIcon = {
-                    Icon(
-                        painterResource(R.drawable.group),
-                        null,
-                        tint = MaterialTheme.colorScheme.primary
+
+            // Room code label
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Icon(
+                    painter = painterResource(if (isInRoom) R.drawable.link else R.drawable.group),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.room_code),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // OTP boxes — editable when not in room, read-only display when in room
+            if (isInRoom) {
+                // Staggered one-by-one reveal animation when room code arrives
+                // We utilize isFirstFrame to detect if we're instantly entering an already-connected state, silencing the animation
+                val isFirstFrame = remember { mutableStateOf(true) }
+                DisposableEffect(Unit) {
+                    isFirstFrame.value = false
+                    onDispose { }
+                }
+
+                var revealedCount by rememberSaveable(activeRoomCode) { 
+                    mutableStateOf(if (isFirstFrame.value && activeRoomCode.isNotBlank()) activeRoomCode.length else 0) 
+                }
+
+                LaunchedEffect(activeRoomCode) {
+                    if (activeRoomCode.isNotBlank() && revealedCount < activeRoomCode.length) {
+                        repeat(activeRoomCode.length - revealedCount) {
+                            delay(100L)
+                            revealedCount++
+                        }
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    repeat(8) { index ->
+                        val isRevealed = index < revealedCount
+                        val char = if (isRevealed) activeRoomCode.getOrNull(index)?.toString() ?: "" else ""
+                        val charScale by animateFloatAsState(
+                            targetValue = if (isRevealed) 1f else 0.4f,
+                            animationSpec = spring(
+                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                stiffness = Spring.StiffnessMedium
+                            ),
+                            label = "charScale_$index"
+                        )
+                        val charAlpha by animateFloatAsState(
+                            targetValue = if (isRevealed) 1f else 0f,
+                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                            label = "charAlpha_$index"
+                        )
+                        val boxColor by animateColorAsState(
+                            targetValue = if (isRevealed) MaterialTheme.colorScheme.primaryContainer
+                                          else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                            label = "boxColor_$index"
+                        )
+                        val borderColor by animateColorAsState(
+                            targetValue = if (isRevealed) MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+                                          else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                            label = "borderColor_$index"
+                        )
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            color = boxColor,
+                            border = BorderStroke(1.dp, borderColor)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = char,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.graphicsLayer(
+                                        scaleX = charScale,
+                                        scaleY = charScale,
+                                        alpha = charAlpha
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Editable OTP input
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    BasicTextField(
+                        value = roomCodeInput,
+                        onValueChange = { if (it.length <= 8) onRoomCodeChange(it.uppercase()) },
+                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                        singleLine = true,
+                        modifier = Modifier
+                            .weight(1f)
+                            .bringIntoViewRequester(bringIntoViewRequester)
+                            .onFocusChanged { if (it.isFocused) onFieldFocused() },
+                        decorationBox = { innerTextField ->
+                            Box {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    repeat(8) { index ->
+                                        val char = roomCodeInput.getOrNull(index)?.toString() ?: ""
+                                        val isFocused = roomCodeInput.length == index
+                                        val hasChar = char.isNotEmpty()
+                                        val scale by animateFloatAsState(
+                                            targetValue = if (hasChar) 1f else 0.85f,
+                                            animationSpec = spring(
+                                                dampingRatio = Spring.DampingRatioMediumBouncy,
+                                                stiffness = Spring.StiffnessMedium
+                                            ),
+                                            label = "inputCharScale_$index"
+                                        )
+                                        val boxColor by animateColorAsState(
+                                            targetValue = if (hasChar) MaterialTheme.colorScheme.primaryContainer
+                                                          else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                                            label = "inputBoxColor_$index"
+                                        )
+                                        val textColor by animateColorAsState(
+                                            targetValue = if (hasChar) MaterialTheme.colorScheme.primary
+                                                          else MaterialTheme.colorScheme.onSurface,
+                                            animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                                            label = "inputTextColor_$index"
+                                        )
+                                        Surface(
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(48.dp)
+                                                .graphicsLayer(scaleX = scale, scaleY = scale),
+                                            shape = RoundedCornerShape(8.dp),
+                                            color = boxColor,
+                                            border = if (isFocused) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+                                                     else if (hasChar) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                                                     else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                        ) {
+                                            Box(contentAlignment = Alignment.Center) {
+                                                Text(
+                                                    text = char,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = textColor
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                Box(modifier = Modifier.matchParentSize().alpha(0.01f)) {
+                                    innerTextField()
+                                }
+                            }
+                        }
                     )
-                },
-                trailingIcon = {
-                    if (roomCodeInput.isNotBlank()) {
-                        MaterialIconButton(onClick = { onRoomCodeChange("") }) {
+
+                    AnimatedVisibility(visible = roomCodeInput.isNotBlank()) {
+                        androidx.compose.material3.FilledIconButton(
+                            onClick = { 
+                                onRoomCodeChange("")
+                                onCancelJoin()
+                            },
+                            modifier = Modifier.padding(start = 8.dp),
+                            colors = androidx.compose.material3.IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
                             Icon(painterResource(R.drawable.close), null)
                         }
                     }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .bringIntoViewRequester(bringIntoViewRequester)
-                    .onFocusChanged { if (it.isFocused) onFieldFocused() }
-            )
+                }
+            }
 
-            // Waiting for approval indicator
+            // Waiting for approval indicator (only when not in room)
             AnimatedVisibility(
-                visible = isJoiningRoom,
+                visible = isJoiningRoom && !isInRoom,
                 enter = fadeIn() + slideInVertically(),
                 exit = fadeOut() + slideOutVertically()
             ) {
@@ -1172,7 +1460,7 @@ private fun JoinCreateRoomSection(
 
             // Error message
             AnimatedVisibility(
-                visible = joinErrorMessage != null,
+                visible = joinErrorMessage != null && !isInRoom,
                 enter = fadeIn() + slideInVertically(),
                 exit = fadeOut() + slideOutVertically()
             ) {
@@ -1206,98 +1494,81 @@ private fun JoinCreateRoomSection(
                 }
             }
 
-            // Action buttons
-            val hasUsername = usernameInput.trim().isNotBlank() || savedUsername.isNotBlank()
-            val hasRoomCode = roomCodeInput.length == 8
-            
-            // Create Room button - visible when username is provided
-            AnimatedVisibility(visible = hasUsername && !hasRoomCode) {
+            // Action buttons — morph between Create/Join and Leave Room
+            if (isInRoom) {
                 Button(
-                    onClick = onCreateRoom,
+                    onClick = onLeaveRoom,
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = hasUsername,
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.add),
+                        painter = painterResource(R.drawable.logout),
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.create_room), fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.leave_room), fontWeight = FontWeight.SemiBold)
                 }
-            }
+            } else {
+                val hasUsername = usernameInput.trim().isNotBlank() || savedUsername.isNotBlank()
+                val hasRoomCode = roomCodeInput.length == 8
 
-            // Join Room button - visible when username and room code are provided
-            AnimatedVisibility(visible = hasUsername && hasRoomCode) {
-                Button(
-                    onClick = onJoinRoom,
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = hasUsername && hasRoomCode,
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiary
+                // Morphing Create/Join Button
+                AnimatedVisibility(visible = hasUsername) {
+                    val containerColor by animateColorAsState(
+                        targetValue = if (hasRoomCode) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
+                        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                        label = "buttonColorAnim"
                     )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.login),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.join_room), fontWeight = FontWeight.SemiBold)
+                    Button(
+                        onClick = if (hasRoomCode) onJoinRoom else onCreateRoom,
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = hasUsername,
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = containerColor,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
+                    ) {
+                        AnimatedContent(
+                            targetState = hasRoomCode,
+                            transitionSpec = {
+                                tween<Float>(200).let {
+                                    fadeIn(it) togetherWith fadeOut(it)
+                                }
+                            },
+                            label = "JoinCreateButtonAnim"
+                        ) { isJoin ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (isJoin) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.join_listen),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.join_room), fontWeight = FontWeight.SemiBold)
+                                } else {
+                                    Icon(
+                                        painter = painterResource(R.drawable.add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.create_room), fontWeight = FontWeight.SemiBold)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-@Composable
-private fun SettingsLinkCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.settings),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(R.string.settings),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = stringResource(R.string.listen_together_settings_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Icon(
-                painter = painterResource(R.drawable.arrow_forward),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
 
 @Composable
 private fun UserActionDialog(

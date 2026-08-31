@@ -28,10 +28,10 @@ fun listItemShape(index: Int, count: Int, radius: Dp = 24.dp): Shape {
     val smoothness = 60
     return when {
         count == 1 -> AbsoluteSmoothCornerShape(
-            cornerRadiusTL = radius, smoothnessAsPercentTL = smoothness,
-            cornerRadiusTR = radius, smoothnessAsPercentTR = smoothness,
-            cornerRadiusBL = radius, smoothnessAsPercentBL = smoothness,
-            cornerRadiusBR = radius, smoothnessAsPercentBR = smoothness
+            cornerRadiusTL = 16.dp, smoothnessAsPercentTL = smoothness,
+            cornerRadiusTR = 16.dp, smoothnessAsPercentTR = smoothness,
+            cornerRadiusBL = 16.dp, smoothnessAsPercentBL = smoothness,
+            cornerRadiusBR = 16.dp, smoothnessAsPercentBR = smoothness
         )
         index == 0 -> AbsoluteSmoothCornerShape(
             cornerRadiusTL = radius, smoothnessAsPercentTL = smoothness,

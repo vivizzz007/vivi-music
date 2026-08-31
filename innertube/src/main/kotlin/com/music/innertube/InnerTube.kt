@@ -127,7 +127,12 @@ class InnerTube {
                         return when (this@InnerTube.ipVersion) {
                             IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
                             IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
-                            IpVersion.AUTO -> addresses
+                            IpVersion.AUTO -> {
+                                // Prioritize IPv4 to fix prevalent home Wi-Fi IPv6 routing blackholes
+                                val ipv4 = addresses.filterIsInstance<Inet4Address>()
+                                val ipv6 = addresses.filterIsInstance<Inet6Address>()
+                                ipv4 + ipv6 
+                            }
                         }
                     }
                 })
@@ -157,10 +162,10 @@ class InnerTube {
 
         defaultRequest {
             url(YouTubeClient.API_URL_YOUTUBE_MUSIC)
-            // Add common headers for better compatibility
-            header("Accept", "application/json")
+            // Standard API accept headers — InnerTube returns JSON
+            // NOTE: Do NOT set Accept-Encoding here; Ktor's ContentEncoding plugin manages it
+            header("Accept", "application/json, text/plain, */*")
             header("Accept-Language", "en-US,en;q=0.9")
-            header("Cache-Control", "no-cache")
         }
     }
 
@@ -170,8 +175,14 @@ class InnerTube {
             append("X-Goog-Api-Format-Version", "1")
             append("X-YouTube-Client-Name", client.clientId /* Not a typo. The Client-Name header does contain the client id. */)
             append("X-YouTube-Client-Version", client.clientVersion)
+            // Origin and Referer are mandatory — YouTube validates these for browser-like requests
+            append("Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
             append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
             append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
+            // Signal to YouTube that this client is behaving like a Chromium browser
+            append("sec-ch-ua", YouTubeClient.SEC_CH_UA)
+            append("sec-ch-ua-mobile", "?0")
+            append("sec-ch-ua-platform", "\"Windows\"")
             visitorData?.let { append("X-Goog-Visitor-Id", it) }
             if (setLogin && client.loginSupported) {
                 cookie?.let { cookie ->

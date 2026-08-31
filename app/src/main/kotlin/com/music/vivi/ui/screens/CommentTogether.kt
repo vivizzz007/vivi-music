@@ -62,8 +62,9 @@ fun CommentTogetherScreen(navController: NavController) {
     val focusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()
 
-    // Auto-scroll to bottom when new messages arrive
+    // Auto-scroll to bottom when new messages arrive and clear unread badge
     LaunchedEffect(messages.size) {
+        manager.markChatAsRead()
         if (messages.isNotEmpty()) {
             lazyListState.animateScrollToItem(messages.size - 1)
         }
