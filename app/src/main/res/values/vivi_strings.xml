@@ -1091,4 +1091,33 @@
     <string name="new_version_found">New version found</string>
     <string name="support">Support</string>
     <string name="support_desc">Support app development</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsorblock">SponsorBlock</string>
+    <string name="sponsorblock_desc">Automatically skip sponsor ads and non-music sections in video songs</string>
+    <string name="enable_sponsorblock">SponsorBlock</string>
+    <string name="enable_sponsorblock_desc">Crowdsourced segment skipping for YouTube music videos</string>
+    <string name="sponsorblock_categories">Categories to Skip</string>
+    <string name="sponsorblock_skip_non_music">Non-music video sections</string>
+    <string name="sponsorblock_skip_non_music_desc">Skip dialogues, spoken intros, and video scenes in music videos</string>
+    <string name="sponsorblock_skip_sponsor">Sponsor advertisements</string>
+    <string name="sponsorblock_skip_sponsor_desc">Skip sponsored promotional announcements</string>
+    <string name="sponsorblock_skip_selfpromo">Self-promotion &amp; merch</string>
+    <string name="sponsorblock_skip_selfpromo_desc">Skip merch plugs and channel promotion</string>
+    <string name="sponsorblock_skip_interaction">Subscribe &amp; like reminders</string>
+    <string name="sponsorblock_skip_interaction_desc">Skip calls to action to subscribe or like</string>
+    <string name="sponsorblock_skip_intro_outro">Intros &amp; Outro credits</string>
+    <string name="sponsorblock_skip_intro_outro_desc">Skip intermission cards and end credits</string>
+    <string name="sponsorblock_skip_preview_filler">Previews &amp; Filler</string>
+    <string name="sponsorblock_skip_preview_filler_desc">Skip recap previews and filler commentary</string>
+    <string name="sponsorblock_show_toast">Show skip notification</string>
+    <string name="sponsorblock_show_toast_desc">Display a message when a segment is skipped</string>
+    <string name="sponsorblock_server_url">SponsorBlock API URL</string>
+    <string name="sponsorblock_skipped_non_music">Skipped non-music section</string>
+    <string name="sponsorblock_skipped_sponsor">Skipped sponsor segment</string>
+    <string name="sponsorblock_skipped_selfpromo">Skipped self-promotion segment</string>
+    <string name="sponsorblock_skipped_interaction">Skipped interaction reminder</string>
+    <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
+    <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
+    <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
 </resources>

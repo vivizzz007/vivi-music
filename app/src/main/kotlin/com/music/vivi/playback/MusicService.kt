@@ -130,6 +130,17 @@ import com.music.vivi.constants.PreventDuplicateTracksInQueueKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.EnableSponsorBlockKey
+import com.music.vivi.constants.SponsorBlockServerUrlKey
+import com.music.vivi.constants.SponsorBlockSkipNonMusicKey
+import com.music.vivi.constants.SponsorBlockSkipSponsorKey
+import com.music.vivi.constants.SponsorBlockSkipSelfPromoKey
+import com.music.vivi.constants.SponsorBlockSkipInteractionKey
+import com.music.vivi.constants.SponsorBlockSkipIntroOutroKey
+import com.music.vivi.constants.SponsorBlockSkipPreviewFillerKey
+import com.music.vivi.constants.SponsorBlockShowToastKey
+import com.music.vivi.sponsorblock.SponsorBlockApi
+import com.music.vivi.sponsorblock.SponsorSegment
 import com.music.vivi.constants.IpVersionKey
 import com.music.innertube.models.IpVersion
 import okhttp3.Dns
@@ -737,6 +748,90 @@ class MusicService :
                     silenceSkipJob?.cancel()
                 }
             }
+
+        // SponsorBlock automatic segment skipping flow
+        var sponsorBlockJob: Job? = null
+        combine(
+            currentMediaMetadata,
+            dataStore.data.map { prefs ->
+                SponsorBlockConfig(
+                    enabled = prefs[EnableSponsorBlockKey] ?: true,
+                    serverUrl = prefs[SponsorBlockServerUrlKey] ?: "https://sponsor.ajay.app",
+                    skipNonMusic = prefs[SponsorBlockSkipNonMusicKey] ?: true,
+                    skipSponsor = prefs[SponsorBlockSkipSponsorKey] ?: true,
+                    skipSelfPromo = prefs[SponsorBlockSkipSelfPromoKey] ?: true,
+                    skipInteraction = prefs[SponsorBlockSkipInteractionKey] ?: true,
+                    skipIntroOutro = prefs[SponsorBlockSkipIntroOutroKey] ?: true,
+                    skipPreviewFiller = prefs[SponsorBlockSkipPreviewFillerKey] ?: false,
+                    showToast = prefs[SponsorBlockShowToastKey] ?: true
+                )
+            }.distinctUntilChanged()
+        ) { metadata, config ->
+            metadata to config
+        }.collectLatest(scope) { (metadata, config) ->
+            sponsorBlockJob?.cancel()
+            sponsorBlockJob = null
+
+            if (!config.enabled || metadata == null) {
+                return@collectLatest
+            }
+
+            val categories = mutableListOf<String>()
+            if (config.skipNonMusic) categories.add("music_offtopic")
+            if (config.skipSponsor) categories.add("sponsor")
+            if (config.skipSelfPromo) categories.add("selfpromo")
+            if (config.skipInteraction) categories.add("interaction")
+            if (config.skipIntroOutro) {
+                categories.add("intro")
+                categories.add("outro")
+            }
+            if (config.skipPreviewFiller) {
+                categories.add("preview")
+                categories.add("filler")
+            }
+
+            if (categories.isEmpty()) {
+                return@collectLatest
+            }
+
+            val result = SponsorBlockApi.getSkipSegments(metadata.id, categories, config.serverUrl)
+            val segments = result.getOrDefault(emptyList())
+
+            if (segments.isNotEmpty()) {
+                sponsorBlockJob = scope.launch {
+                    val skippedUuids = mutableSetOf<String>()
+                    while (isActive) {
+                        if (player.isPlaying) {
+                            val currentPos = player.currentPosition
+                            val segmentToSkip = segments.find { segment ->
+                                currentPos >= segment.startMs && currentPos < (segment.endMs - 300) && !skippedUuids.contains(segment.uuid)
+                            }
+
+                            if (segmentToSkip != null) {
+                                skippedUuids.add(segmentToSkip.uuid)
+                                withContext(Dispatchers.Main) {
+                                    player.seekTo(segmentToSkip.endMs)
+                                    if (config.showToast) {
+                                        val messageRes = when (segmentToSkip.category) {
+                                            "music_offtopic" -> R.string.sponsorblock_skipped_non_music
+                                            "sponsor" -> R.string.sponsorblock_skipped_sponsor
+                                            "selfpromo" -> R.string.sponsorblock_skipped_selfpromo
+                                            "interaction" -> R.string.sponsorblock_skipped_interaction
+                                            "intro" -> R.string.sponsorblock_skipped_intro
+                                            "outro" -> R.string.sponsorblock_skipped_outro
+                                            else -> R.string.sponsorblock_skipped_segment
+                                        }
+                                        Toast.makeText(this@MusicService, getString(messageRes), Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        }
+                        delay(250)
+                    }
+                }
+            }
+        }
+        // end of sponser block
 
         combine(
             currentFormat,
@@ -3477,3 +3572,15 @@ class MusicService :
             private set
     }
 }
+
+private data class SponsorBlockConfig(
+    val enabled: Boolean,
+    val serverUrl: String,
+    val skipNonMusic: Boolean,
+    val skipSponsor: Boolean,
+    val skipSelfPromo: Boolean,
+    val skipInteraction: Boolean,
+    val skipIntroOutro: Boolean,
+    val skipPreviewFiller: Boolean,
+    val showToast: Boolean,
+)

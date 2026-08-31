@@ -53,6 +53,7 @@ import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.EnableGoogleCastKey
+import com.music.vivi.constants.EnableSponsorBlockKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.PauseOnMute
@@ -196,6 +197,10 @@ fun PlayerSettings(
         SaavnAudioQualityKey,
         defaultValue = SaavnAudioQuality.QUALITY_320
     )
+    val (sponsorBlockEnabled, _) = rememberPreference(
+        EnableSponsorBlockKey,
+        defaultValue = true
+    )
 
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
@@ -289,6 +294,22 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { navController.navigate("settings/player/jio") }
+                ))
+                // SponsorBlock settings navigation
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.fast_forward),
+                    title = { Text(stringResource(R.string.sponsorblock)) },
+                    description = { Text(stringResource(R.string.sponsorblock_desc)) },
+                    trailingContent = {
+                        Text(
+                            if (sponsorBlockEnabled) {
+                                stringResource(R.string.enabled)
+                            } else {
+                                stringResource(R.string.disabled)
+                            }
+                        )
+                    },
+                    onClick = { navController.navigate("settings/player/sponsorblock") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
