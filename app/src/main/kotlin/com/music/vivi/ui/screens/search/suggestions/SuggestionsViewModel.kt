@@ -212,13 +212,20 @@ class SuggestionsViewModel @Inject constructor(
                 // 3. Any result where at least one artist matches
                 songs.firstOrNull { s ->
                     s.artists.any { a -> artistMatches(a.name, track.artist) }
-                } ?:
-                // 4. Fallback — first song in results (last resort)
-                songs.firstOrNull()
+                }
+                // No blind fallback — if nothing matched confidently, we report it
 
                 if (bestMatch != null) {
                     withContext(Dispatchers.Main) {
                         playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(
+                            context,
+                            "\"${track.title}\" is not available on YouTube Music",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -273,12 +280,20 @@ class SuggestionsViewModel @Inject constructor(
                     } ?:
                     songs.firstOrNull { s ->
                         s.artists.any { a -> artistMatches(a.name, video.artist) }
-                    } ?:
-                    songs.firstOrNull()
+                    }
+                    // No blind fallback — if nothing matched confidently, we report it
 
                     if (bestMatch != null) {
                         withContext(Dispatchers.Main) {
                             playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "\"${video.title}\" is not available on YouTube Music",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }
