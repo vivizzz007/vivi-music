@@ -2866,7 +2866,8 @@ class MusicService :
                             ),
                         ),
                     ),
-            ).setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
+            ).setCacheWriteDataSinkFactory(null)
+            .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
     // Flag to prevent queue saving during silence skip operations
     private var isSilenceSkipping = false
@@ -2958,11 +2959,16 @@ class MusicService :
             val shouldBypassCache = bypassCacheForQualityChange.contains(mediaId)
 
             if (!shouldBypassCache) {
-                if (downloadCache.isCached(
-                        mediaId,
-                        dataSpec.position,
-                        if (dataSpec.length >= 0) dataSpec.length else 1
-                    ) ||
+                val contentLength = runBlocking(Dispatchers.IO) {
+                    database.song(mediaId).first()?.format?.contentLength
+                }
+                val requiredLength = when {
+                    dataSpec.length >= 0 -> dataSpec.length
+                    contentLength != null -> (contentLength - dataSpec.position).coerceAtLeast(1)
+                    else -> CHUNK_LENGTH
+                }
+
+                if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength) ||
                     playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
                 ) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
