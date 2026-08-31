@@ -1,22 +1,40 @@
 {
-  "version": "6.0.5",
-  "description": "VIVI MUSIC v6.0.5 brings floating navbar (default off, can be enabled in appearance settings), album song listing can be disabled through appearance setting, ui to vivi-decrypter, and other improvements. It also includes several bug fixes.",
-  "image": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/v6.0.5.jpg",
+  "version": "6.0.6",
+  "description": "VIVI MUSIC brings new SponsorBlock, Listen Together UI, Player v17, new miniplayer, Remix section, and an array of customization and fixes.",
+  "image": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/v6.0.6.jpg",
   "changelog": [
     {
       "title": "What's New",
       "items": [
-        "added floating navbar (default off, can be enabled in appearance settings)",
-        "added new album song listing can be disabled through appearance setting",
-        "added new ui to vivi-decrypter",
-        "added new update banner, thanks to Aldeic"
+        "Added SponsorBlock",
+        "Added new UI to Listen Together",
+        "Added new Player v17 (portrait only)",
+        "Added new miniplayer",
+        "Added new setting screens",
+        "Added new Remix section in home screen",
+        "New UI for search screen",
+        "Added search history box inside search bar",
+        "Added Unison lyrics provider",
+        "Added new login method by SchmidtiTv (new commit)",
+        "Added missing View Album",
+        "New account setting UI",
+        "Added expressive UI to album image",
+        "Added Data Saver"
       ]
     },
     {
       "title": "Fixes & Improvements",
       "items": [
-        "fixed spotify login through google",
-        "fixed jio saavan random song playing"
+        "Removed SimpMusic lyrics provider",
+        "Improved Musixmatch lyrics (by johnpetersa19)",
+        "Fixed Spotify login",
+        "Fixed artist video rendering",
+        "Fixed streaming issues thanks to Metrolist",
+        "Spoofed app to browser for streaming safety",
+        "Updated strings by michel Mickael81",
+        "Updated Turkish translation by hasanbkaylan",
+        "Added complete Brazilian Portuguese translations by johnpetersa19",
+        "Under the hood performance improvements"
       ]
     },
     {
