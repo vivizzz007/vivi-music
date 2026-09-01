@@ -1,0 +1,65 @@
+﻿name: Upstream Sync and Build Pipeline
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # Auto-syncs daily at 3:00 AM UTC
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sync-and-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge Upstream Updates
+        run: |
+          git remote add upstream https://github.com/vivizzz007/vivi-music.git 2>/dev/null || git remote set-url upstream https://github.com/vivizzz007/vivi-music.git
+          git fetch upstream
+          git merge upstream/main -m "auto: merge upstream updates" || exit 0
+          git push origin main || true
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Decode Signing Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.jks
+
+      - name: Build Signed Release APK
+        env:
+          KEYSTORE_FILE: release.jks
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: ./gradlew assembleUniversalGmsRelease assembleUniversalFossRelease || ./gradlew assembleRelease
+
+      - name: Publish Release to GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v6.0.${{ github.run_number }}"
+          name: "Vivi Custom v6.0.${{ github.run_number }}"
+          body: "Automated build combining original developer updates with personal tweaks."
+          files: |
+            app/build/outputs/apk/**/*.apk

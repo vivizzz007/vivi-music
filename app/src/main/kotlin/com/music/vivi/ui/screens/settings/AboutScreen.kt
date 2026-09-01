@@ -134,7 +134,7 @@ fun AboutScreen(
         AppVersionTile(
             appName = stringResource(R.string.vivi_music_title),
             description = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
-            onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") }
+            onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music") }
         )
         
         Spacer(modifier = Modifier.height(10.dp))
@@ -214,7 +214,7 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music/blob/main/LICENSE") },
                     isExternalLink = true
                 ),
             )

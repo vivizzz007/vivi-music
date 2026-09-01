@@ -137,13 +137,13 @@ jobs:
           features = []
           fixes = []
           description = None
-          image_url = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/assets/banner.png"
+          image_url = "https://raw.githubusercontent.com/pwpp08/vivi-music/main/assets/banner.png"
           for ext in ["png", "jpg"]:
               found = False
               for prefix in ["v", ""]:
                   potential_file = f"NEW-UI/update/{prefix}{version_name}.{ext}"
                   if os.path.exists(potential_file):
-                      image_url = f"https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/{prefix}{version_name}.{ext}"
+                      image_url = f"https://raw.githubusercontent.com/pwpp08/vivi-music/main/NEW-UI/update/{prefix}{version_name}.{ext}"
                       found = True
                       break
               if found:

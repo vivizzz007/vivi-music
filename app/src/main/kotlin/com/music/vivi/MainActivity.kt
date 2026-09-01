@@ -808,7 +808,7 @@ class MainActivity : ComponentActivity() {
                                 if (isFoss) {
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest")
+                                        Uri.parse("https://github.com/pwpp08/vivi-music/releases/latest")
                                     )
                                     context.startActivity(intent)
                                 } else {
