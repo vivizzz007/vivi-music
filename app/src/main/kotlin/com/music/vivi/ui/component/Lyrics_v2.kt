@@ -1,7 +1,6 @@
 package com.music.vivi.ui.component
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,7 +13,7 @@ import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,7 +42,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.animateScrollBy
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -402,8 +400,14 @@ fun LyricsV2(
                     }
                 }
 
+                // Scroll anchor: single line index used to keep the list auto-scrolling
                 val currentLineIndex = remember(currentPosition, lines, lyricsOffset) {
                     LyricsUtils.findCurrentLineIndex(lines, currentPosition + lyricsOffset)
+                }
+
+                // Active set: all lines currently being sung (handles v1 + bg sharing same timestamp)
+                val activeLineIndices = remember(currentPosition, lines, lyricsOffset) {
+                    LyricsUtils.findActiveLineIndices(lines, currentPosition + lyricsOffset)
                 }
 
                 val mergedLyricsList = remember(lines) {
@@ -448,7 +452,7 @@ fun LyricsV2(
                     contentAlignment = Alignment.TopCenter,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val targetTopRatio = 0.32f
+                    val targetTopRatio = 0.38f
                     val topPadding = (maxHeight * targetTopRatio) + contentPadding.calculateTopPadding()
                     val bottomPadding = (maxHeight * (1f - targetTopRatio)) + contentPadding.calculateBottomPadding()
 
@@ -504,8 +508,8 @@ fun LyricsV2(
                                 drawRect(
                                     brush = androidx.compose.ui.graphics.Brush.verticalGradient(
                                         0.0f to Color.Transparent,
-                                        0.15f to Color.Black,
-                                        0.8f to Color.Black,
+                                        0.12f to Color.Black,
+                                        0.82f to Color.Black,
                                         1.0f to Color.Transparent
                                     ),
                                     blendMode = androidx.compose.ui.graphics.BlendMode.DstIn
@@ -537,115 +541,40 @@ fun LyricsV2(
                                 is LyricsListItemV2.Line -> {
                                     val index = item.index
                                     val line = item.entry
-                                    val isActive = index == currentLineIndex
-                                    val isPassed = index < currentLineIndex
+                                    val isActive = index in activeLineIndices
                                     val distanceFromActive =
                                         kotlin.math.abs(index - currentLineIndex)
-
-                                    // Pop-In Spring Animation for Newly Active Line
-                                    val popInScale =
-                                        remember { androidx.compose.animation.core.Animatable(1f) }
-                                    LaunchedEffect(isActive) {
-                                        if (isActive) {
-                                            popInScale.snapTo(0.96f)
-                                            popInScale.animateTo(
-                                                targetValue = 1f,
-                                                animationSpec = androidx.compose.animation.core.spring(
-                                                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
-                                                    stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
-                                                )
-                                            )
-                                        }
-                                    }
-
-                                    // Distance-based alpha calculation
-                                    val targetLineAlpha = when {
-                                        isActive -> 1.0f
-                                        !isAutoScrollEnabled -> {
-                                            when (distanceFromActive) {
-                                                1 -> 0.72f
-                                                2 -> 0.56f
-                                                3 -> 0.40f
-                                                else -> 0.28f
-                                            }
-                                        }
-
-                                        distanceFromActive == 1 -> 0.52f
-                                        distanceFromActive == 2 -> 0.30f
-                                        distanceFromActive == 3 -> 0.18f
-                                        else -> 0.10f
-                                    }
-
-                                    val animatedLineScale by androidx.compose.animation.core.animateFloatAsState(
-                                        targetValue = if (isActive) 1.0f else 0.95f,
-                                        animationSpec = tween(
-                                            durationMillis = 166,
-                                            easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                        ),
-                                        label = "v2LineScale"
-                                    )
-
-                                    val animatedLineAlpha by androidx.compose.animation.core.animateFloatAsState(
-                                        targetValue = targetLineAlpha,
-                                        animationSpec = tween(
-                                            durationMillis = if (isActive) 330 else 500,
-                                            easing = androidx.compose.animation.core.FastOutSlowInEasing
-                                        ),
-                                        label = "v2LineAlpha"
-                                    )
-
-                                    val textColor by animateColorAsState(
-                                        targetValue = when {
-                                            isActive -> adaptivePrimary
-                                            isPassed -> adaptivePrimary.copy(alpha = 0.6f)
-                                            else -> adaptivePrimary.copy(alpha = 0.4f)
-                                        },
-                                        animationSpec = tween(400),
-                                        label = "lyricsColorSync"
-                                    )
 
                                     val nextStart =
                                         (mergedLyricsList.getOrNull(listIndex + 1) as? LyricsListItemV2.Line)?.entry?.time
 
-                                    val finalScale = animatedLineScale * popInScale.value
-
-                                    Box(
+                                    MetroLyricsLine(
+                                        entry = line,
+                                        nextEntryTime = nextStart,
+                                        effectivePlaybackPosition = currentPosition,
+                                        lyricsOffset = lyricsOffset,
+                                        isSynced = true,
+                                        isActive = isActive,
+                                        distanceFromCurrent = distanceFromActive,
+                                        lyricsTextPosition = LyricsPosition.LEFT,
+                                        textColor = adaptivePrimary,
+                                        showRomanized = showRomanized,
+                                        showTranslated = hasActiveTranslations,
+                                        onClick = {
+                                            if (!isGuest) {
+                                                playerConnection.player.seekTo(line.time - lyricsOffset)
+                                            }
+                                        },
+                                        onLongClick = {},
+                                        isSelected = false,
+                                        isSelectionModeActive = false,
+                                        isAutoScrollActive = isAutoScrollEnabled || isGuest,
+                                        expressiveAccent = adaptivePrimary,
+                                        bgVisible = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .graphicsLayer {
-                                                scaleX = finalScale
-                                                scaleY = finalScale
-                                                alpha = animatedLineAlpha
-                                            }
-                                    ) {
-                                        MetroLyricsLine(
-                                            entry = line,
-                                            nextEntryTime = nextStart,
-                                            effectivePlaybackPosition = currentPosition,
-                                            lyricsOffset = lyricsOffset,
-                                            isSynced = true,
-                                            isActive = isActive,
-                                            distanceFromCurrent = distanceFromActive,
-                                            lyricsTextPosition = LyricsPosition.LEFT,
-                                            textColor = textColor,
-                                            showRomanized = showRomanized,
-                                            showTranslated = hasActiveTranslations,
-                                            onClick = {
-                                                if (!isGuest) {
-                                                    playerConnection.player.seekTo(line.time - lyricsOffset)
-                                                }
-                                            },
-                                            onLongClick = {},
-                                            isSelected = false,
-                                            isSelectionModeActive = false,
-                                            isAutoScrollActive = isAutoScrollEnabled || isGuest,
-                                            expressiveAccent = adaptivePrimary,
-                                            bgVisible = true,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 4.dp)
-                                        )
-                                    }
+                                            .padding(vertical = 4.dp)
+                                    )
                                 }
 
                                 is LyricsListItemV2.Indicator -> {
