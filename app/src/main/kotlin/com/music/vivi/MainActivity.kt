@@ -431,6 +431,22 @@ class MainActivity : ComponentActivity() {
                         if (isAvailable && getUpdateNotificationsSetting(context)) {
                             Log.d("UpdateCheck", "Posting update notification for $latestVersion")
                             UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
+                            
+                            val isFoss = !BuildConfig.CAST_AVAILABLE
+                            if (isFoss) {
+                                SnackbarManager.show(
+                                    messageResource = R.string.new_version_found,
+                                    actionLabel = R.string.action_view_update,
+                                    duration = SnackbarDuration.Indefinite,
+                                    onAction = {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest")
+                                        )
+                                        context.startActivity(intent)
+                                    }
+                                )
+                            }
                         }
 
                         // Stamp today so no more nightly checks until tomorrow 9 PM
@@ -795,30 +811,7 @@ class MainActivity : ComponentActivity() {
                         sharedPrefs.unregisterOnSharedPreferenceChangeListener(updateListener)
                     }
                 }
-                
-                LaunchedEffect(isUpdateAvailable.value) {
-                    if (isUpdateAvailable.value && getUpdateNotificationsSetting(context)) {
-                        delay(200) // Ensure Snackbar collector is ready before emitting
-                        SnackbarManager.show(
-                            messageResource = R.string.new_version_found,
-                            actionLabel = R.string.action_view_update,
-                            duration = SnackbarDuration.Indefinite,
-                            onAction = {
-                                val isFoss = !BuildConfig.CAST_AVAILABLE
-                                if (isFoss) {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest")
-                                    )
-                                    context.startActivity(intent)
-                                } else {
-                                    navController.navigate("update")
-                                }
-                            }
-                        )
-                    }
-                }
-
+                // Snackbar is now triggered in checkForUpdate directly
                 val coroutineScope = rememberCoroutineScope()
                 var sharedSong: SongItem? by remember {
                     mutableStateOf(null)
