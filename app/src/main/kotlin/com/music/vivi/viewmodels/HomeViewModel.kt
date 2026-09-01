@@ -367,12 +367,25 @@ class HomeViewModel @Inject constructor(
                     .shuffled()
                     .take(20)
 
-                quickPicks.value = combined.ifEmpty { relatedSongs.shuffled().take(20) }
+                // Fallback: if related_song_map is empty (new user / light usage),
+                // use most-played songs from the last 30 days so the section is never blank.
+                quickPicks.value = combined.ifEmpty {
+                    database.mostPlayedSongs(
+                        fromTimeStamp = System.currentTimeMillis() - 86400000L * 30,
+                        limit = 20
+                    ).first().filterVideoSongs(hideVideoSongs).shuffled()
+                }
             }
             QuickPicks.LAST_LISTEN -> {
                 val song = database.events().first().firstOrNull()?.song
                 if (song != null && database.hasRelatedSongs(song.id)) {
                     quickPicks.value = database.getRelatedSongs(song.id).first().filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                } else {
+                    // Fallback: no related songs cached → show most-played songs
+                    quickPicks.value = database.mostPlayedSongs(
+                        fromTimeStamp = System.currentTimeMillis() - 86400000L * 30,
+                        limit = 20
+                    ).first().filterVideoSongs(hideVideoSongs).shuffled()
                 }
             }
         }
