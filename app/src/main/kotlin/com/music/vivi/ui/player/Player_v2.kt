@@ -727,8 +727,10 @@ fun PlayerV2(
             // Persistent Controls Array (Always at the bottom)
             AnimatedVisibility(
                     visible = controlsVisible,
-                    enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)),
-                    exit = fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing))
+                    enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)) +
+                            expandVertically(animationSpec = tween(400, easing = FastOutSlowInEasing), expandFrom = Alignment.Bottom),
+                    exit = fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)) +
+                           shrinkVertically(animationSpec = tween(380, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Bottom)
                 ) {
                     Column(
                         modifier = Modifier
