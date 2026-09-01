@@ -1682,11 +1682,15 @@ class MusicService :
         automixItems.value = emptyList()
     }
 
+    private var consecutivePlayNextCount = 0
+
     fun playNext(items: List<MediaItem>) {
+        if (items.isEmpty()) return
         // If queue is empty or player is idle, play immediately instead
         if (player.mediaItemCount == 0 || player.playbackState == STATE_IDLE) {
             player.setMediaItems(items)
             player.prepare()
+            consecutivePlayNextCount = 0
             // Don't start local playback if casting
             if (castConnectionHandler?.isCasting?.value != true) {
                 player.play()
@@ -1712,30 +1716,31 @@ class MusicService :
             }
         }
 
-        val insertIndex = player.currentMediaItemIndex + 1
+        val insertIndex = (player.currentMediaItemIndex + 1 + consecutivePlayNextCount).coerceIn(0, player.mediaItemCount)
         val shuffleEnabled = player.shuffleModeEnabled
 
-        // Insert items immediately after the current item in the window/index space
+        // Insert items after previously 'play next'-ed items in sequential FIFO order
         player.addMediaItems(insertIndex, items)
         player.prepare()
+        consecutivePlayNextCount += items.size
 
         if (shuffleEnabled) {
-            // Rebuild shuffle order so that newly inserted items are played next
+            // Rebuild shuffle order so that newly inserted items are played in order after current track
             val timeline = player.currentTimeline
             if (!timeline.isEmpty) {
                 val size = timeline.windowCount
                 val currentIndex = player.currentMediaItemIndex
 
-                // Newly inserted indices are a contiguous range [insertIndex, insertIndex + items.size)
+                // Newly inserted indices for this batch
                 val newIndices = (insertIndex until (insertIndex + items.size)).toSet()
 
-                // Collect existing shuffle traversal order excluding current index
+                // Collect existing shuffle traversal order excluding current index and new indices
                 val orderAfter = mutableListOf<Int>()
                 var idx = currentIndex
                 while (true) {
                     idx = timeline.getNextWindowIndex(idx, Player.REPEAT_MODE_OFF, /*shuffleModeEnabled=*/true)
                     if (idx == C.INDEX_UNSET) break
-                    if (idx != currentIndex) orderAfter.add(idx)
+                    if (idx != currentIndex && idx !in newIndices) orderAfter.add(idx)
                 }
 
                 val prevList = mutableListOf<Int>()
@@ -1743,24 +1748,27 @@ class MusicService :
                 while (true) {
                     pIdx = timeline.getPreviousWindowIndex(pIdx, Player.REPEAT_MODE_OFF, /*shuffleModeEnabled=*/true)
                     if (pIdx == C.INDEX_UNSET) break
-                    if (pIdx != currentIndex) prevList.add(pIdx)
+                    if (pIdx != currentIndex && pIdx !in newIndices) prevList.add(pIdx)
                 }
                 prevList.reverse() // preserve original forward order
 
-                val existingOrder = (prevList + orderAfter).filter { it != currentIndex && it !in newIndices }
+                val existingOrder = (orderAfter + prevList).filter { it != currentIndex && it !in newIndices }
 
-                // Build new shuffle order: current -> newly inserted (in insertion order) -> rest
-                val nextBlock = (insertIndex until (insertIndex + items.size)).toList()
+                // Build new shuffle order: current -> all play-next items in sequential order -> remaining queue
+                val playNextStart = player.currentMediaItemIndex + 1
+                val playNextEnd = (playNextStart + consecutivePlayNextCount).coerceAtMost(size)
+                val playNextBlock = (playNextStart until playNextEnd).toList()
+
                 val finalOrder = IntArray(size)
                 var pos = 0
                 finalOrder[pos++] = currentIndex
-                nextBlock.forEach { if (it in 0 until size) finalOrder[pos++] = it }
-                existingOrder.forEach { if (pos < size) finalOrder[pos++] = it }
+                playNextBlock.forEach { if (it in 0 until size && it != currentIndex && !finalOrder.take(pos).contains(it)) finalOrder[pos++] = it }
+                existingOrder.forEach { if (pos < size && !finalOrder.take(pos).contains(it)) finalOrder[pos++] = it }
 
                 // Fill any missing indices (safety) to ensure a full permutation
                 if (pos < size) {
                     for (i in 0 until size) {
-                        if (!finalOrder.contains(i)) {
+                        if (!finalOrder.take(pos).contains(i)) {
                             finalOrder[pos++] = i
                             if (pos == size) break
                         }
@@ -1817,10 +1825,7 @@ class MusicService :
         }
 
         player.addMediaItems(items)
-        if (player.shuffleModeEnabled) {
-            val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
-            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
-        }
+        // ExoPlayer automatically updates shuffleOrder via cloneAndInsert without reshuffling existing tracks.
         player.prepare()
     }
 
@@ -2015,6 +2020,7 @@ class MusicService :
             }
         }
         previousMediaItemIndex = player.currentMediaItemIndex
+        consecutivePlayNextCount = 0
 
         lastPlaybackSpeed = -1.0f // force update song
 
@@ -2059,10 +2065,6 @@ class MusicService :
                 }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
-                    if (player.shuffleModeEnabled) {
-                        val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
-                        applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
-                    }
                 }
             }
         }

@@ -1,4 +1,4 @@
-﻿name: Upstream Sync and Build Pipeline
+name: Upstream Sync and Build Pipeline
 
 on:
   schedule:
@@ -55,11 +55,18 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: ./gradlew assembleUniversalGmsRelease assembleUniversalFossRelease || ./gradlew assembleRelease
 
+      - name: Extract Version Info
+        id: version_info
+        run: |
+          VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/' | head -1)
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          echo "Detected Vivi Music version: $VERSION_NAME"
+
       - name: Publish Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v6.0.${{ github.run_number }}"
-          name: "Vivi Custom v6.0.${{ github.run_number }}"
+          tag_name: "v${{ steps.version_info.outputs.version_name }}.${{ github.run_number }}"
+          name: "Vivi Custom v${{ steps.version_info.outputs.version_name }} (Build #${{ github.run_number }})"
           body: "Automated build combining original developer updates with personal tweaks."
           files: |
             app/build/outputs/apk/**/*.apk

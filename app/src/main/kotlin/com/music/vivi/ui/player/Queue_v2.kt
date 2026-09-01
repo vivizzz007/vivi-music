@@ -166,15 +166,23 @@ fun QueueV2(
                 if (!shuffleModeEnabled) {
                     playerConnection.player.moveMediaItem(safeFrom, safeTo)
                 } else {
-                    playerConnection.player.setShuffleOrder(
-                        DefaultShuffleOrder(
-                            queueWindows.map { it.firstPeriodIndex }
-                                .toMutableList()
-                                .move(safeFrom, safeTo)
-                                .toIntArray(),
-                            System.currentTimeMillis()
-                        )
-                    )
+                    val timeline = playerConnection.player.currentTimeline
+                    if (!timeline.isEmpty) {
+                        val currentIndices = queueWindows.mapNotNull { window ->
+                            (0 until timeline.windowCount).firstOrNull { idx ->
+                                timeline.getWindow(idx, Timeline.Window()).uid == window.uid
+                            }
+                        }
+                        if (currentIndices.size == timeline.windowCount && safeFrom in currentIndices.indices && safeTo in currentIndices.indices) {
+                            val newOrder = currentIndices.toMutableList().apply {
+                                val item = removeAt(safeFrom)
+                                add(safeTo, item)
+                            }.toIntArray()
+                            playerConnection.player.setShuffleOrder(
+                                DefaultShuffleOrder(newOrder, System.currentTimeMillis())
+                            )
+                        }
+                    }
                 }
                 dragInfo = null
             }
