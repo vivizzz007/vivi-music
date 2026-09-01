@@ -371,10 +371,24 @@
     <string name="settings_section_player_content">Lecteur &amp; Contenu</string>
     <string name="settings_section_storage">Stockage &amp; Données</string>
     <string name="settings_section_system">Système &amp; À propos</string>
+	<string name="setting_account_desc">Gérer les profils connectés</string>
+    <string name="setting_appearance_desc">Personnaliser les thèmes et la mise en page</string>
+    <string name="setting_player_desc">Qualité audio et égaliseur</string>
+    <string name="setting_listen_together_desc">Écoutez avec vos amis</string>
+    <string name="setting_content_desc">Langue et bibliothèque</string>
+    <string name="setting_ai_lyrics_translation_desc">Configurer les traductions par IA</string>
+    <string name="setting_privacy_desc">Sécurité et données</string>
+    <string name="setting_storage_desc">Cache et téléchargements</string>
+    <string name="setting_data_saver_desc">Limiter l\'utilisation du réseau</string>
+    <string name="setting_backup_restore_desc">Paramètres d\'importation/exportation</string>
+    <string name="setting_about_desc">Version et informations sur l\'application</string>
+    <string name="setting_auto_update_desc">Rechercher automatiquement les nouvelles versions de l\'application</string>
+    <string name="setting_beta_updates_desc">S\'inscrire aux versions bêta expérimentales</string>
 
     <!-- Updater -->
     <string name="updater">Mise à jour</string>
     <string name="check_for_updates">Rechercher automatiquement les mises à jour</string>
+	<string name="error_checking_updates">Erreur lors de la recherche de mises à jour</string>
     <string name="update_available_title">Mise à jour disponible</string>
     <string name="update_channel_name">Mises à jour de l\'application</string>
     <string name="update_channel_desc">Notifications concernant les nouvelles versions</string>
@@ -616,7 +630,7 @@ est irréversible.
     <string name="listen_together_username">Nom d\'utilisateur</string>
     <string name="listen_together_connected">Connecté</string>
     <string name="listen_together_reconnecting">Reconnection…</string>
-    <string name="listen_together_disconnected">Déconnecté</string>
+    <string name="listen_together_disconnected">Hors ligne</string>
     <string name="listen_together_connecting">Connexion en cours…</string>
     <string name="listen_together_error">Erreur de connexion</string>
     <string name="listen_together_create_room">Créer une salle</string>
@@ -641,7 +655,7 @@ est irréversible.
     <string name="listen_together_in_top_bar">« Écouter ensemble » dans la barre supérieure</string>
     <string name="listen_together_in_top_bar_desc">Affichez « Écouter ensemble » dans la barre d\'application supérieure plutôt que dans la barre de navigation</string>
     <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour en devenir l\'hôte ou rejoignez une salle existante à l\'aide d\'un code.</string>
-    <string name="listen_together_background_disconnect_note">Remarque : Vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est diffusée, puis que vous passez à une autre application.</string>
+    <string name="listen_together_background_disconnect_note">Remarque : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture et que vous passez ensuite à une autre application, ou si vous vous connectez au serveur mais restez inactif sans rejoindre une salle pendant 15 minutes.</string>
     <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configuré. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble.</string>
     <string name="listen_together_suggestion_received">%1$s a demandé %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion envoyée à l\'animateur !</string>
@@ -942,7 +956,7 @@ est irréversible.
     <string name="commits">Commits</string>
     <string name="view_commit_history">Consulter les modifications récentes sur la branche principale</string>
     <string name="suggestions">Suggestions</string>
-    <string name="comments">Commentaires</string>
+    <string name="comments">Chat</string>
     <string name="no_comments">Aucun commentaire trouvé</string>
     <string name="type_message">Écrivez un message…</string>
     <string name="send">Envoyer</string>
@@ -1075,4 +1089,35 @@ est irréversible.
     <string name="account_settings_desc_about">Informations sur la version et mentions légales</string>
 	<string name="action_view_update">Afficher</string>
     <string name="new_version_found">Une nouvelle version a été trouvée</string>
+	<string name="support">Assistance</string>
+    <string name="support_desc">Soutenir le développement de l\'application</string>
+
+	<!-- SponsorBlock -->
+    <string name="sponsorblock">SponsorBlock</string>
+    <string name="sponsorblock_desc">Ignorer automatiquement les publicités des sponsors et les passages non musicaux dans les clips musicaux</string>
+    <string name="enable_sponsorblock">SponsorBlock</string>
+    <string name="enable_sponsorblock_desc">Saut de segments basé sur la participation collective pour les clips musicaux sur YouTube</string>
+    <string name="sponsorblock_categories">Catégories à ignorer</string>
+    <string name="sponsorblock_skip_non_music">Autres rubriques que les clips musicaux</string>
+    <string name="sponsorblock_skip_non_music_desc">Passer les dialogues, les introductions parlées et les séquences vidéo dans les clips musicaux</string>
+    <string name="sponsorblock_skip_sponsor">Publicités des sponsors</string>
+    <string name="sponsorblock_skip_sponsor_desc">Ignorer les annonces promotionnelles sponsorisées</string>
+    <string name="sponsorblock_skip_selfpromo">Promotion personnelle &amp; Produits dérivés</string>
+    <string name="sponsorblock_skip_selfpromo_desc">Évitez les publicités pour les produits dérivés et la promotion de la chaîne</string>
+    <string name="sponsorblock_skip_interaction">S\'abonner &amp; Aimer les rappels</string>
+    <string name="sponsorblock_skip_interaction_desc">Ignorer les appels à l\'action invitant à s\'abonner ou à aimer</string>
+    <string name="sponsorblock_skip_intro_outro">Générique d\'ouverture &amp; de clôture</string>
+    <string name="sponsorblock_skip_intro_outro_desc">Ignorer les cartes d\'entracte et le générique de fin</string>
+    <string name="sponsorblock_skip_preview_filler">Avant-premières &amp; Articles de remplissage</string>
+    <string name="sponsorblock_skip_preview_filler_desc">Ignorer les résumés et les commentaires de remplissage</string>
+    <string name="sponsorblock_show_toast">Afficher la notification « Ignorer »</string>
+    <string name="sponsorblock_show_toast_desc">Afficher un message lorsqu\'un segment est sauté</string>
+    <string name="sponsorblock_server_url">URL de l\'API SponsorBlock</string>
+    <string name="sponsorblock_skipped_non_music">Section non musicale ignorée</string>
+    <string name="sponsorblock_skipped_sponsor">Segment de publicité ignoré</string>
+    <string name="sponsorblock_skipped_selfpromo">Segment consacré à l\'autopromotion ignoré</string>
+    <string name="sponsorblock_skipped_interaction">Rappel d\'interaction ignorée</string>
+    <string name="sponsorblock_skipped_intro">Segment d\'introduction ignoré</string>
+    <string name="sponsorblock_skipped_outro">Segment de fin ignoré</string>
+    <string name="sponsorblock_skipped_segment">Segment « SponsorBlock » ignoré</string>
 </resources>
