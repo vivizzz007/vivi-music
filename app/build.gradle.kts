@@ -25,8 +25,8 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 37
-        versionCode = 74
-        versionName = "6.0.5"
+        versionCode = 75
+        versionName = "6.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -84,47 +84,53 @@ android {
         }
     }
 
-    signingConfigs {
-        create("persistentDebug") {
-            storeFile = file("persistent-debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-        create("release") {
-            storeFile = file("keystore/release.keystore")
+   signingConfigs {
+    create("persistentDebug") {
+        storeFile = file("persistent-debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    }
+    create("release") {
+        val keystoreFile = file("keystore/release.keystore")
+        if (keystoreFile.exists()) {
+            storeFile = keystoreFile
             storePassword = System.getenv("STORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
         }
-        getByName("debug") {
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-            storePassword = "android"
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-        }
     }
+    getByName("debug") {
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+        storePassword = "android"
+        storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+    }
+}
 
-    buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            isCrunchPngs = false
-            isDebuggable = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            buildConfigField("String", "ARCHITECTURE", "\"release\"")
-        }
-        debug {
-            applicationIdSuffix = ".debug"
-            isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("String", "ARCHITECTURE", "\"debug\"")
-        }
+buildTypes {
+    release {
+        signingConfig = if (file("keystore/release.keystore").exists())
+            signingConfigs.getByName("release")
+        else
+            signingConfigs.getByName("debug")
+        isMinifyEnabled = true
+        isShrinkResources = true
+        isCrunchPngs = false
+        isDebuggable = false
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+        buildConfigField("String", "ARCHITECTURE", "\"release\"")
     }
+    debug {
+        applicationIdSuffix = ".debug"
+        isDebuggable = true
+        signingConfig = signingConfigs.getByName("debug")
+        buildConfigField("String", "ARCHITECTURE", "\"debug\"")
+    }
+}
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
