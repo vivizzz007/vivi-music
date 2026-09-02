@@ -753,14 +753,15 @@ class MusicService :
             while (true) {
                 delay(700L)
                 val pv = playerVolume.value
-                // Both the in-app and the OS system-volume channel share the
-                // "Sync VIVI volume" toggle: with it off neither is read,
-                // pushed or applied, so no volume change can cross devices.
-                val sv = if (dataStore.get(SyncViviVolumeKey, true)) systemVolume() else null
+                // The in-app (VIVI) channel is gated by the "Sync VIVI volume"
+                // toggle; the native OS system-volume channel is independent and
+                // syncs whenever paired, so turning the toggle off does not stop
+                // the phone's media volume from following the desktop and back.
+                val sv = systemVolume()
                 val pvChanged = lastPushedPlayerVolume == null ||
                     abs(pv - lastPushedPlayerVolume!!) > 0.001f
-                val svChanged = sv != null && (lastPushedSystemVolume == null ||
-                    abs(sv - lastPushedSystemVolume!!) > 0.01f)
+                val svChanged = lastPushedSystemVolume == null ||
+                    abs(sv - lastPushedSystemVolume!!) > 0.01f
                 if (pvChanged || svChanged) {
                     if (pushPlaybackToDesktop()) {
                         lastPushedPlayerVolume = pv
@@ -1556,7 +1557,7 @@ class MusicService :
                 isResolving = player.playbackState == Player.STATE_BUFFERING,
                 isPlaying = player.isPlaying,
                 volume = if (dataStore.get(SyncViviVolumeKey, true)) playerVolume.value else null,
-                systemVolume = if (dataStore.get(SyncViviVolumeKey, true)) systemVolume() else null,
+                systemVolume = systemVolume(),
                 repeatMode = repeatModeString(player.repeatMode),
                 isShuffle = player.shuffleModeEnabled,
                 queue = items.map { item ->
@@ -1586,7 +1587,6 @@ class MusicService :
             lastPushedPlayerVolume = c
         }
         snapshot.systemVolume?.let { v ->
-            if (!dataStore.get(SyncViviVolumeKey, true)) return@let
             setSystemVolume(v)
             lastPushedSystemVolume = v.coerceIn(0f, 1f)
         }
