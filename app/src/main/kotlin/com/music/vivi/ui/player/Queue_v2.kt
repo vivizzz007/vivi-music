@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -66,7 +67,8 @@ import com.music.vivi.LocalListenTogetherManager
 fun QueueV2(
     navController: NavController,
     playerBottomSheetState: BottomSheetState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onControlsVisibilityChange: (Boolean) -> Unit = {}
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -122,6 +124,31 @@ fun QueueV2(
     val adaptiveSurface = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.surfaceVariant else Color.White.copy(alpha = 0.2f)
 
     val lazyListState = rememberLazyListState()
+    
+    // Scroll direction tracking
+    var previousIndex by remember { mutableIntStateOf(0) }
+    var previousScrollOffset by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { 
+            Triple(lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset, lazyListState.isScrollInProgress)
+        }.collect { (index, offset, isScrollInProgress) ->
+            // If the user reaches the very top of the queue, always bring the controls back
+            if (index == 0 && offset < 50) {
+                onControlsVisibilityChange(true)
+            } else if (isScrollInProgress) {
+                // If they are actively scrolling down anywhere else, hide the controls
+                if (index > previousIndex) {
+                    onControlsVisibilityChange(false)
+                } else if (index == previousIndex && offset - previousScrollOffset > 10) {
+                    onControlsVisibilityChange(false)
+                }
+            }
+            previousIndex = index
+            previousScrollOffset = offset
+        }
+    }
+
     val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
     var dragInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     

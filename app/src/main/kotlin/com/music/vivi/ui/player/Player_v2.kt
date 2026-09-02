@@ -146,7 +146,7 @@ fun PlayerV2(
         if (playerState == PlayerInternalState.LYRICS) {
             delay(3000)
             controlsVisible = false
-        } else {
+        } else if (playerState == PlayerInternalState.COVER) {
             controlsVisible = true
         }
     }
@@ -323,7 +323,9 @@ fun PlayerV2(
                         val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                         if (event.changes.any { it.pressed }) {
                             lastInteractionTime = System.currentTimeMillis()
-                            controlsVisible = true
+                            if (playerState != PlayerInternalState.QUEUE) {
+                                controlsVisible = true
+                            }
                         }
                     }
                 }
@@ -715,7 +717,10 @@ fun PlayerV2(
                                         QueueV2(
                                             navController = navController,
                                             playerBottomSheetState = state,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = Modifier.fillMaxSize(),
+                                            onControlsVisibilityChange = { isVisible ->
+                                                controlsVisible = isVisible
+                                            }
                                         )
                                     }
                                 }
