@@ -107,14 +107,29 @@ fun AboutScreen(
     val cloverShape = MaterialShapes.Clover4Leaf.toShape()
     val cookieShape = MaterialShapes.Cookie7Sided.toShape()
     
-    val installedDate = remember {
+    val packageInfo = remember {
         try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val installTime = packageInfo.firstInstallTime
-            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+            context.packageManager.getPackageInfo(context.packageName, 0)
         } catch (_: Exception) {
-            unknownString
+            null
         }
+    }
+
+    val installedDate = remember(packageInfo) {
+        packageInfo?.let {
+            val installTime = if (it.lastUpdateTime > 0) it.lastUpdateTime else it.firstInstallTime
+            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+        } ?: unknownString
+    }
+
+    val currentVersionName = remember(packageInfo) {
+        packageInfo?.versionName?.takeIf { it.isNotBlank() } ?: BuildConfig.VERSION_NAME
+    }
+
+    val currentVersionCode = remember(packageInfo) {
+        packageInfo?.let {
+            androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(it).toString()
+        } ?: BuildConfig.VERSION_CODE.toString()
     }
 
     Column(
@@ -134,7 +149,7 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(16.dp))
         AppVersionTile(
             appName = stringResource(R.string.vivi_music_title),
-            description = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
+            description = "v$currentVersionName • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
             onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music") }
         )
         
@@ -210,7 +225,7 @@ fun AboutScreen(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
-                    trailingContent = { Text(BuildConfig.VERSION_CODE.toString()) }
+                    trailingContent = { Text(currentVersionCode) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),

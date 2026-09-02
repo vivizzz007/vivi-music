@@ -114,7 +114,14 @@ fun LocalPlaylistMenu(
             add(
                 Material3MenuItemData(
                     title = { Text(stringResource(R.string.action_sync)) },
-                    description = { Text(stringResource(R.string.sync_playlist_desc)) },
+                    description = {
+                        Text(
+                            stringResource(
+                                if (isSpotifyPlaylist) R.string.sync_playlist_spotify_desc
+                                else R.string.sync_playlist_desc
+                            )
+                        )
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(R.drawable.sync),

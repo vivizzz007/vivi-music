@@ -73,6 +73,7 @@ import com.music.vivi.vivimusic.updater.downloadmanager.UpdateDownloadWorker
 import com.music.vivi.vivimusic.updater.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import timber.log.Timber
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -320,22 +321,33 @@ fun UpdateScreen(navController: NavHostController) {
                                                 return@AnimatedActionButton
                                             }
                                             file.let { f ->
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                    if (!context.packageManager.canRequestPackageInstalls()) {
-                                                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                                            data = Uri.parse("package:${context.packageName}")
+                                                try {
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                        if (!context.packageManager.canRequestPackageInstalls()) {
+                                                            val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                                                data = Uri.parse("package:${context.packageName}")
+                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                            }
+                                                            context.startActivity(intent)
+                                                            return@let
                                                         }
-                                                        context.startActivity(intent)
-                                                        return@let
+                                                    }
+                                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", f)
+                                                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                                        setDataAndType(uri, "application/vnd.android.package-archive")
+                                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                                    }
+                                                    context.startActivity(installIntent)
+                                                } catch (e: Exception) {
+                                                    Timber.e(e, "Failed to launch package installer")
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            e.localizedMessage ?: "Failed to launch installer"
+                                                        )
                                                     }
                                                 }
-                                                val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
-                                                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(uri, "application/vnd.android.package-archive")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                ContextCompat.startActivity(context, installIntent, null)
                                             }
                                         } else {
                                             val urlToDownload = currentStatus.apkUrl ?: "https://github.com/pwpp08/vivi-music/releases/download/${currentStatus.version}/vivi.apk"

@@ -1127,4 +1127,5 @@
     <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
+    <string name="sync_playlist_spotify_desc">Sync playlist with Spotify</string>
 </resources>

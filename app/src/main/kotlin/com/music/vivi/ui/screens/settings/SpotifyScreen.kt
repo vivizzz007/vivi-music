@@ -226,6 +226,7 @@ fun SpotifyScreen(
                 ),
                 Material3SettingsItem(
                     isExpressive = true,
+                    descriptionBelow = true,
                     title = { Text(stringResource(R.string.spotify_sync)) },
                     description = { Text(stringResource(R.string.spotify_sync_desc)) },
                     icon = painterResource(R.drawable.cached),

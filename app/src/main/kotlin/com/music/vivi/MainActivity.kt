@@ -299,6 +299,9 @@ class MainActivity : ComponentActivity() {
         // On Android 12+, we can't start foreground services from background
         // Use BIND_AUTO_CREATE which will create the service if needed
         // The service will call startForeground() in onCreate() when bound
+        try {
+            startService(Intent(this, MusicService::class.java))
+        } catch (_: Exception) {}
         bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
