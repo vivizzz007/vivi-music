@@ -181,6 +181,19 @@ class DeviceSyncManager @Inject constructor(
     }
 
     /**
+     * Persist the relay server URL with the app-lifetime scope so the value
+     * survives leaving the Devices screen (a screen-scoped coroutine is
+     * cancelled on exit, which made a cleared/changed URL snap back to the
+     * last-used one). A blank value is stored as-is: unpaired users then see
+     * the default cloud relay on the next visit.
+     */
+    fun saveServerUrl(value: String) {
+        scope.launch {
+            context.dataStore.edit { it[DeviceSyncServerUrlKey] = value }
+        }
+    }
+
+    /**
      * Capture the current queue + position from the player and sync it.
      *
      * @return true if the snapshot will actually be sent (not suppressed by the
@@ -339,7 +352,9 @@ class DeviceSyncManager @Inject constructor(
 
     private suspend fun ensureClient() {
         val prefs = context.dataStore.data.first()
-        val url = prefs[DeviceSyncServerUrlKey] ?: SyncServer.DEFAULT_URL
+        // A cleared (blank) URL means "not set": fall back to the default cloud
+        // relay instead of trying to connect to an empty address.
+        val url = prefs[DeviceSyncServerUrlKey]?.takeIf { it.isNotBlank() } ?: SyncServer.DEFAULT_URL
         val deviceId = resolveDeviceId(prefs)
 
         val existing = client

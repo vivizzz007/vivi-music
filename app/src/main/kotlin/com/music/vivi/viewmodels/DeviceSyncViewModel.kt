@@ -31,4 +31,6 @@ class DeviceSyncViewModel @Inject constructor(
     fun joinPair(code: String) = manager.joinPair(code)
 
     fun unpair() = manager.unpair()
+
+    fun saveServerUrl(value: String) = manager.saveServerUrl(value)
 }

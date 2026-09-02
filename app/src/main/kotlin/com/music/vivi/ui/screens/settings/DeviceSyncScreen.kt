@@ -41,6 +41,8 @@ import com.music.vivi.devicesync.LanDiscovery
 import com.music.vivi.sync.SyncServer
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.DeviceSyncViewModel
 
@@ -55,11 +57,23 @@ fun DeviceSyncScreen(
     val status by viewModel.status.collectAsState()
     val peerDeviceName by viewModel.peerDeviceName.collectAsState()
 
-    val (serverUrl, onServerUrlChange) = rememberPreference(DeviceSyncServerUrlKey, SyncServer.DEFAULT_URL)
     val (syncViviVolume, onSyncViviVolumeChange) = rememberPreference(SyncViviVolumeKey, true)
     var joinCode by remember { mutableStateOf("") }
 
     val context = LocalContext.current
+
+    // Relay server URL: held as local state so editing is instant and clearing
+    // actually sticks; persisted through the app-lifetime manager scope (a
+    // screen-scoped coroutine is cancelled on exit, which restored the
+    // last-used URL). A blank stored value means "not set": when not paired,
+    // leaving and re-entering this screen always shows the default cloud relay.
+    val savedServerUrl = remember { context.dataStore[DeviceSyncServerUrlKey] ?: "" }
+    var serverUrl by remember { mutableStateOf(savedServerUrl.ifBlank { SyncServer.DEFAULT_URL }) }
+    fun persistServerUrl(value: String) {
+        serverUrl = value
+        viewModel.saveServerUrl(value)
+    }
+
     val lanDiscovery = remember { LanDiscovery(context) }
     var discovering by remember { mutableStateOf(false) }
 
@@ -75,12 +89,12 @@ fun DeviceSyncScreen(
             // Auto-fill both the relay URL and the pairing code; the user only
             // has to verify the code and tap Pair. Plain ws:// URLs keep working.
             if (uri.scheme == "vivimusic" && uri.host == "pair") {
-                uri.getQueryParameter("addr")?.let { onServerUrlChange(it) }
+                uri.getQueryParameter("addr")?.let { persistServerUrl(it) }
                 uri.getQueryParameter("code")?.let { code ->
                     joinCode = code.filter { it.isDigit() }.take(6)
                 }
             } else {
-                onServerUrlChange(trimmed)
+                persistServerUrl(trimmed)
             }
         }
     }
@@ -145,7 +159,7 @@ fun DeviceSyncScreen(
 
             OutlinedTextField(
                 value = serverUrl,
-                onValueChange = onServerUrlChange,
+                onValueChange = { persistServerUrl(it) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 label = { Text(stringResource(R.string.device_sync_server)) },
@@ -161,7 +175,7 @@ fun DeviceSyncScreen(
                         lanDiscovery.discover(
                             onFound = { url ->
                                 discovering = false
-                                onServerUrlChange(url)
+                                persistServerUrl(url)
                             },
                             onError = { discovering = false },
                         )
