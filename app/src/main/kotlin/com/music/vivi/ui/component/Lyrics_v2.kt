@@ -607,7 +607,7 @@ fun LyricsV2(
                                         gapEndMs = item.gapEndMs - 650L,
                                         currentPositionMs = effectivePos,
                                         visible = indicatorVisible,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = adaptivePrimary,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .wrapContentWidth(Alignment.CenterHorizontally)
