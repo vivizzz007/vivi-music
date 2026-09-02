@@ -50,10 +50,9 @@ data class HomePage(
                     label = renderer.header.musicCarouselShelfBasicHeaderRenderer.strapline?.runs?.firstOrNull()?.text,
                     thumbnail = renderer.header.musicCarouselShelfBasicHeaderRenderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl(),
                     endpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
-                    items = renderer.contents.mapNotNull {
-                        it.musicTwoRowItemRenderer
-                    }.mapNotNull {
-                        fromMusicTwoRowItemRenderer(it)
+                    items = renderer.contents.mapNotNull { content ->
+                        content.musicTwoRowItemRenderer?.let { fromMusicTwoRowItemRenderer(it) }
+                            ?: content.musicResponsiveListItemRenderer?.let { com.music.innertube.pages.RelatedPage.fromMusicResponsiveListItemRenderer(it) }
                     }.ifEmpty {
                         return null
                     }
