@@ -137,11 +137,19 @@ fun QueueV2(
             if (index == 0 && offset < 50) {
                 onControlsVisibilityChange(true)
             } else if (isScrollInProgress) {
-                // If they are actively scrolling down anywhere else, hide the controls
-                if (index > previousIndex) {
-                    onControlsVisibilityChange(false)
-                } else if (index == previousIndex && offset - previousScrollOffset > 10) {
-                    onControlsVisibilityChange(false)
+                if (index != previousIndex) {
+                    if (index > previousIndex) {
+                        onControlsVisibilityChange(false)
+                    } else {
+                        onControlsVisibilityChange(true)
+                    }
+                } else {
+                    val delta = offset - previousScrollOffset
+                    if (delta > 15) {
+                        onControlsVisibilityChange(false)
+                    } else if (delta < -15) {
+                        onControlsVisibilityChange(true)
+                    }
                 }
             }
             previousIndex = index
