@@ -735,6 +735,8 @@ fun AlbumScreen(
                     items = filteredSongs,
                     key = { _, song -> song.id },
                 ) { index, song ->
+                    val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+
                     val onCheckedChange: (Boolean) -> Unit = {
                         if (it) {
                             selection.add(song.id)
@@ -750,6 +752,7 @@ fun AlbumScreen(
                             isActive = song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
                             isSelected = song.id in selection,
+                            downloadState = download,
                             shape = listItemShape(index + 1, filteredSongs.size + 1),
                             trailingContent = {
                                 if (inSelectMode) {
