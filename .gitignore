@@ -110,3 +110,11 @@ app/src/main/cpp/vibrafp/third_party/.build-fftw/
 
 # Local scratch / reference files (e.g. sample backups) kept out of the repo
 .ignore/
+
+# Python tooling artifacts (localization scripts)
+__pycache__/
+*.pyc
+
+# Agent tooling state
+.agents/
+skills-lock.json
