@@ -1293,23 +1293,27 @@ fun LocalPlaylistHeader(
                             onEdit = onShowEditDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
-                                    val playlistPage = YouTube.playlist(playlist.playlist.browseId!!)
-                                        .completed()
-                                        .getOrNull() ?: return@launch
-                                    database.transaction {
-                                        clearPlaylist(playlist.id)
-                                        playlistPage.songs
-                                            .map(SongItem::toMediaMetadata)
-                                            .onEach(::insert)
-                                            .mapIndexed { position, song ->
-                                                PlaylistSongMap(
-                                                    songId = song.id,
-                                                    playlistId = playlist.id,
-                                                    position = position,
-                                                    setVideoId = song.setVideoId
-                                                )
-                                            }
-                                            .forEach(::insert)
+                                    if (playlist.id.startsWith("SPOTIFY_")) {
+                                        syncUtils.syncSpotifyPlaylistSuspend(playlist.id)
+                                    } else if (playlist.playlist.browseId != null) {
+                                        val playlistPage = YouTube.playlist(playlist.playlist.browseId!!)
+                                            .completed()
+                                            .getOrNull() ?: return@launch
+                                        database.transaction {
+                                            clearPlaylist(playlist.id)
+                                            playlistPage.songs
+                                                .map(SongItem::toMediaMetadata)
+                                                .onEach(::insert)
+                                                .mapIndexed { position, song ->
+                                                    PlaylistSongMap(
+                                                        songId = song.id,
+                                                        playlistId = playlist.id,
+                                                        position = position,
+                                                        setVideoId = song.setVideoId
+                                                    )
+                                                }
+                                                .forEach(::insert)
+                                        }
                                     }
                                 }
                                 scope.launch(Dispatchers.Main) {

@@ -125,9 +125,30 @@ import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.backToMain
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import com.music.vivi.constants.AppLogoPresetKey
+import com.music.vivi.constants.CustomLogoPathKey
+import com.music.vivi.ui.component.AppLogo
+import com.music.vivi.ui.component.LogoPreset
+import java.io.File
+import java.io.FileOutputStream
 import com.music.vivi.utils.IconUtils
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.music.vivi.constants.LyricsClickKey
@@ -147,6 +168,7 @@ fun AppearanceSettings(
     activity: Activity,
     snackbarHostState: SnackbarHostState,
 ) {
+    val context = LocalContext.current
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(
         DynamicThemeKey,
         defaultValue = true
@@ -198,6 +220,38 @@ fun AppearanceSettings(
         }
     }
 
+    val (appLogoPreset, onAppLogoPresetChange) = rememberPreference(
+        AppLogoPresetKey,
+        defaultValue = LogoPreset.DEFAULT.id
+    )
+    val (customLogoPath, onCustomLogoPathChange) = rememberPreference(
+        CustomLogoPathKey,
+        defaultValue = ""
+    )
+    var showLogoPickerDialog by rememberSaveable { mutableStateOf(false) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            coroutineScope.launch(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openInputStream(uri)?.use { input ->
+                        val targetFile = File(context.filesDir, "custom_logo.png")
+                        FileOutputStream(targetFile).use { output ->
+                            input.copyTo(output)
+                        }
+                        onCustomLogoPathChange(targetFile.absolutePath)
+                        onAppLogoPresetChange(LogoPreset.CUSTOM.id)
+                    }
+                }.onSuccess {
+                    coroutineScope.launch(Dispatchers.Main) {
+                        snackbarHostState.showSnackbar(context.getString(R.string.logo_updated))
+                    }
+                }
+            }
+        }
+    }
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
         UseNewPlayerDesignKey,
@@ -340,7 +394,6 @@ fun AppearanceSettings(
     )
 
     // Density scale preferences
-    val context = activity as Context
     val sharedPreferences = remember { context.getSharedPreferences("vivimusic_settings", Context.MODE_PRIVATE) }
     val prefDensityScale = remember(sharedPreferences) {
         sharedPreferences.getFloat("density_scale_factor", 1.0f)
@@ -417,6 +470,135 @@ fun AppearanceSettings(
 
     var showSliderOptionDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showLogoPickerDialog) {
+        DefaultDialog(
+            onDismiss = { showLogoPickerDialog = false },
+            content = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.app_logo_title),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        AppLogo(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .clip(CircleShape)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Text(
+                        text = "Presets",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        LogoPreset.entries.filter { it != LogoPreset.CUSTOM }.forEach { preset ->
+                            val isSelected = appLogoPreset == preset.id
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        onAppLogoPresetChange(preset.id)
+                                    }
+                                    .padding(4.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(CircleShape)
+                                        .border(
+                                            width = if (isSelected) 3.dp else 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    androidx.compose.foundation.Image(
+                                        painter = painterResource(preset.drawableRes),
+                                        contentDescription = preset.displayName,
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = preset.displayName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(
+                        onClick = {
+                            photoPickerLauncher.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.add),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.choose_custom_logo))
+                    }
+
+                    if (appLogoPreset == LogoPreset.CUSTOM.id) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                onAppLogoPresetChange(LogoPreset.DEFAULT.id)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(stringResource(R.string.reset_logo))
+                        }
+                    }
+                }
+            },
+            buttons = {
+                TextButton(onClick = { showLogoPickerDialog = false }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        )
     }
 
     if (showPlayerDesignDialog) {
@@ -1121,6 +1303,23 @@ fun AppearanceSettings(
 //                        onClick = { handleIconChange(!enableDynamicIcon) }
 //                    )
 //                )
+                add(
+                    Material3SettingsItem(
+                        leadingContent = {
+                            AppLogo(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                            )
+                        },
+                        title = { Text(stringResource(R.string.app_logo_title)) },
+                        trailingContent = {
+                            val preset = LogoPreset.fromId(appLogoPreset)
+                            Text(preset.displayName)
+                        },
+                        onClick = { showLogoPickerDialog = true }
+                    )
+                )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),

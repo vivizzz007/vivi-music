@@ -37,6 +37,7 @@ import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.UseLoginForBrowse
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.BuildConfig
+import com.music.vivi.ui.component.AppLogo
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.HomeViewModel
 import kotlinx.coroutines.flow.map
@@ -107,8 +108,7 @@ fun SettingDialoge(
                         .fillMaxWidth()
                         .padding(start = 4.dp, top = 10.dp, end = 4.dp, bottom = 10.dp)
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.icon),
+                    AppLogo(
                         contentDescription = "App Icon",
                         modifier = Modifier
                             .size(24.dp)

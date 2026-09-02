@@ -43,6 +43,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.toShape
 import androidx.compose.material3.IconButtonDefaults
+import com.music.vivi.ui.component.AppLogo
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -262,9 +263,7 @@ private fun AppVersionTile(
     ) {
         ListItem(
             leadingContent = {
-                Image(
-                    painter = painterResource(R.drawable.icon),
-                    contentDescription = null,
+                AppLogo(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)

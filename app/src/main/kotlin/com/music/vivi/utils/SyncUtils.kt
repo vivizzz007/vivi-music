@@ -16,10 +16,19 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.utils.completed
 import com.music.innertube.utils.parseCookieString
 import com.music.lastfm.LastFM
+import com.music.spotify.Spotify
+import com.music.spotify.SpotifyAuth
+import com.music.spotify.SpotifyMapper
+import com.music.spotify.models.SpotifyTrack
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.LastFMUseSendLikes
 import com.music.vivi.constants.LastFullSyncKey
 import com.music.vivi.constants.SYNC_COOLDOWN
+import com.music.vivi.constants.SpotifyAutoSyncKey
+import com.music.vivi.constants.SpotifySessionKey
+import com.music.vivi.viewmodels.SpotifySession
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.db.entities.PlaylistEntity
@@ -63,7 +72,9 @@ sealed class SyncOperation {
     data object ArtistsSubscriptions : SyncOperation()
     data object SavedPlaylists : SyncOperation()
     data object AutoSyncPlaylists : SyncOperation()
+    data object AutoSyncSpotifyPlaylists : SyncOperation()
     data class SinglePlaylist(val browseId: String, val playlistId: String) : SyncOperation()
+    data class SingleSpotifyPlaylist(val playlistId: String) : SyncOperation()
     data class LikeSong(val song: SongEntity) : SyncOperation()
     data object CleanupDuplicates : SyncOperation()
     data object ClearAllSynced : SyncOperation()
@@ -152,7 +163,9 @@ class SyncUtils @Inject constructor(
             is SyncOperation.ArtistsSubscriptions -> executeSyncArtistsSubscriptions()
             is SyncOperation.SavedPlaylists -> executeSyncSavedPlaylists()
             is SyncOperation.AutoSyncPlaylists -> executeSyncAutoSyncPlaylists()
+            is SyncOperation.AutoSyncSpotifyPlaylists -> executeSyncSpotifyPlaylists()
             is SyncOperation.SinglePlaylist -> executeSyncPlaylist(operation.browseId, operation.playlistId)
+            is SyncOperation.SingleSpotifyPlaylist -> executeSyncSingleSpotifyPlaylist(operation.playlistId)
             is SyncOperation.LikeSong -> executeLikeSong(operation.song)
             is SyncOperation.CleanupDuplicates -> executeCleanupDuplicatePlaylists()
             is SyncOperation.ClearAllSynced -> executeClearAllSyncedContent()
@@ -216,6 +229,16 @@ class SyncUtils @Inject constructor(
 
     fun tryAutoSync() {
         syncScope.launch {
+            if (context.isInternetConnected()) {
+                val spotifyAutoSync = context.dataStore.get(SpotifyAutoSyncKey, true)
+                if (spotifyAutoSync) {
+                    val spotifySession = getSpotifySession()
+                    if (spotifySession != null) {
+                        syncChannel.send(SyncOperation.AutoSyncSpotifyPlaylists)
+                    }
+                }
+            }
+
             if (!isLoggedIn()) {
                 Timber.d("Skipping auto sync - user not logged in")
                 return@launch
@@ -296,6 +319,20 @@ class SyncUtils @Inject constructor(
             syncChannel.send(SyncOperation.AutoSyncPlaylists)
         }
     }
+
+    fun syncSpotifyPlaylists() {
+        syncScope.launch {
+            syncChannel.send(SyncOperation.AutoSyncSpotifyPlaylists)
+        }
+    }
+
+    fun syncSpotifyPlaylist(playlistId: String) {
+        syncScope.launch {
+            syncChannel.send(SyncOperation.SingleSpotifyPlaylist(playlistId))
+        }
+    }
+
+    suspend fun syncSpotifyPlaylistSuspend(playlistId: String) = executeSyncSingleSpotifyPlaylist(playlistId)
 
     fun syncPlaylist(browseId: String, playlistId: String) {
         syncScope.launch {
@@ -1006,6 +1043,156 @@ class SyncUtils @Inject constructor(
             }
         }.onFailure { e ->
             Timber.e(e, "syncPlaylist: Failed after retries")
+        }
+    }
+
+    private suspend fun getSpotifySession(): SpotifySession? {
+        val sessionJson = context.dataStore.data.map { it[SpotifySessionKey] }.firstOrNull() ?: return null
+        return runCatching {
+            Json.decodeFromString<SpotifySession>(sessionJson)
+        }.getOrNull()
+    }
+
+    private suspend fun ensureSpotifyAuthenticated(session: SpotifySession): SpotifySession? {
+        if (session.accessToken != null && session.expiresAt > System.currentTimeMillis() + 60_000L) {
+            Spotify.accessToken = session.accessToken
+            return session
+        }
+        return try {
+            val token = SpotifyAuth.fetchAccessToken(session.spDc, session.spKey.orEmpty()).getOrThrow()
+            Spotify.accessToken = token.accessToken
+            val updated = session.copy(
+                accessToken = token.accessToken,
+                expiresAt = token.accessTokenExpirationTimestampMs
+            )
+            context.dataStore.edit { prefs ->
+                prefs[SpotifySessionKey] = Json.encodeToString(updated)
+            }
+            updated
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to authenticate with Spotify during sync")
+            null
+        }
+    }
+
+    private suspend fun executeSyncSpotifyPlaylists() = withContext(Dispatchers.IO) {
+        val session = getSpotifySession() ?: return@withContext
+        val authSession = ensureSpotifyAuthenticated(session) ?: return@withContext
+
+        try {
+            val spotifyPlaylists = database.playlistsByNameAsc().first()
+                .filter { it.playlist.id.startsWith("SPOTIFY_") && it.playlist.isAutoSync }
+
+            Timber.d("syncSpotifyPlaylists: Found ${spotifyPlaylists.size} Spotify playlists to sync")
+            for (playlist in spotifyPlaylists) {
+                executeSyncSingleSpotifyPlaylist(playlist.playlist.id)
+                delay(DB_OPERATION_DELAY_MS)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error syncing Spotify playlists")
+        }
+    }
+
+    private suspend fun executeSyncSingleSpotifyPlaylist(localPlaylistId: String) = withContext(Dispatchers.IO) {
+        val session = getSpotifySession() ?: return@withContext
+        val authSession = ensureSpotifyAuthenticated(session) ?: return@withContext
+
+        try {
+            val tracks = mutableListOf<SpotifyTrack>()
+            if (localPlaylistId == "SPOTIFY_LIKED_SONGS") {
+                var offset = 0
+                val limit = 50
+                while (true) {
+                    val page = Spotify.likedSongs(limit = limit, offset = offset).getOrThrow()
+                    tracks.addAll(page.items.map { it.track })
+                    offset += limit
+                    if (offset >= page.total) break
+                }
+            } else if (localPlaylistId.startsWith("SPOTIFY_PLAYLIST_")) {
+                val spotifyId = localPlaylistId.removePrefix("SPOTIFY_PLAYLIST_")
+                var offset = 0
+                val limit = 100
+                while (true) {
+                    val page = Spotify.playlistTracks(spotifyId, limit = limit, offset = offset).getOrThrow()
+                    tracks.addAll(page.items.mapNotNull { it.track })
+                    offset += limit
+                    if (offset >= page.total) break
+                }
+            } else {
+                return@withContext
+            }
+
+            if (tracks.isEmpty()) {
+                database.withTransaction {
+                    database.clearPlaylist(localPlaylistId)
+                }
+                return@withContext
+            }
+
+            val matchedList = mutableListOf<com.music.vivi.models.MediaMetadata>()
+            for (track in tracks) {
+                val artist = track.artists.firstOrNull()?.name.orEmpty()
+                val title = track.name
+                val query = if (artist.isEmpty()) title else "$artist $title"
+
+                val existingLocal = database.searchSongs(query, 1).first().firstOrNull()
+                if (existingLocal != null) {
+                    matchedList.add(existingLocal.toMediaMetadata())
+                    continue
+                }
+
+                try {
+                    val searchResult = YouTube.search(
+                        query = query,
+                        filter = YouTube.SearchFilter.FILTER_SONG
+                    ).getOrNull()
+
+                    val candidates = searchResult?.items
+                        ?.filterIsInstance<SongItem>()
+                        ?.distinctBy { it.id }
+                        .orEmpty()
+
+                    val best = candidates.maxByOrNull { candidate ->
+                        SpotifyMapper.matchScore(
+                            spotifyTitle = track.name,
+                            spotifyArtist = track.artists.joinToString(" ") { it.name },
+                            spotifyDurationMs = track.durationMs,
+                            candidateTitle = candidate.title,
+                            candidateArtist = candidate.artists.joinToString(" ") { it.name },
+                            candidateDurationSec = candidate.duration
+                        )
+                    }
+
+                    if (best != null) {
+                        matchedList.add(best.toMediaMetadata())
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "Failed to match Spotify track $title")
+                }
+            }
+
+            database.withTransaction {
+                database.clearPlaylist(localPlaylistId)
+                matchedList.forEachIndexed { idx, song ->
+                    if (database.song(song.id).firstOrNull() == null) {
+                        database.insert(song)
+                    }
+                    database.insert(
+                        PlaylistSongMap(
+                            songId = song.id,
+                            playlistId = localPlaylistId,
+                            position = idx,
+                            setVideoId = song.setVideoId
+                        )
+                    )
+                }
+                database.playlist(localPlaylistId).first()?.playlist?.let {
+                    database.update(it.copy(lastUpdateTime = LocalDateTime.now()))
+                }
+            }
+            Timber.d("Successfully synced Spotify playlist $localPlaylistId with ${matchedList.size} tracks")
+        } catch (e: Exception) {
+            Timber.e(e, "Error executing Spotify playlist sync for $localPlaylistId")
         }
     }
 

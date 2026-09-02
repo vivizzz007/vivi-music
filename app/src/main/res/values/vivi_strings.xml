@@ -46,6 +46,13 @@
     <string name="sync_completed_success">Synced %1$d songs successfully</string>
     <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
+    <string name="spotify_sync">Spotify Sync</string>
+    <string name="spotify_sync_desc">Automatically keep imported Spotify playlists up to date</string>
+    <string name="app_logo_title">App logo</string>
+    <string name="app_logo_desc">Customize the app logo appearance</string>
+    <string name="choose_custom_logo">Upload custom logo</string>
+    <string name="reset_logo">Reset to default logo</string>
+    <string name="logo_updated">App logo updated successfully</string>
     <string name="elements_selected">%1$d elements selected</string>
     <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
     <string name="generating_image">Generating image</string>

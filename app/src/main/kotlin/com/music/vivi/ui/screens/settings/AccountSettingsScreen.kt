@@ -80,6 +80,8 @@ fun AccountSettingsScreen(
     }
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
+    val (spotifySession) = rememberPreference(SpotifySessionKey, "")
+    val (spotifyAutoSync, onSpotifyAutoSyncChange) = rememberPreference(SpotifyAutoSyncKey, true)
 
     val homeViewModel: HomeViewModel = hiltViewModel()
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
@@ -250,7 +252,7 @@ fun AccountSettingsScreen(
             if (selectedTab == AccountTab.RECOMMENDED) {
                 if (isLoggedIn) {
                     ExpressiveSettingGroup(
-                        items = listOf(
+                        items = listOfNotNull(
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.add_circle),
                                 title = { Text(stringResource(R.string.more_content)) },
@@ -298,6 +300,28 @@ fun AccountSettingsScreen(
                                 },
                                 onClick = { onYtmSyncChange(!ytmSync) }
                             ),
+                            if (spotifySession.isNotBlank()) {
+                                Material3SettingsItem(
+                                    icon = painterResource(R.drawable.spotify),
+                                    title = { Text(stringResource(R.string.spotify_sync)) },
+                                    trailingContent = {
+                                        Switch(
+                                            checked = spotifyAutoSync,
+                                            onCheckedChange = onSpotifyAutoSyncChange,
+                                            thumbContent = {
+                                                Icon(
+                                                    painter = painterResource(
+                                                        id = if (spotifyAutoSync) R.drawable.check else R.drawable.close
+                                                    ),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                                )
+                                            }
+                                        )
+                                    },
+                                    onClick = { onSpotifyAutoSyncChange(!spotifyAutoSync) }
+                                )
+                            } else null,
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.logout),
                                 title = { Text(stringResource(R.string.action_logout)) },

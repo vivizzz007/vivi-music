@@ -67,6 +67,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
+import com.music.vivi.ui.component.AppLogo
 import com.music.vivi.ui.component.snackbar.SnackbarManager
 import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
@@ -887,9 +888,7 @@ class MainActivity : ComponentActivity() {
                                     TopAppBar(
                                         navigationIcon = {
                                             Box(modifier = Modifier.padding(start = 12.dp)) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.icon),
-                                                    contentDescription = null,
+                                                AppLogo(
                                                     modifier = Modifier
                                                         .size(32.dp)
                                                         .clip(CircleShape),

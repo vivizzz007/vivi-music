@@ -89,6 +89,7 @@ fun LocalPlaylistMenu(
     }
 
     val isYouTubePlaylist = playlist.playlist.browseId != null
+    val isSpotifyPlaylist = playlist.id.startsWith("SPOTIFY_")
 
     val menuItems = buildList {
         add(
@@ -108,8 +109,8 @@ fun LocalPlaylistMenu(
             )
         )
 
-        // Show sync button only for YouTube playlists
-        if (isYouTubePlaylist) {
+        // Show sync button for YouTube or Spotify playlists
+        if (isYouTubePlaylist || isSpotifyPlaylist) {
             add(
                 Material3MenuItemData(
                     title = { Text(stringResource(R.string.action_sync)) },

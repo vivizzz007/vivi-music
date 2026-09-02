@@ -1,8 +1,8 @@
 name: Nightly Telegram Build
 
 on:
-  schedule:
-    - cron: '0 0 * * *' # Midnight UTC
+#  schedule:
+#    - cron: '0 0 * * *' # Midnight UTC
   workflow_dispatch: # Allows you to manually trigger it for testing
 
 jobs:

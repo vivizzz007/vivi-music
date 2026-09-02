@@ -931,15 +931,32 @@ suspend fun checkForUpdate(
 
                     var apkSizeInMB = ""
                     var apkDownloadUrl = ""
+                    var fallbackApkSizeInMB = ""
+                    var fallbackApkUrl = ""
+                    val currentFlavor = if (BuildConfig.CAST_AVAILABLE) "gms" else "foss"
+
                     for (j in 0 until assets.length()) {
                         val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name")
-                        if (assetName == "vivi.apk") {
+                        val assetName = asset.getString("name").lowercase()
+                        if (assetName.endsWith(".apk")) {
                             val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
+                            val sizeStr = String.format(java.util.Locale.US, "%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                            val downloadUrl = asset.getString("browser_download_url")
+
+                            if (assetName.contains(currentFlavor) || assetName == "vivi.apk") {
+                                apkSizeInMB = sizeStr
+                                apkDownloadUrl = downloadUrl
+                                break
+                            } else if (fallbackApkUrl.isEmpty()) {
+                                fallbackApkSizeInMB = sizeStr
+                                fallbackApkUrl = downloadUrl
+                            }
                         }
+                    }
+
+                    if (apkDownloadUrl.isEmpty() && fallbackApkUrl.isNotEmpty()) {
+                        apkDownloadUrl = fallbackApkUrl
+                        apkSizeInMB = fallbackApkSizeInMB
                     }
 
                     if (apkDownloadUrl.isNotEmpty()) {

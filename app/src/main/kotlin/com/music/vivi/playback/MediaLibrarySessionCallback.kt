@@ -44,6 +44,7 @@ import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.toggleRepeatMode
+import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -56,7 +57,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import timber.log.Timber
+import java.io.ObjectInputStream
 import javax.inject.Inject
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -114,7 +118,83 @@ constructor(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
     ): ListenableFuture<MediaItemsWithStartPosition> {
-        return SettableFuture.create<MediaItemsWithStartPosition>()
+        val settableFuture = SettableFuture.create<MediaItemsWithStartPosition>()
+        scope.launch(Dispatchers.IO) {
+            try {
+                if (mediaSession.player.mediaItemCount > 0) {
+                    val startIndex = mediaSession.player.currentMediaItemIndex.coerceIn(0, mediaSession.player.mediaItemCount - 1)
+                    val startPosition = mediaSession.player.currentPosition
+                    val items = (0 until mediaSession.player.mediaItemCount).map { mediaSession.player.getMediaItemAt(it) }
+                    settableFuture.set(MediaItemsWithStartPosition(items, startIndex, startPosition))
+                    return@launch
+                }
+
+                val queueFile = context.filesDir.resolve(MusicService.PERSISTENT_QUEUE_FILE)
+                if (queueFile.exists()) {
+                    val queue = runCatching {
+                        queueFile.inputStream().use { fis ->
+                            ObjectInputStream(fis).use { oos ->
+                                oos.readObject() as? PersistQueue
+                            }
+                        }
+                    }.getOrNull()
+
+                    if (queue != null && queue.items.isNotEmpty()) {
+                        val mediaItems = queue.items.map { it.toMediaItem() }
+                        val safeIndex = queue.mediaItemIndex.coerceIn(0, mediaItems.lastIndex)
+                        val safePosition = if (safeIndex == queue.mediaItemIndex) queue.position else 0L
+                        settableFuture.set(MediaItemsWithStartPosition(mediaItems, safeIndex, safePosition))
+                        return@launch
+                    }
+                }
+
+                val recentEvents = runCatching {
+                    database.events().first().take(25).map { it.song.toMediaItem() }
+                }.getOrNull()
+
+                if (!recentEvents.isNullOrEmpty()) {
+                    settableFuture.set(MediaItemsWithStartPosition(recentEvents, 0, 0L))
+                    return@launch
+                }
+
+                settableFuture.setException(IllegalStateException("No recent items available for playback resumption"))
+            } catch (e: Exception) {
+                Timber.e(e, "Playback resumption failed")
+                settableFuture.setException(e)
+            }
+        }
+        return settableFuture
+    }
+
+    private suspend fun getRecentMediaItems(session: MediaLibrarySession): List<MediaItem> {
+        if (session.player.mediaItemCount > 0) {
+            val safeIndex = session.player.currentMediaItemIndex.coerceIn(0, session.player.mediaItemCount - 1)
+            val playerItems = (0 until session.player.mediaItemCount).map { session.player.getMediaItemAt(it) }
+            return playerItems.drop(safeIndex).ifEmpty { playerItems }
+        }
+
+        val queueFile = context.filesDir.resolve(MusicService.PERSISTENT_QUEUE_FILE)
+        if (queueFile.exists()) {
+            val queue = runCatching {
+                queueFile.inputStream().use { fis ->
+                    ObjectInputStream(fis).use { oos ->
+                        oos.readObject() as? PersistQueue
+                    }
+                }
+            }.getOrNull()
+
+            if (queue != null && queue.items.isNotEmpty()) {
+                val mediaItems = queue.items.map { it.toMediaItem() }
+                val safeIndex = queue.mediaItemIndex.coerceIn(0, mediaItems.lastIndex)
+                return mediaItems.drop(safeIndex).ifEmpty { mediaItems }
+            }
+        }
+
+        val recentEvents = runCatching {
+            database.events().first().take(20).map { it.song.toMediaItem() }
+        }.getOrNull()
+
+        return recentEvents.orEmpty()
     }
 
     override fun onGetLibraryRoot(
@@ -139,8 +219,11 @@ constructor(
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> =
         scope.future(Dispatchers.IO) {
             val children =
-                when (parentId) {
-                    MusicService.ROOT -> rootChildren()
+                if (params?.isRecent == true) {
+                    getRecentMediaItems(session)
+                } else {
+                    when (parentId) {
+                        MusicService.ROOT -> rootChildren()
 
                     MusicService.SONG -> database.songsByCreateDateAsc().first()
                         .map { it.toMediaItem(parentId) }
@@ -268,6 +351,7 @@ constructor(
                             else -> emptyList()
                         }
                 }
+            }
 
             LibraryResult.ofItemList(
                 children.paginate(page, pageSize),
