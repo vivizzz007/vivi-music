@@ -76,6 +76,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.pages.RadioChip
 import com.music.lastfm.LastFM
 import com.music.vivi.MainActivity
 import com.music.vivi.R
@@ -176,6 +177,7 @@ import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.audio.SilenceDetectorAudioProcessor
 import com.music.vivi.playback.queues.EmptyQueue
+import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.playback.queues.filterExplicit
@@ -299,8 +301,10 @@ class MusicService :
     private lateinit var audioQuality: com.music.vivi.constants.AudioQuality
     private lateinit var ipVersion: IpVersion
 
-    private var currentQueue: Queue = EmptyQueue
+    var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
+    val radioChips = MutableStateFlow<List<RadioChip>>(emptyList())
+    private var radioChipsJob: Job? = null
 
     val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
     private val currentSong =
@@ -1040,6 +1044,9 @@ class MusicService :
                         if (playerState.currentMediaItemIndex < player.mediaItemCount) {
                             player.seekTo(playerState.currentMediaItemIndex, playerState.currentPosition)
                         }
+
+                        // Trigger initial load of radio filter chips for the restored song
+                        refreshChipsForCurrentSong()
                     }
                 }.onFailure { error ->
                     Timber.tag(TAG).w(error, "Failed to read player state, clearing data")
@@ -1420,6 +1427,9 @@ class MusicService :
 
         currentQueue = queue
         queueTitle = null
+        radioChipsJob?.cancel()
+        radioChipsJob = null
+        radioChips.value = emptyList()
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
         if (!persistShuffleAcrossQueues) {
@@ -1442,6 +1452,15 @@ class MusicService :
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
+            }
+
+            if (queue.radioChips != null) {
+                radioChipsJob = scope.launch {
+                    queue.radioChips!!.collect {
+                        timber.log.Timber.tag("Chippy").e("MusicService collected chips from Queue! Size: ${it.size}")
+                        radioChips.value = it
+                    }
+                }
             }
             if (initialStatus.items.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
@@ -1514,7 +1533,8 @@ class MusicService :
             // Use simple videoId to let YouTube personalize recommendations
             val radioQueue = YouTubeQueue(
                 endpoint = WatchEndpoint(
-                    videoId = currentMediaId
+                    videoId = currentMediaId,
+                    playlistId = "RDAMVM$currentMediaId"
                 )
             )
 
@@ -1527,6 +1547,15 @@ class MusicService :
 
                 if (initialStatus.title != null) {
                     queueTitle = initialStatus.title
+                }
+
+                if (radioQueue.radioChips != null) {
+                    radioChipsJob?.cancel()
+                    radioChipsJob = scope.launch {
+                        radioQueue.radioChips!!.collect {
+                            radioChips.value = it
+                        }
+                    }
                 }
 
                 // Filter radio items to exclude current media item
@@ -1582,6 +1611,124 @@ class MusicService :
                 } catch (_: Exception) {
                     // Silent fail
                 }
+            }
+        }
+    }
+
+    fun applyRadioChip(chip: RadioChip) {
+        val currentMediaMetadata = player.currentMetadata ?: return
+        val currentMediaId = currentMediaMetadata.id
+        val currentIndex = player.currentMediaItemIndex
+
+        val endpoint = (currentQueue as? YouTubeQueue)?.endpoint?.copy(params = chip.params)
+            ?: com.music.innertube.models.WatchEndpoint(
+                videoId = currentMediaId,
+                playlistId = "RDAMVM$currentMediaId",
+                params = chip.params
+            )
+
+        scope.launch(SilentHandler) {
+            val radioQueue = YouTubeQueue(
+                endpoint = endpoint
+            )
+
+            try {
+                val initialStatus = withContext(Dispatchers.IO) {
+                    radioQueue.getInitialStatus()
+                        .filterExplicit(dataStore.get(HideExplicitKey, false))
+                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                }
+
+                if (initialStatus.title != null) {
+                    queueTitle = initialStatus.title
+                }
+
+                if (radioQueue.radioChips != null) {
+                    radioChipsJob?.cancel()
+                    radioChipsJob = scope.launch {
+                        radioQueue.radioChips!!.collect {
+                            radioChips.value = it.map { rc -> 
+                                if (rc.title == chip.title) rc.copy(isSelected = true) else rc.copy(isSelected = false)
+                            }
+                        }
+                    }
+                }
+
+                // Filter radio items to exclude current media item
+                val radioItems = initialStatus.items.filter { item ->
+                    item.mediaId != currentMediaId
+                }
+
+                if (radioItems.isNotEmpty()) {
+                    val itemCount = player.mediaItemCount
+
+                    if (itemCount > currentIndex + 1) {
+                        player.removeMediaItems(currentIndex + 1, itemCount)
+                    }
+
+                    player.addMediaItems(currentIndex + 1, radioItems)
+                    if (player.shuffleModeEnabled) {
+                        val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
+                        applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+                    }
+                }
+
+                this@MusicService.currentQueue = radioQueue
+            } catch (e: Exception) {
+                timber.log.Timber.tag(TAG).e(e, "Failed to apply radio chip")
+            }
+        }
+    }
+
+    fun refreshChipsForCurrentSong() {
+        val currentQueue = currentQueue // Use smart cast via local variable
+        if (currentQueue != null && currentQueue !is YouTubeQueue) {
+            val isRestoredRadio = (currentQueue as? ListQueue)?.isRadio == true
+            if (!isRestoredRadio) {
+                radioChips.value = emptyList()
+                return
+            }
+        }
+        
+        val currentMediaMetadata = player.currentMetadata ?: return
+        val currentMediaId = currentMediaMetadata.id
+
+        // Only auto-refresh when in a radio-style queue (RDAMVM or similar)
+        // so we don't override chips for a chip-filtered queue the user selected
+        scope.launch(SilentHandler) {
+            val radioQueue = YouTubeQueue(
+                endpoint = WatchEndpoint(
+                    videoId = currentMediaId,
+                    playlistId = "RDAMVM$currentMediaId"
+                )
+            )
+            try {
+                var nextResult = withContext(Dispatchers.IO) {
+                    com.music.innertube.YouTube.next(
+                        radioQueue.endpoint
+                    ).getOrNull()
+                }
+
+                if (nextResult == null || nextResult.radioChips.isEmpty()) {
+                    nextResult = withContext(Dispatchers.IO) {
+                        com.music.innertube.YouTube.next(
+                            WatchEndpoint(videoId = currentMediaId)
+                        ).getOrNull()
+                    }
+                }
+
+                if (nextResult != null && nextResult.radioChips.isNotEmpty()) {
+                    radioChipsJob?.cancel()
+                    // We directly update the chips' value from the nextResult
+                    // no need to collect the dummy radioQueue stateflow
+                    radioChips.value = nextResult.radioChips
+                    timber.log.Timber.tag("Chippy").d("refreshChipsForCurrentSong: pushed ${nextResult.radioChips.size} chips for $currentMediaId")
+                } else if (currentQueue == null) {
+                    // No chips from API and no existing radio queue - clear chips
+                    radioChips.value = emptyList()
+                }
+            } catch (_: Exception) {
+                // Silently fail — chips are optional UX enhancement
             }
         }
     }

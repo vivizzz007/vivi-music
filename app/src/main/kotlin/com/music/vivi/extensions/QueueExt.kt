@@ -92,7 +92,8 @@ fun PersistQueue.toQueue(): Queue {
                 title = title,
                 items = items.map { it.toMediaItem() },
                 startIndex = mediaItemIndex,
-                position = position
+                position = position,
+                isRadio = true
             )
         }
         is QueueType.YOUTUBE_ALBUM_RADIO -> {

@@ -5,6 +5,7 @@ import com.music.innertube.models.YTItem
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.Artist
 import com.music.innertube.models.ArtistItem
+import com.music.innertube.pages.RadioChip
 import com.music.innertube.models.BrowseEndpoint
 import com.music.innertube.models.GridRenderer
 import com.music.innertube.models.MediaInfo
@@ -1342,6 +1343,25 @@ object YouTube {
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer
             ?.watchNextTabbedResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.musicQueueRenderer
             ?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
+
+        val chipsData = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer
+            ?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(0)?.tabRenderer?.content?.musicQueueRenderer
+            ?.subHeaderChipCloud?.chipCloudRenderer?.chips
+
+        println("Chippy: YouTube API parsed raw chipsData size: ${chipsData?.size}")
+
+        var radioChips = chipsData?.mapNotNull { chip ->
+            val renderer = chip.chipCloudChipRenderer ?: return@mapNotNull null
+            val text = renderer.text?.runs?.firstOrNull()?.text ?: return@mapNotNull null
+            val params = renderer.navigationEndpoint?.watchEndpoint?.params ?: ""
+            RadioChip(
+                title = text,
+                params = params,
+                isSelected = renderer.isSelected
+            )
+        } ?: emptyList()
+
+
         val items = playlistPanelRenderer.contents.mapNotNull { content ->
             content.playlistPanelVideoRenderer
                 ?.let(NextPage::fromPlaylistPanelVideoRenderer)
@@ -1359,7 +1379,8 @@ object YouTube {
                     lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
                     relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
                     currentIndex = currentIndex,
-                    endpoint = watchPlaylistEndpoint
+                    endpoint = watchPlaylistEndpoint,
+                    radioChips = radioChips
                 )
             }
         }
@@ -1370,7 +1391,8 @@ object YouTube {
             lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
             relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
             continuation = playlistPanelRenderer.continuations?.getContinuation(),
-            endpoint = endpoint
+            endpoint = endpoint,
+            radioChips = radioChips
         )
     }
 
