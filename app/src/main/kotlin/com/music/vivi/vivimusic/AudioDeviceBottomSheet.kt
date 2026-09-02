@@ -319,7 +319,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = bottomSheetState,
-        containerColor = if (isDarkTheme) MaterialTheme.colorScheme.surfaceContainerLow else MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = modifier
     ) {
         Column(
