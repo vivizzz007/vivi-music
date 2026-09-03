@@ -3281,6 +3281,15 @@ class MusicService :
         }
     }
 
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        if (persistentControlCenter) {
+            super.onUpdateNotification(session, true)
+        } else {
+            super.onUpdateNotification(session, startInForegroundRequired)
+        }
+    }
+
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

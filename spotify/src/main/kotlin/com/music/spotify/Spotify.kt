@@ -372,6 +372,8 @@ object Spotify {
 
     suspend fun createPlaylist(name: String, description: String? = null): Result<SpotifyPlaylist> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+        val user = me().getOrThrow()
+        val userId = user.id.ifBlank { throw SpotifyException(400, "Unable to determine Spotify user ID") }
         val payload = buildJsonObject {
             put("name", name)
             if (!description.isNullOrBlank()) {
@@ -379,7 +381,7 @@ object Spotify {
             }
             put("public", false)
         }
-        val response = gqlClient.post("https://api.spotify.com/v1/me/playlists") {
+        val response = gqlClient.post("https://api.spotify.com/v1/users/$userId/playlists") {
             header("Authorization", "Bearer $token")
             setBody(
                 TextContent(
@@ -389,8 +391,12 @@ object Spotify {
             )
         }
         if (response.status.value !in 200..299) {
-            val errorText = response.bodyAsText()
-            throw SpotifyException(response.status.value, "Failed to create playlist: $errorText")
+            val errorBody = response.bodyAsText()
+            val parsedMessage = runCatching {
+                val jsonElem = json.parseToJsonElement(errorBody).jsonObject
+                jsonElem.obj("error")?.str("message") ?: errorBody
+            }.getOrDefault(errorBody)
+            throw SpotifyException(response.status.value, parsedMessage)
         }
         val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
         val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")

@@ -1348,14 +1348,23 @@ class SyncUtils @Inject constructor(
             val linkedSpotifyId = context.dataStore.data.map { it[linkedKey] }.firstOrNull()
 
             val targetSpotifyId = if (linkedSpotifyId.isNullOrBlank()) {
-                val created = Spotify.createPlaylist(
-                    name = playlistName,
-                    description = "Synced from Vivi Music"
-                ).getOrThrow()
-                context.dataStore.edit { prefs ->
-                    prefs[linkedKey] = created.id
+                val existingPlaylists = Spotify.myPlaylists(limit = 50).getOrNull()?.items.orEmpty()
+                val matched = existingPlaylists.firstOrNull { it.name.equals(playlistName, ignoreCase = true) }
+                if (matched != null) {
+                    context.dataStore.edit { prefs ->
+                        prefs[linkedKey] = matched.id
+                    }
+                    matched.id
+                } else {
+                    val created = Spotify.createPlaylist(
+                        name = playlistName,
+                        description = "Synced from Vivi Music"
+                    ).getOrThrow()
+                    context.dataStore.edit { prefs ->
+                        prefs[linkedKey] = created.id
+                    }
+                    created.id
                 }
-                created.id
             } else {
                 linkedSpotifyId
             }
