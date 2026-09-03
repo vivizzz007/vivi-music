@@ -1379,7 +1379,7 @@ class SyncUtils @Inject constructor(
                 if (uri != null) {
                     trackUris.add(uri)
                 }
-                delay(50)
+                delay(120)
             }
 
             // Fetch existing tracks in the Spotify playlist to prevent duplicate additions

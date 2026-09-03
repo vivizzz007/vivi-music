@@ -1,4 +1,4 @@
-﻿/**
+/**
  * vivimusic Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
@@ -139,11 +139,11 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             iconRes = R.drawable.group
         ),
         SettingSearchEntry(
-            title = "Spotify Sync",
-            description = "Import and synchronize Spotify playlists",
+            title = "Spotify Playlist Sync",
+            description = "Import and export playlists between Vivi Music and Spotify",
             category = "Integrations",
             route = "settings/spotify",
-            keywords = listOf("spotify", "import", "playlists", "sync", "transfer"),
+            keywords = listOf("spotify", "import", "playlists", "sync", "transfer", "export", "playlist sync", "spotify sync", "library"),
             iconRes = R.drawable.spotify
         ),
 
@@ -161,15 +161,23 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Customize dark theme, dynamic colors, and accents",
             category = "Appearance",
             route = "settings/appearance/theme",
-            keywords = listOf("dynamic color", "pure black", "amoled", "palette", "material you", "dark", "light"),
+            keywords = listOf("dynamic color", "palette", "material you", "dark", "light", "color wheel", "accent"),
             iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Pure Black (AMOLED)",
+            description = "True pitch black background for OLED and AMOLED displays",
+            category = "Appearance",
+            route = "settings/appearance/theme",
+            keywords = listOf("pure black", "amoled", "oled", "true black", "dark mode", "pitch black"),
+            iconRes = R.drawable.contrast
         ),
         SettingSearchEntry(
             title = "Canvas & Visuals",
             description = "Animated Canvas and Spotify/Apple canvas backgrounds",
             category = "Appearance",
             route = "settings/appearance/canvas",
-            keywords = listOf("canvas", "video", "loop", "animation", "background", "artwork"),
+            keywords = listOf("canvas", "video", "loop", "animation", "background", "artwork", "apple canvas", "spotify canvas"),
             iconRes = R.drawable.canvas_art
         ),
         SettingSearchEntry(
@@ -239,6 +247,38 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             iconRes = R.drawable.sleep_timer
         ),
         SettingSearchEntry(
+            title = str(R.string.persistent_control_center).ifEmpty { "Persistent Control Center" },
+            description = str(R.string.persistent_control_center_desc).ifEmpty { "Keep playback controls permanently in OxygenOS / Android Control Center even when swiped from recents" },
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("control center", "oxygenos", "coloros", "notification", "lockscreen", "persistent", "background play", "task manager", "swipe", "resume", "media player", "oneplus"),
+            iconRes = R.drawable.notification
+        ),
+        SettingSearchEntry(
+            title = "Loudness Enhancer",
+            description = "Boost playback volume and loudness beyond default system limit",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("loudness", "boost", "volume boost", "gain", "amplifier", "louder", "sound"),
+            iconRes = R.drawable.volume_up
+        ),
+        SettingSearchEntry(
+            title = "Pitch & Speed Control",
+            description = "Adjust audio pitch, playback tempo, and track playback speed",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("speed", "pitch", "tempo", "playback speed", "rate", "fast", "slow"),
+            iconRes = R.drawable.slow_motion_video
+        ),
+        SettingSearchEntry(
+            title = "Audio Crossfade",
+            description = "Smoothly crossfade volume between consecutive songs",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("crossfade", "fade", "transition", "smooth", "gapless"),
+            iconRes = R.drawable.queue_music
+        ),
+        SettingSearchEntry(
             title = str(R.string.persistent_queue).ifEmpty { "Persistent Queue" },
             description = "Remember and restore current queue across app restarts",
             category = "Playback",
@@ -287,6 +327,14 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             route = "settings/content/romanization",
             keywords = listOf("romanize", "pinyin", "romaji", "hangul", "lyrics", "translation"),
             iconRes = R.drawable.translate
+        ),
+        SettingSearchEntry(
+            title = "Synced Lyrics & Styling",
+            description = "Apple Music style blur, text glow, line spacing, and auto-scroll",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("lyrics", "synced lyrics", "blur", "glow", "apple lyrics", "lrc", "karaoke", "line spacing"),
+            iconRes = R.drawable.lyrics
         ),
         SettingSearchEntry(
             title = str(R.string.hide_explicit).ifEmpty { "Hide Explicit Content" },

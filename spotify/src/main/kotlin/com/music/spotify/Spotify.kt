@@ -413,41 +413,72 @@ object Spotify {
 
     suspend fun searchTrack(query: String): Result<String?> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
-        val response = gqlClient.get("https://api.spotify.com/v1/search") {
-            header("Authorization", "Bearer $token")
-            parameter("q", query)
-            parameter("type", "track")
-            parameter("limit", 1)
+        val maxRetries = 3
+        for (attempt in 0..maxRetries) {
+            val response = gqlClient.get("https://api.spotify.com/v1/search") {
+                header("Authorization", "Bearer $token")
+                parameter("q", query)
+                parameter("type", "track")
+                parameter("limit", 1)
+            }
+            if (response.status.value == 429) {
+                val retryAfterHeader = response.headers["Retry-After"]?.toLongOrNull() ?: 1L
+                val waitMs = (retryAfterHeader * 1000L).coerceIn(1000L, 5000L)
+                delay(waitMs)
+                continue
+            }
+            if (response.status.value !in 200..299) {
+                return@runCatching null
+            }
+            val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+            val items = responseJson.obj("tracks")?.arr("items")
+            val firstTrack = items?.firstOrNull()?.jsonObject
+            return@runCatching firstTrack?.str("uri") ?: firstTrack?.str("id")?.let { "spotify:track:$it" }
         }
-        if (response.status.value !in 200..299) {
-            return@runCatching null
-        }
-        val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
-        val items = responseJson.obj("tracks")?.arr("items")
-        val firstTrack = items?.firstOrNull()?.jsonObject
-        firstTrack?.str("uri") ?: firstTrack?.str("id")?.let { "spotify:track:$it" }
+        null
     }
 
     suspend fun addTracksToPlaylist(playlistId: String, trackUris: List<String>): Result<Unit> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
-        trackUris.chunked(100).forEach { chunk ->
+        trackUris.chunked(100).forEachIndexed { chunkIndex, chunk ->
+            if (chunkIndex > 0) {
+                delay(400)
+            }
             val payload = buildJsonObject {
                 putJsonArray("uris") {
                     chunk.forEach { add(it) }
                 }
             }
-            val response = gqlClient.post("https://api.spotify.com/v1/playlists/$playlistId/tracks") {
-                header("Authorization", "Bearer $token")
-                setBody(
-                    TextContent(
-                        payload.toString(),
-                        ContentType.Application.Json.withParameter("charset", "UTF-8"),
+            var succeeded = false
+            val maxRetries = 3
+            for (attempt in 0..maxRetries) {
+                val response = gqlClient.post("https://api.spotify.com/v1/playlists/$playlistId/tracks") {
+                    header("Authorization", "Bearer $token")
+                    setBody(
+                        TextContent(
+                            payload.toString(),
+                            ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                        )
                     )
-                )
+                }
+                if (response.status.value == 429) {
+                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: 2L
+                    delay((retryAfter * 1000L).coerceIn(1000L, 5000L))
+                    continue
+                }
+                if (response.status.value !in 200..299) {
+                    val errorBody = response.bodyAsText()
+                    val parsedMessage = runCatching {
+                        val jsonElem = json.parseToJsonElement(errorBody).jsonObject
+                        jsonElem.obj("error")?.str("message") ?: errorBody
+                    }.getOrDefault(errorBody)
+                    throw SpotifyException(response.status.value, parsedMessage)
+                }
+                succeeded = true
+                break
             }
-            if (response.status.value !in 200..299) {
-                val errorText = response.bodyAsText()
-                throw SpotifyException(response.status.value, "Failed to add tracks: $errorText")
+            if (!succeeded) {
+                throw SpotifyException(429, "Spotify rate limit exceeded. Please wait a moment and retry.")
             }
         }
     }
