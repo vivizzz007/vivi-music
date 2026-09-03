@@ -35,8 +35,10 @@ import com.music.vivi.constants.ShowWrappedCardKey
 import com.music.vivi.constants.WrappedSeenKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.Album
+import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.db.entities.LocalItem
 import com.music.vivi.db.entities.Song
+import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.extensions.filterVideoSongs
 import com.music.vivi.extensions.toEnum
@@ -288,49 +290,99 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun getDailyDiscover() {
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
+        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+
         val likedSongs = database.likedSongsByCreateDateAsc().first()
-        if (likedSongs.isEmpty()) return
+        val recentSongs = database.events().first().mapNotNull { it.song }
+        val allLocalSongs = database.songsByCreateDateAsc().first()
 
-        val seeds = likedSongs.shuffled().distinctBy { it.id }.take(5)
+        val seeds = (likedSongs + recentSongs + allLocalSongs)
+            .distinctBy { it.id }
+            .shuffled()
+            .take(5)
 
-        // Use a synchronized list to collect results safely from concurrent coroutines
         val items = java.util.Collections.synchronizedList(mutableListOf<DailyDiscoverItem>())
 
-        kotlinx.coroutines.coroutineScope {
-            seeds.map { seed ->
-                launch(Dispatchers.IO) {
-                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
-                    if (endpoint != null) {
-                        YouTube.related(endpoint).onSuccess { page ->
-                            val recommendations = page.songs
-                                .filter { item ->
-                                    if (hideVideoSongs && item.isVideoSong) return@filter false
-                                    if (item.explicit) return@filter false
-                                    true
+        if (seeds.isNotEmpty()) {
+            kotlinx.coroutines.coroutineScope {
+                seeds.map { seed ->
+                    launch(Dispatchers.IO) {
+                        val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
+                        if (endpoint != null) {
+                            YouTube.related(endpoint).onSuccess { page ->
+                                val recommendations = page.songs
+                                    .filter { item ->
+                                        if (hideVideoSongs && item.isVideoSong) return@filter false
+                                        if (hideExplicit && item.explicit) return@filter false
+                                        true
+                                    }
+                                    .shuffled()
+
+                                val recommendation = recommendations.firstOrNull { rec ->
+                                    rec.id != seed.id
                                 }
-                                .shuffled()
 
-                            // Simple check to avoid immediate duplicate of seed
-                            val recommendation = recommendations.firstOrNull { rec ->
-                                rec.id != seed.id
-                            }
-
-                            if (recommendation != null) {
-                                items.add(
-                                    DailyDiscoverItem(
-                                        seed = seed,
-                                        recommendation = recommendation,
-                                        relatedEndpoint = endpoint
+                                if (recommendation != null) {
+                                    items.add(
+                                        DailyDiscoverItem(
+                                            seed = seed,
+                                            recommendation = recommendation,
+                                            relatedEndpoint = endpoint
+                                        )
                                     )
-                                )
+                                }
                             }
                         }
                     }
-                }
-            }.forEach { it.join() }
+                }.forEach { it.join() }
+            }
         }
 
-        // Final deduplication just in case multiple seeds recommended the same song
+        // Fallback: If DB items were empty or network returned no recommendations (e.g. offline/new install),
+        // populate from quickPicks or allYtItems!
+        if (items.isEmpty()) {
+            val fallbackSongs = quickPicks.value.orEmpty().ifEmpty {
+                allYtItems.value.filterIsInstance<SongItem>()
+            }
+
+            if (fallbackSongs.isNotEmpty()) {
+                val dummySeed = Song(
+                    song = SongEntity(
+                        id = "discover_seed",
+                        title = "ViviMusic Recommendations"
+                    ),
+                    artists = listOf(
+                        ArtistEntity(
+                            id = "discover_artist",
+                            name = "Trending Hits"
+                        )
+                    )
+                )
+                fallbackSongs.take(10).forEach { ytItem ->
+                    val songItem = when (ytItem) {
+                        is Song -> SongItem(
+                            id = ytItem.id,
+                            title = ytItem.title,
+                            artists = ytItem.artists.map { Artist(name = it.name, id = it.id) },
+                            thumbnail = ytItem.thumbnailUrl ?: "",
+                            explicit = false
+                        )
+                        is SongItem -> ytItem
+                        else -> null
+                    }
+                    if (songItem != null) {
+                        items.add(
+                            DailyDiscoverItem(
+                                seed = dummySeed,
+                                recommendation = songItem,
+                                relatedEndpoint = null
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
         dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
     }
 
@@ -621,6 +673,10 @@ class HomeViewModel @Inject constructor(
         // Update combined YT items once all network data has settled
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
                 homePage.value?.sections?.flatMap { it.items }.orEmpty()
+
+        if (dailyDiscover.value.isNullOrEmpty()) {
+            getDailyDiscover()
+        }
     }
 
     private suspend fun load() {
