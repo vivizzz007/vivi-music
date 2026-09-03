@@ -110,6 +110,7 @@ object YTPlayerUtils {
     private val fallbackStrategy = ContentAwareFallbackStrategy()
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        IOS,
         VISIONOS,
         ANDROID_VR_1_43_32,
         WEB_REMIX,
@@ -847,6 +848,7 @@ object YTPlayerUtils {
         try {
             val requestBuilder = okhttp3.Request.Builder()
                 .head()
+                .header("Range", "bytes=0-0")
                 .url(url)
 
             requestHeaders.forEach { (name, value) ->
@@ -860,7 +862,7 @@ object YTPlayerUtils {
             }
 
             httpClient.newCall(requestBuilder.build()).execute().use { response ->
-                val isSuccessful = response.isSuccessful
+                val isSuccessful = response.isSuccessful || response.code == 206
                 Timber.tag(logTag).d("Stream URL validation result: ${if (isSuccessful) "Success" else "Failed"} (${response.code})")
                 return isSuccessful
             }

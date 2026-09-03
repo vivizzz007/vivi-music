@@ -24,9 +24,11 @@ class ContentAwareFallbackStrategy {
             YouTubeClient.TVHTML5,
             YouTubeClient.WEB_REMIX,
             YouTubeClient.WEB_CREATOR,
+            YouTubeClient.IOS,
         )
 
         val defaultClients = listOf(
+            YouTubeClient.IOS,
             YouTubeClient.VISIONOS,
             YouTubeClient.ANDROID_VR_1_65_10,
             YouTubeClient.ANDROID_VR_1_43_32,
@@ -36,12 +38,14 @@ class ContentAwareFallbackStrategy {
         )
 
         val explicitClients = listOf(
+            YouTubeClient.IOS,
             YouTubeClient.VISIONOS,
             YouTubeClient.TVHTML5,
             YouTubeClient.WEB_REMIX,
         )
 
         val kidsClients = listOf(
+            YouTubeClient.IOS,
             YouTubeClient.TVHTML5,
             YouTubeClient.WEB_REMIX,
             YouTubeClient.TVHTML5_SIMPLY,
@@ -49,6 +53,7 @@ class ContentAwareFallbackStrategy {
         )
 
         val liveClients = listOf(
+            YouTubeClient.IOS,
             YouTubeClient.TVHTML5,
             YouTubeClient.WEB_REMIX,
             YouTubeClient.WEB_CREATOR,
