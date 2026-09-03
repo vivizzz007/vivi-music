@@ -26,7 +26,8 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 75
-        versionName = "6.0.6"
+        val betaVersionName = project.findProperty("betaVersionName") as String?
+        versionName = betaVersionName ?: "6.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -45,7 +46,6 @@ android {
         val isNightly = project.hasProperty("nightly") && project.property("nightly") == "true"
         buildConfigField("Boolean", "IS_NIGHTLY", isNightly.toString())
     }
-    
 
     flavorDimensions += listOf("abi", "variant")
     productFlavors {

@@ -44,7 +44,8 @@ jobs:
         id: version_info
         run: |
           VERSION_CODE=$(grep "versionCode =" app/build.gradle.kts | tr -d ' ' | cut -d= -f2)
-          VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          RAW_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          VERSION_NAME="$RAW_VERSION-r${{ github.run_number }}"
           echo "Extracted Version Code: $VERSION_CODE"
           echo "Extracted Version Name: $VERSION_NAME"
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
@@ -82,14 +83,14 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-        run: ./gradlew assembleUniversalGmsRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
+        run: ./gradlew assembleUniversalGmsRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Build FOSS Release APK
         if: steps.check_release.outputs.exists == 'false'
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-        run: ./gradlew assembleUniversalFossRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
+        run: ./gradlew assembleUniversalFossRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Sign GMS APK
         if: steps.check_release.outputs.exists == 'false'
@@ -220,7 +221,7 @@ jobs:
               "changelog": changelog_sections
           }
           
-          with open("release_assets/changelogbet.json", "w", encoding="utf-8") as f:
+          with open("release_assets/changelog.json", "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2)
 
       - name: Create GitHub Release & Upload Assets

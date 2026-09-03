@@ -22,8 +22,6 @@
     <!-- Microphone feature for music recognition (not required) -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
-<!--    install permission-->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Storage permissions for auto backup to Downloads/vivimusic/ -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
@@ -304,10 +302,6 @@
                 android:resource="@xml/turntable_widget_info" />
         </receiver>
 
-        <!-- Google Cast Options Provider -->
-        <meta-data
-            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.music.vivi.cast.CastOptionsProvider" />
     </application>
 
 </manifest>

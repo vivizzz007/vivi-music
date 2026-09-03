@@ -1,48 +1,58 @@
 {
   "version": "6.0.6",
-  "description": "VIVI MUSIC brings new SponsorBlock, Listen Together UI, Player v17, new miniplayer, Remix section, and an array of customization and fixes.",
+  "description": "Welcome to the biggest update to VIVI MUSIC yet! 🎉<br><br>This update brings a completely overhauled User Interface alongside massive underlying optimizations. We have entirely migrated our playback engine to <b>Player v17</b> allowing for significantly smoother audio transitions and dynamic radio queue handling. This build is intended as an early-access preview for dedicated testers. <br><br><b><font color=\"#F44336\">⚠️ WARNING: EXPERIMENTAL BUILD</font></b><br>This beta release introduces the <i>SponsorBlock</i> tracking engine which relies on highly experimental network interceptors. <font color=\"#FF9800\">It may cause unexpected streaming hangs on slower connections.</font><br><br>Please carefully read the entire <a href=\"https://github.com/vivizzz007/vivi-music\">Release Notes</a> prior to proceeding. Your device will be upgraded in the background within the next 48 hours if you choose to wait.",
   "image": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/v6.0.6.jpg",
   "changelog": [
     {
-      "title": "What's New",
+      "title": "What's New in v7 Engine",
+      "description": "The following major additions require Android 11+ to function efficiently. If you encounter any bugs, please use the in-app reporting tool.",
+      "blocks": [
+        {
+          "type": "row",
+          "children": [
+            {
+              "type": "image",
+              "url": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/Changelog/Image/1.png",
+              "modifier": {
+                "weight": 1.0,
+                "height": 240
+              }
+            },
+            {
+              "type": "video",
+              "url": "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/Changelog/Video/1.webm",
+              "modifier": {
+                "weight": 1.0,
+                "height": 240
+              }
+            }
+          ]
+        }
+      ],
       "items": [
-        "Added SponsorBlock",
-        "Added new UI to Listen Together",
-        "Added new Player v17 (portrait only)",
-        "Added new miniplayer",
-        "Added new setting screens",
-        "Added new Remix section in home screen",
-        "New UI for search screen",
-        "Added search history box inside search bar",
-        "Added Unison lyrics provider",
-        "Added new login method by SchmidtiTv (new commit)",
-        "Added missing View Album",
-        "New account setting UI",
-        "Added expressive UI to album image",
-        "Added Data Saver"
+        "Fully integrated <font color=\"#4CAF50\"><b>SponsorBlock API</b></font> natively without third-party redirects.",
+        "Brand new immersive <b>Listen Together</b> interface featuring dynamic glassmorphism.",
+        "Added Player v17 <small>(limited currently to portrait orientation)</small>.",
+        "Rebuilt the Miniplayer completely with Compose animations.",
+        "Added a new <i>Remix Section</i> dynamically injected onto the home screen."
       ]
     },
     {
-      "title": "Fixes & Improvements",
+      "title": "Fixes & Optimizations",
       "items": [
-        "Removed SimpMusic lyrics provider",
-        "Improved Musixmatch lyrics (by johnpetersa19)",
-        "Fixed Spotify login",
-        "Fixed artist video rendering",
-        "Fixed streaming issues thanks to Metrolist",
-        "Spoofed app to browser for streaming safety",
-        "Updated strings by michel Mickael81",
-        "Updated Turkish translation by hasanbkaylan",
-        "Added complete Brazilian Portuguese translations by johnpetersa19",
-        "Under the hood performance improvements"
+        "Removed legacy SimpleMusic API providers to improve launch times by <font color=\"#4CAF50\">40%</font>.",
+        "Spoofed core app metadata to mimic standard web browsers for <font color=\"#2196F3\"><b>safer uninterrupted streaming</b></font>.",
+        "Improved Musixmatch exact lyrics matching stability (thanks to johnpetersa19).",
+        "Fixed critical Spotify login failure loop."
       ]
     },
     {
-      "title": "Support",
+      "title": "Support the Developer",
+      "description": "ViviMusic will always remain free and open-source. If you enjoy the countless hours poured into this app, consider supporting the development below ❤️️",
       "items": [
-        "Support development on Ko-fi: https://ko-fi.com/vividhpashokan",
-        "Support via UPI: vividhpashokan@axl",
-        "Support via PayPal: https://www.paypal.me/vividhpashokan"
+        "☕ Support me heavily on <b>Ko-fi:</b> https://ko-fi.com/vividhpashokan",
+        "💸 Support instantly via UPI: <b>vividhpashokan@axl</b>",
+        "💳 Support internationally via <b>PayPal:</b> https://www.paypal.me/vividhpashokan"
       ]
     }
   ]
