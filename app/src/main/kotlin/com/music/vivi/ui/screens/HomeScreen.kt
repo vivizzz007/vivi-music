@@ -9,7 +9,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.ui.util.lerp
 import androidx.compose.animation.AnimatedVisibility
-import com.valentinilk.shimmer.shimmer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -50,7 +49,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.carousel.HorizontalCenteredHeroCarousel
 import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
 import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.ContainedLoadingIndicator
@@ -454,7 +452,7 @@ fun DailyDiscoverCard(
     Card(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(28.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -473,7 +471,7 @@ fun DailyDiscoverCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(28.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
@@ -483,20 +481,21 @@ fun DailyDiscoverCard(
                     .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
             )
 
-            if (maxWidth > 160.dp) {
+            if (maxWidth > 200.dp) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    Color.Black.copy(alpha = 0.2f),
+                                    Color.Black.copy(alpha = 0.3f),
                                     Color.Transparent,
-                                    Color.Black.copy(alpha = 0.7f),
-                                    Color.Black.copy(alpha = 0.95f)
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Black.copy(alpha = 0.9f)
                                 )
                             )
                         )
@@ -505,31 +504,27 @@ fun DailyDiscoverCard(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.Bottom
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = dailyDiscover.recommendation.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = buildString {
-                            append((dailyDiscover.recommendation as? SongItem)?.artists?.joinToString(", ") { it.name } ?: "")
-                            if (playCount > 0) {
-                                append(" • $playCount $playsString")
-                            }
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.85f),
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Column {
+                        Text(
+                            text = dailyDiscover.recommendation.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White
+                        )
+                        Text(
+                            text = buildString {
+                                append((dailyDiscover.recommendation as? SongItem)?.artists?.joinToString(", ") { it.name } ?: "")
+                                if (playCount > 0) {
+                                    append(" • $playCount $playsString")
+                                }
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+
                     val messages = listOf(
                         R.string.daily_discover_sounds_like,
                         R.string.daily_discover_because_you_listen_to,
@@ -545,7 +540,7 @@ fun DailyDiscoverCard(
                         text = stringResource(messageRes, "${dailyDiscover.seed.title} • ${dailyDiscover.seed.artists.joinToString(", ") { it.name }}"),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                        color = Color.White.copy(alpha = 0.65f),
+                        color = Color.White.copy(alpha = 0.6f),
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
@@ -836,7 +831,7 @@ fun HomeScreen(
         if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
         if (!chipActive && coversAndRemixes?.items?.isNotEmpty() == true) list.add(HomeSection.CoversAndRemixes)
         if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
-        if (!chipActive && (dailyDiscover == null || dailyDiscover?.isNotEmpty() == true)) list.add(HomeSection.DailyDiscover)
+        if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
         if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
         if (!chipActive && accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
         if (!chipActive && forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
@@ -1501,45 +1496,45 @@ fun HomeScreen(
                             }
                         }
                         HomeSection.DailyDiscover -> {
-                            val discoverList = dailyDiscover
-                            item(key = "daily_discover_title") {
-                                val title = stringResource(R.string.your_daily_discover)
-                                NavigationTitle(
-                                    title = title,
-                                    onPlayAllClick = {
-                                        val queueItems = discoverList?.mapNotNull {
-                                            (it.recommendation as? SongItem)?.toMediaMetadata()
-                                        }
+                            dailyDiscover?.takeIf { it.isNotEmpty() }?.let { discoverList ->
+                                //added a tittle new update
+                                item(key = "daily_discover_title") {
+                                    val title = stringResource(R.string.your_daily_discover)
+                                    NavigationTitle(
+                                        title = title,
+                                        onPlayAllClick = {
+                                            val queueItems = discoverList.mapNotNull {
+                                                (it.recommendation as? SongItem)?.toMediaMetadata()
+                                            }
 
-                                        if (!queueItems.isNullOrEmpty()) {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = title,
-                                                    items = queueItems.map { it.toMediaItem() }
+                                            if (queueItems.isNotEmpty()) {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = title,
+                                                        items = queueItems.map { it.toMediaItem() }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
-                                    }
-                                )
-                            }
-                            item(key = "daily_discover_content") {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(240.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    val itemCount = discoverList?.size ?: 3
-                                    val carouselState = rememberCarouselState { itemCount }
-                                    HorizontalCenteredHeroCarousel(
-                                        state = carouselState,
-                                        itemSpacing = 8.dp,
-                                        contentPadding = PaddingValues(horizontal = 20.dp),
+                                    )
+                                }
+                                item(key = "daily_discover_content") {
+                                    Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(220.dp)
-                                    ) { i ->
-                                        if (discoverList != null && i < discoverList.size) {
+                                            .height(340.dp)
+                                            .padding(horizontal = 16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        val carouselState = rememberCarouselState { discoverList.size }
+                                        HorizontalMultiBrowseCarousel(
+                                            state = carouselState,
+                                            preferredItemWidth = 320.dp,
+                                            itemSpacing = 16.dp,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(320.dp)
+                                        ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(
                                                 dailyDiscover = item,
@@ -1556,24 +1551,8 @@ fun HomeScreen(
                                                     }
                                                 },
                                                 navController = navController,
-                                                modifier = Modifier.maskClip(RoundedCornerShape(16.dp))
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge)
                                             )
-                                        } else {
-                                            Card(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .maskClip(RoundedCornerShape(16.dp)),
-                                                colors = CardDefaults.cardColors(
-                                                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                                                )
-                                            ) {
-                                                Box(
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    ContainedLoadingIndicator()
-                                                }
-                                            }
                                         }
                                     }
                                 }
