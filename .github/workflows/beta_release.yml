@@ -242,4 +242,5 @@ jobs:
           gh release create "b$VERSION_NAME" release_assets/* \
             --title "VIVI-GITHUB-DROID b$VERSION_NAME" \
             --notes-file release_notes.txt \
+            --prerelease \
             --target main
