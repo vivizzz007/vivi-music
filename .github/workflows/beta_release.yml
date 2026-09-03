@@ -1,4 +1,4 @@
-name: Production Release Build
+name: Beta Release Build
 
 on:
   push:
@@ -56,12 +56,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
-          if gh release view "v$VERSION_NAME" >/dev/null 2>&1; then
+          if gh release view "b$VERSION_NAME" >/dev/null 2>&1; then
             echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Release v$VERSION_NAME already exists. Skipping release steps."
+            echo "Release b$VERSION_NAME already exists. Skipping release steps."
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Release v$VERSION_NAME does not exist. Proceeding with release."
+            echo "Release b$VERSION_NAME does not exist. Proceeding with release."
           fi
       - name: Generate debug.keystore
         if: steps.check_release.outputs.exists == 'false'
@@ -132,7 +132,7 @@ jobs:
           import os, json
           version_code = os.environ.get('VERSION_CODE')
           version_name = os.environ.get('VERSION_NAME')
-          changelog_file = f"Changelog/Stablemd/{version_code}.md"
+          changelog_file = f"Changelog/Betamd/{version_code}.md"
           
           features = []
           fixes = []
@@ -220,7 +220,7 @@ jobs:
               "changelog": changelog_sections
           }
           
-          with open("release_assets/changelog.json", "w", encoding="utf-8") as f:
+          with open("release_assets/changelogbet.json", "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2)
 
       - name: Create GitHub Release & Upload Assets
@@ -230,16 +230,16 @@ jobs:
         run: |
           VERSION_CODE="${{ steps.version_info.outputs.version_code }}"
           VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
-          NOTES_FILE="Changelog/Stablemd/${VERSION_CODE}.md"
+          NOTES_FILE="Changelog/Betamd/${VERSION_CODE}.md"
           
           if [ -f "$NOTES_FILE" ]; then
             cat "$NOTES_FILE" > release_notes.txt
           else
-            echo "Release v$VERSION_NAME" > release_notes.txt
+            echo "Release b$VERSION_NAME" > release_notes.txt
           fi
           echo -e "\n\n☕ Support development on Ko-fi: https://ko-fi.com/vividhpashokan\n💸 Support via UPI: vividhpashokan@axl\n💳 Support via PayPal: https://www.paypal.me/vividhpashokan" >> release_notes.txt
           
-          gh release create "v$VERSION_NAME" release_assets/* \
-            --title "VIVI-GITHUB-DROID v$VERSION_NAME" \
+          gh release create "b$VERSION_NAME" release_assets/* \
+            --title "VIVI-GITHUB-DROID b$VERSION_NAME" \
             --notes-file release_notes.txt \
             --target main
