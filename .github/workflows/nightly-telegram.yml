@@ -1,8 +1,8 @@
 name: Nightly Telegram Build
 
 on:
-  schedule:
-    - cron: '0 0 * * *' # Midnight UTC
+  # schedule:
+  #   - cron: '0 0 * * *' # Midnight UTC (Disabled for now)
   workflow_dispatch: # Allows you to manually trigger it for testing
 
 jobs:
@@ -85,7 +85,7 @@ jobs:
           echo "APK_SIZE=$FILE_SIZE" >> "$GITHUB_ENV"
 
       - name: Upload APK to Telegram
-        if: steps.check_commits.outputs.cancel == 'false'
+        if: false # Disabled for now (was: steps.check_commits.outputs.cancel == 'false')
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
