@@ -7,13 +7,22 @@ package com.music.vivi.ui.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil3.compose.AsyncImage
 import com.music.vivi.R
+import com.music.vivi.constants.AppLogoColorKey
 import com.music.vivi.constants.AppLogoPresetKey
 import com.music.vivi.constants.CustomLogoPathKey
 import com.music.vivi.utils.rememberPreference
@@ -39,6 +48,7 @@ fun AppLogo(
 ) {
     val (presetId) = rememberPreference(AppLogoPresetKey, defaultValue = LogoPreset.DEFAULT.id)
     val (customPath) = rememberPreference(CustomLogoPathKey, defaultValue = "")
+    val (customColorInt) = rememberPreference(AppLogoColorKey, defaultValue = 0)
 
     val preset = remember(presetId) { LogoPreset.fromId(presetId) }
 
@@ -53,6 +63,26 @@ fun AppLogo(
             )
             return
         }
+    }
+
+    if (preset == LogoPreset.DEFAULT && customColorInt != 0) {
+        val bgColor = Color(customColorInt)
+        Box(
+            modifier = modifier
+                .clip(CircleShape)
+                .background(bgColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = contentDescription,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer(scaleX = 1.15f, scaleY = 1.15f),
+                contentScale = ContentScale.Fit
+            )
+        }
+        return
     }
 
     val resId = if (preset.drawableRes != 0) preset.drawableRes else R.drawable.icon

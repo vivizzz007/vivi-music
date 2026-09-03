@@ -1128,4 +1128,13 @@
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
     <string name="sync_playlist_spotify_desc">Sync playlist with Spotify</string>
+    <string name="persistent_control_center">Persistent Control Center player</string>
+    <string name="persistent_control_center_desc">Keep player tile in Control Center even when app is closed to resume playback anytime</string>
+    <string name="sync_to_spotify">Sync to Spotify</string>
+    <string name="sync_to_spotify_desc">Export and sync this playlist to your Spotify account</string>
+    <string name="spotify_syncing">Syncing playlist to Spotify…</string>
+    <string name="spotify_sync_success">Synced with Spotify successfully</string>
+    <string name="spotify_auth_failed">Spotify authentication failed. Please re-connect in Settings.</string>
+    <string name="change_logo_color">Official icon color</string>
+    <string name="change_logo_color_desc">Customize the color of the official Vivi logo</string>
 </resources>

@@ -114,6 +114,7 @@ import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PauseOnMute
+import com.music.vivi.constants.PersistentControlCenterKey
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
 import com.music.vivi.constants.PlayerVolumeKey
@@ -2187,6 +2188,26 @@ class MusicService :
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (playWhenReady && player.mediaItemCount == 0) {
+            val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
+            if (queueFile.exists()) {
+                scope.launch {
+                    val queue = withContext(Dispatchers.IO) {
+                        runCatching {
+                            queueFile.inputStream().use { fis ->
+                                ObjectInputStream(fis).use { oos ->
+                                    oos.readObject() as? PersistQueue
+                                }
+                            }
+                        }.getOrNull()
+                    }
+                    if (queue != null && queue.items.isNotEmpty()) {
+                        playQueue(queue.toQueue(), playWhenReady = true)
+                    }
+                }
+            }
+        }
+
         // Safety net: if local player tries to start while casting, immediately pause it
         if (playWhenReady && castConnectionHandler?.isCasting?.value == true) {
             player.pause()
@@ -3254,7 +3275,10 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        if (!persistentControlCenter) {
+            super.onTaskRemoved(rootIntent)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
@@ -3281,7 +3305,9 @@ class MusicService :
             }
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        val superResult = super.onStartCommand(intent, flags, startId)
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        return if (persistentControlCenter) START_STICKY else superResult
     }
 
     /**

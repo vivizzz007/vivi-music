@@ -47,9 +47,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -139,6 +145,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import com.music.vivi.constants.AppLogoColorKey
 import com.music.vivi.constants.AppLogoPresetKey
 import com.music.vivi.constants.CustomLogoPathKey
 import com.music.vivi.ui.component.AppLogo
@@ -224,11 +231,16 @@ fun AppearanceSettings(
         AppLogoPresetKey,
         defaultValue = LogoPreset.DEFAULT.id
     )
+    val (appLogoColor, onAppLogoColorChange) = rememberPreference(
+        AppLogoColorKey,
+        defaultValue = 0
+    )
     val (customLogoPath, onCustomLogoPathChange) = rememberPreference(
         CustomLogoPathKey,
         defaultValue = ""
     )
     var showLogoPickerDialog by rememberSaveable { mutableStateOf(false) }
+    var showColorWheelDialog by rememberSaveable { mutableStateOf(false) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
@@ -559,6 +571,67 @@ fun AppearanceSettings(
                         }
                     }
 
+                    if (appLogoPreset == LogoPreset.DEFAULT.id) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = stringResource(R.string.change_logo_color),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
+                        )
+
+                        val themePrimary = MaterialTheme.colorScheme.primary.toArgb()
+                        val colorOptions = listOf(
+                            Pair("Default Purple", 0),
+                            Pair("Match Theme", themePrimary),
+                            Pair("Crimson", 0xFFEC5464.toInt()),
+                            Pair("Rose", 0xFFD81B60.toInt()),
+                            Pair("Blue", 0xFF1E88E5.toInt()),
+                            Pair("Teal", 0xFF00897B.toInt()),
+                            Pair("Green", 0xFF43A047.toInt()),
+                            Pair("Orange", 0xFFFB8C00.toInt()),
+                            Pair("Dark", 0xFF1E1E1E.toInt()),
+                        )
+
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(colorOptions) { (_, colorVal) ->
+                                val isSelected = appLogoColor == colorVal
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(if (colorVal == 0) Color(0xFF673BB2) else Color(colorVal))
+                                        .border(
+                                            width = if (isSelected) 3.dp else 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                            shape = CircleShape
+                                        )
+                                        .clickable { onAppLogoColorChange(colorVal) }
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = { showColorWheelDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.palette),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Color Wheel & Custom Color")
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
@@ -595,6 +668,173 @@ fun AppearanceSettings(
             },
             buttons = {
                 TextButton(onClick = { showLogoPickerDialog = false }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showColorWheelDialog) {
+        var currentHue by remember {
+            mutableFloatStateOf(
+                if (appLogoColor != 0) {
+                    val hsv = FloatArray(3)
+                    android.graphics.Color.colorToHSV(appLogoColor, hsv)
+                    hsv[0]
+                } else 262f
+            )
+        }
+        var currentSat by remember {
+            mutableFloatStateOf(
+                if (appLogoColor != 0) {
+                    val hsv = FloatArray(3)
+                    android.graphics.Color.colorToHSV(appLogoColor, hsv)
+                    hsv[1]
+                } else 0.67f
+            )
+        }
+        var currentVal by remember {
+            mutableFloatStateOf(
+                if (appLogoColor != 0) {
+                    val hsv = FloatArray(3)
+                    android.graphics.Color.colorToHSV(appLogoColor, hsv)
+                    hsv[2]
+                } else 0.70f
+            )
+        }
+
+        val calculatedColor = remember(currentHue, currentSat, currentVal) {
+            android.graphics.Color.HSVToColor(floatArrayOf(currentHue, currentSat, currentVal))
+        }
+
+        DefaultDialog(
+            onDismiss = { showColorWheelDialog = false },
+            content = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Official Icon Color Wheel",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .clip(CircleShape)
+                            .background(Color(calculatedColor)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.foundation.Image(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer(scaleX = 1.15f, scaleY = 1.15f),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = String.format("#%06X", 0xFFFFFF and calculatedColor),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Hue: ${currentHue.roundToInt()}°",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Slider(
+                        value = currentHue,
+                        onValueChange = { currentHue = it },
+                        valueRange = 0f..360f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Saturation: ${(currentSat * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Slider(
+                        value = currentSat,
+                        onValueChange = { currentSat = it },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Text(
+                        text = "Brightness: ${(currentVal * 100).roundToInt()}%",
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Slider(
+                        value = currentVal,
+                        onValueChange = { currentVal = it },
+                        valueRange = 0f..1f,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        val quickSwatches = listOf(
+                            0xFF673BB2.toInt(),
+                            MaterialTheme.colorScheme.primary.toArgb(),
+                            0xFFEC5464.toInt(),
+                            0xFFFB8C00.toInt(),
+                            0xFF43A047.toInt(),
+                            0xFF1E88E5.toInt(),
+                            0xFFD81B60.toInt(),
+                        )
+                        quickSwatches.forEach { swatch ->
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(swatch))
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                                    .clickable {
+                                        val hsv = FloatArray(3)
+                                        android.graphics.Color.colorToHSV(swatch, hsv)
+                                        currentHue = hsv[0]
+                                        currentSat = hsv[1]
+                                        currentVal = hsv[2]
+                                    }
+                            )
+                        }
+                    }
+                }
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        onAppLogoColorChange(0)
+                        showColorWheelDialog = false
+                    }
+                ) {
+                    Text("Reset")
+                }
+                TextButton(
+                    onClick = {
+                        onAppLogoColorChange(calculatedColor)
+                        onAppLogoPresetChange(LogoPreset.DEFAULT.id)
+                        showColorWheelDialog = false
+                    }
+                ) {
                     Text(stringResource(android.R.string.ok))
                 }
             }
@@ -1281,28 +1521,28 @@ fun AppearanceSettings(
         ExpressiveSettingGroup(
             title = stringResource(R.string.theme),
             items = buildList {
-//                add(
-//                    Material3SettingsItem(
-//                        icon = painterResource(R.drawable.ic_dynamic_icon),
-//                        title = { Text(stringResource(R.string.enable_dynamic_icon)) },
-//                        trailingContent = {
-//                            Switch(
-//                                checked = enableDynamicIcon,
-//                                onCheckedChange = { handleIconChange(it) },
-//                                thumbContent = {
-//                                    Icon(
-//                                        painter = painterResource(
-//                                            id = if (enableDynamicIcon) R.drawable.check else R.drawable.close
-//                                        ),
-//                                        contentDescription = null,
-//                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-//                                    )
-//                                }
-//                            )
-//                        },
-//                        onClick = { handleIconChange(!enableDynamicIcon) }
-//                    )
-//                )
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.ic_dynamic_icon),
+                        title = { Text(stringResource(R.string.enable_dynamic_icon)) },
+                        trailingContent = {
+                            Switch(
+                                checked = enableDynamicIcon,
+                                onCheckedChange = { handleIconChange(it) },
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (enableDynamicIcon) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { handleIconChange(!enableDynamicIcon) }
+                    )
+                )
                 add(
                     Material3SettingsItem(
                         leadingContent = {

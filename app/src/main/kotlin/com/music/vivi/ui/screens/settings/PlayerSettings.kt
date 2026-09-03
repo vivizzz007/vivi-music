@@ -57,6 +57,7 @@ import com.music.vivi.constants.EnableSponsorBlockKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.PauseOnMute
+import com.music.vivi.constants.PersistentControlCenterKey
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
 import com.music.vivi.constants.PreventDuplicateTracksInQueueKey
@@ -172,6 +173,10 @@ fun PlayerSettings(
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(
         StopMusicOnTaskClearKey,
         defaultValue = false
+    )
+    val (persistentControlCenter, onPersistentControlCenterChange) = rememberPreference(
+        PersistentControlCenterKey,
+        defaultValue = true
     )
     val (pauseOnMute, onPauseOnMuteChange) = rememberPreference(
         PauseOnMute,
@@ -764,6 +769,27 @@ fun PlayerSettings(
         ExpressiveSettingGroup(
             title = stringResource(R.string.misc),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.notification),
+                    title = { Text(stringResource(R.string.persistent_control_center)) },
+                    description = { Text(stringResource(R.string.persistent_control_center_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = persistentControlCenter,
+                            onCheckedChange = onPersistentControlCenterChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (persistentControlCenter) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onPersistentControlCenterChange(!persistentControlCenter) }
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.stop_music_on_task_clear)) },

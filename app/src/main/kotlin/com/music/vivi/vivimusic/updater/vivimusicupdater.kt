@@ -609,9 +609,19 @@ const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
 const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 const val KEY_BETA_UPDATES = "beta_updates"
 const val KEY_UPDATE_AVAILABLE = "update_available"
+const val KEY_LAST_INSTALLED_VERSION = "last_installed_version"
 
 fun getUpdateAvailableState(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val lastInstalled = sharedPrefs.getString(KEY_LAST_INSTALLED_VERSION, null)
+    val currentVersion = BuildConfig.VERSION_NAME
+    if (lastInstalled != currentVersion) {
+        sharedPrefs.edit()
+            .putString(KEY_LAST_INSTALLED_VERSION, currentVersion)
+            .putBoolean(KEY_UPDATE_AVAILABLE, false)
+            .apply()
+        return false
+    }
     return sharedPrefs.getBoolean(KEY_UPDATE_AVAILABLE, false)
 }
 
@@ -720,20 +730,19 @@ private fun formatGitHubDate(githubDate: String): String = try {
 
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v")
-    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v")
+    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
+    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
 
     val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     
-    // Compare version numbers
-    for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
+    // Compare version numbers segment by segment (e.g. 6.0.6.2 vs 6.0.6.1)
+    val maxParts = maxOf(latestParts.size, currentParts.size)
+    for (i in 0 until maxParts) {
         val latest = latestParts.getOrElse(i) { 0 }
         val current = currentParts.getOrElse(i) { 0 }
-        when {
-            latest > current -> return true
-            latest < current -> return false
-        }
+        if (latest > current) return true
+        if (latest < current) return false
     }
     
     // If numbers are equal, check if one is beta and the other is not
@@ -893,11 +902,7 @@ suspend fun checkForUpdate(
                 if (!shouldShow && !betaEnabled) {
                     // Logic: If I'm on a Beta (b5.0.7) and latest stable is v5.0.6, 
                     // and I just turned OFF beta, I want to see v5.0.6.
-                    if (currentIsBeta && targetIsStable) {
-                        shouldShow = true
-                    } else if (isDifferentVersion && targetIsStable) {
-                        // Also show if current is a newer unofficial stable (e.g. built locally as 5.0.7)
-                        // but user wants the official stable 5.0.6.
+                    if (currentIsBeta && targetIsStable && currentClean == targetClean) {
                         shouldShow = true
                     }
                 }
@@ -931,10 +936,21 @@ suspend fun checkForUpdate(
                             changelogList.add(ChangelogSection(title, itemsList))
                         }
                     } catch (e: Exception) {
-                        // Fallback: Parse body as a single list if it starts with characters or split by lines
-                        val body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
-                        val fallbackItems = body.split("\n").filter { it.isNotBlank() }
-                        changelogList.add(ChangelogSection(context.getString(R.string.changelog), fallbackItems))
+                        // Fallback: Parse body as markdown release notes
+                        val body = targetRelease.optString("body", "").trim()
+                        if (body.isNotEmpty()) {
+                            val lines = body.lines().map { it.trim() }.filter { it.isNotEmpty() }
+                            val bullets = lines.filter { it.startsWith("-") || it.startsWith("*") }
+                                .map { it.removePrefix("-").removePrefix("*").trim() }
+                            if (bullets.isNotEmpty()) {
+                                description = lines.firstOrNull { !it.startsWith("-") && !it.startsWith("*") && !it.startsWith("#") }
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), bullets))
+                            } else {
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), lines))
+                            }
+                        } else {
+                            changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(context.getString(R.string.no_changelog_available))))
+                        }
                     }
 
                     val publishedAt = targetRelease.getString("published_at")

@@ -38,7 +38,8 @@ fun LocalPlaylistMenu(
     onDelete: () -> Unit,
     onDownload: () -> Unit,
     onQueue: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onSyncToSpotify: (() -> Unit)? = null,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
@@ -130,6 +131,25 @@ fun LocalPlaylistMenu(
                     },
                     onClick = {
                         onSync()
+                        onDismiss()
+                    }
+                )
+            )
+        }
+
+        if (!isSpotifyPlaylist && onSyncToSpotify != null) {
+            add(
+                Material3MenuItemData(
+                    title = { Text(stringResource(R.string.sync_to_spotify)) },
+                    description = { Text(stringResource(R.string.sync_to_spotify_desc)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.spotify),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        onSyncToSpotify()
                         onDismiss()
                     }
                 )

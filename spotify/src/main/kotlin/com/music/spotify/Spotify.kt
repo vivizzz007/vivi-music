@@ -6,7 +6,9 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
@@ -366,5 +368,81 @@ object Spotify {
             limit = limit,
             offset = offset,
         )
+    }
+
+    suspend fun createPlaylist(name: String, description: String? = null): Result<SpotifyPlaylist> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+        val payload = buildJsonObject {
+            put("name", name)
+            if (!description.isNullOrBlank()) {
+                put("description", description)
+            }
+            put("public", false)
+        }
+        val response = gqlClient.post("https://api.spotify.com/v1/me/playlists") {
+            header("Authorization", "Bearer $token")
+            setBody(
+                TextContent(
+                    payload.toString(),
+                    ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                )
+            )
+        }
+        if (response.status.value !in 200..299) {
+            val errorText = response.bodyAsText()
+            throw SpotifyException(response.status.value, "Failed to create playlist: $errorText")
+        }
+        val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+        val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")
+        SpotifyPlaylist(
+            id = id,
+            name = responseJson.str("name") ?: name,
+            description = responseJson.str("description"),
+            images = emptyList(),
+            owner = null,
+            tracks = null,
+            uri = responseJson.str("uri") ?: "spotify:playlist:$id"
+        )
+    }
+
+    suspend fun searchTrack(query: String): Result<String?> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+        val response = gqlClient.get("https://api.spotify.com/v1/search") {
+            header("Authorization", "Bearer $token")
+            parameter("q", query)
+            parameter("type", "track")
+            parameter("limit", 1)
+        }
+        if (response.status.value !in 200..299) {
+            return@runCatching null
+        }
+        val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+        val items = responseJson.obj("tracks")?.arr("items")
+        val firstTrack = items?.firstOrNull()?.jsonObject
+        firstTrack?.str("uri") ?: firstTrack?.str("id")?.let { "spotify:track:$it" }
+    }
+
+    suspend fun addTracksToPlaylist(playlistId: String, trackUris: List<String>): Result<Unit> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+        trackUris.chunked(100).forEach { chunk ->
+            val payload = buildJsonObject {
+                putJsonArray("uris") {
+                    chunk.forEach { add(it) }
+                }
+            }
+            val response = gqlClient.post("https://api.spotify.com/v1/playlists/$playlistId/tracks") {
+                header("Authorization", "Bearer $token")
+                setBody(
+                    TextContent(
+                        payload.toString(),
+                        ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                    )
+                )
+            }
+            if (response.status.value !in 200..299) {
+                val errorText = response.bodyAsText()
+                throw SpotifyException(response.status.value, "Failed to add tracks: $errorText")
+            }
+        }
     }
 }

@@ -125,6 +125,9 @@ fun AboutScreen(
     val currentVersionName = remember(packageInfo) {
         packageInfo?.versionName?.takeIf { it.isNotBlank() } ?: BuildConfig.VERSION_NAME
     }
+    val formattedVersion = remember(currentVersionName) {
+        if (currentVersionName.startsWith("v", ignoreCase = true)) currentVersionName else "v$currentVersionName"
+    }
 
     val currentVersionCode = remember(packageInfo) {
         packageInfo?.let {
@@ -149,7 +152,7 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(16.dp))
         AppVersionTile(
             appName = stringResource(R.string.vivi_music_title),
-            description = "v$currentVersionName • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
+            description = "$formattedVersion • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
             onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music") }
         )
         
@@ -221,6 +224,11 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.deployed_app_update),
                     title = { Text(stringResource(R.string.installed_date_title)) },
                     trailingContent = { Text(installedDate) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.info),
+                    title = { Text(stringResource(R.string.version_title)) },
+                    trailingContent = { Text(formattedVersion) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),

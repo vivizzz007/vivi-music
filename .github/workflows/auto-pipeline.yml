@@ -44,6 +44,57 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Prepare 4-Part Semantic Version and Changelog
+        id: prep_release
+        run: |
+          UPSTREAM_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/' | head -1)
+          FULL_VERSION="${UPSTREAM_VERSION}.${{ github.run_number }}"
+          echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
+          echo "upstream_version=${UPSTREAM_VERSION}" >> $GITHUB_OUTPUT
+          echo "Building Vivi Music version: ${FULL_VERSION}"
+
+          # Patch build.gradle.kts with the four-part version so compiled APK matches GitHub release tag
+          sed -i "s/versionName = \".*\"/versionName = \"${FULL_VERSION}\"/" app/build.gradle.kts
+
+          # Generate changelog from recent commits since previous release tag
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"* %s (%h)" --no-merges)
+          else
+            COMMITS=$(git log -n 10 --pretty=format:"* %s (%h)" --no-merges)
+          fi
+          if [ -z "$COMMITS" ]; then
+            COMMITS="* Performance optimizations and stability improvements"
+          fi
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "## What's Changed in v${FULL_VERSION}" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "*Based on upstream Vivi Music v${UPSTREAM_VERSION}*" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Generate changelog.json for in-app updater
+          mkdir -p release_meta
+          export SCRIPT_FULL_VERSION="${FULL_VERSION}"
+          export SCRIPT_UPSTREAM_VERSION="${UPSTREAM_VERSION}"
+          export SCRIPT_COMMITS="${COMMITS}"
+          python3 - << 'EOF'
+          import json, os
+          full_ver = os.environ.get("SCRIPT_FULL_VERSION", "")
+          upstream_ver = os.environ.get("SCRIPT_UPSTREAM_VERSION", "")
+          commits_raw = os.environ.get("SCRIPT_COMMITS", "")
+          items = [line.lstrip('* ').strip() for line in commits_raw.split('\n') if line.strip()]
+          data = {
+              "version": full_ver,
+              "description": f"Improvements and custom updates on Vivi Music v{upstream_ver}",
+              "changelog": [{"title": "Improvements", "items": items if items else ["General stability and performance improvements"]}]
+          }
+          with open("release_meta/changelog.json", "w") as f:
+              json.dump(data, f, indent=2)
+          EOF
+
       - name: Decode Signing Keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.jks
 
@@ -55,18 +106,12 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: ./gradlew assembleUniversalGmsRelease assembleUniversalFossRelease || ./gradlew assembleRelease
 
-      - name: Extract Version Info
-        id: version_info
-        run: |
-          VERSION_NAME=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/' | head -1)
-          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
-          echo "Detected Vivi Music version: $VERSION_NAME"
-
       - name: Publish Release to GitHub
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: "v${{ steps.version_info.outputs.version_name }}.${{ github.run_number }}"
-          name: "Vivi Custom v${{ steps.version_info.outputs.version_name }} (Build #${{ github.run_number }})"
-          body: "Automated build combining original developer updates with personal tweaks."
+          tag_name: "v${{ steps.prep_release.outputs.full_version }}"
+          name: "Vivi Music v${{ steps.prep_release.outputs.full_version }}"
+          body: "${{ steps.prep_release.outputs.changelog }}"
           files: |
             app/build/outputs/apk/**/*.apk
+            release_meta/changelog.json

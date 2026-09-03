@@ -1321,6 +1321,11 @@ fun LocalPlaylistHeader(
                                 }
                             },
                             onDelete = onshowDeletePlaylistDialog,
+                            onSyncToSpotify = {
+                                scope.launch {
+                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                }
+                            },
                             onDownload = {
                                 when (downloadState) {
                                     Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()

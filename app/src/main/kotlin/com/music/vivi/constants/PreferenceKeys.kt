@@ -820,3 +820,6 @@ val SuggestionRegionSlugToName =
         "ae" to "United Arab Emirates",
         "il" to "Israel"
     )
+
+val PersistentControlCenterKey = booleanPreferencesKey("persistentControlCenter")
+val AppLogoColorKey = intPreferencesKey("appLogoColor")
