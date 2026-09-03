@@ -382,7 +382,7 @@ fun UpdateScreen(navController: NavHostController) {
                     val titleText = when (status) {
                         is ViviUpdateStatus.Checking -> "Checking for update..."
                         is ViviUpdateStatus.Available -> if (isDownloading) "Installing system update..." else "System update\navailable"
-                        is ViviUpdateStatus.NoUpdate -> "Your device is up to date"
+                        is ViviUpdateStatus.NoUpdate -> "Your app is up to date"
                         is ViviUpdateStatus.Error -> "Update error"
                         else -> "System update"
                     }
@@ -397,10 +397,15 @@ fun UpdateScreen(navController: NavHostController) {
                     
                     val currentStatus = status
                     if (currentStatus is ViviUpdateStatus.Available) {
-                        val cleanVersion = currentStatus.version.replaceFirstChar { it.uppercase() }
+                        val rawVersion = currentStatus.version
+                        val displayVer = when {
+                            rawVersion.startsWith("b", ignoreCase = true) -> rawVersion.uppercase()
+                            rawVersion.startsWith("v", ignoreCase = true) -> rawVersion.uppercase()
+                            else -> "V${rawVersion.uppercase()}"
+                        }
                         Text(
-                            text = "VIVI MUSIC $cleanVersion",
-                            style = MaterialTheme.typography.titleLarge,
+                            text = "VIVI MUSIC $displayVer",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier
@@ -488,30 +493,43 @@ fun UpdateScreen(navController: NavHostController) {
                                         horizontalAlignment = Alignment.Start,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
+                                        val rawVersion = currentStatus.version
+                                        val displayVer = when {
+                                            rawVersion.startsWith("b", ignoreCase = true) -> rawVersion.uppercase()
+                                            rawVersion.startsWith("v", ignoreCase = true) -> rawVersion.uppercase()
+                                            else -> "V${rawVersion.uppercase()}"
+                                        }
                                         Text(
-                                            text = "ViviMusic version: ${currentStatus.version}",
+                                            text = "VIVI MUSIC VERSION $displayVer",
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onBackground
                                         )
+                                        Spacer(modifier = Modifier.height(4.dp))
                                         Text(
                                             text = "Build version: ${BuildConfig.VERSION_CODE}",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onBackground
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Spacer(modifier = Modifier.height(24.dp))
                                         Text(
                                             text = "Last successful check for update:",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onBackground
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
+                                        Spacer(modifier = Modifier.height(2.dp))
                                         Text(
                                             text = checkTime,
                                             style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = "\"Donations help make project development & updates faster!\"",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontStyle = FontStyle.Italic
                                         )
                                     }
                                 }
