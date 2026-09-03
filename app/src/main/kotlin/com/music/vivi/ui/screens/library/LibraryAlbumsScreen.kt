@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -167,7 +168,9 @@ fun LibraryAlbumsScreen(
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
         ) {
             SortHeader(
                 sortType = sortType,
@@ -194,35 +197,6 @@ fun LibraryAlbumsScreen(
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.secondary,
             )
-
-            FlowRow(
-                modifier = Modifier.padding(start = 12.dp, end = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                LibraryViewType.entries.forEachIndexed { index, type ->
-                    ToggleButton(
-                        checked = viewType == type,
-                        onCheckedChange = { viewType = type },
-                        shapes = when (index) {
-                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                            LibraryViewType.entries.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                        },
-                        modifier = Modifier.semantics { role = Role.RadioButton },
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                when (type) {
-                                    LibraryViewType.LIST -> R.drawable.list
-                                    LibraryViewType.GRID -> R.drawable.grid_view
-                                }
-                            ),
-                            contentDescription = null,
-                        )
-                    }
-                }
-            }
         }
     }
 

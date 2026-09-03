@@ -85,52 +85,75 @@ android {
     }
 
    signingConfigs {
-    create("persistentDebug") {
-        storeFile = file("persistent-debug.keystore")
-        storePassword = "android"
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
-    }
-    create("release") {
-        val keystoreFile = file("keystore/release.keystore")
-        if (keystoreFile.exists()) {
-            storeFile = keystoreFile
-            storePassword = System.getenv("STORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+        create("persistentDebug") {
+            storeFile = file("persistent-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+        create("release") {
+            val envKeystore = System.getenv("KEYSTORE_FILE")?.let { envPath ->
+                val f = file(envPath)
+                if (f.exists()) f else rootProject.file(envPath)
+            }
+            val possibleKeystores = listOfNotNull(
+                envKeystore,
+                file("release.jks"),
+                file("keystore/release.keystore"),
+                rootProject.file("release.jks"),
+                rootProject.file("app/release.jks")
+            )
+            val keystoreFile = possibleKeystores.firstOrNull { it.exists() }
+            if (keystoreFile != null) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("STORE_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS") ?: "customkey"
+                keyPassword = System.getenv("KEY_PASSWORD") ?: System.getenv("KEYSTORE_PASSWORD") ?: System.getenv("STORE_PASSWORD")
+            }
+        }
+        getByName("debug") {
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storePassword = "android"
+            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
         }
     }
-    getByName("debug") {
-        keyAlias = "androiddebugkey"
-        keyPassword = "android"
-        storePassword = "android"
-        storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-    }
-}
 
-buildTypes {
-    release {
-        signingConfig = if (file("keystore/release.keystore").exists())
-            signingConfigs.getByName("release")
-        else
-            signingConfigs.getByName("debug")
-        isMinifyEnabled = true
-        isShrinkResources = true
-        isCrunchPngs = false
-        isDebuggable = false
-        proguardFiles(
-            getDefaultProguardFile("proguard-android-optimize.txt"),
-            "proguard-rules.pro"
-        )
-        buildConfigField("String", "ARCHITECTURE", "\"release\"")
+    buildTypes {
+        release {
+            val envKeystore = System.getenv("KEYSTORE_FILE")?.let { envPath ->
+                val f = file(envPath)
+                if (f.exists()) f else rootProject.file(envPath)
+            }
+            val releaseKeystoreExists = listOfNotNull(
+                envKeystore,
+                file("release.jks"),
+                file("keystore/release.keystore"),
+                rootProject.file("release.jks"),
+                rootProject.file("app/release.jks")
+            ).any { it.exists() }
+
+            signingConfig = if (releaseKeystoreExists)
+                signingConfigs.getByName("release")
+            else
+                signingConfigs.getByName("debug")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isCrunchPngs = false
+            isDebuggable = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            buildConfigField("String", "ARCHITECTURE", "\"release\"")
+        }
+        debug {
+            applicationIdSuffix = ".debug"
+            isDebuggable = true
+            signingConfig = signingConfigs.getByName("debug")
+            buildConfigField("String", "ARCHITECTURE", "\"debug\"")
+        }
     }
-    debug {
-        applicationIdSuffix = ".debug"
-        isDebuggable = true
-        signingConfig = signingConfigs.getByName("debug")
-        buildConfigField("String", "ARCHITECTURE", "\"debug\"")
-    }
-}
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true

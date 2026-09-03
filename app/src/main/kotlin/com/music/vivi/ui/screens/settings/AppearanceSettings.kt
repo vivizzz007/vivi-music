@@ -47,9 +47,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -125,9 +131,31 @@ import com.music.vivi.ui.component.WavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.backToMain
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import com.music.vivi.constants.AppLogoColorKey
+import com.music.vivi.constants.AppLogoPresetKey
+import com.music.vivi.constants.CustomLogoPathKey
+import com.music.vivi.ui.component.AppLogo
+import com.music.vivi.ui.component.LogoPreset
+import java.io.File
+import java.io.FileOutputStream
 import com.music.vivi.utils.IconUtils
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import com.music.vivi.constants.LyricsClickKey
@@ -147,6 +175,7 @@ fun AppearanceSettings(
     activity: Activity,
     snackbarHostState: SnackbarHostState,
 ) {
+    val context = LocalContext.current
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(
         DynamicThemeKey,
         defaultValue = true
@@ -179,24 +208,6 @@ fun AppearanceSettings(
     val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
     val coroutineScope = rememberCoroutineScope()
 
-    fun handleIconChange(enabled: Boolean) {
-        onEnableDynamicIconChange(enabled)
-        IconUtils.setIcon(activity, enabled)
-        coroutineScope.launch {
-            val result = snackbarHostState.showSnackbar(
-                message = "Icon updated, restart to apply",
-                actionLabel = "Restart"
-            )
-            if (result == SnackbarResult.ActionPerformed) {
-                val packageManager = activity.packageManager
-                val intent = packageManager.getLaunchIntentForPackage(activity.packageName)
-                val componentName = intent?.component
-                val mainIntent = Intent.makeRestartActivityTask(componentName)
-                activity.startActivity(mainIntent)
-                Runtime.getRuntime().exit(0)
-            }
-        }
-    }
 
 
     val (useNewPlayerDesign, onUseNewPlayerDesignChange) = rememberPreference(
@@ -340,7 +351,6 @@ fun AppearanceSettings(
     )
 
     // Density scale preferences
-    val context = activity as Context
     val sharedPreferences = remember { context.getSharedPreferences("vivimusic_settings", Context.MODE_PRIVATE) }
     val prefDensityScale = remember(sharedPreferences) {
         sharedPreferences.getFloat("density_scale_factor", 1.0f)
@@ -1099,28 +1109,6 @@ fun AppearanceSettings(
         ExpressiveSettingGroup(
             title = stringResource(R.string.theme),
             items = buildList {
-//                add(
-//                    Material3SettingsItem(
-//                        icon = painterResource(R.drawable.ic_dynamic_icon),
-//                        title = { Text(stringResource(R.string.enable_dynamic_icon)) },
-//                        trailingContent = {
-//                            Switch(
-//                                checked = enableDynamicIcon,
-//                                onCheckedChange = { handleIconChange(it) },
-//                                thumbContent = {
-//                                    Icon(
-//                                        painter = painterResource(
-//                                            id = if (enableDynamicIcon) R.drawable.check else R.drawable.close
-//                                        ),
-//                                        contentDescription = null,
-//                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-//                                    )
-//                                }
-//                            )
-//                        },
-//                        onClick = { handleIconChange(!enableDynamicIcon) }
-//                    )
-//                )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),

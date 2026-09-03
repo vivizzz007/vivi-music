@@ -43,6 +43,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.toShape
 import androidx.compose.material3.IconButtonDefaults
+import com.music.vivi.ui.component.AppLogo
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -106,14 +107,32 @@ fun AboutScreen(
     val cloverShape = MaterialShapes.Clover4Leaf.toShape()
     val cookieShape = MaterialShapes.Cookie7Sided.toShape()
     
-    val installedDate = remember {
+    val packageInfo = remember {
         try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            val installTime = packageInfo.firstInstallTime
-            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+            context.packageManager.getPackageInfo(context.packageName, 0)
         } catch (_: Exception) {
-            unknownString
+            null
         }
+    }
+
+    val installedDate = remember(packageInfo) {
+        packageInfo?.let {
+            val installTime = if (it.lastUpdateTime > 0) it.lastUpdateTime else it.firstInstallTime
+            SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(installTime))
+        } ?: unknownString
+    }
+
+    val currentVersionName = remember(packageInfo) {
+        packageInfo?.versionName?.takeIf { it.isNotBlank() } ?: BuildConfig.VERSION_NAME
+    }
+    val formattedVersion = remember(currentVersionName) {
+        if (currentVersionName.startsWith("v", ignoreCase = true)) currentVersionName else "v$currentVersionName"
+    }
+
+    val currentVersionCode = remember(packageInfo) {
+        packageInfo?.let {
+            androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(it).toString()
+        } ?: BuildConfig.VERSION_CODE.toString()
     }
 
     Column(
@@ -133,8 +152,8 @@ fun AboutScreen(
         Spacer(modifier = Modifier.height(16.dp))
         AppVersionTile(
             appName = stringResource(R.string.vivi_music_title),
-            description = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
-            onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") }
+            description = "$formattedVersion • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
+            onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music") }
         )
         
         Spacer(modifier = Modifier.height(10.dp))
@@ -208,13 +227,18 @@ fun AboutScreen(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),
+                    title = { Text(stringResource(R.string.version_title)) },
+                    trailingContent = { Text(formattedVersion) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
-                    trailingContent = { Text(BuildConfig.VERSION_CODE.toString()) }
+                    trailingContent = { Text(currentVersionCode) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
                     title = { Text(stringResource(R.string.license)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music/blob/main/LICENSE") },
                     isExternalLink = true
                 ),
             )
@@ -262,9 +286,7 @@ private fun AppVersionTile(
     ) {
         ListItem(
             leadingContent = {
-                Image(
-                    painter = painterResource(R.drawable.icon),
-                    contentDescription = null,
+                AppLogo(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(CircleShape)

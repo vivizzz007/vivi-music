@@ -67,6 +67,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
+import com.music.vivi.ui.component.AppLogo
 import com.music.vivi.ui.component.snackbar.SnackbarManager
 import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
@@ -298,6 +299,9 @@ class MainActivity : ComponentActivity() {
         // On Android 12+, we can't start foreground services from background
         // Use BIND_AUTO_CREATE which will create the service if needed
         // The service will call startForeground() in onCreate() when bound
+        try {
+            startService(Intent(this, MusicService::class.java))
+        } catch (_: Exception) {}
         bindService(
             Intent(this, MusicService::class.java),
             serviceConnection,
@@ -808,7 +812,7 @@ class MainActivity : ComponentActivity() {
                                 if (isFoss) {
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
-                                        Uri.parse("https://github.com/vivizzz007/vivi-music/releases/latest")
+                                        Uri.parse("https://github.com/pwpp08/vivi-music/releases/latest")
                                     )
                                     context.startActivity(intent)
                                 } else {
@@ -887,9 +891,7 @@ class MainActivity : ComponentActivity() {
                                     TopAppBar(
                                         navigationIcon = {
                                             Box(modifier = Modifier.padding(start = 12.dp)) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.icon),
-                                                    contentDescription = null,
+                                                AppLogo(
                                                     modifier = Modifier
                                                         .size(32.dp)
                                                         .clip(CircleShape),

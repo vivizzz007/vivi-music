@@ -200,14 +200,22 @@ constructor(
 
                 upsert(updatedSong)
 
-                // Pre-cache the high-res thumbnail immediately when download starts
+                // Pre-cache standard thumbnail resolutions immediately when download starts
                 updatedSong.thumbnailUrl?.let { url ->
-                    val request = ImageRequest.Builder(context)
-                        .data(url)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .build()
-                    SingletonImageLoader.get(context).enqueue(request)
+                    val imageLoader = SingletonImageLoader.get(context)
+                    listOfNotNull(
+                        url,
+                        url.resize(120, 120),
+                        url.resize(544, 544),
+                        url.resize(1200, 1200)
+                    ).distinct().forEach { targetUrl ->
+                        val request = ImageRequest.Builder(context)
+                            .data(targetUrl)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .build()
+                        imageLoader.enqueue(request)
+                    }
                 }
             }
 

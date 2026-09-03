@@ -12,13 +12,16 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import android.net.Uri
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.disk.directory
+import coil3.key.Keyer
 import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
+import coil3.request.Options
 import coil3.request.allowHardware
 import coil3.request.crossfade
 import com.music.innertube.YouTube
@@ -268,6 +271,10 @@ class App : Application(), SingletonImageLoader.Factory {
         return ImageLoader.Builder(this).apply {
             crossfade(true)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
+            components {
+                add(StringThumbnailKeyer())
+                add(UriThumbnailKeyer())
+            }
             // Memory cache for fast image loading (prevents network requests on recomposition)
             memoryCache {
                 MemoryCache.Builder()
@@ -328,3 +335,35 @@ class App : Application(), SingletonImageLoader.Factory {
         }
     }
 }
+
+class StringThumbnailKeyer : Keyer<String> {
+    override fun key(data: String, options: Options): String? {
+        val isGoogleCdn = data.contains("googleusercontent.com") || data.contains("ggpht.com")
+        if (isGoogleCdn) {
+            return data.split(Regex("=[wshd]"), limit = 2)[0]
+        }
+        val ytMatch = Regex("/vi(?:_webp)?/([^/]+)/").find(data)
+        if (ytMatch != null) {
+            val videoId = ytMatch.groupValues[1]
+            return "yt_thumb:$videoId"
+        }
+        return null
+    }
+}
+
+class UriThumbnailKeyer : Keyer<Uri> {
+    override fun key(data: Uri, options: Options): String? {
+        val str = data.toString()
+        val isGoogleCdn = str.contains("googleusercontent.com") || str.contains("ggpht.com")
+        if (isGoogleCdn) {
+            return str.split(Regex("=[wshd]"), limit = 2)[0]
+        }
+        val ytMatch = Regex("/vi(?:_webp)?/([^/]+)/").find(str)
+        if (ytMatch != null) {
+            val videoId = ytMatch.groupValues[1]
+            return "yt_thumb:$videoId"
+        }
+        return null
+    }
+}
+

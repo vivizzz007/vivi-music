@@ -46,6 +46,13 @@
     <string name="sync_completed_success">Synced %1$d songs successfully</string>
     <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
+    <string name="spotify_sync">Spotify Sync</string>
+    <string name="spotify_sync_desc">Automatically keep imported Spotify playlists up to date</string>
+    <string name="app_logo_title">App logo</string>
+    <string name="app_logo_desc">Customize the app logo appearance</string>
+    <string name="choose_custom_logo">Upload custom logo</string>
+    <string name="reset_logo">Reset to default logo</string>
+    <string name="logo_updated">App logo updated successfully</string>
     <string name="elements_selected">%1$d elements selected</string>
     <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
     <string name="generating_image">Generating image</string>
@@ -1120,4 +1127,14 @@
     <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
+    <string name="sync_playlist_spotify_desc">Sync playlist with Spotify</string>
+    <string name="persistent_control_center">Persistent Control Center player</string>
+    <string name="persistent_control_center_desc">Keep player tile in Control Center even when app is closed to resume playback anytime</string>
+    <string name="sync_to_spotify">Sync to Spotify</string>
+    <string name="sync_to_spotify_desc">Export and sync this playlist to your Spotify account</string>
+    <string name="spotify_syncing">Syncing playlist to Spotify…</string>
+    <string name="spotify_sync_success">Synced with Spotify successfully</string>
+    <string name="spotify_auth_failed">Spotify authentication failed. Please re-connect in Settings.</string>
+    <string name="change_logo_color">Official icon color</string>
+    <string name="change_logo_color_desc">Customize the color of the official Vivi logo</string>
 </resources>

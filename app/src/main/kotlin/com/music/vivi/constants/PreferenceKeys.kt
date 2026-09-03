@@ -239,6 +239,9 @@ val ListenTogetherSessionTimestampKey = longPreferencesKey("listenTogetherSessio
 val LastFMSessionKey = stringPreferencesKey("lastfmSession")
 val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
 val SpotifySessionKey = stringPreferencesKey("spotifySession")
+val SpotifyAutoSyncKey = booleanPreferencesKey("spotifyAutoSync")
+val AppLogoPresetKey = stringPreferencesKey("appLogoPreset")
+val CustomLogoPathKey = stringPreferencesKey("customLogoPath")
 val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")
 val LastFMUseNowPlaying = booleanPreferencesKey("lastfmUseNowPlaying")
 
@@ -817,3 +820,6 @@ val SuggestionRegionSlugToName =
         "ae" to "United Arab Emirates",
         "il" to "Israel"
     )
+
+val PersistentControlCenterKey = booleanPreferencesKey("persistentControlCenter")
+val AppLogoColorKey = intPreferencesKey("appLogoColor")

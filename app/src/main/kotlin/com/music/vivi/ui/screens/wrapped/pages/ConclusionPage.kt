@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.R
+import com.music.vivi.ui.component.AppLogo
 import com.music.vivi.ui.screens.wrapped.components.AnimatedBackground
 import com.music.vivi.ui.screens.wrapped.components.ShapeType
 
@@ -36,8 +37,7 @@ fun ConclusionPage(onClose: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            androidx.compose.foundation.Image(
-                painter = painterResource(id = R.drawable.icon),
+            AppLogo(
                 contentDescription = stringResource(R.string.wrapped_logo_content_description),
                 modifier = Modifier
                     .size(96.dp)

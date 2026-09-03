@@ -73,6 +73,7 @@ import com.music.vivi.vivimusic.updater.downloadmanager.UpdateDownloadWorker
 import com.music.vivi.vivimusic.updater.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import timber.log.Timber
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -320,25 +321,36 @@ fun UpdateScreen(navController: NavHostController) {
                                                 return@AnimatedActionButton
                                             }
                                             file.let { f ->
-                                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                                    if (!context.packageManager.canRequestPackageInstalls()) {
-                                                        val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                                                            data = Uri.parse("package:${context.packageName}")
+                                                try {
+                                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                                        if (!context.packageManager.canRequestPackageInstalls()) {
+                                                            val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                                                                data = Uri.parse("package:${context.packageName}")
+                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                            }
+                                                            context.startActivity(intent)
+                                                            return@let
                                                         }
-                                                        context.startActivity(intent)
-                                                        return@let
+                                                    }
+                                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", f)
+                                                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                                                        setDataAndType(uri, "application/vnd.android.package-archive")
+                                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                                    }
+                                                    context.startActivity(installIntent)
+                                                } catch (e: Exception) {
+                                                    Timber.e(e, "Failed to launch package installer")
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            e.localizedMessage ?: "Failed to launch installer"
+                                                        )
                                                     }
                                                 }
-                                                val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
-                                                val installIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                    setDataAndType(uri, "application/vnd.android.package-archive")
-                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                ContextCompat.startActivity(context, installIntent, null)
                                             }
                                         } else {
-                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/${currentStatus.version}/vivi.apk"
+                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/pwpp08/vivi-music/releases/download/${currentStatus.version}/vivi.apk"
                                             val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
                                                 .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
                                                 .addTag("update_download")
@@ -597,9 +609,19 @@ const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
 const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 const val KEY_BETA_UPDATES = "beta_updates"
 const val KEY_UPDATE_AVAILABLE = "update_available"
+const val KEY_LAST_INSTALLED_VERSION = "last_installed_version"
 
 fun getUpdateAvailableState(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val lastInstalled = sharedPrefs.getString(KEY_LAST_INSTALLED_VERSION, null)
+    val currentVersion = BuildConfig.VERSION_NAME
+    if (lastInstalled != currentVersion) {
+        sharedPrefs.edit()
+            .putString(KEY_LAST_INSTALLED_VERSION, currentVersion)
+            .putBoolean(KEY_UPDATE_AVAILABLE, false)
+            .apply()
+        return false
+    }
     return sharedPrefs.getBoolean(KEY_UPDATE_AVAILABLE, false)
 }
 
@@ -708,20 +730,19 @@ private fun formatGitHubDate(githubDate: String): String = try {
 
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v")
-    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v")
+    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
+    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
 
     val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
     
-    // Compare version numbers
-    for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
+    // Compare version numbers segment by segment (e.g. 6.0.6.2 vs 6.0.6.1)
+    val maxParts = maxOf(latestParts.size, currentParts.size)
+    for (i in 0 until maxParts) {
         val latest = latestParts.getOrElse(i) { 0 }
         val current = currentParts.getOrElse(i) { 0 }
-        when {
-            latest > current -> return true
-            latest < current -> return false
-        }
+        if (latest > current) return true
+        if (latest < current) return false
     }
     
     // If numbers are equal, check if one is beta and the other is not
@@ -743,7 +764,7 @@ suspend fun checkForUpdate(
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+            val url = URL("https://api.github.com/repos/pwpp08/vivi-music/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
             val releases = JSONArray(json)
             
@@ -756,7 +777,7 @@ suspend fun checkForUpdate(
 
             if (betaEnabled) {
                 try {
-                    val nightlyUrl = URL("https://api.github.com/repos/vivizzz007/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
+                    val nightlyUrl = URL("https://api.github.com/repos/pwpp08/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
                     val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
                     val nightlyData = JSONObject(nightlyJson)
                     val runs = nightlyData.optJSONArray("workflow_runs")
@@ -829,7 +850,7 @@ suspend fun checkForUpdate(
                 changelogList.add(ChangelogSection(context.getString(R.string.changelog), nightlyChangelog))
                 
                 val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
-                val apkDownloadUrl = "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
+                val apkDownloadUrl = "https://nightly.link/pwpp08/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
                 
                 withContext(Dispatchers.Main) {
                     onSuccess(displayTag, true, changelogList, "~30", formattedReleaseDate, "Bleeding-edge nightly build from main branch.", null, apkDownloadUrl)
@@ -881,11 +902,7 @@ suspend fun checkForUpdate(
                 if (!shouldShow && !betaEnabled) {
                     // Logic: If I'm on a Beta (b5.0.7) and latest stable is v5.0.6, 
                     // and I just turned OFF beta, I want to see v5.0.6.
-                    if (currentIsBeta && targetIsStable) {
-                        shouldShow = true
-                    } else if (isDifferentVersion && targetIsStable) {
-                        // Also show if current is a newer unofficial stable (e.g. built locally as 5.0.7)
-                        // but user wants the official stable 5.0.6.
+                    if (currentIsBeta && targetIsStable && currentClean == targetClean) {
                         shouldShow = true
                     }
                 }
@@ -900,7 +917,7 @@ suspend fun checkForUpdate(
                     var imageUrl: String? = null
                     try {
                         val changelogUrl =
-                            URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json")
+                            URL("https://github.com/pwpp08/vivi-music/releases/download/$tagWithPrefix/changelog.json")
                         val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                         val changelogData = JSONObject(changelogJson)
 
@@ -919,10 +936,21 @@ suspend fun checkForUpdate(
                             changelogList.add(ChangelogSection(title, itemsList))
                         }
                     } catch (e: Exception) {
-                        // Fallback: Parse body as a single list if it starts with characters or split by lines
-                        val body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
-                        val fallbackItems = body.split("\n").filter { it.isNotBlank() }
-                        changelogList.add(ChangelogSection(context.getString(R.string.changelog), fallbackItems))
+                        // Fallback: Parse body as markdown release notes
+                        val body = targetRelease.optString("body", "").trim()
+                        if (body.isNotEmpty()) {
+                            val lines = body.lines().map { it.trim() }.filter { it.isNotEmpty() }
+                            val bullets = lines.filter { it.startsWith("-") || it.startsWith("*") }
+                                .map { it.removePrefix("-").removePrefix("*").trim() }
+                            if (bullets.isNotEmpty()) {
+                                description = lines.firstOrNull { !it.startsWith("-") && !it.startsWith("*") && !it.startsWith("#") }
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), bullets))
+                            } else {
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), lines))
+                            }
+                        } else {
+                            changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(context.getString(R.string.no_changelog_available))))
+                        }
                     }
 
                     val publishedAt = targetRelease.getString("published_at")
@@ -931,15 +959,32 @@ suspend fun checkForUpdate(
 
                     var apkSizeInMB = ""
                     var apkDownloadUrl = ""
+                    var fallbackApkSizeInMB = ""
+                    var fallbackApkUrl = ""
+                    val currentFlavor = if (BuildConfig.CAST_AVAILABLE) "gms" else "foss"
+
                     for (j in 0 until assets.length()) {
                         val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name")
-                        if (assetName == "vivi.apk") {
+                        val assetName = asset.getString("name").lowercase()
+                        if (assetName.endsWith(".apk")) {
                             val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
+                            val sizeStr = String.format(java.util.Locale.US, "%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                            val downloadUrl = asset.getString("browser_download_url")
+
+                            if (assetName.contains(currentFlavor) || assetName == "vivi.apk") {
+                                apkSizeInMB = sizeStr
+                                apkDownloadUrl = downloadUrl
+                                break
+                            } else if (fallbackApkUrl.isEmpty()) {
+                                fallbackApkSizeInMB = sizeStr
+                                fallbackApkUrl = downloadUrl
+                            }
                         }
+                    }
+
+                    if (apkDownloadUrl.isEmpty() && fallbackApkUrl.isNotEmpty()) {
+                        apkDownloadUrl = fallbackApkUrl
+                        apkSizeInMB = fallbackApkSizeInMB
                     }
 
                     if (apkDownloadUrl.isNotEmpty()) {

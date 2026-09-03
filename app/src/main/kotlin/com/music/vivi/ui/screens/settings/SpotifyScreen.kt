@@ -52,6 +52,7 @@ import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.menu.LoadingScreen
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.constants.SpotifyAutoSyncKey
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 import kotlinx.coroutines.launch
@@ -73,6 +74,7 @@ fun SpotifyScreen(
     var showSpotifyLogin by remember { mutableStateOf(false) }
     var showPlaylistsSheet by remember { mutableStateOf(false) }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
+    val (spotifyAutoSync, onSpotifyAutoSyncChange) = rememberPreference(SpotifyAutoSyncKey, true)
 
     val refreshEnabled = state.isAuthenticated && !state.isLoading
     val rotationAngle by if (state.isLoading) {
@@ -221,6 +223,35 @@ fun SpotifyScreen(
                     },
                     enabled = refreshEnabled,
                     onClick = { viewModel.loadSources() }
+                ),
+                Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
+                    title = { Text(stringResource(R.string.spotify_sync)) },
+                    description = { Text(stringResource(R.string.spotify_sync_desc)) },
+                    icon = painterResource(R.drawable.cached),
+                    enabled = state.isAuthenticated,
+                    trailingContent = {
+                        Switch(
+                            checked = spotifyAutoSync,
+                            onCheckedChange = onSpotifyAutoSyncChange,
+                            enabled = state.isAuthenticated,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (spotifyAutoSync) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        if (state.isAuthenticated) {
+                            onSpotifyAutoSyncChange(!spotifyAutoSync)
+                        }
+                    }
                 )
             )
         )
