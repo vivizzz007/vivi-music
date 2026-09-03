@@ -10,7 +10,10 @@ import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 object ViviPrefCache {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -25,8 +28,19 @@ object ViviPrefCache {
             if (isStarted) return
             isStarted = true
             scope.launch {
-                context.dataStore.data.collect { prefs ->
-                    preferences = prefs
+                // Keep the fast path alive: if the DataStore flow fails (e.g. a
+                // file issue right after an in-place update), retry instead of
+                // dying permanently — otherwise every synchronous read falls
+                // back to the slow runBlocking path and stalls startup.
+                while (isActive) {
+                    try {
+                        context.dataStore.data.collect { prefs ->
+                            preferences = prefs
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "ViviPrefCache: DataStore collect failed, retrying")
+                    }
+                    delay(1000)
                 }
             }
         }

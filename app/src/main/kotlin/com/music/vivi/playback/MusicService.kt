@@ -970,6 +970,10 @@ class MusicService :
             }
 
         if (dataStore.get(PersistentQueueKey, true)) {
+            // Deserialize the persisted queue off the main thread: a large or
+            // stale queue file (e.g. from the previous version right after an
+            // in-place update) must not stall the service's onCreate.
+            scope.launch(Dispatchers.IO) {
             val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
             if (queueFile.exists()) {
                 runCatching {
@@ -1050,6 +1054,7 @@ class MusicService :
                     Timber.tag(TAG).w(error, "Failed to read player state, clearing data")
                     clearPersistedQueueFiles()
                 }
+            }
             }
         }
 

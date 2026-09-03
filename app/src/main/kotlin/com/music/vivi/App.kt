@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Credentials
 import timber.log.Timber
 import java.net.Authenticator
@@ -275,8 +276,13 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
-        val cacheSize = runBlocking {
-            dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
+        // Bound this read: the factory runs on the main thread when the first
+        // image is requested, and an unbounded runBlocking here would freeze
+        // the UI if DataStore is slow or stuck (e.g. right after an update).
+        val cacheSize = runBlocking(Dispatchers.IO) {
+            withTimeoutOrNull(1500) {
+                dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
+            } ?: 512
         }
         return ImageLoader.Builder(this).apply {
             crossfade(true)
