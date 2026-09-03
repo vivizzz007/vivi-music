@@ -435,6 +435,9 @@ fun AppearanceSettings(
                     PlayerDesignOption.V2 -> {
                         onUsePlayerV2Change(true)
                         onUseNewPlayerDesignChange(false)
+                        if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+                            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
+                        }
                     }
                 }
                 showPlayerDesignDialog = false

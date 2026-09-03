@@ -180,10 +180,15 @@ fun PlayerV2(
         onDispose { context.unregisterReceiver(receiver) }
     }
 
-    val storedPlayerBackground by rememberEnumPreference(
+    val (storedPlayerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
+    LaunchedEffect(storedPlayerBackground) {
+        if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
+        }
+    }
     val playerBackground = if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
         PlayerBackgroundStyle.DEFAULT
     } else {
