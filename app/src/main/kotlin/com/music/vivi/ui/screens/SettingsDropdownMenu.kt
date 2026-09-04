@@ -110,7 +110,8 @@ fun SettingsDropdownMenu(
             IconButton(
                 onClick = { 
                     gitHubViewModel.toggleStar(context) {
-                        uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
+                        val clientId = com.music.vivi.BuildConfig.GITHUB_CLIENT_ID
+                        uriHandler.openUri("https://github.com/login/oauth/authorize?client_id=${clientId}&scope=public_repo")
                     }
                 }, 
                 modifier = iconButtonModifier,

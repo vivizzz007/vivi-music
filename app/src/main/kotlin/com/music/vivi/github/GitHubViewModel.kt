@@ -53,19 +53,15 @@ class GitHubViewModel @Inject constructor(
                 return@launch
             }
 
-            _isLoading.value = true
-            val currentlyStarred = _isStarred.value
-            val success = if (currentlyStarred) {
-                gitHubService.unstarRepo(token)
-            } else {
-                gitHubService.starRepo(token)
-            }
+            // Already starred — do nothing (we only allow starring, not unstarring)
+            if (_isStarred.value) return@launch
 
+            _isLoading.value = true
+            val success = gitHubService.starRepo(token)
             if (success) {
-                val newState = !currentlyStarred
-                _isStarred.value = newState
+                _isStarred.value = true
                 context.dataStore.edit { preferences ->
-                    preferences[HasStarredRepoKey] = newState
+                    preferences[HasStarredRepoKey] = true
                 }
             }
             _isLoading.value = false
@@ -78,6 +74,34 @@ class GitHubViewModel @Inject constructor(
                 preferences[GitHubAccessTokenKey] = token
             }
             checkStarStatus(context)
+        }
+    }
+
+    fun exchangeCodeForToken(context: Context, code: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            // TODO: Replace with the actual OAuth Client ID and Secret obtained from GitHub Developer Settings
+            // Read the OAuth Client ID and Secret securely from BuildConfig (which reads from local.properties)
+            val clientId = com.music.vivi.BuildConfig.GITHUB_CLIENT_ID
+            val clientSecret = com.music.vivi.BuildConfig.GITHUB_CLIENT_SECRET
+
+            val token = gitHubService.getAccessToken(clientId, clientSecret, code)
+            
+            if (token != null) {
+                saveAccessToken(context, token)
+                
+                // Automatically star the repo if we just logged in for that purpose
+                val success = gitHubService.starRepo(token)
+                if (success) {
+                    _isStarred.value = true
+                    context.dataStore.edit { preferences ->
+                        preferences[HasStarredRepoKey] = true
+                    }
+                }
+            } else {
+                // Handle error or just ignore for now
+            }
+            _isLoading.value = false
         }
     }
 }

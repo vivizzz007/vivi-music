@@ -227,7 +227,9 @@ import timber.log.Timber
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
+import com.music.vivi.github.GitHubViewModel
 import javax.inject.Inject
+import androidx.activity.viewModels
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -248,6 +250,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
+
+    private val gitHubViewModel: GitHubViewModel by viewModels()
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
@@ -1300,6 +1304,15 @@ class MainActivity : ComponentActivity() {
         if (!listenCode.isNullOrBlank() && isListenLink) {
             val username = dataStore.get(ListenTogetherUsernameKey, "").ifBlank { "Guest" }
             listenTogetherManager.joinRoom(listenCode, username)
+            return
+        }
+
+        val isOAuthCallback = uri.host?.equals("oauth2callback", ignoreCase = true) == true
+        if (isOAuthCallback) {
+            val code = uri.getQueryParameter("code")
+            if (!code.isNullOrBlank()) {
+                gitHubViewModel.exchangeCodeForToken(this, code)
+            }
             return
         }
 

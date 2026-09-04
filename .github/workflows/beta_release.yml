@@ -83,6 +83,8 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
+          VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
         run: ./gradlew assembleUniversalGmsRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Build FOSS Release APK
@@ -90,6 +92,8 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
+          VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
         run: ./gradlew assembleUniversalFossRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Sign GMS APK

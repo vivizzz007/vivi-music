@@ -63,6 +63,10 @@ jobs:
           STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
+          VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
         run: ./gradlew assembleUniversalGmsRelease --no-daemon
 
       - name: Find APK Path
