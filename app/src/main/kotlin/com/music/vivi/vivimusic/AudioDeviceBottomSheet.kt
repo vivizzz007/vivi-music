@@ -610,7 +610,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                     ToggleButton(
                                         checked = selectedIndex == index,
                                         onCheckedChange = { onAudioQualityChange(when (index) { 0 -> AudioQuality.AUTO; 1 -> AudioQuality.HIGH; else -> AudioQuality.LOW }) },
-                                        colors = ToggleButtonDefaults.toggleButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
+                                        colors = ToggleButtonDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest),
                                         shapes = when (index) { 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes(); options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes(); else -> ButtonGroupDefaults.connectedMiddleButtonShapes() },
                                         modifier = Modifier.weight(1f).height(48.dp).semantics { role = Role.RadioButton }
                                     ) { Text(text = label, style = MaterialTheme.typography.bodyMedium) }
