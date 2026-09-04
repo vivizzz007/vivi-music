@@ -136,7 +136,7 @@
     <string name="lyrics_auto_scroll">Scorri il testo automaticamente</string>
     <string name="import_csv">Importa una playlist in formato \"csv\</string>
     <string name="playlist_add_local_to_synced_note">Nota: non è supportata l\'importazione di brani locali in una playlist sincronizzata o remota. Qualsiasi altra combinazione è valida</string>
-    <string name="import_online">Importa una playlist in formato \"m3u\</string>
+    <string name="import_online">Importa una playlist in formato \"m3u\"</string>
     <string name="more_content">Altri contenuti</string>
     <string name="lyrics_romanize_japanese">Romanizza il testo in giapponese</string>
     <string name="lyrics_romanize_korean">Romanizza il testo in coreano</string>
