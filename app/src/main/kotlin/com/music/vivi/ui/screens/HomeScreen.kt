@@ -848,53 +848,36 @@ fun HomeScreen(
 
         if (explorePage?.moodAndGenres != null) list.add(HomeSection.MoodAndGenres)
 
-        if (randomizeHomeOrder) {
+        val sortedList = if (randomizeHomeOrder) {
             list.sortedByDescending { section ->
-                // Use a stable seed for each section based on the session seed + section ID hash
-                // This ensures the weight for a specific section remains constant during a session (until refresh)
-                // even if other sections appear/disappear, preventing jumping.
                 val sectionRandom = Random(randomSeed + section.id.hashCode())
-
-                // Flatten the base values to allow for more overlap and variation
-                // All "main" sections start closer together
                 val base = when (section) {
+                    HomeSection.QuickPicks -> 700
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
-                    HomeSection.DailyDiscover -> 500 // Top tier starts equal
-
+                    HomeSection.DailyDiscover -> 500
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
-                    HomeSection.FromTheCommunity -> 300 // Middle tier starts equal
-
-                    else -> 100 // Bottom tier
+                    HomeSection.FromTheCommunity -> 300
+                    else -> 100
                 }
-
                 val modifier = when (section) {
-                    // Top tier: High variance to allow shuffling among themselves
-                    // Range: [500-200, 500+400] = [300, 900]
+                    HomeSection.QuickPicks -> 0
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
                     HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
-
-                    // Middle tier: Can jump up to challenge top tier, or drop lower
-                    // Range: [300-100, 300+400] = [200, 700]
-                    // This allows them to occasionally appear above a "bad roll" top tier item
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
                     HomeSection.FromTheCommunity -> sectionRandom.nextInt(-100, 400)
-
-                    // Bottom tier: Standard variance
                     else -> sectionRandom.nextInt(-50, 50)
                 }
                 base + modifier
             }
         } else {
             val defaultOrder = mapOf(
+                HomeSection.QuickPicks to 110,
                 HomeSection.SpeedDial to 100,
-                HomeSection.QuickPicks to 90,
                 HomeSection.CoversAndRemixes to 85,
                 HomeSection.FromTheCommunity to 80,
                 HomeSection.DailyDiscover to 70,
@@ -912,6 +895,14 @@ fun HomeScreen(
                 }
             }
         }
+
+        // Always pin any QuickPicks to the very top regardless of sort order
+        val isQuickPicksSection: (HomeSection) -> Boolean = {
+            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
+        }
+        val qpItems = sortedList.filter(isQuickPicksSection)
+        if (qpItems.isNotEmpty()) qpItems + sortedList.filterNot(isQuickPicksSection)
+        else sortedList
     }
 
     LaunchedEffect(quickPicks) {
