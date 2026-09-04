@@ -24,7 +24,7 @@
     <string name="sync_playlist">Sincronizza playlist</string>
     <string name="sync_disabled">Sincronizzazione disabilitata</string>
     <string name="elements_selected">%1$d elementi selezionati</string>
-    <string name="allows_for_sync_witch_youtube">Nota: questo attiva la sincronizzazione con YouTube Music. Tale azione NON PUÒ ESSERE MODIFICATA.</string>
+    <string name="allows_for_sync_witch_youtube">"Nota: questo attiva la sincronizzazione con YouTube Music. Tale azione NON PUÒ ESSERE MODIFICATA."</string>
     <string name="added_to_play_next">Aggiunto come prossimo brano</string>
     <string name="added_to_queue">Aggiunto alla coda</string>
     <string name="remove_from_cache">Rimuovi dalla cache</string>
@@ -309,10 +309,10 @@
     <string name="wrapped_end_playlist_saved">Playlist Salvata</string>
     <string name="wrapped_logo_content_description">Logo di vivimusic</string>
     <string name="wrapped_year">2025</string>
-    <string name="wrapped_ready_title">LE TUE STATISTICHE D'ASCOLTO SONO PRONTE!</string>
+    <string name="wrapped_ready_title">LE TUE STATISTICHE D\'ASCOLTO SONO PRONTE!</string>
     <string name="wrapped_ready_subtitle">È l\'ora di vedere cosa hai amato quest\'anno.</string>
     <string name="wrapped_thank_you">Grazie per aver ascoltato</string>
-    <string name="wrapped_special_thanks">Un ringraziamento speciale a MO Agami (https://github.com/mostafaalagamy) per aver creato vivimusic</string>
+    <string name="wrapped_special_thanks">"Un ringraziamento speciale a MO Agami (https://github.com/mostafaalagamy) per aver creato vivimusic"</string>
     <string name="wrapped_close">Chiudi wrapped</string>
     <string name="wrapped_playlist_title">Il tuo Wrapped %s</string>
     <string name="wrapped_create_playlist">Crea playlist</string>
