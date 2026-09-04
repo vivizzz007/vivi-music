@@ -70,7 +70,7 @@
     <string name="discord">Discord</string>
     <string name="advanced_login">Accesso tramite token</string>
     <string name="token_hidden">Tocca per visualizzare il token</string>
-    <string name="token_shown">Tocca di nuovo per copiarlo e\/o modificarlo</string>
+    <string name="token_shown">Tocca di nuovo per copiarlo e/o modificarlo</string>
     <string name="token_adv_login_description">Questo è un metodo AVANZATO per fare l\'accesso a YouTube Music. Come alternativa al portale web, puoi inserire o aggiornare direttamente il tuo token di accesso qui. Per esempio, questo può velocizzare l\'accesso su più dispositivi. Tieni presente che qualsiasi formato di token non valido che l\'app non riesce ad analizzare non sarà accettato</string>
     <string name="ytm_sync">Sincronizza automaticamente il tuo account YouTube Music</string>
     <string name="general">Generale</string>
