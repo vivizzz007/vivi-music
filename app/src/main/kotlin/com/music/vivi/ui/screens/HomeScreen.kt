@@ -896,13 +896,25 @@ fun HomeScreen(
             }
         }
 
-        // Always pin any QuickPicks to the very top regardless of sort order
+        // If logged in, YouTube provides its own superior "Quick picks" section. 
+        // If logged out as guest, we use our local app-generated Quick Picks.
+        val hasYouTubeQuickPicks = sortedList.any { 
+            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true 
+        }
+
+        val deduplicatedList = if (hasYouTubeQuickPicks) {
+            sortedList.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        } else {
+            sortedList
+        }
+
+        // Always pin the surviving QuickPicks to the very top regardless of sort order
         val isQuickPicksSection: (HomeSection) -> Boolean = {
             it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
         }
-        val qpItems = sortedList.filter(isQuickPicksSection)
-        if (qpItems.isNotEmpty()) qpItems + sortedList.filterNot(isQuickPicksSection)
-        else sortedList
+        val qpItems = deduplicatedList.filter(isQuickPicksSection)
+        if (qpItems.isNotEmpty()) qpItems + deduplicatedList.filterNot(isQuickPicksSection)
+        else deduplicatedList
     }
 
     LaunchedEffect(quickPicks) {
@@ -1513,7 +1525,7 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(340.dp)
+                                            .height(200.dp)
                                             .padding(horizontal = 16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -1524,7 +1536,7 @@ fun HomeScreen(
                                             itemSpacing = 16.dp,
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(320.dp)
+                                                .height(180.dp)
                                         ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(

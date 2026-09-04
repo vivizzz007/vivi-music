@@ -287,11 +287,50 @@ class HomeViewModel @Inject constructor(
     private var isProcessingAccountData = false
 
     private suspend fun getDailyDiscover() {
+        android.util.Log.d("DailyDiscover", "getDailyDiscover started")
         val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
         val likedSongs = database.likedSongsByCreateDateAsc().first()
-        if (likedSongs.isEmpty()) return
+        
+        var seeds = likedSongs.shuffled().distinctBy { it.id }.take(5)
+        android.util.Log.d("DailyDiscover", "Liked seeds count: ${seeds.size}")
+        
+        if (seeds.isEmpty()) {
+            // First fallback: Recent listening history
+            seeds = database.events().first().map { it.song }.shuffled().distinctBy { it.id }.take(5)
+            android.util.Log.d("DailyDiscover", "History seeds count: ${seeds.size}")
+        }
 
-        val seeds = likedSongs.shuffled().distinctBy { it.id }.take(5)
+        if (seeds.isEmpty()) {
+            // Final fallback: Use backend to request generic top songs to seed a discovery mix for new users
+            val fallbackSeeds = mutableListOf<Song>()
+            android.util.Log.d("DailyDiscover", "Requesting top songs from backend as fallback seeds")
+            com.music.innertube.YouTube.searchSummary("top songs").onSuccess { result ->
+                val songs = result.summaries.flatMap { it.items }.filterIsInstance<com.music.innertube.models.SongItem>()
+                android.util.Log.d("DailyDiscover", "Backend search returned ${songs.size} SongItems")
+                songs.filter { !hideVideoSongs || !it.isVideoSong }.shuffled().take(5).forEach { song ->
+                    fallbackSeeds.add(
+                        Song(
+                            song = com.music.vivi.db.entities.SongEntity(
+                                id = song.id,
+                                title = song.title,
+                                duration = -1,
+                                thumbnailUrl = song.thumbnail
+                            ),
+                            artists = song.artists.map { com.music.vivi.db.entities.ArtistEntity(id = it.id ?: "", name = it.name) }
+                        )
+                    )
+                }
+            }.onFailure {
+                android.util.Log.e("DailyDiscover", "Backend search failed", it)
+            }
+            seeds = fallbackSeeds
+            android.util.Log.d("DailyDiscover", "Final fallback seeds count: ${seeds.size}")
+        }
+
+        if (seeds.isEmpty()) {
+            android.util.Log.e("DailyDiscover", "All seed sources empty, aborting")
+            return // Last resort fail safe
+        }
 
         // Use a synchronized list to collect results safely from concurrent coroutines
         val items = java.util.Collections.synchronizedList(mutableListOf<DailyDiscoverItem>())
@@ -299,39 +338,40 @@ class HomeViewModel @Inject constructor(
         kotlinx.coroutines.coroutineScope {
             seeds.map { seed ->
                 launch(Dispatchers.IO) {
-                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
-                    if (endpoint != null) {
-                        YouTube.related(endpoint).onSuccess { page ->
-                            val recommendations = page.songs
-                                .filter { item ->
-                                    if (hideVideoSongs && item.isVideoSong) return@filter false
-                                    if (item.explicit) return@filter false
-                                    true
-                                }
-                                .shuffled()
-
-                            // Simple check to avoid immediate duplicate of seed
-                            val recommendation = recommendations.firstOrNull { rec ->
-                                rec.id != seed.id
+                    val nextResult = com.music.innertube.YouTube.next(com.music.innertube.models.WatchEndpoint(videoId = seed.id)).getOrNull()
+                    if (nextResult != null && nextResult.items.isNotEmpty()) {
+                        val recommendations = nextResult.items
+                            .filter { item ->
+                                if (hideVideoSongs && item.isVideoSong) return@filter false
+                                if (item.explicit) return@filter false
+                                true
                             }
+                            .shuffled()
 
-                            if (recommendation != null) {
-                                items.add(
-                                    DailyDiscoverItem(
-                                        seed = seed,
-                                        recommendation = recommendation,
-                                        relatedEndpoint = endpoint
-                                    )
-                                )
-                            }
+                        // Simple check to avoid immediate duplicate of seed
+                        val recommendation = recommendations.firstOrNull { rec ->
+                            rec.id != seed.id
                         }
+
+                        if (recommendation != null) {
+                            items.add(
+                                DailyDiscoverItem(
+                                    seed = seed,
+                                    recommendation = recommendation,
+                                    relatedEndpoint = nextResult.relatedEndpoint
+                                )
+                            )
+                        }
+                    } else {
+                        android.util.Log.d("DailyDiscover", "No next endpoint or items for seed ${seed.id}")
                     }
                 }
             }.forEach { it.join() }
         }
 
-        // Final deduplication just in case multiple seeds recommended the same song
-        dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
+        val finalizedItems = items.toList().distinctBy { it.recommendation.id }.shuffled()
+        android.util.Log.d("DailyDiscover", "Finalized dailyDiscover items size: ${finalizedItems.size}")
+        dailyDiscover.value = finalizedItems
     }
 
     private suspend fun getQuickPicks() {
