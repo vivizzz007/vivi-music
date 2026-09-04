@@ -89,7 +89,7 @@
     <string name="enable_similar_content">Attiva Brani dal Contenuto simile</string>
     <string name="similar_content_desc">Aggiunge automaticamente altri brani simili quando viene raggiunta la fine della coda</string>
     <string name="min_playback_duration_title">Durata minima della riproduzione</string>
-    <string name="min_playback_duration_description">La minima quantità di un brano che deve essere riprodotta prima di essere considerata come \"ascoltato"\</string>
+    <string name="min_playback_duration_description">La minima quantità di un brano che deve essere riprodotta prima di essere considerata come \"ascoltato\"</string>
     <string name="percentage_format">%d%%</string>
     <string name="minimum_playback_duration">Durata minima della riproduzione</string>
     <string name="clear_song_cache_dialog">Sei sicuro di voler eliminare tutti i brani in cache?</string>
