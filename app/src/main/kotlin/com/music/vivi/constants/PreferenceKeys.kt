@@ -80,6 +80,7 @@ val KeepScreenOn = booleanPreferencesKey("keepScreenOn")
 val DeveloperModeKey = booleanPreferencesKey("developerMode")
 val EnableSettingsPopupKey = booleanPreferencesKey("enableSettingsPopup")
 val HasStarredRepoKey = booleanPreferencesKey("hasStarredRepo")
+val LastSeenStarPromptVersionKey = stringPreferencesKey("lastSeenStarPromptVersion")
 
 enum class SliderStyle {
     DEFAULT,

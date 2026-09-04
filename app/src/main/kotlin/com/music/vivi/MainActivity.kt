@@ -56,8 +56,13 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
+import com.music.vivi.constants.LastSeenStarPromptVersionKey
+import com.music.vivi.constants.HasStarredRepoKey
+import com.music.vivi.ui.component.ActionPromptDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -230,6 +235,7 @@ import java.util.Locale
 import com.music.vivi.github.GitHubViewModel
 import javax.inject.Inject
 import androidx.activity.viewModels
+import androidx.compose.material3.LocalContentColor
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -478,6 +484,13 @@ class MainActivity : ComponentActivity() {
         }
 
         val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+
+        val (lastSeenStarPromptVersion, setLastSeenStarPromptVersion) = rememberPreference(LastSeenStarPromptVersionKey, "")
+        val (hasStarredRepo) = rememberPreference(HasStarredRepoKey, false)
+        val uriHandler = LocalUriHandler.current
+        val currentVersion = BuildConfig.VERSION_NAME
+
+
         val isSystemInDarkTheme = isSystemInDarkTheme()
         val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -543,6 +556,73 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
+            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo) {
+                ActionPromptDialog(
+                    title = "Support ViviMusic \u2B50",
+                    onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
+                    onConfirm = {
+                        setLastSeenStarPromptVersion(currentVersion)
+                        val clientId = BuildConfig.GITHUB_CLIENT_ID
+                        uriHandler.openUri("https://github.com/login/oauth/authorize?client_id=${clientId}&scope=public_repo")
+                    },
+                    onCancel = { setLastSeenStarPromptVersion(currentVersion) },
+                    content = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "If you enjoy using ViviMusic, would you consider starring our repository on GitHub?",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "It takes just a second and helps keep our open-source project alive and growing!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                )
+            }
+
+            val gitHubViewModel: GitHubViewModel = hiltViewModel()
+            val showThankYouDialog by gitHubViewModel.showThankYouDialog.collectAsState()
+
+            if (showThankYouDialog) {
+                ActionPromptDialog(
+                    title = "Thank You!",
+                    onDismiss = { gitHubViewModel.dismissThankYouDialog() },
+                    onConfirm = { gitHubViewModel.dismissThankYouDialog() },
+                    content = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "Thank you so much for your support! \u2764\uFE0F",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "Starring the repository helps us grow and keep the project alive. Enjoy the music!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                )
+            }
+
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()

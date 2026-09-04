@@ -55,6 +55,8 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,6 +89,12 @@ import com.music.vivi.vivimusic.updater.checkForUpdate
 import kotlinx.coroutines.launch
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.safeOpenUri
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -97,7 +105,11 @@ fun AboutScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
     onBack: (() -> Unit)? = null,
+    gitHubViewModel: com.music.vivi.github.GitHubViewModel = hiltViewModel()
 ) {
+    LaunchedEffect(Unit) {
+        gitHubViewModel.fetchStarCount()
+    }
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     var showSupportDialog by remember { mutableStateOf(false) }
@@ -163,6 +175,30 @@ fun AboutScreen(
                     title = { Text(stringResource(R.string.support)) },
                     description = { Text(stringResource(R.string.support_desc)) },
                     onClick = { showSupportDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = rememberVectorPainter(Icons.Filled.Star),
+                    title = { Text("GitHub Stars") },
+                    trailingContent = {
+                        val starCount by gitHubViewModel.starCount.collectAsState()
+                        val animatedCount by animateIntAsState(
+                            targetValue = starCount ?: 0,
+                            animationSpec = tween(durationMillis = 2000, easing = FastOutSlowInEasing),
+                            label = "starCountAnimation"
+                        )
+                        if (starCount != null) {
+                            Text(
+                                text = NumberFormat.getInstance().format(animatedCount),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Text("...")
+                        }
+                    },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/stargazers") },
+                    isExternalLink = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.web_link),

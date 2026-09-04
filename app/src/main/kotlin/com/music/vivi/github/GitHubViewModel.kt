@@ -27,6 +27,25 @@ class GitHubViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _showThankYouDialog = MutableStateFlow(false)
+    val showThankYouDialog: StateFlow<Boolean> = _showThankYouDialog.asStateFlow()
+
+    private val _starCount = MutableStateFlow<Int?>(null)
+    val starCount: StateFlow<Int?> = _starCount.asStateFlow()
+
+    fun fetchStarCount() {
+        viewModelScope.launch {
+            val details = gitHubService.getRepoDetails()
+            if (details != null) {
+                _starCount.value = details.stargazersCount
+            }
+        }
+    }
+
+    fun dismissThankYouDialog() {
+        _showThankYouDialog.value = false
+    }
+
     fun checkStarStatus(context: Context) {
         viewModelScope.launch {
             val token = context.dataStore[GitHubAccessTokenKey]
@@ -60,6 +79,7 @@ class GitHubViewModel @Inject constructor(
             val success = gitHubService.starRepo(token)
             if (success) {
                 _isStarred.value = true
+                _showThankYouDialog.value = true
                 context.dataStore.edit { preferences ->
                     preferences[HasStarredRepoKey] = true
                 }
@@ -94,6 +114,7 @@ class GitHubViewModel @Inject constructor(
                 val success = gitHubService.starRepo(token)
                 if (success) {
                     _isStarred.value = true
+                    _showThankYouDialog.value = true
                     context.dataStore.edit { preferences ->
                         preferences[HasStarredRepoKey] = true
                     }
