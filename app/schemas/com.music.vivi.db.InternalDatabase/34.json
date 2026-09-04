@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 34,
-    "identityHash": "19aa47f2f3d3b94ea27011eeb3b536d5",
+    "identityHash": "ce6edb65ca04d6885428f9016575ae31",
     "entities": [
       {
         "tableName": "song",
@@ -1254,7 +1254,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '19aa47f2f3d3b94ea27011eeb3b536d5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ce6edb65ca04d6885428f9016575ae31')"
     ]
   }
 }
