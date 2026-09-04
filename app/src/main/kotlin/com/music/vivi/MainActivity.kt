@@ -74,6 +74,10 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import com.music.vivi.ui.component.snackbar.SnackbarManager
 import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Coffee
+import androidx.compose.material.icons.rounded.Payments
+import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -618,6 +622,39 @@ class MainActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 textAlign = TextAlign.Center
                             )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val btnModifier = Modifier.size(44.dp)
+                                val btnColors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                )
+                                val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
+                                
+                                IconButton(
+                                    onClick = { uriHandler.openUri("https://ko-fi.com/vivizzz007") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.buymeacoffee), contentDescription = "Buy Me A Coffee", tint = iconTint)
+                                }
+                                IconButton(
+                                    onClick = { uriHandler.openUri("https://paypal.me/vivizzz007") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.paypal), contentDescription = "PayPal", tint = iconTint)
+                                }
+                                IconButton(
+                                    onClick = { uriHandler.openUri("upi://pay?pa=vivizzz007@upi") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.currency_rupee_upi), contentDescription = "UPI", tint = iconTint)
+                                }
+                            }
                         }
                     }
                 )
