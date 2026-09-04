@@ -93,27 +93,19 @@ fun SettingsScreen(
 
     Column(
         Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Spacer(
-            Modifier.windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(
-                    WindowInsetsSides.Top
-                )
-            )
-        )
         Text(
             text = stringResource(R.string.settings),
             style = MaterialTheme.typography.displaySmall.copy(
                 fontWeight = FontWeight.SemiBold
             ),
             color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 4.dp)
+            modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
         // Group 1: Important / Account
         ExpressiveSettingGroup(

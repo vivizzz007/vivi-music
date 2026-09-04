@@ -18,6 +18,7 @@ import com.music.innertube.models.IpVersion
 val IsFirstRunKey = booleanPreferencesKey("isFirstRun")
 val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
 val EnableHighRefreshRateKey = booleanPreferencesKey("enableHighRefreshRate")
+val GitHubAccessTokenKey = stringPreferencesKey("gitHubAccessToken")
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val SelectedThemeColorKey = intPreferencesKey("selectedThemeColor")
 val DarkModeKey = stringPreferencesKey("darkMode")
@@ -78,6 +79,7 @@ val ResumeOnBluetoothConnectKey = booleanPreferencesKey("resumeOnBluetoothConnec
 val KeepScreenOn = booleanPreferencesKey("keepScreenOn")
 val DeveloperModeKey = booleanPreferencesKey("developerMode")
 val EnableSettingsPopupKey = booleanPreferencesKey("enableSettingsPopup")
+val HasStarredRepoKey = booleanPreferencesKey("hasStarredRepo")
 
 enum class SliderStyle {
     DEFAULT,
@@ -195,6 +197,9 @@ val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
+
+val AlwaysShowSkipNextKey = booleanPreferencesKey("alwaysShowSkipNext")
+val DisableScreenTimeoutKey = booleanPreferencesKey("disableScreenTimeout")
 
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
