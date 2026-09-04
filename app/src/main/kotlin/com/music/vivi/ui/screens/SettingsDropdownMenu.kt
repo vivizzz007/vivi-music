@@ -144,7 +144,7 @@ fun SettingsDropdownMenu(
             IconButton(
                 onClick = { 
                     onDismissRequest()
-                    onNavigate("changelog")
+                    onNavigate("settings/changelog")
                 }, 
                 modifier = iconButtonModifier,
                 colors = iconButtonColors,
