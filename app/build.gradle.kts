@@ -290,6 +290,8 @@ dependencies {
     implementation(project(":spotify"))
     implementation(project(":lyricsProvider"))
 
+    implementation(libs.innertubex)
+
 
 
 

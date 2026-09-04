@@ -184,6 +184,7 @@ import com.music.vivi.playback.queues.filterExplicit
 import com.music.vivi.playback.queues.filterVideoSongs
 import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
+import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.NetworkConnectivityObserver
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
@@ -1362,7 +1363,7 @@ class MusicService :
 
     private suspend fun recoverSong(
         mediaId: String,
-        playbackData: YTPlayerUtils.PlaybackData? = null
+        playbackData: InnerTubeXPlayer.PlaybackData? = null
     ) {
         val song = database.song(mediaId).first()
         val mediaMetadata = withContext(Dispatchers.Main) {
@@ -2692,13 +2693,7 @@ class MusicService :
             Timber.tag(TAG).e(e, "Failed to clear player cache for $mediaId")
         }
 
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-            Timber.tag(TAG).d("Cleared decryption caches for $mediaId")
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches for $mediaId")
-        }
+
     }
 
     /**
@@ -2899,12 +2894,7 @@ class MusicService :
         songUrlCache.remove(mediaId)
         Timber.tag(TAG).d("Cleared cached URL for $mediaId")
 
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
-        }
+
 
         retryJob?.cancel()
         retryJob = scope.launch {

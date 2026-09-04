@@ -1250,66 +1250,7 @@ object YouTube {
         innerTube.player(client, videoId, playlistId, signatureTimestamp, poToken).body<PlayerResponse>()
     }
 
-    /**
-     * Smart streaming client waterfall — mimics what Brave browser does automatically.
-     *
-     * Priority chain (no-login path):
-     *   1. TVHTML5_SIMPLY_EMBEDDED_PLAYER — embedded TV client, bypasses age-restriction, no PoToken needed
-     *   2. MWEB — mobile Chrome/Brave equivalent, trusted by YouTube without PoToken
-     *   3. ANDROID_VR_1_65_10 — non-adaptive bitrate, fixes audio stuttering, no PoToken
-     *   4. NewPipeExtractor — pure stream URL extraction as final fallback
-     *
-     * When logged in, WEB_REMIX is tried first (caller should pass it directly).
-     * A response is considered valid only when streamingData has at least one playable URL.
-     */
-    suspend fun playerWithFallback(
-        videoId: String,
-        playlistId: String? = null,
-        isLoggedIn: Boolean = false,
-    ): Result<PlayerResponse> = runCatching {
-        // Resolve signature timestamp once via NewPipe (used for clients that need it)
-        val sigTimestamp = NewPipeExtractor.getSignatureTimestamp(videoId).getOrNull()
 
-        // Helper: try a client and return the response if it has valid stream URLs
-        suspend fun tryClient(client: YouTubeClient): PlayerResponse? {
-            return runCatching {
-                val response = innerTube.player(
-                    client = client,
-                    videoId = videoId,
-                    playlistId = playlistId,
-                    signatureTimestamp = if (client.useSignatureTimestamp) sigTimestamp else null,
-                    poToken = null, // We explicitly avoid PoToken — browser spoof handles authentication
-                ).body<PlayerResponse>()
-                // Validate we actually got playable URLs
-                val hasStreams = response.streamingData?.adaptiveFormats?.any { it.url != null || it.signatureCipher != null } == true
-                            || response.streamingData?.formats?.any { it.url != null || it.signatureCipher != null } == true
-                if (hasStreams && response.playabilityStatus.status == "OK") response else null
-            }.getOrNull()
-        }
-
-        // Step 1: Logged-in path — use WEB_REMIX (best quality + personalised content)
-        if (isLoggedIn) {
-            tryClient(YouTubeClient.WEB_REMIX)?.let { return@runCatching it }
-        }
-
-        // Step 2: TVHTML5_SIMPLY_EMBEDDED_PLAYER — no PoToken, bypasses age-restriction
-        tryClient(YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER)?.let { return@runCatching it }
-
-        // Step 3: MWEB — mobile Chrome/Brave equivalent, no PoToken required
-        tryClient(YouTubeClient.MWEB)?.let { return@runCatching it }
-
-        // Step 4: ANDROID_VR_1_65_10 — solid fallback, no adaptive bitrate issues
-        tryClient(YouTubeClient.ANDROID_VR_1_65_10)?.let { return@runCatching it }
-
-        // Step 5: NewPipeExtractor full stream resolution
-        val baseResponse = tryClient(YouTubeClient.ANDROID_VR_1_43_32)
-            ?: tryClient(YouTubeClient.TVHTML5)
-            ?: innerTube.player(YouTubeClient.MWEB, videoId, playlistId, sigTimestamp, null).body<PlayerResponse>()
-
-        // Patch the stream URLs using NewPipe's decryption engine
-        newPipePlayer(videoId, baseResponse)
-            ?: throw Exception("All streaming clients failed for videoId=$videoId")
-    }
 
 
     suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {

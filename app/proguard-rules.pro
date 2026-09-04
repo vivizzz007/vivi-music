@@ -22,15 +22,8 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 2. Rhino JS Engine (YouTube signature/n-param deobfuscation)
 ##──────────────────────────────────────────────────────────────────────────────
--keep class org.mozilla.javascript.** { *; }
--keep class org.mozilla.javascript.engine.** { *; }
--dontwarn org.mozilla.javascript.**
--dontwarn org.mozilla.javascript.tools.**
--dontwarn org.mozilla.javascript.JavaToJSONConverters
--keep class javax.script.** { *; }
--dontwarn javax.script.**
--keep class jdk.dynalink.** { *; }
--dontwarn jdk.dynalink.**
+# (REMOVED: Now using WebView for deobfuscation)
+
 
 ##──────────────────────────────────────────────────────────────────────────────
 ## 3. Kotlin Serialization
@@ -292,3 +285,10 @@
 ##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.innertube.** { *; }
 -keepclassmembers class com.music.innertube.** { *; }
+
+##──────────────────────────────────────────────────────────────────────────────
+## 32. InnerTubeX Network Engine
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.metrolist.innertubex.** { *; }
+-keepclassmembers class com.metrolist.innertubex.** { *; }
+-dontwarn com.metrolist.innertubex.**

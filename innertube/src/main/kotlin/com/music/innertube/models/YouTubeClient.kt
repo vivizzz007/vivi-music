@@ -46,10 +46,8 @@ data class YouTubeClient(
     )
 
     companion object {
-        // Chrome/Brave user agent — YouTube trusts Chromium-based UA fingerprints
-        const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
-        const val USER_AGENT_MOBILE_WEB = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.7151.78 Mobile Safari/537.36"
-        const val SEC_CH_UA = "\"Chromium\";v=\"137\", \"Not/A)Brand\";v=\"24\""
+        const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
+        const val USER_AGENT_MOBILE_WEB = "Mozilla/5.0 (Android 14; Mobile; rv:140.0) Gecko/140.0 Firefox/140.0"
 
         const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"

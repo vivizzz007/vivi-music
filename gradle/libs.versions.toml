@@ -11,7 +11,7 @@ media3 = "1.7.1"
 mediarouter = "1.8.1"
 castFramework = "22.2.0"
 room = "2.8.4"
-hilt = "2.59.1"
+hilt = "2.60.1"
 ktor = "3.4.0"
 ksp = "2.3.6"
 jsoup = "1.22.1"
@@ -43,7 +43,7 @@ work = "2.10.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 rhino = "1.9.1"
-
+innertubex = "v0.2.6"
 
 [libraries]
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
@@ -137,7 +137,7 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
-
+innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
