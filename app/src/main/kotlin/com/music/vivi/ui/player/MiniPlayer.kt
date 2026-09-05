@@ -337,9 +337,13 @@ private fun NewMiniPlayer(
 
                                 if (shouldChangeSong) {
                                     if (currentOffset > 0 && canSkipPrevious) {
-                                        playerConnection.player.seekToPreviousMediaItem()
+                                        if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                                            playerConnection.player.seekToPreviousMediaItem()
+                                        }
                                     } else if (currentOffset <= 0 && canSkipNext) {
-                                        playerConnection.player.seekToNext()
+                                        if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                                            playerConnection.player.seekToNext()
+                                        }
                                     }
                                 }
                                 coroutineScope.launch {
@@ -726,9 +730,13 @@ private fun LegacyMiniPlayer(
 
                                 if (shouldChangeSong) {
                                     if (currentOffset > 0 && canSkipPrevious) {
-                                        playerConnection.player.seekToPreviousMediaItem()
+                                        if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                                            playerConnection.player.seekToPreviousMediaItem()
+                                        }
                                     } else if (currentOffset <= 0 && canSkipNext) {
-                                        playerConnection.player.seekToNext()
+                                        if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                                            playerConnection.player.seekToNext()
+                                        }
                                     }
                                 }
                                 coroutineScope.launch { offsetXAnimatable.animateTo(0f, animationSpec) }

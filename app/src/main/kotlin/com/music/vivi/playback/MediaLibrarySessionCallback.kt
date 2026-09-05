@@ -14,6 +14,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.session.LibraryResult
@@ -107,6 +108,46 @@ constructor(
             MediaSessionConstants.ACTION_TOGGLE_REPEAT_MODE -> session.player.toggleRepeatMode()
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+    }
+
+    /**
+     * Intercepts skip commands coming from *external* controllers — the media
+     * notification, Bluetooth/headset buttons, Android Auto, wearables, etc.
+     * (In-app UI calls the service's player directly and is handled instead
+     * by [PlayerConnection.seekToNext]/[PlayerConnection.seekToPrevious].)
+     *
+     * Note: this callback is marked deprecated upstream in favor of
+     * [MediaSession.setAvailableCommands] + [MediaSession.getControllerForCurrentRequest],
+     * but it's still the simplest way to intercept-and-replace a specific
+     * player command's handling and remains functional as of media3 1.7.1.
+     *
+     * When crossfade-on-manual-skip is enabled we perform the crossfaded
+     * transition ourselves and return [SessionResult.RESULT_INFO_SKIPPED] so
+     * the session reports the command as handled without *also* running its
+     * normal instant seek. Otherwise we defer to the default behavior.
+     */
+    override fun onPlayerCommandRequest(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        playerCommand: Int,
+    ): Int {
+        if (!::service.isInitialized) {
+            return super.onPlayerCommandRequest(session, controller, playerCommand)
+        }
+
+        val handledWithCrossfade = when (playerCommand) {
+            Player.COMMAND_SEEK_TO_NEXT, Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM ->
+                service.manualSkipToNextWithCrossfade()
+            Player.COMMAND_SEEK_TO_PREVIOUS, Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM ->
+                service.manualSkipToPreviousWithCrossfade()
+            else -> false
+        }
+
+        return if (handledWithCrossfade) {
+            SessionResult.RESULT_INFO_SKIPPED
+        } else {
+            super.onPlayerCommandRequest(session, controller, playerCommand)
+        }
     }
 
     @Deprecated("Deprecated in MediaLibrarySession.Callback")

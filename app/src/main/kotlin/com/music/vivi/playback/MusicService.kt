@@ -88,6 +88,7 @@ import com.music.vivi.constants.AutoSkipNextOnErrorKey
 import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeGaplessKey
+import com.music.vivi.constants.CrossfadeManualSkipKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import android.os.Handler
 import android.os.Looper
@@ -271,7 +272,27 @@ class MusicService :
     private var crossfadeEnabled = false
     private var crossfadeDuration = 5000f
     private var crossfadeGapless = true
+    private var crossfadeManualSkipEnabled = false
     private var crossfadeTriggerJob: Job? = null
+
+    /** Holds the combined crossfade-related settings emitted from DataStore. */
+    private data class CrossfadeSettings(
+        val enabled: Boolean,
+        val durationSeconds: Float,
+        val gapless: Boolean,
+        val manualSkip: Boolean,
+    )
+
+    /**
+     * Distinguishes *why* a crossfade transition is starting so [startCrossfade]
+     * knows which media item to target (natural end-of-track vs. a manual
+     * next/previous press).
+     */
+    private enum class CrossfadeTrigger {
+        AUTO,
+        MANUAL_NEXT,
+        MANUAL_PREVIOUS,
+    }
 
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -515,6 +536,7 @@ class MusicService :
         setupAudioFocusRequest()
 
         mediaLibrarySessionCallback.apply {
+            service = this@MusicService
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
@@ -946,22 +968,24 @@ class MusicService :
 
         combine(
             dataStore.data.map { prefs ->
-                Triple(
-                    prefs[CrossfadeEnabledKey] ?: false,
-                    prefs[CrossfadeDurationKey] ?: 5f,
-                    prefs[CrossfadeGaplessKey] ?: true
+                CrossfadeSettings(
+                    enabled = prefs[CrossfadeEnabledKey] ?: false,
+                    durationSeconds = prefs[CrossfadeDurationKey] ?: 5f,
+                    gapless = prefs[CrossfadeGaplessKey] ?: true,
+                    manualSkip = prefs[CrossfadeManualSkipKey] ?: false,
                 )
             },
             listenTogetherManager.roomState
-        ) { (enabled, duration, gapless), roomState ->
+        ) { settings, roomState ->
             // Disable crossfade if user is in a listen together room
-            Triple(enabled && roomState == null, duration, gapless)
+            settings.copy(enabled = settings.enabled && roomState == null)
         }
             .distinctUntilChanged()
-            .collect(scope) { (enabled, duration, gapless) ->
-                crossfadeEnabled = enabled
-                crossfadeDuration = duration * 1000f // Convert to ms
-                crossfadeGapless = gapless
+            .collect(scope) { settings ->
+                crossfadeEnabled = settings.enabled
+                crossfadeDuration = settings.durationSeconds * 1000f // Convert to ms
+                crossfadeGapless = settings.gapless
+                crossfadeManualSkipEnabled = settings.manualSkip
             }
 
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -3267,11 +3291,15 @@ class MusicService :
                 toggleLike()
             }
             MusicWidgetReceiver.ACTION_NEXT -> {
-                player.seekToNext()
+                if (!manualSkipToNextWithCrossfade()) {
+                    player.seekToNext()
+                }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_PREVIOUS -> {
-                player.seekToPrevious()
+                if (!manualSkipToPreviousWithCrossfade()) {
+                    player.seekToPrevious()
+                }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_UPDATE_WIDGET -> {
@@ -3418,7 +3446,7 @@ class MusicService :
         return current.albumTitle != null && current.albumTitle == next.albumTitle
     }
 
-    private fun startCrossfade() {
+    private fun startCrossfade(trigger: CrossfadeTrigger = CrossfadeTrigger.AUTO) {
         if (isCrossfading) return
 
         // Preserve player state before creating the secondary player
@@ -3426,11 +3454,16 @@ class MusicService :
         val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
         val savedShuffleEnabled = runBlocking { dataStore.get(ShuffleModeKey, false) }
 
-        // For repeat-one, crossfade back into the same track
-        val targetIndex = if (savedRepeatMode == REPEAT_MODE_ONE) {
-            player.currentMediaItemIndex
-        } else {
-            player.nextMediaItemIndex
+        val targetIndex = when {
+            // Manual "previous" skip: crossfade back into the previous track.
+            trigger == CrossfadeTrigger.MANUAL_PREVIOUS -> {
+                if (!player.hasPreviousMediaItem()) return
+                player.previousMediaItemIndex
+            }
+            // For repeat-one at the natural end of the track, crossfade back into the same track.
+            trigger == CrossfadeTrigger.AUTO && savedRepeatMode == REPEAT_MODE_ONE -> player.currentMediaItemIndex
+            // Natural end-of-track advance, or a manual "next" skip.
+            else -> player.nextMediaItemIndex
         }
         if (targetIndex == C.INDEX_UNSET) return
 
@@ -3464,6 +3497,53 @@ class MusicService :
             val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
             applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
         }
+    }
+
+    /**
+     * Attempts a crossfaded manual skip to the next track, in response to the
+     * user pressing "next" (in-app button/gesture, notification, widget,
+     * Bluetooth/headset button, Android Auto, etc.) rather than the track
+     * ending naturally.
+     *
+     * Returns `true` if the crossfade transition was started, meaning the
+     * caller should NOT also perform an instant [Player.seekToNext]. Returns
+     * `false` when crossfade (or crossfade-on-manual-skip) is disabled, when
+     * a crossfade is already in progress, or when there is no next item to
+     * crossfade into — in which case the caller should fall back to its
+     * normal instant-skip behavior.
+     */
+    fun manualSkipToNextWithCrossfade(): Boolean {
+        if (!crossfadeEnabled || !crossfadeManualSkipEnabled) return false
+        if (isCrossfading) return false
+        if (castConnectionHandler?.isCasting?.value == true) return false
+        if (!player.hasNextMediaItem()) return false
+        if (player.duration == C.TIME_UNSET) return false
+        if (crossfadeGapless && isNextItemGapless()) return false
+
+        crossfadeTriggerJob?.cancel()
+        crossfadeTriggerJob = null
+        startCrossfade(CrossfadeTrigger.MANUAL_NEXT)
+        return isCrossfading
+    }
+
+    /**
+     * Attempts a crossfaded manual skip to the previous track. Same contract
+     * as [manualSkipToNextWithCrossfade], but for the "previous" direction.
+     * Callers that implement a "restart the current song if we're more than
+     * a few seconds in" behavior should only call this from the branch that
+     * actually moves to the previous track, not the restart branch.
+     */
+    fun manualSkipToPreviousWithCrossfade(): Boolean {
+        if (!crossfadeEnabled || !crossfadeManualSkipEnabled) return false
+        if (isCrossfading) return false
+        if (castConnectionHandler?.isCasting?.value == true) return false
+        if (!player.hasPreviousMediaItem()) return false
+        if (player.duration == C.TIME_UNSET) return false
+
+        crossfadeTriggerJob?.cancel()
+        crossfadeTriggerJob = null
+        startCrossfade(CrossfadeTrigger.MANUAL_PREVIOUS)
+        return isCrossfading
     }
 
     private fun performCrossfadeSwap() {

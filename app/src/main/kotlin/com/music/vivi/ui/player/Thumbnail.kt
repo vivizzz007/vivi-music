@@ -352,9 +352,13 @@ fun Thumbnail(
         if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0 || currentMediaIndex < 0) return@LaunchedEffect
 
         if (currentItem > currentMediaIndex && canSkipNext) {
-            playerConnection.player.seekToNext()
+            if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                playerConnection.player.seekToNext()
+            }
         } else if (currentItem < currentMediaIndex && canSkipPrevious) {
-            playerConnection.player.seekToPreviousMediaItem()
+            if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                playerConnection.player.seekToPreviousMediaItem()
+            }
         }
     }
 
