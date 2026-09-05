@@ -201,7 +201,7 @@ class WelcomeActivity : ComponentActivity() {
 @OptIn(ExperimentalTextApi::class)
 val GoogleSansFlex = FontFamily(
     Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Normal,
         style = FontStyle.Normal,
         variationSettings = FontVariation.Settings(
@@ -241,7 +241,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
 
     val customWelcomeFontFamily = FontFamily(
         Font(
-            resId = com.music.vivi.R.font.sans_flex,
+            resId = com.music.vivi.R.font.plus_jakarta_sans,
             variationSettings = FontVariation.Settings(
                 FontVariation.slant(-9f),
                 FontVariation.width(111f),

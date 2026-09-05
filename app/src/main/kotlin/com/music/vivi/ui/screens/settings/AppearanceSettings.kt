@@ -1142,6 +1142,7 @@ fun AppearanceSettings(
                                 AppFont.SANS_FLEX -> stringResource(R.string.font_sans_flex)
                                 AppFont.OUTFIT -> stringResource(R.string.font_outfit)
                                 AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
+                                AppFont.CUSTOM -> stringResource(R.string.font_custom)
                             }
                             Text(fontLabel)
                         },

@@ -1028,6 +1028,10 @@
     <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
     <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
     <string name="font_plus_jakarta_sans_desc">A premium warm geometric sans-serif typeface.</string>
+    <string name="font_custom">Custom Font</string>
+    <string name="font_custom_desc">Use your own .ttf or .otf file.</string>
+    <string name="import_custom_font">Import Font</string>
+    <string name="error_invalid_font">Invalid font file selected.</string>
 
     <!-- YouTube Decryption / Cipher Settings -->
     <string name="youtube_decryption_settings">Vivi-Extractor</string>
