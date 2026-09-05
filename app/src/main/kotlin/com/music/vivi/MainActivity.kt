@@ -74,10 +74,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import com.music.vivi.ui.component.snackbar.SnackbarManager
 import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Coffee
-import androidx.compose.material.icons.rounded.Payments
-import androidx.compose.material.icons.rounded.QrCode
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable

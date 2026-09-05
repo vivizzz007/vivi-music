@@ -182,30 +182,12 @@
 }
 
 ##──────────────────────────────────────────────────────────────────────────────
-## 17. Haze (blur library) — was MISSING
+## 17. Kuromoji IPADIC Dictionary Protection
 ##──────────────────────────────────────────────────────────────────────────────
--keep class dev.chrisbanes.haze.** { *; }
--keepclassmembers class dev.chrisbanes.haze.** { *; }
--dontwarn dev.chrisbanes.haze.**
+-keep class com.atilika.kuromoji.** { *; }
 
 ##──────────────────────────────────────────────────────────────────────────────
-## 18. Coil 3 — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class io.coil3.** { *; }
--keepclassmembers class io.coil3.** { *; }
--dontwarn io.coil3.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 19. Media3 / ExoPlayer — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class androidx.media3.** { *; }
--keepclassmembers class androidx.media3.** { *; }
--dontwarn androidx.media3.**
--keep class androidx.media3.exoplayer.** { *; }
--keep interface androidx.media3.exoplayer.** { *; }
-
-##──────────────────────────────────────────────────────────────────────────────
-## 20. Room — was MISSING
+## 18. Room Entities & DAOs
 ##──────────────────────────────────────────────────────────────────────────────
 -keep class * extends androidx.room.RoomDatabase { *; }
 -keep @androidx.room.Dao interface * { *; }
@@ -214,88 +196,13 @@
 -dontwarn androidx.room.**
 
 ##──────────────────────────────────────────────────────────────────────────────
-## 21. Hilt / Dagger — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class dagger.hilt.** { *; }
--keep class * extends dagger.hilt.android.internal.managers.ActivityComponentManager { *; }
--keepclasseswithmembers class * {
-    @dagger.hilt.android.AndroidEntryPoint *;
-}
--keepclasseswithmembers class * {
-    @javax.inject.Inject *;
-}
--dontwarn dagger.**
--dontwarn javax.inject.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 22. Protobuf — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class com.google.protobuf.** { *; }
--keepclassmembers class * extends com.google.protobuf.GeneratedMessageLite {
-    <fields>;
-}
--dontwarn com.google.protobuf.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 23. Lottie — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class com.airbnb.lottie.** { *; }
--dontwarn com.airbnb.lottie.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 24. MaterialKolor — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class com.materialkolor.** { *; }
--dontwarn com.materialkolor.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 25. AndroidX DataStore — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class androidx.datastore.** { *; }
--dontwarn androidx.datastore.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 26. WorkManager — was MISSING
-##──────────────────────────────────────────────────────────────────────────────
--keep class * extends androidx.work.Worker { *; }
--keep class * extends androidx.work.CoroutineWorker { *; }
--keep class * extends androidx.work.ListenableWorker {
-    public <init>(android.content.Context, androidx.work.WorkerParameters);
-}
--dontwarn androidx.work.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 27. Reorderable (Compose drag-and-drop)
-##──────────────────────────────────────────────────────────────────────────────
--keep class sh.calvin.reorderable.** { *; }
--dontwarn sh.calvin.reorderable.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 28. Palette
-##──────────────────────────────────────────────────────────────────────────────
--keep class androidx.palette.** { *; }
--dontwarn androidx.palette.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 29. Shimmer
-##──────────────────────────────────────────────────────────────────────────────
--keep class com.valentinilk.shimmer.** { *; }
--dontwarn com.valentinilk.shimmer.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 30. Smooth Corner Rect
-##──────────────────────────────────────────────────────────────────────────────
--keep class com.github.racra.** { *; }
--dontwarn com.github.racra.**
-
-##──────────────────────────────────────────────────────────────────────────────
-## 31. InnerTube module (music API models)
+## 19. InnerTube module (music API models)
 ##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.innertube.** { *; }
 -keepclassmembers class com.music.innertube.** { *; }
 
 ##──────────────────────────────────────────────────────────────────────────────
-## 32. InnerTubeX Network Engine
+## 20. InnerTubeX Network Engine
 ##──────────────────────────────────────────────────────────────────────────────
 -keep class com.metrolist.innertubex.** { *; }
 -keepclassmembers class com.metrolist.innertubex.** { *; }

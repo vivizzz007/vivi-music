@@ -24,8 +24,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -119,7 +117,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    imageVector = if (isStarred) Icons.Rounded.Star else Icons.Rounded.StarBorder, 
+                    painter = painterResource(if (isStarred) R.drawable.star else R.drawable.star_border), 
                     contentDescription = "Star Repo",
                     tint = if (isStarred) Color(0xFFFFD700) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -136,7 +134,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    imageVector = if (isUpdateAvailable) Icons.Rounded.NewReleases else Icons.Rounded.SystemUpdate, 
+                    painter = painterResource(if (isUpdateAvailable) R.drawable.new_releases else R.drawable.update), 
                     contentDescription = "Update",
                     tint = if (isUpdateAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -151,7 +149,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.History, 
+                    painter = painterResource(R.drawable.history), 
                     contentDescription = "History",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

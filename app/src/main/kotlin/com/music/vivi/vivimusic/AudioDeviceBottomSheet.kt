@@ -71,25 +71,6 @@ import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Battery1Bar
-import androidx.compose.material.icons.filled.Battery2Bar
-import androidx.compose.material.icons.filled.Battery4Bar
-import androidx.compose.material.icons.filled.Battery6Bar
-import androidx.compose.material.icons.filled.BatteryFull
-import androidx.compose.material.icons.filled.Bluetooth
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Speaker
-import androidx.compose.material.icons.filled.Tv
-import androidx.compose.material.icons.filled.Usb
-import androidx.compose.material.icons.filled.VolumeOff
-import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.outlined.Error
-import androidx.compose.material.icons.rounded.Lock
-import androidx.compose.material.icons.rounded.LockOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -122,7 +103,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -147,6 +127,8 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.utils.rememberEnumPreference
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import androidx.annotation.DrawableRes
+import androidx.compose.ui.res.painterResource
 
 data class AudioDevice(
     val name: String,
@@ -353,7 +335,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = Icons.Outlined.Error,
+                            painter = painterResource(R.drawable.error),
                             contentDescription = null,
                             modifier = Modifier.size(48.dp),
                             tint = MaterialTheme.colorScheme.error
@@ -408,7 +390,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                     val onContainer = if (isActiveDevice) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                                     val scallopShape = RoundedStarShape(sides = 8, curve = 0.10, rotation = 0f)
                                     val backgroundScale by animateFloatAsState(targetValue = if (isActiveDevice) 1.10f else 1f, animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing), label = "activeDeviceScale")
-                                    val deviceIcon = when (device.type) { AudioDeviceType.BLUETOOTH -> Icons.Filled.Bluetooth; AudioDeviceType.WIRED_HEADPHONES -> Icons.Filled.Headphones; AudioDeviceType.USB_HEADSET -> Icons.Filled.Usb; AudioDeviceType.HDMI -> Icons.Filled.Tv; AudioDeviceType.EXTERNAL_SPEAKER -> Icons.Filled.Speaker; else -> Icons.Filled.Speaker }
+                                    @DrawableRes val deviceIconRes = when (device.type) { AudioDeviceType.BLUETOOTH -> R.drawable.bluetooth; AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headset_applemusic; AudioDeviceType.USB_HEADSET -> R.drawable.usb; AudioDeviceType.HDMI -> R.drawable.tv; AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple; else -> R.drawable.speaker_apple }
 
                                     Surface(modifier = Modifier.weight(1f), color = Color.Transparent, tonalElevation = 0.dp) {
                                         Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -424,12 +406,12 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                     CircularWavyProgressIndicator(progress = { device.batteryLevel.toFloat() / 100f }, modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.primaryContainer, stroke = wavyStroke, trackStroke = wavyStroke, gapSize = 3.dp)
                                                     Text(text = "${device.batteryLevel}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
                                                 } else {
-                                                    Icon(imageVector = deviceIcon, contentDescription = null, tint = onContainer, modifier = Modifier.size(24.dp))
+                                                    Icon(painter = painterResource(deviceIconRes), contentDescription = null, tint = onContainer, modifier = Modifier.size(24.dp))
                                                 }
                                             }
                                             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    if (device.type == AudioDeviceType.BLUETOOTH) { Icon(imageVector = Icons.Filled.Bluetooth, contentDescription = null, tint = onContainer.copy(alpha = 0.7f), modifier = Modifier.padding(end = 6.dp).size(16.dp)) }
+                                                    if (device.type == AudioDeviceType.BLUETOOTH) { Icon(painter = painterResource(R.drawable.bluetooth), contentDescription = null, tint = onContainer.copy(alpha = 0.7f), modifier = Modifier.padding(end = 6.dp).size(16.dp)) }
                                                     Text(text = device.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = onContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                                 }
                                                 Spacer(modifier = Modifier.height(4.dp))
@@ -461,7 +443,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                 modifier = Modifier.size(48.dp)
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.ExpandMore,
+                                                    painter = painterResource(R.drawable.expand_more),
                                                     contentDescription = null,
                                                     modifier = Modifier
                                                         .size(28.dp)
@@ -492,14 +474,14 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                 val availableDevices = audioDevices.filter { !it.isActive }
                                 availableDevices.forEach { dev ->
                                     key(dev.deviceId) {
-                                        val deviceIcon = when (dev.type) {
-                                            AudioDeviceType.BLUETOOTH -> Icons.Filled.Bluetooth
-                                            AudioDeviceType.WIRED_HEADPHONES -> Icons.Filled.Headphones
-                                            AudioDeviceType.USB_HEADSET -> Icons.Filled.Usb
-                                            AudioDeviceType.HDMI -> Icons.Filled.Tv
-                                            AudioDeviceType.EXTERNAL_SPEAKER -> Icons.Filled.Speaker
-                                            AudioDeviceType.PHONE_SPEAKER -> Icons.Filled.PhoneAndroid
-                                            else -> Icons.Filled.Speaker
+                                        @DrawableRes val deviceIconRes = when (dev.type) {
+                                            AudioDeviceType.BLUETOOTH -> R.drawable.bluetooth
+                                            AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headset_applemusic
+                                            AudioDeviceType.USB_HEADSET -> R.drawable.usb
+                                            AudioDeviceType.HDMI -> R.drawable.tv
+                                            AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple
+                                            AudioDeviceType.PHONE_SPEAKER -> R.drawable.phone_android
+                                            else -> R.drawable.speaker_apple
                                         }
 
                                         Surface(
@@ -520,7 +502,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                 horizontalArrangement = Arrangement.spacedBy(14.dp)
                                             ) {
                                                 Icon(
-                                                    imageVector = deviceIcon,
+                                                    painter = painterResource(deviceIconRes),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(24.dp),
                                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -553,7 +535,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
                                 Icon(
-                                    imageVector = if (volumeSliderValue > 0) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                                    painter = painterResource(if (volumeSliderValue > 0) R.drawable.volume_up else R.drawable.volume_off),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.padding(start = 12.dp).size(24.dp)
