@@ -63,6 +63,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -452,7 +453,7 @@ fun DailyDiscoverCard(
     Card(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -471,14 +472,24 @@ fun DailyDiscoverCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            var currentThumbnailUrl by remember(dailyDiscover.recommendation.thumbnail) {
+                mutableStateOf(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+            }
+            
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+                    .data(currentThumbnailUrl)
                     .crossfade(true)
                     .build(),
+                onError = {
+                    val url = currentThumbnailUrl
+                    if (url != null && url.contains("maxresdefault.jpg")) {
+                        currentThumbnailUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                    }
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -1525,18 +1536,18 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(200.dp)
-                                            .padding(horizontal = 16.dp),
+                                            .height(230.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         val carouselState = rememberCarouselState { discoverList.size }
-                                        HorizontalMultiBrowseCarousel(
+                                        HorizontalUncontainedCarousel(
                                             state = carouselState,
-                                            preferredItemWidth = 320.dp,
-                                            itemSpacing = 16.dp,
+                                            itemWidth = 320.dp,
+                                            itemSpacing = 8.dp,
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(180.dp)
+                                                .height(210.dp)
                                         ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(
@@ -1554,7 +1565,7 @@ fun HomeScreen(
                                                     }
                                                 },
                                                 navController = navController,
-                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.large)
                                             )
                                         }
                                     }
