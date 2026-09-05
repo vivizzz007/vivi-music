@@ -63,30 +63,45 @@ class GitHubService @Inject constructor() {
     }
 
     suspend fun isRepoStarred(token: String, owner: String = "vivizzz007", repo: String = "vivi-music"): Boolean {
-        val response: HttpResponse = client.get("https://api.github.com/user/starred/$owner/$repo") {
-            header("Authorization", "Bearer $token")
-            header("Accept", "application/vnd.github+json")
-            header("X-GitHub-Api-Version", "2022-11-28")
+        return try {
+            val response: HttpResponse = client.get("https://api.github.com/user/starred/$owner/$repo") {
+                header("Authorization", "Bearer $token")
+                header("Accept", "application/vnd.github+json")
+                header("X-GitHub-Api-Version", "2022-11-28")
+            }
+            response.status == HttpStatusCode.NoContent
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
-        return response.status == HttpStatusCode.NoContent
     }
 
     suspend fun starRepo(token: String, owner: String = "vivizzz007", repo: String = "vivi-music"): Boolean {
-        val response = client.put("https://api.github.com/user/starred/$owner/$repo") {
-            header("Authorization", "Bearer $token")
-            header("Accept", "application/vnd.github+json")
-            header("X-GitHub-Api-Version", "2022-11-28")
+        return try {
+            val response = client.put("https://api.github.com/user/starred/$owner/$repo") {
+                header("Authorization", "Bearer $token")
+                header("Accept", "application/vnd.github+json")
+                header("X-GitHub-Api-Version", "2022-11-28")
+            }
+            response.status == HttpStatusCode.NoContent
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
-        return response.status == HttpStatusCode.NoContent
     }
     
     suspend fun unstarRepo(token: String, owner: String = "vivizzz007", repo: String = "vivi-music"): Boolean {
-        val response = client.delete("https://api.github.com/user/starred/$owner/$repo") {
-            header("Authorization", "Bearer $token")
-            header("Accept", "application/vnd.github+json")
-            header("X-GitHub-Api-Version", "2022-11-28")
+        return try {
+            val response = client.delete("https://api.github.com/user/starred/$owner/$repo") {
+                header("Authorization", "Bearer $token")
+                header("Accept", "application/vnd.github+json")
+                header("X-GitHub-Api-Version", "2022-11-28")
+            }
+            response.status == HttpStatusCode.NoContent
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
-        return response.status == HttpStatusCode.NoContent
     }
 
     suspend fun getRepoDetails(): GitHubRepoDto? {

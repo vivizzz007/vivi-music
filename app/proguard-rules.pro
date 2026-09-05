@@ -191,3 +191,8 @@
 -keep class com.metrolist.innertubex.** { *; }
 -keepclassmembers class com.metrolist.innertubex.** { *; }
 -dontwarn com.metrolist.innertubex.**
+
+##──────────────────────────────────────────────────────────────────────────────
+## 21. Rhino / Java Scripting API
+##──────────────────────────────────────────────────────────────────────────────
+-dontwarn javax.script.**

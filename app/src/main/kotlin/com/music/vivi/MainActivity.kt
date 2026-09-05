@@ -551,12 +551,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val gitHubViewModel: GitHubViewModel = hiltViewModel()
+        val isStarred by gitHubViewModel.isStarred.collectAsState()
+        val showThankYouDialog by gitHubViewModel.showThankYouDialog.collectAsState()
+
+        LaunchedEffect(Unit) {
+            gitHubViewModel.checkStarStatus(this@MainActivity)
+        }
+
         vivimusicTheme(
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
-            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo) {
+            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
                 ActionPromptDialog(
                     title = "Support ViviMusic \u2B50",
                     onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
@@ -589,9 +597,6 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
-
-            val gitHubViewModel: GitHubViewModel = hiltViewModel()
-            val showThankYouDialog by gitHubViewModel.showThankYouDialog.collectAsState()
 
             if (showThankYouDialog) {
                 ActionPromptDialog(
