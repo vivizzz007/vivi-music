@@ -286,7 +286,8 @@ fun PlayerV2(
             PlayerBackgroundStyle.GRADIENT,
             PlayerBackgroundStyle.GLOW_ANIMATED,
             PlayerBackgroundStyle.APPLE_MUSIC,
-            PlayerBackgroundStyle.LIVE_MESH -> Color.White
+            PlayerBackgroundStyle.LIVE_MESH,
+            PlayerBackgroundStyle.AMBIENT_FADE -> Color.White
         },
         label = "adaptivePrimary"
     )
@@ -297,7 +298,8 @@ fun PlayerV2(
             PlayerBackgroundStyle.GRADIENT,
             PlayerBackgroundStyle.GLOW_ANIMATED,
             PlayerBackgroundStyle.APPLE_MUSIC,
-            PlayerBackgroundStyle.LIVE_MESH -> Color.White.copy(alpha = 0.7f)
+            PlayerBackgroundStyle.LIVE_MESH,
+            PlayerBackgroundStyle.AMBIENT_FADE -> Color.White.copy(alpha = 0.7f)
         },
         label = "adaptiveSecondary"
     )
@@ -308,7 +310,8 @@ fun PlayerV2(
             PlayerBackgroundStyle.GRADIENT,
             PlayerBackgroundStyle.GLOW_ANIMATED,
             PlayerBackgroundStyle.APPLE_MUSIC,
-            PlayerBackgroundStyle.LIVE_MESH -> Color.White.copy(alpha = 0.2f)
+            PlayerBackgroundStyle.LIVE_MESH,
+            PlayerBackgroundStyle.AMBIENT_FADE -> Color.White.copy(alpha = 0.2f)
         },
         label = "adaptiveSurface"
     )

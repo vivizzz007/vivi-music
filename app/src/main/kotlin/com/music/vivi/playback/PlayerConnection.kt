@@ -407,11 +407,16 @@ class PlayerConnection(
                 castHandler.skipToNext()
                 return
             }
-            player.seekToNext()
-            if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                player.prepare()
+            // Try a crossfaded manual skip first (only engages if the user
+            // enabled "Crossfade on manual skip"); fall back to an instant
+            // seek otherwise.
+            if (!service.manualSkipToNextWithCrossfade()) {
+                player.seekToNext()
+                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
+                    player.prepare()
+                }
+                player.playWhenReady = true
             }
-            player.playWhenReady = true
             onSkipNext?.invoke()
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in seekToNext")
@@ -444,12 +449,15 @@ class PlayerConnection(
                 player.playWhenReady = true
                 onRestartSong?.invoke()
             } else {
-                // Otherwise go to previous media item
-                player.seekToPreviousMediaItem()
-                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                    player.prepare()
+                // Otherwise go to previous media item — try a crossfaded
+                // manual skip first, falling back to an instant seek.
+                if (!service.manualSkipToPreviousWithCrossfade()) {
+                    player.seekToPreviousMediaItem()
+                    if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
+                        player.prepare()
+                    }
+                    player.playWhenReady = true
                 }
-                player.playWhenReady = true
                 onSkipPrevious?.invoke()
             }
         } catch (e: Exception) {

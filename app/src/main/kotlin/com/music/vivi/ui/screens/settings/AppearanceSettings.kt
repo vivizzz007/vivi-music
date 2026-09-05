@@ -112,6 +112,7 @@ import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.UseExpressiveAlbumDesignKey
+import com.music.vivi.constants.FollowColorThemeKey
 import com.music.vivi.constants.ExpressiveSongAlbumImageKey
 import com.music.vivi.ui.component.ThumbnailCornerRadiusModal
 import com.music.vivi.ui.component.DefaultDialog
@@ -267,6 +268,10 @@ fun AppearanceSettings(
             MiniPlayerBackgroundStyleKey,
             defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
+    val (followColorTheme, onFollowColorThemeChange) = rememberPreference(
+        FollowColorThemeKey,
+        defaultValue = false
+    )
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -728,6 +733,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.AMBIENT_FADE -> stringResource(R.string.ambient_fade)
                 }
             }
         )
@@ -750,6 +756,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                    PlayerBackgroundStyle.AMBIENT_FADE -> stringResource(R.string.ambient_fade)
                     else -> ""
                 }
             }
@@ -1280,6 +1287,7 @@ fun AppearanceSettings(
                                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.player_background_blur)
                                     PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                     PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                                    PlayerBackgroundStyle.AMBIENT_FADE -> stringResource(R.string.ambient_fade)
                                     else -> stringResource(R.string.follow_theme)
                                 }
                             )
@@ -1329,11 +1337,35 @@ fun AppearanceSettings(
                                 PlayerBackgroundStyle.GLOW_ANIMATED -> stringResource(R.string.glow_animated)
                                 PlayerBackgroundStyle.APPLE_MUSIC -> stringResource(R.string.apple_music)
                                 PlayerBackgroundStyle.LIVE_MESH -> stringResource(R.string.live_mesh)
+                                PlayerBackgroundStyle.AMBIENT_FADE -> stringResource(R.string.ambient_fade)
                             }
                         )
                     },
                     onClick = { showPlayerBackgroundDialog = true }
                 ),
+                if (playerBackground == PlayerBackgroundStyle.AMBIENT_FADE) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.palette),
+                        title = { Text(stringResource(R.string.follow_color_theme)) },
+                        description = { Text(stringResource(R.string.follow_color_theme_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = followColorTheme,
+                                onCheckedChange = onFollowColorThemeChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (followColorTheme) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onFollowColorThemeChange(!followColorTheme) }
+                    )
+                } else null,
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
