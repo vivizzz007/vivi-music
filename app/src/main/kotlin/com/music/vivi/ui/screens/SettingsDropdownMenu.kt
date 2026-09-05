@@ -134,7 +134,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    painter = painterResource(if (isUpdateAvailable) R.drawable.new_releases else R.drawable.update), 
+                    painter = painterResource(if (isUpdateAvailable) R.drawable.update_alert else R.drawable.system_update_uptodate),
                     contentDescription = "Update",
                     tint = if (isUpdateAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -149,7 +149,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.history), 
+                    painter = painterResource(R.drawable.changelog_paper),
                     contentDescription = "History",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -170,7 +170,7 @@ fun SettingsDropdownMenu(
                 shapes = IconButtonDefaults.shapes()
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.share_newicons), 
+                    painter = painterResource(id = R.drawable.share_hotspot),
                     contentDescription = "Share App",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
