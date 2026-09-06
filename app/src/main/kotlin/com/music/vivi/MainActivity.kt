@@ -161,6 +161,8 @@ import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.getUpdateAvailableState
 import com.music.vivi.vivimusic.updater.shouldRunNightlyCheck
 import com.music.vivi.vivimusic.updater.markNightlyCheckDone
+import com.music.vivi.vivimusic.updater.getUpdateOrigin
+import com.music.vivi.vivimusic.updater.saveUpdateOrigin
 import com.music.vivi.vivimusic.UpdateNotificationHelper
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
@@ -397,7 +399,8 @@ class MainActivity : ComponentActivity() {
         LaunchedEffect(Unit) {
             SnackbarManager.events.collectLatest { event ->
                 snackbarHostState.currentSnackbarData?.dismiss()
-                val messageStr = context.getString(event.messageResource)
+                val baseMessage = context.getString(event.messageResource)
+                val messageStr = if (event.messageArgs != null) "$baseMessage (${event.messageArgs})" else baseMessage
                 val actionLabelStr = event.actionLabel?.let { context.getString(it) }
                 val result = snackbarHostState.showSnackbar(
                     message = messageStr,
@@ -427,14 +430,15 @@ class MainActivity : ComponentActivity() {
                 delay(2000L)
                 checkForUpdate(
                     context = context,
-                    onSuccess = { latestVersion, isAvailable, _, _, _, _, _, _ ->
+                    onSuccess = { latestVersion, isAvailable, _, _, _, _, _, _, origin ->
                         val currentVersion = BuildConfig.VERSION_NAME
-                        Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
+                        Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable, origin: $origin")
                         saveUpdateAvailableState(context, isAvailable)
+                        if (origin != null) saveUpdateOrigin(context, origin)
 
                         if (isAvailable && getUpdateNotificationsSetting(context)) {
                             Log.d("UpdateCheck", "Posting update notification for $latestVersion")
-                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
+                            UpdateNotificationHelper.showUpdateNotification(context, latestVersion, origin)
                         }
 
                         // Stamp today so no more nightly checks until tomorrow 9 PM
@@ -803,21 +807,14 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(isUpdateAvailable.value) {
                     if (isUpdateAvailable.value && getUpdateNotificationsSetting(context)) {
                         delay(200) // Ensure Snackbar collector is ready before emitting
+                        val origin = getUpdateOrigin(context)
                         SnackbarManager.show(
                             messageResource = R.string.new_version_found,
                             actionLabel = R.string.action_view_update,
+                            messageArgs = origin,
                             duration = SnackbarDuration.Indefinite,
                             onAction = {
-                                val isFoss = !BuildConfig.CAST_AVAILABLE
-                                if (isFoss) {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse("https://github.com/pwpp08/vivi-music/releases/latest")
-                                    )
-                                    context.startActivity(intent)
-                                } else {
-                                    navController.navigate("update")
-                                }
+                                navController.navigate("settings/update")
                             }
                         )
                     }
@@ -890,12 +887,15 @@ class MainActivity : ComponentActivity() {
                                 Row {
                                     TopAppBar(
                                         navigationIcon = {
-                                            Box(modifier = Modifier.padding(start = 12.dp)) {
+                                            Box(
+                                                modifier = Modifier.padding(start = 16.dp, end = 4.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
                                                 AppLogo(
                                                     modifier = Modifier
-                                                        .size(32.dp)
+                                                        .size(26.dp)
                                                         .clip(CircleShape),
-                                                    contentScale = ContentScale.Crop
+                                                    contentScale = ContentScale.Fit
                                                 )
                                             }
                                         },
@@ -1301,6 +1301,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleDeepLinkIntent(intent: Intent, navController: NavHostController) {
+        val navigateTo = intent.getStringExtra("navigate_to")
+        if (!navigateTo.isNullOrBlank()) {
+            intent.removeExtra("navigate_to")
+            navController.navigate(navigateTo)
+            return
+        }
         val uri = intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri() ?: return
         intent.data = null
         intent.removeExtra(Intent.EXTRA_TEXT)

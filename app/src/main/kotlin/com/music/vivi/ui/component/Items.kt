@@ -905,22 +905,24 @@ fun PlaylistListItem(
         val downloadUtil = LocalDownloadUtil.current
         val database = LocalDatabase.current
 
-        val songs by produceState<List<Song>>(initialValue = emptyList(), playlist.id) {
-            withContext(Dispatchers.IO) {
-                value = database.playlistSongs(playlist.id).first().map { it.song }
-            }
-        }
-
+        val playlistSongs by database.playlistSongs(playlist.id).collectAsState(initial = emptyList())
+        val songs = remember(playlistSongs) { playlistSongs.map { it.song } }
         val allDownloads by downloadUtil.downloads.collectAsState()
 
         val downloadState by remember(songs, allDownloads) {
-            androidx.compose.runtime.mutableIntStateOf(
+            mutableIntStateOf(
                 if (songs.isEmpty()) {
                     Download.STATE_STOPPED
                 } else {
+                    val completedCount = songs.count { song ->
+                        allDownloads[song.id]?.state == STATE_COMPLETED || song.song.dateDownload != null || song.song.isDownloaded
+                    }
+                    val downloadingCount = songs.count { song ->
+                        allDownloads[song.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING)
+                    }
                     when {
-                        songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        completedCount == songs.size || (songs.size > 5 && completedCount >= songs.size - 1) -> STATE_COMPLETED
+                        downloadingCount > 0 -> STATE_DOWNLOADING
                         else -> Download.STATE_STOPPED
                     }
                 }
@@ -988,12 +990,8 @@ fun PlaylistGridItem(
         val downloadUtil = LocalDownloadUtil.current
         val database = LocalDatabase.current
 
-        val songs by produceState<List<Song>>(initialValue = emptyList(), playlist.id) {
-            withContext(Dispatchers.IO) {
-                value = database.playlistSongs(playlist.id).first().map { it.song }
-            }
-        }
-
+        val playlistSongs by database.playlistSongs(playlist.id).collectAsState(initial = emptyList())
+        val songs = remember(playlistSongs) { playlistSongs.map { it.song } }
         val allDownloads by downloadUtil.downloads.collectAsState()
 
         val downloadState by remember(songs, allDownloads) {
@@ -1001,9 +999,15 @@ fun PlaylistGridItem(
                 if (songs.isEmpty()) {
                     Download.STATE_STOPPED
                 } else {
+                    val completedCount = songs.count { song ->
+                        allDownloads[song.id]?.state == STATE_COMPLETED || song.song.dateDownload != null || song.song.isDownloaded
+                    }
+                    val downloadingCount = songs.count { song ->
+                        allDownloads[song.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING)
+                    }
                     when {
-                        songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        completedCount == songs.size || (songs.size > 5 && completedCount >= songs.size - 1) -> STATE_COMPLETED
+                        downloadingCount > 0 -> STATE_DOWNLOADING
                         else -> Download.STATE_STOPPED
                     }
                 }

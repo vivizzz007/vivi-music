@@ -815,9 +815,18 @@ fun AudioQualitySelector(context: Context) {
                         applyAudioQuality(context, newQuality)
                     },
                     shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes(
+                            shape = ButtonGroupDefaults.connectedLeadingButtonShape,
+                            checkedShape = ButtonGroupDefaults.connectedLeadingButtonShape
+                        )
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes(
+                            shape = ButtonGroupDefaults.connectedTrailingButtonShape,
+                            checkedShape = ButtonGroupDefaults.connectedTrailingButtonShape
+                        )
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes(
+                            shape = RoundedCornerShape(4.dp),
+                            checkedShape = RoundedCornerShape(4.dp)
+                        )
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -1173,9 +1182,18 @@ fun DeviceSelector(
                 checked = isSelected,
                 onCheckedChange = { if (!isSelected) onDeviceSelect(device) },
                 shapes = when {
-                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    index == devices.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes(
+                        shape = ButtonGroupDefaults.connectedLeadingButtonShape,
+                        checkedShape = ButtonGroupDefaults.connectedLeadingButtonShape
+                    )
+                    index == devices.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes(
+                        shape = ButtonGroupDefaults.connectedTrailingButtonShape,
+                        checkedShape = ButtonGroupDefaults.connectedTrailingButtonShape
+                    )
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes(
+                        shape = RoundedCornerShape(4.dp),
+                        checkedShape = RoundedCornerShape(4.dp)
+                    )
                 },
                 modifier = Modifier
                     .weight(1f)

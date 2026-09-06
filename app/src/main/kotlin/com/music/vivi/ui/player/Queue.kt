@@ -524,6 +524,9 @@ fun Queue(
                         }
                     }
 
+                    val leadingShapeTop = ButtonGroupDefaults.connectedLeadingButtonShape
+                    val trailingShapeTop = ButtonGroupDefaults.connectedTrailingButtonShape
+
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                         modifier = Modifier.width(120.dp)
@@ -533,7 +536,10 @@ fun Queue(
                             onCheckedChange = {
                                 showAudioDeviceBottomSheet = true
                             },
-                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(
+                                shape = leadingShapeTop,
+                                checkedShape = leadingShapeTop
+                            ),
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
@@ -564,7 +570,10 @@ fun Queue(
                                     }
                                 }
                             },
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(
+                                shape = trailingShapeTop,
+                                checkedShape = trailingShapeTop
+                            ),
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
@@ -900,12 +909,16 @@ fun Queue(
                     }
                 }
 
-                FlowRow(
+                Row(
                     modifier = Modifier
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                 ) {
+                    val leadingShape = ButtonGroupDefaults.connectedLeadingButtonShape
+                    val trailingShape = ButtonGroupDefaults.connectedTrailingButtonShape
+                    val middleShape = RoundedCornerShape(4.dp)
+
                     ToggleButton(
                         checked = shuffleModeEnabled,
                         onCheckedChange = { checked ->
@@ -918,7 +931,10 @@ fun Queue(
                             }
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(
+                            shape = leadingShape,
+                            checkedShape = leadingShape
+                        ),
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -940,7 +956,7 @@ fun Queue(
                             style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
-                            )
+                        )
                     }
 
                     ToggleButton(
@@ -949,7 +965,10 @@ fun Queue(
                             playerConnection.player.toggleRepeatMode()
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
+                            shape = middleShape,
+                            checkedShape = middleShape
+                        ),
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -987,7 +1006,10 @@ fun Queue(
                             playerConnection.startRadioSeamlessly()
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(
+                            shape = trailingShape,
+                            checkedShape = trailingShape
+                        ),
                         colors = ToggleButtonDefaults.toggleButtonColors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,

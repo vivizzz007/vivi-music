@@ -136,19 +136,17 @@ fun PlaylistMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            val completedCount = songs.count { 
+                downloads[it.id]?.state == Download.STATE_COMPLETED || it.song.dateDownload != null || it.song.isDownloaded
+            }
+            val downloadingCount = songs.count { 
+                downloads[it.id]?.state == Download.STATE_QUEUED || downloads[it.id]?.state == Download.STATE_DOWNLOADING 
+            }
+            downloadState = when {
+                completedCount == songs.size || (songs.size > 5 && completedCount >= songs.size - 1) -> Download.STATE_COMPLETED
+                downloadingCount > 0 -> Download.STATE_DOWNLOADING
+                else -> Download.STATE_STOPPED
+            }
         }
     }
 
