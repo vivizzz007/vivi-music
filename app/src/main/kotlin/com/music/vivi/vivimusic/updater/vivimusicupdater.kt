@@ -769,33 +769,43 @@ private fun formatGitHubDate(githubDate: String): String = try {
     githubDate
 }
 
+fun parseVersionParts(version: String): List<Int> {
+    val clean = version.trim()
+        .removePrefix("v")
+        .removePrefix("V")
+        .removePrefix("b")
+        .removePrefix("B")
+        .substringBefore("-")
+        .substringBefore("+")
+        .substringBefore("_")
+    return clean.split(".").map { it.toIntOrNull() ?: 0 }
+}
+
+fun compareVersionTags(v1: String, v2: String): Int {
+    val parts1 = parseVersionParts(v1)
+    val parts2 = parseVersionParts(v2)
+    val maxParts = maxOf(parts1.size, parts2.size)
+    for (i in 0 until maxParts) {
+        val p1 = parts1.getOrElse(i) { 0 }
+        val p2 = parts2.getOrElse(i) { 0 }
+        if (p1 != p2) {
+            return p1.compareTo(p2)
+        }
+    }
+    // If numeric parts equal: stable (starts with v or number) is considered newer than beta (starts with b)
+    val b1 = v1.startsWith("b", ignoreCase = true)
+    val b2 = v2.startsWith("b", ignoreCase = true)
+    if (b1 != b2) {
+        return if (b2) 1 else -1 // stable > beta
+    }
+    return v1.compareTo(v2, ignoreCase = true)
+}
+
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestVersionClean = latestVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
-    val currentVersionClean = currentVersion.removePrefix("b").removePrefix("v").substringBefore("-").trim()
-
-    val latestParts = latestVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
-    val currentParts = currentVersionClean.split(".").map { it.toIntOrNull() ?: 0 }
-    
-    // Compare version numbers segment by segment (e.g. 6.0.6.2 vs 6.0.6.1)
-    val maxParts = maxOf(latestParts.size, currentParts.size)
-    for (i in 0 until maxParts) {
-        val latest = latestParts.getOrElse(i) { 0 }
-        val current = currentParts.getOrElse(i) { 0 }
-        if (latest > current) return true
-        if (latest < current) return false
-    }
-    
-    // If numbers are equal, check if one is beta and the other is not
-    if (latestVersionClean == currentVersionClean) {
-        val latestIsBeta = latestVersion.startsWith("b")
-        val currentIsBeta = currentVersion.startsWith("b")
-        // Stable is "newer" (better) than beta of the same version
-        if (currentIsBeta && !latestIsBeta) return true
-    }
-    
-    return false
+    return compareVersionTags(latestVersion, currentVersion) > 0
 }
+
 
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(

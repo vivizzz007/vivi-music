@@ -343,6 +343,17 @@
 
     <string name="clear_downloaded_updates">Clear downloaded updates</string>
     <string name="clear_downloaded_updates_desc">Remove downloaded APK files</string>
+    <string name="save_downloads_to_public_folder">Make downloads visible on phone</string>
+    <string name="save_downloads_to_public_folder_desc">Export downloaded songs to Music/ViviMusic so they are visible in phone file managers and music players</string>
+    <string name="export_downloads_to_device">Export all downloads to phone</string>
+    <string name="export_downloads_to_device_desc">Copy all previously downloaded songs to Music/ViviMusic</string>
+    <string name="exporting_downloads">Exporting downloads to Music/ViviMusic…</string>
+    <string name="manage_home_sections">Customize home sections</string>
+    <string name="manage_home_sections_desc">Show or hide individual sections on the home screen</string>
+    <string name="live_performances">Live performances</string>
+    <string name="covers_and_remixes">Covers and remixes</string>
+    <string name="account_playlists">YouTube playlists</string>
+    <string name="similar_recommendations">Similar recommendations</string>
 
     <string name="privacy">Privacy</string>
     <string name="listen_history">Listen history</string>

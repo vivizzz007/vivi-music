@@ -472,6 +472,44 @@ enum class PlayerButtonsStyle {
     TERTIARY
 }
 
+enum class PlayerActionButton(val displayName: String) {
+    QUEUE("Queue"),
+    SLEEP_TIMER("Sleep Timer"),
+    LYRICS("Lyrics"),
+    COMMENTS("Comments"),
+    SHUFFLE("Shuffle"),
+    REPEAT("Repeat"),
+    LIKE("Like / Favorite"),
+    DOWNLOAD("Download"),
+    EQUALIZER("Equalizer"),
+    AUDIO_DEVICE("Audio Output"),
+    MORE_OPTIONS("More Options");
+
+    companion object {
+        val DEFAULT_BUTTONS = listOf(
+            QUEUE,
+            SLEEP_TIMER,
+            LYRICS,
+            SHUFFLE,
+            REPEAT,
+            MORE_OPTIONS
+        )
+
+        fun parseList(serialized: String?): List<PlayerActionButton> {
+            if (serialized.isNullOrBlank()) return DEFAULT_BUTTONS
+            val parsed = serialized.split(",")
+                .mapNotNull { name ->
+                    runCatching { valueOf(name.trim()) }.getOrNull()
+                }
+            return if (parsed.isNotEmpty()) parsed else DEFAULT_BUTTONS
+        }
+
+        fun serialize(list: List<PlayerActionButton>): String {
+            return list.joinToString(",") { it.name }
+        }
+    }
+}
+
 enum class PlayerBackgroundStyle {
     DEFAULT,
     GRADIENT,
@@ -485,6 +523,10 @@ val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
+val CustomPlayerButtonsKey = stringPreferencesKey("custom_player_buttons")
+val SaveDownloadsToPublicFolderKey = booleanPreferencesKey("save_downloads_to_public_folder")
+val DisabledHomeSectionsKey = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_home_sections")
+val PinSpeedDialToTopKey = booleanPreferencesKey("pin_speed_dial_to_top")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val MiniPlayerBackgroundStyleKey = stringPreferencesKey("miniPlayerBackgroundStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")

@@ -44,12 +44,16 @@ import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
+import android.widget.Toast
+import androidx.compose.material3.Switch
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
@@ -90,6 +94,11 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
+    val (saveDownloadsToPublic, onSaveDownloadsToPublicChange) = rememberPreference(
+        key = SaveDownloadsToPublicFolderKey,
+        defaultValue = false
+    )
+    val downloadUtil = LocalDownloadUtil.current
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -305,6 +314,29 @@ fun StorageSettings(
                     title = { Text(stringResource(R.string.clear_all_downloads)) },
                     onClick = {
                         clearDownloads = true
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.download),
+                    title = { Text(stringResource(R.string.save_downloads_to_public_folder)) },
+                    description = { Text(stringResource(R.string.save_downloads_to_public_folder_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = saveDownloadsToPublic,
+                            onCheckedChange = onSaveDownloadsToPublicChange
+                        )
+                    },
+                    onClick = {
+                        onSaveDownloadsToPublicChange(!saveDownloadsToPublic)
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.download),
+                    title = { Text(stringResource(R.string.export_downloads_to_device)) },
+                    description = { Text(stringResource(R.string.export_downloads_to_device_desc)) },
+                    onClick = {
+                        downloadUtil.exportAllDownloadedSongs()
+                        Toast.makeText(context, context.getString(R.string.exporting_downloads), Toast.LENGTH_SHORT).show()
                     }
                 )
             )

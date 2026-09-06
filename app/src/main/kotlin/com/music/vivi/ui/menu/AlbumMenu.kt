@@ -126,19 +126,21 @@ fun AlbumMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.id]?.state == STATE_COMPLETED }) {
-                    STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.id]?.state == STATE_QUEUED ||
-                                downloads[it.id]?.state == STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == STATE_COMPLETED
-                    }
-                ) {
-                    STATE_DOWNLOADING
-                } else {
-                    STATE_STOPPED
-                }
+            val completedCount = songs.count { song ->
+                downloads[song.id]?.state == STATE_COMPLETED ||
+                song.song.isDownloaded ||
+                song.song.dateDownload != null ||
+                downloadUtil.downloadCache.isCached(song.id, 0, 1024)
+            }
+            val downloadingCount = songs.count { song ->
+                downloads[song.id]?.state == STATE_DOWNLOADING ||
+                downloads[song.id]?.state == STATE_QUEUED
+            }
+            downloadState = when {
+                downloadingCount > 0 -> STATE_DOWNLOADING
+                completedCount > 0 && (completedCount == songs.size || (songs.size > 1 && completedCount >= songs.size - 1) || completedCount * 2 >= songs.size) -> STATE_COMPLETED
+                else -> STATE_STOPPED
+            }
         }
     }
 

@@ -81,6 +81,7 @@ import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.vivimusic.updater.compareVersionTags
 import com.music.vivi.vivimusic.updater.extractUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -214,7 +215,7 @@ fun ChangelogScreen(
         isFetchingOldReleases = true
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val releasesUrl = URL("https://api.github.com/repos/pwpp08/vivi-music/releases")
+                val releasesUrl = URL("https://api.github.com/repos/pwpp08/vivi-music/releases?per_page=100")
                 val connection = releasesUrl.openConnection() as HttpURLConnection
                 connection.setRequestProperty("User-Agent", "ViviMusic-Changelog-App")
                 connection.setRequestProperty("Accept", "application/vnd.github+json")
@@ -252,7 +253,9 @@ fun ChangelogScreen(
                 }
                     withContext(Dispatchers.Main) {
                         val currentVersion = ReleaseMetadata(versionTag, versionTag, context.getString(R.string.current), null)
-                        availableReleases = (listOf(currentVersion) + list).distinctBy { it.tagName }
+                        availableReleases = (listOf(currentVersion) + list)
+                            .distinctBy { it.tagName }
+                            .sortedWith { a, b -> compareVersionTags(b.tagName, a.tagName) }
                         isFetchingOldReleases = false
                     }
                 } else {

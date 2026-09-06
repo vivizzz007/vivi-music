@@ -1375,11 +1375,16 @@ class SyncUtils @Inject constructor(
                 val title = playlistSong.song.song.title
                 val query = if (artistName.isNotBlank()) "$artistName $title" else title
                 onProgress?.invoke("Matching track ${index + 1}/${songs.size}: $query")
-                val uri = Spotify.searchTrack(query).getOrNull()
+                val uri = try {
+                    Spotify.searchTrack(query).getOrNull()
+                } catch (e: Exception) {
+                    Timber.w(e, "Error searching track on Spotify: $query")
+                    null
+                }
                 if (uri != null) {
                     trackUris.add(uri)
                 }
-                delay(120)
+                delay(350)
             }
 
             // Fetch existing tracks in the Spotify playlist to prevent duplicate additions

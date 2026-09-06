@@ -15,13 +15,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -68,6 +76,8 @@ import com.music.vivi.constants.ShufflePlaylistFirstKey
 import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
+import com.music.vivi.constants.CustomPlayerButtonsKey
+import com.music.vivi.constants.PlayerActionButton
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
@@ -230,8 +240,21 @@ fun PlayerSettings(
             }
         )
     }
+    val (customButtonsPref, onCustomButtonsChange) = rememberPreference(
+        CustomPlayerButtonsKey,
+        defaultValue = ""
+    )
+    var showCustomizePlayerButtonsDialog by remember { mutableStateOf(false) }
 
-
+    if (showCustomizePlayerButtonsDialog) {
+        CustomizePlayerButtonsDialog(
+            initialButtons = PlayerActionButton.parseList(customButtonsPref),
+            onSave = { updatedList ->
+                onCustomButtonsChange(PlayerActionButton.serialize(updatedList))
+            },
+            onDismiss = { showCustomizePlayerButtonsDialog = false }
+        )
+    }
 
     Column(
         Modifier
@@ -542,6 +565,12 @@ fun PlayerSettings(
                     title = { Text(stringResource(R.string.vivi_equalizer)) },
                     description = { Text(stringResource(R.string.vivi_equalizer_desc)) },
                     onClick = { navController.navigate("settings/equalizer") }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.queue_music),
+                    title = { Text("Customize player buttons") },
+                    description = { Text("Choose and reorder buttons displayed in the player bar") },
+                    onClick = { showCustomizePlayerButtonsDialog = true }
                 ))
             }
         )
@@ -890,3 +919,156 @@ fun PlayerSettings(
         }
     )
 }
+
+@Composable
+fun CustomizePlayerButtonsDialog(
+    initialButtons: List<PlayerActionButton>,
+    onSave: (List<PlayerActionButton>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val activeButtons = remember { mutableStateListOf(*initialButtons.toTypedArray()) }
+
+    DefaultDialog(
+        onDismiss = onDismiss,
+        title = { Text("Customize Player Buttons") },
+        buttons = {
+            TextButton(
+                onClick = {
+                    activeButtons.clear()
+                    activeButtons.addAll(PlayerActionButton.DEFAULT_BUTTONS)
+                }
+            ) {
+                Text(stringResource(R.string.reset))
+            }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+            TextButton(
+                onClick = {
+                    onSave(activeButtons.toList())
+                    onDismiss()
+                }
+            ) {
+                Text(stringResource(android.R.string.ok))
+            }
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = "Active Buttons in Player",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            activeButtons.forEachIndexed { index, button ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = button.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(
+                        onClick = {
+                            if (index > 0) {
+                                val item = activeButtons.removeAt(index)
+                                activeButtons.add(index - 1, item)
+                            }
+                        },
+                        onLongClick = {},
+                        enabled = index > 0
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_upward),
+                            contentDescription = "Move Up",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            if (index < activeButtons.lastIndex) {
+                                val item = activeButtons.removeAt(index)
+                                activeButtons.add(index + 1, item)
+                            }
+                        },
+                        onLongClick = {},
+                        enabled = index < activeButtons.lastIndex
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_downward),
+                            contentDescription = "Move Down",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = {
+                            if (activeButtons.size > 1) {
+                                activeButtons.removeAt(index)
+                            }
+                        },
+                        onLongClick = {},
+                        enabled = activeButtons.size > 1
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = "Remove",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            val availableToAdd = PlayerActionButton.values().filter { it !in activeButtons }
+            if (availableToAdd.isNotEmpty()) {
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = "Available Buttons (Tap + to add)",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                availableToAdd.forEach { button ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = button.displayName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { activeButtons.add(button) },
+                            onLongClick = {}
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.add),
+                                contentDescription = "Add",
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+

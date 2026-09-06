@@ -23,6 +23,21 @@ object Spotify {
     @Volatile
     var accessToken: String? = null
 
+    @Volatile
+    private var rateLimitedUntilMs: Long = 0L
+
+    private suspend fun checkRateLimitCooldown() {
+        val remaining = rateLimitedUntilMs - System.currentTimeMillis()
+        if (remaining > 0) {
+            delay(remaining)
+        }
+    }
+
+    private fun handleRateLimit(retryAfterSeconds: Long?) {
+        val seconds = (retryAfterSeconds ?: 3L).coerceIn(1L, 60L)
+        rateLimitedUntilMs = maxOf(rateLimitedUntilMs, System.currentTimeMillis() + (seconds * 1000L))
+    }
+
     private const val GQL_URL = "https://api-partner.spotify.com/pathfinder/v2/query"
 
     private fun randomUserAgent(): String {
@@ -115,8 +130,9 @@ object Spotify {
         token: String,
         body: JsonObject,
     ): JsonObject {
-        val maxRetries = 3
+        val maxRetries = 4
         for (attempt in 0 until maxRetries) {
+            checkRateLimitCooldown()
             val response = gqlClient.post(GQL_URL) {
                 header("Authorization", "Bearer $token")
                 setBody(
@@ -132,8 +148,9 @@ object Spotify {
             }
             if (response.status == HttpStatusCode.TooManyRequests) {
                 val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
+                handleRateLimit(retryAfter)
                 if (attempt < maxRetries - 1) {
-                    delay(retryAfter * 1000)
+                    delay(retryAfter * 1000L)
                     continue
                 }
                 throw SpotifyException(429, "Rate limited", retryAfterSec = retryAfter)
@@ -381,40 +398,54 @@ object Spotify {
             }
             put("public", false)
         }
-        val response = gqlClient.post("https://api.spotify.com/v1/users/$userId/playlists") {
-            header("Authorization", "Bearer $token")
-            setBody(
-                TextContent(
-                    payload.toString(),
-                    ContentType.Application.Json.withParameter("charset", "UTF-8"),
+        val maxRetries = 3
+        for (attempt in 0..maxRetries) {
+            checkRateLimitCooldown()
+            val response = gqlClient.post("https://api.spotify.com/v1/users/$userId/playlists") {
+                header("Authorization", "Bearer $token")
+                setBody(
+                    TextContent(
+                        payload.toString(),
+                        ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                    )
                 )
+            }
+            if (response.status.value == 429) {
+                val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
+                handleRateLimit(retryAfter)
+                if (attempt < maxRetries) {
+                    delay(retryAfter * 1000L)
+                    continue
+                }
+            }
+            if (response.status.value !in 200..299) {
+                val errorBody = response.bodyAsText()
+                val parsedMessage = runCatching {
+                    val jsonElem = json.parseToJsonElement(errorBody).jsonObject
+                    jsonElem.obj("error")?.str("message") ?: errorBody
+                }.getOrDefault(errorBody)
+                throw SpotifyException(response.status.value, parsedMessage)
+            }
+            val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+            val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")
+            return@runCatching SpotifyPlaylist(
+                id = id,
+                name = responseJson.str("name") ?: name,
+                description = responseJson.str("description"),
+                images = emptyList(),
+                owner = null,
+                tracks = null,
+                uri = responseJson.str("uri") ?: "spotify:playlist:$id"
             )
         }
-        if (response.status.value !in 200..299) {
-            val errorBody = response.bodyAsText()
-            val parsedMessage = runCatching {
-                val jsonElem = json.parseToJsonElement(errorBody).jsonObject
-                jsonElem.obj("error")?.str("message") ?: errorBody
-            }.getOrDefault(errorBody)
-            throw SpotifyException(response.status.value, parsedMessage)
-        }
-        val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
-        val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")
-        SpotifyPlaylist(
-            id = id,
-            name = responseJson.str("name") ?: name,
-            description = responseJson.str("description"),
-            images = emptyList(),
-            owner = null,
-            tracks = null,
-            uri = responseJson.str("uri") ?: "spotify:playlist:$id"
-        )
+        throw SpotifyException(429, "Spotify rate limit exceeded creating playlist")
     }
 
     suspend fun searchTrack(query: String): Result<String?> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
         val maxRetries = 3
         for (attempt in 0..maxRetries) {
+            checkRateLimitCooldown()
             val response = gqlClient.get("https://api.spotify.com/v1/search") {
                 header("Authorization", "Bearer $token")
                 parameter("q", query)
@@ -422,10 +453,13 @@ object Spotify {
                 parameter("limit", 1)
             }
             if (response.status.value == 429) {
-                val retryAfterHeader = response.headers["Retry-After"]?.toLongOrNull() ?: 1L
-                val waitMs = (retryAfterHeader * 1000L).coerceIn(1000L, 5000L)
-                delay(waitMs)
-                continue
+                val retryAfterHeader = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
+                handleRateLimit(retryAfterHeader)
+                if (attempt < maxRetries) {
+                    delay(retryAfterHeader * 1000L)
+                    continue
+                }
+                return@runCatching null
             }
             if (response.status.value !in 200..299) {
                 return@runCatching null
@@ -442,7 +476,7 @@ object Spotify {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
         trackUris.chunked(100).forEachIndexed { chunkIndex, chunk ->
             if (chunkIndex > 0) {
-                delay(400)
+                delay(600)
             }
             val payload = buildJsonObject {
                 putJsonArray("uris") {
@@ -450,8 +484,9 @@ object Spotify {
                 }
             }
             var succeeded = false
-            val maxRetries = 3
+            val maxRetries = 5
             for (attempt in 0..maxRetries) {
+                checkRateLimitCooldown()
                 val response = gqlClient.post("https://api.spotify.com/v1/playlists/$playlistId/tracks") {
                     header("Authorization", "Bearer $token")
                     setBody(
@@ -462,9 +497,12 @@ object Spotify {
                     )
                 }
                 if (response.status.value == 429) {
-                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: 2L
-                    delay((retryAfter * 1000L).coerceIn(1000L, 5000L))
-                    continue
+                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: (3L * (attempt + 1))
+                    handleRateLimit(retryAfter)
+                    if (attempt < maxRetries) {
+                        delay(retryAfter * 1000L)
+                        continue
+                    }
                 }
                 if (response.status.value !in 200..299) {
                     val errorBody = response.bodyAsText()

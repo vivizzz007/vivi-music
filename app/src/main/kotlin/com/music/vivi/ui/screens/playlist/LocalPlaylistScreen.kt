@@ -275,19 +275,21 @@ fun LocalPlaylistScreen(
         }
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            val completedCount = songs.count { song ->
+                downloads[song.song.id]?.state == Download.STATE_COMPLETED ||
+                song.song.song.isDownloaded ||
+                song.song.song.dateDownload != null ||
+                downloadUtil.downloadCache.isCached(song.song.id, 0, 1024)
+            }
+            val downloadingCount = songs.count { song ->
+                downloads[song.song.id]?.state == Download.STATE_DOWNLOADING ||
+                downloads[song.song.id]?.state == Download.STATE_QUEUED
+            }
+            downloadState = when {
+                downloadingCount > 0 -> Download.STATE_DOWNLOADING
+                completedCount > 0 && (completedCount == songs.size || (songs.size > 1 && completedCount >= songs.size - 1) || completedCount * 2 >= songs.size) -> Download.STATE_COMPLETED
+                else -> Download.STATE_STOPPED
+            }
         }
     }
 

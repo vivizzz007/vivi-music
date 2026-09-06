@@ -516,6 +516,7 @@ class MusicService :
         setupAudioFocusRequest()
 
         mediaLibrarySessionCallback.apply {
+            service = this@MusicService
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
@@ -2187,25 +2188,78 @@ class MusicService :
         }
     }
 
-    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-        if (playWhenReady && player.mediaItemCount == 0) {
-            val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
+    fun restorePersistentQueueAndPlay() {
+        if (player.mediaItemCount > 0) {
+            if (player.playbackState == Player.STATE_IDLE) {
+                player.prepare()
+            }
+            player.play()
+            return
+        }
+
+        val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
+        scope.launch {
             if (queueFile.exists()) {
-                scope.launch {
-                    val queue = withContext(Dispatchers.IO) {
-                        runCatching {
-                            queueFile.inputStream().use { fis ->
-                                ObjectInputStream(fis).use { oos ->
-                                    oos.readObject() as? PersistQueue
-                                }
+                val queue = withContext(Dispatchers.IO) {
+                    runCatching {
+                        queueFile.inputStream().use { fis ->
+                            ObjectInputStream(fis).use { oos ->
+                                oos.readObject() as? PersistQueue
                             }
-                        }.getOrNull()
-                    }
-                    if (queue != null && queue.items.isNotEmpty()) {
-                        playQueue(queue.toQueue(), playWhenReady = true)
+                        }
+                    }.getOrNull()
+                }
+                if (queue != null && queue.items.isNotEmpty()) {
+                    val restoredQueue = runCatching { queue.toQueue() }.getOrNull()
+                    if (restoredQueue != null) {
+                        playerInitialized.first { it }
+                        if (isActive) {
+                            playQueue(
+                                queue = restoredQueue,
+                                playWhenReady = true,
+                            )
+                            return@launch
+                        }
                     }
                 }
             }
+
+            // Fallback: restore from recent listening history or library songs
+            val recentEvents = withContext(Dispatchers.IO) {
+                runCatching {
+                    database.events().first().take(25).map { it.song.toMediaItem() }
+                }.getOrNull()
+            }
+            if (!recentEvents.isNullOrEmpty()) {
+                playerInitialized.first { it }
+                if (isActive) {
+                    player.setMediaItems(recentEvents)
+                    player.prepare()
+                    player.play()
+                    return@launch
+                }
+            }
+
+            val fallbackSongs = withContext(Dispatchers.IO) {
+                runCatching {
+                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
+                }.getOrNull()
+            }
+            if (!fallbackSongs.isNullOrEmpty()) {
+                playerInitialized.first { it }
+                if (isActive) {
+                    player.setMediaItems(fallbackSongs)
+                    player.prepare()
+                    player.play()
+                    return@launch
+                }
+            }
+        }
+    }
+
+    override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (playWhenReady && player.mediaItemCount == 0) {
+            restorePersistentQueueAndPlay()
         }
 
         // Safety net: if local player tries to start while casting, immediately pause it
@@ -3295,7 +3349,11 @@ class MusicService :
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             MusicWidgetReceiver.ACTION_PLAY_PAUSE -> {
-                if (player.isPlaying) player.pause() else player.play()
+                if (player.mediaItemCount == 0) {
+                    restorePersistentQueueAndPlay()
+                } else {
+                    if (player.isPlaying) player.pause() else player.play()
+                }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_LIKE -> {
@@ -3516,6 +3574,15 @@ class MusicService :
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
+        // Ensure fading player stops when current item ends and cannot advance to next track
+        fadingPlayer?.repeatMode = Player.REPEAT_MODE_OFF
+        fadingPlayer?.pauseAtEndOfMediaItems = true
+        val currentIdx = fadingPlayer?.currentMediaItemIndex ?: -1
+        val totalCount = fadingPlayer?.mediaItemCount ?: 0
+        if (currentIdx != -1 && currentIdx < totalCount - 1) {
+            fadingPlayer?.removeMediaItems(currentIdx + 1, totalCount)
+        }
+
         // Add listener to sync play/pause state
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -3557,8 +3624,8 @@ class MusicService :
                 }
 
                 val progress = i / steps.toFloat()
-                val fadeIn = 1.0f - (1.0f - progress) * (1.0f - progress)
-                val fadeOut = (1.0f - progress) * (1.0f - progress)
+                val fadeIn = progress
+                val fadeOut = 1.0f - progress
 
                 try {
                     player.volume = startVolume * fadeIn

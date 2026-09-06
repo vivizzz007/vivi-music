@@ -14,6 +14,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.session.LibraryResult
@@ -111,6 +112,25 @@ constructor(
             MediaSessionConstants.ACTION_TOGGLE_REPEAT_MODE -> session.player.toggleRepeatMode()
         }
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
+    }
+
+    override fun onPlayerCommandRequest(
+        session: MediaSession,
+        controller: MediaSession.ControllerInfo,
+        playerCommand: Int,
+    ): Int {
+        if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
+            if (session.player.mediaItemCount == 0) {
+                scope.launch(Dispatchers.Main) {
+                    if (::service.isInitialized) {
+                        service.restorePersistentQueueAndPlay()
+                    }
+                }
+            } else if (session.player.playbackState == Player.STATE_IDLE) {
+                session.player.prepare()
+            }
+        }
+        return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
 
     @Deprecated("Deprecated in MediaLibrarySession.Callback")
