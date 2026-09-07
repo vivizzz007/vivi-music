@@ -138,12 +138,19 @@ fun PlayerV2(
     var controlsVisible by remember { mutableStateOf(true) }
     var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
-    LaunchedEffect(playerState, lastInteractionTime) {
-        if (playerState == PlayerInternalState.LYRICS) {
-            delay(3000)
+    LaunchedEffect(playerState) {
+        if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
             controlsVisible = false
         } else if (playerState == PlayerInternalState.COVER) {
             controlsVisible = true
+        }
+    }
+
+    LaunchedEffect(lastInteractionTime) {
+        if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
+            controlsVisible = true
+            delay(3000)
+            controlsVisible = false
         }
     }
     
@@ -323,8 +330,9 @@ fun PlayerV2(
                     while (true) {
                         val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                         if (event.changes.any { it.pressed }) {
-                            lastInteractionTime = System.currentTimeMillis()
-                            if (playerState != PlayerInternalState.QUEUE) {
+                            if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
+                                lastInteractionTime = System.currentTimeMillis()
+                            } else if (playerState == PlayerInternalState.COVER) {
                                 controlsVisible = true
                             }
                         }
@@ -731,9 +739,9 @@ fun PlayerV2(
             AnimatedVisibility(
                     visible = controlsVisible,
                     enter = fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                            expandVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), expandFrom = Alignment.Bottom),
+                            slideInVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 },
                     exit = fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                           shrinkVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Bottom)
+                           slideOutVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 }
                 ) {
                     Column(
                         modifier = Modifier
@@ -935,11 +943,9 @@ fun PlayerV2(
             AnimatedVisibility(
                 visible = controlsVisible,
                 enter = fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                        slideInVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
-                        expandVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)),
+                        slideInVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 },
                 exit = fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                       slideOutVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
-                       shrinkVertically(animationSpec = tween(500, easing = FastOutSlowInEasing))
+                       slideOutVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 }
             ) {
                 Row(
                     modifier = Modifier
