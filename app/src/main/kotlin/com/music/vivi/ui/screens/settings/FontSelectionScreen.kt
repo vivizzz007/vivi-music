@@ -32,6 +32,17 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.TextButton
+import com.music.vivi.constants.CustomFontPathKey
+import java.io.File
+import java.io.FileOutputStream
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AppFont
@@ -56,14 +67,56 @@ fun FontSelectionScreen(
         SelectedFontKey,
         defaultValue = AppFont.SYSTEM.value
     )
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val (customFontPath, onCustomFontPathChange) = rememberPreference(
+        CustomFontPathKey,
+        defaultValue = ""
+    )
 
-    val activeFontFamily = remember(selectedFont) {
+    val fontPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            coroutineScope.launch {
+                withContext(Dispatchers.IO) {
+                    try {
+                        val inputStream = context.contentResolver.openInputStream(it)
+                        val file = File(context.filesDir, "custom_font.ttf")
+                        val outputStream = FileOutputStream(file)
+                        inputStream?.copyTo(outputStream)
+                        inputStream?.close()
+                        outputStream.close()
+                        
+                        onCustomFontPathChange(file.absolutePath)
+                        onSelectedFontChange(AppFont.CUSTOM.value)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+    }
+
+    val activeFontFamily = remember(selectedFont, customFontPath) {
         when (AppFont.fromValue(selectedFont)) {
             AppFont.SYSTEM -> FontFamily.Default
             AppFont.GOOGLE_SANS -> GoogleSansFontFamily
             AppFont.SANS_FLEX -> SansFlexFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+            AppFont.CUSTOM -> {
+                try {
+                    if (customFontPath.isNotEmpty() && File(customFontPath).exists()) {
+                        val typeface = android.graphics.Typeface.createFromFile(customFontPath)
+                        FontFamily(androidx.compose.ui.text.font.Typeface(typeface))
+                    } else {
+                        FontFamily.Default
+                    }
+                } catch (e: Exception) {
+                    FontFamily.Default
+                }
+            }
         }
     }
 
@@ -224,6 +277,42 @@ fun FontSelectionScreen(
                         )
                     },
                     onClick = { onSelectedFontChange(AppFont.PLUS_JAKARTA_SANS.value) }
+                ),
+                Material3SettingsItem(
+                    leadingContent = {
+                        AnimatedRadioButton(
+                            selected = selectedFont == AppFont.CUSTOM.value,
+                            onClick = null
+                        )
+                    },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.font_custom),
+                            fontFamily = FontFamily.Default
+                        )
+                    },
+                    description = {
+                        Text(
+                            text = stringResource(R.string.font_custom_desc),
+                            fontFamily = FontFamily.Default
+                        )
+                    },
+                    trailingContent = {
+                        TextButton(onClick = { fontPickerLauncher.launch("*/*") }) {
+                            Text(stringResource(R.string.import_custom_font))
+                        }
+                    },
+                    onClick = {
+                        if (selectedFont != AppFont.CUSTOM.value) {
+                            if (customFontPath.isNotEmpty() && File(customFontPath).exists()) {
+                                onSelectedFontChange(AppFont.CUSTOM.value)
+                            } else {
+                                fontPickerLauncher.launch("*/*")
+                            }
+                        } else {
+                            fontPickerLauncher.launch("*/*")
+                        }
+                    }
                 )
             )
         )

@@ -276,7 +276,16 @@ fun OnlinePlaylistScreen(
                                         } else if (songItem.id == mediaMetadata?.id) {
                                             playerConnection.togglePlayPause()
                                         } else {
-                                            playerConnection.playQueue(
+                                            val isRadio = playlist.id.startsWith("RD") || playlist.id.startsWith("VLRD") 
+                                            val queue = if (isRadio) {
+                                                YouTubeQueue(
+                                                    endpoint = WatchEndpoint(
+                                                        videoId = songItem.id,
+                                                        playlistId = playlist.id
+                                                    ),
+                                                    preloadItem = songItem.toMediaMetadata()
+                                                )
+                                            } else {
                                                 YouTubePlaylistQueue(
                                                     playlistId = playlist.id,
                                                     playlistTitle = playlist.title,
@@ -284,7 +293,8 @@ fun OnlinePlaylistScreen(
                                                     initialContinuation = viewModel.continuation,
                                                     startIndex = index
                                                 )
-                                            )
+                                            }
+                                            playerConnection.playQueue(queue)
                                         }
                                     },
                                     onLongClick = {
@@ -763,14 +773,24 @@ private fun OnlinePlaylistHeader(
                         .background(MaterialTheme.colorScheme.primary)
                         .clickable {
                             if (songs.isNotEmpty()) {
-                                playerConnection.playQueue(
+                                val isRadio = playlist.id.startsWith("RD") || playlist.id.startsWith("VLRD") 
+                                val queue = if (isRadio) {
+                                    YouTubeQueue(
+                                        endpoint = WatchEndpoint(
+                                            videoId = songs.firstOrNull()?.id,
+                                            playlistId = playlist.id
+                                        ),
+                                        preloadItem = songs.firstOrNull()?.toMediaMetadata()
+                                    )
+                                } else {
                                     YouTubePlaylistQueue(
                                         playlistId = playlist.id,
                                         playlistTitle = playlist.title,
                                         initialSongs = songs,
                                         initialContinuation = continuation
                                     )
-                                )
+                                }
+                                playerConnection.playQueue(queue)
                             }
                         },
                     contentAlignment = Alignment.Center
@@ -803,14 +823,25 @@ private fun OnlinePlaylistHeader(
                 Surface(
                     onClick = {
                         if (songs.isNotEmpty()) {
-                            playerConnection.playQueue(
+                            val isRadio = playlist.id.startsWith("RD") || playlist.id.startsWith("VLRD") 
+                            val queue = if (isRadio) {
+                                val randomSong = songs.randomOrNull()
+                                YouTubeQueue(
+                                    endpoint = WatchEndpoint(
+                                        videoId = randomSong?.id,
+                                        playlistId = playlist.id
+                                    ),
+                                    preloadItem = randomSong?.toMediaMetadata()
+                                )
+                            } else {
                                 YouTubePlaylistQueue(
                                     playlistId = playlist.id,
                                     playlistTitle = playlist.title,
                                     initialSongs = songs.shuffled(),
                                     initialContinuation = continuation
                                 )
-                            )
+                            }
+                            playerConnection.playQueue(queue)
                         }
                     },
                     shape = CircleShape,

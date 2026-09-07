@@ -317,6 +317,7 @@
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
     <string name="queue">Queue</string>
+    <string name="playing_from">Playing from</string>
     <string name="persistent_queue">Persistent queue</string>
     <string name="persistent_queue_desc">Restore your last queue when the app starts</string>
     <string name="auto_load_more">Auto load more songs</string>
@@ -444,4 +445,8 @@
     <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
     <string name="taste_based_release_notifications">Taste-based release alerts</string>
     <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
+
+    <!-- Library Toggle -->
+    <string name="switch_to_grid_view">Switch to grid view</string>
+    <string name="switch_to_list_view">Switch to list view</string>
 </resources>

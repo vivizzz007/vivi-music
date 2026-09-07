@@ -30,9 +30,12 @@ import com.materialkolor.score.Score
 
 import androidx.compose.runtime.getValue
 import com.music.vivi.constants.SelectedFontKey
+import com.music.vivi.constants.CustomFontPathKey
 import com.music.vivi.constants.AppFont
 import com.music.vivi.utils.rememberPreference
 import androidx.compose.ui.text.font.FontFamily
+import android.graphics.Typeface as AndroidTypeface
+import androidx.compose.ui.text.font.Typeface as ComposeTypeface
 
 val DefaultThemeColor = Color(0xFFED5564)
 
@@ -45,14 +48,28 @@ fun vivimusicTheme(
 ) {
     val context = LocalContext.current
     val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
+    val customFontPath by rememberPreference(CustomFontPathKey, "")
 
-    val brandFont = remember(selectedFontValue) {
+    val brandFont = remember(selectedFontValue, customFontPath) {
         when (AppFont.fromValue(selectedFontValue)) {
             AppFont.SYSTEM -> FontFamily.Default
             AppFont.GOOGLE_SANS -> GoogleSansFontFamily
             AppFont.SANS_FLEX -> SansFlexFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+            AppFont.CUSTOM -> {
+                try {
+                    if (customFontPath.isNotEmpty() && java.io.File(customFontPath).exists()) {
+                        val typeface = AndroidTypeface.createFromFile(customFontPath)
+                        FontFamily(ComposeTypeface(typeface))
+                    } else {
+                        FontFamily.Default
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    FontFamily.Default
+                }
+            }
         }
     }
 

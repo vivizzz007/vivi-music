@@ -30,8 +30,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -52,7 +50,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.painterResource
@@ -101,7 +98,7 @@ fun <E> ChipsRow(
                 leadingIcon = if (isSelected) {
                     {
                         Icon(
-                            imageVector = Icons.Filled.Done,
+                            painter = painterResource(R.drawable.done),
                             contentDescription = null,
                             modifier = Modifier.size(FilterChipDefaults.IconSize),
                         )
@@ -176,7 +173,7 @@ fun <Int> ChoiceChipsRow(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.Tune,
+                            painter = painterResource(R.drawable.tune),
                             contentDescription = null,
                             modifier = Modifier.size(FilterChipDefaults.IconSize),
                         )
@@ -250,7 +247,7 @@ fun <Int> ChoiceChipsRow(
                     leadingIcon = if (isSelected) {
                         {
                             Icon(
-                                imageVector = Icons.Filled.Done,
+                                painter = painterResource(R.drawable.done),
                                 contentDescription = null,
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                             )

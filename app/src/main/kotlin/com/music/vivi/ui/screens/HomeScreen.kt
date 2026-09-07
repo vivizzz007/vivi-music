@@ -63,6 +63,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -452,7 +453,7 @@ fun DailyDiscoverCard(
     Card(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -471,14 +472,24 @@ fun DailyDiscoverCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            var currentThumbnailUrl by remember(dailyDiscover.recommendation.thumbnail) {
+                mutableStateOf(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+            }
+            
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+                    .data(currentThumbnailUrl)
                     .crossfade(true)
                     .build(),
+                onError = {
+                    val url = currentThumbnailUrl
+                    if (url != null && url.contains("maxresdefault.jpg")) {
+                        currentThumbnailUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                    }
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -848,53 +859,36 @@ fun HomeScreen(
 
         if (explorePage?.moodAndGenres != null) list.add(HomeSection.MoodAndGenres)
 
-        if (randomizeHomeOrder) {
+        val sortedList = if (randomizeHomeOrder) {
             list.sortedByDescending { section ->
-                // Use a stable seed for each section based on the session seed + section ID hash
-                // This ensures the weight for a specific section remains constant during a session (until refresh)
-                // even if other sections appear/disappear, preventing jumping.
                 val sectionRandom = Random(randomSeed + section.id.hashCode())
-
-                // Flatten the base values to allow for more overlap and variation
-                // All "main" sections start closer together
                 val base = when (section) {
+                    HomeSection.QuickPicks -> 700
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
-                    HomeSection.DailyDiscover -> 500 // Top tier starts equal
-
+                    HomeSection.DailyDiscover -> 500
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
-                    HomeSection.FromTheCommunity -> 300 // Middle tier starts equal
-
-                    else -> 100 // Bottom tier
+                    HomeSection.FromTheCommunity -> 300
+                    else -> 100
                 }
-
                 val modifier = when (section) {
-                    // Top tier: High variance to allow shuffling among themselves
-                    // Range: [500-200, 500+400] = [300, 900]
+                    HomeSection.QuickPicks -> 0
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
                     HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
-
-                    // Middle tier: Can jump up to challenge top tier, or drop lower
-                    // Range: [300-100, 300+400] = [200, 700]
-                    // This allows them to occasionally appear above a "bad roll" top tier item
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
                     HomeSection.FromTheCommunity -> sectionRandom.nextInt(-100, 400)
-
-                    // Bottom tier: Standard variance
                     else -> sectionRandom.nextInt(-50, 50)
                 }
                 base + modifier
             }
         } else {
             val defaultOrder = mapOf(
+                HomeSection.QuickPicks to 110,
                 HomeSection.SpeedDial to 100,
-                HomeSection.QuickPicks to 90,
                 HomeSection.CoversAndRemixes to 85,
                 HomeSection.FromTheCommunity to 80,
                 HomeSection.DailyDiscover to 70,
@@ -912,6 +906,26 @@ fun HomeScreen(
                 }
             }
         }
+
+        // If logged in, YouTube provides its own superior "Quick picks" section. 
+        // If logged out as guest, we use our local app-generated Quick Picks.
+        val hasYouTubeQuickPicks = sortedList.any { 
+            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true 
+        }
+
+        val deduplicatedList = if (hasYouTubeQuickPicks) {
+            sortedList.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        } else {
+            sortedList
+        }
+
+        // Always pin the surviving QuickPicks to the very top regardless of sort order
+        val isQuickPicksSection: (HomeSection) -> Boolean = {
+            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
+        }
+        val qpItems = deduplicatedList.filter(isQuickPicksSection)
+        if (qpItems.isNotEmpty()) qpItems + deduplicatedList.filterNot(isQuickPicksSection)
+        else deduplicatedList
     }
 
     LaunchedEffect(quickPicks) {
@@ -1522,18 +1536,18 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(340.dp)
-                                            .padding(horizontal = 16.dp),
+                                            .height(230.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         val carouselState = rememberCarouselState { discoverList.size }
-                                        HorizontalMultiBrowseCarousel(
+                                        HorizontalUncontainedCarousel(
                                             state = carouselState,
-                                            preferredItemWidth = 320.dp,
-                                            itemSpacing = 16.dp,
+                                            itemWidth = 320.dp,
+                                            itemSpacing = 8.dp,
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(320.dp)
+                                                .height(210.dp)
                                         ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(
@@ -1551,7 +1565,7 @@ fun HomeScreen(
                                                     }
                                                 },
                                                 navController = navController,
-                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.large)
                                             )
                                         }
                                     }

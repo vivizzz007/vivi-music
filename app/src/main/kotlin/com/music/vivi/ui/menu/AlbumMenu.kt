@@ -474,11 +474,7 @@ fun AlbumMenu(
                     when (downloadState) {
                         STATE_COMPLETED -> {
                             Material3MenuItemData(
-                                title = {
-                                    Text(
-                                        text = stringResource(R.string.remove_download)
-                                    )
-                                },
+                                title = { Text(text = stringResource(R.string.remove_download)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.offline),
@@ -494,6 +490,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -515,6 +512,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -543,6 +541,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -550,7 +549,7 @@ fun AlbumMenu(
                 )
             )
         }
-
+//
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {

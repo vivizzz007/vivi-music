@@ -492,7 +492,7 @@ fun AccountSettingsScreen(
                             },
                             modifier = Modifier.weight(1f),
                             shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {

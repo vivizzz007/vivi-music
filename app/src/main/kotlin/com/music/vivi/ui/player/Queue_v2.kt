@@ -7,18 +7,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -64,7 +64,8 @@ import com.music.vivi.LocalListenTogetherManager
 fun QueueV2(
     navController: NavController,
     playerBottomSheetState: BottomSheetState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onControlsVisibilityChange: (Boolean) -> Unit = {}
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
@@ -75,6 +76,8 @@ fun QueueV2(
     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
+    val queueTitle by playerConnection.queueTitle.collectAsState()
+    val radioChips by playerConnection.radioChips.collectAsState()
     
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = com.music.vivi.listentogether.RoomRole.NONE)
@@ -118,6 +121,39 @@ fun QueueV2(
     val adaptiveSurface = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.surfaceVariant else Color.White.copy(alpha = 0.2f)
 
     val lazyListState = rememberLazyListState()
+    
+    // Scroll direction tracking
+    var previousIndex by remember { mutableIntStateOf(0) }
+    var previousScrollOffset by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { 
+            Triple(lazyListState.firstVisibleItemIndex, lazyListState.firstVisibleItemScrollOffset, lazyListState.isScrollInProgress)
+        }.collect { (index, offset, isScrollInProgress) ->
+            // If the user reaches the very top of the queue, always bring the controls back
+            if (index == 0 && offset < 50) {
+                onControlsVisibilityChange(true)
+            } else if (isScrollInProgress) {
+                if (index != previousIndex) {
+                    if (index > previousIndex) {
+                        onControlsVisibilityChange(false)
+                    } else {
+                        onControlsVisibilityChange(true)
+                    }
+                } else {
+                    val delta = offset - previousScrollOffset
+                    if (delta > 15) {
+                        onControlsVisibilityChange(false)
+                    } else if (delta < -15) {
+                        onControlsVisibilityChange(true)
+                    }
+                }
+            }
+            previousIndex = index
+            previousScrollOffset = offset
+        }
+    }
+
     val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
     var dragInfo by remember { mutableStateOf<Pair<Int, Int>?>(null) }
     
@@ -261,24 +297,77 @@ fun QueueV2(
         }
 
         // Queue Header Row
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = stringResource(R.string.queue),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = adaptivePrimary
-            )
-            if (!isGuest) {
-                IconButton(onClick = { locked = !locked }) {
-                    Icon(
-                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                        contentDescription = if (locked) "Unlock Queue" else "Lock Queue",
-                        tint = adaptiveSecondary
-                    )
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    if (queueTitle != null) {
+                        Text(
+                            text = stringResource(R.string.playing_from),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = adaptiveSecondary
+                        )
+                        Text(
+                            text = queueTitle!!,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = adaptivePrimary,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.queue),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = adaptivePrimary
+                        )
+                    }
+                }
+                if (!isGuest) {
+                    IconButton(onClick = { locked = !locked }) {
+                        Icon(
+                            painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                            contentDescription = if (locked) "Unlock Queue" else "Lock Queue",
+                            tint = adaptiveSecondary
+                        )
+                    }
+                }
+            }
+            
+            if (radioChips.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(radioChips) { chip ->
+                        val chipBg = if (chip.isSelected) adaptivePrimary else adaptivePrimary.copy(alpha = 0.1f)
+                        val chipTextCol = if (chip.isSelected) {
+                            if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.surface else Color.Black
+                        } else {
+                            adaptivePrimary
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(chipBg)
+                                .clickable(enabled = !isGuest && !chip.isSelected) {
+                                    playerConnection.selectRadioChip(chip)
+                                }
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = chip.title,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = chipTextCol,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -398,7 +487,7 @@ fun QueueV2(
                                         label = "iconAlpha"
                                     )
                                     Icon(
-                                        Icons.Default.Delete,
+                                        painterResource(R.drawable.delete),
                                         contentDescription = "Delete",
                                         modifier = Modifier
                                             .padding(end = 16.dp)

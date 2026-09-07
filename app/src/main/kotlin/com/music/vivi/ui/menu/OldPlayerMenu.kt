@@ -126,7 +126,6 @@ fun OldPlayerMenu(
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { YouTube.addToPlaylist(it, mediaMetadata.id) }
             }
-            onDismiss()
             listOf(mediaMetadata.id)
         },
         onDismiss = { showChoosePlaylistDialog = false }
