@@ -27,7 +27,7 @@ android {
         targetSdk = 37
         versionCode = 75
         val betaVersionName = project.findProperty("betaVersionName") as String?
-        versionName = betaVersionName ?: "6.0.5"
+        versionName = betaVersionName ?: "6.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
