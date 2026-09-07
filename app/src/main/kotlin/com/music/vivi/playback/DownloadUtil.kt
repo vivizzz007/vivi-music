@@ -41,6 +41,7 @@ import com.music.innertube.models.IpVersion
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
 import okhttp3.Dns
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.net.InetAddress
@@ -363,13 +364,12 @@ constructor(
                 val rawMimeType = format?.mimeType ?: "audio/mp4"
                 val isOpusOrWebm = rawMimeType.contains("webm", ignoreCase = true) || rawMimeType.contains("opus", ignoreCase = true)
                 val mimeType = if (isOpusOrWebm) "audio/ogg" else "audio/mp4"
-                val extension = if (isOpusOrWebm) "opus" else "m4a"
 
-                val prefix = if (artistName != "Unknown Artist") "$artistName - " else ""
-                val safeTitle = (prefix + songTitle)
+                val safeTitle = songTitle
                     .replace(Regex("[\\\\/:*?\"<>|]"), "_")
                     .trim()
-                val fileName = "$safeTitle.$extension"
+                    .ifBlank { songId }
+                val fileName = safeTitle
 
                 val cacheKey = when {
                     downloadCache.keys.contains(songId) -> songId
@@ -387,6 +387,38 @@ constructor(
                     .setUri(cacheKey.toUri())
                     .setKey(cacheKey)
                     .build()
+
+                val audioOut = ByteArrayOutputStream()
+                try {
+                    cacheDataSource.open(dataSpec)
+                    val buffer = ByteArray(32768)
+                    while (true) {
+                        val bytes = cacheDataSource.read(buffer, 0, buffer.size)
+                        if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
+                        audioOut.write(buffer, 0, bytes)
+                    }
+                } finally {
+                    cacheDataSource.close()
+                }
+
+                val rawAudio = audioOut.toByteArray()
+                if (rawAudio.isEmpty()) return@launch
+
+                val artworkBytes: ByteArray? = try {
+                    song.thumbnailUrl?.let { thumbUrl ->
+                        val fullUrl = thumbUrl.resize(1200, 1200)
+                        java.net.URL(fullUrl).openStream().use { it.readBytes() }
+                    }
+                } catch (e: Exception) {
+                    Timber.tag("DownloadUtil").w(e, "Failed to download thumbnail bytes for $songId")
+                    null
+                }
+
+                val finalAudio = if (artworkBytes != null && !isOpusOrWebm) {
+                    AudioTagEmbedder.embedArtwork(rawAudio, artworkBytes, isM4a = true)
+                } else {
+                    rawAudio
+                }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val resolver = appContext.contentResolver
@@ -421,46 +453,26 @@ constructor(
                     }
 
                     if (uri != null) {
-                        try {
-                            cacheDataSource.open(dataSpec)
-                            resolver.openOutputStream(uri, "wt")?.use { out ->
-                                val buffer = ByteArray(32768)
-                                while (true) {
-                                    val bytes = cacheDataSource.read(buffer, 0, buffer.size)
-                                    if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
-                                    out.write(buffer, 0, bytes)
-                                }
-                                out.flush()
-                            }
-                            val finishValues = ContentValues().apply {
-                                put(MediaStore.Audio.Media.IS_PENDING, 0)
-                            }
-                            resolver.update(uri, finishValues, null, null)
-                            Timber.tag("DownloadUtil").d("Exported $fileName to MediaStore ($uri)")
-                        } finally {
-                            cacheDataSource.close()
+                        resolver.openOutputStream(uri, "wt")?.use { out ->
+                            out.write(finalAudio)
+                            out.flush()
                         }
+                        val finishValues = ContentValues().apply {
+                            put(MediaStore.Audio.Media.IS_PENDING, 0)
+                        }
+                        resolver.update(uri, finishValues, null, null)
+                        Timber.tag("DownloadUtil").d("Exported $fileName to MediaStore ($uri)")
                     }
                 } else {
                     val musicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "ViviMusic")
                     musicDir.mkdirs()
                     val targetFile = File(musicDir, fileName)
-                    try {
-                        cacheDataSource.open(dataSpec)
-                        FileOutputStream(targetFile).use { out ->
-                            val buffer = ByteArray(32768)
-                            while (true) {
-                                val bytes = cacheDataSource.read(buffer, 0, buffer.size)
-                                if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
-                                out.write(buffer, 0, bytes)
-                            }
-                            out.flush()
-                        }
-                        MediaScannerConnection.scanFile(appContext, arrayOf(targetFile.absolutePath), arrayOf(mimeType), null)
-                        Timber.tag("DownloadUtil").d("Exported $fileName to public storage: ${targetFile.absolutePath}")
-                    } finally {
-                        cacheDataSource.close()
+                    FileOutputStream(targetFile).use { out ->
+                        out.write(finalAudio)
+                        out.flush()
                     }
+                    MediaScannerConnection.scanFile(appContext, arrayOf(targetFile.absolutePath), arrayOf(mimeType), null)
+                    Timber.tag("DownloadUtil").d("Exported $fileName to public storage: ${targetFile.absolutePath}")
                 }
             } catch (e: Exception) {
                 Timber.tag("DownloadUtil").e(e, "Failed to export song $songId to public storage")
@@ -475,6 +487,10 @@ constructor(
                 exportSongToPublicStorage(song.id)
             }
         }
+    }
+
+    fun exportPlaylistToPublicStorage(songIds: List<String>) {
+        exportAlbumToPublicStorage(songIds)
     }
 
     fun exportAlbumToPublicStorage(songIds: List<String>) {

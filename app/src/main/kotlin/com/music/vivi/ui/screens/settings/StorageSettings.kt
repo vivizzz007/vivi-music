@@ -15,7 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,12 +33,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +49,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.music.vivi.ui.component.DefaultDialog
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withContext
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
 import coil3.annotation.ExperimentalCoilApi
@@ -110,6 +122,12 @@ fun StorageSettings(
     var cacheType by remember { mutableStateOf("") }
     var cacheUsage by remember { androidx.compose.runtime.mutableLongStateOf(0L) }
     var onConfirmAction by remember { mutableStateOf<() -> Unit>({}) }
+
+    var showExportDialog by remember { mutableStateOf(false) }
+    val allPlaylists by database.playlistsByNameAsc().collectAsState(initial = emptyList())
+    val allAlbums by database.albumsByNameAsc().collectAsState(initial = emptyList())
+    val selectedPlaylists = remember { mutableStateListOf<String>() }
+    val selectedAlbums = remember { mutableStateListOf<String>() }
 
 
     var imageCacheSize by remember {
@@ -282,6 +300,162 @@ fun StorageSettings(
         )
     }
 
+    if (showExportDialog) {
+        DefaultDialog(
+            onDismiss = { showExportDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.select_items_to_export),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp)
+                ) {
+                    if (allPlaylists.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.playlists),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        items(allPlaylists) { playlist ->
+                            val isSelected = playlist.id in selectedPlaylists
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        if (isSelected) selectedPlaylists.remove(playlist.id)
+                                        else selectedPlaylists.add(playlist.id)
+                                    }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        if (checked) selectedPlaylists.add(playlist.id)
+                                        else selectedPlaylists.remove(playlist.id)
+                                    }
+                                )
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Text(
+                                        text = playlist.playlist.name,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = "${playlist.songCount} songs",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (allAlbums.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = stringResource(R.string.albums),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                            )
+                        }
+                        items(allAlbums) { album ->
+                            val isSelected = album.id in selectedAlbums
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        if (isSelected) selectedAlbums.remove(album.id)
+                                        else selectedAlbums.add(album.id)
+                                    }
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = isSelected,
+                                    onCheckedChange = { checked ->
+                                        if (checked) selectedAlbums.add(album.id)
+                                        else selectedAlbums.remove(album.id)
+                                    }
+                                )
+                                Column(modifier = Modifier.padding(start = 8.dp)) {
+                                    Text(
+                                        text = album.album.title,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    Text(
+                                        text = album.artists.joinToString(", ") { it.name }.ifBlank { "Unknown Artist" },
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        val totalSelected = selectedPlaylists.size + selectedAlbums.size
+                        val totalAvailable = allPlaylists.size + allAlbums.size
+                        if (totalSelected == totalAvailable) {
+                            selectedPlaylists.clear()
+                            selectedAlbums.clear()
+                        } else {
+                            selectedPlaylists.clear()
+                            selectedPlaylists.addAll(allPlaylists.map { it.id })
+                            selectedAlbums.clear()
+                            selectedAlbums.addAll(allAlbums.map { it.id })
+                        }
+                    }
+                ) {
+                    val allSelected = (selectedPlaylists.size + selectedAlbums.size) == (allPlaylists.size + allAlbums.size) && (allPlaylists.isNotEmpty() || allAlbums.isNotEmpty())
+                    Text(if (allSelected) "Deselect All" else "Select All")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(onClick = { showExportDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                val selectedCount = selectedPlaylists.size + selectedAlbums.size
+                TextButton(
+                    enabled = selectedCount > 0,
+                    onClick = {
+                        val pList = selectedPlaylists.toList()
+                        val aList = selectedAlbums.toList()
+                        showExportDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    context,
+                                    "Exporting $selectedCount items to phone storage...",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            for (pId in pList) {
+                                val songs = database.playlistSongs(pId).firstOrNull() ?: emptyList()
+                                downloadUtil.exportAlbumToPublicStorage(songs.map { it.song.id })
+                            }
+                            for (aId in aList) {
+                                val songs = database.albumSongs(aId).firstOrNull() ?: emptyList()
+                                downloadUtil.exportAlbumToPublicStorage(songs.map { it.id })
+                            }
+                        }
+                    }
+                ) {
+                    Text("${stringResource(R.string.export_selected)} ($selectedCount)")
+                }
+            }
+        )
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(
@@ -337,6 +511,14 @@ fun StorageSettings(
                     onClick = {
                         downloadUtil.exportAllDownloadedSongs()
                         Toast.makeText(context, context.getString(R.string.exporting_downloads), Toast.LENGTH_SHORT).show()
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.storage),
+                    title = { Text(stringResource(R.string.export_playlists_to_phone)) },
+                    description = { Text(stringResource(R.string.export_playlists_to_phone_desc)) },
+                    onClick = {
+                        showExportDialog = true
                     }
                 )
             )

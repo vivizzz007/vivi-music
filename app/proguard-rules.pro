@@ -292,3 +292,10 @@
 ##──────────────────────────────────────────────────────────────────────────────
 -keep class com.music.innertube.** { *; }
 -keepclassmembers class com.music.innertube.** { *; }
+
+##──────────────────────────────────────────────────────────────────────────────
+## 32. InnerTubeX Network Engine
+##──────────────────────────────────────────────────────────────────────────────
+-keep class com.metrolist.innertubex.** { *; }
+-keepclassmembers class com.metrolist.innertubex.** { *; }
+-dontwarn com.metrolist.innertubex.**

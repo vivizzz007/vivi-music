@@ -598,6 +598,29 @@ fun PlaylistMenu(
                             }
                         )
                     }
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.download_album_to_phone)) },
+                            description = { Text(text = stringResource(R.string.download_album_to_phone_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.storage),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                onDismiss()
+                                coroutineScope.launch {
+                                    downloadUtil.exportAlbumToPublicStorage(songs.map { it.id })
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.exporting_album_to_phone),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        )
+                    )
                     if (autoPlaylist != true && !isGuest) {
                         add(
                             Material3MenuItemData(

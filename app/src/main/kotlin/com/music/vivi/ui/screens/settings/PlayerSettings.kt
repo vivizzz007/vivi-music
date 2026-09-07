@@ -247,7 +247,7 @@ fun PlayerSettings(
     var showCustomizePlayerButtonsDialog by remember { mutableStateOf(false) }
 
     if (showCustomizePlayerButtonsDialog) {
-        CustomizePlayerButtonsDialog(
+        CustomizePlayerButtonsScreen(
             initialButtons = PlayerActionButton.parseList(customButtonsPref),
             onSave = { updatedList ->
                 onCustomButtonsChange(PlayerActionButton.serialize(updatedList))

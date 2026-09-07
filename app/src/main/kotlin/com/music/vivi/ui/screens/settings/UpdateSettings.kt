@@ -333,6 +333,12 @@ fun UpdateSettings(
                     title = { Text(stringResource(R.string.commits)) },
                     description = { Text(stringResource(R.string.view_commit_history)) },
                     onClick = { navController.navigate("settings/commits") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.sync),
+                    title = { Text(stringResource(R.string.upstream_tracker_title)) },
+                    description = { Text(stringResource(R.string.upstream_tracker_desc)) },
+                    onClick = { navController.navigate("settings/update/upstream") }
                 )
             )
         )

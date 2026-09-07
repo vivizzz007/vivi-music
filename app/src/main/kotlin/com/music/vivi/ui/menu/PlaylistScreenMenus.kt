@@ -17,6 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
+import android.widget.Toast
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.R
 import com.music.vivi.db.entities.Playlist
@@ -42,6 +44,7 @@ fun LocalPlaylistMenu(
     onSyncToSpotify: (() -> Unit)? = null,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
+    val downloadUtil = LocalDownloadUtil.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
     val downloadMenuItem = when (downloadState) {
@@ -176,6 +179,28 @@ fun LocalPlaylistMenu(
         }
 
         add(downloadMenuItem)
+
+        add(
+            Material3MenuItemData(
+                title = { Text(stringResource(R.string.download_album_to_phone)) },
+                description = { Text(stringResource(R.string.download_album_to_phone_desc)) },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.storage),
+                        contentDescription = null
+                    )
+                },
+                onClick = {
+                    onDismiss()
+                    downloadUtil.exportAlbumToPublicStorage(songs.map { it.song.id })
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.exporting_album_to_phone),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            )
+        )
 
         add(
             Material3MenuItemData(

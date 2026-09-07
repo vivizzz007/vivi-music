@@ -29,8 +29,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.constants.SpotifySessionKey
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.extensions.isSyncEnabled
 import com.music.vivi.utils.rememberPreference
@@ -48,12 +50,16 @@ fun CreatePlaylistDialog(
     onPlaylistCreated: ((String) -> Unit)? = null,
 ) {
     val database = LocalDatabase.current
+    val syncUtils = LocalSyncUtils.current
     val coroutineScope = rememberCoroutineScope()
     var syncedPlaylist by remember { mutableStateOf(false) }
+    var syncedSpotify by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isSignedIn = innerTubeCookie.isNotEmpty()
+    val (spotifySession) = rememberPreference(SpotifySessionKey, "")
+    val isSpotifySignedIn = spotifySession.isNotEmpty()
 
     TextFieldDialog(
         icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
@@ -80,6 +86,10 @@ fun CreatePlaylistDialog(
                     insert(playlistEntity)
                 }
 
+                if (syncedSpotify && isSpotifySignedIn) {
+                    syncUtils.createLinkedSpotifyPlaylist(playlistEntity.id, playlistName)
+                }
+
 //                onPlaylistCreated?.invoke(playlistEntity.id)
                 withContext(Dispatchers.Main) {
                     onPlaylistCreated?.invoke(playlistEntity.id)
@@ -88,45 +98,82 @@ fun CreatePlaylistDialog(
         },
         extraContent = {
             if (allowSyncing) {
-                Row(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.sync_playlist),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                        Text(
-                            text = stringResource(R.string.allows_for_sync_witch_youtube),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.fillMaxWidth(0.7f)
-                        )
-                    }
+                Column {
                     Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.End
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 40.dp)
                     ) {
-                        Switch(
-                            checked = syncedPlaylist,
-                            onCheckedChange = {
-                                val isYtmSyncEnabled = context.isSyncEnabled()
-                                if (!isSignedIn && !syncedPlaylist) {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.not_logged_in_youtube),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else if (!isYtmSyncEnabled) {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.sync_disabled),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                } else {
-                                    syncedPlaylist = !syncedPlaylist
+                        Column {
+                            Text(
+                                text = stringResource(R.string.sync_playlist),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(R.string.allows_for_sync_witch_youtube),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Switch(
+                                checked = syncedPlaylist,
+                                onCheckedChange = {
+                                    val isYtmSyncEnabled = context.isSyncEnabled()
+                                    if (!isSignedIn && !syncedPlaylist) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.not_logged_in_youtube),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else if (!isYtmSyncEnabled) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.sync_disabled),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        syncedPlaylist = !syncedPlaylist
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 40.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.sync_to_spotify),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(R.string.sync_to_spotify_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Switch(
+                                checked = syncedSpotify,
+                                onCheckedChange = {
+                                    if (!isSpotifySignedIn && !syncedSpotify) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.spotify_not_connected),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        syncedSpotify = !syncedSpotify
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }

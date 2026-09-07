@@ -1141,4 +1141,13 @@
     <string name="spotify_auth_failed">Spotify authentication failed. Please re-connect in Settings.</string>
     <string name="change_logo_color">Official icon color</string>
     <string name="change_logo_color_desc">Customize the color of the official Vivi logo</string>
+    <string name="export_playlists_to_phone">Export to phone storage</string>
+    <string name="export_playlists_to_phone_desc">Select playlists and albums to save directly to phone storage</string>
+    <string name="select_items_to_export">Select items to export</string>
+    <string name="export_selected">Export selected</string>
+    <string name="upstream_tracker_title">Original Repo Updates &amp; Nightly Builds</string>
+    <string name="upstream_tracker_desc">Inspect releases and nightly builds from the original vivizzz007 repository</string>
+    <string name="upstream_releases">Releases</string>
+    <string name="upstream_nightly">Nightly Builds</string>
+    <string name="upstream_no_updates">No upstream updates found</string>
 </resources>

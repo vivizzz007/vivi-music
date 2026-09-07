@@ -1077,6 +1077,26 @@ class SyncUtils @Inject constructor(
         }
     }
 
+    suspend fun createLinkedSpotifyPlaylist(playlistId: String, playlistName: String) = withContext(Dispatchers.IO) {
+        val session = getSpotifySession() ?: return@withContext
+        val authSession = ensureSpotifyAuthenticated(session) ?: return@withContext
+        try {
+            val created = Spotify.createPlaylist(
+                name = playlistName,
+                description = "Synced from Vivi Music"
+            ).getOrThrow()
+            val linkedKey = androidx.datastore.preferences.core.stringPreferencesKey("spotify_linked_$playlistId")
+            context.dataStore.edit { prefs ->
+                prefs[linkedKey] = created.id
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, "Created Spotify playlist \"$playlistName\"", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "createLinkedSpotifyPlaylist failed")
+        }
+    }
+
     private suspend fun executeSyncSpotifyPlaylists() = withContext(Dispatchers.IO) {
         val session = getSpotifySession() ?: return@withContext
         val authSession = ensureSpotifyAuthenticated(session) ?: return@withContext
@@ -1089,6 +1109,21 @@ class SyncUtils @Inject constructor(
             for (playlist in spotifyPlaylists) {
                 executeSyncSingleSpotifyPlaylist(playlist.playlist.id)
                 delay(DB_OPERATION_DELAY_MS)
+            }
+
+            // Also sync local playlists that are linked to Spotify
+            val allLocalPlaylists = database.playlistsByNameAsc().first()
+            for (playlist in allLocalPlaylists) {
+                val linkedKey = androidx.datastore.preferences.core.stringPreferencesKey("spotify_linked_${playlist.playlist.id}")
+                val linkedId = context.dataStore.data.map { it[linkedKey] }.firstOrNull()
+                if (!linkedId.isNullOrBlank()) {
+                    try {
+                        syncLocalPlaylistToSpotify(playlist.playlist.id)
+                        delay(DB_OPERATION_DELAY_MS)
+                    } catch (e: Exception) {
+                        Timber.w(e, "Failed auto-syncing linked local playlist ${playlist.playlist.id} to Spotify")
+                    }
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error syncing Spotify playlists")

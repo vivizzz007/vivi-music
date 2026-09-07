@@ -155,66 +155,6 @@ fun AboutScreen(
             description = "$formattedVersion • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
             onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/pwpp08/vivi-music") }
         )
-        
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Developer Section
-        ExpressiveSettingGroup(
-            items = listOf(
-                Material3SettingsItem(
-                    title = { Text(stringResource(R.string.app_developer), color = MaterialTheme.colorScheme.primary) },
-                    description = { Text(stringResource(R.string.developer_name)) },
-                    leadingContent = {
-                        Image(
-                            painter = painterResource(R.drawable.dev),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(cookieShape),
-                            contentScale = ContentScale.Crop
-                        )
-                    },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007") },
-                    isExternalLink = true
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.favorite),
-                    title = { Text(stringResource(R.string.support)) },
-                    description = { Text(stringResource(R.string.support_desc)) },
-                    onClick = { showSupportDialog = true }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.web_link),
-                    title = { Text(stringResource(R.string.website)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://vivimusic.mkmdevilmi.workers.dev/") },
-                    isExternalLink = true
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.telegram),
-                    title = { Text(stringResource(R.string.telegram_channel)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") },
-                    isExternalLink = true
-                )
-            )
-        )
-//        Spacer(modifier = Modifier.height(10.dp))
-//
-//        // Collaborator Section
-//        Material3SettingsGroup(
-//            title = stringResource(R.string.collaborator_section),
-//            items = listOf(
-//                Material3SettingsItem(
-//                    icon = painterResource(R.drawable.collab),
-//                    title = { Text(stringResource(R.string.collaborator_tboyke)) },
-//                    description = { Text(stringResource(R.string.collaborator_role)) },
-//                    tintIcon = false,
-//                    iconShape = cloverShape,
-//                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/T-Boyke") }
-//                )
-//            )
-//        )
-
-
         Spacer(modifier = Modifier.height(10.dp))
 
         // App Information Section

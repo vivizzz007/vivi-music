@@ -35,6 +35,7 @@ import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
+import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.ViviPrefCache
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
@@ -74,6 +75,9 @@ class App : Application(), SingletonImageLoader.Factory {
 
         // Install crash handler first
         CrashHandler.install(this)
+
+        // Initialize InnerTubeX stream extractor
+        InnerTubeXPlayer.initialize(this)
 
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)

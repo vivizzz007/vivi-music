@@ -37,10 +37,11 @@ jobs:
       - name: Prepare 4-Part Semantic Version and Changelog
         id: prep_release
         run: |
-          UPSTREAM_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/' | head -1)
-          FULL_VERSION="${UPSTREAM_VERSION}.${{ github.run_number }}"
+          RAW_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/' | head -1)
+          BASE_VERSION=$(echo "$RAW_VERSION" | awk -F. '{print $1"."$2"."$3}')
+          FULL_VERSION="${BASE_VERSION}.${{ github.run_number }}"
           echo "full_version=${FULL_VERSION}" >> $GITHUB_OUTPUT
-          echo "upstream_version=${UPSTREAM_VERSION}" >> $GITHUB_OUTPUT
+          echo "base_version=${BASE_VERSION}" >> $GITHUB_OUTPUT
           echo "Building Vivi Music version: ${FULL_VERSION}"
 
           # Patch build.gradle.kts with the four-part version so compiled APK matches GitHub release tag

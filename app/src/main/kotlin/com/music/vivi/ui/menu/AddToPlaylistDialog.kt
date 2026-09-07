@@ -43,6 +43,7 @@ import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.AddToPlaylistSortDescendingKey
 import com.music.vivi.constants.AddToPlaylistSortTypeKey
@@ -73,6 +74,7 @@ fun AddToPlaylistDialog(
 ) {
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
+    val syncUtils = LocalSyncUtils.current
     val coroutineScope = rememberCoroutineScope()
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         AddToPlaylistSortTypeKey,
@@ -239,6 +241,9 @@ fun AddToPlaylistDialog(
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, songIds!!)
                                 downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds!!)
+                                coroutineScope.launch {
+                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                }
 
                                 playlist.playlist.browseId?.let { plist ->
                                     songIds?.forEach {
@@ -280,6 +285,9 @@ fun AddToPlaylistDialog(
                                 )
                             }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, toAdd)
+                            coroutineScope.launch {
+                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id)
+                            }
                         }
                     ) {
                         Text(stringResource(R.string.skip_duplicates))
@@ -293,6 +301,9 @@ fun AddToPlaylistDialog(
                                 addSongToPlaylist(selectedPlaylist!!, songIds!!)
                             }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, songIds!!)
+                            coroutineScope.launch {
+                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id)
+                            }
                         }
                     ) {
                         Text(stringResource(R.string.add_anyway))

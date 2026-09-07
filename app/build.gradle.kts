@@ -26,7 +26,7 @@ android {
         minSdk = 26
         targetSdk = 37
         versionCode = 75
-        versionName = "6.0.6.17"
+        versionName = "6.0.6.18"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -302,6 +302,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(project(":innertube"))
+    implementation(libs.innertubex)
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
     implementation(project(":canvas"))
