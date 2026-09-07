@@ -34,9 +34,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.text.Collator
+import java.time.Duration
 import java.time.LocalDateTime
 import java.util.Locale
 import javax.inject.Inject
+import com.music.innertube.YouTube
+import kotlinx.coroutines.delay
+import com.music.vivi.utils.reportException
+import com.music.vivi.extensions.filterExplicitAlbums
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -82,6 +87,13 @@ constructor(
                 ArtistSortType.CREATE_DATE,
                 true,
             ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    var albums = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            database.albumsLiked(AlbumSortType.CREATE_DATE, true).map { it.filterExplicitAlbums(hideExplicit) }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val recentAlbumsThumbnails = context.dataStore.data
         .map { it[HideExplicitKey] ?: false }
@@ -182,5 +194,51 @@ constructor(
     }.flowOn(Dispatchers.Default)
      .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            albums.collect { albumsList ->
+                albumsList
+                    .filter {
+                        it.album.songCount == 0
+                    }.forEach { album ->
+                        YouTube
+                            .album(album.id)
+                            .onSuccess { albumPage ->
+                                database.query {
+                                    update(album.album, albumPage, album.artists)
+                                }
+                            }.onFailure {
+                                reportException(it)
+                                if (it.message?.contains("NOT_FOUND") == true) {
+                                    database.query {
+                                        delete(album.album)
+                                    }
+                                }
+                            }
+                        delay(1000)
+                    }
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            artists.collect { artistsList ->
+                artistsList
+                    .map { it.artist }
+                    .filter {
+                        it.thumbnailUrl == null ||
+                                Duration.between(
+                                    it.lastUpdateTime,
+                                    LocalDateTime.now(),
+                                ) > Duration.ofDays(10)
+                    }.forEach { artist ->
+                        YouTube.artist(artist.id).onSuccess { artistPage ->
+                            database.query {
+                                update(artist, artistPage)
+                            }
+                        }
+                        delay(1000)
+                    }
+            }
+        }
+    }
 
 }
