@@ -452,4 +452,10 @@
     <!-- Library Toggle -->
     <string name="switch_to_grid_view">Switch to grid view</string>
     <string name="switch_to_list_view">Switch to list view</string>
+
+    <!-- Force Library Sync -->
+    <string name="library_force_sync">Sync Library Now</string>
+    <string name="library_syncing">Syncing library…</string>
+    <string name="library_sync_done">Library synced successfully</string>
+    <string name="library_sync_error">Sync failed — tap to retry</string>
 </resources>

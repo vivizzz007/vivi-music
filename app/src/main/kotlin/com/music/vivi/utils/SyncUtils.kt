@@ -36,7 +36,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -109,7 +112,7 @@ class SyncUtils @Inject constructor(
     companion object {
         private const val MAX_RETRIES = 3
         private const val INITIAL_RETRY_DELAY_MS = 1000L
-        private const val DB_OPERATION_DELAY_MS = 50L
+        private const val DB_OPERATION_DELAY_MS = 10L // Reduced from 50ms — was causing 10s+ delays for large libraries
     }
 
     init {
@@ -220,7 +223,7 @@ class SyncUtils @Inject constructor(
             }
 
             val lastSync = context.dataStore.get(LastFullSyncKey, 0L)
-            val currentTime = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            val currentTime = (System.currentTimeMillis() / 1000L)
             if (lastSync > 0 && (currentTime - lastSync) < SYNC_COOLDOWN) {
                 return@launch
             }
@@ -228,13 +231,68 @@ class SyncUtils @Inject constructor(
             syncChannel.send(SyncOperation.FullSync)
 
             context.dataStore.edit { settings ->
-                settings[LastFullSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                settings[LastFullSyncKey] = (System.currentTimeMillis() / 1000L)
             }
         }
     }
 
     fun runAllSyncs() {
         performFullSync()
+    }
+
+    /**
+     * Force-sync all library categories IN PARALLEL, bypassing the 30-min auto-sync cooldown.
+     * Unlike performFullSync() which sequences every operation, this launches all 5 categories
+     * concurrently so the total time = max(slowest_category) instead of sum(all_categories).
+     */
+    suspend fun forceSyncAll() = withContext(Dispatchers.IO) {
+        if (!isLoggedIn()) {
+            Timber.w("Skipping forceSyncAll - user not logged in")
+            return@withContext
+        }
+
+        if (!context.isInternetConnected()) {
+            Timber.w("Skipping forceSyncAll - no internet connection")
+            return@withContext
+        }
+
+        updateState {
+            copy(
+                overallStatus = SyncStatus.Syncing,
+                likedSongs = SyncStatus.Idle,
+                librarySongs = SyncStatus.Idle,
+                likedAlbums = SyncStatus.Idle,
+                artists = SyncStatus.Idle,
+                playlists = SyncStatus.Idle,
+                currentOperation = "Force syncing all library"
+            )
+        }
+
+        try {
+            coroutineScope {
+                // Run all 5 categories in parallel — total time ≈ slowest category, not sum of all
+                val likedSongsJob        = async { executeSyncLikedSongs() }
+                val librarySongsJob      = async { executeSyncLibrarySongs() }
+                val likedAlbumsJob       = async { executeSyncLikedAlbums() }
+                val artistsJob           = async { executeSyncArtistsSubscriptions() }
+                val savedPlaylistsJob    = async { executeSyncSavedPlaylists() }
+
+                awaitAll(likedSongsJob, librarySongsJob, likedAlbumsJob, artistsJob, savedPlaylistsJob)
+            }
+
+            // Reset the auto-sync timestamp so normal cooldown continues from now
+            context.dataStore.edit { settings ->
+                settings[LastFullSyncKey] = (System.currentTimeMillis() / 1000L)
+            }
+
+            updateState { copy(overallStatus = SyncStatus.Completed, currentOperation = "") }
+            Timber.d("forceSyncAll: All library categories synced in parallel successfully")
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.e(e, "forceSyncAll: Error during parallel sync")
+            updateState { copy(overallStatus = SyncStatus.Error(e.message ?: "Unknown error"), currentOperation = "") }
+        }
     }
 
     fun likeSong(s: SongEntity) {
@@ -326,6 +384,12 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncAllArtistsSuspend() {
         executeSyncArtistsSubscriptions()
+    }
+
+    suspend fun updateLastSyncTime() {
+        context.dataStore.edit { settings ->
+            settings[com.music.vivi.constants.LastFullSyncKey] = (System.currentTimeMillis() / 1000L)
+        }
     }
 
     // Private execution methods
@@ -919,7 +983,7 @@ class SyncUtils @Inject constructor(
 
             // Reset sync timestamp
             context.dataStore.edit { settings ->
-                settings[LastFullSyncKey] = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                settings[LastFullSyncKey] = (System.currentTimeMillis() / 1000L)
             }
 
             updateState { copy(overallStatus = SyncStatus.Completed, currentOperation = "") }

@@ -50,6 +50,7 @@ import com.music.vivi.constants.*
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.safeOpenUri
+import com.music.vivi.utils.SyncStatus
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
@@ -74,6 +75,7 @@ fun AccountSettingsScreen(
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val (visitorData, _) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, _) = rememberPreference(DataSyncIdKey, "")
+    val (lastFullSync, _) = rememberPreference(LastFullSyncKey, 0L)
 
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -90,6 +92,9 @@ fun AccountSettingsScreen(
     var showTokenEditor by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(AccountTab.RECOMMENDED) }
+
+    val syncState by accountSettingsViewModel.syncState.collectAsState()
+    val isSyncing = syncState.overallStatus is SyncStatus.Syncing
 
     Scaffold(
         topBar = {
@@ -298,10 +303,102 @@ fun AccountSettingsScreen(
                                 },
                                 onClick = { onYtmSyncChange(!ytmSync) }
                             ),
+                            // Overall Force Library Sync button
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.sync),
+                                title = {
+                                    Text(
+                                        text = if (isSyncing)
+                                            stringResource(R.string.library_syncing)
+                                        else
+                                            stringResource(R.string.library_force_sync)
+                                    )
+                                },
+                                description = {
+                                    if (syncState.overallStatus is SyncStatus.Completed) {
+                                        Text(
+                                            text = stringResource(R.string.library_sync_done),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    } else if (syncState.overallStatus is SyncStatus.Error) {
+                                        Text(
+                                            text = stringResource(R.string.library_sync_error),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                },
+                                trailingContent = {
+                                    if (isSyncing) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(20.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    if (!isSyncing) {
+                                        accountSettingsViewModel.forceSyncLibrary()
+                                    }
+                                }
+                            ),
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.logout),
                                 title = { Text(stringResource(R.string.action_logout)) },
                                 onClick = { showLogoutDialog = true }
+                            )
+                        )
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    val formattedLastSync = remember(lastFullSync, syncState) {
+                        val isAnySyncing = syncState.overallStatus is SyncStatus.Syncing ||
+                            syncState.likedSongs is SyncStatus.Syncing ||
+                            syncState.likedAlbums is SyncStatus.Syncing ||
+                            syncState.artists is SyncStatus.Syncing ||
+                            syncState.playlists is SyncStatus.Syncing
+
+                        if (isAnySyncing) {
+                            "Syncing now..."
+                        } else if (lastFullSync > 0L) {
+                            java.text.DateFormat.getDateTimeInstance(
+                                java.text.DateFormat.MEDIUM,
+                                java.text.DateFormat.SHORT
+                            ).format(java.util.Date(lastFullSync * 1000))
+                        } else {
+                            "Never"
+                        }
+                    }
+                    
+                    ExpressiveSettingGroup(
+                        title = "Individual Category Sync",
+                        items = listOf(
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.timer),
+                                title = { Text("Last synced: $formattedLastSync") },
+                                enabled = false
+                            ),
+                            buildSyncCategoryItem(
+                                title = stringResource(R.string.songs),
+                                status = syncState.likedSongs,
+                                onSyncClick = { accountSettingsViewModel.forceSyncSongs() }
+                            ),
+                            buildSyncCategoryItem(
+                                title = stringResource(R.string.albums),
+                                status = syncState.likedAlbums,
+                                onSyncClick = { accountSettingsViewModel.forceSyncAlbums() }
+                            ),
+                            buildSyncCategoryItem(
+                                title = stringResource(R.string.artists),
+                                status = syncState.artists,
+                                onSyncClick = { accountSettingsViewModel.forceSyncArtists() }
+                            ),
+                            buildSyncCategoryItem(
+                                title = stringResource(R.string.playlists),
+                                status = syncState.playlists,
+                                onSyncClick = { accountSettingsViewModel.forceSyncPlaylists() }
                             )
                         )
                     )
@@ -523,4 +620,50 @@ fun AccountSettingsScreen(
             }
         }
     }
+}
+
+@Composable
+fun buildSyncCategoryItem(
+    title: String,
+    status: SyncStatus,
+    onSyncClick: () -> Unit
+): Material3SettingsItem {
+    val isSyncing = status is SyncStatus.Syncing
+    val isDone = status is SyncStatus.Completed
+    
+    return Material3SettingsItem(
+        icon = painterResource(R.drawable.cloud),
+        title = { Text(title) },
+        description = {
+            Column {
+                if (status is SyncStatus.Error) {
+                    Text(
+                        text = stringResource(R.string.library_sync_error),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+                
+                val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
+                    targetValue = if (isSyncing) 1f else 0f,
+                    animationSpec = androidx.compose.animation.core.tween(
+                        durationMillis = if (isSyncing) 2000 else 0,
+                        easing = androidx.compose.animation.core.LinearOutSlowInEasing
+                    )
+                )
+                androidx.compose.animation.AnimatedVisibility(visible = isSyncing) {
+                    LinearProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                }
+            }
+        }
+    )
 }
