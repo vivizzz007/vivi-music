@@ -74,11 +74,11 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
         return when {
             w >= 800 -> {
                 // If data saver is enabled, don't use maxresdefault, use mqdefault (medium quality)
-                "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+                "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
             }
             else -> {
-                // For small list thumbnails, use default.jpg (120x90)
-                "https://i.ytimg.com/vi/$videoId/default.jpg"
+                // For small list thumbnails, use default.webp (120x90)
+                "https://i.ytimg.com/vi_webp/$videoId/default.webp"
             }
         }
     }
@@ -87,16 +87,16 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
 
     return when {
         w >= 800 -> {
-            // For player artwork (high resolution), we always request maxresdefault.jpg
-            // If the video does not support Full HD maxresdefault.jpg, Coil's client-side
-            // fallback (onError) automatically falls back to hqdefault.jpg, ensuring no breakage.
-            "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
+            // For player artwork (high resolution), we always request maxresdefault.webp
+            // If the video does not support Full HD maxresdefault.webp, Coil's client-side
+            // fallback (onError) automatically falls back to hqdefault.jpg/webp, ensuring no breakage.
+            "https://i.ytimg.com/vi_webp/$videoId/maxresdefault.webp"
         }
         w >= 320 -> {
-            "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+            "https://i.ytimg.com/vi_webp/$videoId/hqdefault.webp"
         }
         else -> {
-            "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+            "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
         }
     }
 }
