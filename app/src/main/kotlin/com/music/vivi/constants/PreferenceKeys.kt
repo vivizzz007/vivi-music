@@ -291,10 +291,9 @@ val LastFullSyncKey = longPreferencesKey("last_full_sync")
 // Sync cooldown in seconds (30 minutes)
 const val SYNC_COOLDOWN = 30 * 60L
 
-val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val SearchListenHistoryKey = stringPreferencesKey("searchListenHistory")
-val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
-val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
+val AlbumGridViewKey = booleanPreferencesKey("albumGridView")
+val PlaylistGridViewKey = booleanPreferencesKey("playlistGridView")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 val QuickPicksKey = stringPreferencesKey("discover")
@@ -313,23 +312,11 @@ val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
 val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
 val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
 
-enum class LibraryViewType {
-    LIST,
-    GRID,
-    ;
-
-    fun toggle() =
-        when (this) {
-            LIST -> GRID
-            GRID -> LIST
-        }
-}
 
 enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
 }
 
 enum class ArtistFilter {
@@ -346,9 +333,9 @@ enum class ArtistSourceFilter {
 }
 
 enum class AlbumFilter {
+    ALL,
     LIBRARY,
-    LIKED,
-    UPLOADED
+    LIKED
 }
 
 enum class SongSortType {

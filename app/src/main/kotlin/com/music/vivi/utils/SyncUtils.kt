@@ -57,9 +57,7 @@ sealed class SyncOperation {
     data object FullSync : SyncOperation()
     data object LikedSongs : SyncOperation()
     data object LibrarySongs : SyncOperation()
-    data object UploadedSongs : SyncOperation()
     data object LikedAlbums : SyncOperation()
-    data object UploadedAlbums : SyncOperation()
     data object ArtistsSubscriptions : SyncOperation()
     data object SavedPlaylists : SyncOperation()
     data object AutoSyncPlaylists : SyncOperation()
@@ -80,9 +78,7 @@ data class SyncState(
     val overallStatus: SyncStatus = SyncStatus.Idle,
     val likedSongs: SyncStatus = SyncStatus.Idle,
     val librarySongs: SyncStatus = SyncStatus.Idle,
-    val uploadedSongs: SyncStatus = SyncStatus.Idle,
     val likedAlbums: SyncStatus = SyncStatus.Idle,
-    val uploadedAlbums: SyncStatus = SyncStatus.Idle,
     val artists: SyncStatus = SyncStatus.Idle,
     val playlists: SyncStatus = SyncStatus.Idle,
     val currentOperation: String = ""
@@ -146,9 +142,7 @@ class SyncUtils @Inject constructor(
             is SyncOperation.FullSync -> executeFullSync()
             is SyncOperation.LikedSongs -> executeSyncLikedSongs()
             is SyncOperation.LibrarySongs -> executeSyncLibrarySongs()
-            is SyncOperation.UploadedSongs -> executeSyncUploadedSongs()
             is SyncOperation.LikedAlbums -> executeSyncLikedAlbums()
-            is SyncOperation.UploadedAlbums -> executeSyncUploadedAlbums()
             is SyncOperation.ArtistsSubscriptions -> executeSyncArtistsSubscriptions()
             is SyncOperation.SavedPlaylists -> executeSyncSavedPlaylists()
             is SyncOperation.AutoSyncPlaylists -> executeSyncAutoSyncPlaylists()
@@ -261,21 +255,9 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    fun syncUploadedSongs() {
-        syncScope.launch {
-            syncChannel.send(SyncOperation.UploadedSongs)
-        }
-    }
-
     fun syncLikedAlbums() {
         syncScope.launch {
             syncChannel.send(SyncOperation.LikedAlbums)
-        }
-    }
-
-    fun syncUploadedAlbums() {
-        syncScope.launch {
-            syncChannel.send(SyncOperation.UploadedAlbums)
         }
     }
 
@@ -306,7 +288,6 @@ class SyncUtils @Inject constructor(
     fun syncAllAlbums() {
         syncScope.launch {
             syncChannel.send(SyncOperation.LikedAlbums)
-            syncChannel.send(SyncOperation.UploadedAlbums)
         }
     }
 
@@ -332,9 +313,7 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncLikedSongsSuspend() = executeSyncLikedSongs()
     suspend fun syncLibrarySongsSuspend() = executeSyncLibrarySongs()
-    suspend fun syncUploadedSongsSuspend() = executeSyncUploadedSongs()
     suspend fun syncLikedAlbumsSuspend() = executeSyncLikedAlbums()
-    suspend fun syncUploadedAlbumsSuspend() = executeSyncUploadedAlbums()
     suspend fun syncArtistsSubscriptionsSuspend() = executeSyncArtistsSubscriptions()
     suspend fun syncSavedPlaylistsSuspend() = executeSyncSavedPlaylists()
     suspend fun syncAutoSyncPlaylistsSuspend() = executeSyncAutoSyncPlaylists()
@@ -343,7 +322,6 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncAllAlbumsSuspend() {
         executeSyncLikedAlbums()
-        executeSyncUploadedAlbums()
     }
 
     suspend fun syncAllArtistsSuspend() {
@@ -368,13 +346,7 @@ class SyncUtils @Inject constructor(
             executeSyncLibrarySongs()
             delay(DB_OPERATION_DELAY_MS)
 
-            executeSyncUploadedSongs()
-            delay(DB_OPERATION_DELAY_MS)
-
             executeSyncLikedAlbums()
-            delay(DB_OPERATION_DELAY_MS)
-
-            executeSyncUploadedAlbums()
             delay(DB_OPERATION_DELAY_MS)
 
             executeSyncArtistsSubscriptions()
@@ -545,85 +517,8 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    private suspend fun executeSyncUploadedSongs() = withContext(Dispatchers.IO) {
-        Timber.d("[UPLOAD_DEBUG] executeSyncUploadedSongs() started")
-        if (!isLoggedIn()) {
-            Timber.w("[UPLOAD_DEBUG] Skipping syncUploadedSongs - user not logged in")
-            return@withContext
-        }
-        Timber.d("[UPLOAD_DEBUG] User is logged in, proceeding with sync")
 
-        updateState { copy(uploadedSongs = SyncStatus.Syncing, currentOperation = "Syncing uploaded songs") }
 
-        withRetry {
-            Timber.d("[UPLOAD_DEBUG] Calling YouTube.library(FEmusic_library_privately_owned_tracks, tabIndex=1)")
-            // Uploaded songs are in Tab 1 ("Uploads"), not Tab 0 ("Library")
-            YouTube.library("FEmusic_library_privately_owned_tracks", tabIndex = 1).completed()
-        }.onSuccess { result ->
-            Timber.d("[UPLOAD_DEBUG] withRetry succeeded, result isSuccess=${result.isSuccess}")
-            result.onSuccess { page ->
-                try {
-                    Timber.d("[UPLOAD_DEBUG] Page received, total items: ${page.items.size}")
-                    page.items.forEachIndexed { index, item ->
-                        Timber.d("[UPLOAD_DEBUG] Page item $index: type=${item::class.simpleName}, id=${(item as? SongItem)?.id ?: "N/A"}")
-                    }
-                    val remoteSongs = page.items.filterIsInstance<SongItem>().reversed()
-                    Timber.d("[UPLOAD_DEBUG] Filtered to ${remoteSongs.size} SongItems")
-                    remoteSongs.forEachIndexed { index, song ->
-                        Timber.d("[UPLOAD_DEBUG] Remote song $index: id=${song.id}, title=${song.title}, artists=${song.artists.map { it.name }}")
-                    }
-                    val remoteIds = remoteSongs.map { it.id }.toSet()
-                    val localSongs = database.uploadedSongsByNameAsc().first()
-                    Timber.d("[UPLOAD_DEBUG] Local uploaded songs count: ${localSongs.size}")
-
-                    val songsToRemove = localSongs.filterNot { it.id in remoteIds }
-                    Timber.d("[UPLOAD_DEBUG] Songs to remove from uploaded: ${songsToRemove.size}")
-                    songsToRemove.forEach { song ->
-                        try {
-                            Timber.d("[UPLOAD_DEBUG] Removing uploaded flag from: ${song.id}")
-                            database.update(song.song.toggleUploaded())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "[UPLOAD_DEBUG] Failed to update song: ${song.id}")
-                        }
-                    }
-
-                    remoteSongs.forEach { song ->
-                        try {
-                            val dbSong = database.song(song.id).firstOrNull()
-                            Timber.d("[UPLOAD_DEBUG] Processing remote song ${song.id}: exists in db=${dbSong != null}, isUploaded=${dbSong?.song?.isUploaded}")
-                            database.transaction {
-                                if (dbSong == null) {
-                                    Timber.d("[UPLOAD_DEBUG] Inserting new song: ${song.id}")
-                                    insert(song.toMediaMetadata()) { it.toggleUploaded() }
-                                } else if (!dbSong.song.isUploaded) {
-                                    Timber.d("[UPLOAD_DEBUG] Updating existing song to uploaded: ${song.id}")
-                                    update(dbSong.song.toggleUploaded())
-                                } else {
-                                    Timber.d("[UPLOAD_DEBUG] Song already marked as uploaded: ${song.id}")
-                                }
-                            }
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "[UPLOAD_DEBUG] Failed to process song: ${song.id}")
-                        }
-                    }
-
-                    updateState { copy(uploadedSongs = SyncStatus.Completed) }
-                    Timber.d("[UPLOAD_DEBUG] Synced ${remoteSongs.size} uploaded songs successfully")
-                } catch (e: Exception) {
-                    Timber.e(e, "[UPLOAD_DEBUG] Error processing uploaded songs")
-                    updateState { copy(uploadedSongs = SyncStatus.Error(e.message ?: "Unknown error")) }
-                }
-            }.onFailure { e ->
-                Timber.e(e, "[UPLOAD_DEBUG] Failed to fetch uploaded songs from YouTube")
-                updateState { copy(uploadedSongs = SyncStatus.Error(e.message ?: "Unknown error")) }
-            }
-        }.onFailure { e ->
-            Timber.e(e, "[UPLOAD_DEBUG] Failed to sync uploaded songs after retries")
-            updateState { copy(uploadedSongs = SyncStatus.Error(e.message ?: "Unknown error")) }
-        }
-    }
 
     private suspend fun executeSyncLikedAlbums() = withContext(Dispatchers.IO) {
         if (!isLoggedIn()) {
@@ -689,69 +584,7 @@ class SyncUtils @Inject constructor(
         }
     }
 
-    private suspend fun executeSyncUploadedAlbums() = withContext(Dispatchers.IO) {
-        if (!isLoggedIn()) {
-            Timber.w("Skipping syncUploadedAlbums - user not logged in")
-            return@withContext
-        }
 
-        updateState { copy(uploadedAlbums = SyncStatus.Syncing, currentOperation = "Syncing uploaded albums") }
-
-        withRetry {
-            YouTube.library("FEmusic_library_privately_owned_releases").completed()
-        }.onSuccess { result ->
-            result.onSuccess { page ->
-                try {
-                    val remoteAlbums = page.items.filterIsInstance<AlbumItem>().reversed()
-                    val remoteIds = remoteAlbums.map { it.id }.toSet()
-                    val localAlbums = database.albumsUploadedByNameAsc().first()
-
-                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
-                        try {
-                            database.update(album.album.toggleUploaded())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to update album: ${album.id}")
-                        }
-                    }
-
-                    remoteAlbums.forEach { album ->
-                        try {
-                            val dbAlbum = database.album(album.id).firstOrNull()
-                            if (dbAlbum == null) {
-                                // New uploaded album — fetch full details and insert
-                                YouTube.album(album.browseId).onSuccess { albumPage ->
-                                    database.insert(albumPage)
-                                    database.album(album.id).firstOrNull()?.let { newDbAlbum ->
-                                        database.update(newDbAlbum.album.toggleUploaded())
-                                    }
-                                }.onFailure { reportException(it) }
-                            } else if (!dbAlbum.album.isUploaded) {
-                                // Already cached but not marked uploaded — just update flag
-                                database.update(dbAlbum.album.toggleUploaded())
-                            }
-                            // else: already cached and marked uploaded — skip network call
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to process album: ${album.id}")
-                        }
-                    }
-
-                    updateState { copy(uploadedAlbums = SyncStatus.Completed) }
-                    Timber.d("Synced ${remoteAlbums.size} uploaded albums")
-                } catch (e: Exception) {
-                    Timber.e(e, "Error processing uploaded albums")
-                    updateState { copy(uploadedAlbums = SyncStatus.Error(e.message ?: "Unknown error")) }
-                }
-            }.onFailure { e ->
-                Timber.e(e, "Failed to fetch uploaded albums from YouTube")
-                updateState { copy(uploadedAlbums = SyncStatus.Error(e.message ?: "Unknown error")) }
-            }
-        }.onFailure { e ->
-            Timber.e(e, "Failed to sync uploaded albums after retries")
-            updateState { copy(uploadedAlbums = SyncStatus.Error(e.message ?: "Unknown error")) }
-        }
-    }
 
     private suspend fun executeSyncArtistsSubscriptions() = withContext(Dispatchers.IO) {
         if (!isLoggedIn()) {
@@ -1081,16 +914,7 @@ class SyncUtils @Inject constructor(
                 }
 
                 // Clear uploaded songs
-                val uploadedSongs = database.uploadedSongsByNameAsc().first()
-                uploadedSongs.forEach {
-                    database.update(it.song.copy(isUploaded = false))
-                }
 
-                // Clear uploaded albums
-                val uploadedAlbums = database.albumsUploadedByCreateDateAsc().first()
-                uploadedAlbums.forEach {
-                    database.update(it.album.copy(isUploaded = false))
-                }
             }
 
             // Reset sync timestamp

@@ -51,7 +51,6 @@ import com.music.vivi.extensions.toEnum
 import com.music.vivi.playback.DownloadUtil
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
-import com.music.vivi.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -59,13 +58,12 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Duration
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -96,7 +94,6 @@ constructor(
                     SongFilter.LIBRARY -> database.songs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                     SongFilter.LIKED -> database.likedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                     SongFilter.DOWNLOADED -> database.downloadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
-                    SongFilter.UPLOADED -> database.uploadedSongs(sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -108,9 +105,7 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLibrarySongs() }
     }
 
-    fun syncUploadedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
-    }
+
 }
 
 @HiltViewModel
@@ -149,26 +144,7 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() }
     }
 
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allArtists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
+
 }
 
 @HiltViewModel
@@ -184,7 +160,7 @@ constructor(
             .map {
                 Pair(
                     Triple(
-                        it[AlbumFilterKey].toEnum(AlbumFilter.LIKED),
+                        it[AlbumFilterKey].toEnum(AlbumFilter.ALL),
                         it[AlbumSortTypeKey].toEnum(AlbumSortType.CREATE_DATE),
                         it[AlbumSortDescendingKey] ?: true,
                     ),
@@ -196,7 +172,7 @@ constructor(
                 when (filter) {
                     AlbumFilter.LIKED -> database.albumsLiked(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
                     AlbumFilter.LIBRARY -> database.albums(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
-                    AlbumFilter.UPLOADED -> database.albumsUploaded(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
+                    AlbumFilter.ALL -> database.albumsAll(sortType, descending).map { it.filterExplicitAlbums(hideExplicit) }
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
@@ -204,31 +180,11 @@ constructor(
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() }
     }
 
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allAlbums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-    }
+    val searchQuery = MutableStateFlow("")
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    val debouncedSearchQuery = searchQuery.debounce(250)
+
+
 }
 
 @HiltViewModel
@@ -252,6 +208,10 @@ constructor(
                 database.playlists(sortType, descending).map { it.filterYoutubeShorts(hideYoutubeShorts) }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val searchQuery = MutableStateFlow("")
+    @OptIn(kotlinx.coroutines.FlowPreview::class)
+    val debouncedSearchQuery = searchQuery.debounce(250)
+
     fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() }
     }
@@ -260,6 +220,22 @@ constructor(
         context.dataStore.data
             .map { it[TopSize] ?: "50" }
             .distinctUntilChanged()
+
+    val recentLikedThumbnails = database.likedSongs(SongSortType.CREATE_DATE, true)
+        .map { songs -> songs.take(3).mapNotNull { it.thumbnailUrl } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val recentDownloadedThumbnails = database.downloadedSongs(SongSortType.CREATE_DATE, true)
+        .map { songs -> songs.take(3).mapNotNull { it.thumbnailUrl } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val recentAlbumsThumbnails = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            database.albumsLiked(AlbumSortType.CREATE_DATE, true)
+                .map { albums -> albums.filterExplicitAlbums(hideExplicit).take(3).mapNotNull { it.album.thumbnailUrl } }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
 @HiltViewModel
@@ -292,99 +268,6 @@ constructor(
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
-@HiltViewModel
-class LibraryMixViewModel
-@Inject
-constructor(
-    @ApplicationContext context: Context,
-    database: MusicDatabase,
-    private val syncUtils: SyncUtils,
-) : ViewModel() {
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing = _isRefreshing.asStateFlow()
-
-    val syncAllLibrary = {
-         viewModelScope.launch(Dispatchers.IO) {
-             syncUtils.tryAutoSync()
-         }
-    }
-
-    fun refresh() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _isRefreshing.value = true
-            syncUtils.performFullSyncSuspend()
-            _isRefreshing.value = false
-        }
-    }
-
-    val topValue =
-        context.dataStore.data
-            .map { it[TopSize] ?: "50" }
-            .distinctUntilChanged()
-    var artists =
-        database
-            .artistsBookmarked(
-                ArtistSortType.CREATE_DATE,
-                true,
-            ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var albums = context.dataStore.data
-        .map { it[HideExplicitKey] ?: false }
-        .distinctUntilChanged()
-        .flatMapLatest { hideExplicit ->
-            database.albumsLiked(AlbumSortType.CREATE_DATE, true).map { it.filterExplicitAlbums(hideExplicit) }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var playlists = context.dataStore.data
-        .map { it[HideYoutubeShortsKey] ?: false }
-        .distinctUntilChanged()
-        .flatMapLatest { hideYoutubeShorts ->
-            database.playlists(PlaylistSortType.CREATE_DATE, true).map { it.filterYoutubeShorts(hideYoutubeShorts) }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            albums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            artists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null ||
-                                Duration.between(
-                                    it.lastUpdateTime,
-                                    LocalDateTime.now(),
-                                ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
-}
 
 @HiltViewModel
 class LibraryViewModel
