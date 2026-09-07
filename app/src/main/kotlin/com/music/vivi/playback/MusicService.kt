@@ -1448,16 +1448,61 @@ class MusicService :
             return
         }
 
+        // Manually switching to a different song — tapping a track in a
+        // playlist/album/queue, not just pressing next/previous — is still a
+        // manual navigation action, so it crossfades under the same
+        // conditions as manual next/previous. This now also covers queues that
+        // start from a single "preload" item (Charts, Explore, Stats, Listen
+        // Together sync, and "Start radio"): we crossfade into the preload item
+        // on the secondary player immediately, then let the background
+        // coroutine fill in the rest of the queue around it once resolved.
+        // Requires the player to actually be playing, since the fade ramp
+        // pauses while the primary player is paused.
+        val canAttemptQueueCrossfade =
+            crossfadeEnabled &&
+                crossfadeManualSkipEnabled &&
+                !isCrossfading &&
+                castConnectionHandler?.isCasting?.value != true &&
+                player.duration != C.TIME_UNSET &&
+                player.playbackState != STATE_IDLE &&
+                player.isPlaying
+
+        Timber.tag(TAG).d(
+            "playQueue: canAttemptQueueCrossfade=%s (preloadItem=%s crossfadeEnabled=%s manualSkip=%s isCrossfading=%s casting=%s duration=%s playbackState=%s)",
+            canAttemptQueueCrossfade,
+            queue.preloadItem != null,
+            crossfadeEnabled,
+            crossfadeManualSkipEnabled,
+            isCrossfading,
+            castConnectionHandler?.isCasting?.value,
+            player.duration,
+            player.playbackState,
+        )
+
         currentQueue = queue
         queueTitle = null
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
-        if (!persistShuffleAcrossQueues) {
+        if (!canAttemptQueueCrossfade && !persistShuffleAcrossQueues) {
             player.shuffleModeEnabled = false
         }
         // Reset original queue size when starting a new queue
         originalQueueSize = 0
-        if (queue.preloadItem != null) {
+        // When crossfade is on and the queue starts from a preload item, begin
+        // the fade immediately against just that item on the secondary player
+        // (instead of the synchronous instant-replace below). The background
+        // coroutine then inserts the rest of the queue around the now-playing
+        // preload item once it resolves. Falls back to the instant preload if a
+        // crossfade is already in flight or couldn't start.
+        var preloadQueueCrossfadeStarted = false
+        if (canAttemptQueueCrossfade && queue.preloadItem != null) {
+            preloadQueueCrossfadeStarted =
+                startQueueCrossfadeWithPreload(queue, persistShuffleAcrossQueues)
+            if (!preloadQueueCrossfadeStarted && !persistShuffleAcrossQueues) {
+                player.shuffleModeEnabled = false
+            }
+        }
+        if (!preloadQueueCrossfadeStarted && queue.preloadItem != null) {
             player.setMediaItem(queue.preloadItem!!.toMediaItem())
             player.prepare()
             player.playWhenReady = playWhenReady
@@ -1476,6 +1521,24 @@ class MusicService :
             if (initialStatus.items.isEmpty()) return@launch
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
+
+            // Full-queue crossfade path: only when there was no preload item
+            // (the preload path already started its fade above). Guarding here
+            // prevents a second crossfade attempt once the full queue resolves.
+            if (canAttemptQueueCrossfade && queue.preloadItem == null) {
+                Timber.tag(TAG).d(
+                    "playQueue: attempting queue crossfade (items=%d targetIndex=%d)",
+                    initialStatus.items.size,
+                    initialStatus.mediaItemIndex,
+                )
+                if (startQueueCrossfade(initialStatus, persistShuffleAcrossQueues)) {
+                    Timber.tag(TAG).d("playQueue: queue crossfade started successfully")
+                    return@launch
+                } else {
+                    Timber.tag(TAG).d("playQueue: startQueueCrossfade returned false, falling back to instant replace")
+                }
+            }
+
             if (queue.preloadItem != null) {
                 val actualIndex = initialStatus.items.indexOfFirst { it.mediaId == queue.preloadItem!!.id }
                 val targetIndex = if (actualIndex != -1) {
@@ -3550,6 +3613,184 @@ class MusicService :
         crossfadeTriggerJob = null
         startCrossfade(CrossfadeTrigger.MANUAL_PREVIOUS)
         return isCrossfading
+    }
+
+    /**
+     * Attempts a crossfaded jump to an arbitrary track already loaded in the
+     * current queue — e.g. tapping an upcoming song in the queue/playlist view
+     * (which otherwise does an instant [Player.seekToDefaultPosition] and cuts
+     * the audio). Behaves like [manualSkipToNextWithCrossfade] but targets an
+     * explicit media-item index instead of the next/previous one.
+     *
+     * Returns `true` if the crossfade was started, meaning the caller should
+     * NOT also perform an instant seek. Returns `false` when crossfade (or
+     * crossfade-on-manual-skip) is disabled, when a crossfade is already in
+     * progress, when [targetIndex] is the current item or out of range, or when
+     * the player isn't actually playing — in which case the caller should fall
+     * back to its normal instant-seek behavior.
+     */
+    fun manualSeekToIndexWithCrossfade(targetIndex: Int): Boolean {
+        if (!crossfadeEnabled || !crossfadeManualSkipEnabled) return false
+        if (isCrossfading) return false
+        if (castConnectionHandler?.isCasting?.value == true) return false
+        if (targetIndex < 0 || targetIndex >= player.mediaItemCount) return false
+        if (targetIndex == player.currentMediaItemIndex) return false
+        if (player.duration == C.TIME_UNSET) return false
+        if (!player.isPlaying) return false
+
+        crossfadeTriggerJob?.cancel()
+        crossfadeTriggerJob = null
+        startCrossfadeToIndex(targetIndex)
+        return isCrossfading
+    }
+
+    /**
+     * Like [startCrossfade], but crossfades into an explicit [targetIndex]
+     * within the current queue (the item the user tapped in the queue view)
+     * instead of the next/previous item. Copies the primary player's existing
+     * (already-resolved) media items onto the secondary player so the target
+     * track can start buffering immediately, then swaps and fades.
+     */
+    private fun startCrossfadeToIndex(targetIndex: Int) {
+        if (isCrossfading) return
+        if (targetIndex < 0 || targetIndex >= player.mediaItemCount) return
+
+        val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
+        val savedShuffleEnabled = runBlocking { dataStore.get(ShuffleModeKey, false) }
+
+        secondaryPlayer = createExoPlayer()
+        val secPlayer = secondaryPlayer!!
+        secPlayer.addListener(secondaryPlayerListener)
+
+        val itemCount = player.mediaItemCount
+        val items = mutableListOf<MediaItem>()
+        for (i in 0 until itemCount) {
+            items.add(player.getMediaItemAt(i))
+        }
+
+        secPlayer.setMediaItems(items)
+        secPlayer.seekTo(targetIndex, 0)
+        secPlayer.volume = 0f
+
+        secPlayer.repeatMode = savedRepeatMode
+        secPlayer.shuffleModeEnabled = savedShuffleEnabled
+
+        secPlayer.prepare()
+        secPlayer.playWhenReady = true
+
+        performCrossfadeSwap()
+
+        if (savedShuffleEnabled) {
+            val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
+            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+        }
+    }
+
+    /**
+     * Attempts to crossfade from the currently playing track directly into a
+     * manually selected queue — e.g. tapping a song in a playlist, album, or
+     * queue screen — instead of abruptly cutting to it. Reuses the same
+     * player-swap/fade mechanism as [startCrossfade], but loads a brand new
+     * queue on the secondary player instead of items already queued on the
+     * primary one.
+     *
+     * Returns `true` if the crossfade was started, meaning the caller should
+     * skip the normal instant-replace path. Returns `false` if a crossfade
+     * couldn't be started (e.g. one is already in flight), in which case the
+     * caller should fall back to its normal instant-replace behavior.
+     */
+    private fun startQueueCrossfade(
+        status: Queue.Status,
+        persistShuffleAcrossQueues: Boolean,
+    ): Boolean {
+        if (isCrossfading || secondaryPlayer != null) {
+            Timber.tag(TAG).d(
+                "startQueueCrossfade: aborting, isCrossfading=%s secondaryPlayer!=null=%s",
+                isCrossfading,
+                secondaryPlayer != null,
+            )
+            return false
+        }
+
+        val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
+        val targetIndex = if (status.mediaItemIndex > 0) status.mediaItemIndex else 0
+
+        secondaryPlayer = createExoPlayer()
+        val secPlayer = secondaryPlayer!!
+        secPlayer.addListener(secondaryPlayerListener)
+
+        secPlayer.setMediaItems(status.items, targetIndex, status.position)
+        secPlayer.volume = 0f
+        secPlayer.repeatMode = savedRepeatMode
+        secPlayer.shuffleModeEnabled = persistShuffleAcrossQueues && player.shuffleModeEnabled
+
+        secPlayer.prepare()
+        secPlayer.playWhenReady = true
+
+        performCrossfadeSwap()
+
+        // Rebuild shuffle order on the new primary player if it carried shuffle over
+        if (player.shuffleModeEnabled) {
+            val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
+            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+        }
+        return true
+    }
+
+    /**
+     * Preload variant of [startQueueCrossfade] for queues that begin from a
+     * single "preload" item (Charts, Explore, Stats, Listen Together sync,
+     * "Start radio", etc.) whose full contents resolve asynchronously.
+     *
+     * Instead of waiting for the whole queue, we load just the preload item on
+     * the secondary player and start the fade immediately. The caller still
+     * runs the background coroutine that resolves the full queue; once it
+     * arrives, the existing preload-merge logic inserts the remaining items
+     * around the now-playing preload item on the new primary player (which is
+     * the former secondary), preserving playback position.
+     *
+     * Returns `true` if the crossfade was started, meaning the caller should
+     * skip the synchronous instant-replace of the preload item. Returns `false`
+     * if a crossfade is already in flight, in which case the caller falls back
+     * to the normal instant-preload behavior.
+     */
+    private fun startQueueCrossfadeWithPreload(
+        queue: Queue,
+        persistShuffleAcrossQueues: Boolean,
+    ): Boolean {
+        val preloadItem = queue.preloadItem ?: return false
+        if (isCrossfading || secondaryPlayer != null) {
+            Timber.tag(TAG).d(
+                "startQueueCrossfadeWithPreload: aborting, isCrossfading=%s secondaryPlayer!=null=%s",
+                isCrossfading,
+                secondaryPlayer != null,
+            )
+            return false
+        }
+
+        val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
+
+        secondaryPlayer = createExoPlayer()
+        val secPlayer = secondaryPlayer!!
+        secPlayer.addListener(secondaryPlayerListener)
+
+        secPlayer.setMediaItem(preloadItem.toMediaItem())
+        secPlayer.volume = 0f
+        secPlayer.repeatMode = savedRepeatMode
+        secPlayer.shuffleModeEnabled = persistShuffleAcrossQueues && player.shuffleModeEnabled
+
+        secPlayer.prepare()
+        secPlayer.playWhenReady = true
+
+        Timber.tag(TAG).d("startQueueCrossfadeWithPreload: starting crossfade into preload item")
+        performCrossfadeSwap()
+
+        // Rebuild shuffle order on the new primary player if it carried shuffle over
+        if (player.shuffleModeEnabled) {
+            val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
+            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
+        }
+        return true
     }
 
     private fun performCrossfadeSwap() {
