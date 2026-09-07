@@ -728,10 +728,10 @@ fun PlayerV2(
             // Persistent Controls Array (Always at the bottom)
             AnimatedVisibility(
                     visible = controlsVisible,
-                    enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)) +
-                            expandVertically(animationSpec = tween(400, easing = FastOutSlowInEasing), expandFrom = Alignment.Bottom),
-                    exit = fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)) +
-                           shrinkVertically(animationSpec = tween(380, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Bottom)
+                    enter = fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
+                            expandVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), expandFrom = Alignment.Bottom),
+                    exit = fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
+                           shrinkVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Bottom)
                 ) {
                     Column(
                         modifier = Modifier
@@ -932,12 +932,12 @@ fun PlayerV2(
             // Bottom Utility Action Bar
             AnimatedVisibility(
                 visible = controlsVisible,
-                enter = fadeIn(animationSpec = tween(500, easing = LinearOutSlowInEasing)) +
-                        slideInVertically(animationSpec = tween(500, easing = LinearOutSlowInEasing)) { it / 2 } +
-                        androidx.compose.animation.expandVertically(animationSpec = tween(500, easing = LinearOutSlowInEasing)),
-                exit = fadeOut(animationSpec = tween(500, easing = LinearOutSlowInEasing)) +
-                       slideOutVertically(animationSpec = tween(500, easing = LinearOutSlowInEasing)) { it / 2 } +
-                       androidx.compose.animation.shrinkVertically(animationSpec = tween(500, easing = LinearOutSlowInEasing))
+                enter = fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
+                        slideInVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
+                        expandVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)),
+                exit = fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
+                       slideOutVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
+                       shrinkVertically(animationSpec = tween(500, easing = FastOutSlowInEasing))
             ) {
                 Row(
                     modifier = Modifier
