@@ -1054,7 +1054,7 @@ fun Queue(
                             shape = leadingShape,
                             checkedShape = leadingShape
                         ),
-                        colors = ToggleButtonDefaults.toggleButtonColors(
+                        colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -1088,7 +1088,7 @@ fun Queue(
                             shape = middleShape,
                             checkedShape = middleShape
                         ),
-                        colors = ToggleButtonDefaults.toggleButtonColors(
+                        colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -1129,7 +1129,7 @@ fun Queue(
                             shape = trailingShape,
                             checkedShape = trailingShape
                         ),
-                        colors = ToggleButtonDefaults.toggleButtonColors(
+                        colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,

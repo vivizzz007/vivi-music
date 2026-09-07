@@ -123,7 +123,7 @@ fun SettingsScreen(
             },
             leadingIcon = {
                 Icon(
-                    imageVector = Icons.Rounded.Search,
+                    painter = painterResource(R.drawable.search),
                     contentDescription = stringResource(R.string.search),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
