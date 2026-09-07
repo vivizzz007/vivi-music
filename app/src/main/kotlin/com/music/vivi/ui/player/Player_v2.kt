@@ -139,7 +139,7 @@ fun PlayerV2(
     var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
     LaunchedEffect(playerState) {
-        if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
+        if (playerState == PlayerInternalState.LYRICS) {
             controlsVisible = false
         } else if (playerState == PlayerInternalState.COVER) {
             controlsVisible = true
@@ -147,7 +147,7 @@ fun PlayerV2(
     }
 
     LaunchedEffect(lastInteractionTime) {
-        if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
+        if (playerState == PlayerInternalState.LYRICS) {
             controlsVisible = true
             delay(3000)
             controlsVisible = false
@@ -330,7 +330,7 @@ fun PlayerV2(
                     while (true) {
                         val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
                         if (event.changes.any { it.pressed }) {
-                            if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) {
+                            if (playerState == PlayerInternalState.LYRICS) {
                                 lastInteractionTime = System.currentTimeMillis()
                             } else if (playerState == PlayerInternalState.COVER) {
                                 controlsVisible = true
