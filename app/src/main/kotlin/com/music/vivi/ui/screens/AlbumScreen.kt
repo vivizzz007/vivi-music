@@ -75,6 +75,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -279,6 +283,28 @@ fun AlbumScreen(
                                 contentScale = ContentScale.Crop
                             )
 
+                            // Apply blur only to the bottom section
+                            AsyncImage(
+                                model = albumWithSongs.album.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .blur(20.dp)
+                                    .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
+                                    .drawWithContent {
+                                        drawContent()
+                                        drawRect(
+                                            brush = Brush.verticalGradient(
+                                                colors = listOf(Color.Transparent, Color.Black),
+                                                startY = size.height - 200.dp.toPx(),
+                                                endY = size.height
+                                            ),
+                                            blendMode = BlendMode.DstIn
+                                        )
+                                    },
+                                contentScale = ContentScale.Crop
+                            )
+
                             if (albumCanvasEnabled && canvasArtwork != null) {
                                 CanvasArtworkPlayer(
                                     primaryUrl = canvasArtwork.animated,
@@ -288,6 +314,7 @@ fun AlbumScreen(
                                 )
                             }
 
+                            // Re-adding the shadow gradient mask to ensure text readability
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -737,6 +764,8 @@ fun AlbumScreen(
                     items = filteredSongs,
                     key = { _, song -> song.id },
                 ) { index, song ->
+                    val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+
                     val onCheckedChange: (Boolean) -> Unit = {
                         if (it) {
                             selection.add(song.id)
@@ -752,6 +781,7 @@ fun AlbumScreen(
                             isActive = song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
                             isSelected = song.id in selection,
+                            downloadState = download,
                             shape = listItemShape(index + 1, filteredSongs.size + 1),
                             trailingContent = {
                                 if (inSelectMode) {

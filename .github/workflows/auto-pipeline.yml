@@ -29,8 +29,12 @@ jobs:
         run: |
           git remote add upstream https://github.com/vivizzz007/vivi-music.git 2>/dev/null || git remote set-url upstream https://github.com/vivizzz007/vivi-music.git
           git fetch upstream
-          git merge upstream/main -m "auto: merge upstream updates" || exit 0
-          git push origin main || true
+          if ! git merge upstream/main -m "auto: merge upstream updates"; then
+            echo "::warning::Merge conflict detected while merging upstream/main. Aborting merge and continuing build on current tree."
+            git merge --abort
+          else
+            git push origin main || true
+          fi
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4

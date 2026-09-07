@@ -44,6 +44,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -150,7 +152,6 @@ import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.produceState
 import android.content.IntentFilter
 import android.content.BroadcastReceiver
@@ -170,6 +171,7 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import android.widget.Toast
+import androidx.compose.foundation.layout.PaddingValues
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.coroutineScope
 import kotlin.math.roundToInt
@@ -659,7 +661,7 @@ fun Queue(
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 containerColor = TextBackgroundColor.copy(alpha = 0.2f),
                                 contentColor = TextBackgroundColor,
                                 checkedContainerColor = TextBackgroundColor.copy(alpha = 0.4f),
@@ -693,7 +695,7 @@ fun Queue(
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 containerColor = TextBackgroundColor.copy(alpha = 0.2f),
                                 contentColor = TextBackgroundColor,
                                 checkedContainerColor = TextBackgroundColor.copy(alpha = 0.4f),
@@ -819,6 +821,7 @@ fun Queue(
         },
     ) {
         val queueTitle by playerConnection.queueTitle.collectAsState()
+        val radioChips by playerConnection.radioChips.collectAsState()
         val queueWindows by playerConnection.queueWindows.collectAsState()
         val automix by playerConnection.service.automixItems.collectAsState()
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
@@ -1152,6 +1155,7 @@ fun Queue(
                         }
                     }
                 }
+                // Moved AnimatedVisibility below the Row
 
 
                 Row(
@@ -1166,9 +1170,11 @@ fun Queue(
                         verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.continue_playing),
+                            text = queueTitle ?: stringResource(R.string.continue_playing),
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                         Text(
                             text = stringResource(R.string.next_in_queue),
@@ -1197,6 +1203,37 @@ fun Queue(
                         )
                     }
                 }
+
+                AnimatedVisibility(visible = radioChips.isNotEmpty()) {
+                    androidx.compose.foundation.lazy.LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                    ) {
+                        items(radioChips, key = { it.title }) { chip ->
+                            val chipBg = if (chip.isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                            val chipTextCol = if (chip.isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(chipBg)
+                                    .clickable(enabled = !isListenTogetherGuest && !chip.isSelected) {
+                                        playerConnection.selectRadioChip(chip)
+                                    }
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = chip.title,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = chipTextCol,
+                                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+                }
+
+
 
                 AnimatedVisibility(
                     visible = inSelectMode,

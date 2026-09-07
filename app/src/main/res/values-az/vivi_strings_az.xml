@@ -177,8 +177,6 @@
     <string name="lyrics_glow_effect_desc">Əlavə et glowing animation və bounce effekt -a active mahnı sözləri</string>
     <string name="enable_better_lyrics">Aktiv et Better Mahnı sözləri</string>
     <string name="enable_better_lyrics_desc">Istifadə et Better Mahnı sözləri provayder üçün word-by-word sinxronlaşdırıldı mahnı sözləri</string>
-    <string name="enable_simpmusic">Aktiv et SimpMusiqi Mahnı sözləri</string>
-    <string name="enable_simpmusic_desc">Istifadə et SimpMusiqi Mahnı sözləri provayder üçün sinxronlaşdırıldı mahnı sözləri</string>
     <string name="auto_scroll">Re-sinxronlaşdır</string>
     <string name="slim">Yığcam</string>
     <string name="slim_navbar">Yığcam aşağı naviqasiya paneli</string>

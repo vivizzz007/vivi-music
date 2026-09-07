@@ -11,9 +11,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,11 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.Error
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.fadeIn
@@ -35,11 +27,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,8 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.navigation.NavHostController
@@ -66,9 +57,6 @@ import androidx.work.WorkManager
 import androidx.work.workDataOf
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
-import coil3.compose.AsyncImage
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import com.music.vivi.vivimusic.updater.downloadmanager.UpdateDownloadWorker
 import com.music.vivi.vivimusic.updater.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.Dispatchers
@@ -83,54 +71,58 @@ import java.net.URL
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.regex.Pattern
-import com.music.vivi.ui.component.ChangelogItem
-import com.music.vivi.ui.component.leadingItemShape
-import com.music.vivi.ui.component.middleItemShape
-import com.music.vivi.ui.component.endItemShape
-import com.music.vivi.ui.component.detachedItemShape
-import com.music.vivi.ui.component.AnimatedActionButton
-import com.music.vivi.ui.component.ExpressiveIconButton
+import com.music.vivi.ui.component.IconButton
+import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.component.ErrorSnackbar
-import com.music.vivi.ui.component.UpdaterBlobCluster
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.foundation.layout.aspectRatio
+import coil3.compose.AsyncImage
+import android.graphics.Typeface
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.text.style.URLSpan
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.TextUnitType
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.HtmlCompat
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import androidx.compose.ui.text.AnnotatedString
 
-data class ChangelogSection(val title: String, val items: List<String>)
 
-sealed class ViviUpdateStatus {
-    object Idle : ViviUpdateStatus()
-    object Checking : ViviUpdateStatus()
-    data class Available(
-        val version: String,
-        val changelog: List<ChangelogSection>,
-        val size: String,
-        val releaseDate: String,
-        val description: String?,
-        val imageUrl: String?,
-        val apkUrl: String?,
-        val updateOrigin: String? = null
-    ) : ViviUpdateStatus()
-
-    data class NoUpdate(val version: String) : ViviUpdateStatus()
-    data class Error(val message: String) : ViviUpdateStatus()
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -236,46 +228,31 @@ fun UpdateScreen(navController: NavHostController) {
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         topBar = {
-            LargeTopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
-                    val titleText = if (status is ViviUpdateStatus.Available) {
-                        buildAnnotatedString {
-                            append(stringResource(R.string.new_update) + " ")
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            ) {
-                                append((status as ViviUpdateStatus.Available).version)
-                            }
-                        }
-                    } else {
-                        AnnotatedString(stringResource(R.string.settings_check_updates_title))
-                    }
-                    Text(text = titleText, maxLines = 1)
+                    Icon(
+                        painter = painterResource(R.drawable.mobile_update),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 },
                 navigationIcon = {
-                    Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
-                        ExpressiveIconButton(
-                            onClick = { navController.navigateUp() },
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.cancel),
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            contentColor = MaterialTheme.colorScheme.onSurface
+                    IconButton(
+                        onClick = navController::navigateUp,
+                        onLongClick = navController::backToMain
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.arrow_back),
+                            contentDescription = null
                         )
                     }
                 },
-                scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    scrolledContainerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                scrollBehavior = scrollBehavior
             )
         },
         bottomBar = {
@@ -292,79 +269,95 @@ fun UpdateScreen(navController: NavHostController) {
                 ) {
                     when (val currentStatus = status) {
                         is ViviUpdateStatus.Idle, is ViviUpdateStatus.Checking, is ViviUpdateStatus.NoUpdate, is ViviUpdateStatus.Error -> {
-                            AnimatedActionButton(
-                                text = stringResource(R.string.check_for_update),
+                            val btnText = if (currentStatus is ViviUpdateStatus.Error) stringResource(R.string.try_again) else stringResource(R.string.check_for_update)
+                            Button(
                                 onClick = { triggerUpdateCheck() },
                                 enabled = currentStatus !is ViviUpdateStatus.Checking && !isDownloading,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                modifier = Modifier.fillMaxWidth().height(56.dp)
+                            ) {
+                                Text(
+                                    text = btnText,
+                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                )
+                            }
                         }
 
                         is ViviUpdateStatus.Available -> {
-                            Row(
+                            Column(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                AnimatedActionButton(
-                                    text = stringResource(R.string.later),
-                                    onClick = { navController.navigateUp() },
-                                    modifier = Modifier.weight(1f),
-                                    isOutlined = true,
-                                    enabled = !isDownloading
-                                )
-                                AnimatedActionButton(
-                                    text = if (isDownloading) "${(downloadProgress * 100).toInt()}%" else if (isDownloadComplete) stringResource(R.string.install) else stringResource(R.string.update_available),
-                                    onClick = {
-                                        if (isDownloadComplete) {
-                                            val file = downloadedFile
-                                            if (file == null || !file.exists()) {
-                                                isDownloadComplete = false
-                                                downloadedFile = null
-                                                downloadProgress = 0f
-                                                return@AnimatedActionButton
-                                            }
-                                            file.let { f ->
-                                                try {
+                                if (!isDownloading || isDownloadComplete) {
+                                    Button(
+                                        onClick = {
+                                            if (isDownloadComplete) {
+                                                val file = downloadedFile
+                                                if (file == null || !file.exists()) {
+                                                    isDownloadComplete = false
+                                                    downloadedFile = null
+                                                    downloadProgress = 0f
+                                                    return@Button
+                                                }
+                                                file.let { f ->
                                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                                         if (!context.packageManager.canRequestPackageInstalls()) {
                                                             val intent = Intent(android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
                                                                 data = Uri.parse("package:${context.packageName}")
-                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                             }
                                                             context.startActivity(intent)
                                                             return@let
                                                         }
                                                     }
-                                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", f)
+                                                    val uri = FileProvider.getUriForFile(context, "${context.packageName}.FileProvider", file)
                                                     val installIntent = Intent(Intent.ACTION_VIEW).apply {
                                                         setDataAndType(uri, "application/vnd.android.package-archive")
                                                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
                                                     }
-                                                    context.startActivity(installIntent)
-                                                } catch (e: Exception) {
-                                                    Timber.e(e, "Failed to launch package installer")
-                                                    scope.launch {
-                                                        snackbarHostState.showSnackbar(
-                                                            e.localizedMessage ?: "Failed to launch installer"
-                                                        )
-                                                    }
+                                                    ContextCompat.startActivity(context, installIntent, null)
+                                                }
+                                            } else {
+                                                val targetApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
+                                                val urlToDownload = currentStatus.apkUrl ?: "https://github.com/pwpp08/vivi-music/releases/download/${currentStatus.version}/$targetApkName"
+                                                
+                                                if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) {
+                                                    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(urlToDownload))
+                                                    ContextCompat.startActivity(context, browserIntent, null)
+                                                } else {
+                                                    val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
+                                                        .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
+                                                        .addTag("update_download")
+                                                        .build()
+                                                    WorkManager.getInstance(context).enqueueUniqueWork("update_download", ExistingWorkPolicy.REPLACE, downloadRequest)
+                                                    isDownloading = true
                                                 }
                                             }
+                                        },
+                                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                                    ) {
+                                        Text(
+                                            text = if (isDownloadComplete) stringResource(R.string.install) else "Download and install",
+                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                        )
+                                    }
+                                }
+
+                                OutlinedButton(
+                                    onClick = {
+                                        if (isDownloading && !isDownloadComplete) {
+                                            WorkManager.getInstance(context).cancelUniqueWork("update_download")
+                                            isDownloading = false
                                         } else {
-                                            val urlToDownload = currentStatus.apkUrl ?: "https://github.com/pwpp08/vivi-music/releases/download/${currentStatus.version}/vivi.apk"
-                                            val downloadRequest = OneTimeWorkRequestBuilder<UpdateDownloadWorker>()
-                                                .setInputData(workDataOf("apk_url" to urlToDownload, "version" to currentStatus.version, "file_size" to currentStatus.size))
-                                                .addTag("update_download")
-                                                .build()
-                                            WorkManager.getInstance(context).enqueueUniqueWork("update_download", ExistingWorkPolicy.REPLACE, downloadRequest)
-                                            isDownloading = true
+                                            navController.navigateUp()
                                         }
                                     },
-                                    modifier = Modifier.weight(1f),
-                                    enabled = !isDownloading || isDownloadComplete
-                                )
+                                    modifier = Modifier.fillMaxWidth().height(56.dp)
+                                ) {
+                                    Text(
+                                        text = if (isDownloading && !isDownloadComplete) "Pause" else stringResource(R.string.later),
+                                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                                    )
+                                }
                             }
                         }
                     }
@@ -389,15 +382,95 @@ fun UpdateScreen(navController: NavHostController) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
-                    val contentModifier = if (status is ViviUpdateStatus.Available) {
-                        Modifier.fillMaxWidth()
-                    } else {
-                        Modifier.fillParentMaxSize()
+                    val titleText = when (status) {
+                        is ViviUpdateStatus.Checking -> "Checking for update..."
+                        is ViviUpdateStatus.Available -> if (isDownloading) "Installing system update..." else "System update\navailable"
+                        is ViviUpdateStatus.NoUpdate -> "Your app is up to date"
+                        is ViviUpdateStatus.Error -> "Update error"
+                        else -> "System update"
                     }
+                    Text(
+                        text = titleText,
+                        style = if (status is ViviUpdateStatus.Checking || status is ViviUpdateStatus.Error) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)
+                    )
+                    
+                    val currentStatus = status
+                    if (currentStatus is ViviUpdateStatus.Available) {
+                        val rawVersion = currentStatus.version
+                        val displayVer = when {
+                            rawVersion.startsWith("b", ignoreCase = true) -> rawVersion.uppercase()
+                            rawVersion.startsWith("v", ignoreCase = true) -> rawVersion.uppercase()
+                            else -> "V${rawVersion.uppercase()}"
+                        }
+                        Text(
+                            text = "VIVI MUSIC $displayVer",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 4.dp)
+                        )
+                        Text(
+                            text = "Size: ${currentStatus.size} MB",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 16.dp)
+                        )
+                    }
+                }
+
+                if (status is ViviUpdateStatus.Checking) {
+                    item {
+                        val strokeWidthPx = with(LocalDensity.current) { 6.dp.toPx() }
+                        val customStroke = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            LinearWavyProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                stroke = customStroke,
+                                trackStroke = customStroke
+                            )
+                        }
+                    }
+                } else if (status is ViviUpdateStatus.Available && isDownloading) {
+                    item {
+                        val strokeWidthPx = with(LocalDensity.current) { 6.dp.toPx() }
+                        val customStroke = Stroke(width = strokeWidthPx, cap = StrokeCap.Round)
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            LinearWavyProgressIndicator(
+                                modifier = Modifier.fillMaxWidth(),
+                                progress = { downloadProgress },
+                                stroke = customStroke,
+                                trackStroke = customStroke
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Downloading and installing update",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                item {
+                    val contentModifier = Modifier.fillMaxWidth()
 
                     Box(
                         modifier = contentModifier,
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.TopStart
                     ) {
                         AnimatedContent(
                             targetState = status,
@@ -408,80 +481,69 @@ fun UpdateScreen(navController: NavHostController) {
                         ) { currentStatus ->
                             when (currentStatus) {
                                 is ViviUpdateStatus.Checking -> {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        UpdaterBlobCluster(
-                                            modifier = Modifier.size(180.dp),
-                                            rotate = true
-                                        )
-                                        Spacer(modifier = Modifier.height(24.dp))
+                                    Column(horizontalAlignment = Alignment.Start) {
                                         Text(
-                                            text = stringResource(com.music.vivi.R.string.checking_for_updates),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            textAlign = TextAlign.Center,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Transparent,
-                                            textAlign = TextAlign.Center
+                                            text = "Please wait while we check for the latest features.",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
                                 }
 
                                 is ViviUpdateStatus.NoUpdate -> {
+                                    val checkTime = remember { LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")) }
                                     Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                        horizontalAlignment = Alignment.Start,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        UpdaterBlobCluster(
-                                            modifier = Modifier.size(180.dp),
-                                            rotate = false
+                                        val rawVersion = currentStatus.version
+                                        val displayVer = when {
+                                            rawVersion.startsWith("b", ignoreCase = true) -> rawVersion.uppercase()
+                                            rawVersion.startsWith("v", ignoreCase = true) -> rawVersion.uppercase()
+                                            else -> "V${rawVersion.uppercase()}"
+                                        }
+                                        Text(
+                                            text = "VIVI MUSIC VERSION $displayVer",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Build version: ${BuildConfig.VERSION_CODE}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Spacer(modifier = Modifier.height(24.dp))
                                         Text(
-                                            text = stringResource(R.string.on_latest_version),
-                                            style = MaterialTheme.typography.titleLarge,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            textAlign = TextAlign.Center,
-                                            fontWeight = FontWeight.Bold
+                                            text = "Last successful check for update:",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
-                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = stringResource(R.string.current_version_v, currentStatus.version),
+                                            text = checkTime,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                        Spacer(modifier = Modifier.height(24.dp))
+                                        Text(
+                                            text = "\"Donations help make project development & updates faster!\"",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            textAlign = TextAlign.Center
+                                            fontStyle = FontStyle.Italic
                                         )
                                     }
                                 }
 
                                 is ViviUpdateStatus.Error -> {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        UpdaterBlobCluster(
-                                            modifier = Modifier.size(180.dp),
-                                            rotate = false,
-                                            isError = true
-                                        )
-                                        Spacer(modifier = Modifier.height(24.dp))
+                                    Column(horizontalAlignment = Alignment.Start) {
                                         Text(
                                             text = currentStatus.message,
-                                            style = MaterialTheme.typography.titleLarge,
+                                            style = MaterialTheme.typography.bodyLarge,
                                             color = MaterialTheme.colorScheme.error,
-                                            textAlign = TextAlign.Center,
                                             fontWeight = FontWeight.Bold
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = Color.Transparent,
-                                            textAlign = TextAlign.Center
                                         )
                                     }
                                 }
@@ -491,73 +553,48 @@ fun UpdateScreen(navController: NavHostController) {
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalAlignment = Alignment.Start
                                     ) {
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        currentStatus.updateOrigin?.let { originText ->
-                                            Surface(
-                                                color = MaterialTheme.colorScheme.primaryContainer,
-                                                shape = RoundedCornerShape(12.dp),
-                                                modifier = Modifier.padding(bottom = 12.dp)
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.info),
-                                                        contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                        modifier = Modifier.size(16.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.size(6.dp))
-                                                    Text(
-                                                        text = originText,
-                                                        style = MaterialTheme.typography.labelMedium,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    )
-                                                }
-                                            }
-                                        }
-                                        Text(
-                                            text = stringResource(R.string.release_date_v, currentStatus.releaseDate),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.update_size_v, currentStatus.size),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Spacer(modifier = Modifier.height(24.dp))
-                                        if (!currentStatus.imageUrl.isNullOrBlank()) {
-                                            AsyncImage(
-                                                model = currentStatus.imageUrl,
-                                                contentDescription = null,
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .height(200.dp)
-                                                    .clip(RoundedCornerShape(24.dp)),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                            Spacer(modifier = Modifier.height(24.dp))
-                                        }
-                                        if (!currentStatus.description.isNullOrBlank()) {
-                                            val urls = currentStatus.description.extractUrls()
-                                            val annotatedText = buildAnnotatedString {
-                                                append(currentStatus.description.trim())
-                                                urls.forEach { (range, url) ->
-                                                    addStringAnnotation("URL", url, range.first, range.last + 1)
-                                                    addStyle(
-                                                        SpanStyle(
-                                                            color = MaterialTheme.colorScheme.primary,
-                                                            textDecoration = TextDecoration.Underline
-                                                        ),
-                                                        range.first,
-                                                        range.last + 1
-                                                    )
-                                                }
-                                            }
-
+                                         currentStatus.updateOrigin?.let { originText ->
+                                             Surface(
+                                                 color = MaterialTheme.colorScheme.primaryContainer,
+                                                 shape = RoundedCornerShape(12.dp),
+                                                 modifier = Modifier.padding(bottom = 12.dp)
+                                             ) {
+                                                 Row(
+                                                     verticalAlignment = Alignment.CenterVertically,
+                                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                 ) {
+                                                     Icon(
+                                                         painter = painterResource(R.drawable.info),
+                                                         contentDescription = null,
+                                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                         modifier = Modifier.size(16.dp)
+                                                     )
+                                                     Spacer(modifier = Modifier.size(6.dp))
+                                                     Text(
+                                                         text = originText,
+                                                         style = MaterialTheme.typography.labelMedium,
+                                                         fontWeight = FontWeight.SemiBold,
+                                                         color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                     )
+                                                 }
+                                             }
+                                         }
+                                         if (!currentStatus.imageUrl.isNullOrBlank()) {
+                                             AsyncImage(
+                                                 model = currentStatus.imageUrl,
+                                                 contentDescription = null,
+                                                 modifier = Modifier
+                                                     .fillMaxWidth()
+                                                     .height(200.dp)
+                                                     .clip(RoundedCornerShape(24.dp)),
+                                                 contentScale = ContentScale.Crop
+                                             )
+                                             Spacer(modifier = Modifier.height(16.dp))
+                                         }
+                                         val desc = currentStatus.description ?: ""
+                                         if (desc.isNotBlank()) {
+                                             val primaryColor = MaterialTheme.colorScheme.primary
+                                             val annotatedText = desc.trim().parseMarkdownAndUrls(primaryColor)
                                             ClickableText(
                                                 text = annotatedText,
                                                 onClick = { offset ->
@@ -565,62 +602,65 @@ fun UpdateScreen(navController: NavHostController) {
                                                         ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
                                                     }
                                                 },
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                    lineHeight = 20.sp
-                                                ),
-                                                modifier = Modifier.padding(bottom = 24.dp)
+                                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
                                             )
-                                        }
-                                        if (isDownloading) {
-                                            if (downloadProgress > 0f) {
-                                                androidx.compose.material3.LinearProgressIndicator(
-                                                    progress = downloadProgress,
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(8.dp)
-                                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                                )
-                                            } else {
-                                                androidx.compose.material3.LinearProgressIndicator(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(8.dp)
-                                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(4.dp)),
-                                                    color = MaterialTheme.colorScheme.primary,
-                                                    trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.height(24.dp))
-                                        }
-                                        currentStatus.changelog.forEach { section ->
-                                            if (section.title.isNotBlank()) {
-                                                Text(
-                                                    text = section.title,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Bold,
-                                                    modifier = Modifier.padding(start = 4.dp, top = 8.dp, bottom = 8.dp)
-                                                )
-                                            }
-                                            section.items.forEachIndexed { index, item ->
-                                                val shape = when {
-                                                    section.items.size == 1 -> com.music.vivi.ui.component.detachedItemShape()
-                                                    index == 0 -> com.music.vivi.ui.component.leadingItemShape()
-                                                    index == section.items.size - 1 -> com.music.vivi.ui.component.endItemShape()
-                                                    else -> com.music.vivi.ui.component.middleItemShape()
-                                                }
-                                                com.music.vivi.ui.component.ChangelogItem(
-                                                    text = item,
-                                                    shape = shape,
-                                                    modifier = Modifier.padding(vertical = 1.dp)
-                                                )
-                                            }
                                             Spacer(modifier = Modifier.height(16.dp))
+                                        }
+                                        if (currentStatus.changelog.isNotEmpty()) {
+                                            currentStatus.changelog.forEach { section ->
+                                                if (section.title.isNotBlank()) {
+                                                    Text(
+                                                        text = section.title,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = MaterialTheme.colorScheme.onBackground,
+                                                        modifier = Modifier.padding(bottom = 16.dp)
+                                                    )
+                                                }
+                                                if (!section.description.isNullOrBlank()) {
+                                                    val primaryColor = MaterialTheme.colorScheme.primary
+                                                    val annotatedText = section.description.trim().parseMarkdownAndUrls(primaryColor)
+                                                    ClickableText(
+                                                        text = annotatedText,
+                                                        onClick = { offset ->
+                                                            annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                                ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                            }
+                                                        },
+                                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+                                                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                                                    )
+                                                }
+                                                section.items.filter { it.isNotBlank() }.forEach { item ->
+                                                    val primaryColor = MaterialTheme.colorScheme.primary
+                                                    val annotatedText = "• ${item.trim()}".parseMarkdownAndUrls(primaryColor)
+                                                    ClickableText(
+                                                        text = annotatedText,
+                                                        onClick = { offset ->
+                                                            annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                                ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                            }
+                                                        },
+                                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+                                                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                                                    )
+                                                }
+                                                // Dynamic SDUI blocks rendered beautifully
+                                                section.blocks?.filter { b ->
+                                                    when (b.type) {
+                                                        "image", "video" -> !b.url.isNullOrBlank()
+                                                        "row", "column" -> !b.children.isNullOrEmpty()
+                                                        else -> true
+                                                    }
+                                                }?.forEach { block ->
+                                                    RenderSDUIBlock(block = block)
+                                                    Spacer(modifier = Modifier.height(16.dp))
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                                is ViviUpdateStatus.Idle -> {}
                                 else -> {}
                             }
                         }
@@ -792,7 +832,12 @@ fun compareVersionTags(v1: String, v2: String): Int {
             return p1.compareTo(p2)
         }
     }
-    // If numeric parts equal: stable (starts with v or number) is considered newer than beta (starts with b)
+    val run1 = Regex("-r(\\d+)").find(v1)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    val run2 = Regex("-r(\\d+)").find(v2)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    if (run1 != run2) {
+        return run1.compareTo(run2)
+    }
+    // If numeric parts and run equal: stable (starts with v or number) is considered newer than beta (starts with b)
     val b1 = v1.startsWith("b", ignoreCase = true)
     val b2 = v2.startsWith("b", ignoreCase = true)
     if (b1 != b2) {
@@ -821,6 +866,7 @@ suspend fun checkForUpdate(
             
             val currentVersion = BuildConfig.VERSION_NAME
             val betaEnabled = getBetaUpdatesSetting(context)
+
 
             var isNightlyUpdate = false
             var nightlyRunObject: JSONObject? = null
@@ -978,13 +1024,22 @@ suspend fun checkForUpdate(
                     val tagWithPrefix = targetRelease.getString("tag_name")
                     val displayTag = tagWithPrefix
 
-                    // FETCH CHANGELOG.JSON FROM RELEASE ASSETS
+                    // FETCH CHANGELOG URL FROM RELEASE ASSETS DYNAMICALLY BASED ON CHANNEL
                     val changelogList = mutableListOf<ChangelogSection>()
                     var description: String? = null
                     var imageUrl: String? = null
                     try {
-                        val changelogUrl =
-                            URL("https://github.com/pwpp08/vivi-music/releases/download/$tagWithPrefix/changelog.json")
+                        val releaseAssets = targetRelease.optJSONArray("assets")
+                        val changelogAssetUrl = if (releaseAssets != null) {
+                            (0 until releaseAssets.length()).map { releaseAssets.getJSONObject(it) }
+                                .firstOrNull { it.getString("name") == "changelog.json" }
+                                ?.optString("browser_download_url")
+                        } else null
+                        val changelogUrl = if (!changelogAssetUrl.isNullOrEmpty()) {
+                            URL("$changelogAssetUrl?t=${System.currentTimeMillis()}")
+                        } else {
+                            URL("https://github.com/pwpp08/vivi-music/releases/download/$tagWithPrefix/changelog.json?t=${System.currentTimeMillis()}")
+                        }
                         val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                         val changelogData = JSONObject(changelogJson)
 
@@ -994,13 +1049,27 @@ suspend fun checkForUpdate(
                         val changelogArray = changelogData.getJSONArray("changelog")
                         for (j in 0 until changelogArray.length()) {
                             val sectionObj = changelogArray.getJSONObject(j)
-                            val title = sectionObj.getString("title")
-                            val itemsArray = sectionObj.getJSONArray("items")
+                            val title = sectionObj.optString("title", "")
+                            val secDesc = sectionObj.optString("description").takeIf { it.isNotBlank() }
+                            val itemsArray = sectionObj.optJSONArray("items")
                             val itemsList = mutableListOf<String>()
-                            for (k in 0 until itemsArray.length()) {
-                                itemsList.add(itemsArray.getString(k))
+                            if (itemsArray != null) {
+                                for (k in 0 until itemsArray.length()) {
+                                    itemsList.add(itemsArray.getString(k))
+                                }
                             }
-                            changelogList.add(ChangelogSection(title, itemsList))
+                            
+                            val blocksArray = sectionObj.optJSONArray("blocks")
+                            var blocksList: List<SDUIBlock>? = null
+                            if (blocksArray != null) {
+                                val sduiList = mutableListOf<SDUIBlock>()
+                                for (k in 0 until blocksArray.length()) {
+                                    sduiList.add(parseSDUIBlock(blocksArray.getJSONObject(k)))
+                                }
+                                blocksList = sduiList
+                            }
+                            
+                            changelogList.add(ChangelogSection(title, itemsList, secDesc, blocksList))
                         }
                     } catch (e: Exception) {
                         // Fallback: Parse body as markdown release notes
@@ -1028,17 +1097,20 @@ suspend fun checkForUpdate(
                     var apkDownloadUrl = ""
                     var fallbackApkSizeInMB = ""
                     var fallbackApkUrl = ""
-                    val currentFlavor = if (BuildConfig.CAST_AVAILABLE) "gms" else "foss"
+                    val isFoss = BuildConfig.FLAVOR.contains("foss", ignoreCase = true)
+                    val expectedApkName = if (isFoss) "izzydroid-universal-foss-release.apk" else "vivi.apk"
+                    val currentFlavor = if (isFoss) "foss" else "gms"
 
                     for (j in 0 until assets.length()) {
                         val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name").lowercase()
-                        if (assetName.endsWith(".apk")) {
+                        val assetName = asset.getString("name")
+                        val lowerName = assetName.lowercase()
+                        if (lowerName.endsWith(".apk")) {
                             val apkSizeInBytes = asset.getLong("size")
                             val sizeStr = String.format(java.util.Locale.US, "%.1f", apkSizeInBytes / (1024.0 * 1024.0))
                             val downloadUrl = asset.getString("browser_download_url")
 
-                            if (assetName.contains(currentFlavor) || assetName == "vivi.apk") {
+                            if (assetName == expectedApkName || lowerName.contains(currentFlavor) || assetName == "vivi.apk") {
                                 apkSizeInMB = sizeStr
                                 apkDownloadUrl = downloadUrl
                                 break
@@ -1133,4 +1205,148 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
     }
 
     return urlList
+}
+
+// Helper to dynamically parse robust HTML payloads and raw URLs flawlessly into Compose UI strings
+fun String.parseMarkdownAndUrls(primaryColor: Color): AnnotatedString {
+    val cleanHtml = this.replace("\n", "<br>") // ensure plain newlines break correctly too just in case
+    val spanned = HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_COMPACT)
+    
+    return buildAnnotatedString {
+        val plainText = spanned.toString()
+        append(plainText)
+        
+        // Map Native HTML Spans to Compose Spans
+        spanned.getSpans(0, spanned.length, Any::class.java).forEach { span ->
+            val start = spanned.getSpanStart(span)
+            val end = spanned.getSpanEnd(span)
+            when (span) {
+                is StyleSpan -> {
+                    when (span.style) {
+                        Typeface.BOLD -> addStyle(SpanStyle(fontWeight = FontWeight.Bold), start, end)
+                        Typeface.ITALIC -> addStyle(SpanStyle(fontStyle = FontStyle.Italic), start, end)
+                        Typeface.BOLD_ITALIC -> addStyle(SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic), start, end)
+                    }
+                }
+                is URLSpan -> {
+                    addStyle(SpanStyle(color = primaryColor, textDecoration = TextDecoration.Underline), start, end)
+                    addStringAnnotation("URL", span.url, start, end)
+                }
+                is RelativeSizeSpan -> {
+                    addStyle(SpanStyle(fontSize = TextUnit(span.sizeChange, TextUnitType.Em)), start, end)
+                }
+                is ForegroundColorSpan -> {
+                    addStyle(SpanStyle(color = Color(span.foregroundColor)), start, end)
+                }
+            }
+        }
+        
+        // Safely extract raw text-based URLs that didn't use an <a href> tag natively
+        val rawUrls = plainText.extractUrls()
+        rawUrls.forEach { (range, url) ->
+            addStyle(
+                SpanStyle(color = primaryColor, textDecoration = TextDecoration.Underline),
+                range.first, range.last + 1
+            )
+            addStringAnnotation("URL", url, range.first, range.last + 1)
+        }
+    }
+}
+
+// JSON Block parser
+fun parseSDUIBlock(json: JSONObject): SDUIBlock {
+    val type = json.optString("type", "text")
+    val url = json.optString("url").takeIf { it.isNotEmpty() }
+    
+    var modifierParams: SDUIModifier? = null
+    if (json.has("modifier")) {
+        val modJson = json.getJSONObject("modifier")
+        modifierParams = SDUIModifier(
+            weight = if (modJson.has("weight")) modJson.getDouble("weight").toFloat() else null,
+            heightDp = if (modJson.has("height")) modJson.getInt("height") else null,
+            fillMaxWidth = modJson.optBoolean("fillMaxWidth", false),
+            paddingDp = if (modJson.has("padding")) modJson.getInt("padding") else null,
+            aspectRatio = if (modJson.has("aspectRatio")) modJson.getDouble("aspectRatio").toFloat() else null
+        )
+    }
+    
+    var children: List<SDUIBlock>? = null
+    if (json.has("children")) {
+        val childrenArray = json.getJSONArray("children")
+        val parsedList = mutableListOf<SDUIBlock>()
+        for (i in 0 until childrenArray.length()) {
+            parsedList.add(parseSDUIBlock(childrenArray.getJSONObject(i)))
+        }
+        children = parsedList
+    }
+    
+    return SDUIBlock(type, url, modifierParams, children)
+}
+
+// Dynamic Jetpack Compose layout renderer
+@Composable
+fun RowScope.RowSDUIItem(child: SDUIBlock) {
+    val w = child.modifierParams?.weight
+    val childModifier = if (w != null) Modifier.weight(w) else Modifier
+    RenderSDUIBlock(child, parentModifier = childModifier)
+}
+
+@Composable
+fun RenderSDUIBlock(block: SDUIBlock, parentModifier: Modifier = Modifier) {
+    var mod = parentModifier
+    block.modifierParams?.let { params ->
+        if (params.fillMaxWidth) mod = mod.fillMaxWidth()
+        if (params.heightDp != null) mod = mod.height(params.heightDp.dp)
+        if (params.paddingDp != null) mod = mod.padding(params.paddingDp.dp)
+        if (params.aspectRatio != null) mod = mod.aspectRatio(params.aspectRatio)
+    }
+
+    when (block.type) {
+        "row" -> {
+            if (block.children.isNullOrEmpty()) return
+            Row(modifier = mod.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                block.children?.forEach { child -> RowSDUIItem(child) }
+            }
+        }
+        "image" -> {
+           if (block.url.isNullOrBlank()) return
+           AsyncImage(
+                model = block.url,
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = mod.clip(RoundedCornerShape(12.dp))
+            )
+        }
+        "video" -> {
+            if (block.url.isNullOrBlank()) return
+            val context = LocalContext.current
+            val exoPlayer = remember {
+                ExoPlayer.Builder(context).build().apply {
+                    val mediaItem = MediaItem.fromUri(block.url ?: "")
+                    setMediaItem(mediaItem)
+                    prepare()
+                    playWhenReady = true
+                    repeatMode = Player.REPEAT_MODE_ALL
+                }
+            }
+            DisposableEffect(exoPlayer) {
+                onDispose { exoPlayer.release() }
+            }
+            AndroidView(
+                factory = { ctx ->
+                    PlayerView(ctx).apply {
+                        player = exoPlayer
+                        useController = false // looping aesthetics
+                        setShowNextButton(false)
+                        setShowPreviousButton(false)
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    }
+                },
+                modifier = mod.clip(RoundedCornerShape(12.dp))
+            )
+        }
+    }
 }

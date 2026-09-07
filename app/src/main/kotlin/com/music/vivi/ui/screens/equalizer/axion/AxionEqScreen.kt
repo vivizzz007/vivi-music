@@ -13,10 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -406,7 +402,7 @@ private fun SimpleEqMode(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Check,
+                    painter = painterResource(R.drawable.check),
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)
                 )
@@ -765,7 +761,7 @@ private fun AdvancedEqMode(
             horizontalArrangement = Arrangement.Center,
         ) {
             OutlinedButton(onClick = onReset) {
-                Icon(Icons.Rounded.Replay, contentDescription = null)
+                Icon(painterResource(R.drawable.replay), contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(stringResource(R.string.eq_reset))
             }
@@ -875,7 +871,7 @@ private fun PresetSection(
                         modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Edit,
+                            painter = painterResource(R.drawable.edit),
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)

@@ -200,7 +200,7 @@ fun NewActionGrid(
                     index == actions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes(shape = trailingShape, checkedShape = trailingShape)
                     else -> ButtonGroupDefaults.connectedMiddleButtonShapes(shape = middleShape, checkedShape = middleShape)
                 },
-                colors = ToggleButtonDefaults.toggleButtonColors(
+                colors = ToggleButtonDefaults.colors(
                     containerColor = bgColor,
                     contentColor = contentCol,
                     disabledContainerColor = bgColor.copy(alpha = 0.5f),

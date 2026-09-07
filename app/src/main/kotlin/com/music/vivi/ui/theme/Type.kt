@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalTextApi::class)
 val GoogleSansFontFamily = FontFamily(
     Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Normal,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(400),
@@ -27,7 +27,7 @@ val GoogleSansFontFamily = FontFamily(
         )
     ),
     Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Medium,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(500),
@@ -36,7 +36,7 @@ val GoogleSansFontFamily = FontFamily(
         )
     ),
     Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Bold,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(700),
@@ -49,7 +49,7 @@ val GoogleSansFontFamily = FontFamily(
 @OptIn(ExperimentalTextApi::class)
 val SansFlexFontFamily = FontFamily(
     Font(
-        resId = com.music.vivi.R.font.sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Normal,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(400),
@@ -58,7 +58,7 @@ val SansFlexFontFamily = FontFamily(
         )
     ),
     Font(
-        resId = com.music.vivi.R.font.sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Medium,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(500),
@@ -67,7 +67,7 @@ val SansFlexFontFamily = FontFamily(
         )
     ),
     Font(
-        resId = com.music.vivi.R.font.sans_flex,
+        resId = com.music.vivi.R.font.plus_jakarta_sans,
         weight = FontWeight.Bold,
         variationSettings = FontVariation.Settings(
             FontVariation.weight(700),

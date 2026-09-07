@@ -856,32 +856,23 @@ fun BottomSheetPlayer(
                                         .fillMaxSize()
                                         .alpha(backgroundAlpha)
                                 ) {
-                                    // 1. The source component displaying the unblurred image
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(256, 256) // high enough resolution for good source detail
+                                            .size(100, 100) // Lower resolution for better performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                        contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .hazeSource(state = playerHazeState) // Mark as blur source
+                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
                                     )
 
-                                    // 2. The overlay component rendering the Haze blur effect
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .hazeEffect(
-                                                state = playerHazeState,
-                                                style = HazeStyle(
-                                                    blurRadius = 80.dp,
-                                                    tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-                                                    noiseFactor = 0.15f
-                                                )
-                                            )
+                                            .background(Color.Black.copy(alpha = 0.30f))
                                     )
                                 }
                             }

@@ -63,6 +63,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -453,7 +454,7 @@ fun DailyDiscoverCard(
     Card(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -472,14 +473,24 @@ fun DailyDiscoverCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            var currentThumbnailUrl by remember(dailyDiscover.recommendation.thumbnail) {
+                mutableStateOf(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+            }
+            
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+                    .data(currentThumbnailUrl)
                     .crossfade(true)
                     .build(),
+                onError = {
+                    val url = currentThumbnailUrl
+                    if (url != null && url.contains("maxresdefault.jpg")) {
+                        currentThumbnailUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                    }
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -868,11 +879,23 @@ fun HomeScreen(
         val hasSpeedDial = list.contains(HomeSection.SpeedDial)
         val remaining = list.filter { it != HomeSection.SpeedDial }
 
+        // If logged in, YouTube provides its own superior "Quick picks" section.
+        // If logged out as guest, we use our local app-generated Quick Picks.
+        val hasYouTubeQuickPicks = remaining.any {
+            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true
+        }
+
+        val deduplicatedRemaining = if (hasYouTubeQuickPicks) {
+            remaining.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        } else {
+            remaining
+        }
+
         val sortedRemaining = if (randomizeHomeOrder) {
-            remaining.sortedByDescending { section ->
+            deduplicatedRemaining.sortedByDescending { section ->
                 val sectionRandom = Random(randomSeed + section.id.hashCode())
                 val base = when (section) {
-                    HomeSection.QuickPicks,
+                    HomeSection.QuickPicks -> 700
                     HomeSection.DailyDiscover -> 500
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
@@ -880,9 +903,8 @@ fun HomeScreen(
                     HomeSection.FromTheCommunity -> 300
                     else -> 100
                 }
-
                 val modifier = when (section) {
-                    HomeSection.QuickPicks,
+                    HomeSection.QuickPicks -> 0
                     HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
                     HomeSection.KeepListening,
@@ -905,7 +927,7 @@ fun HomeScreen(
                 HomeSection.MoodAndGenres to 10
             )
 
-            remaining.sortedByDescending { section ->
+            deduplicatedRemaining.sortedByDescending { section ->
                 when(section) {
                     is HomeSection.SimilarRecommendation -> 30 - section.index
                     is HomeSection.HomePageSection -> 20 - section.index
@@ -914,7 +936,15 @@ fun HomeScreen(
             }
         }
 
-        if (hasSpeedDial) listOf(HomeSection.SpeedDial) + sortedRemaining else sortedRemaining
+        // Keep surviving QuickPicks right after SpeedDial (or at top if no SpeedDial)
+        val isQuickPicksSection: (HomeSection) -> Boolean = {
+            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
+        }
+        val qpItems = sortedRemaining.filter(isQuickPicksSection)
+        val restItems = sortedRemaining.filterNot(isQuickPicksSection)
+        val orderedContent = if (qpItems.isNotEmpty()) qpItems + restItems else sortedRemaining
+
+        if (hasSpeedDial) listOf(HomeSection.SpeedDial) + orderedContent else orderedContent
     }
 
     LaunchedEffect(quickPicks) {
@@ -1537,18 +1567,18 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(340.dp)
-                                            .padding(horizontal = 16.dp),
+                                            .height(230.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         val carouselState = rememberCarouselState { discoverList.size }
-                                        HorizontalMultiBrowseCarousel(
+                                        HorizontalUncontainedCarousel(
                                             state = carouselState,
-                                            preferredItemWidth = 320.dp,
-                                            itemSpacing = 16.dp,
+                                            itemWidth = 320.dp,
+                                            itemSpacing = 8.dp,
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(320.dp)
+                                                .height(210.dp)
                                         ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(
@@ -1566,7 +1596,7 @@ fun HomeScreen(
                                                     }
                                                 },
                                                 navController = navController,
-                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.large)
                                             )
                                         }
                                     }

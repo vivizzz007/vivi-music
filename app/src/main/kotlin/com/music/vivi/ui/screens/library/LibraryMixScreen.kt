@@ -6,6 +6,7 @@
 package com.music.vivi.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -25,11 +27,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
@@ -42,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -70,7 +74,6 @@ import com.music.vivi.constants.ShowCachedPlaylistKey
 import com.music.vivi.constants.ShowDownloadedPlaylistKey
 import com.music.vivi.constants.ShowLikedPlaylistKey
 import com.music.vivi.constants.ShowTopPlaylistKey
-import com.music.vivi.constants.ShowUploadedPlaylistKey
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
@@ -162,21 +165,10 @@ fun LibraryMixScreen(
             songThumbnails = emptyList(),
         )
 
-    val uploadedPlaylist =
-        Playlist(
-            playlist = PlaylistEntity(
-                id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.uploaded_playlist)
-            ),
-            songCount = 0,
-            songThumbnails = emptyList(),
-        )
-
     val (showLiked) = rememberPreference(ShowLikedPlaylistKey, true)
     val (showDownloaded) = rememberPreference(ShowDownloadedPlaylistKey, true)
     val (showTop) = rememberPreference(ShowTopPlaylistKey, true)
     val (showCached) = rememberPreference(ShowCachedPlaylistKey, true)
-    val (showUploaded) = rememberPreference(ShowUploadedPlaylistKey, true)
 
     val albums = viewModel.albums.collectAsState()
     val artist = viewModel.artists.collectAsState()
@@ -268,6 +260,33 @@ fun LibraryMixScreen(
             )
 
             Spacer(Modifier.weight(1f))
+
+            Box(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.primary)
+                    .clickable { viewType = viewType.toggle() },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter =
+                    painterResource(
+                        when (viewType) {
+                            LibraryViewType.LIST -> R.drawable.list
+                            LibraryViewType.GRID -> R.drawable.grid_view
+                        },
+                    ),
+                    contentDescription = stringResource(
+                        when (viewType) {
+                            LibraryViewType.LIST -> R.string.switch_to_grid_view
+                            LibraryViewType.GRID -> R.string.switch_to_list_view
+                        },
+                    ),
+                    tint = MaterialTheme.colorScheme.onPrimary
+                )
+            }
         }
     }
 
@@ -382,24 +401,7 @@ fun LibraryMixScreen(
                         }
                     }
 
-                    if (showUploaded) {
-                        item(
-                            key = "uploadedPlaylist",
-                            contentType = { CONTENT_TYPE_PLAYLIST },
-                        ) {
-                            PlaylistListItem(
-                                playlist = uploadedPlaylist,
-                                autoPlaylist = true,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            navController.navigate("auto_playlist/uploaded")
-                                        }
-                                        .animateItem(),
-                            )
-                        }
-                    }
+
 
                     items(
                         items = allItems.distinctBy { it.id },
@@ -656,25 +658,7 @@ fun LibraryMixScreen(
                         }
                     }
 
-                    if (showUploaded) {
-                        item(
-                            key = "uploadedPlaylist",
-                            contentType = { CONTENT_TYPE_PLAYLIST },
-                        ) {
-                            PlaylistGridItem(
-                                playlist = uploadedPlaylist,
-                                fillMaxWidth = true,
-                                autoPlaylist = true,
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .clickable {
-                                            navController.navigate("auto_playlist/uploaded")
-                                        }
-                                        .animateItem(),
-                            )
-                        }
-                    }
+
 
                     items(
                         items = allItems.distinctBy { it.id },

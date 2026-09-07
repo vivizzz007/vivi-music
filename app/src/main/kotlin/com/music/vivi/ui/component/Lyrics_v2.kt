@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
-import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -160,10 +160,7 @@ fun LyricsV2(
     ) {
         when {
             lyrics == null -> {
-                CircularWavyProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(48.dp)
-                )
+                ContainedLoadingIndicator()
             }
 
             lyrics == LYRICS_NOT_FOUND -> {
@@ -393,10 +390,31 @@ fun LyricsV2(
                 }
 
                 var currentPosition by remember { mutableLongStateOf(positionProvider()) }
+                
                 LaunchedEffect(Unit) {
+                    var lastPlayerPos = playerConnection.player.currentPosition
+                    var lastUpdateTime = System.currentTimeMillis()
+                    
                     while (true) {
-                        currentPosition = positionProvider()
-                        delay(50)
+                       withFrameMillis {
+                            val now = System.currentTimeMillis()
+                            val playerPos = playerConnection.player.currentPosition
+                            val isPlaying = playerConnection.player.isPlaying
+                            val providerPos = positionProvider()
+                            
+                            if (kotlin.math.abs(providerPos - playerPos) > 1000L) {
+                                currentPosition = providerPos
+                                lastPlayerPos = playerPos
+                                lastUpdateTime = now
+                            } else {
+                                if (playerPos != lastPlayerPos || !isPlaying) {
+                                    lastPlayerPos = playerPos
+                                    lastUpdateTime = now
+                                }
+                                val elapsed = now - lastUpdateTime
+                                currentPosition = lastPlayerPos + (if (isPlaying) elapsed else 0L)
+                            }
+                        }
                     }
                 }
 
@@ -457,9 +475,12 @@ fun LyricsV2(
                     val bottomPadding = (maxHeight * (1f - targetTopRatio)) + contentPadding.calculateBottomPadding()
 
                     // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
-                    LaunchedEffect(currentLineIndex, isAutoScrollEnabled) {
+                    LaunchedEffect(currentLineIndex, isAutoScrollEnabled, mergedLyricsList) {
                         if (currentLineIndex != -1 && isAutoScrollEnabled && !isGuest) {
-                            val targetIndex = maxOf(0, currentLineIndex) + providerOffset
+                            val actualListIndex = mergedLyricsList.indexOfFirst { 
+                                it is LyricsListItemV2.Line && it.index == currentLineIndex 
+                            }.takeIf { it != -1 } ?: currentLineIndex
+                            val targetIndex = maxOf(0, actualListIndex) + providerOffset
                             try {
                                 val itemInfo =
                                     listState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
@@ -586,10 +607,9 @@ fun LyricsV2(
                                         gapEndMs = item.gapEndMs - 650L,
                                         currentPositionMs = effectivePos,
                                         visible = indicatorVisible,
-                                        color = MaterialTheme.colorScheme.primary,
+                                        color = adaptivePrimary,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 24.dp, vertical = 32.dp)
                                             .wrapContentWidth(Alignment.CenterHorizontally)
                                     )
                                 }
@@ -741,4 +761,3 @@ fun LyricsV2(
         }
     }
 }
-
