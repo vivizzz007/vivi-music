@@ -470,7 +470,18 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        val uniqueCandidates = candidatePlaylists.distinctBy { it.id }.shuffled().take(5)
+        val uniqueCandidates = if (candidatePlaylists.isEmpty()) {
+            val fallbackPlaylists = mutableListOf<PlaylistItem>()
+            YouTube.searchSummary("top playlists").getOrNull()?.let { result ->
+                fallbackPlaylists.addAll(
+                    result.summaries.flatMap { it.items }.filterIsInstance<PlaylistItem>()
+                        .filter { it.author?.name != "YouTube Music" && it.author?.name != "YouTube" && !it.id.startsWith("RD") }
+                )
+            }
+            fallbackPlaylists.shuffled().take(5)
+        } else {
+            candidatePlaylists.distinctBy { it.id }.shuffled().take(5)
+        }
 
         val playlists = java.util.Collections.synchronizedList(mutableListOf<CommunityPlaylistItem>())
 
