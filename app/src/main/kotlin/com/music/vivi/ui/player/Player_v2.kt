@@ -421,11 +421,13 @@ fun PlayerV2(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-                                        PlayerV2Canvas(
-                                            mediaMetadata = mediaMetadata,
-                                            isPlaying = isPlaying,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
+                                        if (transition.currentState == transition.targetState) {
+                                            PlayerV2Canvas(
+                                                mediaMetadata = mediaMetadata,
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        }
                                     }
                                 }
                                 
