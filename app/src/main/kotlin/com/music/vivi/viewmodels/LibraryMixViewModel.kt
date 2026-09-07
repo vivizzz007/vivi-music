@@ -17,6 +17,7 @@ import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Artist
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.extensions.toEnum
+import com.music.vivi.constants.PinnedLibraryItemsKey
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -105,6 +106,12 @@ constructor(
                 }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    val recentArtistsThumbnails = database.artistsBookmarked(ArtistSortType.CREATE_DATE, true)
+        .map { artists ->
+            artists.take(3).mapNotNull { it.artist.thumbnailUrl }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     val playlistsCount = database.playlists(PlaylistSortType.CREATE_DATE, true)
         .map { it.size }
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
@@ -117,6 +124,28 @@ constructor(
             it[MixSortDescendingKey] ?: true
         )
     }.distinctUntilChanged()
+
+    val pinnedUiItems = context.dataStore.data
+        .map { it[PinnedLibraryItemsKey] ?: emptySet() }
+        .distinctUntilChanged()
+        .flatMapLatest { pinnedSet ->
+            val albumIds = pinnedSet.filter { it.startsWith("album:") }.map { it.removePrefix("album:") }
+            val artistIds = pinnedSet.filter { it.startsWith("artist:") }.map { it.removePrefix("artist:") }
+            val playlistIds = pinnedSet.filter { it.startsWith("playlist:") }.map { it.removePrefix("playlist:") }
+            
+            val albumFlows = albumIds.map { database.album(it) }
+            val artistFlows = artistIds.map { database.artist(it) }
+            val playlistFlows = playlistIds.map { database.playlist(it) }
+            
+            val allFlows = albumFlows + artistFlows + playlistFlows
+            if (allFlows.isEmpty()) {
+                kotlinx.coroutines.flow.flowOf(emptyList<Any>())
+            } else {
+                combine(allFlows) { items ->
+                    items.filterNotNull().toList()
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val filteredUiItems = combine(
         artists, debouncedSearchQuery, sortSettings

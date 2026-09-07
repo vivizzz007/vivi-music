@@ -24,10 +24,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,11 +70,11 @@ fun StatCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Circular icon container with primary theme color
+                // Cookie4Sided icon container with primary theme color
                 Box(
                     modifier = Modifier
                         .size(32.dp)
-                        .clip(CircleShape)
+                        .clip(MaterialShapes.Cookie4Sided.toShape())
                         .then(
                             if (iconTint != Color.Unspecified)
                                 Modifier.background(MaterialTheme.colorScheme.primary)

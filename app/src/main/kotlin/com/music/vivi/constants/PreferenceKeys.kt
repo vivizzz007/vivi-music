@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -293,7 +294,9 @@ const val SYNC_COOLDOWN = 30 * 60L
 
 val SearchListenHistoryKey = stringPreferencesKey("searchListenHistory")
 val AlbumGridViewKey = booleanPreferencesKey("albumGridView")
+val ArtistGridViewKey = booleanPreferencesKey("artistGridView")
 val PlaylistGridViewKey = booleanPreferencesKey("playlistGridView")
+val PinnedLibraryItemsKey = stringSetPreferencesKey("pinnedLibraryItems")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 val QuickPicksKey = stringPreferencesKey("discover")

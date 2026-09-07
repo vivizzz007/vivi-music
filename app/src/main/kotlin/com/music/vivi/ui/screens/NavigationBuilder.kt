@@ -114,6 +114,10 @@ fun NavGraphBuilder.navigationBuilder(
         AlbumLibraryScreen(navController)
     }
 
+    composable("artist_library") {
+        com.music.vivi.ui.screens.library.ArtistLibraryScreen(navController)
+    }
+
     composable("playlist_library") {
         PlaylistLibraryScreen(navController)
     }

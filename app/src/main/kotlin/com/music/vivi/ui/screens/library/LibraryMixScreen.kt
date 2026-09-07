@@ -7,6 +7,7 @@ package com.music.vivi.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,8 +34,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -55,6 +59,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -177,9 +182,11 @@ fun LibraryMixScreen(
     val (showCached) = rememberPreference(ShowCachedPlaylistKey, true)
 
     val albumsThumbnails = viewModel.recentAlbumsThumbnails.collectAsState()
+    val artistsThumbnails = viewModel.recentArtistsThumbnails.collectAsState()
     val playlistCount = viewModel.playlistsCount.collectAsState()
 
     val filteredItems by viewModel.filteredUiItems.collectAsState()
+    val pinnedUiItems by viewModel.pinnedUiItems.collectAsState()
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
     val searchQuery by viewModel.searchQuery.collectAsState()
 
@@ -235,49 +242,108 @@ fun LibraryMixScreen(
                         headerContent()
                     }*/
 
-                    item(
-                        key = "search_bar",
-                        span = { GridItemSpan(maxLineSpan) },
-                        contentType = CONTENT_TYPE_HEADER,
-                    ) {
-                        LibrarySearchBar(
-                            query = searchQuery,
-                            onQueryChange = { viewModel.searchQuery.value = it },
-                            isSearchActive = isSearchActive,
-                            onSearchActiveChange = { isSearchActive = it },
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
-                            sortContent = {
-                                com.music.vivi.ui.component.SortDropdownMenu(
-                                    sortType = sortType,
-                                    sortDescending = sortDescending,
-                                    onSortTypeChange = onSortTypeChange,
-                                    onSortDescendingChange = onSortDescendingChange,
-                                    sortTypeText = { t ->
-                                        when (t) {
-                                            MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                            MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                                            MixSortType.NAME -> R.string.sort_by_name
+                    if (pinnedUiItems.isNotEmpty()) {
+                        item(
+                            key = "search_bar",
+                            span = { GridItemSpan(maxLineSpan) },
+                            contentType = CONTENT_TYPE_HEADER,
+                        ) {
+                            LibrarySearchBar(
+                                query = searchQuery,
+                                onQueryChange = { viewModel.searchQuery.value = it },
+                                isSearchActive = isSearchActive,
+                                onSearchActiveChange = { isSearchActive = it },
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 8.dp),
+                                sortContent = {
+                                    com.music.vivi.ui.component.SortDropdownMenu(
+                                        sortType = sortType,
+                                        sortDescending = sortDescending,
+                                        onSortTypeChange = onSortTypeChange,
+                                        onSortDescendingChange = onSortDescendingChange,
+                                        sortTypeText = { t ->
+                                            when (t) {
+                                                MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                                MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                                MixSortType.NAME -> R.string.sort_by_name
+                                            }
                                         }
-                                    }
-                                )
-                            }
-                        )
+                                    )
+                                }
+                            )
+                        }
                     }
 
                     if (showLiked) {
                         item(
                             key = "likedPlaylist",
+                            span = { GridItemSpan(maxLineSpan) },
                             contentType = "stat_card",
                         ) {
-                            StatCard(
-                                title = stringResource(R.string.liked),
-                                icon = painterResource(R.drawable.likes),
-                                iconTint = Color.Unspecified,
-                                thumbnails = recentLikedThumbnails,
-                                onClick = { navController.navigate("auto_playlist/liked") },
+                            Box(
                                 modifier = Modifier
+                                    .padding(horizontal = 6.dp, vertical = 6.dp)
                                     .fillMaxWidth()
-                            )
+                                    .height(80.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                    .clickable(onClick = { navController.navigate("auto_playlist/liked") })
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(horizontal = 16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(MaterialShapes.Cookie4Sided.toShape())
+                                                .background(MaterialTheme.colorScheme.primary),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.favorite_border),
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.size(16.dp))
+                                        androidx.compose.foundation.layout.Column {
+                                            androidx.compose.material3.Text(
+                                                text = stringResource(R.string.liked),
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+
+                                    if (recentLikedThumbnails.isNotEmpty()) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy((-14).dp)
+                                        ) {
+                                            recentLikedThumbnails.take(3).forEachIndexed { index, url ->
+                                                coil3.compose.AsyncImage(
+                                                    model = url,
+                                                    contentDescription = null,
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .border(1.5.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                                        .zIndex(3f - index)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -288,8 +354,8 @@ fun LibraryMixScreen(
                         ) {
                             StatCard(
                                 title = stringResource(R.string.offline),
-                                icon = painterResource(R.drawable.downloadedstore),
-                                iconTint = Color.Unspecified,
+                                icon = painterResource(R.drawable.download),
+//                                iconTint = Color.Unspecified,
                                 thumbnails = recentDownloadedThumbnails,
                                 onClick = { navController.navigate("auto_playlist/downloaded") },
                                 modifier = Modifier
@@ -303,10 +369,23 @@ fun LibraryMixScreen(
                     ) {
                         StatCard(
                             title = stringResource(R.string.albums),
-                            icon = painterResource(R.drawable.album_library),
-                            iconTint = Color.Unspecified,
+                            icon = painterResource(R.drawable.album),
+//                            iconTint = Color.Unspecified,
                             thumbnails = albumsThumbnails.value,
                             onClick = { navController.navigate("album_library") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    item(
+                        key = "artistsStatCard",
+                        contentType = "stat_card",
+                    ) {
+                        StatCard(
+                            title = stringResource(R.string.artists),
+                            icon = painterResource(R.drawable.artist),
+                            thumbnails = artistsThumbnails.value,
+                            onClick = { navController.navigate("artist_library") },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -319,7 +398,7 @@ fun LibraryMixScreen(
                             title = stringResource(R.string.playlists),
                             countText = playlistCount.value.toString(),
                             icon = painterResource(R.drawable.playlist_library),
-                            iconTint = Color.Unspecified,
+//                            iconTint = Color.Unspecified,
                             thumbnails = emptyList(),
                             onClick = { navController.navigate("playlist_library") },
                             modifier = Modifier.fillMaxWidth()
@@ -358,32 +437,65 @@ fun LibraryMixScreen(
                         }
                     }
 
-                    items(
-                        items = filteredItems,
-                        key = { item ->
+                    if (pinnedUiItems.isNotEmpty()) {
+                        items(
+                            items = pinnedUiItems,
+                            key = { item ->
+                                "pinned_${when (item) {
+                                    is Playlist -> item.id
+                                    is Album -> item.id
+                                    is Artist -> item.id
+                                    else -> item.hashCode()
+                                }}"
+                            },
+                        ) { item ->
+                            val modifier = Modifier.animateItem().fillMaxWidth()
                             when (item) {
-                                is Playlist -> item.id
-                                is Artist -> item.id
-                                is Album -> item.id
-                                else -> item.hashCode().toString()
-                            }
-                        },
-                        contentType = { CONTENT_TYPE_PLAYLIST },
-                    ) { item ->
-                        when (item) {
-
-
-                            is Artist -> {
-                                ArtistGridItem(
+                                is Playlist -> PlaylistGridItem(
+                                    playlist = item,
+                                    fillMaxWidth = true,
+                                    modifier = modifier
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("local_playlist/${item.playlist.id}") },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    PlaylistMenu(
+                                                        playlist = item,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            }
+                                        )
+                                )
+                                is Album -> AlbumGridItem(
+                                    album = item,
+                                    coroutineScope = coroutineScope,
+                                    isActive = false,
+                                    isPlaying = false,
+                                    fillMaxWidth = true,
+                                    modifier = modifier
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("album/${item.id}") },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    AlbumMenu(
+                                                        originalAlbum = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            }
+                                        )
+                                )
+                                is Artist -> ArtistGridItem(
                                     artist = item,
                                     fillMaxWidth = true,
-                                    modifier =
-                                    Modifier
-                                        .fillMaxWidth()
+                                    modifier = modifier
                                         .combinedClickable(
-                                            onClick = {
-                                                navController.navigate("artist/${item.id}")
-                                            },
+                                            onClick = { navController.navigate("artist/${item.id}") },
                                             onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
@@ -393,15 +505,10 @@ fun LibraryMixScreen(
                                                         onDismiss = menuState::dismiss,
                                                     )
                                                 }
-                                            },
+                                            }
                                         )
-                                        .animateItem(),
                                 )
                             }
-
-
-
-                            else -> {}
                         }
                     }
                 }
