@@ -110,6 +110,7 @@ fun PlayerV2(
     val menuState = LocalMenuState.current
     val bottomSheetPageState = LocalBottomSheetPageState.current
     var playerState by remember { mutableStateOf(PlayerInternalState.COVER) }
+    var transitionDirection by remember { mutableIntStateOf(1) }
     
     val listenTogetherManager = com.music.vivi.LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = com.music.vivi.listentogether.RoomRole.NONE)
@@ -406,35 +407,58 @@ fun PlayerV2(
                                         .clip(RoundedCornerShape(12.dp))
                                         .SwipeGesture(
                                             enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
-                                            onSwipeLeft = { if (canSkipNext) playerConnection.player.seekToNext() },
-                                            onSwipeRight = { if (canSkipPrevious) playerConnection.player.seekToPrevious() }
+                                            onSwipeLeft = { 
+                                                transitionDirection = 1
+                                                if (canSkipNext) playerConnection.player.seekToNext() 
+                                            },
+                                            onSwipeRight = { 
+                                                transitionDirection = -1
+                                                if (canSkipPrevious) playerConnection.player.seekToPrevious() 
+                                            }
                                         )
                                 ) {
-                                    if (hidePlayerThumbnail) {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.vivi_music_small_icon),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(72.dp),
-                                                tint = adaptivePrimary.copy(alpha = 0.5f)
+                                    AnimatedContent(
+                                        targetState = mediaMetadata,
+                                        transitionSpec = {
+                                            slideInHorizontally(
+                                                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                                initialOffsetX = { fullWidth -> if (transitionDirection > 0) fullWidth else -fullWidth }
+                                            ) togetherWith slideOutHorizontally(
+                                                animationSpec = tween(400, easing = FastOutSlowInEasing),
+                                                targetOffsetX = { fullWidth -> if (transitionDirection > 0) -fullWidth else fullWidth }
                                             )
-                                        }
-                                    } else {
-                                        AsyncImage(
-                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                            contentDescription = "Cover Art",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                        if (transition.currentState == transition.targetState) {
-                                            PlayerV2Canvas(
-                                                mediaMetadata = mediaMetadata,
-                                                isPlaying = isPlaying,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
+                                        },
+                                        modifier = Modifier.fillMaxSize(),
+                                        label = "CoverArtSlide"
+                                    ) { targetMetadata ->
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(72.dp),
+                                                    tint = adaptivePrimary.copy(alpha = 0.5f)
+                                                )
+                                            }
+                                        } else {
+                                            Box(modifier = Modifier.fillMaxSize()) {
+                                                AsyncImage(
+                                                    model = targetMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                                    contentDescription = "Cover Art",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                                if (transition.currentState == transition.targetState) {
+                                                    PlayerV2Canvas(
+                                                        mediaMetadata = targetMetadata,
+                                                        isPlaying = isPlaying,
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -826,6 +850,7 @@ fun PlayerV2(
                         IconButton(
                             onClick = {
                                 if (!isListenTogetherGuest) {
+                                    transitionDirection = -1
                                     if (isCasting) castHandler?.skipToPrevious()
                                     else if (canSkipPrevious) playerConnection.player.seekToPrevious()
                                 }
@@ -870,6 +895,7 @@ fun PlayerV2(
                         IconButton(
                             onClick = {
                                 if (!isListenTogetherGuest) {
+                                    transitionDirection = 1
                                     if (isCasting) castHandler?.skipToNext()
                                     else if (canSkipNext) playerConnection.player.seekToNext()
                                 }
