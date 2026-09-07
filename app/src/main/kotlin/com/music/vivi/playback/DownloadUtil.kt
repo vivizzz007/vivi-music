@@ -33,8 +33,10 @@ import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import com.music.innertube.YouTube
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
+import com.music.vivi.constants.AutoDownloadPlaylistsKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
+import androidx.datastore.preferences.core.edit
 import com.music.innertube.models.IpVersion
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -295,7 +297,7 @@ constructor(
                                 Download.STATE_COMPLETED -> {
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
                                     val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
-                                    if (saveToPublic) {
+                                    if (saveToPublic || pendingExternalExportSongIds.remove(download.request.id)) {
                                         exportSongToPublicStorage(download.request.id)
                                     }
                                 }
@@ -336,6 +338,8 @@ constructor(
                 }
             )
         }
+
+    val pendingExternalExportSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     init {
         val result = mutableMapOf<String, Download>()
@@ -469,6 +473,70 @@ constructor(
             val downloadedSongs = database.downloadedSongsByNameAsc().firstOrNull() ?: emptyList()
             for (song in downloadedSongs) {
                 exportSongToPublicStorage(song.id)
+            }
+        }
+    }
+
+    fun exportAlbumToPublicStorage(songIds: List<String>) {
+        scope.launch(Dispatchers.IO) {
+            songIds.forEach { songId ->
+                val isDownloaded = downloads.value[songId]?.state == Download.STATE_COMPLETED ||
+                        database.song(songId).firstOrNull()?.song?.let { it.dateDownload != null || it.isDownloaded } == true
+                if (isDownloaded) {
+                    exportSongToPublicStorage(songId)
+                } else {
+                    pendingExternalExportSongIds.add(songId)
+                    val song = database.song(songId).firstOrNull()?.song
+                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                        .Builder(songId, songId.toUri())
+                        .setCustomCacheKey(songId)
+                        .setData(song?.title?.toByteArray() ?: songId.toByteArray())
+                        .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        appContext,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                }
+            }
+        }
+    }
+
+    fun autoDownloadIfPlaylistDownloaded(playlistId: String, songIds: List<String>) {
+        scope.launch(Dispatchers.IO) {
+            val autoDownloadPlaylists = appContext.dataStore.data.firstOrNull()?.get(AutoDownloadPlaylistsKey)?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
+            val isExplicitAutoDownload = playlistId in autoDownloadPlaylists
+            
+            val isPlaylistDownloaded = if (!isExplicitAutoDownload) {
+                val existingSongs = database.playlistSongs(playlistId).firstOrNull() ?: emptyList()
+                if (existingSongs.isNotEmpty()) {
+                    val downloadedCount = existingSongs.count { 
+                        downloads.value[it.song.id]?.state == Download.STATE_COMPLETED || it.song.song.dateDownload != null || it.song.song.isDownloaded 
+                    }
+                    downloadedCount >= existingSongs.size - 1
+                } else false
+            } else true
+
+            if (isExplicitAutoDownload || isPlaylistDownloaded) {
+                appContext.dataStore.edit { prefs ->
+                    val current = prefs[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
+                    prefs[AutoDownloadPlaylistsKey] = (current + playlistId).joinToString(",")
+                }
+                songIds.forEach { songId ->
+                    val song = database.song(songId).firstOrNull()?.song
+                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                        .Builder(songId, songId.toUri())
+                        .setCustomCacheKey(songId)
+                        .setData(song?.title?.toByteArray() ?: songId.toByteArray())
+                        .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        appContext,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                }
             }
         }
     }

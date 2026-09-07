@@ -1,14 +1,12 @@
-name: Upstream Sync and Build Pipeline
+name: Build and Release Pipeline
 
 on:
-  schedule:
-    - cron: '0 3 * * *' # Auto-syncs daily at 3:00 AM UTC
   push:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  sync-and-build:
+  build-and-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -24,14 +22,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Merge Upstream Updates
-        run: |
-          git remote add upstream https://github.com/vivizzz007/vivi-music.git 2>/dev/null || git remote set-url upstream https://github.com/vivizzz007/vivi-music.git
-          git fetch upstream
-          git merge upstream/main -m "auto: merge upstream updates" || exit 0
-          git push origin main || true
-
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -72,23 +62,20 @@ jobs:
           echo "" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
-          echo "*Based on upstream Vivi Music v${UPSTREAM_VERSION}*" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Generate changelog.json for in-app updater
           mkdir -p release_meta
           export SCRIPT_FULL_VERSION="${FULL_VERSION}"
-          export SCRIPT_UPSTREAM_VERSION="${UPSTREAM_VERSION}"
           export SCRIPT_COMMITS="${COMMITS}"
           python3 - << 'EOF'
           import json, os
           full_ver = os.environ.get("SCRIPT_FULL_VERSION", "")
-          upstream_ver = os.environ.get("SCRIPT_UPSTREAM_VERSION", "")
           commits_raw = os.environ.get("SCRIPT_COMMITS", "")
           items = [line.lstrip('* ').strip() for line in commits_raw.split('\n') if line.strip()]
           data = {
               "version": full_ver,
-              "description": f"Improvements and custom updates on Vivi Music v{upstream_ver}",
+              "description": f"Vivi Music v{full_ver}",
               "changelog": [{"title": "Improvements", "items": items if items else ["General stability and performance improvements"]}]
           }
           with open("release_meta/changelog.json", "w") as f:

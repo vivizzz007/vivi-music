@@ -32,6 +32,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -47,9 +48,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.ui.Alignment
+import com.music.vivi.constants.AutoDownloadPlaylistsKey
 import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.rememberPreference
+import androidx.datastore.preferences.core.edit
 import com.music.innertube.utils.parseCookieString
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
@@ -210,6 +213,13 @@ fun PlaylistMenu(
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
+                        coroutineScope.launch {
+                            context.dataStore.edit { preferences ->
+                                val set = preferences[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotBlank() }?.toMutableSet() ?: mutableSetOf()
+                                set.remove(playlist.id)
+                                preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
+                            }
+                        }
                         songs.forEach { song ->
                             DownloadService.sendRemoveDownload(
                                 context,
@@ -561,6 +571,13 @@ fun PlaylistMenu(
                                             )
                                         },
                                         onClick = {
+                                            coroutineScope.launch {
+                                                context.dataStore.edit { preferences ->
+                                                    val set = preferences[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotBlank() }?.toMutableSet() ?: mutableSetOf()
+                                                    set.add(playlist.id)
+                                                    preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
+                                                }
+                                            }
                                             songs.forEach { song ->
                                                 val downloadRequest =
                                                     DownloadRequest

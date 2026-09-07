@@ -9,11 +9,13 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
+import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
 import com.music.innertube.utils.YouTubeUrlParser
+import kotlinx.coroutines.flow.firstOrNull
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.db.MusicDatabase
@@ -64,10 +66,57 @@ constructor(
                             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
                             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
 
+                            val trimmedQuery = query.trim()
+                            val localLyricsSongs = if (trimmedQuery.length >= 3) {
+                                database.searchSongsByLyrics(trimmedQuery).firstOrNull().orEmpty().map { song ->
+                                    SongItem(
+                                        id = song.song.id,
+                                        title = song.song.title,
+                                        artists = song.artists.map { com.music.innertube.models.Artist(id = it.id, name = it.name) },
+                                        album = song.album?.let { com.music.innertube.models.Album(id = it.id, name = it.title) },
+                                        duration = song.song.duration,
+                                        thumbnail = song.song.thumbnailUrl ?: "",
+                                        explicit = song.song.explicit,
+                                        endpoint = WatchEndpoint(videoId = song.song.id)
+                                    )
+                                }
+                            } else emptyList()
+
+                            val onlineLyricsOrSongItems = if (parsedUrl == null && trimmedQuery.length >= 3 && (trimmedQuery.contains(" ") || result?.recommendedItems.isNullOrEmpty())) {
+                                val directSearch = YouTube.search(trimmedQuery, YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                                    ?.items
+                                    ?.filterIsInstance<SongItem>()
+                                    ?.take(3)
+                                    .orEmpty()
+                                
+                                if (directSearch.isEmpty() && trimmedQuery.contains(" ")) {
+                                    val musixmatchMatches = com.music.musixmatch.Musixmatch.searchByLyrics(trimmedQuery).getOrNull()?.firstOrNull()
+                                    if (musixmatchMatches != null) {
+                                        val (trackTitle, trackArtist) = musixmatchMatches
+                                        YouTube.search("$trackTitle $trackArtist", YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                                            ?.items
+                                            ?.filterIsInstance<SongItem>()
+                                            ?.take(2)
+                                            .orEmpty()
+                                    } else emptyList()
+                                } else {
+                                    directSearch
+                                }
+                            } else emptyList()
+
                             database
                                 .searchHistory(query)
                                 .map { it.take(3) }
                                 .map { history ->
+                                    val allItems = (listOfNotNull(parsedItem) +
+                                        localLyricsSongs +
+                                        result?.recommendedItems.orEmpty() +
+                                        onlineLyricsOrSongItems)
+                                        .distinctBy { it.id }
+                                        .filter { it.id != parsedItem?.id }
+                                        .filterExplicit(hideExplicit)
+                                        .filterVideoSongs(hideVideoSongs)
+
                                     SearchSuggestionViewState(
                                         history = history,
                                         suggestions =
@@ -76,14 +125,7 @@ constructor(
                                             ?.filter { suggestionQuery ->
                                                 history.none { it.query == suggestionQuery }
                                             }.orEmpty(),
-                                        items = listOfNotNull(parsedItem) +
-                                        result
-                                            ?.recommendedItems
-                                            ?.distinctBy { it.id }
-                                            ?.filter { it.id != parsedItem?.id }
-                                            ?.filterExplicit(hideExplicit)
-                                            ?.filterVideoSongs(hideVideoSongs)
-                                            .orEmpty(),
+                                        items = allItems,
                                         isFromLink = parsedUrl != null
                                     )
                                 }

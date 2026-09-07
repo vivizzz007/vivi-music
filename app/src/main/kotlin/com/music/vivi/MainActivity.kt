@@ -812,7 +812,7 @@ class MainActivity : ComponentActivity() {
                             messageResource = R.string.new_version_found,
                             actionLabel = R.string.action_view_update,
                             messageArgs = origin,
-                            duration = SnackbarDuration.Indefinite,
+                            duration = SnackbarDuration.Long,
                             onAction = {
                                 navController.navigate("settings/update")
                             }

@@ -135,15 +135,22 @@ object YouTube {
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = innerTube.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
-        SearchSuggestions(
-            queries = response.contents?.getOrNull(0)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull { content ->
+        val allSections = response.contents.orEmpty().mapNotNull { it.searchSuggestionsSectionRenderer }
+        val queries = allSections.flatMap { section ->
+            section.contents.orEmpty().mapNotNull { content ->
                 content.searchSuggestionRenderer?.suggestion?.runs?.joinToString(separator = "") { it.text }
-            }.orEmpty(),
-            recommendedItems = response.contents?.getOrNull(1)?.searchSuggestionsSectionRenderer?.contents?.mapNotNull {
-                it.musicResponsiveListItemRenderer?.let { renderer ->
+            }
+        }.distinct()
+        val recommendedItems = allSections.flatMap { section ->
+            section.contents.orEmpty().mapNotNull { content ->
+                content.musicResponsiveListItemRenderer?.let { renderer ->
                     SearchSuggestionPage.fromMusicResponsiveListItemRenderer(renderer)
                 }
-            }.orEmpty()
+            }
+        }.distinctBy { it.id }
+        SearchSuggestions(
+            queries = queries,
+            recommendedItems = recommendedItems
         )
     }
 

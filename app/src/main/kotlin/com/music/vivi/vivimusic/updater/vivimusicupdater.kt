@@ -659,6 +659,18 @@ fun saveUpdateAvailableState(context: Context, available: Boolean) {
     sharedPrefs.edit().putBoolean(KEY_UPDATE_AVAILABLE, available).apply()
 }
 
+const val KEY_ACKNOWLEDGED_VERSION = "acknowledged_update_version"
+
+fun saveAcknowledgedUpdateVersion(context: Context, version: String) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putString(KEY_ACKNOWLEDGED_VERSION, version).apply()
+}
+
+fun getAcknowledgedUpdateVersion(context: Context): String? {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getString(KEY_ACKNOWLEDGED_VERSION, null)
+}
+
 const val KEY_UPDATE_ORIGIN = "update_origin"
 
 fun saveUpdateOrigin(context: Context, origin: String) {
@@ -782,6 +794,11 @@ fun parseVersionParts(version: String): List<Int> {
 }
 
 fun compareVersionTags(v1: String, v2: String): Int {
+    val clean1 = v1.trim().removePrefix("v").removePrefix("V").removePrefix("b").removePrefix("B")
+    val clean2 = v2.trim().removePrefix("v").removePrefix("V").removePrefix("b").removePrefix("B")
+    if (clean1.equals(clean2, ignoreCase = true)) {
+        return 0
+    }
     val parts1 = parseVersionParts(v1)
     val parts2 = parseVersionParts(v2)
     val maxParts = maxOf(parts1.size, parts2.size)
@@ -789,6 +806,10 @@ fun compareVersionTags(v1: String, v2: String): Int {
         val p1 = parts1.getOrElse(i) { 0 }
         val p2 = parts2.getOrElse(i) { 0 }
         if (p1 != p2) {
+            // If current version has only 3 parts (e.g. 6.0.6) and matches the first 3 parts of release (e.g. 6.0.6.17)
+            if (i == 3 && parts2.size <= 3 && parts1.take(3) == parts2.take(3)) {
+                return 0
+            }
             return p1.compareTo(p2)
         }
     }
@@ -803,6 +824,9 @@ fun compareVersionTags(v1: String, v2: String): Int {
 
 // Robust version comparison: returns true if latestVersion > currentVersion
 fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
+    val cleanLatest = latestVersion.trim().removePrefix("v").removePrefix("V").removePrefix("b").removePrefix("B")
+    val cleanCurrent = currentVersion.trim().removePrefix("v").removePrefix("V").removePrefix("b").removePrefix("B")
+    if (cleanLatest.equals(cleanCurrent, ignoreCase = true)) return false
     return compareVersionTags(latestVersion, currentVersion) > 0
 }
 
@@ -851,8 +875,6 @@ suspend fun checkForUpdate(
 
                         val isNewer = if (lastInstalledRun != -1) {
                             runNumber > lastInstalledRun
-                        } else if (!BuildConfig.IS_NIGHTLY) {
-                            true
                         } else {
                             runTimeEpoch > (currentAppInstallTime + 300_000)
                         }

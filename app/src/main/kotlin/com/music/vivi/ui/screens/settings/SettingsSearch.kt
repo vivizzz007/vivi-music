@@ -96,14 +96,38 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             keywords = listOf("commits", "git", "history", "logs", "development"),
             iconRes = R.drawable.commit
         ),
+        SettingSearchEntry(
+            title = "Beta & Nightly Updates",
+            description = "Receive cutting-edge beta and nightly workflow updates",
+            category = "Updates",
+            route = "settings/update",
+            keywords = listOf("beta", "nightly", "bleeding edge", "testing", "experimental", "channel"),
+            iconRes = R.drawable.network_update
+        ),
+        SettingSearchEntry(
+            title = "Automatic Update Check",
+            description = "Periodically check for new versions on startup in the background",
+            category = "Updates",
+            route = "settings/update",
+            keywords = listOf("auto update", "automatic check", "background check", "notification"),
+            iconRes = R.drawable.network_update
+        ),
+        SettingSearchEntry(
+            title = "Downloaded APK Manager",
+            description = "View and clear previously downloaded update APK files",
+            category = "Updates",
+            route = "settings/update",
+            keywords = listOf("apk", "downloaded apk", "clear apk", "installer", "package", "cleanup"),
+            iconRes = R.drawable.storage
+        ),
 
-        // Account
+        // Account & Integrations
         SettingSearchEntry(
             title = str(R.string.account).ifEmpty { "Account" },
             description = str(R.string.setting_account_desc).ifEmpty { "YouTube Music login and account management" },
             category = "Account",
             route = "settings/account",
-            keywords = listOf("google", "youtube", "login", "sign in", "auth", "visitor data", "channel"),
+            keywords = listOf("google", "youtube", "login", "sign in", "auth", "visitor data", "channel", "account"),
             iconRes = R.drawable.google
         ),
         SettingSearchEntry(
@@ -127,7 +151,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Track listening stats and scrobble played songs",
             category = "Integrations",
             route = "settings/integrations/lastfm",
-            keywords = listOf("lastfm", "last.fm", "scrobble", "stats", "tracking", "music"),
+            keywords = listOf("lastfm", "last.fm", "scrobble", "stats", "tracking", "music", "delay"),
             iconRes = R.drawable.network_node
         ),
         SettingSearchEntry(
@@ -153,7 +177,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = str(R.string.setting_appearance_desc).ifEmpty { "Theme, colors, player styling, and fonts" },
             category = "Appearance",
             route = "settings/appearance",
-            keywords = listOf("theme", "color", "dark mode", "amoled", "black", "style", "ui"),
+            keywords = listOf("theme", "color", "dark mode", "amoled", "black", "style", "ui", "look"),
             iconRes = R.drawable.palette
         ),
         SettingSearchEntry(
@@ -169,8 +193,56 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "True pitch black background for OLED and AMOLED displays",
             category = "Appearance",
             route = "settings/appearance/theme",
-            keywords = listOf("pure black", "amoled", "oled", "true black", "dark mode", "pitch black"),
+            keywords = listOf("pure black", "amoled", "oled", "true black", "dark mode", "pitch black", "battery"),
             iconRes = R.drawable.contrast
+        ),
+        SettingSearchEntry(
+            title = "120Hz High Refresh Rate",
+            description = "Force 120Hz / 90Hz high refresh rate for ultra-smooth animations",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("120hz", "90hz", "60hz", "high refresh rate", "refresh rate", "fps", "smooth", "display", "motion"),
+            iconRes = R.drawable.speed
+        ),
+        SettingSearchEntry(
+            title = "Floating Navigation Bar",
+            description = "Detached pill-style floating bottom bar",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("floating", "navigation bar", "nav bar", "floating bar", "bottom bar"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Slim Navigation Bar",
+            description = "Compact low-profile bottom navigation bar",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("slim", "compact nav", "navigation bar", "nav bar", "small bottom bar"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Default Start Tab",
+            description = "Set whether the app opens to Home, Explore, or Library",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("default tab", "start screen", "open tab", "startup tab", "home", "explore", "library"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Pure Black Mini-Player",
+            description = "AMOLED black background for the mini-player bar",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("mini player", "pure black mini player", "amoled mini player", "mini-player", "outline"),
+            iconRes = R.drawable.contrast
+        ),
+        SettingSearchEntry(
+            title = "Mini-Player Outline",
+            description = "Subtle border outline around the mini-player",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("mini player outline", "mini player border", "border", "stroke"),
+            iconRes = R.drawable.palette
         ),
         SettingSearchEntry(
             title = "Canvas & Visuals",
@@ -182,11 +254,75 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
         ),
         SettingSearchEntry(
             title = str(R.string.app_font).ifEmpty { "Custom Font" },
-            description = "Choose app typography and font styles",
+            description = "Choose app typography and font styles (Google Sans, Outfit, etc.)",
             category = "Appearance",
             route = "settings/appearance/font",
-            keywords = listOf("font", "typography", "text", "style", "typeface"),
+            keywords = listOf("font", "typography", "text", "style", "typeface", "google sans", "outfit", "plus jakarta"),
             iconRes = R.drawable.edit
+        ),
+        SettingSearchEntry(
+            title = "Player Background Style",
+            description = "Select background styling: Blurred Album Art, Gradient, or Expressive",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("player background", "blurred artwork", "gradient background", "expressive", "blur"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Player Slider Style",
+            description = "Customize the seekbar progress slider style (Squiggly or Classic)",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("slider", "squiggly slider", "wavy slider", "seekbar", "progress bar", "wave"),
+            iconRes = R.drawable.slow_motion_video
+        ),
+        SettingSearchEntry(
+            title = "Rotating Vinyl Album Art",
+            description = "Spinning vinyl record animation for player thumbnail",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("rotating", "vinyl", "record", "spin", "album cover animation", "disc"),
+            iconRes = R.drawable.slow_motion_video
+        ),
+        SettingSearchEntry(
+            title = "Player Thumbnail Shadow & Elevation",
+            description = "Adjust depth shadow and glow elevation behind album cover",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("shadow", "elevation", "album art shadow", "thumbnail elevation", "drop shadow"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "UI Density Scale",
+            description = "Compact scaling options for high information density",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("density", "scale", "compact", "zoom", "ui size", "compact view"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Grid Items Size",
+            description = "Adjust thumbnail size for grid cards in library and browse",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("grid size", "thumbnail size", "card size", "grid items"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Swipe Thumbnail to Skip Track",
+            description = "Swipe left or right on album artwork to change songs",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("swipe thumbnail", "gesture", "next song", "previous song", "swipe art"),
+            iconRes = R.drawable.fast_forward
+        ),
+        SettingSearchEntry(
+            title = "Dynamic App Icon",
+            description = "Automatically update home launcher icon with theme",
+            category = "Appearance",
+            route = "settings/appearance",
+            keywords = listOf("dynamic icon", "launcher icon", "app icon", "themed icon"),
+            iconRes = R.drawable.palette
         ),
 
         // Player & Audio
@@ -199,11 +335,27 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             iconRes = R.drawable.earbud_case
         ),
         SettingSearchEntry(
+            title = "Audio Quality",
+            description = "Streaming bitrate quality (High 256kbps, Medium, Low 128kbps)",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("audio quality", "bitrate", "256kbps", "128kbps", "high quality", "low quality", "streaming quality"),
+            iconRes = R.drawable.earbud_case
+        ),
+        SettingSearchEntry(
+            title = "Audio Offload (Hardware Acceleration)",
+            description = "Use dedicated DSP hardware audio offload to save battery",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("audio offload", "hardware acceleration", "dsp", "battery", "power saving", "codec"),
+            iconRes = R.drawable.earbud_case
+        ),
+        SettingSearchEntry(
             title = str(R.string.vivi_equalizer).ifEmpty { "Equalizer" },
-            description = "System or built-in audio equalizer and sound effects",
+            description = "System or built-in audio equalizer, bass boost, and sound presets",
             category = "Playback",
             route = "settings/equalizer",
-            keywords = listOf("equalizer", "eq", "bass", "treble", "sound", "effects", "dsp"),
+            keywords = listOf("equalizer", "eq", "bass", "treble", "sound", "effects", "dsp", "axion", "preset"),
             iconRes = R.drawable.equalizer
         ),
         SettingSearchEntry(
@@ -216,18 +368,18 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
         ),
         SettingSearchEntry(
             title = "JioSaavn Streaming",
-            description = "High quality alternative audio source streaming",
+            description = "High quality alternative audio source streaming (320kbps / FLAC)",
             category = "Playback",
             route = "settings/player/jio",
-            keywords = listOf("jiosaavn", "jio", "saavn", "flac", "320kbps", "quality", "source"),
+            keywords = listOf("jiosaavn", "jio", "saavn", "flac", "320kbps", "quality", "source", "alternative stream"),
             iconRes = R.drawable.earbud_case
         ),
         SettingSearchEntry(
             title = str(R.string.audio_normalization).ifEmpty { "Volume Normalization" },
-            description = "Keep audio levels consistent across all tracks",
+            description = "Keep audio levels consistent across all tracks with ReplayGain",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("normalization", "loudness", "replaygain", "volume", "level", "gain"),
+            keywords = listOf("normalization", "loudness", "replaygain", "volume", "level", "gain", "consistent volume"),
             iconRes = R.drawable.volume_up
         ),
         SettingSearchEntry(
@@ -235,15 +387,15 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Automatically skip silent gaps between songs",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("skip silence", "gapless", "silence", "gap", "continuous"),
+            keywords = listOf("skip silence", "gapless", "silence", "gap", "continuous", "instant skip"),
             iconRes = R.drawable.slow_motion_video
         ),
         SettingSearchEntry(
             title = str(R.string.sleep_timer).ifEmpty { "Sleep Timer" },
-            description = "Stop playback automatically after a set duration",
+            description = "Stop playback automatically after a set duration or end of song",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("sleep timer", "timer", "stop", "bedtime", "auto stop"),
+            keywords = listOf("sleep timer", "timer", "stop", "bedtime", "auto stop", "off timer"),
             iconRes = R.drawable.sleep_timer
         ),
         SettingSearchEntry(
@@ -267,7 +419,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Adjust audio pitch, playback tempo, and track playback speed",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("speed", "pitch", "tempo", "playback speed", "rate", "fast", "slow"),
+            keywords = listOf("speed", "pitch", "tempo", "playback speed", "rate", "fast", "slow", "pitch shift"),
             iconRes = R.drawable.slow_motion_video
         ),
         SettingSearchEntry(
@@ -283,7 +435,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Remember and restore current queue across app restarts",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("persistent queue", "save queue", "restore", "remember", "state"),
+            keywords = listOf("persistent queue", "save queue", "restore", "remember", "state", "resume queue"),
             iconRes = R.drawable.queue_music
         ),
         SettingSearchEntry(
@@ -299,8 +451,64 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Automatically append more recommended tracks as queue finishes",
             category = "Playback",
             route = "settings/player",
-            keywords = listOf("auto load", "infinite", "radio", "continuous", "recommendations"),
+            keywords = listOf("auto load", "infinite", "radio", "continuous", "recommendations", "auto play"),
             iconRes = R.drawable.queue_music
+        ),
+        SettingSearchEntry(
+            title = "Stop Playback on Task Clear",
+            description = "Stop music service when the app is swiped away from recent apps",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("stop playback", "task clear", "swipe away", "kill app", "close player", "exit"),
+            iconRes = R.drawable.slow_motion_video
+        ),
+        SettingSearchEntry(
+            title = "Resume on Bluetooth Connect",
+            description = "Automatically start playback when Bluetooth headphones or car connects",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("bluetooth", "auto resume", "headphones", "car", "connect", "audio device"),
+            iconRes = R.drawable.earbud_case
+        ),
+        SettingSearchEntry(
+            title = "Pause on Mute",
+            description = "Pause playback when device media volume is set to zero",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("pause on mute", "mute", "volume zero", "silence", "auto pause"),
+            iconRes = R.drawable.volume_up
+        ),
+        SettingSearchEntry(
+            title = "Keep Screen On",
+            description = "Prevent phone display from sleeping while on the player screen",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("keep screen on", "screen awake", "display stay on", "no timeout"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Custom Player Action Buttons",
+            description = "Select which quick actions appear on the player screen",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("custom player buttons", "player controls", "action buttons", "favorite button", "lyrics button"),
+            iconRes = R.drawable.queue_music
+        ),
+        SettingSearchEntry(
+            title = "Seek Jump Duration",
+            description = "Adjust rewind and fast forward extra seconds skip duration",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("seek extra seconds", "skip seconds", "rewind", "fast forward", "jump 10s"),
+            iconRes = R.drawable.fast_forward
+        ),
+        SettingSearchEntry(
+            title = "Google Cast",
+            description = "Cast and stream playback to Chromecast and Google Home devices",
+            category = "Playback",
+            route = "settings/player",
+            keywords = listOf("google cast", "chromecast", "cast", "stream to tv", "smart speaker"),
+            iconRes = R.drawable.integration
         ),
 
         // Content & Language
@@ -309,7 +517,31 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = str(R.string.setting_content_desc).ifEmpty { "App language, country content, explicit filter" },
             category = "Content",
             route = "settings/content",
-            keywords = listOf("language", "country", "region", "explicit", "lyrics", "filter"),
+            keywords = listOf("content", "language", "country", "region", "filter"),
+            iconRes = R.drawable.language
+        ),
+        SettingSearchEntry(
+            title = "App Interface Language",
+            description = "Select user interface translation language",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("app language", "ui language", "locale", "translation"),
+            iconRes = R.drawable.language
+        ),
+        SettingSearchEntry(
+            title = "Content Language & Country",
+            description = "Select region and language for music recommendations and charts",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("content language", "content country", "charts region", "music country", "locale"),
+            iconRes = R.drawable.language
+        ),
+        SettingSearchEntry(
+            title = "Search Autocomplete Region",
+            description = "Set geographic region for search bar suggestions",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("suggestion region", "autocomplete", "search suggestions", "region"),
             iconRes = R.drawable.language
         ),
         SettingSearchEntry(
@@ -317,7 +549,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = str(R.string.setting_ai_lyrics_translation_desc).ifEmpty { "Translate synced lyrics in real-time using Gemini AI" },
             category = "Content",
             route = "settings/ai",
-            keywords = listOf("ai", "gemini", "translate", "translation", "lyrics", "api key"),
+            keywords = listOf("ai", "gemini", "translate", "translation", "lyrics", "api key", "real time"),
             iconRes = R.drawable.translate
         ),
         SettingSearchEntry(
@@ -325,15 +557,23 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Romanize Asian scripts (Japanese, Korean, Chinese, Hindi)",
             category = "Content",
             route = "settings/content/romanization",
-            keywords = listOf("romanize", "pinyin", "romaji", "hangul", "lyrics", "translation"),
+            keywords = listOf("romanize", "pinyin", "romaji", "hangul", "lyrics", "translation", "japanese", "korean", "chinese"),
             iconRes = R.drawable.translate
+        ),
+        SettingSearchEntry(
+            title = "Draggable Lyrics Providers",
+            description = "Enable, disable, and prioritize lyrics sources (Musixmatch, Kugou, LrcLib, YouLyPlus, Paxsenix, Unison, BiniLyrics)",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("lyrics providers", "musixmatch", "kugou", "lrclib", "youlyplus", "paxsenix", "unison", "binilyrics", "reorder lyrics", "provider"),
+            iconRes = R.drawable.lyrics
         ),
         SettingSearchEntry(
             title = "Synced Lyrics & Styling",
             description = "Apple Music style blur, text glow, line spacing, and auto-scroll",
             category = "Content",
             route = "settings/content",
-            keywords = listOf("lyrics", "synced lyrics", "blur", "glow", "apple lyrics", "lrc", "karaoke", "line spacing"),
+            keywords = listOf("lyrics", "synced lyrics", "blur", "glow", "apple lyrics", "lrc", "karaoke", "line spacing", "animation"),
             iconRes = R.drawable.lyrics
         ),
         SettingSearchEntry(
@@ -341,8 +581,40 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Filter out songs marked with explicit parental warning labels",
             category = "Content",
             route = "settings/content",
-            keywords = listOf("explicit", "clean", "filter", "parental", "hide"),
+            keywords = listOf("explicit", "clean", "filter", "parental", "hide", "18+"),
             iconRes = R.drawable.explicit
+        ),
+        SettingSearchEntry(
+            title = "Hide Video Songs & Shorts",
+            description = "Hide official music videos and YouTube Shorts from feeds and results",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("hide video songs", "hide shorts", "youtube shorts", "audio only", "video filter"),
+            iconRes = R.drawable.slow_motion_video
+        ),
+        SettingSearchEntry(
+            title = "Home Screen Sections & Quick Picks",
+            description = "Customize, disable, or randomize sections shown on the home page",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("quick picks", "home sections", "randomize home", "disable sections", "home feed"),
+            iconRes = R.drawable.palette
+        ),
+        SettingSearchEntry(
+            title = "Network Proxy (HTTP / SOCKS5)",
+            description = "Configure custom proxy host, port, and credentials for InnerTube requests",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("proxy", "http proxy", "socks5", "vpn", "bypass", "host", "port", "credentials"),
+            iconRes = R.drawable.network_node
+        ),
+        SettingSearchEntry(
+            title = "IP Protocol Version (IPv4 / IPv6)",
+            description = "Select default internet protocol version for network requests",
+            category = "Content",
+            route = "settings/content",
+            keywords = listOf("ipv4", "ipv6", "ip version", "network protocol"),
+            iconRes = R.drawable.network_node
         ),
 
         // Privacy
@@ -367,7 +639,23 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Do not record newly played songs to history",
             category = "Privacy",
             route = "settings/privacy",
-            keywords = listOf("pause playback", "history", "recent"),
+            keywords = listOf("pause playback", "history", "recent", "incognito listening"),
+            iconRes = R.drawable.security
+        ),
+        SettingSearchEntry(
+            title = "Clear Search History",
+            description = "Delete all previously saved search queries",
+            category = "Privacy",
+            route = "settings/privacy",
+            keywords = listOf("clear search history", "delete search", "wipe search queries"),
+            iconRes = R.drawable.security
+        ),
+        SettingSearchEntry(
+            title = "Clear Playback History",
+            description = "Delete all played song history and jump back in records",
+            category = "Privacy",
+            route = "settings/privacy",
+            keywords = listOf("clear playback history", "delete listen history", "wipe history", "jump back in"),
             iconRes = R.drawable.security
         ),
 
@@ -378,6 +666,14 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             category = "Storage",
             route = "settings/storage",
             keywords = listOf("storage", "cache", "disk", "clear cache", "thumbnail", "download size", "memory"),
+            iconRes = R.drawable.storage
+        ),
+        SettingSearchEntry(
+            title = "Save Downloads to Public Folder",
+            description = "Export downloaded songs directly to phone storage (Music/ViviMusic)",
+            category = "Storage",
+            route = "settings/storage",
+            keywords = listOf("public folder", "export", "phone storage", "music/vivimusic", "save downloads", "external storage", "sd card", "export mp3"),
             iconRes = R.drawable.storage
         ),
         SettingSearchEntry(
@@ -393,7 +689,31 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Set max disk space for streamed song cache and clear audio cache",
             category = "Storage",
             route = "settings/storage",
-            keywords = listOf("song cache", "audio cache", "download", "cache limit"),
+            keywords = listOf("song cache", "audio cache", "download", "cache limit", "stream cache"),
+            iconRes = R.drawable.storage
+        ),
+        SettingSearchEntry(
+            title = "Clear Audio Cache",
+            description = "Free up device storage by deleting cached stream audio files",
+            category = "Storage",
+            route = "settings/storage",
+            keywords = listOf("clear audio cache", "delete song cache", "wipe cache", "free space"),
+            iconRes = R.drawable.storage
+        ),
+        SettingSearchEntry(
+            title = "Clear Image Cache",
+            description = "Free up device storage by deleting cached thumbnail images",
+            category = "Storage",
+            route = "settings/storage",
+            keywords = listOf("clear image cache", "delete thumbnail cache", "wipe image cache"),
+            iconRes = R.drawable.storage
+        ),
+        SettingSearchEntry(
+            title = "Clear All Downloads",
+            description = "Delete all offline downloaded tracks from device",
+            category = "Storage",
+            route = "settings/storage",
+            keywords = listOf("clear downloads", "delete all downloads", "remove offline music"),
             iconRes = R.drawable.storage
         ),
 
@@ -406,6 +726,14 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             keywords = listOf("data saver", "bandwidth", "cellular", "mobile data", "low quality", "wifi only"),
             iconRes = R.drawable.energy_savings_leaf
         ),
+        SettingSearchEntry(
+            title = "Restrict Canvas on Mobile Data",
+            description = "Automatically disable canvas video loops when on cellular network",
+            category = "Network",
+            route = "settings/datasaver",
+            keywords = listOf("canvas mobile data", "disable video", "save mobile data", "restrict cellular"),
+            iconRes = R.drawable.energy_savings_leaf
+        ),
 
         // Backup & Restore
         SettingSearchEntry(
@@ -413,7 +741,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = str(R.string.setting_backup_restore_desc).ifEmpty { "Export and import your library, playlists, and preferences" },
             category = "Data",
             route = "settings/backup_restore",
-            keywords = listOf("backup", "restore", "export", "import", "database", "settings file"),
+            keywords = listOf("backup", "restore", "export", "import", "database", "settings file", "transfer library"),
             iconRes = R.drawable.restore
         ),
         SettingSearchEntry(
@@ -421,7 +749,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = "Schedule recurring local backups of your library",
             category = "Data",
             route = "settings/backup_restore/autobackup",
-            keywords = listOf("auto backup", "schedule", "automatic", "periodical"),
+            keywords = listOf("auto backup", "schedule", "automatic", "periodical", "daily backup"),
             iconRes = R.drawable.restore
         ),
 
@@ -431,7 +759,7 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             description = str(R.string.setting_about_desc).ifEmpty { "Version information, open source license, and GitHub links" },
             category = "About",
             route = "settings/about",
-            keywords = listOf("about", "version", "author", "developer", "license", "github", "source"),
+            keywords = listOf("about", "version", "author", "developer", "license", "github", "source", "pwpp08"),
             iconRes = R.drawable.info
         )
     )

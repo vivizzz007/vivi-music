@@ -123,7 +123,10 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
+import com.music.vivi.constants.AutoDownloadPlaylistsKey
 import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
 import com.music.vivi.constants.PlaylistEditLockKey
 import com.music.vivi.constants.PlaylistSongSortDescendingKey
 import com.music.vivi.constants.PlaylistSongSortType
@@ -356,6 +359,15 @@ fun LocalPlaylistScreen(
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
+                        playlist?.id?.let { pid ->
+                            coroutineScope.launch {
+                                context.dataStore.edit { preferences ->
+                                    val set = preferences[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotBlank() }?.toMutableSet() ?: mutableSetOf()
+                                    set.remove(pid)
+                                    preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
+                                }
+                            }
+                        }
                         if (!editable) {
                             database.transaction {
                                 playlist?.id?.let { clearPlaylist(it) }
@@ -1342,6 +1354,13 @@ fun LocalPlaylistHeader(
                                         }
                                     }
                                     else -> {
+                                        scope.launch {
+                                            context.dataStore.edit { preferences ->
+                                                val set = preferences[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotBlank() }?.toMutableSet() ?: mutableSetOf()
+                                                set.add(playlist.id)
+                                                preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
+                                            }
+                                        }
                                         songs.forEach { song ->
                                             val downloadRequest = DownloadRequest
                                                 .Builder(song.song.id, song.song.id.toUri())

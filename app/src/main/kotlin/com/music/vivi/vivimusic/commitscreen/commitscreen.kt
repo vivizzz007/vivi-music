@@ -106,7 +106,7 @@ fun CommitScreen(
         hasError = false
         coroutineScope.launch(Dispatchers.IO) {
             val outputFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
-            val repos = listOf("pwpp08/vivi-music", "vivizzz007/vivi-music")
+            val repos = listOf("pwpp08/vivi-music")
             val combinedList = mutableListOf<CommitData>()
 
             for (repo in repos) {

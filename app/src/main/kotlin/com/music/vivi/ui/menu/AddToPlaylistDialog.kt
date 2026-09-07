@@ -42,6 +42,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
 import com.music.vivi.constants.AddToPlaylistSortDescendingKey
 import com.music.vivi.constants.AddToPlaylistSortTypeKey
@@ -71,6 +72,7 @@ fun AddToPlaylistDialog(
     viewModel: PlaylistsViewModel = hiltViewModel()
 ) {
     val database = LocalDatabase.current
+    val downloadUtil = LocalDownloadUtil.current
     val coroutineScope = rememberCoroutineScope()
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         AddToPlaylistSortTypeKey,
@@ -236,6 +238,7 @@ fun AddToPlaylistDialog(
                             } else {
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, songIds!!)
+                                downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds!!)
 
                                 playlist.playlist.browseId?.let { plist ->
                                     songIds?.forEach {
@@ -267,14 +270,16 @@ fun AddToPlaylistDialog(
                         onClick = {
                             showDuplicateDialog = false
                             onDismiss()
+                            val toAdd = songIds!!.filter {
+                                !duplicates.contains(it)
+                            }
                             database.transaction {
                                 addSongToPlaylist(
                                     selectedPlaylist!!,
-                                    songIds!!.filter {
-                                        !duplicates.contains(it)
-                                    }
+                                    toAdd
                                 )
                             }
+                            downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, toAdd)
                         }
                     ) {
                         Text(stringResource(R.string.skip_duplicates))
@@ -287,6 +292,7 @@ fun AddToPlaylistDialog(
                             database.transaction {
                                 addSongToPlaylist(selectedPlaylist!!, songIds!!)
                             }
+                            downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, songIds!!)
                         }
                     ) {
                         Text(stringResource(R.string.add_anyway))

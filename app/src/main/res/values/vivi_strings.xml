@@ -438,6 +438,10 @@
     <string name="add_to_queue_desc">Add to the bottom of your queue</string>
     <string name="add_to_library_desc">Save to your library</string>
     <string name="download_desc">Make available for offline playback</string>
+    <string name="download_album_to_phone">Download to device storage</string>
+    <string name="download_album_to_phone_desc">Save album songs directly to phone Music folder</string>
+    <string name="exporting_album_to_phone">Exporting album to phone storage…</string>
+    <string name="clear_all">Clear all</string>
     <string name="add_to_playlist_desc">Add to one of your playlists</string>
     <string name="refetch_desc">Fetch the latest metadata from YouTube Music</string>
     <string name="share_desc">Share a link to this item</string>

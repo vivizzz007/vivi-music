@@ -28,11 +28,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -152,13 +154,36 @@ fun OnlineSearchScreen(
     ) {
         if (viewState.recentEvents.isNotEmpty() && query.isEmpty()) {
             item(key = "recent_events_header") {
-                Text(
-                    text = stringResource(R.string.search_listen_history),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp).animateItem()
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)
+                        .animateItem()
+                ) {
+                    Text(
+                        text = stringResource(R.string.search_listen_history),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    TextButton(
+                        onClick = {
+                            scope.launch(Dispatchers.IO) {
+                                context.dataStore.edit { prefs ->
+                                    prefs[SearchListenHistoryKey] = ""
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.clear_all),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
             }
             item(key = "recent_events_row") {
                 val lazyRowState = rememberLazyListState()
@@ -172,6 +197,14 @@ fun OnlineSearchScreen(
                             event = event,
                             isActive = event.song.song.id == mediaMetadata?.id,
                             isPlaying = event.song.song.id == mediaMetadata?.id && isPlaying,
+                            onRemove = {
+                                scope.launch(Dispatchers.IO) {
+                                    context.dataStore.edit { prefs ->
+                                        val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                        prefs[SearchListenHistoryKey] = current.filter { it != event.song.song.id }.joinToString(",")
+                                    }
+                                }
+                            },
                             modifier = Modifier.combinedClickable(
                                 onClick = {
                                     if (event.song.song.id == mediaMetadata?.id) {
@@ -255,47 +288,6 @@ fun OnlineSearchScreen(
                 modifier = Modifier.animateItem(),
                 pureBlack = pureBlack
             )
-        }
-
-        if (viewState.history.isNotEmpty() && viewState.suggestions.isNotEmpty()) {
-            item(key = "history_suggestion_spacer") {
-                Spacer(modifier = Modifier.height(16.dp).animateItem())
-            }
-        }
-
-        if (viewState.suggestions.isNotEmpty()) {
-            item(key = "suggestions_header") {
-                Text(
-                    text = stringResource(R.string.suggestions),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp).animateItem()
-                )
-            }
-        }
-
-        itemsIndexed(viewState.suggestions, key = { _, it -> "suggestion_$it" }) { index, query ->
-            SuggestionItem(
-                query = query,
-                online = true,
-                shape = getGroupedShape(index, viewState.suggestions.size),
-                onClick = {
-                    onSearch(query)
-                    onDismiss()
-                },
-                onFillTextField = {
-                    onQueryChange(TextFieldValue(query, TextRange(query.length)))
-                },
-                modifier = Modifier.animateItem(),
-                pureBlack = pureBlack
-            )
-        }
-
-        if (viewState.suggestions.isNotEmpty()) {
-            item(key = "suggestions_bottom_spacer") {
-                Spacer(modifier = Modifier.height(16.dp).animateItem())
-            }
         }
 
         if (viewState.items.isNotEmpty()) {
@@ -450,6 +442,47 @@ fun OnlineSearchScreen(
                     .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
                     .animateItem()
             )
+        }
+
+        if (viewState.items.isNotEmpty() && viewState.suggestions.isNotEmpty()) {
+            item(key = "items_suggestions_spacer") {
+                Spacer(modifier = Modifier.height(16.dp).animateItem())
+            }
+        }
+
+        if (viewState.suggestions.isNotEmpty()) {
+            item(key = "suggestions_header") {
+                Text(
+                    text = stringResource(R.string.suggestions),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp).animateItem()
+                )
+            }
+        }
+
+        itemsIndexed(viewState.suggestions, key = { _, it -> "suggestion_$it" }) { index, query ->
+            SuggestionItem(
+                query = query,
+                online = true,
+                shape = getGroupedShape(index, viewState.suggestions.size),
+                onClick = {
+                    onSearch(query)
+                    onDismiss()
+                },
+                onFillTextField = {
+                    onQueryChange(TextFieldValue(query, TextRange(query.length)))
+                },
+                modifier = Modifier.animateItem(),
+                pureBlack = pureBlack
+            )
+        }
+
+        if (viewState.suggestions.isNotEmpty()) {
+            item(key = "suggestions_bottom_spacer") {
+                Spacer(modifier = Modifier.height(16.dp).animateItem())
+            }
         }
     }
 }

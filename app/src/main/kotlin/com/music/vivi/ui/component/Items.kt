@@ -681,6 +681,7 @@ fun ArtistListItem(
         }
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
+    shape: Shape = RoundedCornerShape(16.dp),
     backgroundColor: Color = Color.Unspecified,
 ) = ListItem(
     title = artist.artist.name,
@@ -701,6 +702,7 @@ fun ArtistListItem(
         )
     },
     trailingContent = trailingContent,
+    shape = shape,
     modifier = modifier,
     backgroundColor = backgroundColor,
 )
@@ -1204,7 +1206,7 @@ fun YouTubeListItem(
             modifier = modifier,
             isSelected = isSelected,
             isActive = isActive,
-            shape = shape,
+            shape = if (shape == RectangleShape && item is ArtistItem) RoundedCornerShape(16.dp) else shape,
             drawHighlight = drawHighlight,
             backgroundColor = backgroundColor
         )
@@ -1418,6 +1420,7 @@ fun RecentSearchGridItem(
     modifier: Modifier = Modifier,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
+    onRemove: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -1439,6 +1442,24 @@ fun RecentSearchGridItem(
             )
             if (!isActive) {
                 OverlayPlayButton(visible = true)
+            }
+            if (onRemove != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(22.dp)
+                        .background(Color.Black.copy(alpha = 0.65f), CircleShape)
+                        .clickable(onClick = onRemove),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = stringResource(R.string.clear),
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
             }
         }
 

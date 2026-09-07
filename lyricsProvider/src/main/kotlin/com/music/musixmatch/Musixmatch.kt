@@ -503,6 +503,32 @@ object Musixmatch {
             .trim()
     }
 
+    suspend fun searchByLyrics(
+        lyricsSnippet: String,
+    ): Result<List<Pair<String, String>>> = runCatching {
+        runWithTokenRetry {
+            val secret = getSecret()
+            val token = getUserToken(secret)
+            val encodedLyrics = URLEncoder.encode(lyricsSnippet, StandardCharsets.UTF_8.name())
+            val searchUrl = "${BASE_URL}track.search?app_id=mobile-app-v1.0&format=json&q_lyrics=$encodedLyrics&f_has_lyrics=true&page_size=5&usertoken=$token"
+            val signedSearch = sign(searchUrl, secret)
+            val searchResponse = client.get(signedSearch) {
+                header("User-Agent", USER_AGENT)
+                header("Accept", "application/json, text/plain, */*")
+                header("Accept-Language", "en-US,en;q=0.9")
+            }.body<SearchTrackResponse>()
+            val bodyElement = searchResponse.message.body
+            val trackList = if (bodyElement is kotlinx.serialization.json.JsonObject) {
+                val json = Json { ignoreUnknownKeys = true }
+                val bodyObj = json.decodeFromJsonElement<SearchTrackResponseBody>(bodyElement)
+                bodyObj.trackList
+            } else {
+                emptyList()
+            }
+            trackList.map { it.track.trackName to it.track.artistName }
+        }
+    }
+
     private fun logDebug(message: String) {
         try {
             val logClass = Class.forName("android.util.Log")

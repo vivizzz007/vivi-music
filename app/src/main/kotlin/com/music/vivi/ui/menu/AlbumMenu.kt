@@ -8,6 +8,7 @@ package com.music.vivi.ui.menu
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -472,7 +473,7 @@ fun AlbumMenu(
         item {
             Material3MenuGroup(
                 expressive = true,
-                items = listOf(
+                items = listOfNotNull(
                     when (downloadState) {
                         STATE_COMPLETED -> {
                             Material3MenuItemData(
@@ -548,7 +549,30 @@ fun AlbumMenu(
                                 }
                             )
                         }
-                    }
+                    },
+                    if (songs.isNotEmpty()) {
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.download_album_to_phone)) },
+                            description = { Text(text = stringResource(R.string.download_album_to_phone_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.storage),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                onDismiss()
+                                coroutineScope.launch {
+                                    downloadUtil.exportAlbumToPublicStorage(songs.map { it.id })
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.exporting_album_to_phone),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        )
+                    } else null
                 )
             )
         }
