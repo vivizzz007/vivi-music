@@ -532,7 +532,10 @@ fun ArtistScreen(
                                             .weight(1f)
                                             .height(52.dp)
                                             .semantics { role = Role.Button },
-                                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(
+                                            shape = ButtonGroupDefaults.connectedLeadingButtonShape,
+                                            checkedShape = ButtonGroupDefaults.connectedLeadingButtonShape
+                                        )
                                     ) {
                                         Icon(
                                             painter = painterResource(

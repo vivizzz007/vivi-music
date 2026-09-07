@@ -27,7 +27,8 @@ sealed class ViviUpdateStatus {
         val releaseDate: String,
         val description: String?,
         val imageUrl: String?,
-        val apkUrl: String?
+        val apkUrl: String?,
+        val updateOrigin: String? = null
     ) : ViviUpdateStatus()
 
     data class NoUpdate(val version: String) : ViviUpdateStatus()

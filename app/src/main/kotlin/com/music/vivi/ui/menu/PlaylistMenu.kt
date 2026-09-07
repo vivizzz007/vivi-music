@@ -58,6 +58,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalSyncUtils
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -95,6 +96,7 @@ fun PlaylistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
+    val syncUtils = LocalSyncUtils.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
@@ -134,19 +136,17 @@ fun PlaylistMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            val completedCount = songs.count { 
+                downloads[it.id]?.state == Download.STATE_COMPLETED || it.song.dateDownload != null || it.song.isDownloaded
+            }
+            val downloadingCount = songs.count { 
+                downloads[it.id]?.state == Download.STATE_QUEUED || downloads[it.id]?.state == Download.STATE_DOWNLOADING 
+            }
+            downloadState = when {
+                completedCount == songs.size || (songs.size > 5 && completedCount >= songs.size - 1) -> Download.STATE_COMPLETED
+                downloadingCount > 0 -> Download.STATE_DOWNLOADING
+                else -> Download.STATE_STOPPED
+            }
         }
     }
 
@@ -594,6 +594,43 @@ fun PlaylistMenu(
                                 },
                                 onClick = {
                                     showDeletePlaylistDialog = true
+                                }
+                            )
+                        )
+                    }
+                    if (playlist.id.startsWith("SPOTIFY_")) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.action_sync)) },
+                                description = { Text(text = stringResource(R.string.sync_playlist_spotify_desc)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.sync),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    syncUtils.syncSpotifyPlaylist(playlist.id)
+                                    onDismiss()
+                                }
+                            )
+                        )
+                    } else if (autoPlaylist != true && !isGuest) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.sync_to_spotify)) },
+                                description = { Text(text = stringResource(R.string.sync_to_spotify_desc)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.spotify),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    coroutineScope.launch {
+                                        syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                    }
                                 }
                             )
                         )

@@ -115,6 +115,7 @@ import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PauseOnMute
+import com.music.vivi.constants.PersistentControlCenterKey
 import com.music.vivi.constants.PersistentQueueKey
 import com.music.vivi.constants.PersistentShuffleAcrossQueuesKey
 import com.music.vivi.constants.PlayerVolumeKey
@@ -520,6 +521,7 @@ class MusicService :
         setupAudioFocusRequest()
 
         mediaLibrarySessionCallback.apply {
+            service = this@MusicService
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
@@ -1830,11 +1832,15 @@ class MusicService :
         automixItems.value = emptyList()
     }
 
+    private var consecutivePlayNextCount = 0
+
     fun playNext(items: List<MediaItem>) {
+        if (items.isEmpty()) return
         // If queue is empty or player is idle, play immediately instead
         if (player.mediaItemCount == 0 || player.playbackState == STATE_IDLE) {
             player.setMediaItems(items)
             player.prepare()
+            consecutivePlayNextCount = 0
             // Don't start local playback if casting
             if (castConnectionHandler?.isCasting?.value != true) {
                 player.play()
@@ -1860,30 +1866,31 @@ class MusicService :
             }
         }
 
-        val insertIndex = player.currentMediaItemIndex + 1
+        val insertIndex = (player.currentMediaItemIndex + 1 + consecutivePlayNextCount).coerceIn(0, player.mediaItemCount)
         val shuffleEnabled = player.shuffleModeEnabled
 
-        // Insert items immediately after the current item in the window/index space
+        // Insert items after previously 'play next'-ed items in sequential FIFO order
         player.addMediaItems(insertIndex, items)
         player.prepare()
+        consecutivePlayNextCount += items.size
 
         if (shuffleEnabled) {
-            // Rebuild shuffle order so that newly inserted items are played next
+            // Rebuild shuffle order so that newly inserted items are played in order after current track
             val timeline = player.currentTimeline
             if (!timeline.isEmpty) {
                 val size = timeline.windowCount
                 val currentIndex = player.currentMediaItemIndex
 
-                // Newly inserted indices are a contiguous range [insertIndex, insertIndex + items.size)
+                // Newly inserted indices for this batch
                 val newIndices = (insertIndex until (insertIndex + items.size)).toSet()
 
-                // Collect existing shuffle traversal order excluding current index
+                // Collect existing shuffle traversal order excluding current index and new indices
                 val orderAfter = mutableListOf<Int>()
                 var idx = currentIndex
                 while (true) {
                     idx = timeline.getNextWindowIndex(idx, Player.REPEAT_MODE_OFF, /*shuffleModeEnabled=*/true)
                     if (idx == C.INDEX_UNSET) break
-                    if (idx != currentIndex) orderAfter.add(idx)
+                    if (idx != currentIndex && idx !in newIndices) orderAfter.add(idx)
                 }
 
                 val prevList = mutableListOf<Int>()
@@ -1891,24 +1898,27 @@ class MusicService :
                 while (true) {
                     pIdx = timeline.getPreviousWindowIndex(pIdx, Player.REPEAT_MODE_OFF, /*shuffleModeEnabled=*/true)
                     if (pIdx == C.INDEX_UNSET) break
-                    if (pIdx != currentIndex) prevList.add(pIdx)
+                    if (pIdx != currentIndex && pIdx !in newIndices) prevList.add(pIdx)
                 }
                 prevList.reverse() // preserve original forward order
 
-                val existingOrder = (prevList + orderAfter).filter { it != currentIndex && it !in newIndices }
+                val existingOrder = (orderAfter + prevList).filter { it != currentIndex && it !in newIndices }
 
-                // Build new shuffle order: current -> newly inserted (in insertion order) -> rest
-                val nextBlock = (insertIndex until (insertIndex + items.size)).toList()
+                // Build new shuffle order: current -> all play-next items in sequential order -> remaining queue
+                val playNextStart = player.currentMediaItemIndex + 1
+                val playNextEnd = (playNextStart + consecutivePlayNextCount).coerceAtMost(size)
+                val playNextBlock = (playNextStart until playNextEnd).toList()
+
                 val finalOrder = IntArray(size)
                 var pos = 0
                 finalOrder[pos++] = currentIndex
-                nextBlock.forEach { if (it in 0 until size) finalOrder[pos++] = it }
-                existingOrder.forEach { if (pos < size) finalOrder[pos++] = it }
+                playNextBlock.forEach { if (it in 0 until size && it != currentIndex && !finalOrder.take(pos).contains(it)) finalOrder[pos++] = it }
+                existingOrder.forEach { if (pos < size && !finalOrder.take(pos).contains(it)) finalOrder[pos++] = it }
 
                 // Fill any missing indices (safety) to ensure a full permutation
                 if (pos < size) {
                     for (i in 0 until size) {
-                        if (!finalOrder.contains(i)) {
+                        if (!finalOrder.take(pos).contains(i)) {
                             finalOrder[pos++] = i
                             if (pos == size) break
                         }
@@ -1965,10 +1975,7 @@ class MusicService :
         }
 
         player.addMediaItems(items)
-        if (player.shuffleModeEnabled) {
-            val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
-            applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
-        }
+        // ExoPlayer automatically updates shuffleOrder via cloneAndInsert without reshuffling existing tracks.
         player.prepare()
     }
 
@@ -2163,6 +2170,7 @@ class MusicService :
             }
         }
         previousMediaItemIndex = player.currentMediaItemIndex
+        consecutivePlayNextCount = 0
 
         lastPlaybackSpeed = -1.0f // force update song
 
@@ -2207,10 +2215,6 @@ class MusicService :
                 }
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
-                    if (player.shuffleModeEnabled) {
-                        val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
-                        applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
-                    }
                 }
             }
         }
@@ -2332,7 +2336,80 @@ class MusicService :
         }
     }
 
+    fun restorePersistentQueueAndPlay() {
+        if (player.mediaItemCount > 0) {
+            if (player.playbackState == Player.STATE_IDLE) {
+                player.prepare()
+            }
+            player.play()
+            return
+        }
+
+        val queueFile = filesDir.resolve(PERSISTENT_QUEUE_FILE)
+        scope.launch {
+            if (queueFile.exists()) {
+                val queue = withContext(Dispatchers.IO) {
+                    runCatching {
+                        queueFile.inputStream().use { fis ->
+                            ObjectInputStream(fis).use { oos ->
+                                oos.readObject() as? PersistQueue
+                            }
+                        }
+                    }.getOrNull()
+                }
+                if (queue != null && queue.items.isNotEmpty()) {
+                    val restoredQueue = runCatching { queue.toQueue() }.getOrNull()
+                    if (restoredQueue != null) {
+                        playerInitialized.first { it }
+                        if (isActive) {
+                            playQueue(
+                                queue = restoredQueue,
+                                playWhenReady = true,
+                            )
+                            return@launch
+                        }
+                    }
+                }
+            }
+
+            // Fallback: restore from recent listening history or library songs
+            val recentEvents = withContext(Dispatchers.IO) {
+                runCatching {
+                    database.events().first().take(25).map { it.song.toMediaItem() }
+                }.getOrNull()
+            }
+            if (!recentEvents.isNullOrEmpty()) {
+                playerInitialized.first { it }
+                if (isActive) {
+                    player.setMediaItems(recentEvents)
+                    player.prepare()
+                    player.play()
+                    return@launch
+                }
+            }
+
+            val fallbackSongs = withContext(Dispatchers.IO) {
+                runCatching {
+                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
+                }.getOrNull()
+            }
+            if (!fallbackSongs.isNullOrEmpty()) {
+                playerInitialized.first { it }
+                if (isActive) {
+                    player.setMediaItems(fallbackSongs)
+                    player.prepare()
+                    player.play()
+                    return@launch
+                }
+            }
+        }
+    }
+
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+        if (playWhenReady && player.mediaItemCount == 0) {
+            restorePersistentQueueAndPlay()
+        }
+
         // Safety net: if local player tries to start while casting, immediately pause it
         if (playWhenReady && castConnectionHandler?.isCasting?.value == true) {
             player.pause()
@@ -3389,7 +3466,19 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        if (!persistentControlCenter) {
+            super.onTaskRemoved(rootIntent)
+        }
+    }
+
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        if (persistentControlCenter) {
+            super.onUpdateNotification(session, true)
+        } else {
+            super.onUpdateNotification(session, startInForegroundRequired)
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession
@@ -3397,7 +3486,11 @@ class MusicService :
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             MusicWidgetReceiver.ACTION_PLAY_PAUSE -> {
-                if (player.isPlaying) player.pause() else player.play()
+                if (player.mediaItemCount == 0) {
+                    restorePersistentQueueAndPlay()
+                } else {
+                    if (player.isPlaying) player.pause() else player.play()
+                }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_LIKE -> {
@@ -3416,7 +3509,9 @@ class MusicService :
             }
         }
 
-        return super.onStartCommand(intent, flags, startId)
+        val superResult = super.onStartCommand(intent, flags, startId)
+        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
+        return if (persistentControlCenter) START_STICKY else superResult
     }
 
     /**
@@ -3616,6 +3711,15 @@ class MusicService :
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
+        // Ensure fading player stops when current item ends and cannot advance to next track
+        fadingPlayer?.repeatMode = Player.REPEAT_MODE_OFF
+        fadingPlayer?.pauseAtEndOfMediaItems = true
+        val currentIdx = fadingPlayer?.currentMediaItemIndex ?: -1
+        val totalCount = fadingPlayer?.mediaItemCount ?: 0
+        if (currentIdx != -1 && currentIdx < totalCount - 1) {
+            fadingPlayer?.removeMediaItems(currentIdx + 1, totalCount)
+        }
+
         // Add listener to sync play/pause state
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -3657,8 +3761,8 @@ class MusicService :
                 }
 
                 val progress = i / steps.toFloat()
-                val fadeIn = 1.0f - (1.0f - progress) * (1.0f - progress)
-                val fadeOut = (1.0f - progress) * (1.0f - progress)
+                val fadeIn = progress
+                val fadeOut = 1.0f - progress
 
                 try {
                     player.volume = startVolume * fadeIn

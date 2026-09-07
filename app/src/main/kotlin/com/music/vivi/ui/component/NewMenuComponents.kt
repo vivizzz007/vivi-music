@@ -161,17 +161,21 @@ fun NewMenuSectionHeader(
 }
 
 // Enhanced Action Grid - Material 3 Expressive Design
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NewActionGrid(
     actions: List<NewAction>,
     modifier: Modifier = Modifier,
     columns: Int = 3
 ) {
-    FlowRow(
+    val leadingShape = ButtonGroupDefaults.connectedLeadingButtonShape
+    val trailingShape = ButtonGroupDefaults.connectedTrailingButtonShape
+    val middleShape = RoundedCornerShape(4.dp)
+
+    Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalAlignment = Alignment.CenterVertically
     ) {
         actions.forEachIndexed { index, action ->
             var performAction by remember { mutableStateOf(false) }
@@ -191,10 +195,10 @@ fun NewActionGrid(
                 onCheckedChange = { performAction = true },
                 enabled = action.enabled,
                 shapes = when {
-                    actions.size == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                    index == actions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    actions.size == 1 -> ButtonGroupDefaults.connectedLeadingButtonShapes(shape = CircleShape, checkedShape = CircleShape)
+                    index == 0 -> ButtonGroupDefaults.connectedLeadingButtonShapes(shape = leadingShape, checkedShape = leadingShape)
+                    index == actions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes(shape = trailingShape, checkedShape = trailingShape)
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes(shape = middleShape, checkedShape = middleShape)
                 },
                 colors = ToggleButtonDefaults.colors(
                     containerColor = bgColor,
@@ -207,7 +211,7 @@ fun NewActionGrid(
                     .semantics { role = Role.Button }
             ) {
                 action.icon()
-                Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                Spacer(Modifier.size(4.dp))
                 Text(
                     text = action.text,
                     style = MaterialTheme.typography.labelMedium,

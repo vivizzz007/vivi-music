@@ -108,6 +108,7 @@ import com.music.innertube.models.YTItem
 import com.music.innertube.utils.completed
 import com.music.innertube.utils.parseCookieString
 import com.music.innertube.YouTube
+import com.music.vivi.constants.DisabledHomeSectionsKey
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.GridThumbnailHeight
@@ -608,6 +609,7 @@ fun HomeScreen(
     val accountImageUrl by viewModel.accountImageUrl.collectAsState()
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val (randomizeHomeOrder) = rememberPreference(RandomizeHomeOrderKey, true)
+    val (disabledHomeSections) = rememberPreference(DisabledHomeSectionsKey, emptySet())
 
     val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsState()
     val wrappedState by viewModel.wrappedManager.state.collectAsState()
@@ -833,38 +835,67 @@ fun HomeScreen(
         communityPlaylists,
         similarRecommendations,
         homePage?.sections,
-        explorePage?.moodAndGenres
+        explorePage?.moodAndGenres,
+        disabledHomeSections
     ) {
+        fun isSectionEnabled(id: String, title: String? = null): Boolean {
+            if (id in disabledHomeSections) return false
+            if (title != null) {
+                val lower = title.lowercase().trim()
+                if (disabledHomeSections.any { it.equals(lower, ignoreCase = true) }) return false
+                if ("live_performances" in disabledHomeSections && (lower.contains("live performance") || lower.contains("live performances"))) return false
+            }
+            return true
+        }
+
         val list = mutableListOf<HomeSection>()
         val chipActive = selectedChip != null
 
-        if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
-        if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
-        if (!chipActive && coversAndRemixes?.items?.isNotEmpty() == true) list.add(HomeSection.CoversAndRemixes)
-        if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
-        if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
-        if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
-        if (!chipActive && accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
-        if (!chipActive && forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
+        if (!chipActive && speedDialItems.isNotEmpty() && isSectionEnabled("speed_dial")) list.add(HomeSection.SpeedDial)
+        if (!chipActive && quickPicks?.isNotEmpty() == true && isSectionEnabled("quick_picks")) list.add(HomeSection.QuickPicks)
+        if (!chipActive && coversAndRemixes?.items?.isNotEmpty() == true && isSectionEnabled("covers_and_remixes")) list.add(HomeSection.CoversAndRemixes)
+        if (!chipActive && communityPlaylists?.isNotEmpty() == true && isSectionEnabled("from_the_community")) list.add(HomeSection.FromTheCommunity)
+        if (!chipActive && dailyDiscover?.isNotEmpty() == true && isSectionEnabled("daily_discover")) list.add(HomeSection.DailyDiscover)
+        if (!chipActive && keepListening?.isNotEmpty() == true && isSectionEnabled("keep_listening")) list.add(HomeSection.KeepListening)
+        if (!chipActive && accountPlaylists?.isNotEmpty() == true && isSectionEnabled("account_playlists")) list.add(HomeSection.AccountPlaylists)
+        if (!chipActive && forgottenFavorites?.isNotEmpty() == true && isSectionEnabled("forgotten_favorites")) list.add(HomeSection.ForgottenFavorites)
 
-        if (!chipActive) {
+        if (!chipActive && isSectionEnabled("similar_recommendations")) {
             similarRecommendations?.indices?.forEach { i ->
                 list.add(HomeSection.SimilarRecommendation(i))
             }
         }
 
         homePage?.sections?.indices?.forEach { i ->
-            list.add(HomeSection.HomePageSection(i))
+            val sectionData = homePage?.sections?.getOrNull(i)
+            if (sectionData != null && isSectionEnabled("home_page_section_$i", sectionData.title)) {
+                list.add(HomeSection.HomePageSection(i))
+            }
         }
 
-        if (explorePage?.moodAndGenres != null) list.add(HomeSection.MoodAndGenres)
+        if (explorePage?.moodAndGenres != null && isSectionEnabled("mood_and_genres")) list.add(HomeSection.MoodAndGenres)
 
-        val sortedList = if (randomizeHomeOrder) {
-            list.sortedByDescending { section ->
+        // Speed Dial is unconditionally pinned to the top (index 0) if present
+        val hasSpeedDial = list.contains(HomeSection.SpeedDial)
+        val remaining = list.filter { it != HomeSection.SpeedDial }
+
+        // If logged in, YouTube provides its own superior "Quick picks" section.
+        // If logged out as guest, we use our local app-generated Quick Picks.
+        val hasYouTubeQuickPicks = remaining.any {
+            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true
+        }
+
+        val deduplicatedRemaining = if (hasYouTubeQuickPicks) {
+            remaining.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        } else {
+            remaining
+        }
+
+        val sortedRemaining = if (randomizeHomeOrder) {
+            deduplicatedRemaining.sortedByDescending { section ->
                 val sectionRandom = Random(randomSeed + section.id.hashCode())
                 val base = when (section) {
                     HomeSection.QuickPicks -> 700
-                    HomeSection.SpeedDial,
                     HomeSection.DailyDiscover -> 500
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
@@ -874,7 +905,6 @@ fun HomeScreen(
                 }
                 val modifier = when (section) {
                     HomeSection.QuickPicks -> 0
-                    HomeSection.SpeedDial,
                     HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
                     HomeSection.KeepListening,
@@ -887,8 +917,7 @@ fun HomeScreen(
             }
         } else {
             val defaultOrder = mapOf(
-                HomeSection.QuickPicks to 110,
-                HomeSection.SpeedDial to 100,
+                HomeSection.QuickPicks to 90,
                 HomeSection.CoversAndRemixes to 85,
                 HomeSection.FromTheCommunity to 80,
                 HomeSection.DailyDiscover to 70,
@@ -898,7 +927,7 @@ fun HomeScreen(
                 HomeSection.MoodAndGenres to 10
             )
 
-            list.sortedByDescending { section ->
+            deduplicatedRemaining.sortedByDescending { section ->
                 when(section) {
                     is HomeSection.SimilarRecommendation -> 30 - section.index
                     is HomeSection.HomePageSection -> 20 - section.index
@@ -907,25 +936,15 @@ fun HomeScreen(
             }
         }
 
-        // If logged in, YouTube provides its own superior "Quick picks" section. 
-        // If logged out as guest, we use our local app-generated Quick Picks.
-        val hasYouTubeQuickPicks = sortedList.any { 
-            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true 
-        }
-
-        val deduplicatedList = if (hasYouTubeQuickPicks) {
-            sortedList.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
-        } else {
-            sortedList
-        }
-
-        // Always pin the surviving QuickPicks to the very top regardless of sort order
+        // Keep surviving QuickPicks right after SpeedDial (or at top if no SpeedDial)
         val isQuickPicksSection: (HomeSection) -> Boolean = {
             it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
         }
-        val qpItems = deduplicatedList.filter(isQuickPicksSection)
-        if (qpItems.isNotEmpty()) qpItems + deduplicatedList.filterNot(isQuickPicksSection)
-        else deduplicatedList
+        val qpItems = sortedRemaining.filter(isQuickPicksSection)
+        val restItems = sortedRemaining.filterNot(isQuickPicksSection)
+        val orderedContent = if (qpItems.isNotEmpty()) qpItems + restItems else sortedRemaining
+
+        if (hasSpeedDial) listOf(HomeSection.SpeedDial) + orderedContent else orderedContent
     }
 
     LaunchedEffect(quickPicks) {
@@ -1290,6 +1309,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "speed_dial_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         HomeSection.QuickPicks -> {
@@ -1384,6 +1406,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "quick_picks_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         HomeSection.CoversAndRemixes -> {
@@ -1472,6 +1497,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "covers_and_remixes_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         HomeSection.FromTheCommunity -> {
@@ -1506,6 +1534,9 @@ fun HomeScreen(
                                             )
                                         }
                                     }
+                                }
+                                item(key = "from_the_community_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
@@ -1570,6 +1601,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "daily_discover_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         HomeSection.KeepListening -> {
@@ -1600,6 +1634,9 @@ fun HomeScreen(
                                             localGridItem(it)
                                         }
                                     }
+                                }
+                                item(key = "keep_listening_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
@@ -1655,6 +1692,9 @@ fun HomeScreen(
                                             ytGridItem(item)
                                         }
                                     }
+                                }
+                                item(key = "account_playlists_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
@@ -1754,6 +1794,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "forgotten_favorites_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         is HomeSection.SimilarRecommendation -> {
@@ -1801,6 +1844,9 @@ fun HomeScreen(
                                             ytGridItem(item)
                                         }
                                     }
+                                }
+                                item(key = "similar_to_spacer_${section.index}") {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
                         }
@@ -1943,6 +1989,9 @@ fun HomeScreen(
                                         }
                                     }
                                 }
+                                item(key = "home_section_spacer_${section.index}") {
+                                    Spacer(modifier = Modifier.height(20.dp))
+                                }
                             }
                         }
                         HomeSection.MoodAndGenres -> {
@@ -1976,6 +2025,9 @@ fun HomeScreen(
                                             )
                                         }
                                     }
+                                }
+                                item(key = "mood_and_genres_spacer") {
+                                    Spacer(modifier = Modifier.height(20.dp))
                                 }
                             }
 

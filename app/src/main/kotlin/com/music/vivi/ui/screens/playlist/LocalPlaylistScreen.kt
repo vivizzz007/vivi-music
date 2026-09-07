@@ -275,19 +275,21 @@ fun LocalPlaylistScreen(
         }
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED }) {
-                    Download.STATE_COMPLETED
-                } else if (songs.all {
-                        downloads[it.song.id]?.state == Download.STATE_QUEUED ||
-                                downloads[it.song.id]?.state == Download.STATE_DOWNLOADING ||
-                                downloads[it.song.id]?.state == Download.STATE_COMPLETED
-                    }
-                ) {
-                    Download.STATE_DOWNLOADING
-                } else {
-                    Download.STATE_STOPPED
-                }
+            val completedCount = songs.count { song ->
+                downloads[song.song.id]?.state == Download.STATE_COMPLETED ||
+                song.song.song.isDownloaded ||
+                song.song.song.dateDownload != null ||
+                downloadUtil.downloadCache.isCached(song.song.id, 0, 1024)
+            }
+            val downloadingCount = songs.count { song ->
+                downloads[song.song.id]?.state == Download.STATE_DOWNLOADING ||
+                downloads[song.song.id]?.state == Download.STATE_QUEUED
+            }
+            downloadState = when {
+                downloadingCount > 0 -> Download.STATE_DOWNLOADING
+                completedCount > 0 && (completedCount == songs.size || (songs.size > 1 && completedCount >= songs.size - 1) || completedCount * 2 >= songs.size) -> Download.STATE_COMPLETED
+                else -> Download.STATE_STOPPED
+            }
         }
     }
 
@@ -1293,23 +1295,27 @@ fun LocalPlaylistHeader(
                             onEdit = onShowEditDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
-                                    val playlistPage = YouTube.playlist(playlist.playlist.browseId!!)
-                                        .completed()
-                                        .getOrNull() ?: return@launch
-                                    database.transaction {
-                                        clearPlaylist(playlist.id)
-                                        playlistPage.songs
-                                            .map(SongItem::toMediaMetadata)
-                                            .onEach(::insert)
-                                            .mapIndexed { position, song ->
-                                                PlaylistSongMap(
-                                                    songId = song.id,
-                                                    playlistId = playlist.id,
-                                                    position = position,
-                                                    setVideoId = song.setVideoId
-                                                )
-                                            }
-                                            .forEach(::insert)
+                                    if (playlist.id.startsWith("SPOTIFY_")) {
+                                        syncUtils.syncSpotifyPlaylistSuspend(playlist.id)
+                                    } else if (playlist.playlist.browseId != null) {
+                                        val playlistPage = YouTube.playlist(playlist.playlist.browseId!!)
+                                            .completed()
+                                            .getOrNull() ?: return@launch
+                                        database.transaction {
+                                            clearPlaylist(playlist.id)
+                                            playlistPage.songs
+                                                .map(SongItem::toMediaMetadata)
+                                                .onEach(::insert)
+                                                .mapIndexed { position, song ->
+                                                    PlaylistSongMap(
+                                                        songId = song.id,
+                                                        playlistId = playlist.id,
+                                                        position = position,
+                                                        setVideoId = song.setVideoId
+                                                    )
+                                                }
+                                                .forEach(::insert)
+                                        }
                                     }
                                 }
                                 scope.launch(Dispatchers.Main) {
@@ -1317,6 +1323,11 @@ fun LocalPlaylistHeader(
                                 }
                             },
                             onDelete = onshowDeletePlaylistDialog,
+                            onSyncToSpotify = {
+                                scope.launch {
+                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                }
+                            },
                             onDownload = {
                                 when (downloadState) {
                                     Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()

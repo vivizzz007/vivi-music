@@ -9,11 +9,19 @@ import coil3.SingletonImageLoader
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
+import android.media.MediaScannerConnection
 import android.net.ConnectivityManager
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.media3.common.C
 import androidx.media3.database.DatabaseProvider
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
@@ -26,8 +34,13 @@ import com.music.innertube.YouTube
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.IpVersionKey
+import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
 import com.music.innertube.models.IpVersion
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import okhttp3.Dns
+import java.io.File
+import java.io.FileOutputStream
 import java.net.InetAddress
 import java.net.Inet4Address
 import java.net.Inet6Address
@@ -48,6 +61,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -200,14 +214,22 @@ constructor(
 
                 upsert(updatedSong)
 
-                // Pre-cache the high-res thumbnail immediately when download starts
+                // Pre-cache standard thumbnail resolutions immediately when download starts
                 updatedSong.thumbnailUrl?.let { url ->
-                    val request = ImageRequest.Builder(context)
-                        .data(url)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .build()
-                    SingletonImageLoader.get(context).enqueue(request)
+                    val imageLoader = SingletonImageLoader.get(context)
+                    listOfNotNull(
+                        url,
+                        url.resize(120, 120),
+                        url.resize(544, 544),
+                        url.resize(1200, 1200)
+                    ).distinct().forEach { targetUrl ->
+                        val request = ImageRequest.Builder(context)
+                            .data(targetUrl)
+                            .memoryCachePolicy(CachePolicy.ENABLED)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .build()
+                        imageLoader.enqueue(request)
+                    }
                 }
             }
 
@@ -272,6 +294,10 @@ constructor(
                             when (download.state) {
                                 Download.STATE_COMPLETED -> {
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                                    val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
+                                    if (saveToPublic) {
+                                        exportSongToPublicStorage(download.request.id)
+                                    }
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
@@ -321,6 +347,131 @@ constructor(
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+
+    fun exportSongToPublicStorage(songId: String) {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val songWithData = database.song(songId).firstOrNull() ?: return@launch
+                val song = songWithData.song
+                val songTitle = song.title
+                val artistName = songWithData.artists.joinToString(", ") { it.name }.ifBlank { "Unknown Artist" }
+                val format = songWithData.format ?: database.format(songId).firstOrNull()
+                val rawMimeType = format?.mimeType ?: "audio/mp4"
+                val isOpusOrWebm = rawMimeType.contains("webm", ignoreCase = true) || rawMimeType.contains("opus", ignoreCase = true)
+                val mimeType = if (isOpusOrWebm) "audio/ogg" else "audio/mp4"
+                val extension = if (isOpusOrWebm) "opus" else "m4a"
+
+                val prefix = if (artistName != "Unknown Artist") "$artistName - " else ""
+                val safeTitle = (prefix + songTitle)
+                    .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                    .trim()
+                val fileName = "$safeTitle.$extension"
+
+                val cacheKey = when {
+                    downloadCache.keys.contains(songId) -> songId
+                    downloadCache.keys.contains(songId.toUri().toString()) -> songId.toUri().toString()
+                    else -> downloadCache.keys.firstOrNull { it.contains(songId) } ?: songId
+                }
+
+                val cacheDataSource = CacheDataSource.Factory()
+                    .setCache(downloadCache)
+                    .setUpstreamDataSourceFactory(null)
+                    .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+                    .createDataSource()
+
+                val dataSpec = DataSpec.Builder()
+                    .setUri(cacheKey.toUri())
+                    .setKey(cacheKey)
+                    .build()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val resolver = appContext.contentResolver
+                    val relativePath = "${Environment.DIRECTORY_MUSIC}/ViviMusic"
+
+                    val projection = arrayOf(MediaStore.Audio.Media._ID)
+                    val selection = "${MediaStore.Audio.Media.DISPLAY_NAME} = ? AND ${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                    val selectionArgs = arrayOf(fileName, "%ViviMusic%")
+                    val existingUri = resolver.query(
+                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null
+                    )?.use { cursor ->
+                        if (cursor.moveToFirst()) {
+                            val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                            ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                        } else null
+                    }
+
+                    val uri = existingUri ?: run {
+                        val contentValues = ContentValues().apply {
+                            put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                            put(MediaStore.Audio.Media.TITLE, songTitle)
+                            put(MediaStore.Audio.Media.ARTIST, artistName)
+                            put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+                            put(MediaStore.Audio.Media.RELATIVE_PATH, relativePath)
+                            put(MediaStore.Audio.Media.IS_PENDING, 1)
+                        }
+                        resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+                    }
+
+                    if (uri != null) {
+                        try {
+                            cacheDataSource.open(dataSpec)
+                            resolver.openOutputStream(uri, "wt")?.use { out ->
+                                val buffer = ByteArray(32768)
+                                while (true) {
+                                    val bytes = cacheDataSource.read(buffer, 0, buffer.size)
+                                    if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
+                                    out.write(buffer, 0, bytes)
+                                }
+                                out.flush()
+                            }
+                            val finishValues = ContentValues().apply {
+                                put(MediaStore.Audio.Media.IS_PENDING, 0)
+                            }
+                            resolver.update(uri, finishValues, null, null)
+                            Timber.tag("DownloadUtil").d("Exported $fileName to MediaStore ($uri)")
+                        } finally {
+                            cacheDataSource.close()
+                        }
+                    }
+                } else {
+                    val musicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "ViviMusic")
+                    musicDir.mkdirs()
+                    val targetFile = File(musicDir, fileName)
+                    try {
+                        cacheDataSource.open(dataSpec)
+                        FileOutputStream(targetFile).use { out ->
+                            val buffer = ByteArray(32768)
+                            while (true) {
+                                val bytes = cacheDataSource.read(buffer, 0, buffer.size)
+                                if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
+                                out.write(buffer, 0, bytes)
+                            }
+                            out.flush()
+                        }
+                        MediaScannerConnection.scanFile(appContext, arrayOf(targetFile.absolutePath), arrayOf(mimeType), null)
+                        Timber.tag("DownloadUtil").d("Exported $fileName to public storage: ${targetFile.absolutePath}")
+                    } finally {
+                        cacheDataSource.close()
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.tag("DownloadUtil").e(e, "Failed to export song $songId to public storage")
+            }
+        }
+    }
+
+    fun exportAllDownloadedSongs() {
+        scope.launch(Dispatchers.IO) {
+            val downloadedSongs = database.downloadedSongsByNameAsc().firstOrNull() ?: emptyList()
+            for (song in downloadedSongs) {
+                exportSongToPublicStorage(song.id)
+            }
+        }
+    }
 
     fun release() {
         scope.cancel()

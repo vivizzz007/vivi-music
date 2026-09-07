@@ -374,6 +374,7 @@ class SpotifyImportViewModel @Inject constructor(
                                 lastUpdateTime = now,
                                 thumbnailUrl = importData.thumbnailUrl,
                                 isEditable = true,
+                                isAutoSync = true,
                             ) ?: PlaylistEntity(
                                 id = importData.localPlaylistId,
                                 name = importData.title,
@@ -381,6 +382,7 @@ class SpotifyImportViewModel @Inject constructor(
                                 lastUpdateTime = now,
                                 thumbnailUrl = importData.thumbnailUrl,
                                 isEditable = true,
+                                isAutoSync = true,
                             )
                             if (existing == null) insert(entity) else update(entity)
                             clearPlaylist(importData.localPlaylistId)
@@ -469,6 +471,7 @@ class SpotifyImportViewModel @Inject constructor(
                             lastUpdateTime = now,
                             thumbnailUrl = importData.thumbnailUrl,
                             isEditable = true,
+                            isAutoSync = true,
                         ) ?: PlaylistEntity(
                             id = importData.localPlaylistId,
                             name = importData.title,
@@ -476,6 +479,7 @@ class SpotifyImportViewModel @Inject constructor(
                             lastUpdateTime = now,
                             thumbnailUrl = importData.thumbnailUrl,
                             isEditable = true,
+                            isAutoSync = true,
                         )
 
                         if (existing == null) {

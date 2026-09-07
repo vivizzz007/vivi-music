@@ -17,6 +17,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
@@ -287,6 +288,7 @@ fun Thumbnail(
     isPlayerExpanded: () -> Boolean = { true },
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
+    onAlbumClick: (() -> Unit)? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -437,7 +439,8 @@ fun Thumbnail(
                     ThumbnailHeader(
                         queueTitle = queueTitle,
                         albumTitle = mediaMetadata?.album?.title,
-                        textColor = textBackgroundColor
+                        textColor = textBackgroundColor,
+                        onAlbumClick = onAlbumClick
                     )
                 }
                 
@@ -539,7 +542,8 @@ private fun ThumbnailHeader(
     queueTitle: String?,
     albumTitle: String?,
     textColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onAlbumClick: (() -> Unit)? = null,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
@@ -570,6 +574,7 @@ private fun ThumbnailHeader(
                 )
             }
             val playingFrom = albumTitle ?: queueTitle // Prioritize album title
+            val isClickableAlbum = !albumTitle.isNullOrBlank() && onAlbumClick != null
             androidx.compose.animation.AnimatedContent(
                 targetState = playingFrom,
                 transitionSpec = { androidx.compose.animation.fadeIn() togetherWith androidx.compose.animation.fadeOut() },
@@ -582,7 +587,16 @@ private fun ThumbnailHeader(
                         style = MaterialTheme.typography.titleMedium,
                         color = textColor.copy(alpha = 0.8f),
                         maxLines = 1,
-                        modifier = Modifier.basicMarquee()
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .then(
+                                if (isClickableAlbum) {
+                                    Modifier
+                                        .clickable(onClick = { onAlbumClick?.invoke() })
+                                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                                } else Modifier
+                            )
+                            .basicMarquee()
                     )
                 }
             }

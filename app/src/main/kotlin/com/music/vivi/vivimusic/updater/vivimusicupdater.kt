@@ -61,6 +61,7 @@ import com.music.vivi.vivimusic.updater.downloadmanager.UpdateDownloadWorker
 import com.music.vivi.vivimusic.updater.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import timber.log.Timber
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -195,9 +196,10 @@ fun UpdateScreen(navController: NavHostController) {
             delay(1000L)
             checkForUpdate(
                 context = context,
-                onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl ->
+                onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl, origin ->
                     saveLastCheckedTime(context, LocalDateTime.now().format(DateTimeFormatter.ofPattern("d MMMM yyyy, h:mm a")))
                     saveUpdateAvailableState(context, isAvailable)
+                    if (origin != null) saveUpdateOrigin(context, origin)
                     status = if (isAvailable) {
                         ViviUpdateStatus.Available(
                             version = tag,
@@ -206,7 +208,8 @@ fun UpdateScreen(navController: NavHostController) {
                             releaseDate = date,
                             description = description,
                             imageUrl = imageUrl,
-                            apkUrl = apkUrl
+                            apkUrl = apkUrl,
+                            updateOrigin = origin
                         )
                     } else {
                         ViviUpdateStatus.NoUpdate(tag)
@@ -315,7 +318,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 }
                                             } else {
                                                 val targetApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
-                                                val urlToDownload = currentStatus.apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/${currentStatus.version}/$targetApkName"
+                                                val urlToDownload = currentStatus.apkUrl ?: "https://github.com/pwpp08/vivi-music/releases/download/${currentStatus.version}/$targetApkName"
                                                 
                                                 if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) {
                                                     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(urlToDownload))
@@ -550,10 +553,48 @@ fun UpdateScreen(navController: NavHostController) {
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalAlignment = Alignment.Start
                                     ) {
-                                        val desc = currentStatus.description ?: ""
-                                        if (desc.isNotBlank()) {
-                                            val primaryColor = MaterialTheme.colorScheme.primary
-                                            val annotatedText = desc.trim().parseMarkdownAndUrls(primaryColor)
+                                         currentStatus.updateOrigin?.let { originText ->
+                                             Surface(
+                                                 color = MaterialTheme.colorScheme.primaryContainer,
+                                                 shape = RoundedCornerShape(12.dp),
+                                                 modifier = Modifier.padding(bottom = 12.dp)
+                                             ) {
+                                                 Row(
+                                                     verticalAlignment = Alignment.CenterVertically,
+                                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                                 ) {
+                                                     Icon(
+                                                         painter = painterResource(R.drawable.info),
+                                                         contentDescription = null,
+                                                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                         modifier = Modifier.size(16.dp)
+                                                     )
+                                                     Spacer(modifier = Modifier.size(6.dp))
+                                                     Text(
+                                                         text = originText,
+                                                         style = MaterialTheme.typography.labelMedium,
+                                                         fontWeight = FontWeight.SemiBold,
+                                                         color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                     )
+                                                 }
+                                             }
+                                         }
+                                         if (!currentStatus.imageUrl.isNullOrBlank()) {
+                                             AsyncImage(
+                                                 model = currentStatus.imageUrl,
+                                                 contentDescription = null,
+                                                 modifier = Modifier
+                                                     .fillMaxWidth()
+                                                     .height(200.dp)
+                                                     .clip(RoundedCornerShape(24.dp)),
+                                                 contentScale = ContentScale.Crop
+                                             )
+                                             Spacer(modifier = Modifier.height(16.dp))
+                                         }
+                                         val desc = currentStatus.description ?: ""
+                                         if (desc.isNotBlank()) {
+                                             val primaryColor = MaterialTheme.colorScheme.primary
+                                             val annotatedText = desc.trim().parseMarkdownAndUrls(primaryColor)
                                             ClickableText(
                                                 text = annotatedText,
                                                 onClick = { offset ->
@@ -637,15 +678,37 @@ const val KEY_AUTO_UPDATE_CHECK = "auto_update_check"
 const val KEY_LAST_CHECKED_TIME = "last_checked_time"
 const val KEY_BETA_UPDATES = "beta_updates"
 const val KEY_UPDATE_AVAILABLE = "update_available"
+const val KEY_LAST_INSTALLED_VERSION = "last_installed_version"
 
 fun getUpdateAvailableState(context: Context): Boolean {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    val lastInstalled = sharedPrefs.getString(KEY_LAST_INSTALLED_VERSION, null)
+    val currentVersion = BuildConfig.VERSION_NAME
+    if (lastInstalled != currentVersion) {
+        sharedPrefs.edit()
+            .putString(KEY_LAST_INSTALLED_VERSION, currentVersion)
+            .putBoolean(KEY_UPDATE_AVAILABLE, false)
+            .apply()
+        return false
+    }
     return sharedPrefs.getBoolean(KEY_UPDATE_AVAILABLE, false)
 }
 
 fun saveUpdateAvailableState(context: Context, available: Boolean) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putBoolean(KEY_UPDATE_AVAILABLE, available).apply()
+}
+
+const val KEY_UPDATE_ORIGIN = "update_origin"
+
+fun saveUpdateOrigin(context: Context, origin: String) {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    sharedPrefs.edit().putString(KEY_UPDATE_ORIGIN, origin).apply()
+}
+
+fun getUpdateOrigin(context: Context): String? {
+    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    return sharedPrefs.getString(KEY_UPDATE_ORIGIN, null)
 }
 
 fun getAutoUpdateCheckSetting(context: Context): Boolean {
@@ -746,47 +809,58 @@ private fun formatGitHubDate(githubDate: String): String = try {
     githubDate
 }
 
-// Robust version comparison: returns true if latestVersion > currentVersion
-fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
-    val latestRun = Regex("-r(\\d+)").find(latestVersion)?.groupValues?.get(1)?.toIntOrNull() ?: 0
-    val currentRun = Regex("-r(\\d+)").find(currentVersion)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+fun parseVersionParts(version: String): List<Int> {
+    val clean = version.trim()
+        .removePrefix("v")
+        .removePrefix("V")
+        .removePrefix("b")
+        .removePrefix("B")
+        .substringBefore("-")
+        .substringBefore("+")
+        .substringBefore("_")
+    return clean.split(".").map { it.toIntOrNull() ?: 0 }
+}
 
-    val latestBase = latestVersion.removePrefix("b").removePrefix("v").substringBefore("-r")
-    val currentBase = currentVersion.removePrefix("b").removePrefix("v").substringBefore("-r")
-
-    val latestParts = latestBase.split(".").map { it.toIntOrNull() ?: 0 }
-    val currentParts = currentBase.split(".").map { it.toIntOrNull() ?: 0 }
-    
-    for (i in 0 until maxOf(latestParts.size, currentParts.size)) {
-        val latest = latestParts.getOrElse(i) { 0 }
-        val current = currentParts.getOrElse(i) { 0 }
-        when {
-            latest > current -> return true
-            latest < current -> return false
+fun compareVersionTags(v1: String, v2: String): Int {
+    val parts1 = parseVersionParts(v1)
+    val parts2 = parseVersionParts(v2)
+    val maxParts = maxOf(parts1.size, parts2.size)
+    for (i in 0 until maxParts) {
+        val p1 = parts1.getOrElse(i) { 0 }
+        val p2 = parts2.getOrElse(i) { 0 }
+        if (p1 != p2) {
+            return p1.compareTo(p2)
         }
     }
-    
-    if (latestBase == currentBase) {
-        if (latestRun > currentRun) return true
-        if (latestRun < currentRun) return false
-        
-        val latestIsBeta = latestVersion.startsWith("b")
-        val currentIsBeta = currentVersion.startsWith("b")
-        if (currentIsBeta && !latestIsBeta) return true
+    val run1 = Regex("-r(\\d+)").find(v1)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    val run2 = Regex("-r(\\d+)").find(v2)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+    if (run1 != run2) {
+        return run1.compareTo(run2)
     }
-    
-    return false
+    // If numeric parts and run equal: stable (starts with v or number) is considered newer than beta (starts with b)
+    val b1 = v1.startsWith("b", ignoreCase = true)
+    val b2 = v2.startsWith("b", ignoreCase = true)
+    if (b1 != b2) {
+        return if (b2) 1 else -1 // stable > beta
+    }
+    return v1.compareTo(v2, ignoreCase = true)
 }
+
+// Robust version comparison: returns true if latestVersion > currentVersion
+fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
+    return compareVersionTags(latestVersion, currentVersion) > 0
+}
+
 
 // Fetches ALL releases, finds the latest version > current, and returns its info
 suspend fun checkForUpdate(
     context: Context,
-    onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
+    onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?, updateOrigin: String?) -> Unit,
     onError: () -> Unit,
 ) {
     withContext(Dispatchers.IO) {
         try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
+            val url = URL("https://api.github.com/repos/pwpp08/vivi-music/releases")
             val json = url.openStream().bufferedReader().use { it.readText() }
             val releases = JSONArray(json)
             
@@ -794,6 +868,108 @@ suspend fun checkForUpdate(
             val betaEnabled = getBetaUpdatesSetting(context)
 
 
+            var isNightlyUpdate = false
+            var nightlyRunObject: JSONObject? = null
+            val nightlyChangelog = mutableListOf<String>()
+
+            if (betaEnabled) {
+                try {
+                    val nightlyUrl = URL("https://api.github.com/repos/pwpp08/vivi-music/actions/workflows/nightly.yml/runs?status=success&per_page=100")
+                    val nightlyJson = nightlyUrl.openStream().bufferedReader().use { it.readText() }
+                    val nightlyData = JSONObject(nightlyJson)
+                    val runs = nightlyData.optJSONArray("workflow_runs")
+                    if (runs != null && runs.length() > 0) {
+                        val firstRun = runs.getJSONObject(0)
+                        val runUpdatedAt = firstRun.getString("updated_at")
+                        val githubFormatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'")
+                        val runTime = java.time.LocalDateTime.parse(runUpdatedAt, githubFormatter)
+                        val runTimeEpoch = runTime.toInstant(java.time.ZoneOffset.UTC).toEpochMilli()
+
+                        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+                        val currentAppInstallTime = packageInfo.lastUpdateTime
+
+                        val sharedPreferences = context.getSharedPreferences("update_settings", Context.MODE_PRIVATE)
+                        if (!BuildConfig.IS_NIGHTLY) {
+                            sharedPreferences.edit().remove("last_installed_nightly_run").apply()
+                        }
+                        val lastInstalledRun = sharedPreferences.getInt("last_installed_nightly_run", -1)
+                        val runNumber = firstRun.getInt("run_number")
+
+                        val isNewer = if (lastInstalledRun != -1) {
+                            runNumber > lastInstalledRun
+                        } else if (!BuildConfig.IS_NIGHTLY) {
+                            true
+                        } else {
+                            runTimeEpoch > (currentAppInstallTime + 300_000)
+                        }
+
+                        if (isNewer) {
+                            isNightlyUpdate = true
+                            nightlyRunObject = firstRun
+
+                            // Collect commits from runs that are newer than the currently installed nightly run
+                            for (i in 0 until runs.length()) {
+                                val run = runs.getJSONObject(i)
+                                val rNum = run.optInt("run_number", -1)
+                                val shouldInclude = if (lastInstalledRun != -1) {
+                                    rNum > lastInstalledRun
+                                } else {
+                                    i < 15
+                                }
+                                if (shouldInclude) {
+                                    val headCommit = run.optJSONObject("head_commit")
+                                    val commitMessage = headCommit?.optString("message")
+                                    if (!commitMessage.isNullOrBlank()) {
+                                        val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                                        nightlyChangelog.add("r$rNum: $subjectLine")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("UpdateCheck", "Error checking nightly updates: ${e.message}", e)
+                }
+            }
+
+            if (isNightlyUpdate && nightlyRunObject != null) {
+                val runNumber = nightlyRunObject.getInt("run_number")
+                val runUpdatedAt = nightlyRunObject.getString("updated_at")
+                val displayTag = "nightly-r$runNumber"
+                
+                val triggeringActor = nightlyRunObject.optJSONObject("triggering_actor")?.optString("login")
+                    ?: nightlyRunObject.optJSONObject("actor")?.optString("login") ?: ""
+                val event = nightlyRunObject.optString("event")
+                val headCommit = nightlyRunObject.optJSONObject("head_commit")
+                val commitAuthor = headCommit?.optJSONObject("author")?.optString("name") ?: ""
+                val commitMsg = headCommit?.optString("message") ?: ""
+
+                val origin = when {
+                    triggeringActor.equals("pwpp08", ignoreCase = true) || commitAuthor.equals("pwpp08", ignoreCase = true) ->
+                        "Pushed by you (pwpp08)"
+                    event == "pull_request" || commitMsg.contains("pull request", ignoreCase = true) || commitMsg.contains("Merge pull request", ignoreCase = true) ->
+                        "Pull request by @${triggeringActor.ifBlank { commitAuthor }.ifBlank { "contributor" }}"
+                    else ->
+                        "Developer update (@${triggeringActor.ifBlank { "vivi" }})"
+                }
+
+                val changelogList = mutableListOf<ChangelogSection>()
+                if (nightlyChangelog.isEmpty()) {
+                    val headCommitObj = nightlyRunObject.optJSONObject("head_commit")
+                    val commitMessage = headCommitObj?.optString("message") ?: "New features and bug fixes"
+                    val subjectLine = commitMessage.lineSequence().firstOrNull { it.isNotBlank() } ?: commitMessage
+                    nightlyChangelog.add("r$runNumber: $subjectLine")
+                }
+                changelogList.add(ChangelogSection(context.getString(R.string.changelog), nightlyChangelog))
+                
+                val formattedReleaseDate = formatGitHubDate(runUpdatedAt)
+                val apkDownloadUrl = "https://nightly.link/pwpp08/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
+                
+                withContext(Dispatchers.Main) {
+                    onSuccess(displayTag, true, changelogList, "~30", formattedReleaseDate, "Bleeding-edge nightly build from main branch.", null, apkDownloadUrl, origin)
+                }
+                return@withContext
+            }
 
             var bestStableRelease: JSONObject? = null
             var bestOverallRelease: JSONObject? = null
@@ -839,11 +1015,7 @@ suspend fun checkForUpdate(
                 if (!shouldShow && !betaEnabled) {
                     // Logic: If I'm on a Beta (b5.0.7) and latest stable is v5.0.6, 
                     // and I just turned OFF beta, I want to see v5.0.6.
-                    if (currentIsBeta && targetIsStable) {
-                        shouldShow = true
-                    } else if (isDifferentVersion && targetIsStable) {
-                        // Also show if current is a newer unofficial stable (e.g. built locally as 5.0.7)
-                        // but user wants the official stable 5.0.6.
+                    if (currentIsBeta && targetIsStable && currentClean == targetClean) {
                         shouldShow = true
                     }
                 }
@@ -857,8 +1029,17 @@ suspend fun checkForUpdate(
                     var description: String? = null
                     var imageUrl: String? = null
                     try {
-                        val changelogUrl =
-                            URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json?t=${System.currentTimeMillis()}")
+                        val releaseAssets = targetRelease.optJSONArray("assets")
+                        val changelogAssetUrl = if (releaseAssets != null) {
+                            (0 until releaseAssets.length()).map { releaseAssets.getJSONObject(it) }
+                                .firstOrNull { it.getString("name") == "changelog.json" }
+                                ?.optString("browser_download_url")
+                        } else null
+                        val changelogUrl = if (!changelogAssetUrl.isNullOrEmpty()) {
+                            URL("$changelogAssetUrl?t=${System.currentTimeMillis()}")
+                        } else {
+                            URL("https://github.com/pwpp08/vivi-music/releases/download/$tagWithPrefix/changelog.json?t=${System.currentTimeMillis()}")
+                        }
                         val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
                         val changelogData = JSONObject(changelogJson)
 
@@ -891,10 +1072,21 @@ suspend fun checkForUpdate(
                             changelogList.add(ChangelogSection(title, itemsList, secDesc, blocksList))
                         }
                     } catch (e: Exception) {
-                        // Fallback: Parse body as a single list if it starts with characters or split by lines
-                        val body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
-                        val fallbackItems = body.split("\n").filter { it.isNotBlank() }
-                        changelogList.add(ChangelogSection(context.getString(R.string.changelog), fallbackItems))
+                        // Fallback: Parse body as markdown release notes
+                        val body = targetRelease.optString("body", "").trim()
+                        if (body.isNotEmpty()) {
+                            val lines = body.lines().map { it.trim() }.filter { it.isNotEmpty() }
+                            val bullets = lines.filter { it.startsWith("-") || it.startsWith("*") }
+                                .map { it.removePrefix("-").removePrefix("*").trim() }
+                            if (bullets.isNotEmpty()) {
+                                description = lines.firstOrNull { !it.startsWith("-") && !it.startsWith("*") && !it.startsWith("#") }
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), bullets))
+                            } else {
+                                changelogList.add(ChangelogSection(context.getString(R.string.changelog), lines))
+                            }
+                        } else {
+                            changelogList.add(ChangelogSection(context.getString(R.string.changelog), listOf(context.getString(R.string.no_changelog_available))))
+                        }
                     }
 
                     val publishedAt = targetRelease.getString("published_at")
@@ -903,21 +1095,71 @@ suspend fun checkForUpdate(
 
                     var apkSizeInMB = ""
                     var apkDownloadUrl = ""
-                    val expectedApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
+                    var fallbackApkSizeInMB = ""
+                    var fallbackApkUrl = ""
+                    val isFoss = BuildConfig.FLAVOR.contains("foss", ignoreCase = true)
+                    val expectedApkName = if (isFoss) "izzydroid-universal-foss-release.apk" else "vivi.apk"
+                    val currentFlavor = if (isFoss) "foss" else "gms"
+
                     for (j in 0 until assets.length()) {
                         val asset = assets.getJSONObject(j)
                         val assetName = asset.getString("name")
-                        if (assetName == expectedApkName) {
+                        val lowerName = assetName.lowercase()
+                        if (lowerName.endsWith(".apk")) {
                             val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
+                            val sizeStr = String.format(java.util.Locale.US, "%.1f", apkSizeInBytes / (1024.0 * 1024.0))
+                            val downloadUrl = asset.getString("browser_download_url")
+
+                            if (assetName == expectedApkName || lowerName.contains(currentFlavor) || assetName == "vivi.apk") {
+                                apkSizeInMB = sizeStr
+                                apkDownloadUrl = downloadUrl
+                                break
+                            } else if (fallbackApkUrl.isEmpty()) {
+                                fallbackApkSizeInMB = sizeStr
+                                fallbackApkUrl = downloadUrl
+                            }
+                        }
+                    }
+
+                    if (apkDownloadUrl.isEmpty() && fallbackApkUrl.isNotEmpty()) {
+                        apkDownloadUrl = fallbackApkUrl
+                        apkSizeInMB = fallbackApkSizeInMB
+                    }
+
+                    var origin = "Official update"
+                    try {
+                        val commitUrl = URL("https://api.github.com/repos/pwpp08/vivi-music/commits?sha=$tagWithPrefix&per_page=1")
+                        val commitJson = commitUrl.openStream().bufferedReader().use { it.readText() }
+                        val commitArray = JSONArray(commitJson)
+                        if (commitArray.length() > 0) {
+                            val cObj = commitArray.getJSONObject(0)
+                            val cAuthorLogin = cObj.optJSONObject("author")?.optString("login") ?: ""
+                            val cCommitterLogin = cObj.optJSONObject("committer")?.optString("login") ?: ""
+                            val cAuthorName = cObj.optJSONObject("commit")?.optJSONObject("author")?.optString("name") ?: ""
+                            val cMessage = cObj.optJSONObject("commit")?.optString("message") ?: ""
+
+                            origin = when {
+                                cAuthorLogin.equals("pwpp08", ignoreCase = true) || cCommitterLogin.equals("pwpp08", ignoreCase = true) || cAuthorName.equals("pwpp08", ignoreCase = true) ->
+                                    "Pushed by you (pwpp08)"
+                                cMessage.contains("pull request", ignoreCase = true) || cMessage.contains("Merge pull request", ignoreCase = true) ->
+                                    "Pull request"
+                                else ->
+                                    "App developer update"
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.w("UpdateCheck", "Could not fetch commit origin: ${e.message}")
+                        val relAuthor = targetRelease.optJSONObject("author")?.optString("login") ?: ""
+                        origin = if (relAuthor.equals("pwpp08", ignoreCase = true)) {
+                            "Pushed by you (pwpp08)"
+                        } else {
+                            "App developer update"
                         }
                     }
 
                     if (apkDownloadUrl.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
-                            onSuccess(displayTag, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
+                            onSuccess(displayTag, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl, origin)
                         }
                         return@withContext
                     }
@@ -926,7 +1168,7 @@ suspend fun checkForUpdate(
 
             // No update found or APK missing
             withContext(Dispatchers.Main) {
-                onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
+                onSuccess(currentVersion, false, emptyList(), "", "", null, null, null, null)
             }
         } catch (e: Exception) {
             Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
@@ -934,6 +1176,19 @@ suspend fun checkForUpdate(
         }
     }
 }
+
+// Backwards-compatible overload for 8-arg callers
+suspend fun checkForUpdate(
+    context: Context,
+    onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
+    onError: () -> Unit,
+) = checkForUpdate(
+    context = context,
+    onSuccess = { tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl, _ ->
+        onSuccess(tag, isAvailable, changelog, size, date, description, imageUrl, apkUrl)
+    },
+    onError = onError
+)
 fun String.extractUrls(): List<Pair<IntRange, String>> {
     val urlPattern = Pattern.compile(
         "(?:^|[\\s])((https?://|www\\.|pic\\.)[\\w-]+(\\.[\\w-]+)+([/?].*)?)"

@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Image
+import com.music.vivi.ui.component.AppLogo
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -106,8 +107,7 @@ fun WrappedIntro(onNext: () -> Unit) {
                 enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) +
                         slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.icon),
+                AppLogo(
                     contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
                     modifier = Modifier
                         .size(100.dp)

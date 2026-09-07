@@ -206,17 +206,19 @@ fun YouTubePlaylistMenu(
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
-            downloadState =
-                if (songs.all { downloads[it.id]?.state == Download.STATE_COMPLETED })
-                    Download.STATE_COMPLETED
-                else if (songs.all {
-                        downloads[it.id]?.state == Download.STATE_QUEUED
-                                || downloads[it.id]?.state == Download.STATE_DOWNLOADING
-                                || downloads[it.id]?.state == Download.STATE_COMPLETED
-                    })
-                    Download.STATE_DOWNLOADING
-                else
-                    Download.STATE_STOPPED
+            val completedCount = songs.count { song ->
+                downloads[song.id]?.state == Download.STATE_COMPLETED ||
+                downloadUtil.downloadCache.isCached(song.id, 0, 1024)
+            }
+            val downloadingCount = songs.count { song ->
+                downloads[song.id]?.state == Download.STATE_DOWNLOADING ||
+                downloads[song.id]?.state == Download.STATE_QUEUED
+            }
+            downloadState = when {
+                downloadingCount > 0 -> Download.STATE_DOWNLOADING
+                completedCount > 0 && (completedCount == songs.size || (songs.size > 1 && completedCount >= songs.size - 1) || completedCount * 2 >= songs.size) -> Download.STATE_COMPLETED
+                else -> Download.STATE_STOPPED
+            }
         }
     }
     var showRemoveDownloadDialog by remember {

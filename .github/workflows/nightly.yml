@@ -1,8 +1,8 @@
 name: Nightly GMS Release Build
 
 on:
-  schedule:
-    - cron: '0 0 * * *' # Midnight UTC
+#  schedule:
+#    - cron: '0 0 * * *' # Midnight UTC
   workflow_dispatch: # Allows manual triggering
 
 jobs:

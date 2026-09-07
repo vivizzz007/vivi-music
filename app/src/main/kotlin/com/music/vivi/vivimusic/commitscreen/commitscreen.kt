@@ -76,7 +76,8 @@ data class CommitData(
     val authorAvatarUrl: String?,
     val authorLogin: String?,
     val date: String,
-    val htmlUrl: String
+    val htmlUrl: String,
+    val rawDate: String = ""
 )
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -102,49 +103,60 @@ fun CommitScreen(
         isLoading = true
         hasError = false
         coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/commits?branch=main&per_page=50")
-                val json = url.openStream().bufferedReader().use { it.readText() }
-                val array = JSONArray(json)
-                val outputFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
+            val outputFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy", Locale.getDefault())
+            val repos = listOf("pwpp08/vivi-music", "vivizzz007/vivi-music")
+            val combinedList = mutableListOf<CommitData>()
 
-                val list = mutableListOf<CommitData>()
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
-                    val sha = obj.getString("sha")
-                    val htmlUrl = obj.getString("html_url")
+            for (repo in repos) {
+                try {
+                    val url = URL("https://api.github.com/repos/$repo/commits?per_page=50")
+                    val connection = url.openConnection() as java.net.HttpURLConnection
+                    connection.setRequestProperty("User-Agent", "ViviMusic-App")
+                    connection.setRequestProperty("Accept", "application/vnd.github+json")
+                    if (connection.responseCode == 200) {
+                        val json = connection.inputStream.bufferedReader().use { it.readText() }
+                        val array = JSONArray(json)
+                        for (i in 0 until array.length()) {
+                            val obj = array.getJSONObject(i)
+                            val sha = obj.getString("sha")
+                            val htmlUrl = obj.getString("html_url")
 
-                    val commitObj = obj.getJSONObject("commit")
-                    val fullMessage = commitObj.getString("message")
-                    // Take only the first line (subject) of the commit message
-                    val message = fullMessage.lines().firstOrNull { it.isNotBlank() } ?: fullMessage
+                            val commitObj = obj.getJSONObject("commit")
+                            val fullMessage = commitObj.getString("message")
+                            val message = fullMessage.lines().firstOrNull { it.isNotBlank() } ?: fullMessage
 
-                    val authorObj = commitObj.getJSONObject("author")
-                    val authorName = authorObj.optString("name", "Unknown")
-                    val rawDate = authorObj.optString("date", "")
-                    val formattedDate = try {
-                        ZonedDateTime.parse(rawDate).format(outputFormatter)
-                    } catch (e: Exception) { rawDate }
+                            val authorObj = commitObj.getJSONObject("author")
+                            val authorName = authorObj.optString("name", "Unknown")
+                            val rawDate = authorObj.optString("date", "")
+                            val formattedDate = try {
+                                ZonedDateTime.parse(rawDate).format(outputFormatter)
+                            } catch (e: Exception) { rawDate }
 
-                    // GitHub user info (may be null for non-GitHub accounts)
-                    val authorLogin = if (!obj.isNull("author")) {
-                        obj.getJSONObject("author").optString("login", null)
-                    } else null
-                    val authorAvatarUrl = if (!obj.isNull("author")) {
-                        obj.getJSONObject("author").optString("avatar_url", null)
-                    } else null
+                            val authorLogin = if (!obj.isNull("author")) {
+                                obj.getJSONObject("author").optString("login", null)
+                            } else null
+                            val authorAvatarUrl = if (!obj.isNull("author")) {
+                                obj.getJSONObject("author").optString("avatar_url", null)
+                            } else null
 
-                    list.add(CommitData(sha, message, authorName, authorAvatarUrl, authorLogin, formattedDate, htmlUrl))
+                            combinedList.add(CommitData(sha, message, authorName, authorAvatarUrl, authorLogin, formattedDate, htmlUrl, rawDate))
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("CommitScreen", "Error fetching commits for $repo: ${e.message}")
                 }
+            }
 
-                withContext(Dispatchers.Main) {
-                    commits = list
+            val deduplicatedAndSorted = combinedList
+                .distinctBy { it.sha }
+                .sortedByDescending { it.rawDate }
+
+            withContext(Dispatchers.Main) {
+                if (deduplicatedAndSorted.isNotEmpty()) {
+                    commits = deduplicatedAndSorted
                     isLoading = false
                     hasError = false
-                }
-            } catch (e: Exception) {
-                Log.e("CommitScreen", "Error fetching commits: ${e.message}")
-                withContext(Dispatchers.Main) {
+                } else {
                     hasError = true
                     isLoading = false
                 }

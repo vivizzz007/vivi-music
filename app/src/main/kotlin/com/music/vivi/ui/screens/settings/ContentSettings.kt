@@ -86,9 +86,13 @@ import com.music.vivi.constants.ProxyPasswordKey
 import com.music.vivi.constants.ProxyTypeKey
 import com.music.vivi.constants.ProxyUrlKey
 import com.music.vivi.constants.ProxyUsernameKey
+import com.music.vivi.constants.DisabledHomeSectionsKey
 import com.music.vivi.constants.QuickPicks
 import com.music.vivi.constants.QuickPicksKey
 import com.music.vivi.constants.RandomizeHomeOrderKey
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
 import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.ShowArtistDescriptionKey
 import com.music.vivi.constants.ShowArtistSubscriberCountKey
@@ -166,6 +170,11 @@ fun ContentSettings(
         RandomizeHomeOrderKey,
         defaultValue = true
     )
+    val (disabledHomeSections, onDisabledHomeSectionsChange) = rememberPreference(
+        key = DisabledHomeSectionsKey,
+        defaultValue = emptySet()
+    )
+    var showManageHomeSectionsDialog by rememberSaveable { mutableStateOf(false) }
     val (ipVersion, onIpVersionChange) = rememberEnumPreference(
         IpVersionKey,
         defaultValue = IpVersion.AUTO
@@ -602,6 +611,14 @@ fun ContentSettings(
             currentRegionSlug = suggestionRegion,
             onRegionSelected = { onSuggestionRegionChange(it) },
             onDismiss = { showSuggestionSheet = false }
+        )
+    }
+
+    if (showManageHomeSectionsDialog) {
+        ManageHomeSectionsDialog(
+            disabledSections = disabledHomeSections,
+            onSave = onDisabledHomeSectionsChange,
+            onDismiss = { showManageHomeSectionsDialog = false }
         )
     }
 
@@ -1170,6 +1187,12 @@ fun ContentSettings(
                     onClick = { onRandomizeHomeOrderChange(!randomizeHomeOrder) }
                 ),
                 Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.manage_home_sections)) },
+                    description = { Text(stringResource(R.string.manage_home_sections_desc)) },
+                    onClick = { showManageHomeSectionsDialog = true }
+                ),
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.top_length)) },
                     trailingContent = { Text(lengthTop) },
@@ -1218,6 +1241,94 @@ fun ContentSettings(
                     painterResource(R.drawable.arrow_back),
                     contentDescription = null,
                 )
+            }
+        }
+    )
+}
+
+@Composable
+fun ManageHomeSectionsDialog(
+    disabledSections: Set<String>,
+    onSave: (Set<String>) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val sections = remember {
+        listOf(
+            "speed_dial" to R.string.speed_dial,
+            "quick_picks" to R.string.quick_picks,
+            "daily_discover" to R.string.your_daily_discover,
+            "covers_and_remixes" to R.string.covers_and_remixes,
+            "live_performances" to R.string.live_performances,
+            "forgotten_favorites" to R.string.forgotten_favorites,
+            "from_the_community" to R.string.from_the_community,
+            "keep_listening" to R.string.keep_listening,
+            "account_playlists" to R.string.account_playlists,
+            "similar_recommendations" to R.string.similar_recommendations,
+            "mood_and_genres" to R.string.mood_and_genres,
+        )
+    }
+
+    val currentDisabled = remember { mutableStateListOf<String>().apply { addAll(disabledSections) } }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.manage_home_sections)) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                sections.forEach { (id, titleRes) ->
+                    val isEnabled = id !in currentDisabled
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                if (isEnabled) {
+                                    currentDisabled.add(id)
+                                } else {
+                                    currentDisabled.remove(id)
+                                }
+                            }
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(titleRes),
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = isEnabled,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    currentDisabled.remove(id)
+                                } else {
+                                    currentDisabled.add(id)
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSave(currentDisabled.toSet())
+                    onDismiss()
+                }
+            ) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.cancel))
             }
         }
     )

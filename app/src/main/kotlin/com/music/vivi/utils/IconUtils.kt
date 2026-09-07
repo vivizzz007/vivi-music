@@ -12,8 +12,9 @@ import android.content.pm.PackageManager
 object IconUtils {
     fun setIcon(context: Context, enabled: Boolean) {
         val pm = context.packageManager
-        val dynamic = ComponentName(context, "com.music.vivi.MainActivityAlias")
-        val static = ComponentName(context, "com.music.vivi.MainActivityStatic")
+        val pkg = context.packageName
+        val dynamic = ComponentName(pkg, "$pkg.MainActivityAlias")
+        val static = ComponentName(pkg, "$pkg.MainActivityStatic")
 
         pm.setComponentEnabledSetting(
             dynamic,

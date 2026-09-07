@@ -610,10 +610,6 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
 }
 
 
-
-
-
-
 private fun loadDevices(
     context: Context,
     preferredDeviceId: Int?,

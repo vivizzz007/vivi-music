@@ -118,11 +118,20 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.CustomPlayerButtonsKey
+import com.music.vivi.constants.PlayerActionButton
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.QueueEditLockKey
 import com.music.vivi.constants.ShowCommentButtonKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.playback.ExoDownloadService
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.Download
+import androidx.core.net.toUri
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
 import com.music.vivi.extensions.toggleRepeatMode
@@ -351,140 +360,247 @@ fun Queue(
                         topEnd = 50.dp, bottomEnd = 50.dp
                     )
 
-//                    Spacer(modifier = Modifier.weight(1f))
+                    val database = LocalDatabase.current
+                    val downloadUtil = LocalDownloadUtil.current
+                    val downloadItem by (mediaMetadata?.id?.let { downloadUtil.getDownload(it) } ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
+                    val (customPlayerButtonsPref) = rememberPreference(CustomPlayerButtonsKey, defaultValue = "")
+                    val activeButtons = remember(customPlayerButtonsPref) { PlayerActionButton.parseList(customPlayerButtonsPref) }
+                    val connectedButtons = remember(activeButtons) { activeButtons.filter { it != PlayerActionButton.MORE_OPTIONS } }
+                    val hasMoreOptions = remember(activeButtons) { activeButtons.contains(PlayerActionButton.MORE_OPTIONS) }
+                    val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsState()
 
-                    PlayerQueueButton(
-                        icon = R.drawable.queue_music,
-                        onClick = { state.expandSoft() },
-                        isActive = false,
-                        shape = queueShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
-
-                    PlayerQueueButton(
-                        icon = R.drawable.bedtime,
-                        onClick = {
-                            if (sleepTimerEnabled) {
-                                playerConnection.service.sleepTimer.clear()
-                            } else {
-                                showSleepTimerDialog = true
+                    connectedButtons.forEachIndexed { index, button ->
+                        val shape = when {
+                            connectedButtons.size == 1 -> CircleShape
+                            index == 0 -> queueShape
+                            index == connectedButtons.lastIndex -> repeatShape
+                            else -> middleShape
+                        }
+                        when (button) {
+                            PlayerActionButton.QUEUE -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.queue_music,
+                                    onClick = { state.expandSoft() },
+                                    isActive = false,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
                             }
-                        },
-                        isActive = sleepTimerEnabled,
-                        enabled = !isListenTogetherGuest,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        text = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else null,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
-
-                    PlayerQueueButton(
-                        icon = R.drawable.lyrics,
-                        onClick = { onToggleLyrics() },
-                        isActive = showInlineLyrics,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
-
-                    if (showCommentButton) {
-                        PlayerQueueButton(
-                            icon = R.drawable.chat_msg,
-                            onClick = { showCommentSheet = true },
-                            isActive = showCommentSheet,
-                            shape = middleShape,
-                            modifier = Modifier.size(buttonSize),
-                            textButtonColor = textButtonColor,
-                            iconButtonColor = iconButtonColor,
-                            iconSize = iconSize,
-                            textBackgroundColor = TextBackgroundColor,
-                            playerBackground = playerBackground
-                        )
+                            PlayerActionButton.SLEEP_TIMER -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.bedtime,
+                                    onClick = {
+                                        if (sleepTimerEnabled) {
+                                            playerConnection.service.sleepTimer.clear()
+                                        } else {
+                                            showSleepTimerDialog = true
+                                        }
+                                    },
+                                    isActive = sleepTimerEnabled,
+                                    enabled = !isListenTogetherGuest,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    text = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else null,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.LYRICS -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.lyrics,
+                                    onClick = { onToggleLyrics() },
+                                    isActive = showInlineLyrics,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.COMMENTS -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.chat_msg,
+                                    onClick = { showCommentSheet = true },
+                                    isActive = showCommentSheet,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.SHUFFLE -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.shuffle,
+                                    onClick = {
+                                        playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
+                                    },
+                                    isActive = shuffleModeEnabledInside,
+                                    enabled = !isListenTogetherGuest,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.REPEAT -> {
+                                PlayerQueueButton(
+                                    icon = when (repeatMode) {
+                                        Player.REPEAT_MODE_ALL -> R.drawable.repeat
+                                        Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                        else -> R.drawable.repeat
+                                    },
+                                    onClick = {
+                                        playerConnection.player.toggleRepeatMode()
+                                    },
+                                    isActive = repeatMode != Player.REPEAT_MODE_OFF,
+                                    enabled = !isListenTogetherGuest,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.LIKE -> {
+                                val isLiked = currentSong?.song?.liked == true
+                                PlayerQueueButton(
+                                    icon = if (isLiked) R.drawable.favorite else R.drawable.favorite_border,
+                                    onClick = {
+                                        database.query {
+                                            mediaMetadata?.let { update(it.toSongEntity().toggleLike()) }
+                                        }
+                                    },
+                                    isActive = isLiked,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = if (isLiked) MaterialTheme.colorScheme.error else iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.DOWNLOAD -> {
+                                val isSongDownloaded = currentSong?.song?.isDownloaded == true || downloadItem?.state == Download.STATE_COMPLETED
+                                PlayerQueueButton(
+                                    icon = if (isSongDownloaded) R.drawable.offline else R.drawable.download,
+                                    onClick = {
+                                        mediaMetadata?.let { song ->
+                                            if (isSongDownloaded) {
+                                                DownloadService.sendRemoveDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    song.id,
+                                                    false
+                                                )
+                                            } else {
+                                                val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                                                    .setCustomCacheKey(song.id)
+                                                    .setData(song.title.toByteArray())
+                                                    .build()
+                                                DownloadService.sendAddDownload(
+                                                    context,
+                                                    ExoDownloadService::class.java,
+                                                    downloadRequest,
+                                                    false
+                                                )
+                                            }
+                                        }
+                                    },
+                                    isActive = isSongDownloaded,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.EQUALIZER -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.graphic_eq,
+                                    onClick = { navController.navigate("settings/equalizer") },
+                                    isActive = false,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.AUDIO_DEVICE -> {
+                                PlayerQueueButton(
+                                    icon = if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple,
+                                    onClick = { showAudioDeviceBottomSheet = true },
+                                    isActive = showAudioDeviceBottomSheet,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
+                            PlayerActionButton.MORE_OPTIONS -> {}
+                        }
                     }
 
-                    val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsState()
-                    PlayerQueueButton(
-                        icon = R.drawable.shuffle,
-                        onClick = {
-                            playerConnection.player.shuffleModeEnabled = !shuffleModeEnabledInside
-                        },
-                        isActive = shuffleModeEnabledInside,
-                        enabled = !isListenTogetherGuest,
-                        shape = middleShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
+                    if (hasMoreOptions) {
+                        Spacer(modifier = Modifier.weight(1f))
 
-
-                    PlayerQueueButton(
-                        icon = when (repeatMode) {
-                            Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                            else -> R.drawable.repeat
-                        },
-                        onClick = {
-                            playerConnection.player.toggleRepeatMode()
-                        },
-                        isActive = repeatMode != Player.REPEAT_MODE_OFF,
-                        enabled = !isListenTogetherGuest,
-                        shape = repeatShape,
-                        modifier = Modifier.size(buttonSize),
-                        textButtonColor = textButtonColor,
-                        iconButtonColor = iconButtonColor,
-                        iconSize = iconSize,
-                        textBackgroundColor = TextBackgroundColor,
-                        playerBackground = playerBackground
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Box(
-                        modifier = Modifier
-                            .size(buttonSize)
-                            .clip(CircleShape)
-                            .background(textButtonColor)
-                            .clickable {
-                                menuState.show {
-                                    PlayerMenu(
-                                        mediaMetadata = mediaMetadata,
-                                        navController = navController,
-                                        playerBottomSheetState = playerBottomSheetState,
-                                        onShowDetailsDialog = {
-                                            mediaMetadata?.id?.let {
-                                                bottomSheetPageState.show {
-                                                    ShowMediaInfo(it)
+                        Box(
+                            modifier = Modifier
+                                .size(buttonSize)
+                                .clip(CircleShape)
+                                .background(textButtonColor)
+                                .clickable {
+                                    menuState.show {
+                                        PlayerMenu(
+                                            mediaMetadata = mediaMetadata,
+                                            navController = navController,
+                                            playerBottomSheetState = playerBottomSheetState,
+                                            onShowDetailsDialog = {
+                                                mediaMetadata?.id?.let {
+                                                    bottomSheetPageState.show {
+                                                        ShowMediaInfo(it)
+                                                    }
                                                 }
-                                            }
-                                        },
-                                        onDismiss = menuState::dismiss
-                                    )
-                                }
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.more_vert),
-                            contentDescription = null,
-                            modifier = Modifier.size(iconSize),
-                            tint = iconButtonColor
-                        )
+                                            },
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.more_vert),
+                                contentDescription = null,
+                                modifier = Modifier.size(iconSize),
+                                tint = iconButtonColor
+                            )
+                        }
                     }
                 }
             } else {
@@ -526,6 +642,9 @@ fun Queue(
                         }
                     }
 
+                    val leadingShapeTop = ButtonGroupDefaults.connectedLeadingButtonShape
+                    val trailingShapeTop = ButtonGroupDefaults.connectedTrailingButtonShape
+
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                         modifier = Modifier.width(120.dp)
@@ -535,7 +654,10 @@ fun Queue(
                             onCheckedChange = {
                                 showAudioDeviceBottomSheet = true
                             },
-                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(
+                                shape = leadingShapeTop,
+                                checkedShape = leadingShapeTop
+                            ),
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
@@ -566,7 +688,10 @@ fun Queue(
                                     }
                                 }
                             },
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(
+                                shape = trailingShapeTop,
+                                checkedShape = trailingShapeTop
+                            ),
                             modifier = Modifier
                                 .height(56.dp)
                                 .weight(1f),
@@ -745,15 +870,23 @@ fun Queue(
                     if (!playerConnection.player.shuffleModeEnabled) {
                         playerConnection.player.moveMediaItem(safeFrom, safeTo)
                     } else {
-                        playerConnection.player.setShuffleOrder(
-                            DefaultShuffleOrder(
-                                queueWindows.map { it.firstPeriodIndex }
-                                    .toMutableList()
-                                    .move(safeFrom, safeTo)
-                                    .toIntArray(),
-                                System.currentTimeMillis()
-                            )
-                        )
+                        val timeline = playerConnection.player.currentTimeline
+                        if (!timeline.isEmpty) {
+                            val currentIndices = queueWindows.mapNotNull { window ->
+                                (0 until timeline.windowCount).firstOrNull { idx ->
+                                    timeline.getWindow(idx, Timeline.Window()).uid == window.uid
+                                }
+                            }
+                            if (currentIndices.size == timeline.windowCount && safeFrom in currentIndices.indices && safeTo in currentIndices.indices) {
+                                val newOrder = currentIndices.toMutableList().apply {
+                                    val item = removeAt(safeFrom)
+                                    add(safeTo, item)
+                                }.toIntArray()
+                                playerConnection.player.setShuffleOrder(
+                                    DefaultShuffleOrder(newOrder, System.currentTimeMillis())
+                                )
+                            }
+                        }
                     }
                     dragInfo = null
                 }
@@ -895,12 +1028,16 @@ fun Queue(
                     }
                 }
 
-                FlowRow(
+                Row(
                     modifier = Modifier
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                 ) {
+                    val leadingShape = ButtonGroupDefaults.connectedLeadingButtonShape
+                    val trailingShape = ButtonGroupDefaults.connectedTrailingButtonShape
+                    val middleShape = RoundedCornerShape(4.dp)
+
                     ToggleButton(
                         checked = shuffleModeEnabled,
                         onCheckedChange = { checked ->
@@ -913,7 +1050,10 @@ fun Queue(
                             }
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(
+                            shape = leadingShape,
+                            checkedShape = leadingShape
+                        ),
                         colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -935,7 +1075,7 @@ fun Queue(
                             style = MaterialTheme.typography.labelMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
-                            )
+                        )
                     }
 
                     ToggleButton(
@@ -944,7 +1084,10 @@ fun Queue(
                             playerConnection.player.toggleRepeatMode()
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(
+                            shape = middleShape,
+                            checkedShape = middleShape
+                        ),
                         colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -982,7 +1125,10 @@ fun Queue(
                             playerConnection.startRadioSeamlessly()
                         },
                         enabled = !isListenTogetherGuest,
-                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
+                        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(
+                            shape = trailingShape,
+                            checkedShape = trailingShape
+                        ),
                         colors = ToggleButtonDefaults.colors(
                             containerColor = MaterialTheme.colorScheme.secondaryContainer,
                             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
