@@ -255,6 +255,56 @@ object Spotify {
         limit: Int = 50,
         offset: Int = 0,
     ): Result<SpotifyPaging<SpotifyPlaylist>> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+
+        // 1. Try official Spotify Web API first (guarantees exact track count and metadata)
+        val webApiResult = runCatching {
+            checkRateLimitCooldown()
+            val response = gqlClient.get("https://api.spotify.com/v1/me/playlists") {
+                header("Authorization", "Bearer $token")
+                parameter("limit", limit)
+                parameter("offset", offset)
+            }
+            if (response.status.value in 200..299) {
+                val respJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val totalCount = respJson.int("total") ?: 0
+                val items = respJson.arr("items")?.mapNotNull { itemElem ->
+                    val itemObj = itemElem.jsonObject
+                    val id = itemObj.str("id") ?: return@mapNotNull null
+                    val name = itemObj.str("name") ?: ""
+                    val description = itemObj.str("description")
+                    val images = parseGqlImages(itemObj.arr("images"))
+                    val ownerObj = itemObj.obj("owner")
+                    val tracksObj = itemObj.obj("tracks")
+                    val totalTracks = tracksObj?.int("total")
+                    SpotifyPlaylist(
+                        id = id,
+                        name = name,
+                        description = description,
+                        images = images,
+                        owner = SpotifyPlaylistOwner(
+                            id = ownerObj?.str("id") ?: "",
+                            displayName = ownerObj?.str("display_name"),
+                            uri = ownerObj?.str("uri"),
+                        ),
+                        tracks = SpotifyPlaylistTracksRef(total = totalTracks),
+                        uri = itemObj.str("uri") ?: "spotify:playlist:$id",
+                    )
+                } ?: emptyList()
+                SpotifyPaging(
+                    items = items,
+                    total = totalCount,
+                    limit = limit,
+                    offset = offset,
+                )
+            } else null
+        }.getOrNull()
+
+        if (webApiResult != null) {
+            return@runCatching webApiResult
+        }
+
+        // 2. Fallback to GraphQL libraryV3
         val vars = buildJsonObject {
             putJsonArray("filters") { add("Playlists") }
             put("order", null as String?)
@@ -283,7 +333,7 @@ object Spotify {
         val playlists = libraryData.arr("items")?.mapNotNull { itemElem ->
             val wrapper = itemElem.jsonObject.obj("item") ?: return@mapNotNull null
             if (wrapper.str("__typename") != "PlaylistResponseWrapper") return@mapNotNull null
-            parsePlaylistWrapper(wrapper)
+            parsePlaylistWrapper(wrapper, itemElem.jsonObject)
         } ?: emptyList()
 
         SpotifyPaging(
@@ -294,7 +344,7 @@ object Spotify {
         )
     }
 
-    private fun parsePlaylistWrapper(wrapper: JsonObject): SpotifyPlaylist? {
+    private fun parsePlaylistWrapper(wrapper: JsonObject, itemElem: JsonObject? = null): SpotifyPlaylist? {
         val data = wrapper.obj("data") ?: return null
         if (data.str("__typename") != "Playlist") return null
         val playlistUri = wrapper.str("_uri") ?: return null
@@ -311,19 +361,94 @@ object Spotify {
                 displayName = ownerData?.str("name"),
                 uri = ownerData?.str("uri"),
             ),
-            tracks = SpotifyPlaylistTracksRef(total = parsePlaylistTrackCount(data)),
+            tracks = SpotifyPlaylistTracksRef(total = parsePlaylistTrackCount(data, wrapper, itemElem)),
             uri = playlistUri,
         )
     }
 
-    private fun parsePlaylistTrackCount(data: JsonObject): Int? =
-        data.obj("content")?.int("totalCount")
-            ?: data.obj("contents")?.int("totalCount")
-            ?: data.obj("tracks")?.int("totalCount")
-            ?: data.obj("tracksV2")?.int("totalCount")
-            ?: data.int("totalCount")
-            ?: data.int("trackCount")
-            ?: data.int("numTracks")
+    private fun parsePlaylistTrackCount(data: JsonObject, wrapper: JsonObject? = null, itemElem: JsonObject? = null): Int? {
+        val sources = listOfNotNull(data, wrapper, itemElem)
+        for (src in sources) {
+            src.obj("content")?.int("totalCount")?.let { return it }
+            src.obj("contents")?.int("totalCount")?.let { return it }
+            src.obj("tracks")?.int("totalCount")?.let { return it }
+            src.obj("tracksV2")?.int("totalCount")?.let { return it }
+            src.obj("attributes")?.int("totalCount")?.let { return it }
+            src.int("totalCount")?.let { return it }
+            src.int("trackCount")?.let { return it }
+            src.int("numTracks")?.let { return it }
+            src.int("total")?.let { return it }
+            src.int("count")?.let { return it }
+        }
+        return null
+    }
+
+    suspend fun playlist(playlistId: String): Result<SpotifyPlaylist> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+
+        // 1. Try official Spotify Web API first
+        val webApiResult = runCatching {
+            checkRateLimitCooldown()
+            val response = gqlClient.get("https://api.spotify.com/v1/playlists/$playlistId") {
+                header("Authorization", "Bearer $token")
+            }
+            if (response.status.value in 200..299) {
+                val respJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val id = respJson.str("id") ?: playlistId
+                val name = respJson.str("name") ?: ""
+                val description = respJson.str("description")
+                val images = parseGqlImages(respJson.arr("images"))
+                val ownerObj = respJson.obj("owner")
+                val tracksObj = respJson.obj("tracks")
+                val totalTracks = tracksObj?.int("total")
+                SpotifyPlaylist(
+                    id = id,
+                    name = name,
+                    description = description,
+                    images = images,
+                    owner = SpotifyPlaylistOwner(
+                        id = ownerObj?.str("id") ?: "",
+                        displayName = ownerObj?.str("display_name"),
+                        uri = ownerObj?.str("uri"),
+                    ),
+                    tracks = SpotifyPlaylistTracksRef(total = totalTracks),
+                    uri = respJson.str("uri") ?: "spotify:playlist:$id",
+                )
+            } else null
+        }.getOrNull()
+
+        if (webApiResult != null) {
+            return@runCatching webApiResult
+        }
+
+        // 2. Fallback to GraphQL fetchPlaylist metadata
+        val vars = buildJsonObject {
+            put("uri", "spotify:playlist:$playlistId")
+            put("offset", 0)
+            put("limit", 1)
+            put("enableWatchFeedEntrypoint", false)
+        }
+        val response = graphqlPost(operationName = "fetchPlaylist", variables = vars)
+        val playlistV2 = response.obj("data")?.obj("playlistV2")
+            ?: throw SpotifyException(500, "No playlistV2 in fetchPlaylist response")
+        val name = playlistV2.str("name") ?: ""
+        val images = parseGqlImages(playlistV2.arr("images") ?: playlistV2.obj("images")?.arr("items"))
+        val totalCount = playlistV2.obj("content")?.int("totalCount")
+        val ownerObj = playlistV2.obj("ownerV2")?.obj("data")
+        SpotifyPlaylist(
+            id = playlistId,
+            name = name,
+            description = null,
+            images = images,
+            owner = SpotifyPlaylistOwner(
+                id = ownerObj?.str("id") ?: "",
+                displayName = ownerObj?.str("name"),
+                uri = ownerObj?.str("uri"),
+            ),
+            tracks = SpotifyPlaylistTracksRef(total = totalCount),
+            uri = "spotify:playlist:$playlistId",
+        )
+    }
 
     suspend fun playlistTracks(
         playlistId: String,

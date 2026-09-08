@@ -115,23 +115,11 @@ constructor(
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
-    @Suppress("DEPRECATION")
     override fun onPlayerCommandRequest(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
         playerCommand: Int,
     ): Int {
-        if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
-            if (session.player.mediaItemCount == 0) {
-                scope.launch(Dispatchers.Main) {
-                    if (::service.isInitialized) {
-                        service.restorePersistentQueueAndPlay()
-                    }
-                }
-            } else if (session.player.playbackState == Player.STATE_IDLE) {
-                session.player.prepare()
-            }
-        }
         return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
 
@@ -178,27 +166,7 @@ constructor(
                     }
                 }
 
-                // Fallback 1: Recent events from database
-                val recentEvents = runCatching {
-                    database.events().first().take(25).map { it.song.toMediaItem() }
-                }.getOrNull()
-
-                if (!recentEvents.isNullOrEmpty()) {
-                    settableFuture.set(MediaItemsWithStartPosition(recentEvents, 0, 0L))
-                    return@launch
-                }
-
-                // Fallback 2: Library songs from database
-                val librarySongs = runCatching {
-                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
-                }.getOrNull()
-
-                if (!librarySongs.isNullOrEmpty()) {
-                    settableFuture.set(MediaItemsWithStartPosition(librarySongs, 0, 0L))
-                    return@launch
-                }
-
-                settableFuture.setException(IllegalStateException("No persistent queue or songs available for playback resumption"))
+                settableFuture.setException(IllegalStateException("No persistent queue available for playback resumption"))
             } catch (e: Exception) {
                 Timber.e(e, "Playback resumption failed")
                 settableFuture.setException(e)

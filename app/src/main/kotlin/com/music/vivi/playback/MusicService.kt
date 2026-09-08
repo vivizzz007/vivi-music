@@ -2228,22 +2228,6 @@ class MusicService :
                     }
                 }
             }
-
-            // Fallback: restore from recent listening history or library songs
-            val recentEvents = withContext(Dispatchers.IO) {
-                runCatching {
-                    database.events().first().take(25).map { it.song.toMediaItem() }
-                }.getOrNull()
-            }
-            if (!recentEvents.isNullOrEmpty()) {
-                playerInitialized.first { it }
-                if (isActive) {
-                    player.setMediaItems(recentEvents)
-                    player.prepare()
-                    player.play()
-                    return@launch
-                }
-            }
         }
     }
 

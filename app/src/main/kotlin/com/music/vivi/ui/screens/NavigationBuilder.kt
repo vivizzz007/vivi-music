@@ -144,6 +144,17 @@ fun NavGraphBuilder.navigationBuilder(
         SpotifyAccountScreen(navController, scrollBehavior)
     }
 
+    composable(
+        route = "spotify_playlist/{playlistId}",
+        arguments = listOf(
+            navArgument("playlistId") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        SpotifyPlaylistDetailScreen(navController, scrollBehavior)
+    }
+
     composable("new_release") {
         NewReleaseScreen(navController, scrollBehavior)
     }

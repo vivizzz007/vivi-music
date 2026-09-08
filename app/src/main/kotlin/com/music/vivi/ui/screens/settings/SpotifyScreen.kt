@@ -159,8 +159,15 @@ fun SpotifyScreen(
                     Material3SettingsItem(
                         isExpressive = true,
                         title = { Text(stringResource(R.string.view_spotify_account)) },
-                        description = { Text(stringResource(R.string.spotify_account)) },
                         icon = painterResource(R.drawable.person),
+                        trailingContent = {
+                            Icon(
+                                painter = painterResource(R.drawable.chevron_right_px),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
                         onClick = { navController.navigate("spotify_account") }
                     )
                 )
@@ -200,38 +207,6 @@ fun SpotifyScreen(
                     icon = painterResource(R.drawable.bookmark_star_library),
                     enabled = state.isAuthenticated && totalPlaylists > 0 && !state.isLoading,
                     onClick = { showPlaylistsSheet = true }
-                ),
-                Material3SettingsItem(
-                    isExpressive = true,
-                    title = { Text(stringResource(R.string.spotify_refresh)) },
-                    leadingContent = {
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null,
-                                tint = if (!refreshEnabled) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                } else {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
-                                },
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .graphicsLayer {
-                                        rotationZ = rotationAngle
-                                    }
-                            )
-                        }
-                    },
-                    enabled = refreshEnabled,
-                    onClick = { viewModel.loadSources() }
                 ),
                 Material3SettingsItem(
                     isExpressive = true,
@@ -297,6 +272,22 @@ fun SpotifyScreen(
                     painterResource(R.drawable.arrow_back),
                     contentDescription = null,
                 )
+            }
+        },
+        actions = {
+            if (state.isAuthenticated) {
+                IconButton(
+                    onClick = { viewModel.loadSources() },
+                    enabled = refreshEnabled
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = stringResource(R.string.spotify_refresh),
+                        modifier = Modifier.graphicsLayer {
+                            rotationZ = rotationAngle
+                        }
+                    )
+                }
             }
         },
         scrollBehavior = scrollBehavior,

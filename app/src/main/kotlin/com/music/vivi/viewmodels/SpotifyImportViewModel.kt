@@ -235,9 +235,23 @@ class SpotifyImportViewModel @Inject constructor(
                     if (offset >= page.total) break
                 }
 
+                val enrichedPlaylists = playlistsList.map { pl ->
+                    val total = pl.tracks?.total
+                    if (total != null && total > 0) {
+                        pl
+                    } else {
+                        val trackCount = runCatching {
+                            Spotify.playlistTracks(pl.id, limit = 1).getOrNull()?.total
+                        }.getOrNull()
+                        if (trackCount != null && trackCount > 0) {
+                            pl.copy(tracks = com.music.spotify.models.SpotifyPlaylistTracksRef(total = trackCount))
+                        } else pl
+                    }
+                }
+
                 _uiState.update {
                     it.copy(
-                        playlists = playlistsList,
+                        playlists = enrichedPlaylists,
                         likedSongsCount = likedSongsResult.total,
                         isLoading = false,
                         accountName = meResult.displayName.orEmpty(),
