@@ -44,6 +44,7 @@ import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
+import com.music.vivi.extensions.toQueue
 import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
@@ -114,6 +115,7 @@ constructor(
         return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
     }
 
+    @Suppress("DEPRECATION")
     override fun onPlayerCommandRequest(
         session: MediaSession,
         controller: MediaSession.ControllerInfo,
@@ -121,12 +123,9 @@ constructor(
     ): Int {
         if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
             if (session.player.mediaItemCount == 0) {
-                val queueFile = context.filesDir.resolve(MusicService.PERSISTENT_QUEUE_FILE)
-                if (queueFile.exists()) {
-                    scope.launch(Dispatchers.Main) {
-                        if (::service.isInitialized) {
-                            service.restorePersistentQueueAndPlay()
-                        }
+                scope.launch(Dispatchers.Main) {
+                    if (::service.isInitialized) {
+                        service.restorePersistentQueueAndPlay()
                     }
                 }
             } else if (session.player.playbackState == Player.STATE_IDLE) {
@@ -136,7 +135,6 @@ constructor(
         return super.onPlayerCommandRequest(session, controller, playerCommand)
     }
 
-    @Deprecated("Deprecated in MediaLibrarySession.Callback")
     override fun onPlaybackResumption(
         mediaSession: MediaSession,
         controller: MediaSession.ControllerInfo
@@ -166,12 +164,41 @@ constructor(
                         val mediaItems = queue.items.map { it.toMediaItem() }
                         val safeIndex = queue.mediaItemIndex.coerceIn(0, mediaItems.lastIndex)
                         val safePosition = if (safeIndex == queue.mediaItemIndex) queue.position else 0L
+
+                        val restoredQueue = runCatching { queue.toQueue() }.getOrNull()
+                        if (restoredQueue != null && ::service.isInitialized) {
+                            scope.launch(Dispatchers.Main) {
+                                service.setCurrentQueue(restoredQueue)
+                                service.queueTitle = queue.title
+                            }
+                        }
+
                         settableFuture.set(MediaItemsWithStartPosition(mediaItems, safeIndex, safePosition))
                         return@launch
                     }
                 }
 
-                settableFuture.setException(IllegalStateException("No persistent queue available for playback resumption"))
+                // Fallback 1: Recent events from database
+                val recentEvents = runCatching {
+                    database.events().first().take(25).map { it.song.toMediaItem() }
+                }.getOrNull()
+
+                if (!recentEvents.isNullOrEmpty()) {
+                    settableFuture.set(MediaItemsWithStartPosition(recentEvents, 0, 0L))
+                    return@launch
+                }
+
+                // Fallback 2: Library songs from database
+                val librarySongs = runCatching {
+                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
+                }.getOrNull()
+
+                if (!librarySongs.isNullOrEmpty()) {
+                    settableFuture.set(MediaItemsWithStartPosition(librarySongs, 0, 0L))
+                    return@launch
+                }
+
+                settableFuture.setException(IllegalStateException("No persistent queue or songs available for playback resumption"))
             } catch (e: Exception) {
                 Timber.e(e, "Playback resumption failed")
                 settableFuture.setException(e)
@@ -224,7 +251,7 @@ constructor(
         browser: MediaSession.ControllerInfo,
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<MediaItem>> {
-        val isRecent = params?.isRecent == true || browser.packageName.contains("systemui")
+        val isRecent = params?.isRecent == true || browser.packageName.contains("systemui", ignoreCase = true)
         val rootItem = if (isRecent) {
             MediaItem.Builder()
                 .setMediaId("recent")
@@ -257,7 +284,7 @@ constructor(
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> =
         scope.future(Dispatchers.IO) {
-            val isSystemUi = browser.packageName.contains("systemui")
+            val isSystemUi = browser.packageName.contains("systemui", ignoreCase = true)
             val isRecentQuery = params?.isRecent == true || isSystemUi || parentId == "recent"
 
             val children =

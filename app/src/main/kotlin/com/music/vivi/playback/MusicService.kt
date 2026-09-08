@@ -304,6 +304,10 @@ class MusicService :
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
 
+    fun setCurrentQueue(queue: Queue) {
+        currentQueue = queue
+    }
+
     val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
     private val currentSong =
         currentMediaMetadata
@@ -2299,6 +2303,9 @@ class MusicService :
 
         // Widget and Discord RPC updates
         if (events.containsAny(Player.EVENT_IS_PLAYING_CHANGED)) {
+            if (!player.isPlaying && dataStore.get(PersistentQueueKey, true)) {
+                saveQueueToDisk()
+            }
             updateWidgetUI(player.isPlaying)
             if (player.isPlaying) {
                 startWidgetUpdates()
@@ -3318,19 +3325,21 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        saveQueueToDisk()
         val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
         if (!persistentControlCenter) {
             super.onTaskRemoved(rootIntent)
+            return
+        }
+
+        // Stop the foreground notification, but keep the session active for system UI persistence
+        if (!player.playWhenReady) {
+            stopForeground(STOP_FOREGROUND_DETACH)
         }
     }
 
     override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
-        val persistentControlCenter = dataStore.get(PersistentControlCenterKey, true)
-        if (persistentControlCenter) {
-            super.onUpdateNotification(session, true)
-        } else {
-            super.onUpdateNotification(session, startInForegroundRequired)
-        }
+        super.onUpdateNotification(session, startInForegroundRequired)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession

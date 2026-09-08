@@ -1,11 +1,14 @@
 {
-  "version": "6.0.6",
-  "description": "VIVI MUSIC brings new SponsorBlock, Listen Together UI, Player v17, new miniplayer, Remix section, and an array of customization and fixes.",
+  "version": "6.0.7",
+  "description": "VIVI MUSIC v6.0.7 implements Android System UI playback resumption and persistent Quick Settings media controls.",
   "image": "https://raw.githubusercontent.com/pwpp08/vivi-music/main/NEW-UI/update/v6.0.6.jpg",
   "changelog": [
     {
       "title": "What's New",
       "items": [
+        "Implemented full Android System UI playback resumption (Spotify-style persistent widget)",
+        "Added dormant Quick Settings media panel pinning on OnePlus / OxygenOS",
+        "Added automatic queue restoration from disk & database on playback resumption",
         "Added SponsorBlock",
         "Added new UI to Listen Together",
         "Added new Player v17 (portrait only)",
@@ -25,6 +28,8 @@
     {
       "title": "Fixes & Improvements",
       "items": [
+        "Fixed swiped-away media widget dismissal by correctly detaching foreground notification on task removed",
+        "Fixed MediaLibraryService intent filter actions for MediaBrowser / System UI discovery",
         "Removed SimpMusic lyrics provider",
         "Improved Musixmatch lyrics (by johnpetersa19)",
         "Fixed Spotify login",
