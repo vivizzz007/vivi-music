@@ -118,8 +118,8 @@ fun SpotifyScreen(
         // Connection Card/Group
         Material3SettingsGroup(
             title = stringResource(R.string.spotify_account),
-            items = listOf(
-                if (state.isAuthenticated) {
+            items = if (state.isAuthenticated) {
+                listOf(
                     Material3SettingsItem(
                         isExpressive = true,
                         leadingContent = if (!state.accountAvatarUrl.isNullOrBlank()) {
@@ -154,9 +154,18 @@ fun SpotifyScreen(
                                 Text(stringResource(R.string.action_logout))
                             }
                         },
-                        onClick = {}
+                        onClick = { navController.navigate("spotify_account") }
+                    ),
+                    Material3SettingsItem(
+                        isExpressive = true,
+                        title = { Text(stringResource(R.string.view_spotify_account)) },
+                        description = { Text(stringResource(R.string.spotify_account)) },
+                        icon = painterResource(R.drawable.person),
+                        onClick = { navController.navigate("spotify_account") }
                     )
-                } else {
+                )
+            } else {
+                listOf(
                     Material3SettingsItem(
                         isExpressive = true,
                         descriptionBelow = true,
@@ -165,8 +174,8 @@ fun SpotifyScreen(
                         icon = painterResource(R.drawable.spotify),
                         onClick = { showSpotifyLogin = true }
                     )
-                }
-            )
+                )
+            }
         )
 
         Spacer(modifier = Modifier.height(24.dp))

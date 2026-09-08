@@ -75,7 +75,10 @@ import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.ListenInMapsKey
 import com.music.vivi.db.entities.ArtistEntity
+import com.music.vivi.ui.screens.settings.integrations.openGoogleMaps
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.db.entities.Event
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.PlaylistSong
@@ -131,6 +134,7 @@ fun SongMenu(
     )
 
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsState(initial = false)
+    val (listenInMaps) = rememberPreference(ListenInMapsKey, defaultValue = false)
 
     val orderedArtists by produceState(initialValue = emptyList<ArtistEntity>(), song) {
         withContext(Dispatchers.IO) {
@@ -799,6 +803,24 @@ fun SongMenu(
                             }
                         )
                     )
+                    if (listenInMaps) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.listen_in_maps)) },
+                                description = { Text(text = stringResource(R.string.open_google_maps)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_navigation),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    openGoogleMaps(context)
+                                }
+                            )
+                        )
+                    }
                 }
             )
         }

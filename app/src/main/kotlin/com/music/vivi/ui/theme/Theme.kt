@@ -47,17 +47,26 @@ fun vivimusicTheme(
     val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
 
     val brandFont = remember(selectedFontValue) {
-        when (AppFont.fromValue(selectedFontValue)) {
-            AppFont.SYSTEM -> FontFamily.Default
-            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
-            AppFont.SANS_FLEX -> SansFlexFontFamily
-            AppFont.OUTFIT -> OutfitFontFamily
-            AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+        try {
+            when (AppFont.fromValue(selectedFontValue)) {
+                AppFont.SYSTEM -> FontFamily.Default
+                AppFont.GOOGLE_SANS -> GoogleSansFontFamily
+                AppFont.SANS_FLEX -> SansFlexFontFamily
+                AppFont.OUTFIT -> OutfitFontFamily
+                AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+                AppFont.CUSTOM -> getCustomFontFamily(context)
+            }
+        } catch (e: Throwable) {
+            FontFamily.Default
         }
     }
 
-        val typography = remember(brandFont) {
-        getTypography(brandFont = brandFont, plainFont = brandFont)
+    val typography = remember(brandFont) {
+        try {
+            getTypography(brandFont = brandFont, plainFont = brandFont)
+        } catch (e: Throwable) {
+            AppTypography
+        }
     }
 
 

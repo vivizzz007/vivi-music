@@ -67,9 +67,12 @@ import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.ListenInMapsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.ui.screens.settings.integrations.openGoogleMaps
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
@@ -107,6 +110,7 @@ fun YouTubeSongMenu(
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val isPinned by database.speedDialDao.isPinned(song.id).collectAsState(initial = false)
+    val (listenInMaps) = rememberPreference(ListenInMapsKey, defaultValue = false)
     val artists = remember {
         song.artists.mapNotNull {
             it.id?.let { artistId ->
@@ -633,6 +637,24 @@ fun YouTubeSongMenu(
                             }
                         )
                     )
+                    if (listenInMaps) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.listen_in_maps)) },
+                                description = { Text(text = stringResource(R.string.open_google_maps)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_navigation),
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = {
+                                    onDismiss()
+                                    openGoogleMaps(context)
+                                }
+                            )
+                        )
+                    }
                 }
             )
         }

@@ -444,7 +444,91 @@ fun OnlineSearchScreen(
             )
         }
 
-        if (viewState.items.isNotEmpty() && viewState.suggestions.isNotEmpty()) {
+        if (viewState.songs.isNotEmpty()) {
+            item(key = "songs_header") {
+                Text(
+                    text = stringResource(R.string.filter_songs),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 8.dp).animateItem()
+                )
+            }
+            item(key = "songs_header_spacer") {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+        itemsIndexed(viewState.songs, key = { _, it -> "song_${it.id}" }) { index, item ->
+            YouTubeListItem(
+                item = item,
+                isActive = mediaMetadata?.id == item.id,
+                isPlaying = isPlaying,
+                shape = listItemShape(index, viewState.songs.size),
+                trailingContent = {
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                YouTubeSongMenu(
+                                    song = item,
+                                    navController = navController,
+                                    onDismiss = {
+                                        menuState.dismiss()
+                                        onDismiss()
+                                    }
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {
+                            if (item.id == mediaMetadata?.id) {
+                                playerConnection.togglePlayPause()
+                            } else {
+                                scope.launch(Dispatchers.IO) {
+                                    val metadata = item.toMediaMetadata()
+                                    database.query {
+                                        insert(metadata)
+                                    }
+                                    context.dataStore.edit { prefs ->
+                                        val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                        val newList = (listOf(item.id) + current.filter { it != item.id }).take(9)
+                                        prefs[SearchListenHistoryKey] = newList.joinToString(",")
+                                    }
+                                }
+                                playerConnection.playQueue(
+                                    YouTubeQueue.radio(item.toMediaMetadata())
+                                )
+                                onDismiss()
+                            }
+                        },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            menuState.show {
+                                YouTubeSongMenu(
+                                    song = item,
+                                    navController = navController,
+                                    onDismiss = {
+                                        menuState.dismiss()
+                                        onDismiss()
+                                    }
+                                )
+                            }
+                        }
+                    )
+                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
+                    .animateItem()
+            )
+        }
+
+        if ((viewState.items.isNotEmpty() || viewState.songs.isNotEmpty()) && viewState.suggestions.isNotEmpty()) {
             item(key = "items_suggestions_spacer") {
                 Spacer(modifier = Modifier.height(16.dp).animateItem())
             }
@@ -468,8 +552,8 @@ fun OnlineSearchScreen(
                 online = true,
                 shape = getGroupedShape(index, viewState.suggestions.size),
                 onClick = {
+                    onQueryChange(TextFieldValue(query, TextRange(query.length)))
                     onSearch(query)
-                    onDismiss()
                 },
                 onFillTextField = {
                     onQueryChange(TextFieldValue(query, TextRange(query.length)))

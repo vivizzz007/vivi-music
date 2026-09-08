@@ -65,6 +65,7 @@ import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
 import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.integrations.ListenTogetherSettings
+import com.music.vivi.ui.screens.settings.integrations.GoogleMapsSettings
 import com.music.vivi.ui.screens.recognition.RecognitionScreen
 import com.music.vivi.ui.screens.recognition.RecognitionHistoryScreen
 import com.music.vivi.ui.screens.settings.UpdateSettings
@@ -137,6 +138,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("account") {
         AccountScreen(navController, scrollBehavior)
+    }
+
+    composable("spotify_account") {
+        SpotifyAccountScreen(navController, scrollBehavior)
     }
 
     composable("new_release") {
@@ -431,6 +436,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable(route = "settings/integrations/listen_together") {
         ListenTogetherSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/integrations/maps") {
+        GoogleMapsSettings(navController, scrollBehavior)
     }
 
     composable("settings/discord/login") {

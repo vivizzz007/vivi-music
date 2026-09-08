@@ -5,6 +5,8 @@
 
 package com.music.vivi.ui.theme
 
+import android.content.Context
+import java.io.File
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
@@ -14,6 +16,24 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+
+fun getCustomFontFamily(context: Context): FontFamily {
+    return try {
+        val fontFile = File(context.filesDir, "custom_font.ttf")
+        if (fontFile.exists() && fontFile.length() > 0) {
+            val typeface = android.graphics.Typeface.createFromFile(fontFile)
+            if (typeface != null) {
+                FontFamily(typeface)
+            } else {
+                FontFamily.Default
+            }
+        } else {
+            FontFamily.Default
+        }
+    } catch (e: Throwable) {
+        FontFamily.Default
+    }
+}
 
 @OptIn(ExperimentalTextApi::class)
 val GoogleSansFontFamily = FontFamily(

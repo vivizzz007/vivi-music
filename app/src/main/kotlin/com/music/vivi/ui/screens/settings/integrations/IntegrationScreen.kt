@@ -56,6 +56,14 @@ fun IntegrationScreen(
                     onClick = {
                         navController.navigate("settings/integrations/lastfm")
                     }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.location_on),
+                    title = { Text(stringResource(R.string.listen_in_maps)) },
+                    description = { Text(stringResource(R.string.google_maps)) },
+                    onClick = {
+                        navController.navigate("settings/integrations/maps")
+                    }
                 )
             )
         )

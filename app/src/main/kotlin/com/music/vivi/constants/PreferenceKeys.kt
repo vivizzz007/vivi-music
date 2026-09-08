@@ -25,13 +25,15 @@ val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PureBlackMiniPlayerKey = booleanPreferencesKey("pureBlackMiniPlayer")
 val MiniPlayerOutlineKey = booleanPreferencesKey("miniPlayerOutline")
 val SelectedFontKey = stringPreferencesKey("selected_font")
+val CustomFontNameKey = stringPreferencesKey("custom_font_name")
 
 enum class AppFont(val value: String) {
     SYSTEM("system"),
     GOOGLE_SANS("google_sans"),
     SANS_FLEX("sans_flex"),
     OUTFIT("outfit"),
-    PLUS_JAKARTA_SANS("plus_jakarta_sans");
+    PLUS_JAKARTA_SANS("plus_jakarta_sans"),
+    CUSTOM("custom");
 
     companion object {
         fun fromValue(value: String): AppFont = entries.find { it.value == value } ?: SYSTEM
@@ -241,6 +243,7 @@ val LastFMSessionKey = stringPreferencesKey("lastfmSession")
 val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
 val SpotifySessionKey = stringPreferencesKey("spotifySession")
 val SpotifyAutoSyncKey = booleanPreferencesKey("spotifyAutoSync")
+val ListenInMapsKey = booleanPreferencesKey("listenInMaps")
 val AppLogoPresetKey = stringPreferencesKey("appLogoPreset")
 val CustomLogoPathKey = stringPreferencesKey("customLogoPath")
 val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")

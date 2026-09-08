@@ -136,6 +136,7 @@ fun SearchScreen(
         { searchQuery ->
             if (searchQuery.isNotEmpty()) {
                 focusManager.clearFocus()
+                keyboardController?.hide()
                 println("[LINK_PARSE_DEBUG] onSearch initiated for: $searchQuery")
                 
                 when (val parsedUrl = YouTubeUrlParser.parse(searchQuery)) {
@@ -154,8 +155,7 @@ fun SearchScreen(
                     }
 
                     null -> {
-                        println("[LINK_PARSE_DEBUG] No URL detected in search action")
-                        navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                        println("[LINK_PARSE_DEBUG] Unified in-place search for: $searchQuery")
                     }
                 }
 
@@ -174,6 +174,7 @@ fun SearchScreen(
         { searchQuery ->
             if (searchQuery.isNotEmpty()) {
                 focusManager.clearFocus()
+                keyboardController?.hide()
                 println("[LINK_PARSE_DEBUG] onSearchFromSuggestion initiated for: $searchQuery")
                 
                 when (val parsedUrl = YouTubeUrlParser.parse(searchQuery)) {
@@ -192,8 +193,7 @@ fun SearchScreen(
                     }
 
                     null -> {
-                        println("[LINK_PARSE_DEBUG] No URL detected in suggestion action")
-                        navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}")
+                        println("[LINK_PARSE_DEBUG] Unified in-place suggestion search for: $searchQuery")
                     }
                 }
 
@@ -215,7 +215,8 @@ fun SearchScreen(
                     onQueryChange = { query = TextFieldValue(it) },
                     onSearch = { 
                         onSearch(it)
-                        searchActive = false
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
                     },
                     active = searchActive,
                     onActiveChange = { searchActive = it },
@@ -295,7 +296,8 @@ fun SearchScreen(
                             navController = navController,
                             onSearch = {
                                 onSearchFromSuggestion(it)
-                                searchActive = false
+                                keyboardController?.hide()
+                                focusManager.clearFocus()
                             },
                             onDismiss = { searchActive = false },
                             pureBlack = pureBlack

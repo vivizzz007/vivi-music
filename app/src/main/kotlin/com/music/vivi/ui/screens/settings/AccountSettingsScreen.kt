@@ -53,6 +53,7 @@ import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
+import com.music.vivi.viewmodels.SpotifyImportViewModel
 import com.music.vivi.R
 private enum class AccountTab {
     RECOMMENDED,
@@ -85,8 +86,10 @@ fun AccountSettingsScreen(
 
     val homeViewModel: HomeViewModel = hiltViewModel()
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
+    val spotifyViewModel: SpotifyImportViewModel = hiltViewModel()
     val accountName by homeViewModel.accountName.collectAsState()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
+    val spotifyState by spotifyViewModel.uiState.collectAsState()
 
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
@@ -176,6 +179,65 @@ fun AccountSettingsScreen(
                             text = stringResource(R.string.account),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Icon(
+                        painter = painterResource(R.drawable.chevron_right_px),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
+            if (spotifyState.isAuthenticated || spotifySession.isNotBlank()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { navController.navigate("spotify_account") }
+                        .padding(vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (!spotifyState.accountAvatarUrl.isNullOrBlank()) {
+                        AsyncImage(
+                            model = spotifyState.accountAvatarUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                        )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.spotify),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (spotifyState.accountName.isNotBlank()) spotifyState.accountName else stringResource(R.string.spotify_account),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.view_spotify_account),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
 
@@ -300,6 +362,14 @@ fun AccountSettingsScreen(
                                 },
                                 onClick = { onYtmSyncChange(!ytmSync) }
                             ),
+                            if (spotifySession.isNotBlank()) {
+                                Material3SettingsItem(
+                                    icon = painterResource(R.drawable.spotify),
+                                    title = { Text(stringResource(R.string.view_spotify_account)) },
+                                    description = { Text(stringResource(R.string.spotify_account)) },
+                                    onClick = { navController.navigate("spotify_account") }
+                                )
+                            } else null,
                             if (spotifySession.isNotBlank()) {
                                 Material3SettingsItem(
                                     icon = painterResource(R.drawable.spotify),

@@ -82,38 +82,33 @@ constructor(
                                 }
                             } else emptyList()
 
-                            val onlineLyricsOrSongItems = if (parsedUrl == null && trimmedQuery.length >= 3 && (trimmedQuery.contains(" ") || result?.recommendedItems.isNullOrEmpty())) {
-                                val directSearch = YouTube.search(trimmedQuery, YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                            val directSongSearch = if (parsedUrl == null && trimmedQuery.isNotEmpty()) {
+                                YouTube.search(trimmedQuery, YouTube.SearchFilter.FILTER_SONG).getOrNull()
                                     ?.items
                                     ?.filterIsInstance<SongItem>()
-                                    ?.take(3)
                                     .orEmpty()
-                                
-                                if (directSearch.isEmpty() && trimmedQuery.contains(" ")) {
-                                    val musixmatchMatches = com.music.musixmatch.Musixmatch.searchByLyrics(trimmedQuery).getOrNull()?.firstOrNull()
-                                    if (musixmatchMatches != null) {
-                                        val (trackTitle, trackArtist) = musixmatchMatches
-                                        YouTube.search("$trackTitle $trackArtist", YouTube.SearchFilter.FILTER_SONG).getOrNull()
-                                            ?.items
-                                            ?.filterIsInstance<SongItem>()
-                                            ?.take(2)
-                                            .orEmpty()
-                                    } else emptyList()
-                                } else {
-                                    directSearch
-                                }
                             } else emptyList()
 
                             database
                                 .searchHistory(query)
                                 .map { it.take(3) }
                                 .map { history ->
-                                    val allItems = (listOfNotNull(parsedItem) +
-                                        localLyricsSongs +
-                                        result?.recommendedItems.orEmpty() +
-                                        onlineLyricsOrSongItems)
+                                    val topItems = (listOfNotNull(parsedItem) +
+                                        result?.recommendedItems.orEmpty())
                                         .distinctBy { it.id }
                                         .filter { it.id != parsedItem?.id }
+                                        .filterExplicit(hideExplicit)
+                                        .filterVideoSongs(hideVideoSongs)
+
+                                    val finalTopItems = if (topItems.isEmpty() && directSongSearch.isNotEmpty()) {
+                                        directSongSearch.take(1)
+                                    } else {
+                                        topItems
+                                    }
+
+                                    val finalSongs = (localLyricsSongs + directSongSearch)
+                                        .distinctBy { it.id }
+                                        .filter { song -> finalTopItems.none { it.id == song.id } }
                                         .filterExplicit(hideExplicit)
                                         .filterVideoSongs(hideVideoSongs)
 
@@ -125,7 +120,8 @@ constructor(
                                             ?.filter { suggestionQuery ->
                                                 history.none { it.query == suggestionQuery }
                                             }.orEmpty(),
-                                        items = allItems,
+                                        items = finalTopItems,
+                                        songs = finalSongs,
                                         isFromLink = parsedUrl != null
                                     )
                                 }
@@ -178,6 +174,7 @@ data class SearchSuggestionViewState(
     val history: List<SearchHistory> = emptyList(),
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
+    val songs: List<SongItem> = emptyList(),
     val recentEvents: List<EventWithSong> = emptyList(),
     val isFromLink: Boolean = false,
 )
