@@ -31,6 +31,11 @@ class AccountSettingsViewModel @Inject constructor(
 ) : ViewModel() {
 
     /**
+     * Live sync progress — observe this in the UI to show per-category status badges.
+     */
+    val syncState = syncUtils.syncState
+
+    /**
      * Logout user and clear all synced content to prevent data mixing between accounts
      */
     fun logoutAndClearSyncedContent(context: Context, onCookieChange: (String) -> Unit) {
@@ -55,6 +60,42 @@ class AccountSettingsViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 onCookieChange("")
             }
+        }
+    }
+
+    // Individual force sync methods
+    fun forceSyncSongs() {
+        viewModelScope.launch(Dispatchers.IO) { 
+            syncUtils.syncLikedSongsSuspend() 
+            syncUtils.updateLastSyncTime()
+        }
+    }
+    fun forceSyncAlbums() {
+        viewModelScope.launch(Dispatchers.IO) { 
+            syncUtils.syncLikedAlbumsSuspend() 
+            syncUtils.updateLastSyncTime()
+        }
+    }
+    fun forceSyncArtists() {
+        viewModelScope.launch(Dispatchers.IO) { 
+            syncUtils.syncArtistsSubscriptionsSuspend() 
+            syncUtils.updateLastSyncTime()
+        }
+    }
+    fun forceSyncPlaylists() {
+        viewModelScope.launch(Dispatchers.IO) { 
+            syncUtils.syncSavedPlaylistsSuspend() 
+            syncUtils.updateLastSyncTime()
+        }
+    }
+
+    /**
+     * Bypass the 30-min cooldown and force-sync all library categories in parallel.
+     * Liked songs, library songs, albums, artists and playlists all run concurrently.
+     */
+    fun forceSyncLibrary() {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncUtils.forceSyncAll()
         }
     }
 

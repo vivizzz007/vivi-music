@@ -145,10 +145,7 @@ data class RawSearchResponse(
     val results: List<RawSongItem> = emptyList()
 )
 
-@Serializable
-data class RawSongsResponse(
-    val songs: List<RawSongItem> = emptyList()
-)
+// RawSongsResponse removed as v4 getDetails returns a map of { string : RawSongItem }
 
 // ─── Service ─────────────────────────────────────────────────────────────────
 
@@ -380,10 +377,10 @@ object SaavnService {
             }
 
             val responseText = response.bodyAsText()
-            val body = json.decodeFromString<RawSongsResponse>(responseText)
-            Log.d(TAG, "getBestStreamUrl: songs size=${body.songs.size}")
+            val decodedMap = json.decodeFromString<Map<String, RawSongItem>>(responseText)
+            Log.d(TAG, "getBestStreamUrl: songs size=${decodedMap.size}")
 
-            val rawSong = body.songs.firstOrNull() ?: throw NoSuchElementException("Song not found")
+            val rawSong = decodedMap.values.firstOrNull() ?: throw NoSuchElementException("Song not found")
             val saavnSong = mapRawToSaavnSong(rawSong)
             Log.d(TAG, "getBestStreamUrl: raw song details name=${rawSong.title}, encryptedUrl=${rawSong.moreInfo.encryptedMediaUrl}")
 

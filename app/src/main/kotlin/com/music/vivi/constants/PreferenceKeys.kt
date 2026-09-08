@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
@@ -291,10 +292,11 @@ val LastFullSyncKey = longPreferencesKey("last_full_sync")
 // Sync cooldown in seconds (30 minutes)
 const val SYNC_COOLDOWN = 30 * 60L
 
-val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val SearchListenHistoryKey = stringPreferencesKey("searchListenHistory")
-val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
-val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
+val AlbumGridViewKey = booleanPreferencesKey("albumGridView")
+val ArtistGridViewKey = booleanPreferencesKey("artistGridView")
+val PlaylistGridViewKey = booleanPreferencesKey("playlistGridView")
+val PinnedLibraryItemsKey = stringSetPreferencesKey("pinnedLibraryItems")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 val QuickPicksKey = stringPreferencesKey("discover")
@@ -313,23 +315,11 @@ val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
 val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
 val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
 
-enum class LibraryViewType {
-    LIST,
-    GRID,
-    ;
-
-    fun toggle() =
-        when (this) {
-            LIST -> GRID
-            GRID -> LIST
-        }
-}
 
 enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
 }
 
 enum class ArtistFilter {
@@ -346,9 +336,9 @@ enum class ArtistSourceFilter {
 }
 
 enum class AlbumFilter {
+    ALL,
     LIBRARY,
-    LIKED,
-    UPLOADED
+    LIKED
 }
 
 enum class SongSortType {
@@ -550,6 +540,7 @@ val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
 val CanvasSourceKey = stringPreferencesKey("canvasSource")
+val CanvasLoadOnlyWifiKey = booleanPreferencesKey("canvasLoadOnlyWifi")
 
 // Data Saver
 val DataSaverKey = booleanPreferencesKey("dataSaver")

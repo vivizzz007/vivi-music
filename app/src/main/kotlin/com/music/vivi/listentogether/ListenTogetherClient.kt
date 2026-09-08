@@ -216,15 +216,7 @@ class ListenTogetherClient @Inject constructor(
     private val _events = MutableSharedFlow<ListenTogetherEvent>()
     val events: SharedFlow<ListenTogetherEvent> = _events.asSharedFlow()
     
-    init {
-        setInstance(this)
-        ensureNotificationChannel()
-        // Load persisted session info asynchronously after construction to avoid calling log() before flows are initialized
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            loadPersistedSession()
-            observeNetworkChanges()
-        }
-    }
+
 
     /**
      * Observe network changes to trigger reconnections
@@ -416,6 +408,16 @@ class ListenTogetherClient @Inject constructor(
         .writeTimeout(30, TimeUnit.SECONDS)
         .pingInterval(30, TimeUnit.SECONDS)
         .build()
+
+    init {
+        setInstance(this)
+        ensureNotificationChannel()
+        // Load persisted session info asynchronously after construction to avoid calling log() before flows are initialized
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            loadPersistedSession()
+            observeNetworkChanges()
+        }
+    }
 
     private fun getServerUrl(): String {
         val savedUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)

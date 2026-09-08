@@ -45,7 +45,7 @@ object Musixmatch {
 
     private val client by lazy {
         HttpClient(OkHttp) {
-            expectSuccess = true
+            expectSuccess = false
             install(ContentNegotiation) {
                 val json = Json {
                     ignoreUnknownKeys = true
@@ -82,7 +82,10 @@ object Musixmatch {
 
             val regex = """src="([^"]*/_next/static/chunks/pages/_app-[^"]+\.js)"""".toRegex()
             val match = regex.find(searchPage) ?: throw IllegalStateException("Could not find _app JS in Musixmatch page")
-            val appJsUrl = match.groupValues[1]
+            val rawAppJsUrl = match.groupValues[1]
+            val appJsUrl = if (rawAppJsUrl.startsWith("http")) rawAppJsUrl else {
+                "https://www.musixmatch.com" + if (rawAppJsUrl.startsWith("/")) rawAppJsUrl else "/$rawAppJsUrl"
+            }
 
             val jsContent = client.get(appJsUrl) {
                 header("User-Agent", USER_AGENT)

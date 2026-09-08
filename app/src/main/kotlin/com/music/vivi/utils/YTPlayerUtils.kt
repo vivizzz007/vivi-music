@@ -161,7 +161,7 @@ object YTPlayerUtils {
                         currentSong.artists.map { it.name }
                     } else {
                         listOf(
-                            meta?.videoDetails?.author.orEmpty().trim()
+                            meta?.videoDetails?.author.orEmpty()
                         ).filter { it.isNotBlank() }
                     }
                     val artist = artistNames.joinToString(", ")
@@ -173,8 +173,8 @@ object YTPlayerUtils {
                     Timber.tag(TAG).d("Saavn: resolved title=\"$title\" artists=$artistNames duration=$expectedDuration s for videoId=$videoId")
 
                     val albumName = currentSong?.album?.name.orEmpty()
-                    val wantedTitleLower = title.lowercase(java.util.Locale.US)
-                    val wantedArtistsLower = artistNames.map { it.lowercase(java.util.Locale.US) }
+                    val wantedTitleLower = title.lowercase(java.util.Locale.US).trim()
+                    val wantedArtistsLower = artistNames.map { it.lowercase(java.util.Locale.US).trim() }
 
                     val primaryQuery = if (albumName.isNotBlank()) {
                         "$albumName $title $artist"
@@ -182,11 +182,9 @@ object YTPlayerUtils {
                         "$title $artist"
                     }
                     .replace(Regex("\\s+"), " ")
-                    .trim()
 
                     val fallbackQuery = "$title $artist"
                     .replace(Regex("\\s+"), " ")
-                    .trim()
 
                     suspend fun findMatch(searchQuery: String): com.music.jiosaavn.SaavnSong? {
                         if (searchQuery.isBlank()) return null
@@ -207,13 +205,21 @@ object YTPlayerUtils {
                             }
                         )
                         return songs.firstOrNull { candidate ->
-                            val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US)
-                            val candidateArtists = candidate.artists.primary.map { it.name.lowercase(java.util.Locale.US) }
+                            if (candidate.isProOnly) {
+                                Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" skipped because it is Pro-Only")
+                                return@firstOrNull false
+                            }
+
+                            val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US).trim()
+                            val candidateArtists = candidate.artists.all.map { it.name.lowercase(java.util.Locale.US).trim() }
                             
-                            // Strict exact matching checks
+                            // Perfect exact match check only
                             val titleMatches = candidateTitleLower == wantedTitleLower
                             
-                            val artistMatches = candidateArtists.sorted() == wantedArtistsLower.sorted()
+                            // Check if there is intersection between the artists list to be more forgiving
+                            // on featured artists vs primary artists discrepancies.
+                            val artistIntersection = candidateArtists.intersect(wantedArtistsLower.toSet())
+                            val artistMatches = artistIntersection.isNotEmpty()
                             
                             val candidateAlbumName = candidate.album?.name
                             val albumMatches = if (wantedAlbumLower.isNotBlank()) {
@@ -229,11 +235,17 @@ object YTPlayerUtils {
                                 true
                             }
 
+                            val explicitMatches = candidate.explicitContent == wantedExplicit
+
                             if (titleMatches && artistMatches && !durationMatches) {
                                 Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" matches title/artist but duration differs too much (YT: $expectedDuration s, Saavn: ${candidate.duration} s)")
                             }
 
-                            titleMatches && artistMatches && albumMatches && durationMatches
+                            if (titleMatches && artistMatches && durationMatches && !explicitMatches) {
+                                Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" matches title/artist/duration but explicit content mismatch (YT explicit: $wantedExplicit, Saavn explicit: ${candidate.explicitContent})")
+                            }
+
+                            titleMatches && artistMatches && albumMatches && durationMatches && explicitMatches
                         }
                     }
 

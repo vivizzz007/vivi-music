@@ -125,6 +125,9 @@
     <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a canvas if Tidal has one for the playing song</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
+    <string name="canvas_load_only_wifi">Load only on Wi-Fi</string>
+    <string name="canvas_load_only_wifi_desc">Skip loading canvas animations when on cellular or metered connections</string>
+    <string name="canvas_network">Network</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>
     <string name="rotating_thumbnail_desc">Enable a rotating thumbnail animation effect</string>
 

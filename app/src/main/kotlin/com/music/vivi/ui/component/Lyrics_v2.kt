@@ -362,32 +362,7 @@ fun LyricsV2(
                     return
                 }
 
-                // Subscribed synced lyrics
-                val listState = rememberLazyListState()
-                val isDragged by listState.interactionSource.collectIsDraggedAsState()
-                var isAutoScrollEnabled by remember { mutableStateOf(scrollLyrics) }
-                var lastManualScrollTime by remember { mutableLongStateOf(0L) }
-
-                LaunchedEffect(scrollLyrics) { 
-                    if (!isDragged && !isGuest) {
-                        isAutoScrollEnabled = scrollLyrics 
-                    }
-                }
-
-                LaunchedEffect(isDragged) {
-                    if (isDragged && !isGuest) {
-                        isAutoScrollEnabled = false
-                        lastManualScrollTime = System.currentTimeMillis()
-                    }
-                }
-
-                // Resume auto-scroll after 3 seconds of inactivity
-                LaunchedEffect(isAutoScrollEnabled, lastManualScrollTime) {
-                    if (!isAutoScrollEnabled) {
-                        delay(3000L)
-                        isAutoScrollEnabled = true
-                    }
-                }
+                // lazy list state moved below to allow initializing with playback line index
 
                 var currentPosition by remember { mutableLongStateOf(positionProvider()) }
                 
@@ -419,13 +394,13 @@ fun LyricsV2(
                 }
 
                 // Scroll anchor: single line index used to keep the list auto-scrolling
-                val currentLineIndex = remember(currentPosition, lines, lyricsOffset) {
-                    LyricsUtils.findCurrentLineIndex(lines, currentPosition + lyricsOffset)
+                val currentLineIndex by remember(lines, lyricsOffset) {
+                    derivedStateOf { LyricsUtils.findCurrentLineIndex(lines, currentPosition + lyricsOffset) }
                 }
 
                 // Active set: all lines currently being sung (handles v1 + bg sharing same timestamp)
-                val activeLineIndices = remember(currentPosition, lines, lyricsOffset) {
-                    LyricsUtils.findActiveLineIndices(lines, currentPosition + lyricsOffset)
+                val activeLineIndices by remember(lines, lyricsOffset) {
+                    derivedStateOf { LyricsUtils.findActiveLineIndices(lines, currentPosition + lyricsOffset) }
                 }
 
                 val mergedLyricsList = remember(lines) {
@@ -466,13 +441,47 @@ fun LyricsV2(
 
                 val providerOffset = if (isLyricsProviderShown) 1 else 0
 
-                BoxWithConstraints(
+                val initialIndex = remember(currentLineIndex, lines) {
+                    maxOf(0, currentLineIndex - 1) + providerOffset
+                }
+
+                // Subscribed synced lyrics
+                val listState = rememberLazyListState(initialFirstVisibleItemIndex = initialIndex)
+                val isDragged by listState.interactionSource.collectIsDraggedAsState()
+                var isAutoScrollEnabled by remember { mutableStateOf(scrollLyrics) }
+                var lastManualScrollTime by remember { mutableLongStateOf(0L) }
+
+                LaunchedEffect(scrollLyrics) { 
+                    if (!isDragged && !isGuest) {
+                        isAutoScrollEnabled = scrollLyrics 
+                    }
+                }
+
+                LaunchedEffect(isDragged) {
+                    if (isDragged && !isGuest) {
+                        isAutoScrollEnabled = false
+                        lastManualScrollTime = System.currentTimeMillis()
+                    }
+                }
+
+                LaunchedEffect(isAutoScrollEnabled, lastManualScrollTime) {
+                    if (!isAutoScrollEnabled) {
+                        delay(3000L)
+                        isAutoScrollEnabled = true
+                    }
+                }
+
+                val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+                val screenHeight = configuration.screenHeightDp.dp
+                val estimatedLyricsAreaHeight = screenHeight * 0.6f
+
+                Box(
                     contentAlignment = Alignment.TopCenter,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    val targetTopRatio = 0.38f
-                    val topPadding = (maxHeight * targetTopRatio) + contentPadding.calculateTopPadding()
-                    val bottomPadding = (maxHeight * (1f - targetTopRatio)) + contentPadding.calculateBottomPadding()
+                    val targetTopRatio = 0.30f
+                    val topPadding = (estimatedLyricsAreaHeight * targetTopRatio) + contentPadding.calculateTopPadding()
+                    val bottomPadding = (estimatedLyricsAreaHeight * (1f - targetTopRatio)) + contentPadding.calculateBottomPadding()
 
                     // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
                     LaunchedEffect(currentLineIndex, isAutoScrollEnabled, mergedLyricsList) {
