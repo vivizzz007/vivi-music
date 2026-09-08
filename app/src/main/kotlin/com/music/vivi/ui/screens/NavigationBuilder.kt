@@ -364,7 +364,7 @@ fun NavGraphBuilder.navigationBuilder(
         ThemeScreen(navController)
     }
 
-    composable("settings/appearance/canvas") {
+    composable("settings/player/canvas") {
         CanvasSelection(navController, scrollBehavior)
     }
 
