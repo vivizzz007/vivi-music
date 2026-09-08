@@ -823,28 +823,28 @@ interface DatabaseDao {
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY rowId")
-    fun albumsUploadedByCreateDateAsc(): Flow<List<Album>>
+    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY rowId")
+    fun albumsAllByCreateDateAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
-    fun albumsUploadedByNameAsc(): Flow<List<Album>>
+    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY title")
+    fun albumsAllByNameAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
-    fun albumsUploadedByYearAsc(): Flow<List<Album>>
+    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY year")
+    fun albumsAllByYearAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
-    fun albumsUploadedBySongCountAsc(): Flow<List<Album>>
+    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY songCount")
+    fun albumsAllBySongCountAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
-    fun albumsUploadedByLengthAsc(): Flow<List<Album>>
+    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL) ORDER BY duration")
+    fun albumsAllByLengthAsc(): Flow<List<Album>>
 
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
@@ -854,12 +854,22 @@ interface DatabaseDao {
         FROM album
                  JOIN song
                       ON song.albumId = album.id
-        WHERE bookmarkedAt IS NOT NULL
+        WHERE bookmarkedAt IS NOT NULL OR EXISTS(SELECT * FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL)
         GROUP BY album.id
         ORDER BY SUM(song.totalPlayTime)
     """
     )
-    fun albumsUploadedByPlayTimeAsc(): Flow<List<Album>>
+    fun albumsAllByPlayTimeAsc(): Flow<List<Album>>
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY rowId")
+    fun albumsUploadedByCreateDateAsc(): Flow<List<Album>>
+
+    @Transaction
+    @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
+    @Query("SELECT * FROM album WHERE isUploaded = 1 ORDER BY title")
+    fun albumsUploadedByNameAsc(): Flow<List<Album>>
 
     fun albums(
         sortType: AlbumSortType,
@@ -911,29 +921,29 @@ interface DatabaseDao {
         AlbumSortType.PLAY_TIME -> albumsLikedByPlayTimeAsc()
     }.map { it.reversed(descending) }
 
-    fun albumsUploaded(
+    fun albumsAll(
         sortType: AlbumSortType,
         descending: Boolean,
     ) = when (sortType) {
-        AlbumSortType.CREATE_DATE -> albumsUploadedByCreateDateAsc()
+        AlbumSortType.CREATE_DATE -> albumsAllByCreateDateAsc()
         AlbumSortType.NAME ->
-            albumsUploadedByNameAsc().map { albums ->
+            albumsAllByNameAsc().map { albums ->
                 val collator = Collator.getInstance(Locale.getDefault())
                 collator.strength = Collator.PRIMARY
                 albums.sortedWith(compareBy(collator) { it.album.title })
             }
 
         AlbumSortType.ARTIST ->
-            albumsUploadedByCreateDateAsc().map { albums ->
+            albumsAllByCreateDateAsc().map { albums ->
                 val collator = Collator.getInstance(Locale.getDefault())
                 collator.strength = Collator.PRIMARY
                 albums.sortedWith(compareBy(collator) { album -> album.artists.joinToString("") { it.name } })
             }
 
-        AlbumSortType.YEAR -> albumsUploadedByYearAsc()
-        AlbumSortType.SONG_COUNT -> albumsUploadedBySongCountAsc()
-        AlbumSortType.LENGTH -> albumsUploadedByLengthAsc()
-        AlbumSortType.PLAY_TIME -> albumsUploadedByPlayTimeAsc()
+        AlbumSortType.YEAR -> albumsAllByYearAsc()
+        AlbumSortType.SONG_COUNT -> albumsAllBySongCountAsc()
+        AlbumSortType.LENGTH -> albumsAllByLengthAsc()
+        AlbumSortType.PLAY_TIME -> albumsAllByPlayTimeAsc()
     }.map { it.reversed(descending) }
 
     @Transaction

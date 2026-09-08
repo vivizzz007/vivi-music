@@ -48,6 +48,9 @@ import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.CrossfadeCurve
 import com.music.vivi.constants.CrossfadeCurveKey
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.constants.CanvasSourceKey
+import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeGaplessKey
@@ -213,6 +216,14 @@ fun PlayerSettings(
         EnableSponsorBlockKey,
         defaultValue = true
     )
+    val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
+        CanvasThumbnailAnimationKey,
+        defaultValue = true
+    )
+    val (canvasSource) = rememberEnumPreference(
+        CanvasSourceKey,
+        defaultValue = CanvasSource.AUTO
+    )
 
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
@@ -344,6 +355,24 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { navController.navigate("settings/player/sponsorblock") }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.canvas_art),
+                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
+                    trailingContent = {
+                        val summary = if (!canvasThumbnailAnimation) {
+                            stringResource(R.string.disable)
+                        } else {
+                            when (canvasSource) {
+                                CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
+                                CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
+                                CanvasSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
+                                CanvasSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
+                            }
+                        }
+                        Text(summary)
+                    },
+                    onClick = { navController.navigate("settings/player/canvas") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),

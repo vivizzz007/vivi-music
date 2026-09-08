@@ -13,6 +13,8 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.constants.CanvasLoadOnlyWifiKey
+import com.music.vivi.utils.isWifiConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -27,6 +29,9 @@ fun PlayerV2Canvas(
 
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, defaultValue = true)
     if (!enableCanvas) return
+    val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    if (canvasLoadOnlyWifi && !isWifiConnected(context)) return
 
     val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
     val albumTitle = mediaMetadata.album?.title

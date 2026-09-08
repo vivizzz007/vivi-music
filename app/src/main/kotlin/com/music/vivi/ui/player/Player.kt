@@ -241,8 +241,10 @@ import com.music.vivi.canvas.TidalCanvasProvider
 import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
+import com.music.vivi.utils.isWifiConnected
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -288,6 +290,7 @@ fun BottomSheetPlayer(
 
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
     val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
+    val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
@@ -558,6 +561,10 @@ fun BottomSheetPlayer(
 
     LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, canvasSource) {
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
+            canvasArtwork = null
+            return@LaunchedEffect
+        }
+        if (canvasLoadOnlyWifi && !isWifiConnected(context)) {
             canvasArtwork = null
             return@LaunchedEffect
         }
@@ -856,32 +863,23 @@ fun BottomSheetPlayer(
                                         .fillMaxSize()
                                         .alpha(backgroundAlpha)
                                 ) {
-                                    // 1. The source component displaying the unblurred image
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(256, 256) // high enough resolution for good source detail
+                                            .size(100, 100) // Lower resolution for better performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
-                                        contentScale = ContentScale.Crop,
+                                        contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .hazeSource(state = playerHazeState) // Mark as blur source
+                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
                                     )
 
-                                    // 2. The overlay component rendering the Haze blur effect
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .hazeEffect(
-                                                state = playerHazeState,
-                                                style = HazeStyle(
-                                                    blurRadius = 80.dp,
-                                                    tint = HazeTint(Color.Black.copy(alpha = 0.30f)),
-                                                    noiseFactor = 0.15f
-                                                )
-                                            )
+                                            .background(Color.Black.copy(alpha = 0.30f))
                                     )
                                 }
                             }

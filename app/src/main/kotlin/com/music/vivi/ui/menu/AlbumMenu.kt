@@ -74,6 +74,8 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.PinnedLibraryItemsKey
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.Song
@@ -112,6 +114,8 @@ fun AlbumMenu(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
+    val isPinnedToLibraryMix = pinnedLibraryItems.contains("album:${album.id}")
 
     LaunchedEffect(Unit) {
         database.albumSongs(album.id).collect {
@@ -460,6 +464,28 @@ fun AlbumMenu(
                             }
                             onDismiss()
                         }
+                    ),
+                    Material3MenuItemData(
+                        title = {
+                            Text(
+                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            val newItems = if (isPinnedToLibraryMix) {
+                                pinnedLibraryItems - "album:${album.id}"
+                            } else {
+                                pinnedLibraryItems + "album:${album.id}"
+                            }
+                            onPinnedLibraryItemsChange(newItems)
+                            onDismiss()
+                        }
                     )
                 )
             )
@@ -474,11 +500,7 @@ fun AlbumMenu(
                     when (downloadState) {
                         STATE_COMPLETED -> {
                             Material3MenuItemData(
-                                title = {
-                                    Text(
-                                        text = stringResource(R.string.remove_download)
-                                    )
-                                },
+                                title = { Text(text = stringResource(R.string.remove_download)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.offline),
@@ -494,6 +516,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -515,6 +538,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -543,6 +567,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -550,7 +575,7 @@ fun AlbumMenu(
                 )
             )
         }
-
+//
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {

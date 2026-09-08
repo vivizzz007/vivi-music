@@ -64,6 +64,7 @@ import androidx.activity.compose.LocalActivity
 import androidx.lifecycle.ViewModelStoreOwner
 import com.music.innertube.models.AlbumItem
 import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.screens.NetworkReload
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -90,6 +91,12 @@ fun SuggestionsTabContent(
     LaunchedEffect(regionCode) {
         viewModel.refresh(regionCode)
     }
+
+    NetworkReload(
+        onReload = {
+            viewModel.refresh(regionCode, force = true)
+        }
+    )
 
     val pullToRefreshState = rememberPullToRefreshState()
     val scope = rememberCoroutineScope()

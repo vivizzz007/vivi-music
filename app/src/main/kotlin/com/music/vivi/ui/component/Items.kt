@@ -68,6 +68,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Spring
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
@@ -160,6 +164,7 @@ inline fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) {
     val containerColor = if (backgroundColor != Color.Unspecified) {
         backgroundColor
@@ -175,7 +180,7 @@ inline fun ListItem(
         modifier = modifier
             .padding(vertical = 2.dp)
             .height(ListItemHeight)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = horizontalPadding)
             .clip(shape)
             .background(color = containerColor)
     ) {
@@ -244,6 +249,7 @@ fun ListItem(
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
     subtitleColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -266,6 +272,7 @@ fun ListItem(
     shape = shape,
     drawHighlight = drawHighlight,
     backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 // merge badges and subtitle text and pass to basic list item
@@ -282,6 +289,7 @@ fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -305,6 +313,7 @@ fun ListItem(
     shape = shape,
     drawHighlight = drawHighlight,
     backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 @Composable
@@ -474,6 +483,8 @@ fun ExpressiveSongRow(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     isSelected: Boolean = false,
+    showDownloadIcon: Boolean = true,
+    downloadState: Download? = null,
     shape: Shape = RectangleShape,
     trailingContent: @Composable RowScope.() -> Unit = {},
     modifier: Modifier = Modifier
@@ -486,6 +497,15 @@ fun ExpressiveSongRow(
 
     val expressiveSongAlbumImage by rememberPreference(key = ExpressiveSongAlbumImageKey, defaultValue = false)
 
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (downloadState?.state == Download.STATE_DOWNLOADING || downloadState?.state == Download.STATE_QUEUED) {
+            (maxOf(0f, downloadState.percentDownloaded) / 100f).coerceIn(0f, 1f)
+        } else 0f,
+        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>(),
+        label = "DownloadProgress"
+    )
+    val progressColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -493,7 +513,15 @@ fun ExpressiveSongRow(
             .height(56.dp)
             .padding(horizontal = 16.dp)
             .clip(shape)
-            .background(backgroundColor)
+            .drawBehind {
+                drawRect(color = backgroundColor)
+                if (animatedProgress > 0f) {
+                    drawRect(
+                        color = progressColor,
+                        size = size.copy(width = size.width * animatedProgress)
+                    )
+                }
+            }
             .padding(start = 12.dp, end = 4.dp)
     ) {
         // 1. Thumbnail, index number or visualizer on the left
@@ -593,6 +621,11 @@ fun ExpressiveSongRow(
             color = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.offset(x = 4.dp)
         )
+
+        if (showDownloadIcon) {
+            Spacer(Modifier.width(8.dp))
+            Icon.Download(downloadState?.state)
+        }
 
         // 4. Trailing Content (more_vert or Checkbox)
         trailingContent()
@@ -781,6 +814,8 @@ fun AlbumListItem(
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
     backgroundColor: Color = Color.Unspecified,
+    shape: Shape = RectangleShape,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = album.album.title,
     subtitle = joinByBullet(
@@ -800,7 +835,9 @@ fun AlbumListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
-    backgroundColor = backgroundColor
+    shape = shape,
+    backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 @Composable
@@ -930,7 +967,8 @@ fun PlaylistListItem(
         Icon.Download(downloadState)
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
-    shape: Shape = androidx.compose.ui.graphics.RectangleShape,
+    shape: Shape = RectangleShape,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = if (autoPlaylist) {
@@ -961,7 +999,7 @@ fun PlaylistListItem(
                     stringResource(R.string.offline) -> R.drawable.offline
                     stringResource(R.string.cached_playlist) -> R.drawable.cached
                     // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+
                     else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
                 }
                 Icon(
@@ -976,7 +1014,8 @@ fun PlaylistListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
-    shape = shape
+    shape = shape,
+    horizontalPadding = horizontalPadding
 )
 
 @Composable
@@ -1062,7 +1101,7 @@ fun PlaylistGridItem(
                     stringResource(R.string.offline) -> R.drawable.offline
                     stringResource(R.string.cached_playlist) -> R.drawable.cached
                     // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+
                     else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
                 }
                 Box(

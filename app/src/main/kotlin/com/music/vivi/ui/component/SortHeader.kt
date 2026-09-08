@@ -6,11 +6,10 @@
 package com.music.vivi.ui.component
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -44,6 +43,115 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.R
 import com.music.vivi.constants.PlaylistSongSortType
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.clip
+
+@Composable
+inline fun <reified T : Enum<T>> SortDropdownMenu(
+    sortType: T,
+    sortDescending: Boolean,
+    crossinline onSortTypeChange: (T) -> Unit,
+    crossinline onSortDescendingChange: (Boolean) -> Unit,
+    crossinline sortTypeText: (T) -> Int,
+    modifier: Modifier = Modifier,
+    showDescending: Boolean? = true,
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    val displayDescending = showDescending == true && sortType.name != "CUSTOM"
+
+    Box(modifier = modifier) {
+        androidx.compose.material3.IconButton(
+            onClick = { menuExpanded = true },
+            modifier = Modifier.size(24.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.more_vert),
+                contentDescription = "Sort Options",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        DropdownMenu(
+            expanded = menuExpanded,
+            onDismissRequest = { menuExpanded = false },
+            modifier = Modifier.widthIn(min = 180.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            tonalElevation = 6.dp
+        ) {
+            if (displayDescending) {
+                DropdownMenuItem(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    text = {
+                        Text(
+                            text = if (sortDescending) "Descending" else "Ascending",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.keyboard_arrow_down),
+                            contentDescription = null,
+                            modifier = Modifier.graphicsLayer {
+                                rotationZ = if (sortDescending) 0f else 180f
+                            }
+                        )
+                    },
+                    onClick = {
+                        onSortDescendingChange(!sortDescending)
+                        menuExpanded = false
+                    },
+                )
+                androidx.compose.material3.HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+            }
+
+            enumValues<T>().forEach { type ->
+                val isSelected = sortType == type
+                
+                val itemBackgroundColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent
+                val itemTextColor = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                
+                DropdownMenuItem(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(itemBackgroundColor),
+                    text = {
+                        Text(
+                            text = stringResource(sortTypeText(type)),
+                            fontSize = 15.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = itemTextColor
+                        )
+                    },
+                    leadingIcon = {
+                        if (isSelected) {
+                            Icon(
+                                painter = painterResource(R.drawable.check),
+                                contentDescription = null,
+                                tint = itemTextColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(20.dp))
+                        }
+                    },
+                    onClick = {
+                        onSortTypeChange(type)
+                        menuExpanded = false
+                    },
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -103,7 +211,7 @@ inline fun <reified T : Enum<T>> SortHeader(
                             label = "Trailing Icon Rotation",
                         )
                         Icon(
-                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            painter = painterResource(R.drawable.keyboard_arrow_down),
                             modifier = Modifier
                                 .size(SplitButtonDefaults.TrailingIconSize)
                                 .graphicsLayer {
@@ -131,7 +239,7 @@ inline fun <reified T : Enum<T>> SortHeader(
                         label = "Trailing Icon Rotation",
                     )
                     Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        painter = painterResource(R.drawable.keyboard_arrow_down),
                         modifier = Modifier
                             .size(SplitButtonDefaults.TrailingIconSize)
                             .graphicsLayer {
