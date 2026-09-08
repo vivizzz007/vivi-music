@@ -125,6 +125,9 @@
     <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une image que si Tidal en propose une pour le titre en cours de lecture.</string>
     <string name="show_album_canvas">Afficher la page d\'accueil de l\'album</string>
     <string name="show_album_canvas_desc">Afficher une toile animée dans l\'album</string>
+	<string name="canvas_load_only_wifi">Télécharger uniquement via le Wi-Fi</string>
+    <string name="canvas_load_only_wifi_desc">Ne pas charger les animations du canvas en cas de connexion mobile ou à volume limité</string>
+    <string name="canvas_network">Réseau</string>
     <string name="rotating_thumbnail">Vignette tournante</string>
     <string name="rotating_thumbnail_desc">Activer un effet d\'animation avec rotation des vignettes</string>
 
@@ -1028,6 +1031,10 @@ est irréversible.
     <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
     <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
     <string name="font_plus_jakarta_sans_desc">Une police sans empattement géométrique haut de gamme aux lignes chaleureuses.</string>
+	<string name="font_custom">Police personnalisée</string>
+    <string name="font_custom_desc">Utilisez votre propre fichier .ttf ou .otf.</string>
+    <string name="import_custom_font">Importer une police</string>
+    <string name="error_invalid_font">Fichier de police non valide sélectionné.</string>
 
 	<!-- YouTube Decryption / Cipher Settings -->
     <string name="youtube_decryption_settings">Vivi Extracteur</string>
