@@ -70,10 +70,12 @@ fun CanvasSelection(
         defaultValue = CanvasSource.AUTO
     )
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
 
@@ -105,7 +107,9 @@ fun CanvasSelection(
             onClick = { onCanvasThumbnailAnimationChange(!canvasThumbnailAnimation) },
             shape = RoundedCornerShape(50),
             colors = CardDefaults.cardColors(containerColor = containerColor),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .settingTarget("use_canvas", scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -131,6 +135,7 @@ fun CanvasSelection(
         // Options settings group
         ExpressiveSettingGroup(
             title = stringResource(R.string.canvas_source),
+            modifier = Modifier.settingTarget("canvas_source", scrollState),
             items = listOf(
                 Material3SettingsItem(
                     leadingContent = {

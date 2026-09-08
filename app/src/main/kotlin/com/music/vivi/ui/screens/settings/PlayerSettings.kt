@@ -256,6 +256,8 @@ fun PlayerSettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(
@@ -263,7 +265,7 @@ fun PlayerSettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         var showCrossfadeBetaDialog by remember { mutableStateOf(false) }
@@ -296,6 +298,7 @@ fun PlayerSettings(
             items = buildList {
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
+                    modifier = Modifier.settingTarget("audio_quality", scrollState),
                     title = { Text(stringResource(R.string.audio_quality)) },
                     trailingContent = {
                         Text(
@@ -311,6 +314,7 @@ fun PlayerSettings(
                 // JioSaavn settings navigation
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
+                    modifier = Modifier.settingTarget("jiosaavn_settings", scrollState),
                     title = { Text(stringResource(R.string.jiosaavn_settings)) },
                     trailingContent = {
                         Text(
@@ -326,6 +330,7 @@ fun PlayerSettings(
                 // SponsorBlock settings navigation
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.fast_forward),
+                    modifier = Modifier.settingTarget("sponsorblock", scrollState),
                     title = { Text(stringResource(R.string.sponsorblock)) },
                     description = { Text(stringResource(R.string.sponsorblock_desc)) },
                     trailingContent = {
@@ -341,6 +346,7 @@ fun PlayerSettings(
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
+                    modifier = Modifier.settingTarget("crossfade", scrollState),
                     title = { Text(stringResource(R.string.crossfade)) },
                     description = { Text(stringResource(R.string.crossfade_desc)) },
                     showBadge = true,
@@ -427,6 +433,7 @@ fun PlayerSettings(
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.fast_forward),
+                    modifier = Modifier.settingTarget("skip_silence", scrollState),
                     title = { Text(stringResource(R.string.skip_silence)) },
                     description = { Text(stringResource(R.string.skip_silence_desc)) },
                     trailingContent = {
@@ -470,6 +477,7 @@ fun PlayerSettings(
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_up),
+                    modifier = Modifier.settingTarget("audio_normalization", scrollState),
                     title = { Text(stringResource(R.string.audio_normalization)) },
                     trailingContent = {
                         Switch(
@@ -490,6 +498,7 @@ fun PlayerSettings(
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
+                    modifier = Modifier.settingTarget("audio_offload", scrollState),
                     title = { Text(stringResource(R.string.audio_offload)) },
                     description = {
                         Text(
@@ -519,7 +528,8 @@ fun PlayerSettings(
                 if (BuildConfig.CAST_AVAILABLE) {
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.cast),
-                        title = { Text(stringResource(R.string.google_cast)) },
+                        modifier = Modifier.settingTarget("google_cast", scrollState),
+                    title = { Text(stringResource(R.string.google_cast)) },
                         description = { Text(stringResource(R.string.google_cast_description)) },
                         trailingContent = {
                             Switch(
@@ -541,6 +551,7 @@ fun PlayerSettings(
                 }
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.arrow_forward),
+                    modifier = Modifier.settingTarget("seek_extra_seconds", scrollState),
                     title = { Text(stringResource(R.string.seek_seconds_addup)) },
                     description = { Text(stringResource(R.string.seek_seconds_addup_description)) },
                     trailingContent = {
@@ -562,12 +573,14 @@ fun PlayerSettings(
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.viviequlizer),
+                    modifier = Modifier.settingTarget("equalizer", scrollState),
                     title = { Text(stringResource(R.string.vivi_equalizer)) },
                     description = { Text(stringResource(R.string.vivi_equalizer_desc)) },
                     onClick = { navController.navigate("settings/equalizer") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
+                    modifier = Modifier.settingTarget("custom_player_buttons", scrollState),
                     title = { Text("Customize player buttons") },
                     description = { Text("Choose and reorder buttons displayed in the player bar") },
                     onClick = { showCustomizePlayerButtonsDialog = true }
@@ -582,6 +595,7 @@ fun PlayerSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
+                    modifier = Modifier.settingTarget("persistent_queue", scrollState),
                     title = { Text(stringResource(R.string.persistent_queue)) },
                     description = { Text(stringResource(R.string.persistent_queue_desc)) },
                     trailingContent = {
@@ -603,6 +617,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.playlist_add),
+                    modifier = Modifier.settingTarget("auto_load_more", scrollState),
                     title = { Text(stringResource(R.string.auto_load_more)) },
                     description = { Text(stringResource(R.string.auto_load_more_desc)) },
                     trailingContent = {
@@ -750,6 +765,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.queue_music),
+                    modifier = Modifier.settingTarget("prevent_duplicate_tracks", scrollState),
                     title = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue)) },
                     description = { Text(stringResource(R.string.prevent_duplicate_tracks_in_queue_desc)) },
                     trailingContent = {
@@ -800,6 +816,7 @@ fun PlayerSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.notification),
+                    modifier = Modifier.settingTarget("persistent_control_center", scrollState),
                     title = { Text(stringResource(R.string.persistent_control_center)) },
                     description = { Text(stringResource(R.string.persistent_control_center_desc)) },
                     trailingContent = {
@@ -821,6 +838,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
+                    modifier = Modifier.settingTarget("stop_music_on_task_clear", scrollState),
                     title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
                     trailingContent = {
                         Switch(
@@ -841,6 +859,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.volume_off_pause),
+                    modifier = Modifier.settingTarget("pause_on_mute", scrollState),
                     title = { Text(stringResource(R.string.pause_music_when_media_is_muted)) },
                     trailingContent = {
                         Switch(
@@ -861,6 +880,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.bluetooth),
+                    modifier = Modifier.settingTarget("resume_on_bluetooth", scrollState),
                     title = { Text(stringResource(R.string.resume_on_bluetooth_connect)) },
                     trailingContent = {
                         Switch(
@@ -881,6 +901,7 @@ fun PlayerSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
+                    modifier = Modifier.settingTarget("keep_screen_on", scrollState),
                     title = { Text(stringResource(R.string.keep_screen_on_when_player_is_expanded)) },
                     trailingContent = {
                         Switch(

@@ -115,6 +115,8 @@ fun PrivacySettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(
@@ -122,7 +124,7 @@ fun PrivacySettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(
@@ -138,6 +140,7 @@ fun PrivacySettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.history),
+                    modifier = Modifier.settingTarget("pause_listen_history", scrollState),
                     title = { Text(stringResource(R.string.pause_listen_history)) },
                     trailingContent = {
                         Switch(
@@ -158,6 +161,7 @@ fun PrivacySettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete_history),
+                    modifier = Modifier.settingTarget("clear_playback_history", scrollState),
                     title = { Text(stringResource(R.string.clear_listen_history)) },
                     onClick = { showClearListenHistoryDialog = true }
                 )
@@ -171,6 +175,7 @@ fun PrivacySettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.search_off),
+                    modifier = Modifier.settingTarget("pause_search_history", scrollState),
                     title = { Text(stringResource(R.string.pause_search_history)) },
                     trailingContent = {
                         Switch(
@@ -191,6 +196,7 @@ fun PrivacySettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
+                    modifier = Modifier.settingTarget("clear_search_history", scrollState),
                     title = { Text(stringResource(R.string.clear_search_history)) },
                     onClick = { showClearSearchHistoryDialog = true }
                 )

@@ -619,10 +619,12 @@ fun ContentSettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         ExpressiveSettingGroup(
@@ -630,6 +632,7 @@ fun ContentSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
+                    modifier = Modifier.settingTarget("content_language", scrollState),
                     title = { Text(stringResource(R.string.content_language)) },
                     trailingContent = {
                         Text(
@@ -640,6 +643,7 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.location_on),
+                    modifier = Modifier.settingTarget("content_country", scrollState),
                     title = { Text(stringResource(R.string.content_country)) },
                     trailingContent = {
                         Text(
@@ -650,6 +654,7 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
+                    modifier = Modifier.settingTarget("search_suggestions_region", scrollState),
                     title = { Text("Suggestions Region") },
                     trailingContent = {
                         Text(
@@ -660,6 +665,7 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
+                    modifier = Modifier.settingTarget("hide_explicit", scrollState),
                     title = { Text(stringResource(R.string.hide_explicit)) },
                     trailingContent = {
                         Switch(
@@ -680,6 +686,7 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.slow_motion_video),
+                    modifier = Modifier.settingTarget("hide_video_songs", scrollState),
                     title = { Text(stringResource(R.string.hide_video_songs)) },
                     trailingContent = {
                         Switch(
@@ -867,7 +874,8 @@ fun ContentSettings(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
-                        title = { Text(stringResource(R.string.app_language)) },
+                        modifier = Modifier.settingTarget("app_language", scrollState),
+                    title = { Text(stringResource(R.string.app_language)) },
                         onClick = {
                             context.startActivity(
                                 Intent(
@@ -899,6 +907,7 @@ fun ContentSettings(
             items = buildList {
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.network_node),
+                    modifier = Modifier.settingTarget("ip_protocol", scrollState),
                     title = { Text(stringResource(R.string.network_ip_version)) },
                     trailingContent = {
                         Text(
@@ -914,7 +923,8 @@ fun ContentSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.wifi_proxy),
-                        title = { Text(stringResource(R.string.enable_proxy)) },
+                        modifier = Modifier.settingTarget("network_proxy", scrollState),
+                    title = { Text(stringResource(R.string.enable_proxy)) },
                         trailingContent = {
                             Switch(
                                 checked = proxyEnabled,
@@ -1097,12 +1107,14 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
+                    modifier = Modifier.settingTarget("lyrics_providers", scrollState),
                     title = { Text(stringResource(R.string.lyrics_provider_priority)) },
                     description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
                     onClick = { showProviderPriorityDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),
+                    modifier = Modifier.settingTarget("lyrics_romanization", scrollState),
                     title = { Text(stringResource(R.string.lyrics_romanization)) },
                     onClick = { navController.navigate("settings/content/romanization") }
                 )
@@ -1164,6 +1176,7 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.tune),
+                    modifier = Modifier.settingTarget("home_sections", scrollState),
                     title = { Text(stringResource(R.string.manage_home_sections)) },
                     description = { Text(stringResource(R.string.manage_home_sections_desc)) },
                     onClick = { showManageHomeSectionsDialog = true }

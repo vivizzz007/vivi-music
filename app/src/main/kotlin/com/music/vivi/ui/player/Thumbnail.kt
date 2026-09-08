@@ -796,9 +796,14 @@ private fun ThumbnailItem(
                         
                         println("CanvasFetch: Song='$songTitle' (raw='$songTitleRaw'), Artist='$artistName' (raw='$artistNameRaw'), Album='$albumName'")
                         
-                        val searchTasks = listOf(
-                            songTitleRaw to artistNameRaw
-                        ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
+                        val cleanedTitle = cleanSongTitle(songTitleRaw)
+                        val primaryArtist = splitAndNormalizeArtists(artistNameRaw).firstOrNull() ?: artistNameRaw
+                        val searchTasks = listOfNotNull(
+                            songTitleRaw to artistNameRaw,
+                            if (cleanedTitle != songTitleRaw || primaryArtist != artistNameRaw) cleanedTitle to primaryArtist else null,
+                            if (cleanedTitle != songTitleRaw) cleanedTitle to artistNameRaw else null,
+                            if (primaryArtist != artistNameRaw) songTitleRaw to primaryArtist else null
+                        ).distinct().filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
 
                         when (canvasSource) {
                             CanvasSource.AUTO -> {
@@ -884,7 +889,7 @@ private fun ThumbnailItem(
 
                 canvasArtwork?.let { artwork ->
                     CanvasArtworkPlayer(
-                        primaryUrl = artwork.animated,
+                        primaryUrl = artwork.preferredAnimationUrl ?: artwork.animated ?: artwork.videoUrl,
                         fallbackUrl = artwork.videoUrl,
                         isPlaying = isPlaying,
                         modifier = Modifier.fillMaxSize()
@@ -978,10 +983,15 @@ private fun SeekEffectOverlay(
 }
 
 
+private fun cleanSongTitle(raw: String): String {
+    return raw.replace(Regex("""(?i)\s*[\(\[](?:feat\.?|ft\.?|featuring|official|video|audio|lyrics|remastered|extended|deluxe).*?[\)\]]"""), "")
+        .replace(Regex("""(?i)\s*-\s*(?:feat\.?|ft\.?|official).*"""), "")
+        .trim()
+}
+
 /**
- * Strict canvas match: song title, artist, and album must all match exactly.
- * For artists, all listed artists must match (set-based comparison to handle different separators like commas or ampersands).
- * Returns true only if ALL three pass. Any one failing returns false.
+ * Validates whether fetched canvas artwork matches the requested song.
+ * Uses flexible matching to handle singles, featured artists, and YouTube title noise.
  */
 internal fun validateCanvasMatch(
     artwork: com.music.vivi.canvas.CanvasArtwork,
@@ -993,21 +1003,27 @@ internal fun validateCanvasMatch(
     val name = artwork.name
     val albumName = artwork.albumName
 
-    val artistMatches = if (artist != null && requestedArtist.isNotBlank()) {
+    val artistMatches = if (!artist.isNullOrBlank() && requestedArtist.isNotBlank()) {
         val requestedList = splitAndNormalizeArtists(requestedArtist)
         val resultList = splitAndNormalizeArtists(artist)
-        requestedList.isNotEmpty() && resultList.isNotEmpty() &&
-            requestedList.size == resultList.size &&
-            requestedList.all { req -> resultList.any { res -> res == req } }
+        requestedList.any { req ->
+            resultList.any { res ->
+                res == req || res.contains(req) || req.contains(res)
+            }
+        }
     } else true
 
-    val songMatches = if (name != null && requestedTitle.isNotBlank()) {
-        name.normalizeForComparison() == requestedTitle.normalizeForComparison()
+    val songMatches = if (!name.isNullOrBlank() && requestedTitle.isNotBlank()) {
+        val normName = cleanSongTitle(name).normalizeForComparison()
+        val normReq = cleanSongTitle(requestedTitle).normalizeForComparison()
+        normName == normReq || normName.contains(normReq) || normReq.contains(normName)
     } else true
 
-    val albumMatches = if (albumName != null && requestedAlbum.isNotBlank()) {
-        albumName.normalizeForComparison() == requestedAlbum.normalizeForComparison()
-    } else false
+    val albumMatches = if (!albumName.isNullOrBlank() && requestedAlbum.isNotBlank()) {
+        val a = albumName.normalizeForComparison()
+        val b = requestedAlbum.normalizeForComparison()
+        a == b || a.contains(b) || b.contains(a)
+    } else true
 
     return artistMatches && songMatches && albumMatches
 }

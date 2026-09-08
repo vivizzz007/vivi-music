@@ -25,6 +25,8 @@ import com.music.innertube.models.filterYoutubeShorts
 import com.music.innertube.pages.ExplorePage
 import com.music.innertube.pages.HomePage
 import com.music.innertube.utils.completed
+import com.music.vivi.constants.AccountImageUrlKey
+import com.music.vivi.constants.AccountNameKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -60,6 +62,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -750,6 +753,18 @@ class HomeViewModel @Inject constructor(
     }
 
     init {
+        // Load cached account profile immediately from DataStore (0ms delay on startup)
+        viewModelScope.launch(Dispatchers.IO) {
+            val prefs = context.dataStore.data.first()
+            val cachedName = prefs[AccountNameKey]
+            val cachedImageUrl = prefs[AccountImageUrlKey]
+            if (!cachedName.isNullOrBlank()) {
+                accountName.value = cachedName
+            }
+            if (!cachedImageUrl.isNullOrBlank()) {
+                accountImageUrl.value = cachedImageUrl
+            }
+        }
 
         // Load home data
         viewModelScope.launch(Dispatchers.IO) {
@@ -761,8 +776,9 @@ class HomeViewModel @Inject constructor(
             load()
         }
 
-        // Run sync in separate coroutine with cooldown to avoid blocking UI
+        // Run sync in separate coroutine with grace period to avoid blocking initial UI database queries
         viewModelScope.launch(Dispatchers.IO) {
+            delay(3000)
             syncUtils.tryAutoSync()
         }
 
@@ -807,6 +823,10 @@ class HomeViewModel @Inject constructor(
                             YouTube.accountInfo().onSuccess { info ->
                                 accountName.value = info.name
                                 accountImageUrl.value = info.thumbnailUrl
+                                context.dataStore.edit { settings ->
+                                    settings[AccountNameKey] = info.name
+                                    info.thumbnailUrl?.let { settings[AccountImageUrlKey] = it }
+                                }
                             }.onFailure {
                                 reportException(it)
                             }
@@ -814,6 +834,10 @@ class HomeViewModel @Inject constructor(
                             accountName.value = "Guest"
                             accountImageUrl.value = null
                             accountPlaylists.value = null
+                            context.dataStore.edit { settings ->
+                                settings.remove(AccountNameKey)
+                                settings.remove(AccountImageUrlKey)
+                            }
                         }
                     } finally {
                         isProcessingAccountData = false

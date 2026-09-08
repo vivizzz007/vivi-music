@@ -220,6 +220,7 @@ object TidalCanvasProvider {
                         return CanvasArtwork(
                             name = resultTitle ?: songValidation ?: albumValidation ?: "",
                             artist = combinedArtistStr.ifBlank { artistValidation ?: "" },
+                            animated = videoUrl,
                             videoUrl = videoUrl,
                             albumName = albumTitle
                         )

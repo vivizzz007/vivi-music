@@ -192,7 +192,10 @@ fun SettingsScreen(
                                     )
                                 }
                             },
-                            onClick = { navController.navigate(entry.route) }
+                            onClick = {
+                                SettingTargetManager.targetSettingKey = entry.settingKey
+                                navController.navigate(entry.route)
+                            }
                         )
                     }
                 )

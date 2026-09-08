@@ -88,6 +88,7 @@ fun Material3SettingsGroup(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .then(item.modifier)
                         .animateContentSize(),
                     shape = shape,
                     colors = CardDefaults.cardColors(
@@ -410,5 +411,6 @@ data class Material3SettingsItem(
     val onClick: (() -> Unit)? = null,
     val isExpressive: Boolean = false,
     val descriptionBelow: Boolean = false,
-    val isExternalLink: Boolean = false
+    val isExternalLink: Boolean = false,
+    val modifier: Modifier = Modifier
 )

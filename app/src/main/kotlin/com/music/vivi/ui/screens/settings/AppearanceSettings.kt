@@ -1100,10 +1100,12 @@ fun AppearanceSettings(
         }
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         ExpressiveSettingGroup(
@@ -1112,6 +1114,7 @@ fun AppearanceSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),
+                        modifier = Modifier.settingTarget("theme_palettes", scrollState),
                         title = { Text(stringResource(R.string.theme)) },
                         onClick = { navController.navigate("settings/appearance/theme") }
                     )
@@ -1119,6 +1122,7 @@ fun AppearanceSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.alphabet_cyrillic),
+                        modifier = Modifier.settingTarget("app_font", scrollState),
                         title = { Text(stringResource(R.string.app_font)) },
                         trailingContent = {
                             val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
@@ -1136,6 +1140,7 @@ fun AppearanceSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.speed),
+                        modifier = Modifier.settingTarget("high_refresh_rate", scrollState),
                         title = { Text(stringResource(R.string.enable_high_refresh_rate)) },
                         description = { Text(stringResource(R.string.enable_high_refresh_rate_desc)) },
                         trailingContent = {
@@ -1237,7 +1242,8 @@ fun AppearanceSettings(
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.contrast),
-                        title = { Text(stringResource(R.string.pure_black_mini_player)) },
+                        modifier = Modifier.settingTarget("pure_black_mini_player", scrollState),
+                    title = { Text(stringResource(R.string.pure_black_mini_player)) },
                         trailingContent = {
                             Switch(
                                 checked = pureBlackMiniPlayer,
@@ -1293,6 +1299,7 @@ fun AppearanceSettings(
             items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
+                    modifier = Modifier.settingTarget("player_design", scrollState),
                     title = { Text(stringResource(R.string.player_design)) },
                     trailingContent = {
                         Text(
@@ -1307,6 +1314,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
+                    modifier = Modifier.settingTarget("player_background", scrollState),
                     title = { Text(stringResource(R.string.player_background_style)) },
                     trailingContent = {
                         Text(
@@ -1367,6 +1375,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.contrast),
+                    modifier = Modifier.settingTarget("thumbnail_shadow", scrollState),
                     title = { Text(stringResource(R.string.show_player_thumbnail_shadow)) },
                     description = { Text(stringResource(R.string.show_player_thumbnail_shadow_desc)) },
                     trailingContent = {
@@ -1461,6 +1470,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.sliders),
+                    modifier = Modifier.settingTarget("player_slider_style", scrollState),
                     title = { Text(stringResource(R.string.player_slider_style)) },
                     trailingContent = {
                         Text(
@@ -1477,6 +1487,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
+                    modifier = Modifier.settingTarget("swipe_thumbnail", scrollState),
                     title = { Text(stringResource(R.string.enable_swipe_thumbnail)) },
                     trailingContent = {
                         Switch(
@@ -1497,6 +1508,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.canvas_art),
+                    modifier = Modifier.settingTarget("canvas_visuals", scrollState),
                     title = { Text(stringResource(R.string.vivimusic_canvas)) },
                     trailingContent = {
                         val summary = if (!canvasThumbnailAnimation) {
@@ -1515,6 +1527,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),
+                    modifier = Modifier.settingTarget("rotating_vinyl", scrollState),
                     title = { Text(stringResource(R.string.rotating_thumbnail)) },
                     description = { Text(stringResource(R.string.rotating_thumbnail_desc)) },
                     trailingContent = {
@@ -1907,6 +1920,7 @@ fun AppearanceSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
+                    modifier = Modifier.settingTarget("default_tab", scrollState),
                     title = { Text(stringResource(R.string.default_open_tab)) },
                     trailingContent = {
                         Text(
@@ -1977,6 +1991,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
+                    modifier = Modifier.settingTarget("slim_navbar", scrollState),
                     title = { Text(stringResource(R.string.slim_navbar)) },
                     trailingContent = {
                         Switch(
@@ -1997,6 +2012,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
+                    modifier = Modifier.settingTarget("floating_navbar", scrollState),
                     title = { Text(stringResource(R.string.floating_navbar)) },
                     description = { Text(stringResource(R.string.floating_navbar_desc)) },
                     trailingContent = {
@@ -2039,6 +2055,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
+                    modifier = Modifier.settingTarget("grid_cell_size", scrollState),
                     title = { Text(stringResource(R.string.grid_cell_size)) },
                     trailingContent = {
                         Text(
@@ -2052,6 +2069,7 @@ fun AppearanceSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
+                    modifier = Modifier.settingTarget("density_scale", scrollState),
                     title = { Text(stringResource(R.string.display_density)) },
                     trailingContent = {
                         Text(DensityScale.fromValue(densityScale).label)

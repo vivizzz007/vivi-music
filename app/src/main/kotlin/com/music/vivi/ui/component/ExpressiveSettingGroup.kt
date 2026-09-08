@@ -63,6 +63,7 @@ fun ExpressiveSettingGroup(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .then(item.modifier)
                     .animateContentSize(),
                 shape = shape,
                 color = if (androidx.compose.foundation.isSystemInDarkTheme()) {

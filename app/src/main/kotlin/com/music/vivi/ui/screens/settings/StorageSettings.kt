@@ -456,6 +456,8 @@ fun StorageSettings(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(
@@ -463,7 +465,7 @@ fun StorageSettings(
                     WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom
                 )
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         Spacer(
@@ -485,6 +487,7 @@ fun StorageSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
+                    modifier = Modifier.settingTarget("clear_all_downloads", scrollState),
                     title = { Text(stringResource(R.string.clear_all_downloads)) },
                     onClick = {
                         clearDownloads = true
@@ -492,6 +495,7 @@ fun StorageSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.download),
+                    modifier = Modifier.settingTarget("save_downloads_to_public", scrollState),
                     title = { Text(stringResource(R.string.save_downloads_to_public_folder)) },
                     description = { Text(stringResource(R.string.save_downloads_to_public_folder_desc)) },
                     trailingContent = {
@@ -529,6 +533,7 @@ fun StorageSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.cached),
+                    modifier = Modifier.settingTarget("song_cache", scrollState),
                     title = { Text(stringResource(R.string.max_song_cache_size)) },
                     description = {
                         val songCacheValues =
@@ -586,6 +591,7 @@ fun StorageSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
+                    modifier = Modifier.settingTarget("clear_audio_cache", scrollState),
                     title = { Text(stringResource(R.string.clear_song_cache)) },
                     onClick = {
                         clearCacheDialog = true
@@ -599,6 +605,7 @@ fun StorageSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.manage_search),
+                    modifier = Modifier.settingTarget("image_cache", scrollState),
                     title = { Text(stringResource(R.string.max_image_cache_size)) },
                     description = {
                         val imageCacheValues =
@@ -647,6 +654,7 @@ fun StorageSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.clear_all),
+                    modifier = Modifier.settingTarget("clear_image_cache", scrollState),
                     title = { Text(stringResource(R.string.clear_image_cache)) },
                     onClick = {
                         android.util.Log.d("StorageSettings", "Clear image cache button clicked!")

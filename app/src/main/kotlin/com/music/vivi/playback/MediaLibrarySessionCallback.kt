@@ -121,9 +121,12 @@ constructor(
     ): Int {
         if (playerCommand == Player.COMMAND_PLAY_PAUSE) {
             if (session.player.mediaItemCount == 0) {
-                scope.launch(Dispatchers.Main) {
-                    if (::service.isInitialized) {
-                        service.restorePersistentQueueAndPlay()
+                val queueFile = context.filesDir.resolve(MusicService.PERSISTENT_QUEUE_FILE)
+                if (queueFile.exists()) {
+                    scope.launch(Dispatchers.Main) {
+                        if (::service.isInitialized) {
+                            service.restorePersistentQueueAndPlay()
+                        }
                     }
                 }
             } else if (session.player.playbackState == Player.STATE_IDLE) {
@@ -168,25 +171,7 @@ constructor(
                     }
                 }
 
-                val recentEvents = runCatching {
-                    database.events().first().take(25).map { it.song.toMediaItem() }
-                }.getOrNull()
-
-                if (!recentEvents.isNullOrEmpty()) {
-                    settableFuture.set(MediaItemsWithStartPosition(recentEvents, 0, 0L))
-                    return@launch
-                }
-
-                val fallbackSongs = runCatching {
-                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
-                }.getOrNull()
-
-                if (!fallbackSongs.isNullOrEmpty()) {
-                    settableFuture.set(MediaItemsWithStartPosition(fallbackSongs, 0, 0L))
-                    return@launch
-                }
-
-                settableFuture.setException(IllegalStateException("No recent items available for playback resumption"))
+                settableFuture.setException(IllegalStateException("No persistent queue available for playback resumption"))
             } catch (e: Exception) {
                 Timber.e(e, "Playback resumption failed")
                 settableFuture.setException(e)

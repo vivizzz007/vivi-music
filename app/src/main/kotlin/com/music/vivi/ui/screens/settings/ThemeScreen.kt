@@ -192,10 +192,12 @@ fun PortraitThemeLayout(
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit
 ) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -219,7 +221,8 @@ fun PortraitThemeLayout(
             pureBlack = pureBlack,
             onPureBlackChange = onPureBlackChange,
             selectedThemeColor = selectedThemeColor,
-            onSelectedThemeColorChange = onSelectedThemeColorChange
+            onSelectedThemeColorChange = onSelectedThemeColorChange,
+            scrollState = scrollState
         )
 
         Spacer(modifier = Modifier.height(120.dp))
@@ -287,7 +290,8 @@ fun ThemeControls(
     pureBlack: Boolean,
     onPureBlackChange: (Boolean) -> Unit,
     selectedThemeColor: Color,
-    onSelectedThemeColorChange: (Color) -> Unit
+    onSelectedThemeColorChange: (Color) -> Unit,
+    scrollState: androidx.compose.foundation.ScrollState? = null
 ) {
     Column(
         modifier = Modifier
@@ -295,7 +299,10 @@ fun ThemeControls(
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = if (scrollState != null) Modifier.settingTarget("pure_black", scrollState) else Modifier,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 text = stringResource(R.string.theme_mode),
                 style = MaterialTheme.typography.titleMedium,
@@ -366,7 +373,10 @@ fun ThemeControls(
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Column(
+            modifier = if (scrollState != null) Modifier.settingTarget("theme_palettes", scrollState) else Modifier,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 text = stringResource(R.string.color_palette),
                 style = MaterialTheme.typography.titleMedium,

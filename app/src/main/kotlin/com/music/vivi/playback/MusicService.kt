@@ -2240,27 +2240,15 @@ class MusicService :
                     return@launch
                 }
             }
-
-            val fallbackSongs = withContext(Dispatchers.IO) {
-                runCatching {
-                    database.songsByCreateDateAsc().first().take(25).map { it.toMediaItem() }
-                }.getOrNull()
-            }
-            if (!fallbackSongs.isNullOrEmpty()) {
-                playerInitialized.first { it }
-                if (isActive) {
-                    player.setMediaItems(fallbackSongs)
-                    player.prepare()
-                    player.play()
-                    return@launch
-                }
-            }
         }
     }
 
     override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
-        if (playWhenReady && player.mediaItemCount == 0) {
-            restorePersistentQueueAndPlay()
+        if (playWhenReady && player.mediaItemCount == 0 && reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+            val persistentQueueEnabled = dataStore.get(PersistentQueueKey, true)
+            if (persistentQueueEnabled) {
+                restorePersistentQueueAndPlay()
+            }
         }
 
         // Safety net: if local player tries to start while casting, immediately pause it

@@ -9,10 +9,9 @@ package com.music.vivi.viewmodels
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.music.vivi.constants.AddToPlaylistSortDescendingKey
-import com.music.vivi.constants.AddToPlaylistSortTypeKey
+import com.music.vivi.constants.PlaylistSortDescendingKey
 import com.music.vivi.constants.PlaylistSortType
+import com.music.vivi.constants.PlaylistSortTypeKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.utils.SyncUtils
@@ -38,12 +37,12 @@ constructor(
     val allPlaylists =
         context.dataStore.data
             .map {
-                it[AddToPlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[AddToPlaylistSortDescendingKey]
+                it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey]
                     ?: true)
             }.distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
                 database.playlists(sortType, descending)
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     // Suspend function that waits for sync to complete
     suspend fun sync() {

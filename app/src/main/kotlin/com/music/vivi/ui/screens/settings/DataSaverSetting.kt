@@ -109,10 +109,12 @@ fun DataSaverSetting(
         MaterialTheme.colorScheme.onSurfaceVariant
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp)
     ) {
         // Description
@@ -128,7 +130,9 @@ fun DataSaverSetting(
             onClick = { toggleDataSaver(!dataSaver) },
             shape = RoundedCornerShape(50),
             colors = CardDefaults.cardColors(containerColor = containerColor),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .settingTarget("data_saver", scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -157,7 +161,9 @@ fun DataSaverSetting(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .settingTarget("restrict_canvas", scrollState)
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),

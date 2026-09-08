@@ -153,10 +153,12 @@ fun UpdateSettings(
         UpdateInfoDialog(onDismiss = { showInfoDialog = false })
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(horizontal = 16.dp),
     ) {
         Spacer(modifier = Modifier.height(10.dp))
@@ -164,6 +166,7 @@ fun UpdateSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.network_update),
+                    modifier = Modifier.settingTarget("system_update", scrollState),
                     title = { Text(stringResource(R.string.system_update)) },
                     trailingContent = {
                         if (isUpdateAvailable) {
@@ -201,6 +204,7 @@ fun UpdateSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.update),
+                    modifier = Modifier.settingTarget("auto_update_check", scrollState),
                     title = { Text(stringResource(R.string.auto_update_check)) },
                     trailingContent = {
                         Switch(
@@ -234,6 +238,7 @@ fun UpdateSettings(
 
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.biotech),
+                    modifier = Modifier.settingTarget("beta_nightly", scrollState),
                     title = { Text(stringResource(R.string.beta_updates)) },
                     trailingContent = {
                         Switch(
@@ -282,6 +287,7 @@ fun UpdateSettings(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete),
+                    modifier = Modifier.settingTarget("clear_apk", scrollState),
                     title = { Text(stringResource(R.string.clear_downloaded_updates)) },
                     description = if (apkCount > 0) {
                         {
