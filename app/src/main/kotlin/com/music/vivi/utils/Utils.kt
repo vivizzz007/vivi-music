@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.ui.graphics.Shape
+import com.music.vivi.constants.ThumbnailCornerRadius
 import java.util.Locale
 fun reportException(throwable: Throwable) {
     throwable.printStackTrace()
@@ -24,7 +25,7 @@ fun setAppLocale(context: Context, locale: Locale) {
     context.resources.updateConfiguration(config, context.resources.displayMetrics)
 }
 
-fun listItemShape(index: Int, count: Int, radius: Dp = 24.dp): Shape {
+fun listItemShape(index: Int, count: Int, radius: Dp = ThumbnailCornerRadius + 12.dp): Shape {
     val smoothness = 60
     return when {
         count == 1 -> AbsoluteSmoothCornerShape(
