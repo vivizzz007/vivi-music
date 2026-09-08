@@ -2550,6 +2550,46 @@ class MusicService :
     }
 
     /**
+     * Reads the primary player's currently-active shuffle traversal order
+     * straight from its [Timeline] (using getNext/getPreviousWindowIndex
+     * with shuffle enabled, the same trick [playNext] uses) and returns it as an
+     * explicit index array reproducing the full active traversal order, with
+     * the current item at its real position (not necessarily first).
+     *
+     * ExoPlayer has no public getter for the live [ShuffleOrder], so this is how
+     * we capture it just before a crossfade player swap in order to replay the
+     * *same* order on the secondary player — instead of calling
+     * [applyShuffleOrder], which regenerates a fresh random order and was the
+     * cause of shuffle re-randomizing on every skip / song selection (and of
+     * already-played tracks reappearing).
+     */
+    private fun getCurrentShuffleOrderIndices(sourcePlayer: Player): IntArray? {
+        val timeline = sourcePlayer.currentTimeline
+        if (timeline.isEmpty) return null
+        val currentIndex = sourcePlayer.currentMediaItemIndex
+        if (currentIndex == C.INDEX_UNSET) return null
+
+        val before = mutableListOf<Int>()
+        var prev = currentIndex
+        while (true) {
+            prev = timeline.getPreviousWindowIndex(prev, Player.REPEAT_MODE_OFF, true)
+            if (prev == C.INDEX_UNSET) break
+            before.add(prev)
+        }
+        before.reverse()
+
+        val after = mutableListOf<Int>()
+        var next = currentIndex
+        while (true) {
+            next = timeline.getNextWindowIndex(next, Player.REPEAT_MODE_OFF, true)
+            if (next == C.INDEX_UNSET) break
+            after.add(next)
+        }
+
+        return (before + currentIndex + after).toIntArray()
+    }
+
+    /**
      * Applies a new shuffle order to the player, maintaining the current item's position.
      * If `shufflePlaylistFirst` is true, it attempts to shuffle original items separately from added items.
      */
@@ -3684,6 +3724,12 @@ class MusicService :
             items.add(player.getMediaItemAt(i))
         }
 
+        // Capture the primary's current shuffle traversal before the swap.
+        // Regenerating a fresh random order here was what caused shuffle to
+        // re-randomize on every skip / song selection.
+        val preservedShuffleOrder =
+            if (savedShuffleEnabled) getCurrentShuffleOrderIndices(player) else null
+
         secPlayer.setMediaItems(items)
         // Seek to target track (next track, or current track for repeat-one)
         secPlayer.seekTo(targetIndex, 0)
@@ -3693,13 +3739,27 @@ class MusicService :
         secPlayer.repeatMode = savedRepeatMode
         secPlayer.shuffleModeEnabled = savedShuffleEnabled
 
+        // Replay the captured shuffle order (same items, same order) instead
+        // of generating a new random one. Track whether it was actually applied
+        // so we can fall back to a fresh order below if it wasn't.
+        val restoredShuffleOrder = savedShuffleEnabled &&
+            preservedShuffleOrder != null &&
+            preservedShuffleOrder.size == secPlayer.mediaItemCount
+
+        if (restoredShuffleOrder) {
+            secPlayer.setShuffleOrder(
+                DefaultShuffleOrder(preservedShuffleOrder!!, System.currentTimeMillis())
+            )
+        }
+
         secPlayer.prepare()
         secPlayer.playWhenReady = true
 
         performCrossfadeSwap()
 
-        // Rebuild shuffle order on the new primary player if shuffle was active
-        if (savedShuffleEnabled) {
+        // If we couldn't carry the order over (e.g. a size mismatch), build a
+        // fresh shuffle order on the new primary player as a fallback.
+        if (savedShuffleEnabled && !restoredShuffleOrder) {
             val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
             applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
         }
@@ -3805,6 +3865,11 @@ class MusicService :
             items.add(player.getMediaItemAt(i))
         }
 
+        // Capture the primary's current shuffle traversal before the swap so we
+        // can replay it on the secondary player instead of re-randomizing.
+        val preservedShuffleOrder =
+            if (savedShuffleEnabled) getCurrentShuffleOrderIndices(player) else null
+
         secPlayer.setMediaItems(items)
         secPlayer.seekTo(targetIndex, 0)
         secPlayer.volume = 0f
@@ -3812,12 +3877,22 @@ class MusicService :
         secPlayer.repeatMode = savedRepeatMode
         secPlayer.shuffleModeEnabled = savedShuffleEnabled
 
+        val restoredShuffleOrder = savedShuffleEnabled &&
+            preservedShuffleOrder != null &&
+            preservedShuffleOrder.size == secPlayer.mediaItemCount
+
+        if (restoredShuffleOrder) {
+            secPlayer.setShuffleOrder(
+                DefaultShuffleOrder(preservedShuffleOrder!!, System.currentTimeMillis())
+            )
+        }
+
         secPlayer.prepare()
         secPlayer.playWhenReady = true
 
         performCrossfadeSwap()
 
-        if (savedShuffleEnabled) {
+        if (savedShuffleEnabled && !restoredShuffleOrder) {
             val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
             applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
         }
@@ -3852,6 +3927,16 @@ class MusicService :
         val savedRepeatMode = runBlocking { dataStore.get(RepeatModeKey, REPEAT_MODE_OFF) }
         val targetIndex = if (status.mediaItemIndex > 0) status.mediaItemIndex else 0
 
+        // If the new queue is actually the same items as the current queue,
+        // preserve the existing shuffle traversal instead of re-randomizing.
+        val sameQueue = status.items.size == player.mediaItemCount &&
+            status.items.indices.all { i ->
+                status.items[i].mediaId == player.getMediaItemAt(i).mediaId
+            }
+        val carryingShuffle = persistShuffleAcrossQueues && player.shuffleModeEnabled
+        val preservedShuffleOrder =
+            if (carryingShuffle && sameQueue) getCurrentShuffleOrderIndices(player) else null
+
         secondaryPlayer = createExoPlayer()
         val secPlayer = secondaryPlayer!!
         secPlayer.addListener(secondaryPlayerListener)
@@ -3859,15 +3944,25 @@ class MusicService :
         secPlayer.setMediaItems(status.items, targetIndex, status.position)
         secPlayer.volume = 0f
         secPlayer.repeatMode = savedRepeatMode
-        secPlayer.shuffleModeEnabled = persistShuffleAcrossQueues && player.shuffleModeEnabled
+        secPlayer.shuffleModeEnabled = carryingShuffle
+
+        val restoredShuffleOrder = carryingShuffle && preservedShuffleOrder != null &&
+            preservedShuffleOrder.size == secPlayer.mediaItemCount
+
+        if (restoredShuffleOrder) {
+            secPlayer.setShuffleOrder(
+                DefaultShuffleOrder(preservedShuffleOrder!!, System.currentTimeMillis())
+            )
+        }
 
         secPlayer.prepare()
         secPlayer.playWhenReady = true
 
         performCrossfadeSwap()
 
-        // Rebuild shuffle order on the new primary player if it carried shuffle over
-        if (player.shuffleModeEnabled) {
+        // If shuffle is on but the order wasn't carried over (a genuinely
+        // different queue, or a same-queue size mismatch), build a fresh order.
+        if (player.shuffleModeEnabled && !restoredShuffleOrder) {
             val shufflePlaylistFirst = dataStore.get(ShufflePlaylistFirstKey, false)
             applyShuffleOrder(player.currentMediaItemIndex, player.mediaItemCount, shufflePlaylistFirst)
         }
