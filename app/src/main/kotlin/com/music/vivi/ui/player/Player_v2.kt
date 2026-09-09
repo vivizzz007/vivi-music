@@ -146,6 +146,9 @@ fun PlayerV2(
                 controlsVisible = false
             }
         } else if (playerState == PlayerInternalState.COVER) {
+            // Fix 1: Delay controls appearing so AnimatedContent morph starts first,
+            // preventing a simultaneous layout + animation race that causes stutter.
+            delay(200L)
             controlsVisible = true
         }
     }
@@ -376,8 +379,10 @@ fun PlayerV2(
                     AnimatedContent(
                         targetState = playerState,
                         transitionSpec = {
-                            (fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) togetherWith
-                             fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)))
+                            // Fix 3: Shorter crossfade reduces concurrent animation CPU load.
+                            // Asymmetric timing (exit faster than enter) avoids visual overlap.
+                            (fadeIn(animationSpec = tween(350, easing = FastOutSlowInEasing)) togetherWith
+                             fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing)))
                                 .apply { targetContentZIndex = 1f }
                         },
                         modifier = Modifier.fillMaxSize(),
@@ -435,13 +440,14 @@ fun PlayerV2(
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
-                                        if (transition.currentState == transition.targetState) {
-                                            PlayerV2Canvas(
-                                                mediaMetadata = mediaMetadata,
-                                                isPlaying = isPlaying,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
-                                        }
+                                        // Fix 4: Always render canvas (don't gate on transition state).
+                                        // The previous guard caused a visible pop/snap when the
+                                        // transition completed and the canvas suddenly appeared.
+                                        PlayerV2Canvas(
+                                            mediaMetadata = mediaMetadata,
+                                            isPlaying = isPlaying,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
                                     }
                                 }
                                 
@@ -715,8 +721,10 @@ fun PlayerV2(
                                     modifier = Modifier
                                         .weight(1f)
                                         .animateEnterExit(
-                                            enter = slideInVertically(animationSpec = tween(450, easing = FastOutSlowInEasing)) { it / 4 } + fadeIn(tween(350)),
-                                            exit = fadeOut(animationSpec = tween(250))
+                                            // Fix 5: Remove slideInVertically — it competed with
+                                            // the cover art morph during exit, causing extra load.
+                                            enter = fadeIn(tween(350, easing = FastOutSlowInEasing)),
+                                            exit = fadeOut(animationSpec = tween(250, easing = FastOutSlowInEasing))
                                         )
                                 ) {
                                     if (targetState == PlayerInternalState.LYRICS) {
@@ -744,12 +752,14 @@ fun PlayerV2(
             // Persistent Controls & Utility Action Bar Container (Always at the bottom)
             AnimatedVisibility(
                 visible = controlsVisible,
-                enter = fadeIn(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                        slideInVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
-                        expandVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), expandFrom = Alignment.Bottom),
-                exit = fadeOut(animationSpec = tween(500, easing = FastOutSlowInEasing)) +
-                       slideOutVertically(animationSpec = tween(500, easing = FastOutSlowInEasing)) { it / 2 } +
-                       shrinkVertically(animationSpec = tween(500, easing = FastOutSlowInEasing), shrinkTowards = Alignment.Bottom)
+                // Fix 2: Removed expandVertically/shrinkVertically — these force layout
+                // recalculation every frame during the animation, which is expensive and
+                // the main cause of the stutter when re-entering the cover view.
+                // Pure draw-layer ops (fade + slide) are much cheaper.
+                enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)) +
+                        slideInVertically(animationSpec = tween(400, easing = FastOutSlowInEasing)) { it / 3 },
+                exit = fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) +
+                       slideOutVertically(animationSpec = tween(300, easing = FastOutSlowInEasing)) { it / 3 }
             ) {
                 Column(
                     modifier = Modifier
