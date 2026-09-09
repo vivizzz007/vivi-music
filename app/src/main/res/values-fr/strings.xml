@@ -48,7 +48,10 @@
     <string name="search">Rechercher</string>
     <string name="search_yt_music">Rechercher sur YouTube Music…</string>
     <string name="search_library">Rechercher dans votre bibliothèque…</string>
+    <string name="search_albums">Rechercher des albums…</string>
+    <string name="search_playlists">Rechercher des playlists…</string>
     <string name="filter_library">Bibliothèque</string>
+    <string name="all">Tout</string>
     <string name="filter_liked">Favoris</string>
     <string name="filter_downloaded">Téléchargés</string>
     <string name="filter_all">Tout</string>
@@ -317,6 +320,7 @@
     <string name="audio_quality_high">Élevée</string>
     <string name="audio_quality_low">Faible</string>
     <string name="queue">File d\'attente</string>
+    <string name="playing_from">Diffusion à partir de</string>
     <string name="persistent_queue">File d\'attente persistante</string>
     <string name="persistent_queue_desc">Restaurer votre dernière file d\'attente au démarrage de l\'application</string>
     <string name="auto_load_more">Charger automatiquement plus de titres</string>
@@ -444,4 +448,14 @@
     <string name="new_release_notifications_info">Sur certains appareils (Samsung, Xiaomi, etc.), l\'optimisation de la batterie peut retarder ou bloquer les notifications en arrière-plan. Pour vous assurer de recevoir vos alertes en temps voulu, configurez Vivi Music sur « Utilisation de la batterie sans restriction » dans les paramètres de votre appareil.</string>
     <string name="taste_based_release_notifications">Alertes de sortie basées sur les goûts</string>
     <string name="taste_based_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous écoutez régulièrement sortent de nouveaux titres ou de nouveaux albums</string>
+
+    <!-- Library Toggle -->
+    <string name="switch_to_grid_view">Passer à l\'affichage en grille</string>
+    <string name="switch_to_list_view">Passer à l\'affichage sous forme de liste</string>
+
+    <!-- Force Library Sync -->
+    <string name="library_force_sync">Synchroniser la bibliothèque maintenant</string>
+    <string name="library_syncing">Synchronisation de la bibliothèque…</string>
+    <string name="library_sync_done">La bibliothèque a été synchronisée avec succès</string>
+    <string name="library_sync_error">Échec de la synchronisation — appuyez ici pour réessayer</string>
 </resources>
