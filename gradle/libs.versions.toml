@@ -43,6 +43,7 @@ work = "2.10.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 innertubex = "v0.2.6"
+expressivelab = "v1.0.0"
 
 [libraries]
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
@@ -136,6 +137,7 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
+expressivelab = { module = "com.github.mohdamaan1:JustForPixel-ExpressiveLab", version.ref = "expressivelab" }
 
 
 [plugins]

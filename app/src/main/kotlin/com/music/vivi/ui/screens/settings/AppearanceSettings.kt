@@ -120,6 +120,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.component.WavySlider
+import com.ermohdamaan.justforpixel.justforpixelexpressivelab.core.components.sliders.ExpressiveWavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.backToMain
@@ -1050,6 +1051,48 @@ fun AppearanceSettings(
                         )
                     }
                 }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(
+                                1.dp,
+                                if (sliderStyle == SliderStyle.EXPRESSIVE) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .clickable {
+                                onSliderStyleChange(SliderStyle.EXPRESSIVE)
+                                onSquigglySliderChange(false)
+                                showSliderOptionDialog = false
+                            }
+                            .padding(12.dp)
+                    ) {
+                        val sliderValue = 0.5f
+                        ExpressiveWavySlider(
+                            value = { sliderValue },
+                            valueRange = 0f..1f,
+                            onValueChange = { /* preview only */ },
+                            modifier = Modifier.weight(1f),
+                            enabled = false,
+                            isPlaying = true,
+                            activeTrackColor = sliderPreviewColors.activeTrackColor,
+                            thumbColor = sliderPreviewColors.thumbColor,
+                        )
+                        Text(
+                            text = stringResource(R.string.expressive_wavy),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
     }
@@ -1449,6 +1492,7 @@ fun AppearanceSettings(
                                     R.string.wavy
                                 )
                                 SliderStyle.SLIM -> stringResource(R.string.slim)
+                                SliderStyle.EXPRESSIVE -> stringResource(R.string.expressive_wavy)
                             }
                         )
                     },

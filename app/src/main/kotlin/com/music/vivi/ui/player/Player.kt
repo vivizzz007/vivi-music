@@ -216,6 +216,7 @@ import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import com.ermohdamaan.justforpixel.justforpixelexpressivelab.core.components.sliders.ExpressiveWavySlider
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.max
@@ -1968,6 +1969,37 @@ fun BottomSheetPlayer(
                                 )
                             )
                         },
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                    )
+                }
+
+                SliderStyle.EXPRESSIVE -> {
+                    ExpressiveWavySlider(
+                        value = { (sliderPosition ?: effectivePosition).toFloat() },
+                        onValueChange = {
+                            if (!isListenTogetherGuest) {
+                                sliderPosition = it.toLong()
+                            }
+                        },
+                        onValueChangeFinished = {
+                            if (!isListenTogetherGuest) {
+                                sliderPosition?.let {
+                                    if (isCasting) {
+                                        castHandler?.seekTo(it)
+                                        lastManualSeekTime = System.currentTimeMillis()
+                                    } else {
+                                        playerConnection.player.seekTo(it)
+                                    }
+                                    position = it
+                                }
+                                sliderPosition = null
+                            }
+                        },
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        enabled = !isListenTogetherGuest,
+                        isPlaying = effectiveIsPlaying,
+                        activeTrackColor = textButtonColor,
+                        thumbColor = textButtonColor,
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
                     )
                 }

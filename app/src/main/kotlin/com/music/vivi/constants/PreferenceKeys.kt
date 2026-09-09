@@ -90,7 +90,8 @@ val LastSeenStarPromptVersionKey = stringPreferencesKey("lastSeenStarPromptVersi
 enum class SliderStyle {
     DEFAULT,
     WAVY,
-    SLIM
+    SLIM,
+    EXPRESSIVE
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"

@@ -298,6 +298,7 @@ dependencies {
     implementation(project(":lyricsProvider"))
 
     implementation(libs.innertubex)
+    implementation(libs.expressivelab)
 
 
 
