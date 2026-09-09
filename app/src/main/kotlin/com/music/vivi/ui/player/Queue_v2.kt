@@ -456,8 +456,10 @@ fun QueueV2(
                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clickable(enabled = !isGuest) {
-                                                    playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                                    playerConnection.player.playWhenReady = true
+                                                    if (!playerConnection.service.manualSeekToIndexWithCrossfade(window.firstPeriodIndex)) {
+                                                        playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                        playerConnection.player.playWhenReady = true
+                                                    }
                                                 }
                         )
                     }
