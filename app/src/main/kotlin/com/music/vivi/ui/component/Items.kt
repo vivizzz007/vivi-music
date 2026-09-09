@@ -1166,6 +1166,7 @@ fun YouTubeListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     isSwipeable: Boolean = true,
+    isLyricsMatch: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
@@ -1176,6 +1177,9 @@ fun YouTubeListItem(
             if (item is AlbumItem) value = database.album(item.id).firstOrNull()
         }
 
+        if (isLyricsMatch) {
+            Icon.LyricsMatch()
+        }
         if ((item is SongItem && song?.song?.liked == true) ||
             (item is AlbumItem && album?.album?.bookmarkedAt != null)
         ) {
@@ -1996,5 +2000,31 @@ object Icon {
                 .size(18.dp)
                 .padding(end = 2.dp)
         )
+    }
+
+    @Composable
+    fun LyricsMatch() {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
+                .padding(horizontal = 4.dp, vertical = 1.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.lyrics),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(12.dp)
+            )
+            Spacer(Modifier.width(2.dp))
+            Text(
+                text = stringResource(R.string.lyrics_match),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
     }
 }

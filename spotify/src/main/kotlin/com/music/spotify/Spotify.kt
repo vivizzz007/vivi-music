@@ -450,11 +450,84 @@ object Spotify {
         )
     }
 
+    private fun parseWebApiTrack(trackObj: JsonObject): SpotifyTrack {
+        val id = trackObj.str("id") ?: ""
+        val name = trackObj.str("name") ?: ""
+        val uri = trackObj.str("uri") ?: if (id.isNotEmpty()) "spotify:track:$id" else null
+        val durationMs = trackObj.int("duration_ms") ?: 0
+
+        val artists = trackObj.arr("artists")?.mapNotNull { elem ->
+            val artObj = elem.jsonObject
+            SpotifySimpleArtist(
+                id = artObj.str("id"),
+                name = artObj.str("name") ?: "",
+                uri = artObj.str("uri"),
+            )
+        } ?: emptyList()
+
+        val albumObj = trackObj.obj("album")
+        val album = if (albumObj != null) {
+            val albumId = albumObj.str("id") ?: ""
+            SpotifySimpleAlbum(
+                id = albumId,
+                name = albumObj.str("name") ?: "",
+                images = parseGqlImages(albumObj.arr("images")),
+                uri = albumObj.str("uri"),
+            )
+        } else null
+
+        return SpotifyTrack(
+            id = id,
+            name = name,
+            artists = artists,
+            album = album,
+            durationMs = durationMs,
+            uri = uri,
+        )
+    }
+
     suspend fun playlistTracks(
         playlistId: String,
         limit: Int = 100,
         offset: Int = 0,
     ): Result<SpotifyPaging<SpotifyPlaylistTrack>> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+
+        // 1. Try official Spotify Web API first (fast, reliable, no GraphQL hash dependency)
+        val webApiResult = runCatching {
+            checkRateLimitCooldown()
+            val response = gqlClient.get("https://api.spotify.com/v1/playlists/$playlistId/tracks") {
+                header("Authorization", "Bearer $token")
+                parameter("limit", limit)
+                parameter("offset", offset)
+            }
+            if (response.status.value in 200..299) {
+                val respJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val totalCount = respJson.int("total") ?: 0
+                val tracks = respJson.arr("items")?.mapNotNull { elem ->
+                    val itemObj = elem.jsonObject
+                    val trackObj = itemObj.obj("track") ?: return@mapNotNull null
+                    val trackId = trackObj.str("id")
+                    if (trackId.isNullOrEmpty() && trackObj.str("name").isNullOrEmpty()) return@mapNotNull null
+                    SpotifyPlaylistTrack(
+                        track = parseWebApiTrack(trackObj),
+                        uid = itemObj.str("added_at"),
+                    )
+                } ?: emptyList()
+                SpotifyPaging(
+                    items = tracks,
+                    total = totalCount,
+                    limit = limit,
+                    offset = offset,
+                )
+            } else null
+        }.getOrNull()
+
+        if (webApiResult != null) {
+            return@runCatching webApiResult
+        }
+
+        // 2. Fallback to GraphQL fetchPlaylist
         val vars = buildJsonObject {
             put("uri", "spotify:playlist:$playlistId")
             put("offset", offset)
@@ -488,6 +561,38 @@ object Spotify {
         limit: Int = 50,
         offset: Int = 0,
     ): Result<SpotifyPaging<SpotifySavedTrack>> = runCatching {
+        val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
+
+        // 1. Try official Spotify Web API first (me/tracks)
+        val webApiResult = runCatching {
+            checkRateLimitCooldown()
+            val response = gqlClient.get("https://api.spotify.com/v1/me/tracks") {
+                header("Authorization", "Bearer $token")
+                parameter("limit", limit)
+                parameter("offset", offset)
+            }
+            if (response.status.value in 200..299) {
+                val respJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                val totalCount = respJson.int("total") ?: 0
+                val savedTracks = respJson.arr("items")?.mapNotNull { elem ->
+                    val itemObj = elem.jsonObject
+                    val trackObj = itemObj.obj("track") ?: return@mapNotNull null
+                    SpotifySavedTrack(track = parseWebApiTrack(trackObj))
+                } ?: emptyList()
+                SpotifyPaging(
+                    items = savedTracks,
+                    total = totalCount,
+                    limit = limit,
+                    offset = offset,
+                )
+            } else null
+        }.getOrNull()
+
+        if (webApiResult != null) {
+            return@runCatching webApiResult
+        }
+
+        // 2. Fallback to GraphQL fetchLibraryTracks
         val vars = buildJsonObject {
             put("offset", offset)
             put("limit", limit)

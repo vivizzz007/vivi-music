@@ -2844,6 +2844,7 @@ class MusicService :
         retryJob?.cancel()
         retryJob = scope.launch {
             performAggressiveCacheClear(mediaId)
+            runCatching { InnerTubeXPlayer.refreshAfterStreamRejection() }
             delay(RETRY_DELAY_MS)
 
             val currentPosition = player.currentPosition

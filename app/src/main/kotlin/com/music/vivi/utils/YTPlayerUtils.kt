@@ -335,18 +335,87 @@ object YTPlayerUtils {
         // ── End JioSaavn intercept ───────────────────────────────────────────
 
         val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager, contentHints)
-        
-        if (firstAttempt.isFailure && YouTube.cookie == null) {
+        if (firstAttempt.isSuccess) {
+            BotDetectionMitigator.notifyPlaybackSuccess()
+            return firstAttempt
+        }
+
+        if (YouTube.cookie == null) {
             Timber.tag(TAG).w("Playback failed for guest. Rotating session and retrying...")
             PlaybackLogManager.log(PlaybackLogLevel.BOT, "Playback failed for guest", "Triggering bot detection mitigation (rotating guest session)")
             BotDetectionMitigator.rotateGuestSession()
             val retryResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager, contentHints)
-            retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
-            return retryResult
+            if (retryResult.isSuccess) {
+                BotDetectionMitigator.notifyPlaybackSuccess()
+                return retryResult
+            }
         }
-        
-        firstAttempt.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+
+        // InnerTubeX failed — fall back to smart YouTube player waterfall
+        Timber.tag(TAG).w("InnerTubeX resolution failed for $videoId, trying waterfall fallback...")
+        val fallbackResult = fallbackFromYouTubeWaterfall(videoId, playlistId, audioQuality, connectivityManager)
+        if (fallbackResult.isSuccess) {
+            Timber.tag(TAG).i("Waterfall fallback succeeded for $videoId")
+            BotDetectionMitigator.notifyPlaybackSuccess()
+            return fallbackResult
+        }
+
         return firstAttempt
+    }
+
+    private suspend fun fallbackFromYouTubeWaterfall(
+        videoId: String,
+        playlistId: String?,
+        audioQuality: AudioQuality,
+        connectivityManager: ConnectivityManager,
+    ): Result<InnerTubeXPlayer.PlaybackData> = runCatching {
+        Timber.tag(TAG).i("Attempting YouTube.playerWithFallback for videoId=$videoId")
+        val isLoggedIn = YouTube.cookie != null
+        val playerResponse = YouTube.playerWithFallback(videoId, playlistId, isLoggedIn = isLoggedIn)
+            .getOrThrow()
+
+        val streamingData = playerResponse.streamingData
+            ?: throw IllegalStateException("StreamingData is null for videoId=$videoId")
+
+        val audioFormats = (streamingData.adaptiveFormats.orEmpty().filter { it.mimeType.startsWith("audio/") }
+            .ifEmpty { streamingData.adaptiveFormats.orEmpty() }
+            .ifEmpty { streamingData.formats.orEmpty() })
+            .filter { !it.url.isNullOrEmpty() }
+
+        if (audioFormats.isEmpty()) {
+            throw IllegalStateException("No audio formats with valid stream URLs found for videoId=$videoId")
+        }
+
+        val selectedFormat = when (audioQuality) {
+            AudioQuality.HIGH -> audioFormats.maxByOrNull { it.bitrate } ?: audioFormats.first()
+            AudioQuality.LOW -> audioFormats.minByOrNull { it.bitrate } ?: audioFormats.first()
+            AudioQuality.AUTO -> {
+                if (connectivityManager.isActiveNetworkMetered) {
+                    audioFormats.minByOrNull { it.bitrate } ?: audioFormats.first()
+                } else {
+                    audioFormats.find { it.itag == 251 || it.itag == 140 }
+                        ?: audioFormats.maxByOrNull { it.bitrate }
+                        ?: audioFormats.first()
+                }
+            }
+        }
+
+        val streamUrl = requireNotNull(selectedFormat.url) { "Stream URL is null for format ${selectedFormat.itag}" }
+
+        InnerTubeXPlayer.PlaybackData(
+            audioConfig = playerResponse.playerConfig?.audioConfig,
+            videoDetails = playerResponse.videoDetails,
+            playbackTracking = playerResponse.playbackTracking,
+            format = selectedFormat,
+            streamUrl = streamUrl,
+            streamExpiresInSeconds = 21600,
+            streamClient = "WATERFALL_FALLBACK",
+            streamHeaders = emptyMap(),
+            requireBoundedRange = false,
+            rangeChunkSizeBytes = 0L,
+            useRangeChunks = false,
+            isSaavnStream = false,
+        )
     }
 
     private suspend fun resolvePlaybackData(
@@ -390,5 +459,9 @@ object YTPlayerUtils {
 
     fun forceRefreshForVideo(videoId: String) {
         Timber.tag(logTag).d("Force refreshing for videoId: $videoId")
+        InnerTubeXPlayer.markWebRemixFailed(videoId)
+        kotlinx.coroutines.runBlocking {
+            runCatching { BotDetectionMitigator.rotateGuestSession() }
+        }
     }
 }

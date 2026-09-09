@@ -70,6 +70,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.SuggestionItemHeight
 import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.RecentSearchGridItem
 import com.music.vivi.ui.component.YouTubeListItem
@@ -85,6 +86,7 @@ import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
+import com.music.vivi.viewmodels.SearchFilterOption
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collectLatest
@@ -274,8 +276,9 @@ fun OnlineSearchScreen(
                 online = false,
                 shape = getGroupedShape(index, viewState.history.size),
                 onClick = {
+                    onQueryChange(TextFieldValue(history.query, TextRange(history.query.length)))
+                    viewModel.submitSearch(history.query)
                     onSearch(history.query)
-                    onDismiss()
                 },
                 onDelete = {
                     database.query {
@@ -290,10 +293,30 @@ fun OnlineSearchScreen(
             )
         }
 
+        if (query.isNotEmpty() && (viewState.isSearchSubmitted || viewState.selectedFilter != SearchFilterOption.SONGS)) {
+            item(key = "search_filter_chips") {
+                ChipsRow(
+                    chips = listOf(
+                        SearchFilterOption.SONGS to stringResource(R.string.filter_songs),
+                        SearchFilterOption.ARTISTS to stringResource(R.string.filter_artists),
+                        SearchFilterOption.ALBUMS to stringResource(R.string.filter_albums),
+                        SearchFilterOption.BY_LYRICS to stringResource(R.string.filter_by_lyrics),
+                    ),
+                    currentValue = viewState.selectedFilter,
+                    onValueUpdate = { viewModel.setFilter(it) },
+                    modifier = Modifier.padding(bottom = 8.dp).animateItem()
+                )
+            }
+        }
+
         if (viewState.items.isNotEmpty()) {
             item(key = "search_divider") {
                 Text(
-                    text = stringResource(if (viewState.isFromLink) R.string.parsed_from_link else R.string.top_result),
+                    text = when (viewState.selectedFilter) {
+                        SearchFilterOption.ARTISTS -> stringResource(R.string.filter_artists)
+                        SearchFilterOption.ALBUMS -> stringResource(R.string.filter_albums)
+                        else -> stringResource(if (viewState.isFromLink) R.string.parsed_from_link else R.string.top_result)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -314,6 +337,7 @@ fun OnlineSearchScreen(
                     else -> false
                 },
                 isPlaying = isPlaying,
+                isLyricsMatch = viewState.lyricsMatchedSongIds.contains(item.id),
                 shape = listItemShape(index, viewState.items.size),
                 trailingContent = {
                     IconButton(
@@ -447,7 +471,10 @@ fun OnlineSearchScreen(
         if (viewState.songs.isNotEmpty()) {
             item(key = "songs_header") {
                 Text(
-                    text = stringResource(R.string.filter_songs),
+                    text = when (viewState.selectedFilter) {
+                        SearchFilterOption.BY_LYRICS -> stringResource(R.string.filter_by_lyrics)
+                        else -> stringResource(R.string.filter_songs)
+                    },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
@@ -464,6 +491,7 @@ fun OnlineSearchScreen(
                 item = item,
                 isActive = mediaMetadata?.id == item.id,
                 isPlaying = isPlaying,
+                isLyricsMatch = viewState.lyricsMatchedSongIds.contains(item.id),
                 shape = listItemShape(index, viewState.songs.size),
                 trailingContent = {
                     IconButton(
@@ -553,6 +581,7 @@ fun OnlineSearchScreen(
                 shape = getGroupedShape(index, viewState.suggestions.size),
                 onClick = {
                     onQueryChange(TextFieldValue(query, TextRange(query.length)))
+                    viewModel.submitSearch(query)
                     onSearch(query)
                 },
                 onFillTextField = {

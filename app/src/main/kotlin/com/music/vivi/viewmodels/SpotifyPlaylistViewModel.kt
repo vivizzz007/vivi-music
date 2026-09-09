@@ -28,6 +28,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.music.vivi.constants.SpotifySessionKey
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
 import javax.inject.Inject
 
 data class SpotifyPlaylistUiState(
@@ -64,57 +70,107 @@ class SpotifyPlaylistViewModel @Inject constructor(
         loadPlaylist()
     }
 
+    private val json = Json {
+        isLenient = true
+        ignoreUnknownKeys = true
+    }
+
+    private suspend fun ensureAuthenticated(forceRefresh: Boolean = false): Boolean {
+        val prefs = context.dataStore.data.first()
+        val sessionJson = prefs[SpotifySessionKey] ?: return false
+        val session = runCatching { json.decodeFromString<SpotifySession>(sessionJson) }.getOrNull() ?: return false
+        if (!forceRefresh && session.accessToken != null && session.expiresAt > System.currentTimeMillis() + 60_000L) {
+            Spotify.accessToken = session.accessToken
+            return true
+        }
+        return try {
+            val token = com.music.spotify.SpotifyAuth.fetchAccessToken(session.spDc, session.spKey.orEmpty()).getOrThrow()
+            Spotify.accessToken = token.accessToken
+            val updated = session.copy(
+                accessToken = token.accessToken,
+                expiresAt = token.accessTokenExpirationTimestampMs
+            )
+            context.dataStore.edit { p ->
+                p[SpotifySessionKey] = json.encodeToString(updated)
+            }
+            true
+        } catch (e: Exception) {
+            timber.log.Timber.e(e, "Failed to authenticate Spotify session")
+            false
+        }
+    }
+
+    private suspend fun fetchPlaylistContent() {
+        if (isLikedSongs) {
+            val firstPage = Spotify.likedSongs(limit = 50, offset = 0).getOrThrow()
+            val allTracks = firstPage.items.map { it.track }.toMutableList()
+            val total = firstPage.total
+
+            // Fetch next batch if available to have up to 100 songs ready
+            if (total > 50) {
+                val secondPage = Spotify.likedSongs(limit = 50, offset = 50).getOrNull()
+                if (secondPage != null) {
+                    allTracks.addAll(secondPage.items.map { it.track })
+                }
+            }
+
+            _uiState.update {
+                it.copy(
+                    title = context.getString(R.string.spotify_liked_songs),
+                    ownerName = "Spotify",
+                    coverUrl = null,
+                    totalTracks = total,
+                    tracks = allTracks,
+                    isLoading = false,
+                    error = null,
+                )
+            }
+        } else {
+            val playlistResult = Spotify.playlist(playlistId).getOrNull()
+            val tracksResult = Spotify.playlistTracks(playlistId, limit = 100, offset = 0).getOrThrow()
+            val fetchedTracks = tracksResult.items.mapNotNull { it.track }
+
+            val title = playlistResult?.name?.takeIf { it.isNotBlank() } ?: "Playlist"
+            val cover = playlistResult?.let { SpotifyMapper.getPlaylistThumbnail(it) }
+            val owner = playlistResult?.owner?.displayName
+            val total = playlistResult?.tracks?.total ?: tracksResult.total
+
+            _uiState.update {
+                it.copy(
+                    title = title,
+                    coverUrl = cover,
+                    ownerName = owner,
+                    totalTracks = total,
+                    tracks = fetchedTracks,
+                    isLoading = false,
+                    error = null,
+                )
+            }
+        }
+    }
+
     fun loadPlaylist() {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                if (isLikedSongs) {
-                    val firstPage = Spotify.likedSongs(limit = 50, offset = 0).getOrThrow()
-                    val allTracks = firstPage.items.map { it.track }.toMutableList()
-                    val total = firstPage.total
-
-                    // Fetch next batch if available to have up to 100 songs ready
-                    if (total > 50) {
-                        val secondPage = Spotify.likedSongs(limit = 50, offset = 50).getOrNull()
-                        if (secondPage != null) {
-                            allTracks.addAll(secondPage.items.map { it.track })
+                ensureAuthenticated()
+                fetchPlaylistContent()
+            } catch (e: Exception) {
+                if (e is Spotify.SpotifyException && e.statusCode == 401) {
+                    val refreshed = ensureAuthenticated(forceRefresh = true)
+                    if (refreshed) {
+                        try {
+                            fetchPlaylistContent()
+                            return@launch
+                        } catch (e2: Exception) {
+                            reportException(e2)
+                            _uiState.update {
+                                it.copy(isLoading = false, error = e2.message ?: "Failed to load Spotify playlist")
+                            }
+                            return@launch
                         }
                     }
-
-                    _uiState.update {
-                        it.copy(
-                            title = context.getString(R.string.spotify_liked_songs),
-                            ownerName = "Spotify",
-                            coverUrl = null,
-                            totalTracks = total,
-                            tracks = allTracks,
-                            isLoading = false,
-                            error = null,
-                        )
-                    }
-                } else {
-                    val playlistResult = Spotify.playlist(playlistId).getOrNull()
-                    val tracksResult = Spotify.playlistTracks(playlistId, limit = 100, offset = 0).getOrThrow()
-                    val fetchedTracks = tracksResult.items.mapNotNull { it.track }
-
-                    val title = playlistResult?.name?.takeIf { it.isNotBlank() } ?: "Playlist"
-                    val cover = playlistResult?.let { SpotifyMapper.getPlaylistThumbnail(it) }
-                    val owner = playlistResult?.owner?.displayName
-                    val total = playlistResult?.tracks?.total ?: tracksResult.total
-
-                    _uiState.update {
-                        it.copy(
-                            title = title,
-                            coverUrl = cover,
-                            ownerName = owner,
-                            totalTracks = total,
-                            tracks = fetchedTracks,
-                            isLoading = false,
-                            error = null,
-                        )
-                    }
                 }
-            } catch (e: Exception) {
                 reportException(e)
                 _uiState.update {
                     it.copy(
@@ -134,6 +190,7 @@ class SpotifyPlaylistViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoadingMore = true) }
             try {
+                ensureAuthenticated()
                 val offset = currentTracks.size
                 val newTracks = if (isLikedSongs) {
                     val page = Spotify.likedSongs(limit = 50, offset = offset).getOrThrow()

@@ -307,118 +307,60 @@ fun QueueV2(
                 ) {
                     val isActive = window.uid == currentPlayingUid
 
-                    @OptIn(ExperimentalMaterial3Api::class)
-                    val dismissBoxState = rememberSwipeToDismissBoxState(
-                        positionalThreshold = { totalDistance -> totalDistance }
-                    )
-                    var processedDismiss by remember { mutableStateOf(false) }
-
-                    LaunchedEffect(dismissBoxState.currentValue) {
-                        val dv = dismissBoxState.currentValue
-                        if (!processedDismiss && (dv == SwipeToDismissBoxValue.StartToEnd || dv == SwipeToDismissBoxValue.EndToStart)) {
-                            processedDismiss = true
-                            playerConnection.player.removeMediaItem(window.firstPeriodIndex)
-                        }
-                        if (dv == SwipeToDismissBoxValue.Settled) {
-                            processedDismiss = false
-                        }
-                    }
-
-                    val content: @Composable () -> Unit = {
-                        MediaMetadataListItem(
-                            mediaMetadata = window.mediaItem.metadata!!,
-                            isSelected = false,
-                            isActive = isActive,
-                            isPlaying = isPlaying && isActive,
-                            backgroundColor = Color.Transparent,
-                            subtitleColor = adaptiveSecondary,
-                            trailingContent = {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                QueueMenu(
-                                                    mediaMetadata = window.mediaItem.metadata!!,
-                                                    navController = navController,
-                                                    playerBottomSheetState = playerBottomSheetState,
-                                                    onShowDetailsDialog = {
-                                                        window.mediaItem.mediaId.let {
-                                                            bottomSheetPageState.show {
-                                                                ShowMediaInfo(it)
-                                                            }
+                    MediaMetadataListItem(
+                        mediaMetadata = window.mediaItem.metadata!!,
+                        isSelected = false,
+                        isActive = isActive,
+                        isPlaying = isPlaying && isActive,
+                        backgroundColor = Color.Transparent,
+                        subtitleColor = adaptiveSecondary,
+                        trailingContent = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            QueueMenu(
+                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                navController = navController,
+                                                playerBottomSheetState = playerBottomSheetState,
+                                                onShowDetailsDialog = {
+                                                    window.mediaItem.mediaId.let {
+                                                        bottomSheetPageState.show {
+                                                            ShowMediaInfo(it)
                                                         }
-                                                    },
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = "Options"
-                                        )
-                                    }
-                                    
-                                    if (!isQueueEffectivelyLocked) {
-                                        IconButton(
-                                            onClick = { },
-                                            modifier = Modifier.draggableHandle()
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
-                                                contentDescription = "Drag to reorder"
+                                                    }
+                                                },
+                                                onDismiss = menuState::dismiss
                                             )
                                         }
                                     }
-                                }
-                            },
-                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable(enabled = !isGuest) {
-                                                    playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                                    playerConnection.player.playWhenReady = true
-                                                }
-                        )
-                    }
-
-                    if (isQueueEffectivelyLocked) {
-                        content()
-                    } else {
-                        @OptIn(ExperimentalMaterial3Api::class)
-                        SwipeToDismissBox(
-                            state = dismissBoxState,
-                            backgroundContent = {
-                                val color by animateColorAsState(
-                                    targetValue = when (dismissBoxState.targetValue) {
-                                        SwipeToDismissBoxValue.Settled -> Color.Transparent
-                                        else -> MaterialTheme.colorScheme.error
-                                    }, label = ""
-                                )
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(vertical = 4.dp, horizontal = 16.dp)
-                                        .background(color),
-                                    contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    val iconAlpha by animateFloatAsState(
-                                        targetValue = if (dismissBoxState.targetValue != SwipeToDismissBoxValue.Settled) 1f else 0f,
-                                        label = "iconAlpha"
-                                    )
                                     Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = "Delete",
-                                        modifier = Modifier
-                                            .padding(end = 16.dp)
-                                            .alpha(iconAlpha),
-                                        tint = MaterialTheme.colorScheme.onError
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = "Options"
                                     )
                                 }
-                            },
-                            content = { content() },
-                            enableDismissFromStartToEnd = false
-                        )
-                    }
+                                
+                                if (!isQueueEffectivelyLocked) {
+                                    IconButton(
+                                        onClick = { },
+                                        modifier = Modifier.draggableHandle()
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.drag_handle),
+                                            contentDescription = "Drag to reorder"
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(enabled = !isGuest) {
+                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                playerConnection.player.playWhenReady = true
+                            }
+                    )
                 }
             }
             // end of queue

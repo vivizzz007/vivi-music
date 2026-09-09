@@ -24,10 +24,12 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -95,29 +97,66 @@ constructor(
         val deferred = fetchesMutex.withLock {
             activeFetches.getOrPut(cacheKey) {
                 helperScope.async {
-                    val providers = resolveLyricsProviders()
-                    for (provider in providers) {
-                        if (provider.isEnabled(context)) {
-                            try {
-                                val result = provider.getLyrics(
-                                    mediaMetadata.id,
-                                    mediaMetadata.title,
-                                    mediaMetadata.artists.joinToString { it.name },
-                                    mediaMetadata.duration,
-                                    mediaMetadata.album?.title,
-                                )
-                                result.onSuccess { lyrics ->
-                                    return@async LyricsWithProvider(lyrics, provider.name)
-                                }.onFailure {
-                                    reportException(it)
-                                }
-                            } catch (e: Exception) {
-                                // Catch network-related exceptions like UnresolvedAddressException
-                                reportException(e)
+                    val providers = resolveLyricsProviders().filter { it.isEnabled(context) }
+                    if (providers.isEmpty()) {
+                        return@async LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+                    }
+
+                    coroutineScope {
+                        val deferreds = providers.map { provider ->
+                            provider to async {
+                                runCatching {
+                                    withTimeoutOrNull(3500L) {
+                                        val result = provider.getLyrics(
+                                            mediaMetadata.id,
+                                            mediaMetadata.title,
+                                            mediaMetadata.artists.joinToString { it.name },
+                                            mediaMetadata.duration,
+                                            mediaMetadata.album?.title,
+                                        )
+                                        result.getOrNull()
+                                    }
+                                }.getOrNull()
                             }
                         }
+
+                        // Give the primary (top priority) provider a 1.2s window to return
+                        val topProviderPair = deferreds.firstOrNull()
+                        if (topProviderPair != null) {
+                            val topLyrics = withTimeoutOrNull(1200L) {
+                                topProviderPair.second.await()
+                            }
+                            if (!topLyrics.isNullOrBlank() && topLyrics != LYRICS_NOT_FOUND) {
+                                val res = LyricsWithProvider(topLyrics, topProviderPair.first.name)
+                                cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                                return@coroutineScope res
+                            }
+                        }
+
+                        // If primary provider wasn't fast enough, check if any other provider already finished
+                        for ((provider, def) in deferreds) {
+                            if (def.isCompleted) {
+                                val lyrics = def.getCompleted()
+                                if (!lyrics.isNullOrBlank() && lyrics != LYRICS_NOT_FOUND) {
+                                    val res = LyricsWithProvider(lyrics, provider.name)
+                                    cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                                    return@coroutineScope res
+                                }
+                            }
+                        }
+
+                        // Otherwise await remaining providers in priority order
+                        for ((provider, def) in deferreds) {
+                            val lyrics = withTimeoutOrNull(2300L) { def.await() }
+                            if (!lyrics.isNullOrBlank() && lyrics != LYRICS_NOT_FOUND) {
+                                val res = LyricsWithProvider(lyrics, provider.name)
+                                cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                                return@coroutineScope res
+                            }
+                        }
+
+                        LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
                     }
-                    LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
                 }
             }
         }
@@ -163,24 +202,26 @@ constructor(
             return
         }
 
-        val allResult = mutableListOf<LyricsResult>()
-        val providers = resolveLyricsProviders()
-        currentLyricsJob = CoroutineScope(SupervisorJob()).launch {
-            providers.forEach { provider ->
-                if (provider.isEnabled(context)) {
-                    try {
-                        provider.getAllLyrics(mediaId, songTitle, songArtists, duration, album) { lyrics ->
-                            val result = LyricsResult(provider.name, lyrics)
-                            allResult += result
-                            callback(result)
+        val allResult = java.util.Collections.synchronizedList(mutableListOf<LyricsResult>())
+        val providers = resolveLyricsProviders().filter { it.isEnabled(context) }
+        currentLyricsJob = CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            coroutineScope {
+                providers.forEach { provider ->
+                    launch {
+                        try {
+                            provider.getAllLyrics(mediaId, songTitle, songArtists, duration, album) { lyrics ->
+                                val result = LyricsResult(provider.name, lyrics)
+                                allResult += result
+                                callback(result)
+                            }
+                        } catch (e: Exception) {
+                            // Catch network-related exceptions like UnresolvedAddressException
+                            reportException(e)
                         }
-                    } catch (e: Exception) {
-                        // Catch network-related exceptions like UnresolvedAddressException
-                        reportException(e)
                     }
                 }
             }
-            cache.put(cacheKey, allResult)
+            cache.put(cacheKey, allResult.toList())
         }
 
         currentLyricsJob?.join()
@@ -192,7 +233,7 @@ constructor(
     }
 
     companion object {
-        private const val MAX_CACHE_SIZE = 3
+        private const val MAX_CACHE_SIZE = 150
     }
 }
 

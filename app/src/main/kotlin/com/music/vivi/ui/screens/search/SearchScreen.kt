@@ -92,16 +92,17 @@ import java.net.URLEncoder
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
-
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.music.vivi.viewmodels.OnlineSearchSuggestionViewModel
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
-    pureBlack: Boolean
+    pureBlack: Boolean,
+    onlineSearchViewModel: OnlineSearchSuggestionViewModel = hiltViewModel(),
 ) {
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
@@ -212,8 +213,14 @@ fun SearchScreen(
         topBar = {
             SearchBar(
                     query = query.text,
-                    onQueryChange = { query = TextFieldValue(it) },
+                    onQueryChange = { 
+                        query = TextFieldValue(it)
+                        if (it.isEmpty()) {
+                            onlineSearchViewModel.isSearchSubmitted.value = false
+                        }
+                    },
                     onSearch = { 
+                        onlineSearchViewModel.submitSearch(it)
                         onSearch(it)
                         keyboardController?.hide()
                         focusManager.clearFocus()
@@ -234,6 +241,7 @@ fun SearchScreen(
                             if (searchActive) {
                                 searchActive = false
                                 query = TextFieldValue("") // Clear text when dismissing search
+                                onlineSearchViewModel.isSearchSubmitted.value = false
                             } else {
                                 searchActive = true // Focus search instead of navigating back
                             }
@@ -248,7 +256,10 @@ fun SearchScreen(
                     trailingIcon = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (query.text.isNotEmpty()) {
-                                IconButton(onClick = { query = TextFieldValue("") }) {
+                                IconButton(onClick = { 
+                                    query = TextFieldValue("") 
+                                    onlineSearchViewModel.isSearchSubmitted.value = false
+                                }) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),
                                         contentDescription = null,
@@ -295,12 +306,14 @@ fun SearchScreen(
                             onQueryChange = { query = it },
                             navController = navController,
                             onSearch = {
+                                onlineSearchViewModel.submitSearch(it)
                                 onSearchFromSuggestion(it)
                                 keyboardController?.hide()
                                 focusManager.clearFocus()
                             },
                             onDismiss = { searchActive = false },
-                            pureBlack = pureBlack
+                            pureBlack = pureBlack,
+                            viewModel = onlineSearchViewModel,
                         )
                     }
                 }
