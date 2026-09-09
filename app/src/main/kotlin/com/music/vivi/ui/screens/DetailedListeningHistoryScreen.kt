@@ -221,7 +221,7 @@ fun DetailedListeningHistoryScreen(
                 }
             }
             
-            item { Spacer(modifier = Modifier.height(32.dp)) }
+            item { Spacer(modifier = Modifier.height(60.dp)) }
         }
     }
 }
