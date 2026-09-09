@@ -62,7 +62,6 @@ import com.music.vivi.ui.screens.settings.AccountSettingsScreen
 import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
-import com.music.vivi.ui.screens.settings.DataSaverSetting
 import com.music.vivi.ui.screens.settings.ThemeScreen
 import com.music.vivi.ui.screens.settings.AiSettings
 import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
@@ -382,10 +381,6 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/player/canvas") {
         CanvasSelection(navController, scrollBehavior)
-    }
-
-    composable("settings/datasaver") {
-        DataSaverSetting(navController, scrollBehavior)
     }
 
     composable("settings/appearance/font") {

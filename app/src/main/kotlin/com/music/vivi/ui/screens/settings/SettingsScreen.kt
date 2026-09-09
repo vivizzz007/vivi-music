@@ -212,14 +212,6 @@ fun SettingsScreen(
                         onClick = { navController.navigate("settings/storage") }
                     )
                 )
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.energy_savings_leaf),
-                        title = { Text(stringResource(R.string.data_saver)) },
-                        description = { Text(stringResource(R.string.setting_data_saver_desc)) },
-                        onClick = { navController.navigate("settings/datasaver") }
-                    )
-                )
             }
         )
 
