@@ -489,6 +489,28 @@ interface DatabaseDao {
     )
     fun getUniqueAlbumCountInRange(fromTimeStamp: Long, toTimeStamp: Long): Flow<Int>
 
+    @Query("SELECT COALESCE(SUM(playTime), 0) FROM event WHERE timestamp >= :fromTimeStamp AND timestamp < :toTimeStamp")
+    fun getPlayTimeForDay(fromTimeStamp: Long, toTimeStamp: Long): Flow<Long>
+
+    @Query("SELECT COALESCE(SUM(playTime), 0) FROM event WHERE timestamp >= :fromTimeStamp AND timestamp < :toTimeStamp")
+    fun getSongsPlayTimeForDay(fromTimeStamp: Long, toTimeStamp: Long): Flow<Long>
+
+    @Query("""
+        SELECT COALESCE(SUM(e.playTime), 0)
+        FROM event e
+        JOIN song_artist_map sam ON e.songId = sam.songId
+        WHERE e.timestamp >= :fromTimeStamp AND e.timestamp < :toTimeStamp
+    """)
+    fun getArtistPlayTimeForDay(fromTimeStamp: Long, toTimeStamp: Long): Flow<Long>
+
+    @Query("""
+        SELECT COALESCE(SUM(e.playTime), 0)
+        FROM event e
+        JOIN song s ON e.songId = s.id
+        WHERE s.albumId IS NOT NULL AND e.timestamp >= :fromTimeStamp AND e.timestamp < :toTimeStamp
+    """)
+    fun getAlbumPlayTimeForDay(fromTimeStamp: Long, toTimeStamp: Long): Flow<Long>
+
     @Transaction
     @SuppressWarnings(RoomWarnings.QUERY_MISMATCH)
     @Query(

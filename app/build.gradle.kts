@@ -25,9 +25,9 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 37
-        versionCode = 75
+        versionCode = 76
         val betaVersionName = project.findProperty("betaVersionName") as String?
-        versionName = betaVersionName ?: "6.0.6"
+        versionName = betaVersionName ?: "6.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -252,6 +252,7 @@ dependencies {
     implementation(libs.material3.adaptive.navigation.suite)
     implementation(libs.palette)
     implementation(libs.materialKolor)
+    implementation(libs.vico.compose.m3)
 
     implementation(libs.appcompat)
 
@@ -298,6 +299,7 @@ dependencies {
     implementation(project(":lyricsProvider"))
 
     implementation(libs.innertubex)
+    implementation(libs.expressivelab)
 
 
 

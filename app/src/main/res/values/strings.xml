@@ -458,4 +458,6 @@
     <string name="library_syncing">Syncing library…</string>
     <string name="library_sync_done">Library synced successfully</string>
     <string name="library_sync_error">Sync failed — tap to retry</string>
+    <string name="listening_summary">Listening summary</string>
+    <string name="setting_listening_summary_desc">View your daily listening trends and historical playback analytics.</string>
 </resources>

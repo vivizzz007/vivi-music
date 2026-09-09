@@ -117,6 +117,15 @@ import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.ui.component.PlaybackLogsDialog
 import androidx.compose.runtime.collectAsState
 import java.net.Proxy
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.launch
+import com.music.vivi.utils.dataStore
+import com.music.vivi.constants.DataSaverKey
+import com.music.vivi.constants.DataSaverBackupCanvasKey
+import com.music.vivi.constants.DataSaverBackupArtistVideoKey
+import com.music.vivi.constants.DataSaverBackupArtistBgVideoKey
+import com.music.vivi.constants.DataSaverBackupAlbumCanvasKey
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,6 +135,32 @@ fun ContentSettings(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val (dataSaver, _) = rememberPreference(DataSaverKey, defaultValue = false)
+    fun toggleDataSaver(enable: Boolean) {
+        scope.launch {
+            context.dataStore.edit { prefs ->
+                if (enable) {
+                    prefs[DataSaverBackupCanvasKey]        = prefs[CanvasThumbnailAnimationKey] ?: true
+                    prefs[DataSaverBackupArtistVideoKey]   = prefs[ShowArtistVideoKey] ?: true
+                    prefs[DataSaverBackupArtistBgVideoKey] = prefs[ShowArtistBackgroundVideoKey] ?: true
+                    prefs[DataSaverBackupAlbumCanvasKey]   = prefs[AlbumCanvasEnabledKey] ?: false
+                    
+                    prefs[CanvasThumbnailAnimationKey]  = false
+                    prefs[ShowArtistVideoKey]           = false
+                    prefs[ShowArtistBackgroundVideoKey] = false
+                    prefs[AlbumCanvasEnabledKey]        = false
+                    prefs[DataSaverKey]                 = true
+                } else {
+                    prefs[CanvasThumbnailAnimationKey]  = prefs[DataSaverBackupCanvasKey] ?: true
+                    prefs[ShowArtistVideoKey]           = prefs[DataSaverBackupArtistVideoKey] ?: true
+                    prefs[ShowArtistBackgroundVideoKey] = prefs[DataSaverBackupArtistBgVideoKey] ?: true
+                    prefs[AlbumCanvasEnabledKey]        = prefs[DataSaverBackupAlbumCanvasKey] ?: false
+                    prefs[DataSaverKey]                 = false
+                }
+            }
+        }
+    }
 
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
@@ -704,6 +739,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.energy_savings_leaf),
+                    title = { Text(stringResource(R.string.data_saver)) },
+                    description = { Text(stringResource(R.string.setting_data_saver_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = dataSaver,
+                            onCheckedChange = { toggleDataSaver(it) },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (dataSaver) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { toggleDataSaver(!dataSaver) }
                 )
             )
         )

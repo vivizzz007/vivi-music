@@ -1,4 +1,5 @@
 [versions]
+vico = "3.1.0-alpha.3"
 androidGradlePlugin = "9.1.1"
 json = "20260522"
 kotlin = "2.3.10"
@@ -43,6 +44,7 @@ work = "2.10.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 innertubex = "v0.2.6"
+expressivelab = "v1.0.0"
 
 [libraries]
 haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
@@ -109,6 +111,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
@@ -136,6 +139,7 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
+expressivelab = { module = "com.github.mohdamaan1:JustForPixel-ExpressiveLab", version.ref = "expressivelab" }
 
 
 [plugins]
