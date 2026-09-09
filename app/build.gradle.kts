@@ -252,6 +252,7 @@ dependencies {
     implementation(libs.material3.adaptive.navigation.suite)
     implementation(libs.palette)
     implementation(libs.materialKolor)
+    implementation(libs.vico.compose.m3)
 
     implementation(libs.appcompat)
 

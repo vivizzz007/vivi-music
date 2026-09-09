@@ -59,6 +59,8 @@ import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.AccountSettingsScreen
+import com.music.vivi.ui.screens.ListeningSummaryScreen
+import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.DataSaverSetting
 import com.music.vivi.ui.screens.settings.ThemeScreen
@@ -354,6 +356,20 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/account") {
         AccountSettingsScreen(navController, scrollBehavior)
+    }
+    composable("settings/listening_summary") {
+        ListeningSummaryScreen(navController)
+    }
+
+    composable(
+        route = "detailed_listening_history/{startTimestamp}",
+        arguments = listOf(
+            navArgument("startTimestamp") {
+                type = NavType.StringType
+            },
+        ),
+    ) {
+        DetailedListeningHistoryScreen(navController)
     }
 
     composable("settings/appearance") {

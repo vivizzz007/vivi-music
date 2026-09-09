@@ -198,6 +198,14 @@ fun SettingsScreen(
                 )
                 add(
                     Material3SettingsItem(
+                        icon = painterResource(R.drawable.history),
+                        title = { Text(stringResource(R.string.listening_summary)) },
+                        description = { Text(stringResource(R.string.setting_listening_summary_desc)) },
+                        onClick = { navController.navigate("settings/listening_summary") }
+                    )
+                )
+                add(
+                    Material3SettingsItem(
                         icon = painterResource(R.drawable.storage),
                         title = { Text(stringResource(R.string.storage)) },
                         description = { Text(stringResource(R.string.setting_storage_desc)) },
