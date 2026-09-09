@@ -170,6 +170,15 @@ fun HistoryScreen(
         }
     }
 
+    // Re-fetch remote history whenever the active song changes (e.g. a local song starts playing)
+    // so the Remote tab stays up to date without requiring a manual toggle.
+    LaunchedEffect(mediaMetadata) {
+        if (historySource == HistorySource.REMOTE) {
+            kotlinx.coroutines.delay(500)
+            viewModel.fetchRemoteHistory()
+        }
+    }
+
     val lazyListState = rememberLazyListState()
 
     Box(Modifier.fillMaxSize()) {
