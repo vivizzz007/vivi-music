@@ -49,6 +49,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +58,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.layout.padding
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.navigation.NavController
@@ -149,7 +151,7 @@ fun HistoryScreen(
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
-
+    val keyboardController = LocalSoftwareKeyboardController.current
     fun dateAgoToString(dateAgo: DateAgo): String {
         return when (dateAgo) {
             DateAgo.Today -> context.getString(R.string.today)
@@ -181,19 +183,67 @@ fun HistoryScreen(
                 )
             )
         ) {
-            item(key = "chips_row") {
-                ChipsRow(
-                    chips = if (isLoggedIn) listOf(
-                        HistorySource.LOCAL to stringResource(R.string.local_history),
-                        HistorySource.REMOTE to stringResource(R.string.remote_history),
-                    ) else {
-                        listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
+            item(key = "search_box") {
+                TextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.search_history),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     },
-                    currentValue = historySource,
-                    onValueUpdate = {
-                        viewModel.historySource.value = it
-                        if (it == HistorySource.REMOTE){
-                            viewModel.fetchRemoteHistory()
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                        onSearch = { keyboardController?.hide() }
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .height(52.dp)
+                        .focusRequester(focusRequester),
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.search),
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        androidx.compose.foundation.layout.Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            if (query.text.isNotEmpty()) {
+                                IconButton(onClick = { query = TextFieldValue("") }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            IconButton(onClick = {
+                                val newSource = if (historySource == HistorySource.LOCAL) HistorySource.REMOTE else HistorySource.LOCAL
+                                viewModel.historySource.value = newSource
+                                if (newSource == HistorySource.REMOTE) {
+                                    viewModel.fetchRemoteHistory()
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (historySource == HistorySource.LOCAL) R.drawable.cloud_off_listentogether else R.drawable.globe_search
+                                    ),
+                                    contentDescription = null
+                                )
+                            }
                         }
                     }
                 )
@@ -430,37 +480,10 @@ fun HistoryScreen(
             }
         )
     }
-
     TopAppBar(
         title = {
             if (inSelectMode) {
                 Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
-            } else if (isSearching) {
-                TextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.search),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.titleLarge,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .focusRequester(focusRequester)
-                )
-            } else {
-                Text(stringResource(R.string.history))
             }
         },
         navigationIcon = {
@@ -524,15 +547,6 @@ fun HistoryScreen(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_vert),
-                        contentDescription = null
-                    )
-                }
-            } else if (!isSearching) {
-                IconButton(
-                    onClick = { isSearching = true }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.search),
                         contentDescription = null
                     )
                 }
