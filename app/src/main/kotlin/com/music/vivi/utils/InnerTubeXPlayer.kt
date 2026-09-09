@@ -298,13 +298,9 @@ object InnerTubeXPlayer {
         when (this) {
             AudioQuality.HIGH -> InnerTubeXAudioQuality.HIGH
             AudioQuality.LOW -> InnerTubeXAudioQuality.LOW
-            AudioQuality.AUTO ->
-                if (connectivityManager.isActiveNetworkMetered) {
-                    InnerTubeXAudioQuality.LOW
-                } else {
-                    InnerTubeXAudioQuality.AUTO
-                }
+            AudioQuality.AUTO -> InnerTubeXAudioQuality.AUTO
         }
+
 
     private fun ExtractedStream.toPlaybackData(): PlaybackData {
         val metadata = mediaMetadata
