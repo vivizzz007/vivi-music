@@ -5,11 +5,6 @@
 
 package com.music.vivi.ui.screens.library
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,13 +12,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,7 +29,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -61,7 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -73,7 +63,6 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil3.compose.AsyncImage
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -114,7 +103,6 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.LibraryMixViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.time.LocalDateTime
@@ -293,106 +281,65 @@ fun LibraryMixScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .padding(6.dp)
+                                    .padding(horizontal = 6.dp, vertical = 6.dp)
                                     .fillMaxWidth()
-                                    .height(110.dp) // Much larger card size
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                    .clickable { navController.navigate("auto_playlist/liked") }
+                                    .height(80.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                    .clickable(onClick = { navController.navigate("auto_playlist/liked") })
                             ) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(8.dp),
+                                        .padding(horizontal = 16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(start = 12.dp),
-                                        verticalArrangement = Arrangement.Center
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Box(
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.primaryContainer),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.favorite),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(12.dp))
-                                        androidx.compose.material3.Text(
-                                            text = stringResource(R.string.liked),
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-                                            ),
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-
-                                    // The large rectangle image inside the large rectangle card!
-                                    if (recentLikedThumbnails.isNotEmpty()) {
-                                        var currentIndex by remember(recentLikedThumbnails) { mutableStateOf(0) }
-                                        LaunchedEffect(recentLikedThumbnails) {
-                                            if (recentLikedThumbnails.size > 1) {
-                                                while (true) {
-                                                    delay(3500L)
-                                                    currentIndex = (currentIndex + 1) % recentLikedThumbnails.size
-                                                }
-                                            }
-                                        }
-
-                                        val currentUrl = recentLikedThumbnails.getOrNull(currentIndex)
-                                        AnimatedContent(
-                                            targetState = currentUrl,
-                                            label = "likedImageAnimation",
-                                            transitionSpec = {
-                                                fadeIn(
-                                                    animationSpec = tween(800)
-                                                ).togetherWith(
-                                                    fadeOut(
-                                                        animationSpec = tween(800)
-                                                    )
-                                                )
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxHeight()
-                                                .weight(1f)
-                                                .padding(start = 16.dp) // Spacing from the text/icon column
-                                        ) { url ->
-                                            if (url != null) {
-                                                AsyncImage(
-                                                    model = url,
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                )
-                                            }
-                                        }
-                                    } else {
-                                        // Fallback placeholder box when no liked songs are available!
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxHeight()
-                                                .weight(1f)
-                                                .padding(start = 16.dp)
-                                                .clip(RoundedCornerShape(12.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                                                .clip(MaterialShapes.Cookie4Sided.toShape())
+                                                .background(MaterialTheme.colorScheme.primary),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.favorite_border),
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                                modifier = Modifier.size(36.dp)
+                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                modifier = Modifier.size(24.dp)
                                             )
+                                        }
+                                        Spacer(modifier = Modifier.size(16.dp))
+                                        androidx.compose.foundation.layout.Column {
+                                            androidx.compose.material3.Text(
+                                                text = stringResource(R.string.liked),
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                                                ),
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+
+                                    if (recentLikedThumbnails.isNotEmpty()) {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy((-14).dp)
+                                        ) {
+                                            recentLikedThumbnails.take(3).forEachIndexed { index, url ->
+                                                coil3.compose.AsyncImage(
+                                                    model = url,
+                                                    contentDescription = null,
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .size(44.dp)
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .border(1.5.dp, MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                                                        .zIndex(3f - index)
+                                                )
+                                            }
                                         }
                                     }
                                 }
