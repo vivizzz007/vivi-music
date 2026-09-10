@@ -831,6 +831,8 @@ class ListenTogetherManager @Inject constructor(
         val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
         val willPlay = pending.isPlaying
         
+        connection.allowInternalSync = true
+        
         // Use appropriate tolerance based on whether we're about to play
         val tolerance = if (willPlay && player.playWhenReady) PLAYBACK_POSITION_TOLERANCE_MS else POSITION_TOLERANCE_MS
         
@@ -849,6 +851,8 @@ class ListenTogetherManager @Inject constructor(
             Timber.tag(TAG).d("Applying pending sync: pausing playback")
             connection.pause()
         }
+        
+        connection.allowInternalSync = false
 
         scope.launch {
             delay(200)
@@ -873,6 +877,7 @@ class ListenTogetherManager @Inject constructor(
         isSyncing = true
 
         try {
+            connection.allowInternalSync = true
             when (action.action) {
                 PlaybackActions.PLAY -> {
                     val basePos = action.position ?: 0L
@@ -1150,6 +1155,7 @@ class ListenTogetherManager @Inject constructor(
                 }
             }
         } finally {
+            connection.allowInternalSync = false
             // Minimal delay to prevent feedback loops
             scope.launch {
                 delay(200)
