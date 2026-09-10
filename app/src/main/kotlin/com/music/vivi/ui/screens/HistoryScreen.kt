@@ -91,6 +91,7 @@ import com.music.vivi.viewmodels.DateAgo
 import com.music.vivi.viewmodels.FlatHistoryItem
 import com.music.vivi.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -170,13 +171,10 @@ fun HistoryScreen(
         }
     }
 
-    // Re-fetch remote history whenever the active song changes (e.g. a local song starts playing)
-    // so the Remote tab stays up to date without requiring a manual toggle.
-    LaunchedEffect(mediaMetadata) {
-        if (historySource == HistorySource.REMOTE) {
-            kotlinx.coroutines.delay(500)
-            viewModel.fetchRemoteHistory()
-        }
+    // Bind the player connection to the ViewModel once so it can observe
+    // the SharedFlow for successful remote history registrations.
+    LaunchedEffect(playerConnection) {
+        viewModel.bindPlayerConnection(playerConnection)
     }
 
     val lazyListState = rememberLazyListState()

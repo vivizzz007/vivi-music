@@ -204,6 +204,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -412,6 +413,13 @@ class MusicService :
     private var scrobbleManager: ScrobbleManager? = null
 
     val automixItems = MutableStateFlow<List<MediaItem>>(emptyList())
+
+    /**
+     * Emits the video ID of a song immediately after [YouTube.registerPlayback] succeeds.
+     * [HistoryViewModel] collects this to auto-refresh remote history without any
+     * timing-based delays or tab-state checks.
+     */
+    val playbackRegistered = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     // Tracks the original queue size to distinguish original items from auto-added ones
     private var originalQueueSize: Int = 0
@@ -3399,11 +3407,23 @@ class MusicService :
 
         if (playbackStats.totalPlayTimeMs >= historyDurationMs) {
             CoroutineScope(Dispatchers.IO).launch {
-                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
-                    ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
-                        .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                playbackUrl?.let {
-                    YouTube.registerPlayback(null, playbackUrl)
+                // Must fetch a FRESH playback tracking object. Cached `playbackUrl`s from the database
+                // have expired security nonces/signatures and will result in YouTube silently ignoring the
+                // history registration despite returning an HTTP 200/204 response.
+                val freshPlayerResponse = YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null).getOrNull()
+                
+                val playbackUrl = freshPlayerResponse?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                val watchtimeUrl = freshPlayerResponse?.playbackTracking?.videostatsWatchtimeUrl?.baseUrl
+                
+                playbackUrl?.let { baseUrl ->
+                    YouTube.registerPlayback(null, baseUrl)
+                        .onSuccess {
+                            // Also optionally ping watchtime to be absolutely sure the view registers
+                            watchtimeUrl?.let { wtUrl -> 
+                                YouTube.registerPlayback(null, wtUrl)
+                            }
+                            playbackRegistered.tryEmit(mediaItem.mediaId)
+                        }
                         .onFailure {
                             reportException(it)
                         }
