@@ -75,7 +75,7 @@ constructor(
             .distinctUntilChanged()
             
     val recentLikedThumbnails = database.likedSongs(SongSortType.CREATE_DATE, true)
-        .map { songs -> songs.take(3).mapNotNull { it.thumbnailUrl } }
+        .map { songs -> songs.take(5).mapNotNull { it.thumbnailUrl } }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val recentDownloadedThumbnails = database.downloadedSongs(SongSortType.CREATE_DATE, true)

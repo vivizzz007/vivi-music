@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.R
+import androidx.compose.material3.MaterialTheme
 
 @Composable
 fun StatCardsSection(
@@ -31,8 +32,7 @@ fun StatCardsSection(
         cards.add { mod ->
             StatCard(
                 title = stringResource(R.string.liked),
-                icon = painterResource(R.drawable.favorite_border),
-                iconTint = Color.Unspecified,
+                icon = painterResource(R.drawable.favorite),
                 onClick = { navController.navigate("auto_playlist/liked") },
                 modifier = mod
             )
