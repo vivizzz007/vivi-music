@@ -164,6 +164,7 @@ inline fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) {
     val containerColor = if (backgroundColor != Color.Unspecified) {
         backgroundColor
@@ -179,7 +180,7 @@ inline fun ListItem(
         modifier = modifier
             .padding(vertical = 2.dp)
             .height(ListItemHeight)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = horizontalPadding)
             .clip(shape)
             .background(color = containerColor)
     ) {
@@ -248,6 +249,7 @@ fun ListItem(
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
     subtitleColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -270,6 +272,7 @@ fun ListItem(
     shape = shape,
     drawHighlight = drawHighlight,
     backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 // merge badges and subtitle text and pass to basic list item
@@ -286,6 +289,7 @@ fun ListItem(
     shape: Shape = RectangleShape,
     drawHighlight: Boolean = true,
     backgroundColor: Color = Color.Unspecified,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -309,6 +313,7 @@ fun ListItem(
     shape = shape,
     drawHighlight = drawHighlight,
     backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 @Composable
@@ -809,6 +814,8 @@ fun AlbumListItem(
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
     backgroundColor: Color = Color.Unspecified,
+    shape: Shape = RectangleShape,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = album.album.title,
     subtitle = joinByBullet(
@@ -828,7 +835,9 @@ fun AlbumListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
-    backgroundColor = backgroundColor
+    shape = shape,
+    backgroundColor = backgroundColor,
+    horizontalPadding = horizontalPadding,
 )
 
 @Composable
@@ -958,7 +967,8 @@ fun PlaylistListItem(
         Icon.Download(downloadState)
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
-    shape: Shape = androidx.compose.ui.graphics.RectangleShape,
+    shape: Shape = RectangleShape,
+    horizontalPadding: Dp = 16.dp,
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = if (autoPlaylist) {
@@ -989,7 +999,7 @@ fun PlaylistListItem(
                     stringResource(R.string.offline) -> R.drawable.offline
                     stringResource(R.string.cached_playlist) -> R.drawable.cached
                     // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+
                     else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
                 }
                 Icon(
@@ -1004,7 +1014,8 @@ fun PlaylistListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
-    shape = shape
+    shape = shape,
+    horizontalPadding = horizontalPadding
 )
 
 @Composable
@@ -1090,7 +1101,7 @@ fun PlaylistGridItem(
                     stringResource(R.string.offline) -> R.drawable.offline
                     stringResource(R.string.cached_playlist) -> R.drawable.cached
                     // R.drawable.backup as placeholder
-                    stringResource(R.string.uploaded_playlist) -> R.drawable.backup
+
                     else -> if (autoPlaylist) R.drawable.trending_up else R.drawable.queue_music
                 }
                 Box(

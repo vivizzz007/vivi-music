@@ -93,8 +93,6 @@ fun StatsScreen(
     val uniqueArtistsCount by viewModel.uniqueArtistsCount.collectAsState()
     val uniqueAlbumsCount by viewModel.uniqueAlbumsCount.collectAsState()
 
-    var showHistorySheet by remember { mutableStateOf(false) }
-
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
     val selectedOption by viewModel.selectedOption.collectAsState()
@@ -434,7 +432,7 @@ fun StatsScreen(
             },
             actions = {
                 IconButton(
-                    onClick = { showHistorySheet = true }
+                    onClick = { navController.navigate("settings/listening_summary") }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.history),
@@ -451,35 +449,6 @@ fun StatsScreen(
                 }
             }
         )
-
-        if (showHistorySheet) {
-            val currentPeriodLabel = when (selectedOption) {
-                OptionStats.WEEKS -> weeklyDates.getOrNull(indexChips)?.second.orEmpty()
-                OptionStats.MONTHS -> monthlyDates.getOrNull(indexChips)?.second.orEmpty()
-                OptionStats.YEARS -> yearlyDates.getOrNull(indexChips)?.second.orEmpty()
-                OptionStats.CONTINUOUS -> {
-                    when (indexChips) {
-                        StatPeriod.WEEK_1.ordinal -> pluralStringResource(R.plurals.n_week, 1, 1)
-                        StatPeriod.MONTH_1.ordinal -> pluralStringResource(R.plurals.n_month, 1, 1)
-                        StatPeriod.MONTH_3.ordinal -> pluralStringResource(R.plurals.n_month, 3, 3)
-                        StatPeriod.MONTH_6.ordinal -> pluralStringResource(R.plurals.n_month, 6, 6)
-                        StatPeriod.YEAR_1.ordinal -> pluralStringResource(R.plurals.n_year, 1, 1)
-                        StatPeriod.ALL.ordinal -> stringResource(R.string.filter_all)
-                        else -> ""
-                    }
-                }
-            }
-
-            ActivityHistoryBottomSheet(
-                onDismiss = { showHistorySheet = false },
-                totalPlayTimeMs = totalPlayTime,
-                allTimePlayTimeMs = allTimePlayTime,
-                uniqueSongs = uniqueSongsCount,
-                uniqueArtists = uniqueArtistsCount,
-                uniqueAlbums = uniqueAlbumsCount,
-                periodLabel = currentPeriodLabel
-            )
-        }
     }
 }
 

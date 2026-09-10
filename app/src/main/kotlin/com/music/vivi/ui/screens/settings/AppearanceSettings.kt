@@ -120,6 +120,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.component.WavySlider
+import com.ermohdamaan.justforpixel.justforpixelexpressivelab.core.components.sliders.ExpressiveWavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.backToMain
@@ -312,14 +313,7 @@ fun AppearanceSettings(
         SwipeSensitivityKey,
         defaultValue = 0.73f
     )
-    val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
-        CanvasThumbnailAnimationKey,
-        defaultValue = true
-    )
-    val (canvasSource) = rememberEnumPreference(
-        CanvasSourceKey,
-        defaultValue = CanvasSource.AUTO
-    )
+
     val (rotatingThumbnail, onRotatingThumbnailChange) = rememberPreference(
         RotatingThumbnailKey,
         defaultValue = false
@@ -405,10 +399,7 @@ fun AppearanceSettings(
 
 
 
-    val (defaultChip, onDefaultChipChange) = rememberEnumPreference(
-        key = ChipSortTypeKey,
-        defaultValue = LibraryFilter.LIBRARY
-    )
+
 
     var showSliderOptionDialog by rememberSaveable {
         mutableStateOf(false)
@@ -779,31 +770,7 @@ fun AppearanceSettings(
         )
     }
 
-    var showDefaultChipDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
 
-    if (showDefaultChipDialog) {
-        EnumDialog(
-            onDismiss = { showDefaultChipDialog = false },
-            onSelect = {
-                onDefaultChipChange(it)
-                showDefaultChipDialog = false
-            },
-            title = stringResource(R.string.default_lib_chips),
-            current = defaultChip,
-            values = LibraryFilter.values().toList(),
-            valueText = {
-                when (it) {
-                    LibraryFilter.SONGS -> stringResource(R.string.songs)
-                    LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-                    LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-                    LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-                    LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
-                }
-            }
-        )
-    }
 
     var showGridSizeDialog by rememberSaveable {
         mutableStateOf(false)
@@ -1083,6 +1050,48 @@ fun AppearanceSettings(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(
+                                1.dp,
+                                if (sliderStyle == SliderStyle.EXPRESSIVE) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .clickable {
+                                onSliderStyleChange(SliderStyle.EXPRESSIVE)
+                                onSquigglySliderChange(false)
+                                showSliderOptionDialog = false
+                            }
+                            .padding(12.dp)
+                    ) {
+                        val sliderValue = 0.5f
+                        ExpressiveWavySlider(
+                            value = { sliderValue },
+                            valueRange = 0f..1f,
+                            onValueChange = { /* preview only */ },
+                            modifier = Modifier.weight(1f),
+                            enabled = false,
+                            isPlaying = true,
+                            activeTrackColor = sliderPreviewColors.activeTrackColor,
+                            thumbColor = sliderPreviewColors.thumbColor,
+                        )
+                        Text(
+                            text = stringResource(R.string.expressive_wavy),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -1483,6 +1492,7 @@ fun AppearanceSettings(
                                     R.string.wavy
                                 )
                                 SliderStyle.SLIM -> stringResource(R.string.slim)
+                                SliderStyle.EXPRESSIVE -> stringResource(R.string.expressive_wavy)
                             }
                         )
                     },
@@ -1508,24 +1518,7 @@ fun AppearanceSettings(
                     },
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.canvas_art),
-                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
-                    trailingContent = {
-                        val summary = if (!canvasThumbnailAnimation) {
-                            stringResource(R.string.disable)
-                        } else {
-                            when (canvasSource) {
-                                CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
-                                CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
-                                CanvasSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
-                                CanvasSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
-                            }
-                        }
-                        Text(summary)
-                    },
-                    onClick = { navController.navigate("settings/appearance/canvas") }
-                ),
+
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.image),
                     title = { Text(stringResource(R.string.rotating_thumbnail)) },
@@ -1932,22 +1925,7 @@ fun AppearanceSettings(
                     },
                     onClick = { showDefaultOpenTabDialog = true }
                 ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.tab),
-                    title = { Text(stringResource(R.string.default_lib_chips)) },
-                    trailingContent = {
-                        Text(
-                            when (defaultChip) {
-                                LibraryFilter.SONGS -> stringResource(R.string.songs)
-                                LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-                                LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-                                LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-                                LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
-                            }
-                        )
-                    },
-                    onClick = { showDefaultChipDialog = true }
-                ),
+
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
                     title = { Text(stringResource(R.string.swipe_song_to_add)) },

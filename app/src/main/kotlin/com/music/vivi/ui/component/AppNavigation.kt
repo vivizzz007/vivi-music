@@ -9,11 +9,14 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.WideNavigationRail
+import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -48,6 +51,7 @@ private fun isRouteSelected(currentRoute: String?, screenRoute: String, navigati
            currentRoute.startsWith("$screenRoute/")
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppNavigationRail(
     navigationItems: List<Screens>,
@@ -61,11 +65,11 @@ fun AppNavigationRail(
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
     
-    NavigationRail(
+    androidx.compose.material3.Surface(
         modifier = modifier,
-        containerColor = containerColor
+        color = containerColor
     ) {
-        Spacer(modifier = Modifier.weight(1f))
+        WideNavigationRail {
         
         navigationItems.forEach { screen ->
             val isSelected = remember(currentRoute, screen.route) {
@@ -104,7 +108,8 @@ fun AppNavigationRail(
                 }
             }
             
-            NavigationRailItem(
+            WideNavigationRailItem(
+                railExpanded = false,
                 selected = isSelected,
                 onClick = { 
                     if (!isSearchItem) {
@@ -118,11 +123,18 @@ fun AppNavigationRail(
                         painter = painterResource(id = iconRes),
                         contentDescription = stringResource(screen.titleId)
                     )
+                },
+                label = {
+                    Text(
+                        text = stringResource(screen.titleId),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             )
         }
         
-        Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }
 

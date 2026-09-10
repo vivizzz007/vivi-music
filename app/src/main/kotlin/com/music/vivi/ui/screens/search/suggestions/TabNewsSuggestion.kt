@@ -88,10 +88,6 @@ fun SuggestionsTabContent(
         defaultValue = "system"
     )
 
-    LaunchedEffect(regionCode) {
-        viewModel.refresh(regionCode)
-    }
-
     NetworkReload(
         onReload = {
             viewModel.refresh(regionCode, force = true)

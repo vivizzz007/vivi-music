@@ -30,6 +30,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.music.vivi.constants.PinnedLibraryItemsKey
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -64,6 +66,8 @@ fun ArtistMenu(
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
+    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
+    val isPinnedToLibraryMix = pinnedLibraryItems.contains("artist:${artist.id}")
 
     ArtistListItem(
         artist = artist,
@@ -220,6 +224,28 @@ fun ArtistMenu(
                                     )
                                 }
                             }
+                            onDismiss()
+                        }
+                    ),
+                    Material3MenuItemData(
+                        title = {
+                            Text(
+                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            val newItems = if (isPinnedToLibraryMix) {
+                                pinnedLibraryItems - "artist:${artist.id}"
+                            } else {
+                                pinnedLibraryItems + "artist:${artist.id}"
+                            }
+                            onPinnedLibraryItemsChange(newItems)
                             onDismiss()
                         }
                     ),

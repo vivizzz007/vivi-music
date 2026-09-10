@@ -215,7 +215,7 @@ fun CommunityPlaylistCard(
         colors = CardDefaults.cardColors(
             containerColor = containerColor
         ),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(16.dp),
         onClick = onClick
     ) {
         Column(

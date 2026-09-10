@@ -11,10 +11,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.canvas.CanvasArtwork
 import com.music.vivi.canvas.TidalCanvasProvider
+import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
+import com.music.vivi.utils.isWifiConnected
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -38,8 +42,12 @@ fun rememberAlbumCanvas(
         if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
     }
 
+    val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
+    val context = LocalContext.current
+
     LaunchedEffect(albumTitle, artistName, firstSongTitle) {
         if (canvasArtwork != null || cacheKey == null) return@LaunchedEffect
+        if (canvasLoadOnlyWifi && !isWifiConnected(context)) return@LaunchedEffect
         if (albumTitle.isNullOrBlank() || artistName.isNullOrBlank()) {
             canvasArtwork = null
             return@LaunchedEffect

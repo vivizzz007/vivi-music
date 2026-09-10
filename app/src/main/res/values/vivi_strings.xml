@@ -125,6 +125,9 @@
     <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a canvas if Tidal has one for the playing song</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
+    <string name="canvas_load_only_wifi">Load only on Wi-Fi</string>
+    <string name="canvas_load_only_wifi_desc">Skip loading canvas animations when on cellular or metered connections</string>
+    <string name="canvas_network">Network</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>
     <string name="rotating_thumbnail_desc">Enable a rotating thumbnail animation effect</string>
 
@@ -183,6 +186,7 @@
     <string name="density_restart_message">The display density change will take effect after restarting the app. Do you want to restart now?</string>
     <string name="enable_wavy_slider">Enable wavy slider</string>
     <string name="wavy">Wavy</string>
+    <string name="expressive_wavy">Expressive Wavy</string>
     <string name="enable_swipe_thumbnail">Enable swipe to change song</string>
     <string name="swipe_song_to_add">Swipe song to the left to add it to the queue or to the right to play it next</string>
     <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
@@ -335,6 +339,16 @@
     <string name="crossfade_duration">Crossfade duration</string>
     <string name="crossfade_gapless">Disable for gapless albums</string>
     <string name="crossfade_gapless_desc">Don\'t crossfade if the album is gapless</string>
+    <string name="crossfade_manual_skip">Crossfade on manual skip</string>
+    <string name="crossfade_manual_skip_desc">Also crossfade when you press next/previous, instead of only at the end of a track</string>
+    <string name="crossfade_curve">Crossfade curve</string>
+    <string name="crossfade_curve_desc">Shape of the volume ramp between tracks</string>
+    <string name="crossfade_curve_entry_equal_power">Equal power</string>
+    <string name="crossfade_curve_entry_ease_out_quad">Ease out (quad)</string>
+    <string name="crossfade_curve_entry_ease_out_cubic">Ease out (cubic)</string>
+    <string name="crossfade_curve_entry_smoothstep">Smoothstep</string>
+    <string name="crossfade_curve_preview_outgoing">Outgoing</string>
+    <string name="crossfade_curve_preview_incoming">Incoming</string>
     <string name="crossfade_beta_title">Beta Feature</string>
     <string name="crossfade_beta_message">Crossfade is a new feature and may have bugs. If you experience any issues, please report them.\n\nThis feature disables audio offload due to technical limitations.</string>
 

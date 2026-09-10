@@ -63,14 +63,12 @@ import com.music.vivi.constants.AlbumFilterKey
 import com.music.vivi.constants.AlbumSortDescendingKey
 import com.music.vivi.constants.AlbumSortType
 import com.music.vivi.constants.AlbumSortTypeKey
-import com.music.vivi.constants.AlbumViewTypeKey
 import com.music.vivi.constants.CONTENT_TYPE_ALBUM
 import com.music.vivi.constants.CONTENT_TYPE_HEADER
 import com.music.vivi.constants.GridItemSize
 import com.music.vivi.constants.GridItemsSizeKey
 import com.music.vivi.constants.GridThumbnailHeight
 import com.music.vivi.constants.HideExplicitKey
-import com.music.vivi.constants.LibraryViewType
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.ui.component.ChipsRow
 import com.music.vivi.ui.component.EmptyPlaceholder
@@ -98,8 +96,7 @@ fun LibraryAlbumsScreen(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
-    var filter by rememberEnumPreference(AlbumFilterKey, AlbumFilter.LIKED)
+    var filter by rememberEnumPreference(AlbumFilterKey, AlbumFilter.ALL)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         AlbumSortTypeKey,
         AlbumSortType.CREATE_DATE
@@ -157,10 +154,7 @@ fun LibraryAlbumsScreen(
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
-            when (viewType) {
-                LibraryViewType.LIST -> lazyListState.animateScrollToItem(0)
-                LibraryViewType.GRID -> lazyGridState.animateScrollToItem(0)
-            }
+            lazyGridState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
     }
@@ -170,7 +164,15 @@ fun LibraryAlbumsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp),
         ) {
-            SortHeader(
+            Text(
+                text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.secondary,
+            )
+
+            Spacer(Modifier.weight(1f))
+            
+            com.music.vivi.ui.component.SortDropdownMenu(
                 sortType = sortType,
                 sortDescending = sortDescending,
                 onSortTypeChange = onSortTypeChange,
@@ -187,101 +189,12 @@ fun LibraryAlbumsScreen(
                     }
                 },
             )
-
-            Spacer(Modifier.weight(1f))
-
-            Text(
-                text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary,
-            )
-
-            Box(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.secondaryContainer)
-                    .clickable { viewType = viewType.toggle() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter =
-                    painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
-                        },
-                    ),
-                    contentDescription = stringResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.string.switch_to_grid_view
-                            LibraryViewType.GRID -> R.string.switch_to_list_view
-                        },
-                    ),
-                )
-            }
         }
     }
 
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
-        when (viewType) {
-            LibraryViewType.LIST ->
-                LazyColumn(
-                    state = lazyListState,
-                    contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
-                ) {
-                    item(
-                        key = "filter",
-                        contentType = CONTENT_TYPE_HEADER,
-                    ) {
-                        filterContent()
-                    }
-
-                    item(
-                        key = "header",
-                        contentType = CONTENT_TYPE_HEADER,
-                    ) {
-                        headerContent()
-                    }
-
-                    albums.let { albums ->
-                        if (albums.isEmpty()) {
-                            item(key = "empty_placeholder") {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.album,
-                                    text = stringResource(R.string.library_album_empty),
-                                    modifier = Modifier.animateItem()
-                                )
-                            }
-                        }
-
-                        val filteredAlbumsForList = if (hideExplicit) {
-                            albums.filter { !it.album.explicit }
-                        } else {
-                            albums
-                        }
-                        items(
-                            items = filteredAlbumsForList.distinctBy { it.id },
-                            key = { it.id },
-                            contentType = { CONTENT_TYPE_ALBUM },
-                        ) { album ->
-                            LibraryAlbumListItem(
-                                navController = navController,
-                                menuState = menuState,
-                                album = album,
-                                isActive = album.id == mediaMetadata?.album?.id,
-                                isPlaying = isPlaying,
-                                modifier = Modifier
-                                    .animateItem()
-                            )
-                        }
-                    }
-                }
-
-            LibraryViewType.GRID ->
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns =
@@ -340,6 +253,5 @@ fun LibraryAlbumsScreen(
                         }
                     }
                 }
-        }
     }
 }

@@ -177,11 +177,11 @@ fun SettingsDropdownMenu(
             }
         }
         
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // --- 1. Real Logic Menu Sections ---
+        // --- Section 1: Account & Integrations ---
         Surface(
-            shape = listItemShape(0, 5, 16.dp),
+            shape = listItemShape(0, 2, 16.dp),
             color = itemContainerColor,
             modifier = Modifier
                 .fillMaxWidth()
@@ -232,17 +232,21 @@ fun SettingsDropdownMenu(
         DropdownMenuIconItem(
             title = stringResource(R.string.integrations),
             icon = R.drawable.extension,
-            shape = listItemShape(1, 5, 16.dp),
+            shape = listItemShape(1, 2, 16.dp),
             containerColor = itemContainerColor,
             onClick = {
                 onDismissRequest()
                 onNavigate("settings/integrations")
             }
         )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // --- Section 2: History, Listen Together, Stats ---
         DropdownMenuIconItem(
             title = stringResource(R.string.history),
             icon = R.drawable.music_history,
-            shape = listItemShape(2, 5, 16.dp),
+            shape = listItemShape(0, 3, 16.dp),
             containerColor = itemContainerColor,
             onClick = {
                 onDismissRequest()
@@ -252,7 +256,7 @@ fun SettingsDropdownMenu(
         DropdownMenuIconItem(
             title = stringResource(R.string.listen_together),
             icon = R.drawable.group_outlined,
-            shape = listItemShape(3, 5, 16.dp),
+            shape = listItemShape(1, 3, 16.dp),
             containerColor = itemContainerColor,
             onClick = {
                 onDismissRequest()
@@ -262,7 +266,7 @@ fun SettingsDropdownMenu(
         DropdownMenuIconItem(
             title = stringResource(R.string.stats),
             icon = R.drawable.stats,
-            shape = listItemShape(4, 5, 16.dp),
+            shape = listItemShape(2, 3, 16.dp),
             containerColor = itemContainerColor,
             onClick = {
                 onDismissRequest()
@@ -270,8 +274,9 @@ fun SettingsDropdownMenu(
             }
         )
 
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
+        // --- Section 3: Settings & About ---
         DropdownMenuIconItem(
             title = stringResource(R.string.settings),
             icon = R.drawable.settings,

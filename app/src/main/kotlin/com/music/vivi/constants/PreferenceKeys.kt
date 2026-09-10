@@ -10,8 +10,11 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
+import kotlin.math.cos
+import kotlin.math.sin
 
 import com.music.innertube.models.IpVersion
 
@@ -87,7 +90,8 @@ val LastSeenStarPromptVersionKey = stringPreferencesKey("lastSeenStarPromptVersi
 enum class SliderStyle {
     DEFAULT,
     WAVY,
-    SLIM
+    SLIM,
+    EXPRESSIVE
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
@@ -198,6 +202,34 @@ val PreventDuplicateTracksInQueueKey = booleanPreferencesKey("preventDuplicateTr
 val CrossfadeEnabledKey = booleanPreferencesKey("crossfadeEnabled")
 val CrossfadeDurationKey = floatPreferencesKey("crossfadeDuration")
 val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
+val CrossfadeManualSkipKey = booleanPreferencesKey("crossfadeManualSkip")
+val CrossfadeCurveKey = stringPreferencesKey("crossfadeCurve")
+
+/**
+ * Shape of the volume ramp used while crossfading between two tracks.
+ * [fadeOut] drives the outgoing (currently playing) track and [fadeIn] drives the
+ * incoming (next) track, both as a function of normalized progress `t` in `[0, 1]`.
+ */
+enum class CrossfadeCurve {
+    EQUAL_POWER,
+    EASE_OUT_QUAD,
+    EASE_OUT_CUBIC,
+    SMOOTHSTEP;
+
+    fun fadeOut(t: Float): Float =
+        when (this) {
+            EQUAL_POWER -> cos((t * Math.PI / 2.0)).toFloat()
+            EASE_OUT_QUAD -> (1f - t) * (1f - t)
+            EASE_OUT_CUBIC -> 1f - t * t * t
+            SMOOTHSTEP -> 1f - (3f * t * t - 2f * t * t * t)
+        }
+
+    fun fadeIn(t: Float): Float =
+        when (this) {
+            SMOOTHSTEP -> 3f * t * t - 2f * t * t * t
+            else -> sin((t * Math.PI / 2.0)).toFloat()
+        }
+}
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
@@ -291,10 +323,11 @@ val LastFullSyncKey = longPreferencesKey("last_full_sync")
 // Sync cooldown in seconds (30 minutes)
 const val SYNC_COOLDOWN = 30 * 60L
 
-val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val SearchListenHistoryKey = stringPreferencesKey("searchListenHistory")
-val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
-val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
+val AlbumGridViewKey = booleanPreferencesKey("albumGridView")
+val ArtistGridViewKey = booleanPreferencesKey("artistGridView")
+val PlaylistGridViewKey = booleanPreferencesKey("playlistGridView")
+val PinnedLibraryItemsKey = stringSetPreferencesKey("pinnedLibraryItems")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 val QuickPicksKey = stringPreferencesKey("discover")
@@ -313,23 +346,11 @@ val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
 val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
 val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
 
-enum class LibraryViewType {
-    LIST,
-    GRID,
-    ;
-
-    fun toggle() =
-        when (this) {
-            LIST -> GRID
-            GRID -> LIST
-        }
-}
 
 enum class SongFilter {
     LIBRARY,
     LIKED,
     DOWNLOADED,
-    UPLOADED
 }
 
 enum class ArtistFilter {
@@ -346,9 +367,9 @@ enum class ArtistSourceFilter {
 }
 
 enum class AlbumFilter {
+    ALL,
     LIBRARY,
-    LIKED,
-    UPLOADED
+    LIKED
 }
 
 enum class SongSortType {
@@ -550,6 +571,7 @@ val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
 val CanvasSourceKey = stringPreferencesKey("canvasSource")
+val CanvasLoadOnlyWifiKey = booleanPreferencesKey("canvasLoadOnlyWifi")
 
 // Data Saver
 val DataSaverKey = booleanPreferencesKey("dataSaver")

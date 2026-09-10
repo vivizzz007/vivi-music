@@ -198,18 +198,18 @@ fun SettingsScreen(
                 )
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.storage),
-                        title = { Text(stringResource(R.string.storage)) },
-                        description = { Text(stringResource(R.string.setting_storage_desc)) },
-                        onClick = { navController.navigate("settings/storage") }
+                        icon = painterResource(R.drawable.history),
+                        title = { Text(stringResource(R.string.listening_summary)) },
+                        description = { Text(stringResource(R.string.setting_listening_summary_desc)) },
+                        onClick = { navController.navigate("settings/listening_summary") }
                     )
                 )
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.energy_savings_leaf),
-                        title = { Text(stringResource(R.string.data_saver)) },
-                        description = { Text(stringResource(R.string.setting_data_saver_desc)) },
-                        onClick = { navController.navigate("settings/datasaver") }
+                        icon = painterResource(R.drawable.storage),
+                        title = { Text(stringResource(R.string.storage)) },
+                        description = { Text(stringResource(R.string.setting_storage_desc)) },
+                        onClick = { navController.navigate("settings/storage") }
                     )
                 )
             }

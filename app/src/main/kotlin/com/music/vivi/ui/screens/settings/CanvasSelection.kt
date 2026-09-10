@@ -6,13 +6,10 @@
 package com.music.vivi.ui.screens.settings
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,13 +23,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.music.vivi.ui.component.AnimatedRadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
+
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.ui.graphics.Color
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -43,10 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.constants.CanvasSource
 import com.music.vivi.constants.CanvasSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.ui.component.ExpressiveIconButton
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
@@ -64,6 +58,10 @@ fun CanvasSelection(
     val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
         CanvasThumbnailAnimationKey,
         defaultValue = true
+    )
+    val (canvasLoadOnlyWifi, onCanvasLoadOnlyWifiChange) = rememberPreference(
+        CanvasLoadOnlyWifiKey,
+        defaultValue = false
     )
     val (canvasSource, onCanvasSourceChange) = rememberEnumPreference(
         CanvasSourceKey,
@@ -126,6 +124,7 @@ fun CanvasSelection(
             }
         }
 
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Options settings group
@@ -186,8 +185,32 @@ fun CanvasSelection(
                 )
             )
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Network options group (bottom)
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.canvas_network),
+            items = listOf(
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.canvas_load_only_wifi)) },
+                    description = { Text(stringResource(R.string.canvas_load_only_wifi_desc)) },
+                    trailingContent = {
+                        ModernSwitch(
+                            checked = canvasLoadOnlyWifi,
+                            onCheckedChange = onCanvasLoadOnlyWifiChange,
+                            enabled = canvasThumbnailAnimation
+                        )
+                    },
+                    enabled = canvasThumbnailAnimation,
+                    onClick = { if (canvasThumbnailAnimation) onCanvasLoadOnlyWifiChange(!canvasLoadOnlyWifi) }
+                )
+            )
+        )
+
         Spacer(modifier = Modifier.height(36.dp))
     }
+
 
     TopAppBar(
         title = { Text(stringResource(R.string.vivimusic_canvas)) },
