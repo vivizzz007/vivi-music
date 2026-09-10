@@ -55,6 +55,10 @@ import com.music.vivi.di.PlayerCache
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.YTPlayerUtils
 import com.music.vivi.utils.enumPreference
+import com.music.vivi.lyrics.LyricsHelper
+import com.music.vivi.db.entities.LyricsEntity
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.models.toMediaMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -85,6 +89,7 @@ constructor(
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: SimpleCache,
     @PlayerCache val playerCache: SimpleCache,
+    val lyricsHelper: LyricsHelper,
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
@@ -296,10 +301,35 @@ constructor(
                         scope.launch {
                             when (download.state) {
                                 Download.STATE_COMPLETED -> {
-                                    database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                                    val songId = download.request.id
+                                    database.updateDownloadedInfo(songId, true, LocalDateTime.now())
+
+                                    // Pre-fetch lyrics and save to database if not already present
+                                    runCatching {
+                                        val existingLyrics = database.lyrics(songId).firstOrNull()
+                                        if (existingLyrics == null || existingLyrics.lyrics.isBlank() || existingLyrics.lyrics == LyricsEntity.LYRICS_NOT_FOUND) {
+                                            val songWithData = database.song(songId).firstOrNull()
+                                            if (songWithData != null) {
+                                                val mediaMetadata = songWithData.toMediaMetadata()
+                                                val lyricsResult = lyricsHelper.getLyrics(mediaMetadata)
+                                                if (lyricsResult.lyrics.isNotBlank() && lyricsResult.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                                                    database.query {
+                                                        upsert(
+                                                            LyricsEntity(
+                                                                id = songId,
+                                                                lyrics = lyricsResult.lyrics,
+                                                                provider = lyricsResult.provider
+                                                            )
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
                                     val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
-                                    if (saveToPublic || pendingExternalExportSongIds.remove(download.request.id)) {
-                                        exportSongToPublicStorage(download.request.id)
+                                    if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
+                                        exportSongToPublicStorage(songId)
                                     }
                                 }
                                 Download.STATE_FAILED,
@@ -360,6 +390,7 @@ constructor(
                 val song = songWithData.song
                 val songTitle = song.title
                 val artistName = songWithData.artists.joinToString(", ") { it.name }.ifBlank { "Unknown Artist" }
+                val albumName = songWithData.album?.title
                 val format = songWithData.format ?: database.format(songId).firstOrNull()
                 val rawMimeType = format?.mimeType ?: "audio/mp4"
                 val isOpusOrWebm = rawMimeType.contains("webm", ignoreCase = true) || rawMimeType.contains("opus", ignoreCase = true)
@@ -414,11 +445,33 @@ constructor(
                     null
                 }
 
-                val finalAudio = if (artworkBytes != null && !isOpusOrWebm) {
-                    AudioTagEmbedder.embedArtwork(rawAudio, artworkBytes, isM4a = true)
-                } else {
-                    rawAudio
+                val lyricsText: String? = try {
+                    val dbLyrics = database.lyrics(songId).firstOrNull()
+                    if (dbLyrics != null && dbLyrics.lyrics.isNotBlank() && dbLyrics.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                        dbLyrics.lyrics
+                    } else {
+                        val mediaMetadata = songWithData.toMediaMetadata()
+                        val fetched = lyricsHelper.getLyrics(mediaMetadata)
+                        if (fetched.lyrics.isNotBlank() && fetched.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                            database.query {
+                                upsert(LyricsEntity(id = songId, lyrics = fetched.lyrics, provider = fetched.provider))
+                            }
+                            fetched.lyrics
+                        } else null
+                    }
+                } catch (e: Exception) {
+                    null
                 }
+
+                val finalAudio = AudioTagEmbedder.embedMetadata(
+                    audioBytes = rawAudio,
+                    isM4a = !isOpusOrWebm,
+                    artworkBytes = artworkBytes,
+                    lyrics = lyricsText,
+                    title = songTitle,
+                    artist = artistName,
+                    album = albumName
+                )
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val resolver = appContext.contentResolver

@@ -9,8 +9,6 @@ import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.Song
 
-fun <T> List<T>.reversed(reversed: Boolean) = if (reversed) asReversed() else this
-
 fun <T> MutableList<T>.move(
     fromIndex: Int,
     toIndex: Int,

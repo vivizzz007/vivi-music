@@ -588,11 +588,12 @@ fun SongMenu(
                                     database.transaction {
                                         coroutineScope.launch {
                                             playlistBrowseId?.let { playlistId ->
-                                                if (playlistSong.map.setVideoId != null) {
+                                                val setVideoId = playlistSong.map.setVideoId
+                                                if (setVideoId != null) {
                                                     YouTube.removeFromPlaylist(
                                                         playlistId,
                                                         playlistSong.map.songId,
-                                                        playlistSong.map.setVideoId
+                                                        setVideoId
                                                     )
                                                 }
                                             }

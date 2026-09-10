@@ -13,22 +13,56 @@ import java.nio.ByteOrder
 object AudioTagEmbedder {
 
     /**
-     * Embeds JPEG or PNG cover artwork directly into MP4/M4A audio containers.
+     * Embeds metadata (artwork, lyrics, title, artist, album) directly into audio containers.
+     * Supports MP4/M4A containers.
      * If the audio format is not supported or parsing fails, returns original bytes safely.
      */
-    fun embedArtwork(audioBytes: ByteArray, artworkBytes: ByteArray, isM4a: Boolean): ByteArray {
-        if (artworkBytes.isEmpty() || audioBytes.isEmpty()) return audioBytes
-        if (!isM4a) return audioBytes
+    fun embedMetadata(
+        audioBytes: ByteArray,
+        isM4a: Boolean,
+        artworkBytes: ByteArray? = null,
+        lyrics: String? = null,
+        title: String? = null,
+        artist: String? = null,
+        album: String? = null,
+    ): ByteArray {
+        if (audioBytes.isEmpty()) return audioBytes
 
         return try {
-            embedM4aCover(audioBytes, artworkBytes)
+            if (isM4a || isMp4Header(audioBytes)) {
+                embedM4aMetadata(audioBytes, artworkBytes, lyrics, title, artist, album)
+            } else {
+                audioBytes
+            }
         } catch (e: Exception) {
-            Timber.tag("AudioTagEmbedder").w(e, "Failed to embed artwork into M4A, returning original audio")
+            Timber.tag("AudioTagEmbedder").w(e, "Failed to embed metadata into audio container, returning original audio")
             audioBytes
         }
     }
 
-    private fun embedM4aCover(audio: ByteArray, artwork: ByteArray): ByteArray {
+    /**
+     * Backward-compatible helper for embedding artwork into M4A/MP4.
+     */
+    fun embedArtwork(audioBytes: ByteArray, artworkBytes: ByteArray, isM4a: Boolean): ByteArray {
+        return embedMetadata(audioBytes, isM4a, artworkBytes = artworkBytes)
+    }
+
+    private fun isMp4Header(audio: ByteArray): Boolean {
+        if (audio.size < 8) return false
+        val type = String(audio.copyOfRange(4, 8), Charsets.US_ASCII)
+        return type == "ftyp" || type == "moov"
+    }
+
+    // ─── MP4 / M4A Metadata Embedding ──────────────────────────────────────────
+
+    private fun embedM4aMetadata(
+        audio: ByteArray,
+        artwork: ByteArray?,
+        lyrics: String?,
+        title: String?,
+        artist: String?,
+        album: String?,
+    ): ByteArray {
         val buffer = ByteBuffer.wrap(audio).order(ByteOrder.BIG_ENDIAN)
         var moovOffset = -1
         var moovSize = 0
@@ -64,34 +98,46 @@ object AudioTagEmbedder {
 
         if (moovOffset == -1 || moovSize < 8) return audio
 
-        // Build covr box:
-        // [size: 4][covr: 4] -> [size: 4][data: 4][flag: 4 (0x0d for jpg, 0x0e for png)][locale: 4 (0)][image]
-        val isPng = artwork.size >= 8 && artwork[0] == 0x89.toByte() && artwork[1] == 0x50.toByte()
-        val dataTypeFlag = if (isPng) 14 else 13
+        val tagBoxes = ByteArrayOutputStream()
 
-        val dataPayload = ByteArrayOutputStream()
-        val dataHeader = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN)
-        val dataBoxSize = 16 + artwork.size
-        dataHeader.putInt(dataBoxSize)
-        dataHeader.put("data".toByteArray(Charsets.US_ASCII))
-        dataHeader.putInt(dataTypeFlag)
-        dataHeader.putInt(0) // locale
-        dataPayload.write(dataHeader.array())
-        dataPayload.write(artwork)
+        // 1. Artwork box: covr
+        if (artwork != null && artwork.isNotEmpty()) {
+            val isPng = artwork.size >= 8 && artwork[0] == 0x89.toByte() && artwork[1] == 0x50.toByte()
+            val dataTypeFlag = if (isPng) 14 else 13
+            val covrBox = createDataBox("covr", dataTypeFlag, artwork)
+            tagBoxes.write(covrBox)
+        }
 
-        val covrBox = ByteArrayOutputStream()
-        val covrHeader = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
-        val covrBoxSize = 8 + dataPayload.size()
-        covrHeader.putInt(covrBoxSize)
-        covrHeader.put("covr".toByteArray(Charsets.US_ASCII))
-        covrBox.write(covrHeader.array())
-        covrBox.write(dataPayload.toByteArray())
+        // 2. Lyrics box: ©lyr
+        if (!lyrics.isNullOrBlank() && lyrics != "LYRICS_NOT_FOUND") {
+            val lyrBox = createTextAtom(byteArrayOf(0xA9.toByte(), 'l'.code.toByte(), 'y'.code.toByte(), 'r'.code.toByte()), lyrics)
+            tagBoxes.write(lyrBox)
+        }
 
-        val covrBytes = covrBox.toByteArray()
+        // 3. Title box: ©nam
+        if (!title.isNullOrBlank()) {
+            val namBox = createTextAtom(byteArrayOf(0xA9.toByte(), 'n'.code.toByte(), 'a'.code.toByte(), 'm'.code.toByte()), title)
+            tagBoxes.write(namBox)
+        }
+
+        // 4. Artist box: ©ART
+        if (!artist.isNullOrBlank()) {
+            val artBox = createTextAtom(byteArrayOf(0xA9.toByte(), 'A'.code.toByte(), 'R'.code.toByte(), 'T'.code.toByte()), artist)
+            tagBoxes.write(artBox)
+        }
+
+        // 5. Album box: ©alb
+        if (!album.isNullOrBlank()) {
+            val albBox = createTextAtom(byteArrayOf(0xA9.toByte(), 'a'.code.toByte(), 'l'.code.toByte(), 'b'.code.toByte()), album)
+            tagBoxes.write(albBox)
+        }
+
+        val tagsBytes = tagBoxes.toByteArray()
+        if (tagsBytes.isEmpty()) return audio
 
         // Locate or create udta -> meta -> ilst inside moov
         val moovBytes = audio.copyOfRange(moovOffset, moovOffset + moovSize)
-        val modifiedMoov = insertCovrIntoMoov(moovBytes, covrBytes) ?: return audio
+        val modifiedMoov = insertTagsIntoMoov(moovBytes, tagsBytes) ?: return audio
 
         val deltaSize = modifiedMoov.size - moovSize
 
@@ -109,7 +155,48 @@ object AudioTagEmbedder {
         return out.toByteArray()
     }
 
-    private fun insertCovrIntoMoov(moov: ByteArray, covrBytes: ByteArray): ByteArray? {
+    private fun createTextAtom(atomType: ByteArray, text: String): ByteArray {
+        val textBytes = text.toByteArray(Charsets.UTF_8)
+        val dataPayload = ByteArrayOutputStream()
+        val dataHeader = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN)
+        dataHeader.putInt(16 + textBytes.size)
+        dataHeader.put("data".toByteArray(Charsets.US_ASCII))
+        dataHeader.putInt(1) // type 1 = UTF-8 text
+        dataHeader.putInt(0) // locale
+        dataPayload.write(dataHeader.array())
+        dataPayload.write(textBytes)
+
+        val atomBox = ByteArrayOutputStream()
+        val atomHeader = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
+        atomHeader.putInt(8 + dataPayload.size())
+        atomHeader.put(atomType)
+        atomBox.write(atomHeader.array())
+        atomBox.write(dataPayload.toByteArray())
+        return atomBox.toByteArray()
+    }
+
+    private fun createDataBox(atomTypeName: String, dataTypeFlag: Int, payload: ByteArray): ByteArray {
+        val dataPayload = ByteArrayOutputStream()
+        val dataHeader = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN)
+        val dataBoxSize = 16 + payload.size
+        dataHeader.putInt(dataBoxSize)
+        dataHeader.put("data".toByteArray(Charsets.US_ASCII))
+        dataHeader.putInt(dataTypeFlag)
+        dataHeader.putInt(0) // locale
+        dataPayload.write(dataHeader.array())
+        dataPayload.write(payload)
+
+        val box = ByteArrayOutputStream()
+        val boxHeader = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
+        val boxSize = 8 + dataPayload.size()
+        boxHeader.putInt(boxSize)
+        boxHeader.put(atomTypeName.toByteArray(Charsets.US_ASCII))
+        box.write(boxHeader.array())
+        box.write(dataPayload.toByteArray())
+        return box.toByteArray()
+    }
+
+    private fun insertTagsIntoMoov(moov: ByteArray, tagsBytes: ByteArray): ByteArray? {
         val buf = ByteBuffer.wrap(moov).order(ByteOrder.BIG_ENDIAN)
         buf.position(8) // Skip moov header
 
@@ -134,9 +221,9 @@ object AudioTagEmbedder {
         }
 
         val newUdta: ByteArray = if (udtaOffset != -1) {
-            insertCovrIntoUdta(moov.copyOfRange(udtaOffset, udtaOffset + udtaSize), covrBytes)
+            insertTagsIntoUdta(moov.copyOfRange(udtaOffset, udtaOffset + udtaSize), tagsBytes)
         } else {
-            createUdtaWithCovr(covrBytes)
+            createUdtaWithTags(tagsBytes)
         }
 
         val out = ByteArrayOutputStream()
@@ -154,7 +241,7 @@ object AudioTagEmbedder {
         return result
     }
 
-    private fun insertCovrIntoUdta(udta: ByteArray, covrBytes: ByteArray): ByteArray {
+    private fun insertTagsIntoUdta(udta: ByteArray, tagsBytes: ByteArray): ByteArray {
         val buf = ByteBuffer.wrap(udta).order(ByteOrder.BIG_ENDIAN)
         buf.position(8)
 
@@ -179,9 +266,9 @@ object AudioTagEmbedder {
         }
 
         val newMeta: ByteArray = if (metaOffset != -1) {
-            insertCovrIntoMeta(udta.copyOfRange(metaOffset, metaOffset + metaSize), covrBytes)
+            insertTagsIntoMeta(udta.copyOfRange(metaOffset, metaOffset + metaSize), tagsBytes)
         } else {
-            createMetaWithCovr(covrBytes)
+            createMetaWithTags(tagsBytes)
         }
 
         val out = ByteArrayOutputStream()
@@ -199,8 +286,7 @@ object AudioTagEmbedder {
         return result
     }
 
-    private fun insertCovrIntoMeta(meta: ByteArray, covrBytes: ByteArray): ByteArray {
-        // Meta has 8-byte header + 4-byte version/flags = 12 bytes
+    private fun insertTagsIntoMeta(meta: ByteArray, tagsBytes: ByteArray): ByteArray {
         val buf = ByteBuffer.wrap(meta).order(ByteOrder.BIG_ENDIAN)
         if (meta.size >= 12) buf.position(12) else buf.position(8)
 
@@ -228,17 +314,17 @@ object AudioTagEmbedder {
             val ilst = meta.copyOfRange(ilstOffset, ilstOffset + ilstSize)
             val out = ByteArrayOutputStream()
             out.write(ilst, 0, ilst.size)
-            out.write(covrBytes)
+            out.write(tagsBytes)
             val res = out.toByteArray()
             ByteBuffer.wrap(res).order(ByteOrder.BIG_ENDIAN).putInt(0, res.size)
             res
         } else {
             val out = ByteArrayOutputStream()
             val h = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
-            h.putInt(8 + covrBytes.size)
+            h.putInt(8 + tagsBytes.size)
             h.put("ilst".toByteArray(Charsets.US_ASCII))
             out.write(h.array())
-            out.write(covrBytes)
+            out.write(tagsBytes)
             out.toByteArray()
         }
 
@@ -257,8 +343,8 @@ object AudioTagEmbedder {
         return result
     }
 
-    private fun createUdtaWithCovr(covrBytes: ByteArray): ByteArray {
-        val meta = createMetaWithCovr(covrBytes)
+    private fun createUdtaWithTags(tagsBytes: ByteArray): ByteArray {
+        val meta = createMetaWithTags(tagsBytes)
         val out = ByteArrayOutputStream()
         val h = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
         h.putInt(8 + meta.size)
@@ -268,25 +354,24 @@ object AudioTagEmbedder {
         return out.toByteArray()
     }
 
-    private fun createMetaWithCovr(covrBytes: ByteArray): ByteArray {
+    private fun createMetaWithTags(tagsBytes: ByteArray): ByteArray {
         val out = ByteArrayOutputStream()
         val h = ByteBuffer.allocate(12).order(ByteOrder.BIG_ENDIAN)
-        h.putInt(12 + 8 + covrBytes.size)
+        h.putInt(12 + 8 + tagsBytes.size)
         h.put("meta".toByteArray(Charsets.US_ASCII))
         h.putInt(0) // 4 bytes version & flags
 
         val ilstH = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN)
-        ilstH.putInt(8 + covrBytes.size)
+        ilstH.putInt(8 + tagsBytes.size)
         ilstH.put("ilst".toByteArray(Charsets.US_ASCII))
 
         out.write(h.array())
         out.write(ilstH.array())
-        out.write(covrBytes)
+        out.write(tagsBytes)
         return out.toByteArray()
     }
 
     private fun adjustChunkOffsets(moov: ByteArray, delta: Int): ByteArray {
-        // Find all 'stco' atoms and increment each 32-bit offset by delta
         val copy = moov.clone()
         val buf = ByteBuffer.wrap(copy).order(ByteOrder.BIG_ENDIAN)
 
@@ -301,7 +386,7 @@ object AudioTagEmbedder {
                 if (size < 8 || pos + size > offset + length) break
 
                 if (type == "stco" && size >= 16) {
-                    buf.position(pos + 12) // Skip size(4), 'stco'(4), version/flags(4)
+                    buf.position(pos + 12)
                     val count = buf.int
                     for (i in 0 until count) {
                         if (buf.remaining() < 4) break

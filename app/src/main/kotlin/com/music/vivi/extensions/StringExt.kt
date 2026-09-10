@@ -5,7 +5,6 @@
 
 package com.music.vivi.extensions
 
-import androidx.sqlite.db.SimpleSQLiteQuery
 import java.net.InetSocketAddress
 import java.net.InetSocketAddress.createUnresolved
 
@@ -19,8 +18,6 @@ inline fun <reified T : Enum<T>> String?.toEnum(defaultValue: T): T =
             defaultValue
         }
     }
-
-fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
 
 fun String.toInetSocketAddress(): InetSocketAddress {
     val (host, port) = split(":")

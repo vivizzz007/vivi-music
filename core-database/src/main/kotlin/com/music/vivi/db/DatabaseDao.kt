@@ -54,7 +54,7 @@ import com.music.vivi.extensions.reversed
 import com.music.vivi.extensions.toSQLiteQuery
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.ui.utils.resize
+import com.music.vivi.utils.resize
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map

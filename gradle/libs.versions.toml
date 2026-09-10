@@ -44,6 +44,15 @@ coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 rhino = "1.9.1"
 innertubex = "v0.2.6"
+wearCompose = "1.6.0"
+wearTiles = "1.6.0"
+wearProtoLayout = "1.4.2"
+wearWatchface = "1.3.0"
+playServicesWearable = "20.0.1"
+wear = "1.4.0"
+horologist = "0.8.3-alpha"
+robolectric = "4.14.1"
+testCore = "1.6.1"
 
 
 [libraries]
@@ -139,6 +148,46 @@ work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "w
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
+
+# Wear Compose Material 3 Suite
+wear-compose-material3 = { module = "androidx.wear.compose:compose-material3", version.ref = "wearCompose" }
+wear-compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "wearCompose" }
+wear-compose-navigation = { module = "androidx.wear.compose:compose-navigation", version.ref = "wearCompose" }
+wear-compose-ui-tooling = { module = "androidx.wear.compose:compose-ui-tooling", version.ref = "wearCompose" }
+
+# Wear Tiles & ProtoLayout
+wear-tiles = { module = "androidx.wear.tiles:tiles", version.ref = "wearTiles" }
+wear-tiles-material = { module = "androidx.wear.tiles:tiles-material", version.ref = "wearTiles" }
+wear-tiles-tooling = { module = "androidx.wear.tiles:tiles-tooling", version.ref = "wearTiles" }
+wear-tiles-tooling-preview = { module = "androidx.wear.tiles:tiles-tooling-preview", version.ref = "wearTiles" }
+wear-protolayout = { module = "androidx.wear.protolayout:protolayout", version.ref = "wearProtoLayout" }
+wear-protolayout-material3 = { module = "androidx.wear.protolayout:protolayout-material3", version.ref = "wearProtoLayout" }
+wear-protolayout-expression = { module = "androidx.wear.protolayout:protolayout-expression", version.ref = "wearProtoLayout" }
+
+# Wear Watchface & Complications
+wear-watchface-complications-data = { module = "androidx.wear.watchface:watchface-complications-data", version.ref = "wearWatchface" }
+wear-watchface-complications-data-source = { module = "androidx.wear.watchface:watchface-complications-data-source", version.ref = "wearWatchface" }
+wear-watchface-complications-data-source-ktx = { module = "androidx.wear.watchface:watchface-complications-data-source-ktx", version.ref = "wearWatchface" }
+
+# Wear Core & Play Services
+wear = { module = "androidx.wear:wear", version.ref = "wear" }
+wear-tooling-preview = { module = "androidx.wear:wear-tooling-preview", version.ref = "wear" }
+play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
+
+# Media3 Explicit Modules for Caching and Database Provider
+media3-datasource = { module = "androidx.media3:media3-datasource", version.ref = "media3" }
+media3-database = { module = "androidx.media3:media3-database", version.ref = "media3" }
+
+# Horologist (Optional / Reference)
+horologist-compose-layout = { module = "com.google.android.horologist:horologist-compose-layout", version.ref = "horologist" }
+horologist-audio-ui = { module = "com.google.android.horologist:horologist-audio-ui", version.ref = "horologist" }
+
+# Testing
+room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+test-core = { module = "androidx.test:core", version.ref = "testCore" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.15.0" }
+
 
 
 [plugins]

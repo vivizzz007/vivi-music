@@ -1792,10 +1792,11 @@ fun HomeScreen(
                                             }
                                         },
                                         onClick = {
-                                            when (recommendation.title) {
-                                                is Song -> navController.navigate("album/${recommendation.title.album!!.id}")
-                                                is Album -> navController.navigate("album/${recommendation.title.id}")
-                                                is Artist -> navController.navigate("artist/${recommendation.title.id}")
+                                            val title = recommendation.title
+                                            when (title) {
+                                                is Song -> navController.navigate("album/${title.album!!.id}")
+                                                is Album -> navController.navigate("album/${title.id}")
+                                                is Artist -> navController.navigate("artist/${title.id}")
                                                 is Playlist -> {}
                                             }
                                         },

@@ -10,7 +10,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.music.vivi.db.entities.Song
 import com.music.vivi.db.entities.SongEntity
-import com.music.vivi.ui.utils.resize
+import com.music.vivi.utils.resize
 import java.io.Serializable
 import java.time.LocalDateTime
 

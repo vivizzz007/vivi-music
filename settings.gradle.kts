@@ -26,6 +26,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "vivimusic"
 include(":app")
+include(":core-database")
+include(":wear")
 include(":canvas")
 include(":innertube")
 include(":kizzy")

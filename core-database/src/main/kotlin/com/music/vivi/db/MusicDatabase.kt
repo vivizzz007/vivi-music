@@ -86,6 +86,10 @@ class MusicDatabase(
         }
 
     fun close() = delegate.close()
+
+    companion object {
+        fun newInstance(context: Context): MusicDatabase = InternalDatabase.newInstance(context)
+    }
 }
 
 @Database(

@@ -289,10 +289,10 @@ dependencies {
     "gmsImplementation"(libs.mediarouter)
     "gmsImplementation"(libs.cast.framework)
 
+    implementation(project(":core-database"))
     implementation(libs.room.runtime)
     implementation(libs.kuromoji.ipadic)
     implementation(libs.tinypinyin)
-    ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
     implementation(libs.apache.lang3)

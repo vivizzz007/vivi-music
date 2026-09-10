@@ -45,6 +45,9 @@ import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
+import com.music.vivi.constants.SpotifyPlaylistsCacheKey
+import java.io.File
+
 @Serializable
 data class SpotifySession(
     val spDc: String,
@@ -53,6 +56,14 @@ data class SpotifySession(
     val expiresAt: Long = 0,
     val accountName: String? = null,
     val accountAvatarUrl: String? = null,
+)
+
+@Serializable
+data class SpotifyCachedProfileData(
+    val accountName: String = "",
+    val accountAvatarUrl: String? = null,
+    val likedSongsCount: Int = 0,
+    val playlists: List<SpotifyPlaylist> = emptyList(),
 )
 
 data class SpotifyImportUiState(
@@ -147,7 +158,6 @@ class SpotifyImportViewModel @Inject constructor(
                     isAuthenticated = true,
                     accountName = newSession.accountName.orEmpty(),
                     accountAvatarUrl = newSession.accountAvatarUrl,
-                    isLoading = false
                 )
             }
             newSession
@@ -156,19 +166,41 @@ class SpotifyImportViewModel @Inject constructor(
     fun restoreSession() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                val prefs = context.dataStore.data.first()
                 val session = getSession()
+
+                // 1. Immediately restore cached profile data if available
+                val cachedJson = prefs[SpotifyPlaylistsCacheKey]
+                val cachedData = if (!cachedJson.isNullOrBlank()) {
+                    runCatching { json.decodeFromString<SpotifyCachedProfileData>(cachedJson) }.getOrNull()
+                } else null
+
+                if (cachedData != null && (cachedData.playlists.isNotEmpty() || cachedData.likedSongsCount > 0 || cachedData.accountName.isNotBlank())) {
+                    _uiState.update {
+                        it.copy(
+                            isAuthenticated = session != null,
+                            accountName = cachedData.accountName.ifBlank { session?.accountName.orEmpty() },
+                            accountAvatarUrl = cachedData.accountAvatarUrl ?: session?.accountAvatarUrl,
+                            playlists = cachedData.playlists,
+                            likedSongsCount = cachedData.likedSongsCount,
+                            isLoading = false,
+                        )
+                    }
+                }
+
                 if (session == null) {
                     _uiState.update { it.copy(isAuthenticated = false, isLoading = false) }
                     return@launch
                 }
+
                 if (session.accessToken != null && session.expiresAt > System.currentTimeMillis() + 60_000L) {
                     Spotify.accessToken = session.accessToken
                     _uiState.update {
                         it.copy(
                             isAuthenticated = true,
-                            accountName = session.accountName.orEmpty(),
-                            accountAvatarUrl = session.accountAvatarUrl,
-                            isLoading = false
+                            accountName = it.accountName.ifBlank { session.accountName.orEmpty() },
+                            accountAvatarUrl = it.accountAvatarUrl ?: session.accountAvatarUrl,
+                            isLoading = it.playlists.isEmpty()
                         )
                     }
                     loadSources()
@@ -176,13 +208,15 @@ class SpotifyImportViewModel @Inject constructor(
                     runCatching { refreshWithCookies(session.spDc, session.spKey.orEmpty()) }
                         .onSuccess { loadSources() }
                         .onFailure { error ->
-                            logout()
-                            _uiState.update {
-                                it.copy(
-                                    isAuthenticated = false,
-                                    isLoading = false,
-                                    errorMessage = "Session expired. Please log in again."
-                                )
+                            if (_uiState.value.playlists.isEmpty()) {
+                                logout()
+                                _uiState.update {
+                                    it.copy(
+                                        isAuthenticated = false,
+                                        isLoading = false,
+                                        errorMessage = "Session expired. Please log in again."
+                                    )
+                                }
                             }
                         }
                 }
@@ -217,7 +251,9 @@ class SpotifyImportViewModel @Inject constructor(
 
     fun loadSources() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            if (_uiState.value.playlists.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            }
             try {
                 ensureAuthenticated()
                 val meResult = Spotify.me().getOrThrow()
@@ -249,21 +285,38 @@ class SpotifyImportViewModel @Inject constructor(
                     }
                 }
 
+                val accountName = meResult.displayName.orEmpty()
+                val accountAvatarUrl = meResult.images.firstOrNull()?.url
+                val likedCount = likedSongsResult.total
+
                 _uiState.update {
                     it.copy(
                         playlists = enrichedPlaylists,
-                        likedSongsCount = likedSongsResult.total,
+                        likedSongsCount = likedCount,
                         isLoading = false,
-                        accountName = meResult.displayName.orEmpty(),
-                        accountAvatarUrl = meResult.images.firstOrNull()?.url
+                        accountName = accountName,
+                        accountAvatarUrl = accountAvatarUrl
                     )
+                }
+
+                // Cache profile and playlists to DataStore for instant display on next app launch
+                runCatching {
+                    val cacheData = SpotifyCachedProfileData(
+                        accountName = accountName,
+                        accountAvatarUrl = accountAvatarUrl,
+                        likedSongsCount = likedCount,
+                        playlists = enrichedPlaylists
+                    )
+                    context.dataStore.edit { prefs ->
+                        prefs[SpotifyPlaylistsCacheKey] = json.encodeToString(cacheData)
+                    }
                 }
             } catch (e: Exception) {
                 reportException(e)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Failed to fetch playlists"
+                        errorMessage = if (it.playlists.isEmpty()) e.message ?: "Failed to fetch playlists" else null
                     )
                 }
             }
@@ -274,6 +327,7 @@ class SpotifyImportViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             context.dataStore.edit { prefs ->
                 prefs.remove(SpotifySessionKey)
+                prefs.remove(SpotifyPlaylistsCacheKey)
             }
             Spotify.accessToken = null
             _uiState.update {

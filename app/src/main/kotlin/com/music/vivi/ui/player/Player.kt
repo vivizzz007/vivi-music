@@ -1442,8 +1442,8 @@ fun BottomSheetPlayer(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },
                                     onClick = {
-                                        if (mediaMetadata.album != null) {
-                                            navController.navigate("album/${mediaMetadata.album.id}")
+                                        mediaMetadata.album?.let { album ->
+                                            navController.navigate("album/${album.id}")
                                             state.collapseSoft()
                                         }
                                     },

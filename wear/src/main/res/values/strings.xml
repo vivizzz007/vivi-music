@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vivi Music</string>
+    <string name="downloading">Downloading</string>
+    <string name="n_songs">%1$d songs</string>
+    <string name="download_channel_name">Downloads</string>
+    <string name="download_channel_description">Offline download progress and notifications</string>
+    <string name="download_failed">Download failed</string>
+    <string name="cancel">Cancel</string>
+    <string name="playback_channel_name">Playback</string>
+    <string name="playback_channel_description">Media playback controls and notification</string>
+    <string name="bluetooth_disconnected_warning">Connect Bluetooth headphones to play</string>
+    <string name="tile_quick_launch">Quick Play</string>
+    <string name="complication_media_label">Now Playing</string>
+
+    <!-- UI Screens -->
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="skip_previous">Previous</string>
+    <string name="skip_next">Next</string>
+    <string name="library">Library</string>
+    <string name="unknown_title">Unknown Track</string>
+    <string name="select_song_prompt">Browse your library to start playing</string>
+    <string name="open_bt_settings">Bluetooth Settings</string>
+    <string name="no_downloads">No downloads yet</string>
+    <string name="no_downloads_hint">Download songs from the phone app to listen offline</string>
+    <string name="now_playing">Now Playing</string>
+    <string name="volume">Volume</string>
+    <string name="watch_speaker">Watch Speaker</string>
+    <string name="audio_route">Audio Route</string>
+</resources>

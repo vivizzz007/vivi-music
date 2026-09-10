@@ -368,8 +368,8 @@ fun StatsScreen(
                                 joinByBullet(
                                     pluralStringResource(
                                         R.plurals.n_time,
-                                        album.songCountListened!!,
-                                        album.songCountListened
+                                        album.songCountListened ?: 0,
+                                        album.songCountListened ?: 0
                                     ),
                                     makeTimeString(album.timeListened),
                                 ),

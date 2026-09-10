@@ -32,9 +32,21 @@ import com.music.vivi.constants.SpotifySessionKey
 import com.music.vivi.utils.dataStore
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.first
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
+import java.io.File
 import javax.inject.Inject
+
+@Serializable
+data class SpotifyCachedPlaylistDetail(
+    val playlistId: String = "",
+    val title: String = "",
+    val coverUrl: String? = null,
+    val ownerName: String? = null,
+    val totalTracks: Int = 0,
+    val tracks: List<SpotifyTrack> = emptyList(),
+)
 
 data class SpotifyPlaylistUiState(
     val playlistId: String = "",
@@ -66,13 +78,56 @@ class SpotifyPlaylistViewModel @Inject constructor(
     )
     val uiState = _uiState.asStateFlow()
 
-    init {
-        loadPlaylist()
-    }
-
     private val json = Json {
         isLenient = true
         ignoreUnknownKeys = true
+    }
+
+    private fun getCacheFile(): File {
+        val safeId = playlistId.replace(Regex("[^a-zA-Z0-9_-]"), "_").ifBlank { "unknown" }
+        return File(context.cacheDir, "spotify_playlist_$safeId.json")
+    }
+
+    init {
+        restoreFromCache()
+        loadPlaylist()
+    }
+
+    private fun restoreFromCache() {
+        runCatching {
+            val file = getCacheFile()
+            if (file.exists() && file.length() > 0) {
+                val cached = json.decodeFromString<SpotifyCachedPlaylistDetail>(file.readText())
+                if (cached.tracks.isNotEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            title = cached.title.ifBlank { it.title },
+                            coverUrl = cached.coverUrl ?: it.coverUrl,
+                            ownerName = cached.ownerName ?: it.ownerName,
+                            totalTracks = if (cached.totalTracks > 0) cached.totalTracks else cached.tracks.size,
+                            tracks = cached.tracks,
+                            isLoading = false,
+                            error = null,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    private fun saveToCache(title: String, coverUrl: String?, ownerName: String?, totalTracks: Int, tracks: List<SpotifyTrack>) {
+        runCatching {
+            val cacheData = SpotifyCachedPlaylistDetail(
+                playlistId = playlistId,
+                title = title,
+                coverUrl = coverUrl,
+                ownerName = ownerName,
+                totalTracks = totalTracks,
+                tracks = tracks,
+            )
+            val file = getCacheFile()
+            file.writeText(json.encodeToString(cacheData))
+        }
     }
 
     private suspend fun ensureAuthenticated(forceRefresh: Boolean = false): Boolean {
@@ -114,10 +169,12 @@ class SpotifyPlaylistViewModel @Inject constructor(
                 }
             }
 
+            val title = context.getString(R.string.spotify_liked_songs)
+            val owner = "Spotify"
             _uiState.update {
                 it.copy(
-                    title = context.getString(R.string.spotify_liked_songs),
-                    ownerName = "Spotify",
+                    title = title,
+                    ownerName = owner,
                     coverUrl = null,
                     totalTracks = total,
                     tracks = allTracks,
@@ -125,14 +182,15 @@ class SpotifyPlaylistViewModel @Inject constructor(
                     error = null,
                 )
             }
+            saveToCache(title = title, coverUrl = null, ownerName = owner, totalTracks = total, tracks = allTracks)
         } else {
             val playlistResult = Spotify.playlist(playlistId).getOrNull()
             val tracksResult = Spotify.playlistTracks(playlistId, limit = 100, offset = 0).getOrThrow()
             val fetchedTracks = tracksResult.items.mapNotNull { it.track }
 
-            val title = playlistResult?.name?.takeIf { it.isNotBlank() } ?: "Playlist"
-            val cover = playlistResult?.let { SpotifyMapper.getPlaylistThumbnail(it) }
-            val owner = playlistResult?.owner?.displayName
+            val title = playlistResult?.name?.takeIf { it.isNotBlank() } ?: _uiState.value.title.ifBlank { "Playlist" }
+            val cover = playlistResult?.let { SpotifyMapper.getPlaylistThumbnail(it) } ?: _uiState.value.coverUrl
+            val owner = playlistResult?.owner?.displayName ?: _uiState.value.ownerName
             val total = playlistResult?.tracks?.total ?: tracksResult.total
 
             _uiState.update {
@@ -146,12 +204,15 @@ class SpotifyPlaylistViewModel @Inject constructor(
                     error = null,
                 )
             }
+            saveToCache(title = title, coverUrl = cover, ownerName = owner, totalTracks = total, tracks = fetchedTracks)
         }
     }
 
     fun loadPlaylist() {
         viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            if (_uiState.value.tracks.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true, error = null) }
+            }
             try {
                 ensureAuthenticated()
                 fetchPlaylistContent()
@@ -165,7 +226,10 @@ class SpotifyPlaylistViewModel @Inject constructor(
                         } catch (e2: Exception) {
                             reportException(e2)
                             _uiState.update {
-                                it.copy(isLoading = false, error = e2.message ?: "Failed to load Spotify playlist")
+                                it.copy(
+                                    isLoading = false,
+                                    error = if (it.tracks.isEmpty()) e2.message ?: "Failed to load Spotify playlist" else null
+                                )
                             }
                             return@launch
                         }
@@ -175,7 +239,7 @@ class SpotifyPlaylistViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        error = e.message ?: "Failed to load Spotify playlist",
+                        error = if (it.tracks.isEmpty()) e.message ?: "Failed to load Spotify playlist" else null,
                     )
                 }
             }
@@ -200,12 +264,20 @@ class SpotifyPlaylistViewModel @Inject constructor(
                     page.items.mapNotNull { it.track }
                 }
 
+                val updatedTracks = currentTracks + newTracks
                 _uiState.update {
                     it.copy(
-                        tracks = currentTracks + newTracks,
+                        tracks = updatedTracks,
                         isLoadingMore = false,
                     )
                 }
+                saveToCache(
+                    title = _uiState.value.title,
+                    coverUrl = _uiState.value.coverUrl,
+                    ownerName = _uiState.value.ownerName,
+                    totalTracks = total,
+                    tracks = updatedTracks
+                )
             } catch (e: Exception) {
                 reportException(e)
                 _uiState.update { it.copy(isLoadingMore = false) }
