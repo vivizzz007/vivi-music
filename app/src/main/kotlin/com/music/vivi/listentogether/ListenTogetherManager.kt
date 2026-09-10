@@ -728,9 +728,16 @@ class ListenTogetherManager @Inject constructor(
 
             is ListenTogetherEvent.ChatMessageReceived -> {
                 Timber.tag(TAG).d("Chat message received from ${event.payload.username}")
-                _chatMessages.value = _chatMessages.value + event.payload
-                if (event.payload.userId != userId.value) {
-                    _unreadMessageCount.value++
+                
+                // Prevent duplicate keys causing LazyColumn crash
+                val exists = _chatMessages.value.any { it.timestamp == event.payload.timestamp && it.userId == event.payload.userId }
+                if (!exists) {
+                    _chatMessages.value = _chatMessages.value + event.payload
+                    if (event.payload.userId != userId.value) {
+                        _unreadMessageCount.value++
+                    }
+                } else {
+                    Timber.tag(TAG).w("Ignoring duplicate chat message from ${event.payload.username}")
                 }
             }
 
