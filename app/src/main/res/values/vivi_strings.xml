@@ -246,6 +246,8 @@
     <string name="set_first_lyrics_provider">Preferred lyrics provider</string>
     <string name="lyrics_provider_priority">Lyrics provider priority</string>
     <string name="lyrics_provider_priority_desc">Drag to reorder which provider is tried first</string>
+    <string name="lyrics_prioritize_sync_accuracy">Prioritize sync accuracy</string>
+    <string name="lyrics_prioritize_sync_accuracy_desc">Fetch word-synced or line-synced lyrics over plain text from available providers</string>
     <string name="config_proxy">Configure proxy</string>
     <string name="proxy_username">Proxy username</string>
     <string name="proxy_password">Proxy password</string>

@@ -109,6 +109,7 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.IpVersionKey
 
+import com.music.vivi.constants.LyricsPrioritizeSyncAccuracyKey
 import com.music.vivi.lyrics.LyricsProviderRegistry
 import com.music.vivi.ui.component.DraggableLyricsProviderItem
 import com.music.vivi.ui.component.DraggableLyricsProviderList
@@ -194,6 +195,7 @@ fun ContentSettings(
         key = LyricsProviderOrderKey,
         defaultValue = "",
     )
+    val (lyricsPrioritizeSyncAccuracy, onLyricsPrioritizeSyncAccuracyChange) = rememberPreference(key = LyricsPrioritizeSyncAccuracyKey, defaultValue = true)
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
     val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
@@ -1164,6 +1166,28 @@ fun ContentSettings(
                     description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
                     onClick = { showProviderPriorityDialog = true }
                 ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.lyrics_prioritize_sync_accuracy)) },
+                    description = { Text(stringResource(R.string.lyrics_prioritize_sync_accuracy_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsPrioritizeSyncAccuracy,
+                            onCheckedChange = onLyricsPrioritizeSyncAccuracyChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsPrioritizeSyncAccuracy) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsPrioritizeSyncAccuracyChange(!lyricsPrioritizeSyncAccuracy) }
+                ),
+
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),
                     title = { Text(stringResource(R.string.lyrics_romanization)) },

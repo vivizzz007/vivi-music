@@ -7,6 +7,8 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import android.util.LruCache
+
+import com.music.vivi.constants.LyricsPrioritizeSyncAccuracyKey
 import com.music.vivi.constants.LyricsProviderOrderKey
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -95,29 +97,90 @@ constructor(
         val deferred = fetchesMutex.withLock {
             activeFetches.getOrPut(cacheKey) {
                 helperScope.async {
+                    val preferences = context.dataStore.data.first()
+                    val prioritizeSync = preferences[LyricsPrioritizeSyncAccuracyKey] ?: true
+                    
                     val providers = resolveLyricsProviders()
-                    for (provider in providers) {
+                    
+                    val channel = kotlinx.coroutines.channels.Channel<Triple<Int, String, String>>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+                    
+                    val jobs = providers.mapIndexedNotNull { index, provider ->
                         if (provider.isEnabled(context)) {
-                            try {
-                                val result = provider.getLyrics(
-                                    mediaMetadata.id,
-                                    mediaMetadata.title,
-                                    mediaMetadata.artists.joinToString { it.name },
-                                    mediaMetadata.duration,
-                                    mediaMetadata.album?.title,
-                                )
-                                result.onSuccess { lyrics ->
-                                    return@async LyricsWithProvider(lyrics, provider.name)
-                                }.onFailure {
-                                    reportException(it)
+                            launch {
+                                try {
+                                    val result = provider.getLyrics(
+                                        mediaMetadata.id,
+                                        mediaMetadata.title,
+                                        mediaMetadata.artists.joinToString { it.name },
+                                        mediaMetadata.duration,
+                                        mediaMetadata.album?.title,
+                                    )
+                                    result.onSuccess { lyrics ->
+                                        if (lyrics.isNotBlank() && lyrics != LYRICS_NOT_FOUND) {
+                                            channel.send(Triple(index, provider.name, lyrics))
+                                        }
+                                    }.onFailure {
+                                        reportException(it)
+                                    }
+                                } catch (e: Exception) {
+                                    reportException(e)
                                 }
-                            } catch (e: Exception) {
-                                // Catch network-related exceptions like UnresolvedAddressException
-                                reportException(e)
+                            }
+                        } else null
+                    }
+
+                    launch {
+                        kotlinx.coroutines.joinAll(*jobs.toTypedArray())
+                        channel.close()
+                    }
+
+                    var bestLyrics = LYRICS_NOT_FOUND
+                    var bestProvider = "Unknown"
+                    var bestSyncType = LyricsUtils.SyncType.NONE
+                    var bestIndex = Int.MAX_VALUE
+
+                    try {
+                        kotlinx.coroutines.withTimeout(3000) {
+                            for ((index, providerName, lyrics) in channel) {
+                                if (!prioritizeSync) {
+                                    if (index < bestIndex) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestIndex = index
+                                        if (index == 0) break
+                                    }
+                                } else {
+                                    val syncType = LyricsUtils.getSyncType(lyrics)
+                                    if (syncType == LyricsUtils.SyncType.WORD) {
+                                        if (bestSyncType != LyricsUtils.SyncType.WORD || index < bestIndex) {
+                                            bestLyrics = lyrics
+                                            bestProvider = providerName
+                                            bestSyncType = syncType
+                                            bestIndex = index
+                                        }
+                                        if (index == 0) break
+                                    } else if (syncType == LyricsUtils.SyncType.LINE && (bestSyncType == LyricsUtils.SyncType.NONE || (bestSyncType == LyricsUtils.SyncType.LINE && index < bestIndex))) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestSyncType = syncType
+                                        bestIndex = index
+                                    } else if (bestLyrics == LYRICS_NOT_FOUND || (syncType == bestSyncType && index < bestIndex)) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestSyncType = syncType
+                                        bestIndex = index
+                                    }
+                                }
                             }
                         }
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        // Use whatever we found
+                    } finally {
+                        jobs.forEach { it.cancel() }
+                        channel.close()
                     }
-                    LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+                    
+                    LyricsWithProvider(bestLyrics, bestProvider)
                 }
             }
         }
