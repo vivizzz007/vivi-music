@@ -55,7 +55,6 @@ import com.music.vivi.di.PlayerCache
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.YTPlayerUtils
 import com.music.vivi.utils.enumPreference
-import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
@@ -89,7 +88,6 @@ constructor(
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: SimpleCache,
     @PlayerCache val playerCache: SimpleCache,
-    val lyricsHelper: LyricsHelper,
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
@@ -165,6 +163,8 @@ constructor(
             val actualContentLength = format.contentLength ?: run {
                 var length: Long? = null
                 val client = OkHttpClient.Builder()
+                    .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
+                    .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
                     .proxy(YouTube.proxy)
                     .proxyAuthenticator { _, response ->
                         YouTube.proxyAuth?.let { auth ->
@@ -174,20 +174,24 @@ constructor(
                         } ?: response.request
                     }
                     .build()
-                val request = okhttp3.Request.Builder()
-                    .head()
-                    .url(playbackData.streamUrl)
-                    .apply {
-                        playbackData.streamHeaders.forEach { (name, value) ->
-                            header(name, value)
+                runCatching {
+                    val request = okhttp3.Request.Builder()
+                        .url(playbackData.streamUrl)
+                        .header("Range", "bytes=0-0")
+                        .apply {
+                            playbackData.streamHeaders.forEach { (name, value) ->
+                                header(name, value)
+                            }
                         }
+                        .build()
+                    client.newCall(request).execute().use { response ->
+                        val contentRange = response.header("Content-Range")
+                        length = contentRange?.substringAfterLast("/")?.toLongOrNull()
+                            ?: response.header("Content-Length")?.toLongOrNull()
                     }
-                    .build()
-                client.newCall(request).execute().use { response ->
-                    length = response.header("Content-Length")?.toLongOrNull()
                 }
-                length ?: error("Failed to retrieve content length")
-            }
+                length
+            } ?: 0L
 
             database.query {
                 upsert(
@@ -241,10 +245,12 @@ constructor(
                 }
             }
 
-            val streamUrl = if (playbackData.isSaavnStream) {
+            val streamUrl = if (playbackData.isSaavnStream || !playbackData.requireBoundedRange) {
                 playbackData.streamUrl
-            } else {
+            } else if (actualContentLength > 0L) {
                 "${playbackData.streamUrl}&range=0-${actualContentLength}"
+            } else {
+                playbackData.streamUrl
             }
 
             songUrlCache.put(
@@ -270,7 +276,7 @@ constructor(
             databaseProvider,
             downloadCache,
             dataSourceFactory,
-            Executor(Runnable::run)
+            java.util.concurrent.Executors.newFixedThreadPool(4)
         ).apply {
             maxParallelDownloads = 3
             addListener(
@@ -288,7 +294,7 @@ constructor(
                             finalException?.message ?: "None"
                         )
                         
-                        if (download.state == Download.STATE_FAILED && finalException.isExpiredStreamError()) {
+                        if (download.state == Download.STATE_FAILED) {
                             songUrlCache.invalidate(download.request.id)
                         }
 
@@ -303,31 +309,6 @@ constructor(
                                 Download.STATE_COMPLETED -> {
                                     val songId = download.request.id
                                     database.updateDownloadedInfo(songId, true, LocalDateTime.now())
-
-                                    // Pre-fetch lyrics and save to database if not already present with non-blocking timeout
-                                    runCatching {
-                                        val existingLyrics = database.lyrics(songId).firstOrNull()
-                                        if (existingLyrics == null || existingLyrics.lyrics.isBlank() || existingLyrics.lyrics == LyricsEntity.LYRICS_NOT_FOUND) {
-                                            val songWithData = database.song(songId).firstOrNull()
-                                            if (songWithData != null) {
-                                                val mediaMetadata = songWithData.toMediaMetadata()
-                                                kotlinx.coroutines.withTimeoutOrNull(3500L) {
-                                                    val lyricsResult = lyricsHelper.getLyrics(mediaMetadata)
-                                                    if (lyricsResult.lyrics.isNotBlank() && lyricsResult.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
-                                                        database.query {
-                                                            upsert(
-                                                                LyricsEntity(
-                                                                    id = songId,
-                                                                    lyrics = lyricsResult.lyrics,
-                                                                    provider = lyricsResult.provider
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
 
                                     val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
                                     if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
@@ -460,18 +441,7 @@ constructor(
                     val dbLyrics = database.lyrics(songId).firstOrNull()
                     if (dbLyrics != null && dbLyrics.lyrics.isNotBlank() && dbLyrics.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
                         dbLyrics.lyrics
-                    } else {
-                        val mediaMetadata = songWithData.toMediaMetadata()
-                        val fetched = kotlinx.coroutines.withTimeoutOrNull(3000L) {
-                            lyricsHelper.getLyrics(mediaMetadata)
-                        }
-                        if (fetched != null && fetched.lyrics.isNotBlank() && fetched.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
-                            database.query {
-                                upsert(LyricsEntity(id = songId, lyrics = fetched.lyrics, provider = fetched.provider))
-                            }
-                            fetched.lyrics
-                        } else null
-                    }
+                    } else null
                 } catch (e: Exception) {
                     null
                 }

@@ -399,8 +399,14 @@ class MusicService :
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
     private var prefetchJob: Job? = null
 
+    private data class ServiceCachedStream(
+        val url: String,
+        val headers: Map<String, String>,
+        val expiresAt: Long
+    )
+
     // URL cache for stream URLs - class-level so it can be invalidated on errors
-    private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    private val songUrlCache = HashMap<String, ServiceCachedStream>()
 
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
@@ -2111,7 +2117,7 @@ class MusicService :
 
         // Nothing to do — URL is already cached and hasn't expired
         val cachedEntry = songUrlCache[nextMediaId]
-        if (cachedEntry != null && cachedEntry.second > System.currentTimeMillis()) return
+        if (cachedEntry != null && cachedEntry.expiresAt > System.currentTimeMillis()) return
 
         prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
             Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
@@ -2126,9 +2132,11 @@ class MusicService :
             result.getOrNull()?.getOrNull()?.let { playbackData ->
                 // Only write to cache if the job wasn't cancelled while we were resolving
                 if (isActive) {
-                    songUrlCache[nextMediaId] =
-                        playbackData.streamUrl to
-                            System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                    songUrlCache[nextMediaId] = ServiceCachedStream(
+                        url = playbackData.streamUrl,
+                        headers = playbackData.streamHeaders,
+                        expiresAt = System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                    )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
 
                     playbackData.format?.let { format ->
@@ -3033,9 +3041,11 @@ class MusicService :
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
+                songUrlCache[mediaId]?.takeIf { it.expiresAt > System.currentTimeMillis() }?.let { cached ->
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                    return@Factory dataSpec.withUri(it.first.toUri())
+                    return@Factory dataSpec
+                        .withUri(cached.url.toUri())
+                        .withRequestHeaders(dataSpec.httpRequestHeaders + cached.headers)
                 }
             } else {
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
@@ -3115,9 +3125,14 @@ class MusicService :
 
                 val streamUrl = nonNullPlayback.streamUrl
 
-                songUrlCache[mediaId] =
-                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
-                return@Factory dataSpec.withUri(streamUrl.toUri())
+                songUrlCache[mediaId] = ServiceCachedStream(
+                    url = streamUrl,
+                    headers = nonNullPlayback.streamHeaders,
+                    expiresAt = System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
+                )
+                return@Factory dataSpec
+                    .withUri(streamUrl.toUri())
+                    .withRequestHeaders(dataSpec.httpRequestHeaders + nonNullPlayback.streamHeaders)
             }
         }
     }

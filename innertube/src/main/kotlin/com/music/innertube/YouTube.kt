@@ -1570,26 +1570,62 @@ object YouTube {
         videoId: String,
         tempRes: PlayerResponse,
     ): PlayerResponse? {
-        if (tempRes.playabilityStatus.status != "OK") {
-            return null
-        }
-
         val streamsList = getNewPipeStreamUrls(videoId)
         if (streamsList.isEmpty()) return null
 
+        val mappedAdaptiveFormats = streamsList.map { (itag, url) ->
+            PlayerResponse.StreamingData.Format(
+                itag = itag,
+                url = url,
+                mimeType = if (itag == 140 || itag == 139) "audio/mp4; codecs=\"mp4a.40.2\"" else "audio/webm; codecs=\"opus\"",
+                bitrate = when (itag) {
+                    251 -> 160_000
+                    140 -> 128_000
+                    250 -> 70_000
+                    249 -> 50_000
+                    else -> 128_000
+                },
+                width = null,
+                height = null,
+                contentLength = null,
+                quality = "medium",
+                fps = null,
+                qualityLabel = null,
+                averageBitrate = null,
+                audioQuality = "AUDIO_QUALITY_MEDIUM",
+                approxDurationMs = null,
+                audioSampleRate = 48000,
+                audioChannels = 2,
+                loudnessDb = null,
+                lastModified = null,
+                signatureCipher = null,
+                cipher = null,
+                audioTrack = null,
+            )
+        }
+
         val decodedSigResponse = tempRes.copy(
-            streamingData = tempRes.streamingData?.copy(
-                formats = tempRes.streamingData.formats?.map { format ->
-                    format.copy(
-                        url = streamsList.find { it.first == format.itag }?.second ?: format.url,
-                    )
-                },
-                adaptiveFormats = tempRes.streamingData.adaptiveFormats.map { adaptiveFormat ->
-                    adaptiveFormat.copy(
-                        url = streamsList.find { it.first == adaptiveFormat.itag }?.second ?: adaptiveFormat.url,
-                    )
-                },
-            ),
+            playabilityStatus = PlayerResponse.PlayabilityStatus(status = "OK", reason = null),
+            streamingData = if (tempRes.streamingData != null) {
+                tempRes.streamingData.copy(
+                    formats = tempRes.streamingData.formats?.map { format ->
+                        format.copy(
+                            url = streamsList.find { it.first == format.itag }?.second ?: format.url,
+                        )
+                    },
+                    adaptiveFormats = tempRes.streamingData.adaptiveFormats.map { adaptiveFormat ->
+                        adaptiveFormat.copy(
+                            url = streamsList.find { it.first == adaptiveFormat.itag }?.second ?: adaptiveFormat.url,
+                        )
+                    }.ifEmpty { mappedAdaptiveFormats },
+                )
+            } else {
+                PlayerResponse.StreamingData(
+                    formats = emptyList(),
+                    adaptiveFormats = mappedAdaptiveFormats,
+                    expiresInSeconds = 21600,
+                )
+            },
         )
 
         val urlList = (

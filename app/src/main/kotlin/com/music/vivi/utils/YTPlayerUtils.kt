@@ -424,7 +424,10 @@ object YTPlayerUtils {
             streamUrl = streamUrl,
             streamExpiresInSeconds = 21600,
             streamClient = "NEWPIPE_FALLBACK",
-            streamHeaders = emptyMap(),
+            streamHeaders = mapOf(
+                "User-Agent" to YouTubeClient.USER_AGENT_WEB,
+                "Referer" to "https://www.youtube.com/"
+            ),
             requireBoundedRange = false,
             rangeChunkSizeBytes = 0L,
             useRangeChunks = false,
@@ -501,7 +504,10 @@ object YTPlayerUtils {
             streamUrl = streamUrl,
             streamExpiresInSeconds = 21600,
             streamClient = "WATERFALL_FALLBACK",
-            streamHeaders = emptyMap(),
+            streamHeaders = mapOf(
+                "User-Agent" to YouTubeClient.USER_AGENT_WEB,
+                "Referer" to "https://www.youtube.com/"
+            ),
             requireBoundedRange = false,
             rangeChunkSizeBytes = 0L,
             useRangeChunks = false,
