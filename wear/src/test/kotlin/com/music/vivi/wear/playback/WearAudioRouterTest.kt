@@ -13,6 +13,7 @@ import androidx.test.core.app.ApplicationProvider
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -189,5 +190,85 @@ class WearAudioRouterTest {
 
         assertFalse(router.isUsingSpeaker())
         assertEquals("Galaxy Buds Pro", router.getCurrentAudioRouteLabel())
+    }
+
+    @Test
+    fun testAudioRouteLabel_whenBluetoothDeviceNameIsNull_returnsBluetoothAudio() {
+        val btDevice = SimpleAudioDevice(
+            type = AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            productName = null,
+        )
+        val router = WearAudioRouter(
+            context = context,
+            deviceProvider = { listOf(btDevice) },
+        )
+
+        assertTrue(router.isBluetoothAudioConnected())
+        assertFalse(router.isUsingSpeaker())
+        assertEquals("Bluetooth Audio", router.getConnectedDeviceName())
+        assertEquals("Bluetooth Audio", router.getCurrentAudioRouteLabel())
+    }
+
+    @Test
+    fun testAudioRouteLabel_whenBluetoothDeviceNameIsBlank_returnsBluetoothAudio() {
+        val btDevice = SimpleAudioDevice(
+            type = AudioDeviceInfo.TYPE_BLE_HEADSET,
+            productName = "   ",
+        )
+        val router = WearAudioRouter(
+            context = context,
+            deviceProvider = { listOf(btDevice) },
+        )
+
+        assertTrue(router.isBluetoothAudioConnected())
+        assertFalse(router.isUsingSpeaker())
+        assertEquals("Bluetooth Audio", router.getConnectedDeviceName())
+        assertEquals("Bluetooth Audio", router.getCurrentAudioRouteLabel())
+    }
+
+    @Test
+    fun testMultiDeviceRemoval_updatesStateToRemainingDevice() {
+        val device1 = SimpleAudioDevice(
+            type = AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+            productName = "Galaxy Buds Pro",
+            address = "AA:BB:CC:DD:EE:11",
+        )
+        val device2 = SimpleAudioDevice(
+            type = AudioDeviceInfo.TYPE_BLE_SPEAKER,
+            productName = "JBL Speaker",
+            address = "AA:BB:CC:DD:EE:22",
+        )
+
+        val currentDevices = mutableListOf(device1, device2)
+        val router = WearAudioRouter(
+            context = context,
+            deviceProvider = { currentDevices },
+        )
+
+        router.handleDevicesAdded(listOf(device1))
+        val state1 = router.bluetoothState.value as BluetoothOutputState.Connected
+        assertEquals("Galaxy Buds Pro", state1.deviceName)
+
+        // Remove device 1 while device 2 remains
+        currentDevices.remove(device1)
+        router.handleDevicesRemoved(listOf(device1))
+
+        assertTrue(router.isBluetoothAudioConnected())
+        val state2 = router.bluetoothState.value as BluetoothOutputState.Connected
+        assertEquals("JBL Speaker", state2.deviceName)
+        assertEquals("JBL Speaker", router.getCurrentAudioRouteLabel())
+    }
+
+    @Test
+    fun testAudioRouteLabel_whenNoBluetoothDeviceConnected_returnsWatchSpeaker() {
+        val router = WearAudioRouter(
+            context = context,
+            deviceProvider = { emptyList() },
+        )
+
+        assertFalse(router.isBluetoothAudioConnected())
+        assertTrue(router.isUsingSpeaker())
+        assertEquals("Watch Speaker", router.getCurrentAudioRouteLabel())
+        assertNull(router.getConnectedDeviceName())
     }
 }

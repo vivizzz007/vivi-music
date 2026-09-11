@@ -1312,13 +1312,20 @@ class MainActivity : ComponentActivity() {
         intent.removeExtra(Intent.EXTRA_TEXT)
         val coroutineScope = lifecycle.coroutineScope
 
-        val listenCode = uri.getQueryParameter("code")
-            ?: uri.getQueryParameter("room")
-            ?: uri.pathSegments.getOrNull(1)
-        val isListenLink = uri.pathSegments.firstOrNull() == "listen" || uri.host?.equals("listen", ignoreCase = true) == true
-        if (!listenCode.isNullOrBlank() && isListenLink) {
-            val username = dataStore.get(ListenTogetherUsernameKey, "").ifBlank { "Guest" }
-            listenTogetherManager.joinRoom(listenCode, username)
+        val isPairLink = uri.scheme == "vivimusic" && uri.host?.equals("pair", ignoreCase = true) == true
+        if (isPairLink) {
+            val host = uri.getQueryParameter("host") ?: "127.0.0.1"
+            val port = uri.getQueryParameter("port")?.toIntOrNull() ?: 8888
+            val pin = uri.getQueryParameter("pin") ?: ""
+            coroutineScope.launch(Dispatchers.IO) {
+                com.music.vivi.utils.WatchPairingUtils.pairWithWatch(
+                    context = this@MainActivity,
+                    host = host,
+                    port = port,
+                    pin = pin,
+                    onResult = {},
+                )
+            }
             return
         }
 

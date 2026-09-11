@@ -22,8 +22,8 @@
     <string name="unknown_title">Unknown Track</string>
     <string name="select_song_prompt">Browse your library to start playing</string>
     <string name="open_bt_settings">Bluetooth Settings</string>
-    <string name="no_downloads">No downloads yet</string>
-    <string name="no_downloads_hint">Download songs from the phone app to listen offline</string>
+    <string name="no_downloads">No offline songs yet</string>
+    <string name="no_downloads_hint">Tap Browse My Library above to find and download songs</string>
     <string name="now_playing">Now Playing</string>
     <string name="volume">Volume</string>
     <string name="watch_speaker">Watch Speaker</string>

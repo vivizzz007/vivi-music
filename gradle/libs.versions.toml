@@ -53,6 +53,7 @@ wear = "1.4.0"
 horologist = "0.8.3-alpha"
 robolectric = "4.14.1"
 testCore = "1.6.1"
+zxing = "3.5.3"
 
 
 [libraries]
@@ -187,6 +188,7 @@ room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 test-core = { module = "androidx.test:core", version.ref = "testCore" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version = "1.15.0" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 
 

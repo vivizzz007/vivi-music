@@ -110,6 +110,17 @@
                 <data android:host="listen" />
             </intent-filter>
 
+            <!-- Wear OS Watch Pairing deep link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="vivimusic" />
+                <data android:host="pair" />
+            </intent-filter>
+
             <!-- Youtube filter -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

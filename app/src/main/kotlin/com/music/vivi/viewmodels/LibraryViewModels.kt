@@ -148,27 +148,6 @@ constructor(
     fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() }
     }
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allArtists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null || Duration.between(
-                            it.lastUpdateTime,
-                            LocalDateTime.now()
-                        ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
 }
 
 @HiltViewModel
@@ -202,32 +181,6 @@ constructor(
 
     fun sync() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() }
-    }
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            allAlbums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
     }
 }
 
@@ -339,51 +292,6 @@ constructor(
         .flatMapLatest { hideYoutubeShorts ->
             database.playlists(PlaylistSortType.CREATE_DATE, true).map { it.filterYoutubeShorts(hideYoutubeShorts) }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            albums.collect { albums ->
-                albums
-                    .filter {
-                        it.album.songCount == 0
-                    }.forEach { album ->
-                        YouTube
-                            .album(album.id)
-                            .onSuccess { albumPage ->
-                                database.query {
-                                    update(album.album, albumPage, album.artists)
-                                }
-                            }.onFailure {
-                                reportException(it)
-                                if (it.message?.contains("NOT_FOUND") == true) {
-                                    database.query {
-                                        delete(album.album)
-                                    }
-                                }
-                            }
-                    }
-            }
-        }
-        viewModelScope.launch(Dispatchers.IO) {
-            artists.collect { artists ->
-                artists
-                    .map { it.artist }
-                    .filter {
-                        it.thumbnailUrl == null ||
-                                Duration.between(
-                                    it.lastUpdateTime,
-                                    LocalDateTime.now(),
-                                ) > Duration.ofDays(10)
-                    }.forEach { artist ->
-                        YouTube.artist(artist.id).onSuccess { artistPage ->
-                            database.query {
-                                update(artist, artistPage)
-                            }
-                        }
-                    }
-            }
-        }
-    }
 }
 
 @HiltViewModel

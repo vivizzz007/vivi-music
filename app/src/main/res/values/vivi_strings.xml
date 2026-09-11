@@ -1150,4 +1150,7 @@
     <string name="upstream_releases">Releases</string>
     <string name="upstream_nightly">Nightly Builds</string>
     <string name="upstream_no_updates">No upstream updates found</string>
+    <string name="view_spotify_account">View Spotify Account</string>
+    <string name="view_spotify_account_desc">View your Spotify profile, playlists, and synced library</string>
+    <string name="spotify_no_playlists">No Spotify playlists found</string>
 </resources>

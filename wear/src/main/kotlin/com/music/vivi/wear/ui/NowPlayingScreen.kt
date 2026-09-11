@@ -89,17 +89,16 @@ fun NowPlayingScreen(
             .fillMaxSize()
             .background(Color.Black)
             .onRotaryScrollEvent { event ->
-                val direction = if (event.verticalScrollPixels > 0) {
-                    AudioManager.ADJUST_RAISE
+                val delta = event.verticalScrollPixels
+                if (delta > 0f) {
+                    audioManager?.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_RAISE, AudioManager.FLAG_SHOW_UI)
+                    true
+                } else if (delta < 0f) {
+                    audioManager?.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_LOWER, AudioManager.FLAG_SHOW_UI)
+                    true
                 } else {
-                    AudioManager.ADJUST_LOWER
+                    false
                 }
-                audioManager?.adjustStreamVolume(
-                    AudioManager.STREAM_MUSIC,
-                    direction,
-                    AudioManager.FLAG_SHOW_UI,
-                )
-                true
             }
             .focusRequester(focusRequester)
             .focusable(),

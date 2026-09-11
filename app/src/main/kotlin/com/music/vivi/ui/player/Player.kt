@@ -1634,9 +1634,17 @@ fun BottomSheetPlayer(
                                             )
                                         }
                                         Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                            CircularWavyProgressIndicator(
-                                                modifier = Modifier.size(24.dp),
-                                            )
+                                            val progress = download?.percentDownloaded
+                                            if (progress != null && progress in 0f..100f) {
+                                                CircularWavyProgressIndicator(
+                                                    progress = { (progress / 100f).coerceIn(0f, 1f) },
+                                                    modifier = Modifier.size(24.dp),
+                                                )
+                                            } else {
+                                                CircularWavyProgressIndicator(
+                                                    modifier = Modifier.size(24.dp),
+                                                )
+                                            }
                                         }
                                         else -> {
                                             Icon(

@@ -304,23 +304,25 @@ constructor(
                                     val songId = download.request.id
                                     database.updateDownloadedInfo(songId, true, LocalDateTime.now())
 
-                                    // Pre-fetch lyrics and save to database if not already present
+                                    // Pre-fetch lyrics and save to database if not already present with non-blocking timeout
                                     runCatching {
                                         val existingLyrics = database.lyrics(songId).firstOrNull()
                                         if (existingLyrics == null || existingLyrics.lyrics.isBlank() || existingLyrics.lyrics == LyricsEntity.LYRICS_NOT_FOUND) {
                                             val songWithData = database.song(songId).firstOrNull()
                                             if (songWithData != null) {
                                                 val mediaMetadata = songWithData.toMediaMetadata()
-                                                val lyricsResult = lyricsHelper.getLyrics(mediaMetadata)
-                                                if (lyricsResult.lyrics.isNotBlank() && lyricsResult.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
-                                                    database.query {
-                                                        upsert(
-                                                            LyricsEntity(
-                                                                id = songId,
-                                                                lyrics = lyricsResult.lyrics,
-                                                                provider = lyricsResult.provider
+                                                kotlinx.coroutines.withTimeoutOrNull(3500L) {
+                                                    val lyricsResult = lyricsHelper.getLyrics(mediaMetadata)
+                                                    if (lyricsResult.lyrics.isNotBlank() && lyricsResult.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                                                        database.query {
+                                                            upsert(
+                                                                LyricsEntity(
+                                                                    id = songId,
+                                                                    lyrics = lyricsResult.lyrics,
+                                                                    provider = lyricsResult.provider
+                                                                )
                                                             )
-                                                        )
+                                                        }
                                                     }
                                                 }
                                             }
@@ -419,20 +421,29 @@ constructor(
                     .setKey(cacheKey)
                     .build()
 
-                val audioOut = ByteArrayOutputStream()
-                try {
-                    cacheDataSource.open(dataSpec)
-                    val buffer = ByteArray(32768)
-                    while (true) {
-                        val bytes = cacheDataSource.read(buffer, 0, buffer.size)
-                        if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
-                        audioOut.write(buffer, 0, bytes)
+                var rawAudio = ByteArray(0)
+                for (retry in 0..2) {
+                    val audioOut = ByteArrayOutputStream()
+                    try {
+                        cacheDataSource.open(dataSpec)
+                        val buffer = ByteArray(32768)
+                        while (true) {
+                            val bytes = cacheDataSource.read(buffer, 0, buffer.size)
+                            if (bytes <= 0 || bytes == C.RESULT_END_OF_INPUT) break
+                            audioOut.write(buffer, 0, bytes)
+                        }
+                        rawAudio = audioOut.toByteArray()
+                        if (rawAudio.isNotEmpty()) break
+                    } catch (e: Exception) {
+                        Timber.tag("DownloadUtil").w(e, "Retry $retry reading cache for $songId")
+                    } finally {
+                        try { cacheDataSource.close() } catch (_: Exception) {}
                     }
-                } finally {
-                    cacheDataSource.close()
+                    if (rawAudio.isEmpty()) {
+                        kotlinx.coroutines.delay(200)
+                    }
                 }
 
-                val rawAudio = audioOut.toByteArray()
                 if (rawAudio.isEmpty()) return@launch
 
                 val artworkBytes: ByteArray? = try {
@@ -451,8 +462,10 @@ constructor(
                         dbLyrics.lyrics
                     } else {
                         val mediaMetadata = songWithData.toMediaMetadata()
-                        val fetched = lyricsHelper.getLyrics(mediaMetadata)
-                        if (fetched.lyrics.isNotBlank() && fetched.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
+                        val fetched = kotlinx.coroutines.withTimeoutOrNull(3000L) {
+                            lyricsHelper.getLyrics(mediaMetadata)
+                        }
+                        if (fetched != null && fetched.lyrics.isNotBlank() && fetched.lyrics != LyricsEntity.LYRICS_NOT_FOUND) {
                             database.query {
                                 upsert(LyricsEntity(id = songId, lyrics = fetched.lyrics, provider = fetched.provider))
                             }

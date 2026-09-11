@@ -478,11 +478,13 @@
     <string name="maps_guide_step3">3. Enable \"Show media playback controls\" to see music controls directly in Maps.</string>
     <string name="maps_not_installed">Google Maps is not installed on this device</string>
 
-    <!-- Spotify Account -->
-    <string name="view_spotify_account">View Spotify Account</string>
-    <string name="spotify_playlists">Playlists</string>
-    <string name="spotify_albums">Albums</string>
-    <string name="spotify_artists">Artists</string>
-    <string name="spotify_no_playlists">No Spotify playlists found</string>
-    <string name="spotify_library">Spotify Library</string>
+    <!-- Wear OS Watch Pairing -->
+    <string name="pair_wear_watch">Pair Wear OS Watch</string>
+    <string name="pair_wear_watch_desc">Transfer YouTube Music session to your Galaxy Watch</string>
+    <string name="watch_ip_address">Watch IP / Address</string>
+    <string name="watch_pin">4-Digit PIN</string>
+    <string name="send_to_watch">Pair Watch</string>
+    <string name="watch_paired_success">Watch paired successfully!</string>
+    <string name="watch_pairing_failed">Failed to pair with watch. Check IP and Wi-Fi connection.</string>
+    <string name="login_first_to_pair_watch">Please log in to YouTube Music on this phone first.</string>
 </resources>

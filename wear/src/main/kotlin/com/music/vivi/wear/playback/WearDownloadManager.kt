@@ -17,6 +17,12 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.db.entities.ArtistEntity
+import com.music.vivi.db.entities.PlaylistEntity
+import com.music.vivi.db.entities.PlaylistSongMap
+import com.music.vivi.db.entities.SongArtistMap
+import com.music.vivi.db.entities.SongEntity
+import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -130,9 +136,38 @@ class WearDownloadManager(
     }
 
     /**
-     * Queues a single song for background offline download.
+     * Queues a single song for background offline download and persists its metadata in Room.
      */
-    fun downloadSong(songId: String, title: String, uri: Uri? = null) {
+    fun downloadSong(
+        songId: String,
+        title: String,
+        artist: String? = null,
+        thumbnailUrl: String? = null,
+        duration: Int = -1,
+        uri: Uri? = null,
+    ) {
+        coroutineScope.launch {
+            val existing = database.getSongById(songId)?.song
+            if (existing == null) {
+                val songEntity = SongEntity(
+                    id = songId,
+                    title = title,
+                    duration = duration,
+                    thumbnailUrl = thumbnailUrl,
+                    isDownloaded = false,
+                )
+                database.upsert(songEntity)
+                if (!artist.isNullOrBlank()) {
+                    val existingArtist = database.artistByName(artist)
+                    val artistId = existingArtist?.id ?: ArtistEntity.generateArtistId()
+                    if (existingArtist == null) {
+                        database.insert(ArtistEntity(id = artistId, name = artist, channelId = null))
+                    }
+                    database.insert(SongArtistMap(songId = songId, artistId = artistId, position = 0))
+                }
+            }
+        }
+
         val downloadUri = uri ?: "vivi://song/$songId".toUri()
         val request = DownloadRequest.Builder(songId, downloadUri)
             .setCustomCacheKey(songId)
@@ -149,7 +184,44 @@ class WearDownloadManager(
     }
 
     /**
-     * Queues all tracks within a playlist for offline download.
+     * Queues a song from [MediaMetadata] for offline download, ensuring all metadata is persisted in Room.
+     */
+    fun downloadSong(mediaMetadata: MediaMetadata, uri: Uri? = null) {
+        coroutineScope.launch {
+            database.insert(mediaMetadata)
+        }
+        downloadSong(
+            songId = mediaMetadata.id,
+            title = mediaMetadata.title,
+            artist = mediaMetadata.artists.firstOrNull()?.name,
+            thumbnailUrl = mediaMetadata.thumbnailUrl,
+            duration = mediaMetadata.duration,
+            uri = uri,
+        )
+    }
+
+    /**
+     * Queues all tracks within an online playlist for offline download, persisting playlist and mapping records.
+     */
+    fun downloadPlaylist(
+        playlistId: String,
+        playlistTitle: String,
+        songs: List<MediaMetadata>,
+    ) {
+        coroutineScope.launch {
+            val playlist = PlaylistEntity(id = playlistId, name = playlistTitle)
+            database.insert(playlist)
+            database.update(playlist)
+            songs.forEachIndexed { index, song ->
+                database.insert(song)
+                database.insert(PlaylistSongMap(playlistId = playlistId, songId = song.id, position = index))
+                downloadSong(song)
+            }
+        }
+    }
+
+    /**
+     * Queues all tracks within a local playlist for offline download.
      */
     suspend fun downloadPlaylist(playlistId: String) {
         val playlistSongs = database.playlistSongs(playlistId).firstOrNull().orEmpty()
@@ -160,7 +232,7 @@ class WearDownloadManager(
     }
 
     /**
-     * Removes an offline downloaded song from watch storage.
+     * Removes an offline downloaded song from watch storage and resets its Room downloaded state.
      */
     fun removeDownload(songId: String) {
         DownloadService.sendRemoveDownload(
@@ -169,6 +241,9 @@ class WearDownloadManager(
             songId,
             false,
         )
+        coroutineScope.launch {
+            database.updateDownloadedInfo(songId, false, null)
+        }
         Timber.i("Dispatched remove download request for song: %s", songId)
     }
 

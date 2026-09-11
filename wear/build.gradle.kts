@@ -131,6 +131,9 @@ dependencies {
     // DataStore
     implementation(libs.datastore)
 
+    // QR Code Generation
+    implementation(libs.zxing.core)
+
     // Desugaring & Logging
     implementation(libs.timber)
     coreLibraryDesugaring(libs.desugaring)

@@ -11,18 +11,26 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
+import com.music.innertube.YouTube
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.wear.auth.WearAuthManager
+import com.music.vivi.wear.auth.WearAuthPreferences
+import com.music.vivi.wear.auth.WearAuthUtils
 import com.music.vivi.wear.playback.WearAudioRouter
 import com.music.vivi.wear.playback.WearDownloadCache
 import com.music.vivi.wear.playback.WearDownloadManager
 import com.music.vivi.wear.playback.WearDownloadService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
  * Main application class for the standalone Wear OS 5 Vivi Music client.
  *
  * Initializes persistent database, caching singletons, Bluetooth audio routing,
- * and background download coordinators.
+ * background download coordinators, and YouTube Music auth observers.
  */
 class WearApp : Application() {
 
@@ -37,6 +45,9 @@ class WearApp : Application() {
 
     lateinit var downloadManager: WearDownloadManager
         private set
+
+    val authPreferences: WearAuthPreferences by lazy { WearAuthPreferences(this) }
+    val authManager: WearAuthManager by lazy { WearAuthManager(this, authPreferences) }
 
     override fun onCreate() {
         super.onCreate()
@@ -66,10 +77,34 @@ class WearApp : Application() {
             database = database,
             databaseProvider = databaseProvider,
             downloadCache = WearDownloadCache.downloadCache,
-            upstreamDataSourceFactory = WearDownloadCache.getCacheDataSourceFactory(this),
+            upstreamDataSourceFactory = WearDownloadCache.getDownloadUpstreamDataSourceFactory(this),
         )
 
-        // 6. Ensure system notification channels
+        // 6. Observe & restore YouTube credentials from DataStore
+        val authScope = CoroutineScope(Dispatchers.IO)
+        authScope.launch {
+            authPreferences.innerTubeCookie.distinctUntilChanged().collect { cookie ->
+                YouTube.cookie = cookie
+                Timber.d("YouTube.cookie updated from DataStore")
+            }
+        }
+        authScope.launch {
+            authPreferences.dataSyncId.distinctUntilChanged().collect { dataSyncId ->
+                YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)
+                Timber.d("YouTube.dataSyncId updated from DataStore")
+            }
+        }
+        authScope.launch {
+            authPreferences.visitorData.distinctUntilChanged().collect { visitorData ->
+                YouTube.visitorData = visitorData
+                Timber.d("YouTube.visitorData updated from DataStore")
+            }
+        }
+        authScope.launch {
+            authManager.initFromDataStore()
+        }
+
+        // 7. Ensure system notification channels
         createNotificationChannels()
     }
 

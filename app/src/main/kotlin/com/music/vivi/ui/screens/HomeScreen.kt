@@ -831,6 +831,7 @@ fun HomeScreen(
             if (id in disabledHomeSections) return false
             if (title != null) {
                 val lower = title.lowercase().trim()
+                if (lower.contains("listen together") || lower.contains("listen_together")) return false
                 if (disabledHomeSections.any { it.equals(lower, ignoreCase = true) }) return false
                 if ("live_performances" in disabledHomeSections && (lower.contains("live performance") || lower.contains("live performances"))) return false
             }

@@ -360,7 +360,76 @@ object YTPlayerUtils {
             return fallbackResult
         }
 
+        // Waterfall failed — try NewPipe fallback as final safety net
+        Timber.tag(TAG).w("Waterfall fallback failed for $videoId, trying NewPipe extractor fallback...")
+        val newPipeResult = fallbackFromNewPipe(videoId, playlistId, audioQuality)
+        if (newPipeResult.isSuccess) {
+            Timber.tag(TAG).i("NewPipe fallback succeeded for $videoId")
+            BotDetectionMitigator.notifyPlaybackSuccess()
+            return newPipeResult
+        }
+
         return firstAttempt
+    }
+
+    private suspend fun fallbackFromNewPipe(
+        videoId: String,
+        playlistId: String?,
+        audioQuality: AudioQuality,
+    ): Result<InnerTubeXPlayer.PlaybackData> = runCatching {
+        Timber.tag(TAG).i("Attempting NewPipeExtractor fallback for videoId=$videoId")
+        val meta = playerResponseForMetadata(videoId, playlistId).getOrNull()
+        val streams = NewPipeExtractor.newPipePlayer(videoId)
+        if (streams.isEmpty()) {
+            throw IllegalStateException("NewPipeExtractor returned no streams for videoId=$videoId")
+        }
+        // Preferred audio itags
+        val audioItagOrder = listOf(251, 140, 250, 249, 139)
+        val selected = streams.firstOrNull { it.first in audioItagOrder } ?: streams.first()
+        val itag = selected.first
+        val streamUrl = selected.second
+
+        InnerTubeXPlayer.PlaybackData(
+            audioConfig = meta?.playerConfig?.audioConfig,
+            videoDetails = meta?.videoDetails,
+            playbackTracking = meta?.playbackTracking,
+            format = PlayerResponse.StreamingData.Format(
+                itag = itag,
+                url = streamUrl,
+                mimeType = if (itag == 140 || itag == 139) "audio/mp4; codecs=\"mp4a.40.2\"" else "audio/webm; codecs=\"opus\"",
+                bitrate = when (itag) {
+                    251 -> 160_000
+                    140 -> 128_000
+                    250 -> 70_000
+                    249 -> 50_000
+                    else -> 128_000
+                },
+                width = null,
+                height = null,
+                contentLength = null,
+                quality = "medium",
+                fps = null,
+                qualityLabel = null,
+                averageBitrate = null,
+                audioQuality = "AUDIO_QUALITY_MEDIUM",
+                approxDurationMs = null,
+                audioSampleRate = 48000,
+                audioChannels = 2,
+                loudnessDb = null,
+                lastModified = null,
+                signatureCipher = null,
+                cipher = null,
+                audioTrack = null,
+            ),
+            streamUrl = streamUrl,
+            streamExpiresInSeconds = 21600,
+            streamClient = "NEWPIPE_FALLBACK",
+            streamHeaders = emptyMap(),
+            requireBoundedRange = false,
+            rangeChunkSizeBytes = 0L,
+            useRangeChunks = false,
+            isSaavnStream = false,
+        )
     }
 
     private suspend fun fallbackFromYouTubeWaterfall(
@@ -380,27 +449,49 @@ object YTPlayerUtils {
         val audioFormats = (streamingData.adaptiveFormats.orEmpty().filter { it.mimeType.startsWith("audio/") }
             .ifEmpty { streamingData.adaptiveFormats.orEmpty() }
             .ifEmpty { streamingData.formats.orEmpty() })
-            .filter { !it.url.isNullOrEmpty() }
 
         if (audioFormats.isEmpty()) {
-            throw IllegalStateException("No audio formats with valid stream URLs found for videoId=$videoId")
+            throw IllegalStateException("No audio formats found for videoId=$videoId")
         }
 
-        val selectedFormat = when (audioQuality) {
-            AudioQuality.HIGH -> audioFormats.maxByOrNull { it.bitrate } ?: audioFormats.first()
-            AudioQuality.LOW -> audioFormats.minByOrNull { it.bitrate } ?: audioFormats.first()
+        val sortedFormats = when (audioQuality) {
+            AudioQuality.HIGH -> audioFormats.sortedByDescending { it.bitrate }
+            AudioQuality.LOW -> audioFormats.sortedBy { it.bitrate }
             AudioQuality.AUTO -> {
                 if (connectivityManager.isActiveNetworkMetered) {
-                    audioFormats.minByOrNull { it.bitrate } ?: audioFormats.first()
+                    audioFormats.sortedBy { it.bitrate }
                 } else {
-                    audioFormats.find { it.itag == 251 || it.itag == 140 }
-                        ?: audioFormats.maxByOrNull { it.bitrate }
-                        ?: audioFormats.first()
+                    val preferred = audioFormats.filter { it.itag == 251 || it.itag == 140 }
+                    if (preferred.isNotEmpty()) preferred else audioFormats.sortedByDescending { it.bitrate }
                 }
             }
         }
 
-        val streamUrl = requireNotNull(selectedFormat.url) { "Stream URL is null for format ${selectedFormat.itag}" }
+        var resolvedFormat: PlayerResponse.StreamingData.Format? = null
+        var resolvedStreamUrl: String? = null
+
+        for (format in sortedFormats) {
+            val url = if (!format.url.isNullOrEmpty()) {
+                NewPipeExtractor.getStreamUrl(format, videoId) ?: format.url
+            } else if (!format.signatureCipher.isNullOrEmpty()) {
+                CipherDeobfuscator.deobfuscateStreamUrl(format.signatureCipher!!, videoId)
+                    ?: NewPipeExtractor.getStreamUrl(format, videoId)
+            } else if (!format.cipher.isNullOrEmpty()) {
+                CipherDeobfuscator.deobfuscateStreamUrl(format.cipher!!, videoId)
+                    ?: NewPipeExtractor.getStreamUrl(format, videoId)
+            } else {
+                null
+            }
+
+            if (!url.isNullOrBlank()) {
+                resolvedFormat = format.copy(url = url)
+                resolvedStreamUrl = url
+                break
+            }
+        }
+
+        val selectedFormat = resolvedFormat ?: throw IllegalStateException("Failed to resolve stream URL for any format of videoId=$videoId")
+        val streamUrl = resolvedStreamUrl ?: throw IllegalStateException("Stream URL is null for format ${selectedFormat.itag}")
 
         InnerTubeXPlayer.PlaybackData(
             audioConfig = playerResponse.playerConfig?.audioConfig,

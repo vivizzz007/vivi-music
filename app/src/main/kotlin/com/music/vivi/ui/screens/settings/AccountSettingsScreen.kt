@@ -55,6 +55,7 @@ import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 import com.music.vivi.R
+import kotlinx.coroutines.launch
 private enum class AccountTab {
     RECOMMENDED,
     ALL_SERVICES
@@ -94,6 +95,7 @@ fun AccountSettingsScreen(
     var showToken by remember { mutableStateOf(false) }
     var showTokenEditor by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showWatchPairDialog by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(AccountTab.RECOMMENDED) }
 
     Scaffold(
@@ -393,6 +395,12 @@ fun AccountSettingsScreen(
                                 )
                             } else null,
                             Material3SettingsItem(
+                                icon = painterResource(R.drawable.sync),
+                                title = { Text(stringResource(R.string.pair_wear_watch)) },
+                                description = { Text(stringResource(R.string.pair_wear_watch_desc)) },
+                                onClick = { showWatchPairDialog = true }
+                            ),
+                            Material3SettingsItem(
                                 icon = painterResource(R.drawable.logout),
                                 title = { Text(stringResource(R.string.action_logout)) },
                                 onClick = { showLogoutDialog = true }
@@ -615,6 +623,74 @@ fun AccountSettingsScreen(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
+        }
+
+        if (showWatchPairDialog) {
+            var watchAddress by remember { mutableStateOf("") }
+            var watchPin by remember { mutableStateOf("") }
+            var isSending by remember { mutableStateOf(false) }
+            val coroutineScope = rememberCoroutineScope()
+
+            AlertDialog(
+                onDismissRequest = { if (!isSending) showWatchPairDialog = false },
+                title = { Text(stringResource(R.string.pair_wear_watch)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = stringResource(R.string.pair_wear_watch_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        OutlinedTextField(
+                            value = watchAddress,
+                            onValueChange = { watchAddress = it },
+                            label = { Text(stringResource(R.string.watch_ip_address)) },
+                            placeholder = { Text("192.168.1.142:8888") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = watchPin,
+                            onValueChange = { watchPin = it },
+                            label = { Text(stringResource(R.string.watch_pin)) },
+                            placeholder = { Text("5496") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = !isSending && watchAddress.isNotBlank() && watchPin.isNotBlank(),
+                        onClick = {
+                            isSending = true
+                            coroutineScope.launch {
+                                com.music.vivi.utils.WatchPairingUtils.pairWithWatch(
+                                    context = context,
+                                    host = watchAddress,
+                                    pin = watchPin,
+                                    onResult = { success ->
+                                        isSending = false
+                                        if (success) {
+                                            showWatchPairDialog = false
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    ) {
+                        Text(if (isSending) "Pairing..." else stringResource(R.string.send_to_watch))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        enabled = !isSending,
+                        onClick = { showWatchPairDialog = false }
+                    ) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
         }
     }
 }

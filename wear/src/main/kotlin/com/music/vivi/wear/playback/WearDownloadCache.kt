@@ -153,6 +153,22 @@ object WearDownloadCache {
     }
 
     /**
+     * Builds an upstream [DataSource.Factory] for [WearDownloadManager] that reads from
+     * [playerCache] and falls back to network via OkHttp, avoiding cyclic dependency
+     * and lock contention on [downloadCache].
+     */
+    fun getDownloadUpstreamDataSourceFactory(context: Context): DataSource.Factory {
+        val okHttpClient = createOkHttpClient()
+        val upstreamFactory = DefaultDataSource.Factory(context, OkHttpDataSource.Factory(okHttpClient))
+
+        return CacheDataSource.Factory()
+            .setCache(playerCache)
+            .setCacheWriteDataSinkFactory(null)
+            .setUpstreamDataSourceFactory(upstreamFactory)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+    }
+
+    /**
      * Returns a [DataSource.Factory] that only reads from offline downloads and never touches the network.
      */
     fun getDownloadOnlyDataSourceFactory(): DataSource.Factory {

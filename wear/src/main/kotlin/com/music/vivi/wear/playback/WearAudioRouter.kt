@@ -101,6 +101,8 @@ class WearAudioRouter(
             Timber.w("Bluetooth audio device disconnected! No remaining Bluetooth audio output.")
             _bluetoothState.value = BluetoothOutputState.Disconnected
             onBluetoothDisconnected?.invoke()
+        } else {
+            refreshState()
         }
     }
 
@@ -136,7 +138,8 @@ class WearAudioRouter(
      * Returns the name of the currently connected Bluetooth audio device, or null.
      */
     fun getConnectedDeviceName(): String? {
-        return getConnectedBluetoothDevice()?.productName?.toString()?.ifBlank { null }
+        val device = getConnectedBluetoothDevice() ?: return null
+        return device.productName?.toString()?.ifBlank { "Bluetooth Audio" } ?: "Bluetooth Audio"
     }
 
     /**
@@ -144,7 +147,11 @@ class WearAudioRouter(
      * Returns the connected Bluetooth device name if available, or "Watch Speaker".
      */
     fun getCurrentAudioRouteLabel(): String {
-        return getConnectedDeviceName() ?: "Watch Speaker"
+        return if (isBluetoothAudioConnected()) {
+            getConnectedDeviceName() ?: "Bluetooth Audio"
+        } else {
+            "Watch Speaker"
+        }
     }
 
     /**

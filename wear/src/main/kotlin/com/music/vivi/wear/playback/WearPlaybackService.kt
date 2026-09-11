@@ -160,10 +160,16 @@ class WearPlaybackService : MediaSessionService() {
             artist: String? = null,
             artworkUri: Uri? = null,
         ): MediaItem {
+            val uri = "vivi://song/$songId".toUri()
             return MediaItem.Builder()
                 .setMediaId(songId)
-                .setUri("vivi://song/$songId".toUri())
+                .setUri(uri)
                 .setCustomCacheKey(songId)
+                .setRequestMetadata(
+                    MediaItem.RequestMetadata.Builder()
+                        .setMediaUri(uri)
+                        .build(),
+                )
                 .setMediaMetadata(
                     MediaMetadata.Builder()
                         .setTitle(title)

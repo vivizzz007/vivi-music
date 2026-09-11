@@ -70,6 +70,15 @@ class WearDownloadCacheTest {
     }
 
     @Test
+    fun testDownloadUpstreamDataSourceFactoryCreation() {
+        WearDownloadCache.initialize(context)
+
+        val downloadUpstreamFactory = WearDownloadCache.getDownloadUpstreamDataSourceFactory(context)
+        assertNotNull(downloadUpstreamFactory)
+        assertTrue(downloadUpstreamFactory is CacheDataSource.Factory)
+    }
+
+    @Test
     fun testCacheRelease() {
         WearDownloadCache.initialize(context)
         assertTrue(WearDownloadCache.isInitialized)

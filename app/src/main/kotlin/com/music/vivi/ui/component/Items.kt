@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialShapes
@@ -1973,8 +1974,9 @@ object Icon {
         )
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    fun Download(state: Int?) {
+    fun Download(state: Int?, progress: Float? = null) {
         when (state) {
             STATE_COMPLETED -> Icon(
                 painter = painterResource(R.drawable.offline),
@@ -1983,12 +1985,22 @@ object Icon {
                     .size(18.dp)
                     .padding(end = 2.dp)
             )
-            STATE_QUEUED, STATE_DOWNLOADING -> CircularProgressIndicator(
-                strokeWidth = 2.dp,
-                modifier = Modifier
-                    .size(16.dp)
-                    .padding(end = 2.dp)
-            )
+            STATE_QUEUED, STATE_DOWNLOADING -> {
+                if (progress != null && progress in 0f..100f) {
+                    CircularWavyProgressIndicator(
+                        progress = { (progress / 100f).coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 2.dp)
+                    )
+                } else {
+                    CircularWavyProgressIndicator(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .padding(end = 2.dp)
+                    )
+                }
+            }
             else -> { /* no icon */ }
         }
     }
