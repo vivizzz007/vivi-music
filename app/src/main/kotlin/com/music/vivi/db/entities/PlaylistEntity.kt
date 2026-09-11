@@ -24,7 +24,7 @@ data class PlaylistEntity(
     val browseId: String? = null,
     val createdAt: LocalDateTime? = LocalDateTime.now(),
     val lastUpdateTime: LocalDateTime? = LocalDateTime.now(),
-    @ColumnInfo(name = "isEditable", defaultValue = true.toString())
+    @ColumnInfo(name = "isEditable", defaultValue = "true")
     val isEditable: Boolean = true,
     val bookmarkedAt: LocalDateTime? = null,
     val remoteSongCount: Int? = null,
@@ -32,9 +32,9 @@ data class PlaylistEntity(
     val thumbnailUrl: String? = null,
     val shuffleEndpointParams: String? = null,
     val radioEndpointParams: String? = null,
-    @ColumnInfo(name = "isLocal", defaultValue = false.toString())
+    @ColumnInfo(name = "isLocal", defaultValue = "false")
     val isLocal: Boolean = false,
-    @ColumnInfo(name = "isAutoSync", defaultValue = false.toString())
+    @ColumnInfo(name = "isAutoSync", defaultValue = "false")
     val isAutoSync: Boolean = false
 ) {
     companion object {

@@ -50,9 +50,7 @@ object AppModule {
     @Provides
     fun provideInternalDatabase(
         @ApplicationContext context: Context,
-    ): InternalDatabase = Room
-        .databaseBuilder(context, InternalDatabase::class.java, InternalDatabase.DB_NAME)
-        .build()
+    ): InternalDatabase = InternalDatabase.newInstance(context).delegate
 
     @Singleton
     @Provides
