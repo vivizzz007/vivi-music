@@ -384,7 +384,10 @@ object YTPlayerUtils {
             throw IllegalStateException("NewPipeExtractor returned no streams for videoId=$videoId")
         }
         // Preferred audio itags
-        val audioItagOrder = listOf(251, 140, 250, 249, 139)
+        val audioItagOrder = when (audioQuality) {
+            AudioQuality.LOW -> listOf(249, 250, 139, 251, 140)
+            else -> listOf(251, 140, 250, 249, 139)
+        }
         val selected = streams.firstOrNull { it.first in audioItagOrder } ?: streams.first()
         val itag = selected.first
         val streamUrl = selected.second

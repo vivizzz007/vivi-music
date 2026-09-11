@@ -20,6 +20,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.music.innertube.models.YouTubeClient
+import com.music.innertube.models.ResponseContext
 import com.music.innertube.models.YouTubeClient.Companion.WEB
 import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.YouTubeLocale
@@ -1310,7 +1311,7 @@ object YouTube {
         // Step 5: NewPipeExtractor full stream resolution
         val baseResponse = tryClient(YouTubeClient.ANDROID_VR_1_43_32)
             ?: tryClient(YouTubeClient.TVHTML5)
-            ?: innerTube.player(YouTubeClient.MWEB, videoId, playlistId, sigTimestamp, null).body<PlayerResponse>()
+            ?: runCatching { innerTube.player(YouTubeClient.MWEB, videoId, playlistId, sigTimestamp, null).body<PlayerResponse>() }.getOrNull()
 
         // Patch the stream URLs using NewPipe's decryption engine
         newPipePlayer(videoId, baseResponse)
@@ -1568,7 +1569,7 @@ object YouTube {
 
     suspend fun newPipePlayer(
         videoId: String,
-        tempRes: PlayerResponse,
+        tempRes: PlayerResponse? = null,
     ): PlayerResponse? {
         val streamsList = getNewPipeStreamUrls(videoId)
         if (streamsList.isEmpty()) return null
@@ -1604,16 +1605,25 @@ object YouTube {
             )
         }
 
-        val decodedSigResponse = tempRes.copy(
+        val base = tempRes ?: PlayerResponse(
+            responseContext = ResponseContext(visitorData = null, serviceTrackingParams = null),
             playabilityStatus = PlayerResponse.PlayabilityStatus(status = "OK", reason = null),
-            streamingData = if (tempRes.streamingData != null) {
-                tempRes.streamingData.copy(
-                    formats = tempRes.streamingData.formats?.map { format ->
+            playerConfig = null,
+            streamingData = null,
+            videoDetails = null,
+            playbackTracking = null,
+        )
+
+        val decodedSigResponse = base.copy(
+            playabilityStatus = PlayerResponse.PlayabilityStatus(status = "OK", reason = null),
+            streamingData = if (base.streamingData != null) {
+                base.streamingData.copy(
+                    formats = base.streamingData.formats?.map { format ->
                         format.copy(
                             url = streamsList.find { it.first == format.itag }?.second ?: format.url,
                         )
                     },
-                    adaptiveFormats = tempRes.streamingData.adaptiveFormats.map { adaptiveFormat ->
+                    adaptiveFormats = base.streamingData.adaptiveFormats.map { adaptiveFormat ->
                         adaptiveFormat.copy(
                             url = streamsList.find { it.first == adaptiveFormat.itag }?.second ?: adaptiveFormat.url,
                         )

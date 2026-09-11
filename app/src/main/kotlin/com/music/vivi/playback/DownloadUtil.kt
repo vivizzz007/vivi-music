@@ -135,8 +135,7 @@ constructor(
             val length = if (dataSpec.length >= 0) dataSpec.length else 1
             Timber.tag("DownloadDiagnostics").d("dataSourceFactory triggered for mediaId=$mediaId, position=${dataSpec.position}, length=${dataSpec.length}")
 
-            if (playerCache.isCached(mediaId, dataSpec.position, length)) {
-                Timber.tag("DownloadDiagnostics").d("Stream already heavily cached in playerCache: $mediaId")
+            if (dataSpec.uri.scheme == "http" || dataSpec.uri.scheme == "https") {
                 return@Factory dataSpec
             }
 
@@ -214,10 +213,13 @@ constructor(
                 // It belongs solely to onDownloadChanged()'s STATE_COMPLETED branch below,
                 // which only fires once the download has actually finished.
                 val existing = getSongByIdBlocking(mediaId)?.song
+                val fallbackTitle = runCatching {
+                    downloadManager.downloadIndex.getDownload(mediaId)?.request?.data?.let { String(it) }
+                }.getOrNull()?.takeIf { it.isNotBlank() }
 
                 val updatedSong = existing ?: SongEntity(
                     id = mediaId,
-                    title = playbackData.videoDetails?.title ?: "Unknown",
+                    title = playbackData.videoDetails?.title ?: fallbackTitle ?: "Unknown",
                     duration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0,
                     thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
                     dateDownload = null,
