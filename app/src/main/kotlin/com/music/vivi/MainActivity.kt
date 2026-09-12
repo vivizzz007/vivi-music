@@ -68,6 +68,8 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
 import com.music.vivi.ui.component.AppLogo
+import com.music.vivi.ui.component.DownloadProgressPill
+import com.music.vivi.ui.component.DownloadQueueBottomSheet
 import com.music.vivi.ui.component.snackbar.SnackbarManager
 import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
@@ -1031,6 +1033,44 @@ class MainActivity : ComponentActivity() {
                                         pureBlack = pureBlack
                                     )
 
+                                    var showDownloadQueueSheet by rememberSaveable { mutableStateOf(false) }
+
+                                    val downloadIndicatorBottomPadding = remember(
+                                        bottomInset,
+                                        shouldShowNavigationBar,
+                                        slimNav,
+                                        playerBottomSheetState.isDismissed,
+                                        useNewMiniPlayerDesign,
+                                        useAppleMiniPlayer
+                                    ) {
+                                        var bottom = bottomInset
+                                        if (shouldShowNavigationBar) {
+                                            bottom += if (slimNav) SlimNavBarHeight else NavigationBarHeight
+                                        }
+                                        if (!playerBottomSheetState.isDismissed) {
+                                            bottom += MiniPlayerHeight + (if (useNewMiniPlayerDesign || useAppleMiniPlayer) MiniPlayerBottomSpacing else 0.dp) + 8.dp
+                                        } else {
+                                            bottom += 12.dp
+                                        }
+                                        bottom
+                                    }
+
+                                    DownloadProgressPill(
+                                        onClick = { showDownloadQueueSheet = true },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = downloadIndicatorBottomPadding)
+                                            .graphicsLayer {
+                                                alpha = (1f - playerBottomSheetState.progress * 2f).coerceIn(0f, 1f)
+                                            }
+                                    )
+
+                                    if (showDownloadQueueSheet) {
+                                        DownloadQueueBottomSheet(
+                                            onDismissRequest = { showDownloadQueueSheet = false }
+                                        )
+                                    }
+
                                     val snackbarBottomPadding = remember(bottomInset, shouldShowNavigationBar, slimNav) {
                                         var bottom = bottomInset
                                         if (shouldShowNavigationBar) {
@@ -1103,11 +1143,45 @@ class MainActivity : ComponentActivity() {
                                 }
                             } else {
                                 if (currentRoute != "wrapped" && currentRoute != "update" && currentRoute != "listen_together/chat") {
-                                    BottomSheetPlayer(
-                                        state = playerBottomSheetState,
-                                        navController = navController,
-                                        pureBlack = pureBlack
-                                    )
+                                    Box {
+                                        BottomSheetPlayer(
+                                            state = playerBottomSheetState,
+                                            navController = navController,
+                                            pureBlack = pureBlack
+                                        )
+
+                                        var showDownloadQueueSheetRail by rememberSaveable { mutableStateOf(false) }
+                                        val downloadIndicatorBottomPaddingRail = remember(
+                                            bottomInset,
+                                            playerBottomSheetState.isDismissed,
+                                            useNewMiniPlayerDesign,
+                                            useAppleMiniPlayer
+                                        ) {
+                                            var bottom = bottomInset
+                                            if (!playerBottomSheetState.isDismissed) {
+                                                bottom += MiniPlayerHeight + (if (useNewMiniPlayerDesign || useAppleMiniPlayer) MiniPlayerBottomSpacing else 0.dp) + 8.dp
+                                            } else {
+                                                bottom += 12.dp
+                                            }
+                                            bottom
+                                        }
+
+                                        DownloadProgressPill(
+                                            onClick = { showDownloadQueueSheetRail = true },
+                                            modifier = Modifier
+                                                .align(Alignment.BottomCenter)
+                                                .padding(bottom = downloadIndicatorBottomPaddingRail)
+                                                .graphicsLayer {
+                                                    alpha = (1f - playerBottomSheetState.progress * 2f).coerceIn(0f, 1f)
+                                                }
+                                        )
+
+                                        if (showDownloadQueueSheetRail) {
+                                            DownloadQueueBottomSheet(
+                                                onDismissRequest = { showDownloadQueueSheetRail = false }
+                                            )
+                                        }
+                                    }
                                 }
 
                                 Box(

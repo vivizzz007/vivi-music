@@ -1366,17 +1366,7 @@ fun LocalPlaylistHeader(
                                             }
                                         }
                                         songs.forEach { song ->
-                                            val downloadRequest = DownloadRequest
-                                                .Builder(song.song.id, song.song.id.toUri())
-                                                .setCustomCacheKey(song.song.id)
-                                                .setData(song.song.song.title.toByteArray())
-                                                .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false
-                                            )
+                                            downloadUtil.download(song.song.id, song.song.song.title)
                                         }
                                     }
                                 }

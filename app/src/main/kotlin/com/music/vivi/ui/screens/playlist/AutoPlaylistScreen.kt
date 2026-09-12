@@ -606,6 +606,7 @@ private fun AutoPlaylistHeader(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
+    val downloadUtil = LocalDownloadUtil.current
     
     Column(
         modifier = modifier
@@ -771,17 +772,7 @@ private fun AutoPlaylistHeader(
                                     }
                                     else -> {
                                         songs.forEach { song ->
-                                            val downloadRequest = DownloadRequest
-                                                .Builder(song.song.id, song.song.id.toUri())
-                                                .setCustomCacheKey(song.song.id)
-                                                .setData(song.song.title.toByteArray())
-                                                .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
+                                            downloadUtil.download(song.song.id, song.song.title)
                                         }
                                     }
                                 }

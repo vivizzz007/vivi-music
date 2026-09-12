@@ -25,6 +25,7 @@ import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.Download
@@ -65,6 +66,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -130,8 +132,7 @@ constructor(
                 .setCache(playerCache)
                 .setCacheWriteDataSinkFactory(null) // PREVENTS DEADLOCKS! Don't write to playerCache here; just read from it!
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(streamHttpClient)
-                        .setUserAgent(com.music.innertube.models.YouTubeClient.USER_AGENT_WEB),
+                    OkHttpDataSource.Factory(streamHttpClient),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -139,6 +140,13 @@ constructor(
             Timber.tag("DownloadDiagnostics").d("dataSourceFactory triggered for mediaId=$mediaId, position=${dataSpec.position}, length=${dataSpec.length}")
 
             if (dataSpec.uri.scheme == "http" || dataSpec.uri.scheme == "https") {
+                return@Factory dataSpec
+            }
+
+            val knownContentLength = database.getSongByIdBlocking(mediaId)?.format?.contentLength
+                ?: ContentMetadata.getContentLength(playerCache.getContentMetadata(mediaId)).takeIf { it > 0L }
+            if (knownContentLength != null && knownContentLength > 0L && playerCache.isCached(mediaId, 0, knownContentLength)) {
+                Timber.tag("DownloadDiagnostics").d("Stream already 100% cached in playerCache for $mediaId ($knownContentLength bytes) - copying directly")
                 return@Factory dataSpec
             }
 
@@ -172,7 +180,6 @@ constructor(
                         .get()
                         .url(playbackData.streamUrl)
                         .header("Range", "bytes=0-0")
-                        .header("User-Agent", com.music.innertube.models.YouTubeClient.USER_AGENT_WEB)
                         .apply {
                             playbackData.streamHeaders.forEach { (name, value) ->
                                 header(name, value)
@@ -275,6 +282,68 @@ constructor(
     val downloadNotificationHelper =
         DownloadNotificationHelper(context, ExoDownloadService.CHANNEL_ID)
 
+    private var progressPollingJob: kotlinx.coroutines.Job? = null
+
+    private fun startProgressPollingIfNeeded() {
+        if (progressPollingJob?.isActive == true) return
+        progressPollingJob = scope.launch {
+            while (isActive) {
+                val current = downloadManager.currentDownloads
+                if (current.isEmpty()) {
+                    break
+                }
+                downloads.update { map ->
+                    val updated = map.toMutableMap()
+                    current.forEach { updated[it.request.id] = it }
+                    updated
+                }
+                kotlinx.coroutines.delay(500)
+            }
+            progressPollingJob = null
+        }
+    }
+
+    fun shouldDownloadSong(songId: String): Boolean {
+        val download = downloads.value[songId]
+        if (download != null) {
+            return when (download.state) {
+                Download.STATE_COMPLETED,
+                Download.STATE_DOWNLOADING,
+                Download.STATE_QUEUED,
+                Download.STATE_RESTARTING -> false
+                Download.STATE_FAILED,
+                Download.STATE_STOPPED -> true
+                else -> true
+            }
+        }
+        val song = database.getSongByIdBlocking(songId)?.song
+        if (song != null && (song.isDownloaded || song.dateDownload != null)) {
+            return false
+        }
+        return true
+    }
+
+    fun download(songId: String, title: String) {
+        if (!shouldDownloadSong(songId)) return
+        val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+            .Builder(songId, songId.toUri())
+            .setCustomCacheKey(songId)
+            .setData(title.toByteArray())
+            .build()
+        androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+            appContext,
+            ExoDownloadService::class.java,
+            downloadRequest,
+            false
+        )
+    }
+
+    fun downloadSongs(songs: List<Pair<String, String>>) {
+        songs.forEach { (songId, title) ->
+            download(songId, title)
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     val downloadManager: DownloadManager =
         DownloadManager(
@@ -282,9 +351,9 @@ constructor(
             databaseProvider,
             downloadCache,
             dataSourceFactory,
-            java.util.concurrent.Executors.newFixedThreadPool(4)
+            java.util.concurrent.Executors.newFixedThreadPool(6)
         ).apply {
-            maxParallelDownloads = 3
+            maxParallelDownloads = 5
             addListener(
                 object : DownloadManager.Listener {
                     override fun onDownloadChanged(
@@ -308,6 +377,10 @@ constructor(
                             map.toMutableMap().apply {
                                 set(download.request.id, download)
                             }
+                        }
+
+                        if (download.state == Download.STATE_DOWNLOADING || download.state == Download.STATE_QUEUED) {
+                            startProgressPollingIfNeeded()
                         }
 
                         scope.launch {
@@ -368,6 +441,9 @@ constructor(
             result[cursor.download.request.id] = cursor.download
         }
         downloads.value = result
+        if (result.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED }) {
+            startProgressPollingIfNeeded()
+        }
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
@@ -582,6 +658,7 @@ constructor(
                     prefs[AutoDownloadPlaylistsKey] = (current + playlistId).joinToString(",")
                 }
                 songIds.forEach { songId ->
+                    if (!shouldDownloadSong(songId)) return@forEach
                     val song = database.song(songId).firstOrNull()?.song
                     val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
                         .Builder(songId, songId.toUri())
