@@ -100,6 +100,29 @@ constructor(
 
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
+    private val streamHttpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .dns(object : Dns {
+                override fun lookup(hostname: String): List<InetAddress> {
+                    val addresses = Dns.SYSTEM.lookup(hostname)
+                    return when (this@DownloadUtil.ipVersion) {
+                        IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                        IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                        IpVersion.AUTO -> addresses
+                    }
+                }
+            })
+            .proxy(YouTube.proxy)
+            .proxyAuthenticator { _, response ->
+                YouTube.proxyAuth?.let { auth ->
+                    response.request.newBuilder()
+                        .header("Proxy-Authorization", auth)
+                        .build()
+                } ?: response.request
+            }
+            .build()
+    }
+
     private val dataSourceFactory =
         ResolvingDataSource.Factory(
             CacheDataSource
@@ -107,28 +130,8 @@ constructor(
                 .setCache(playerCache)
                 .setCacheWriteDataSinkFactory(null) // PREVENTS DEADLOCKS! Don't write to playerCache here; just read from it!
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(
-                        OkHttpClient.Builder()
-                            .dns(object : Dns {
-                                override fun lookup(hostname: String): List<InetAddress> {
-                                    val addresses = Dns.SYSTEM.lookup(hostname)
-                                    return when (this@DownloadUtil.ipVersion) {
-                                        IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
-                                        IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
-                                        IpVersion.AUTO -> addresses
-                                    }
-                                }
-                            })
-                            .proxy(YouTube.proxy)
-                            .proxyAuthenticator { _, response ->
-                                YouTube.proxyAuth?.let { auth ->
-                                    response.request.newBuilder()
-                                        .header("Proxy-Authorization", auth)
-                                        .build()
-                                } ?: response.request
-                            }
-                            .build(),
-                    ),
+                    OkHttpDataSource.Factory(streamHttpClient)
+                        .setUserAgent(com.music.innertube.models.YouTubeClient.USER_AGENT_WEB),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -147,48 +150,47 @@ constructor(
             val cacheGeneration = songUrlCache.generation(mediaId)
 
             val playbackData = runBlocking(Dispatchers.IO) {
+                val song = database.song(mediaId).firstOrNull()?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     // Pass context so the JioSaavn intercept fires when the toggle is ON
                     context = appContext,
+                    contentHints = com.music.innertube.strategy.ContentHints(
+                        isExplicit = song?.explicit,
+                        isUploaded = song?.isUploaded,
+                    ),
+                    allowBoundedRange = false,
                 )
             }.getOrThrow()
             val format = playbackData.format
 
-            val actualContentLength = format.contentLength ?: run {
-                var length: Long? = null
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                    .readTimeout(5, java.util.concurrent.TimeUnit.SECONDS)
-                    .proxy(YouTube.proxy)
-                    .proxyAuthenticator { _, response ->
-                        YouTube.proxyAuth?.let { auth ->
-                            response.request.newBuilder()
-                                .header("Proxy-Authorization", auth)
-                                .build()
-                        } ?: response.request
-                    }
-                    .build()
-                runCatching {
+            val actualContentLength =
+                format.contentLength?.takeIf { it > 0L } ?: run {
                     val request = okhttp3.Request.Builder()
+                        .get()
                         .url(playbackData.streamUrl)
                         .header("Range", "bytes=0-0")
+                        .header("User-Agent", com.music.innertube.models.YouTubeClient.USER_AGENT_WEB)
                         .apply {
                             playbackData.streamHeaders.forEach { (name, value) ->
                                 header(name, value)
                             }
                         }
                         .build()
-                    client.newCall(request).execute().use { response ->
-                        val contentRange = response.header("Content-Range")
-                        length = contentRange?.substringAfterLast("/")?.toLongOrNull()
-                            ?: response.header("Content-Length")?.toLongOrNull()
+                    try {
+                        streamHttpClient.newCall(request).execute().use { response ->
+                            downloadContentLength(
+                                statusCode = response.code,
+                                contentRange = response.header("Content-Range"),
+                                contentLength = response.header("Content-Length"),
+                            )
+                        }
+                    } catch (_: java.io.IOException) {
+                        null
                     }
-                }
-                length
-            } ?: 0L
+                } ?: 0L
 
             database.query {
                 upsert(
@@ -627,3 +629,30 @@ private fun downloadStateToString(state: Int): String {
         else -> "UNKNOWN ($state)"
     }
 }
+
+internal fun downloadContentLength(
+    statusCode: Int,
+    contentRange: String?,
+    contentLength: String?,
+): Long? {
+    val rangePattern =
+        when (statusCode) {
+            206 -> PARTIAL_CONTENT_RANGE
+            416 -> UNSATISFIED_CONTENT_RANGE
+            else -> null
+        }
+    if (rangePattern != null) {
+        return contentRange
+            ?.trim()
+            ?.let(rangePattern::matchEntire)
+            ?.groupValues
+            ?.get(1)
+            ?.toLongOrNull()
+            ?.takeIf { it > 0L }
+    }
+    return if (statusCode == 200) contentLength?.toLongOrNull()?.takeIf { it > 0L } else null
+}
+
+private val PARTIAL_CONTENT_RANGE = Regex("""bytes\s+0-0/(\d+)""", RegexOption.IGNORE_CASE)
+private val UNSATISFIED_CONTENT_RANGE = Regex("""bytes\s+\*/(\d+)""", RegexOption.IGNORE_CASE)
+

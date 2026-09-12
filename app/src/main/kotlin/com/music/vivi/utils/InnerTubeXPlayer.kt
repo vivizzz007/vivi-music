@@ -42,7 +42,7 @@ import kotlin.time.Clock
 object InnerTubeXPlayer {
     private const val TAG = "InnerTubeXPlayer"
     private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
-    private const val STREAM_CLIENT_FAILURE_TTL_MS = 60_000L
+    private const val STREAM_CLIENT_FAILURE_TTL_MS = 5 * 60 * 1000L
     private const val DEFAULT_STREAM_TTL_SECONDS = 5 * 60
     private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
 
@@ -63,37 +63,12 @@ object InnerTubeXPlayer {
     @Volatile
     var disabledStreamClients: Set<String> = emptySet()
 
-    // Isolated Streaming HttpClient & InnerTube instance
-    private val httpClient = HttpClient(OkHttp) {
-        expectSuccess = false
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                    explicitNulls = false
-                    encodeDefaults = true
-                }
-            )
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 60_000
-            connectTimeoutMillis = 30_000
-            socketTimeoutMillis = 60_000
-        }
-    }
-    val innerTubeX = InnerTube(httpClient)
-
     @Synchronized
     fun initialize(context: Context) {
         if (applicationContext == null) applicationContext = context.applicationContext
     }
 
-    suspend fun prewarm() {
-        innerTubeX.visitorData = YouTube.visitorData
-        innerTubeX.cookie = YouTube.cookie
-        bundle().extractor.prewarm()
-        tokenProvider.prewarm()
-    }
+    suspend fun prewarm() = bundle().extractor.prewarm()
 
     suspend fun playerResponseForPlayback(
         videoId: String,
@@ -104,8 +79,6 @@ object InnerTubeXPlayer {
         allowBoundedRange: Boolean = true,
     ): Result<PlaybackData> =
         try {
-            innerTubeX.visitorData = YouTube.visitorData
-            innerTubeX.cookie = YouTube.cookie
             val hints =
                 contentHints.copy(
                     isUploaded =
@@ -203,10 +176,11 @@ object InnerTubeXPlayer {
     }
 
     private suspend fun bundle(): ExtractionBundle {
-        val currentGeneration = 0L // Hardcode logic generation since we don't hot-reload proxies in this hybrid mode
-        currentBundle?.let { return it }
+        val transport = YouTube.extractionTransport()
+        currentBundle?.takeIf { it.transportGeneration == transport.generation }?.let { return it }
         return bundleMutex.withLock {
-            currentBundle?.let { return@withLock it }
+            val latestTransport = YouTube.extractionTransport()
+            currentBundle?.takeIf { it.transportGeneration == latestTransport.generation }?.let { return@withLock it }
             try {
                 currentBundle?.cipherService?.dispose()
             } catch (error: CancellationException) {
@@ -222,23 +196,23 @@ object InnerTubeXPlayer {
                 )
             }
 
-            val remoteStore = RemotePlayerConfigStore(httpClient, configRepository, logger)
-            val cipherService = YouTubeCipherService(httpClient, remoteStore, logger)
+            val remoteStore = RemotePlayerConfigStore(latestTransport.httpClient, configRepository, logger)
+            val cipherService = YouTubeCipherService(latestTransport.httpClient, remoteStore, logger)
             val extractor =
                 InnerTubeExtractor(
                     configParser =
                         YtConfigParserImpl(
-                            httpClient,
-                            innerTubeX,
+                            latestTransport.httpClient,
+                            latestTransport.innerTube,
                             remoteStore,
                             logger,
                         ).withEmbeddedConfigFallback(),
                     cipherService = cipherService,
-                    innerTube = innerTubeX,
+                    innerTube = latestTransport.innerTube,
                     tokenProvider = tokenProvider,
                     logger = logger,
                 )
-            ExtractionBundle(currentGeneration, cipherService, extractor).also { currentBundle = it }
+            ExtractionBundle(latestTransport.generation, cipherService, extractor).also { currentBundle = it }
         }
     }
 
@@ -284,10 +258,6 @@ object InnerTubeXPlayer {
                     )
                 }
 
-            override suspend fun prewarm(cookie: String?) {
-                innerTubeX.visitorData?.let { poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, it) }
-            }
-
             override suspend fun close() {
                 poTokenGenerator.close()
             }
@@ -326,14 +296,22 @@ object InnerTubeXPlayer {
         val extractor: InnerTubeExtractor,
     )
 
-    private class AndroidPlayerConfigRepository(context: Context) : PlayerConfigRepository {
+    private class AndroidPlayerConfigRepository(private val context: Context) : PlayerConfigRepository {
         private val preferences = context.getSharedPreferences("innertubex_player_config", Context.MODE_PRIVATE)
 
         override val enabled: Boolean = true
         override val sourceUrl: String = PLAYER_CONFIG_URL
         override val defaultSourceUrl: String = PLAYER_CONFIG_URL
         override var cachedJson: String
-            get() = preferences.getString("json", "").orEmpty()
+            get() = preferences.getString("json", null) ?: run {
+                val assetJson = runCatching {
+                    context.assets.open("player_configs.json").bufferedReader().use { it.readText() }
+                }.getOrDefault("")
+                if (assetJson.isNotBlank()) {
+                    preferences.edit().putString("json", assetJson).apply()
+                }
+                assetJson
+            }
             set(value) = preferences.edit().putString("json", value).apply()
         override var cachedAtMs: Long
             get() = preferences.getLong("cached_at_ms", 0L)

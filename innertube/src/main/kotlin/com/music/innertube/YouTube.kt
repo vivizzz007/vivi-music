@@ -134,6 +134,8 @@ object YouTube {
         dataSyncId = null
     }
 
+    fun extractionTransport(): InnerTube.ExtractionTransport = innerTube.extractionTransport()
+
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
         val response = innerTube.getSearchSuggestions(WEB_REMIX, query).body<GetSearchSuggestionsResponse>()
         val allSections = response.contents.orEmpty().mapNotNull { it.searchSuggestionsSectionRenderer }

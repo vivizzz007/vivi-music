@@ -208,6 +208,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -3007,7 +3008,7 @@ class MusicService :
                                         } ?: response.request
                                     }
                                     .build(),
-                            ),
+                            ).setUserAgent(com.music.innertube.models.YouTubeClient.USER_AGENT_WEB),
                         ),
                     ),
             ).setCacheWriteDataSinkFactory(null)
@@ -3131,11 +3132,17 @@ class MusicService :
             val cacheGeneration = songUrlCache.generation(mediaId)
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData = runBlocking(Dispatchers.IO) {
+                val song = database.song(mediaId).firstOrNull()?.song
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     context = this@MusicService,
+                    contentHints = com.music.innertube.strategy.ContentHints(
+                        isExplicit = song?.explicit,
+                        isUploaded = song?.isUploaded,
+                    ),
+                    allowBoundedRange = true,
                 )
             }.getOrElse { throwable ->
                 when (throwable) {

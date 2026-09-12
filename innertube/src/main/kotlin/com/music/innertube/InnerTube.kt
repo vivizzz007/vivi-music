@@ -33,44 +33,197 @@ import kotlinx.coroutines.delay
 import java.util.*
 import kotlin.io.encoding.Base64
 
+import com.metrolist.innertubex.InnerTube as InnerTubeX
+import java.io.File
+import java.util.concurrent.TimeUnit
+
 /**
  * Provide access to InnerTube endpoints.
  * For making HTTP requests, not parsing response.
  */
 @OptIn(ExperimentalEncodingApi::class)
 class InnerTube {
+    class ExtractionTransport internal constructor(
+        val innerTube: InnerTubeX,
+        val httpClient: HttpClient,
+        val generation: Long,
+    )
+
     private var httpClient = createClient()
+    private var extractionHttpClient = createExtractionClient()
+    private var innerTubeX = InnerTubeX(extractionHttpClient).also {
+        it.locale = com.metrolist.innertubex.models.YouTubeLocale(
+            gl = Locale.getDefault().country,
+            hl = Locale.getDefault().toLanguageTag()
+        )
+    }
+    private var extractionGeneration = 0L
 
     var locale = YouTubeLocale(
         gl = Locale.getDefault().country,
         hl = Locale.getDefault().toLanguageTag()
     )
+        set(value) {
+            field = value
+            innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(value.gl, value.hl)
+        }
     var visitorData: String? = null
+        set(value) {
+            field = value
+            innerTubeX.visitorData = value
+        }
     var dataSyncId: String? = null
+        set(value) {
+            field = value
+            innerTubeX.dataSyncId = value
+        }
     var cookie: String? = null
         set(value) {
             field = value
             cookieMap = if (value == null) emptyMap() else parseCookieString(value)
+            innerTubeX.cookie = value
         }
     private var cookieMap = emptyMap<String, String>()
 
     var proxy: Proxy? = null
         set(value) {
+            if (field == value) return
             field = value
             httpClient.close()
             httpClient = createClient()
+            recreateExtractionTransport()
         }
     
     var proxyAuth: String? = null
+        set(value) {
+            if (field == value) return
+            field = value
+            if (proxy != null) {
+                httpClient.close()
+                httpClient = createClient()
+                recreateExtractionTransport()
+            }
+        }
 
     var ipVersion: IpVersion = IpVersion.AUTO
         set(value) {
+            if (field == value) return
             field = value
             httpClient.close()
             httpClient = createClient()
+            recreateExtractionTransport()
         }
 
     var useLoginForBrowse: Boolean = false
+        set(value) {
+            field = value
+            innerTubeX.useLoginForBrowse = value
+        }
+
+    @Synchronized
+    private fun recreateExtractionTransport() {
+        val session = innerTubeX.sessionSnapshot()
+        innerTubeX.close()
+        extractionHttpClient.close()
+        extractionHttpClient = createExtractionClient()
+        innerTubeX = InnerTubeX(extractionHttpClient).also { replacement ->
+            replacement.locale = session.locale
+            replacement.replaceSession(
+                cookie = session.cookie,
+                visitorData = session.visitorData,
+                dataSyncId = session.dataSyncId,
+                authUser = session.authUser,
+                useLoginForBrowse = session.useLoginForBrowse,
+            )
+            replacement.regionOverrideActive = session.regionOverrideActive
+        }
+        extractionGeneration++
+    }
+
+    @Synchronized
+    fun extractionTransport(): ExtractionTransport =
+        ExtractionTransport(
+            innerTube = innerTubeX,
+            httpClient = extractionHttpClient,
+            generation = extractionGeneration,
+        )
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun createExtractionClient() = HttpClient(OkHttp) {
+        expectSuccess = false
+
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                explicitNulls = false
+                encodeDefaults = true
+            })
+        }
+
+        install(ContentEncoding) {
+            gzip(0.9F)
+            deflate(0.8F)
+        }
+
+        engine {
+            config {
+                connectionPool(
+                    okhttp3.ConnectionPool(
+                        10,
+                        5,
+                        TimeUnit.MINUTES
+                    )
+                )
+                connectTimeout(30, TimeUnit.SECONDS)
+                readTimeout(60, TimeUnit.SECONDS)
+                writeTimeout(60, TimeUnit.SECONDS)
+                protocols(listOf(okhttp3.Protocol.HTTP_2, okhttp3.Protocol.HTTP_1_1))
+                retryOnConnectionFailure(true)
+                cache(
+                    okhttp3.Cache(
+                        directory = File(System.getProperty("java.io.tmpdir"), "http_cache"),
+                        maxSize = 50L * 1024L * 1024L
+                    )
+                )
+                dns(object : Dns {
+                    override fun lookup(hostname: String): List<InetAddress> {
+                        val addresses = Dns.SYSTEM.lookup(hostname)
+                        return when (this@InnerTube.ipVersion) {
+                            IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
+                            IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
+                            IpVersion.AUTO -> {
+                                val ipv4 = addresses.filterIsInstance<Inet4Address>()
+                                val ipv6 = addresses.filterIsInstance<Inet6Address>()
+                                ipv4 + ipv6 
+                            }
+                        }
+                    }
+                })
+                this@InnerTube.proxy?.let { proxyConfig ->
+                    proxy(proxyConfig)
+                }
+                this@InnerTube.proxyAuth?.let { auth ->
+                    proxyAuthenticator { _, response ->
+                        response.request.newBuilder()
+                            .header("Proxy-Authorization", auth)
+                            .build()
+                    }
+                }
+            }
+        }
+
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60000
+            connectTimeoutMillis = 30000
+            socketTimeoutMillis = 60000
+        }
+
+        defaultRequest {
+            url("https://music.youtube.com/youtubei/v1/")
+            header("Accept", "application/json")
+            header("Cache-Control", "no-cache")
+        }
+    }
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun createClient() = HttpClient(OkHttp) {
