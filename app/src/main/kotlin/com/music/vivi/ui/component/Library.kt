@@ -32,9 +32,11 @@ fun LibraryArtistListItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     artist: Artist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape = androidx.compose.ui.graphics.RectangleShape
 ) = ArtistListItem(
     artist = artist,
+    shape = shape,
     trailingContent = {
         androidx.compose.material3.IconButton(
             onClick = {
@@ -96,11 +98,13 @@ fun LibraryAlbumListItem(
     menuState: MenuState,
     album: Album,
     isActive: Boolean = false,
-    isPlaying: Boolean = false
+    isPlaying: Boolean = false,
+    shape: androidx.compose.ui.graphics.Shape = androidx.compose.ui.graphics.RectangleShape
 ) = AlbumListItem(
     album = album,
     isActive = isActive,
     isPlaying = isPlaying,
+    shape = shape,
     trailingContent = {
         androidx.compose.material3.IconButton(
             onClick = {
@@ -166,9 +170,11 @@ fun LibraryPlaylistListItem(
     menuState: MenuState,
     coroutineScope: CoroutineScope,
     playlist: Playlist,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    shape: androidx.compose.ui.graphics.Shape = androidx.compose.ui.graphics.RectangleShape
 ) = PlaylistListItem(
     playlist = playlist,
+    shape = shape,
     trailingContent = {
         androidx.compose.material3.IconButton(
             onClick = {

@@ -418,7 +418,7 @@ private fun NewMiniPlayer(
                         .clickable { showAudioDeviceBottomSheet = true }
                 ) {
                     Icon(
-                        painter = painterResource(if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple),
+                        painter = painterResource(if (isBluetoothConnected) R.drawable.bluetooth else R.drawable.speaker_apple),
                         contentDescription = stringResource(R.string.audio_devices),
                         tint = primaryColor,
                         modifier = Modifier.size(20.dp)

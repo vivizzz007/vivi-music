@@ -275,6 +275,7 @@
       <td width="60%" align="left">
         <b>🎖️ Foundational Projects</b>
         <ul>
+          <li><strong><a href="https://github.com/binimum/am-lyrics">AM-Lyrics</a></strong> – For the powerful synced TTML lyrics integration from Binimum.</li>
           <li><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful synced lyrics and YouTube Music integration.</li>
           <li><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For smooth in-app lyrics styling.</li>
           <li><strong><a href="https://github.com/better-lyrics/unison">Unison</a></strong> – For the premium Apple Music-style visualizer canvas.</li>

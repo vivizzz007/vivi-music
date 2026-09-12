@@ -66,8 +66,7 @@ fun ArtistMenu(
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
-    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
-    val isPinnedToLibraryMix = pinnedLibraryItems.contains("artist:${artist.id}")
+
 
     ArtistListItem(
         artist = artist,
@@ -224,28 +223,6 @@ fun ArtistMenu(
                                     )
                                 }
                             }
-                            onDismiss()
-                        }
-                    ),
-                    Material3MenuItemData(
-                        title = {
-                            Text(
-                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            val newItems = if (isPinnedToLibraryMix) {
-                                pinnedLibraryItems - "artist:${artist.id}"
-                            } else {
-                                pinnedLibraryItems + "artist:${artist.id}"
-                            }
-                            onPinnedLibraryItemsChange(newItems)
                             onDismiss()
                         }
                     ),

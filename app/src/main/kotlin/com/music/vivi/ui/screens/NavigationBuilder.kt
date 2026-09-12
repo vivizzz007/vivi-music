@@ -30,8 +30,6 @@ import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.equalizer.EqScreen
-import com.music.vivi.ui.screens.library.AlbumLibraryScreen
-import com.music.vivi.ui.screens.library.PlaylistLibraryScreen
 import com.music.vivi.ui.screens.library.LibraryScreen
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
@@ -111,17 +109,7 @@ fun NavGraphBuilder.navigationBuilder(
         LibraryScreen(navController)
     }
 
-    composable("album_library") {
-        AlbumLibraryScreen(navController)
-    }
 
-    composable("artist_library") {
-        com.music.vivi.ui.screens.library.ArtistLibraryScreen(navController)
-    }
-
-    composable("playlist_library") {
-        PlaylistLibraryScreen(navController)
-    }
 
     composable(Screens.ListenTogether.route) {
         ListenTogetherScreen(navController, showTopBar = false)

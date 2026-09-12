@@ -715,6 +715,7 @@ fun ArtistListItem(
     },
     trailingContent: @Composable RowScope.() -> Unit = {},
     backgroundColor: Color = Color.Unspecified,
+    shape: Shape = RectangleShape,
 ) = ListItem(
     title = artist.artist.name,
     subtitle = pluralStringResource(R.plurals.n_song, artist.songCount, artist.songCount),
@@ -736,6 +737,7 @@ fun ArtistListItem(
     trailingContent = trailingContent,
     modifier = modifier,
     backgroundColor = backgroundColor,
+    shape = shape,
 )
 
 @Composable

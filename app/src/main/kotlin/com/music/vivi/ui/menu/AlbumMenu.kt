@@ -114,8 +114,7 @@ fun AlbumMenu(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
-    val isPinnedToLibraryMix = pinnedLibraryItems.contains("album:${album.id}")
+
 
     LaunchedEffect(Unit) {
         database.albumSongs(album.id).collect {
@@ -462,28 +461,6 @@ fun AlbumMenu(
                                     )
                                 }
                             }
-                            onDismiss()
-                        }
-                    ),
-                    Material3MenuItemData(
-                        title = {
-                            Text(
-                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
-                            )
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            val newItems = if (isPinnedToLibraryMix) {
-                                pinnedLibraryItems - "album:${album.id}"
-                            } else {
-                                pinnedLibraryItems + "album:${album.id}"
-                            }
-                            onPinnedLibraryItemsChange(newItems)
                             onDismiss()
                         }
                     )

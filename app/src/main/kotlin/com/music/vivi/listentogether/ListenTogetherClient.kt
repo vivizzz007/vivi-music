@@ -468,6 +468,14 @@ class ListenTogetherClient @Inject constructor(
             return
         }
 
+        // Clean up previous websocket to prevent memory leaks and duplicate events
+        try {
+            webSocket?.cancel()
+            webSocket = null
+        } catch (e: Exception) {
+            log(LogLevel.ERROR, "Error cancelling previous websocket", e.message)
+        }
+
         _connectionState.value = ConnectionState.CONNECTING
         val serverUrl = getServerUrl()
         log(LogLevel.INFO, "Connecting to server", serverUrl)
