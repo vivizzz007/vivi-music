@@ -443,9 +443,8 @@ fun SelectionSongMenu(
                                         )
                                     },
                                     onClick = {
-                                        songSelection.forEach { song ->
-                                            downloadUtil.download(song.id, song.song.title)
-                                        }
+                                        onDismiss()
+                                        downloadUtil.downloadSongs(songSelection.map { it.id to it.song.title })
                                     }
                                 )
                             }
@@ -825,9 +824,8 @@ fun SelectionMediaMetadataMenu(
                                         )
                                     },
                                     onClick = {
-                                        songSelection.forEach { song ->
-                                            downloadUtil.download(song.id, song.title)
-                                        }
+                                        onDismiss()
+                                        downloadUtil.downloadSongs(songSelection.map { it.id to it.title })
                                     }
                                 )
                             }

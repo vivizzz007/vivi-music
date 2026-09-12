@@ -34,6 +34,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -49,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,9 +61,11 @@ import coil3.compose.AsyncImage
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.R
+import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.ui.utils.formatFileSize
+import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -175,10 +179,13 @@ fun DownloadQueueBottomSheet(
         )
     }
 
-    LaunchedEffect(activeDownloads.isEmpty()) {
-        if (activeDownloads.isEmpty()) {
+    val (pureBlack) = rememberPreference(PureBlackKey, defaultValue = false)
+
+    if (activeDownloads.isEmpty()) {
+        LaunchedEffect(Unit) {
             onDismissRequest()
         }
+        return
     }
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -186,7 +193,7 @@ fun DownloadQueueBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainerLow,
     ) {
         Column(
             modifier = Modifier
@@ -209,8 +216,16 @@ fun DownloadQueueBottomSheet(
                 Text(
                     text = "${stringResource(R.string.downloading)} (${activeDownloads.size})",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
+                IconButton(onClick = onDismissRequest) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = stringResource(R.string.close),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             HorizontalDivider(

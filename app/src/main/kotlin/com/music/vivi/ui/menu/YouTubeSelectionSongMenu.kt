@@ -353,11 +353,9 @@ fun YouTubeSelectionSongMenu(
                                     )
                                 },
                                 onClick = {
-                                    songSelection.forEach { song ->
-                                        downloadUtil.download(song.id, song.title)
-                                    }
-                                    clearAction()
                                     onDismiss()
+                                    clearAction()
+                                    downloadUtil.downloadSongs(songSelection.map { it.id to it.title })
                                 }
                             )
                         }

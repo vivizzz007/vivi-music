@@ -687,9 +687,7 @@ private fun TopPlaylistHeader(
                                         }
 
                                         else -> {
-                                            songs.forEach { song ->
-                                                downloadUtil.download(song.id, song.title)
-                                            }
+                                            downloadUtil.downloadSongs(songs.map { it.id to it.title })
                                         }
                                     }
                                 },

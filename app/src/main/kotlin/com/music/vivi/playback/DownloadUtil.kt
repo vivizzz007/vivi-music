@@ -324,23 +324,39 @@ constructor(
     }
 
     fun download(songId: String, title: String) {
-        if (!shouldDownloadSong(songId)) return
-        val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
-            .Builder(songId, songId.toUri())
-            .setCustomCacheKey(songId)
-            .setData(title.toByteArray())
-            .build()
-        androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-            appContext,
-            ExoDownloadService::class.java,
-            downloadRequest,
-            false
-        )
+        scope.launch {
+            if (!shouldDownloadSong(songId)) return@launch
+            val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                .Builder(songId, songId.toUri())
+                .setCustomCacheKey(songId)
+                .setData(title.toByteArray())
+                .build()
+            androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                appContext,
+                ExoDownloadService::class.java,
+                downloadRequest,
+                false
+            )
+        }
     }
 
     fun downloadSongs(songs: List<Pair<String, String>>) {
-        songs.forEach { (songId, title) ->
-            download(songId, title)
+        scope.launch {
+            songs.forEach { (songId, title) ->
+                if (shouldDownloadSong(songId)) {
+                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                        .Builder(songId, songId.toUri())
+                        .setCustomCacheKey(songId)
+                        .setData(title.toByteArray())
+                        .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        appContext,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                }
+            }
         }
     }
 

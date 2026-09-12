@@ -578,9 +578,8 @@ fun PlaylistMenu(
                                                     preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
                                                 }
                                             }
-                                            songs.forEach { song ->
-                                                downloadUtil.download(song.id, song.song.title)
-                                            }
+                                            onDismiss()
+                                            downloadUtil.downloadSongs(songs.map { it.id to it.song.title })
                                         }
                                     )
                                 }

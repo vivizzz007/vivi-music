@@ -497,9 +497,9 @@ fun YouTubeAlbumMenu(
                                     )
                                 },
                                 onClick = {
-                                    album?.songs?.forEach { song ->
-                                        downloadUtil.download(song.id, song.song.title)
-                                    }
+                                    onDismiss()
+                                    val songList = album?.songs?.map { it.id to it.song.title } ?: emptyList()
+                                    downloadUtil.downloadSongs(songList)
                                 }
                             )
                         }

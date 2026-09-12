@@ -771,9 +771,7 @@ private fun AutoPlaylistHeader(
                                         }
                                     }
                                     else -> {
-                                        songs.forEach { song ->
-                                            downloadUtil.download(song.song.id, song.song.title)
-                                        }
+                                        downloadUtil.downloadSongs(songs.map { it.song.id to it.song.title })
                                     }
                                 }
                             },

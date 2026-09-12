@@ -1365,9 +1365,7 @@ fun LocalPlaylistHeader(
                                                 preferences[AutoDownloadPlaylistsKey] = set.joinToString(",")
                                             }
                                         }
-                                        songs.forEach { song ->
-                                            downloadUtil.download(song.song.id, song.song.song.title)
-                                        }
+                                        downloadUtil.downloadSongs(songs.map { it.song.id to it.song.song.title })
                                     }
                                 }
                             },

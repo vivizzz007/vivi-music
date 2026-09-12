@@ -569,9 +569,8 @@ fun YouTubePlaylistMenu(
                                             )
                                         },
                                         onClick = {
-                                            songs.forEach { song ->
-                                                downloadUtil.download(song.id, song.title)
-                                            }
+                                            onDismiss()
+                                            downloadUtil.downloadSongs(songs.map { it.id to it.title })
                                         }
                                     )
                                 }
