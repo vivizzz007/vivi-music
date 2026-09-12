@@ -335,7 +335,6 @@ fun Queue(
             if (useNewPlayerDesign) {
                 // New design
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -348,32 +347,16 @@ fun Queue(
                 ) {
                     val buttonSize = 42.dp
                     val iconSize = 24.dp
-                    val queueShape = RoundedCornerShape(
-                        topStart = 50.dp, bottomStart = 50.dp,
-                        topEnd = 3.dp, bottomEnd = 3.dp
-                    )
-                    val middleShape = RoundedCornerShape(3.dp)
-                    val repeatShape = RoundedCornerShape(
-                        topStart = 3.dp, bottomStart = 3.dp,
-                        topEnd = 50.dp, bottomEnd = 50.dp
-                    )
 
                     val database = LocalDatabase.current
                     val downloadUtil = LocalDownloadUtil.current
                     val downloadItem by (mediaMetadata?.id?.let { downloadUtil.getDownload(it) } ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
                     val (customPlayerButtonsPref) = rememberPreference(CustomPlayerButtonsKey, defaultValue = "")
                     val activeButtons = remember(customPlayerButtonsPref) { PlayerActionButton.parseList(customPlayerButtonsPref) }
-                    val connectedButtons = remember(activeButtons) { activeButtons.filter { it != PlayerActionButton.MORE_OPTIONS } }
-                    val hasMoreOptions = remember(activeButtons) { activeButtons.contains(PlayerActionButton.MORE_OPTIONS) }
                     val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsState()
 
-                    connectedButtons.forEachIndexed { index, button ->
-                        val shape = when {
-                            connectedButtons.size == 1 -> CircleShape
-                            index == 0 -> queueShape
-                            index == connectedButtons.lastIndex -> repeatShape
-                            else -> middleShape
-                        }
+                    @Composable
+                    fun RenderActionButton(button: PlayerActionButton, shape: RoundedCornerShape) {
                         when (button) {
                             PlayerActionButton.QUEUE -> {
                                 PlayerQueueButton(
@@ -561,43 +544,82 @@ fun Queue(
                                     playerBackground = playerBackground
                                 )
                             }
-                            PlayerActionButton.MORE_OPTIONS -> {}
+                            PlayerActionButton.MORE_OPTIONS -> {
+                                PlayerQueueButton(
+                                    icon = R.drawable.more_vert,
+                                    onClick = {
+                                        menuState.show {
+                                            PlayerMenu(
+                                                mediaMetadata = mediaMetadata,
+                                                navController = navController,
+                                                playerBottomSheetState = playerBottomSheetState,
+                                                onShowDetailsDialog = {
+                                                    mediaMetadata?.id?.let {
+                                                        bottomSheetPageState.show {
+                                                            ShowMediaInfo(it)
+                                                        }
+                                                    }
+                                                },
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    },
+                                    isActive = false,
+                                    shape = shape,
+                                    modifier = Modifier.size(buttonSize),
+                                    textButtonColor = textButtonColor,
+                                    iconButtonColor = iconButtonColor,
+                                    iconSize = iconSize,
+                                    textBackgroundColor = TextBackgroundColor,
+                                    playerBackground = playerBackground
+                                )
+                            }
                         }
                     }
 
-                    if (hasMoreOptions) {
+                    val circleShape = RoundedCornerShape(percent = 50)
+                    if (activeButtons.isEmpty()) {
+                        // Empty state
+                    } else if (activeButtons.size >= 3) {
+                        // Left pinned button
+                        RenderActionButton(activeButtons[0], circleShape)
+
                         Spacer(modifier = Modifier.weight(1f))
 
-                        Box(
-                            modifier = Modifier
-                                .size(buttonSize)
-                                .clip(CircleShape)
-                                .background(textButtonColor)
-                                .clickable {
-                                    menuState.show {
-                                        PlayerMenu(
-                                            mediaMetadata = mediaMetadata,
-                                            navController = navController,
-                                            playerBottomSheetState = playerBottomSheetState,
-                                            onShowDetailsDialog = {
-                                                mediaMetadata?.id?.let {
-                                                    bottomSheetPageState.show {
-                                                        ShowMediaInfo(it)
-                                                    }
-                                                }
-                                            },
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
+                        // Middle connected pill
+                        val middleIndices = (1 until activeButtons.lastIndex).toList()
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.more_vert),
-                                contentDescription = null,
-                                modifier = Modifier.size(iconSize),
-                                tint = iconButtonColor
-                            )
+                            middleIndices.forEach { midIdx ->
+                                val midShape = when {
+                                    middleIndices.size == 1 -> circleShape
+                                    midIdx == middleIndices.first() -> RoundedCornerShape(
+                                        topStart = 50.dp, bottomStart = 50.dp,
+                                        topEnd = 3.dp, bottomEnd = 3.dp
+                                    )
+                                    midIdx == middleIndices.last() -> RoundedCornerShape(
+                                        topEnd = 50.dp, bottomEnd = 50.dp,
+                                        topStart = 3.dp, bottomStart = 3.dp
+                                    )
+                                    else -> RoundedCornerShape(3.dp)
+                                }
+                                RenderActionButton(activeButtons[midIdx], midShape)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        // Right pinned button
+                        RenderActionButton(activeButtons.last(), circleShape)
+                    } else if (activeButtons.size == 2) {
+                        RenderActionButton(activeButtons[0], circleShape)
+                        Spacer(modifier = Modifier.weight(1f))
+                        RenderActionButton(activeButtons[1], circleShape)
+                    } else {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            RenderActionButton(activeButtons[0], circleShape)
                         }
                     }
                 }

@@ -17,10 +17,13 @@ import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.net.Uri
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.database.DatabaseProvider
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.HttpDataSource
@@ -148,7 +151,8 @@ constructor(
             if (dataSpec.uri.scheme == "http" || dataSpec.uri.scheme == "https") {
                 val cached = songUrlCache[mediaId]
                 return@Factory if (cached != null) {
-                    dataSpec.withResolvedStream(cached)
+                    dataSpec.withUri(cached.url.toUri())
+                        .withRequestHeaders(dataSpec.httpRequestHeaders + cached.requestHeaders)
                 } else {
                     dataSpec
                 }
@@ -163,7 +167,8 @@ constructor(
 
             songUrlCache[mediaId]?.let { cachedStream ->
                 Timber.tag("DownloadDiagnostics").d("Using cached stream URL from valid songUrlCache for $mediaId")
-                return@Factory dataSpec.withResolvedStream(cachedStream)
+                return@Factory dataSpec.withUri(cachedStream.url.toUri())
+                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
             }
             Timber.tag("DownloadDiagnostics").w("No valid cached URL found for $mediaId. Triggering heavy network playback resolution!")
             val cacheGeneration = songUrlCache.generation(mediaId)
@@ -181,6 +186,7 @@ constructor(
                         isUploaded = song?.isUploaded,
                     ),
                     allowBoundedRange = true,
+                    preferM4a = true,
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -235,14 +241,22 @@ constructor(
                     downloadManager.downloadIndex.getDownload(mediaId)?.request?.data?.let { String(it) }
                 }.getOrNull()?.takeIf { it.isNotBlank() }
 
-                val updatedSong = existing ?: SongEntity(
-                    id = mediaId,
-                    title = playbackData.videoDetails?.title ?: fallbackTitle ?: "Unknown",
-                    duration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0,
-                    thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
-                    dateDownload = null,
-                    isDownloaded = false
-                )
+                val resolvedDuration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0
+                val updatedSong = if (existing != null) {
+                    existing.copy(
+                        duration = if (existing.duration > 0) existing.duration else resolvedDuration,
+                        thumbnailUrl = existing.thumbnailUrl ?: playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
+                    )
+                } else {
+                    SongEntity(
+                        id = mediaId,
+                        title = playbackData.videoDetails?.title ?: fallbackTitle ?: "Unknown",
+                        duration = resolvedDuration,
+                        thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
+                        dateDownload = null,
+                        isDownloaded = false
+                    )
+                }
 
                 upsert(updatedSong)
 
@@ -266,18 +280,6 @@ constructor(
             }
 
             val streamUrl = playbackData.streamUrl
-            val isYouTubeStream = playbackData.streamClient != "JIOSAAVN"
-            val effectiveRequireBoundedRange = if (isYouTubeStream) true else playbackData.requireBoundedRange
-            val effectiveUseRangeChunks = if (isYouTubeStream) true else playbackData.useRangeChunks
-            val effectiveRangeChunkSizeBytes = if (isYouTubeStream) {
-                if (playbackData.rangeChunkSizeBytes in 1L..(1024 * 1024L)) {
-                    playbackData.rangeChunkSizeBytes
-                } else {
-                    512 * 1024L
-                }
-            } else {
-                playbackData.rangeChunkSizeBytes
-            }
 
             songUrlCache.put(
                 mediaId = mediaId,
@@ -285,21 +287,13 @@ constructor(
                 requestHeaders = playbackData.streamHeaders,
                 clientName = playbackData.streamClient,
                 expiresInSeconds = playbackData.streamExpiresInSeconds,
-                requireBoundedRange = effectiveRequireBoundedRange,
-                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
-                useRangeChunks = effectiveUseRangeChunks,
+                requireBoundedRange = false,
+                rangeChunkSizeBytes = 0L,
+                useRangeChunks = false,
                 expectedGeneration = cacheGeneration,
             )
-            dataSpec.withResolvedStream(
-                CachedStreamUrl(
-                    url = streamUrl,
-                    requestHeaders = playbackData.streamHeaders,
-                    clientName = playbackData.streamClient,
-                    requireBoundedRange = effectiveRequireBoundedRange,
-                    rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
-                    useRangeChunks = effectiveUseRangeChunks,
-                ),
-            )
+            dataSpec.withUri(streamUrl.toUri())
+                .withRequestHeaders(dataSpec.httpRequestHeaders + playbackData.streamHeaders)
         }
 
     val downloadNotificationHelper =
@@ -329,21 +323,60 @@ constructor(
     fun shouldDownloadSong(songId: String): Boolean {
         val download = downloads.value[songId]
         if (download != null) {
-            return when (download.state) {
-                Download.STATE_COMPLETED,
+            when (download.state) {
                 Download.STATE_DOWNLOADING,
                 Download.STATE_QUEUED,
-                Download.STATE_RESTARTING -> false
+                Download.STATE_RESTARTING -> return false
                 Download.STATE_FAILED,
-                Download.STATE_STOPPED -> true
-                else -> true
+                Download.STATE_STOPPED -> return true
+                Download.STATE_COMPLETED -> {
+                    val cacheKey = if (downloadCache.keys.contains(songId)) songId else songId.toUri().toString()
+                    val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+                    if (cachedBytes in 1L..1_150_000L) {
+                        return true
+                    }
+                    val song = database.getSongByIdBlocking(songId)?.song
+                    if (song != null && song.duration <= 0) {
+                        return true
+                    }
+                    return false
+                }
+                else -> return true
             }
         }
         val song = database.getSongByIdBlocking(songId)?.song
         if (song != null && (song.isDownloaded || song.dateDownload != null)) {
+            if (song.duration <= 0) return true
+            val cacheKey = if (downloadCache.keys.contains(songId)) songId else songId.toUri().toString()
+            val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+            if (cachedBytes in 1L..1_150_000L || cachedBytes == 0L) return true
             return false
         }
         return true
+    }
+
+    fun reDownloadSong(songId: String, title: String) {
+        scope.launch(Dispatchers.IO) {
+            database.updateDownloadedInfo(songId, false, null)
+            songUrlCache.invalidate(songId)
+            DownloadService.sendRemoveDownload(
+                appContext,
+                ExoDownloadService::class.java,
+                songId,
+                false
+            )
+            kotlinx.coroutines.delay(200)
+            val downloadRequest = DownloadRequest.Builder(songId, songId.toUri())
+                .setCustomCacheKey(songId)
+                .setData(title.toByteArray())
+                .build()
+            DownloadService.sendAddDownload(
+                appContext,
+                ExoDownloadService::class.java,
+                downloadRequest,
+                false
+            )
+        }
     }
 
     fun download(songId: String, title: String) {
@@ -483,6 +516,48 @@ constructor(
         if (result.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED }) {
             startProgressPollingIfNeeded()
         }
+        repairIncompleteDownloads()
+    }
+
+    fun repairIncompleteDownloads() {
+        scope.launch(Dispatchers.IO) {
+            try {
+                kotlinx.coroutines.delay(1000)
+                val downloadedSongs = database.downloadedSongsByNameAsc().firstOrNull() ?: emptyList()
+                if (downloadedSongs.isEmpty()) return@launch
+
+                Timber.tag("DownloadUtil").i("Scanning ${downloadedSongs.size} downloaded songs for repair...")
+                for (songWithData in downloadedSongs) {
+                    val song = songWithData.song
+                    val songId = song.id
+                    val download = downloads.value[songId]
+                    if (download != null && (download.state == Download.STATE_DOWNLOADING || download.state == Download.STATE_QUEUED || download.state == Download.STATE_RESTARTING)) {
+                        continue
+                    }
+
+                    val format = songWithData.format ?: database.format(songId).firstOrNull()
+                    val cacheKey = when {
+                        downloadCache.keys.contains(songId) -> songId
+                        downloadCache.keys.contains(songId.toUri().toString()) -> songId.toUri().toString()
+                        else -> downloadCache.keys.firstOrNull { it.contains(songId) } ?: songId
+                    }
+                    val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+                    val expectedLength = format?.contentLength ?: 0L
+
+                    val isTruncated = (cachedBytes in 1L..1_150_000L && (song.duration > 30 || (format?.bitrate ?: 0) > 0)) ||
+                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong()) ||
+                            cachedBytes == 0L ||
+                            song.duration <= 0
+
+                    if (isTruncated) {
+                        Timber.tag("DownloadUtil").w("Repairing corrupt/truncated song: \"${song.title}\" ($songId) - cached=$cachedBytes bytes, expected=$expectedLength, duration=${song.duration}")
+                        reDownloadSong(songId, song.title)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.tag("DownloadUtil").e(e, "Error repairing incomplete downloads")
+            }
+        }
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
@@ -498,13 +573,11 @@ constructor(
                 val format = songWithData.format ?: database.format(songId).firstOrNull()
                 val rawMimeType = format?.mimeType ?: "audio/mp4"
                 val isOpusOrWebm = rawMimeType.contains("webm", ignoreCase = true) || rawMimeType.contains("opus", ignoreCase = true)
-                val mimeType = if (isOpusOrWebm) "audio/ogg" else "audio/mp4"
 
                 val safeTitle = songTitle
                     .replace(Regex("[\\\\/:*?\"<>|]"), "_")
                     .trim()
                     .ifBlank { songId }
-                val fileName = safeTitle
 
                 val cacheKey = when {
                     downloadCache.keys.contains(songId) -> songId
@@ -548,6 +621,20 @@ constructor(
 
                 if (rawAudio.isEmpty()) return@launch
 
+                val expectedLength = format?.contentLength ?: 0L
+                val isTruncated = (expectedLength > 1_500_000L && rawAudio.size < (expectedLength * 0.9).toLong()) ||
+                        (rawAudio.size in 1..1_150_000 && (song.duration > 30 || (format?.bitrate ?: 0) > 0))
+                if (isTruncated) {
+                    Timber.tag("DownloadUtil").w("Cache for $songId is truncated (${rawAudio.size} bytes). Triggering fresh download before export.")
+                    pendingExternalExportSongIds.add(songId)
+                    reDownloadSong(songId, songTitle)
+                    return@launch
+                }
+
+                val isMp4 = AudioTagEmbedder.isMp4Header(rawAudio) || !isOpusOrWebm
+                val fileName = if (isMp4) "${safeTitle}.m4a" else "${safeTitle}.opus"
+                val mimeType = if (isMp4) "audio/mp4" else "audio/opus"
+
                 val artworkBytes: ByteArray? = try {
                     song.thumbnailUrl?.let { thumbUrl ->
                         val fullUrl = thumbUrl.resize(1200, 1200)
@@ -569,7 +656,7 @@ constructor(
 
                 val finalAudio = AudioTagEmbedder.embedMetadata(
                     audioBytes = rawAudio,
-                    isM4a = !isOpusOrWebm,
+                    isM4a = isMp4,
                     artworkBytes = artworkBytes,
                     lyrics = lyricsText,
                     title = songTitle,
@@ -582,19 +669,26 @@ constructor(
                     val relativePath = "${Environment.DIRECTORY_MUSIC}/ViviMusic"
 
                     val projection = arrayOf(MediaStore.Audio.Media._ID)
-                    val selection = "${MediaStore.Audio.Media.DISPLAY_NAME} = ? AND ${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
-                    val selectionArgs = arrayOf(fileName, "%ViviMusic%")
-                    val existingUri = resolver.query(
+                    val baseSelection = "(${MediaStore.Audio.Media.DISPLAY_NAME} = ? OR ${MediaStore.Audio.Media.DISPLAY_NAME} = ? OR ${MediaStore.Audio.Media.DISPLAY_NAME} = ?) AND ${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?"
+                    val baseArgs = arrayOf(fileName, safeTitle, "${safeTitle}.oga", "%ViviMusic%")
+                    var existingUri: Uri? = null
+
+                    resolver.query(
                         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         projection,
-                        selection,
-                        selectionArgs,
+                        baseSelection,
+                        baseArgs,
                         null
                     )?.use { cursor ->
-                        if (cursor.moveToFirst()) {
+                        while (cursor.moveToNext()) {
                             val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
-                            ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                        } else null
+                            val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                            if (existingUri == null) {
+                                existingUri = uri
+                            } else {
+                                runCatching { resolver.delete(uri, null, null) }
+                            }
+                        }
                     }
 
                     val uri = existingUri ?: run {
@@ -610,6 +704,13 @@ constructor(
                     }
 
                     if (uri != null) {
+                        val updateValues = ContentValues().apply {
+                            put(MediaStore.Audio.Media.DISPLAY_NAME, fileName)
+                            put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
+                            put(MediaStore.Audio.Media.IS_PENDING, 1)
+                        }
+                        runCatching { resolver.update(uri, updateValues, null, null) }
+
                         resolver.openOutputStream(uri, "wt")?.use { out ->
                             out.write(finalAudio)
                             out.flush()
@@ -623,6 +724,9 @@ constructor(
                 } else {
                     val musicDir = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC), "ViviMusic")
                     musicDir.mkdirs()
+                    File(musicDir, "${safeTitle}.oga").takeIf { it.exists() }?.delete()
+                    File(musicDir, safeTitle).takeIf { it.exists() && it.name != fileName }?.delete()
+
                     val targetFile = File(musicDir, fileName)
                     FileOutputStream(targetFile).use { out ->
                         out.write(finalAudio)

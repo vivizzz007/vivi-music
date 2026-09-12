@@ -129,6 +129,7 @@ object YTPlayerUtils {
         context: android.content.Context? = null,
         contentHints: ContentHints = ContentHints(),
         allowBoundedRange: Boolean = true,
+        preferM4a: Boolean = false,
     ): Result<InnerTubeXPlayer.PlaybackData> {
         // ── JioSaavn intercept ───────────────────────────────────────────────
         // If the user has enabled JioSaavn streaming, try to resolve the stream
@@ -335,6 +336,15 @@ object YTPlayerUtils {
         }
         // ── End JioSaavn intercept ───────────────────────────────────────────
 
+        if (preferM4a) {
+            val m4aAttempt = fallbackFromYouTubeWaterfall(videoId, playlistId, audioQuality, connectivityManager, preferM4a = true)
+            if (m4aAttempt.isSuccess && m4aAttempt.getOrNull()?.format?.mimeType?.contains("mp4", ignoreCase = true) == true) {
+                Timber.tag(TAG).i("Successfully obtained M4A format for videoId=$videoId")
+                BotDetectionMitigator.notifyPlaybackSuccess()
+                return m4aAttempt
+            }
+        }
+
         val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager, contentHints, allowBoundedRange)
         if (firstAttempt.isSuccess) {
             BotDetectionMitigator.notifyPlaybackSuccess()
@@ -444,8 +454,9 @@ object YTPlayerUtils {
         playlistId: String?,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
+        preferM4a: Boolean = false,
     ): Result<InnerTubeXPlayer.PlaybackData> = runCatching {
-        Timber.tag(TAG).i("Attempting YouTube.playerWithFallback for videoId=$videoId")
+        Timber.tag(TAG).i("Attempting YouTube.playerWithFallback for videoId=$videoId (preferM4a=$preferM4a)")
         val isLoggedIn = YouTube.cookie != null
         val playerResponse = YouTube.playerWithFallback(videoId, playlistId, isLoggedIn = isLoggedIn)
             .getOrThrow()
@@ -461,15 +472,25 @@ object YTPlayerUtils {
             throw IllegalStateException("No audio formats found for videoId=$videoId")
         }
 
-        val sortedFormats = when (audioQuality) {
-            AudioQuality.HIGH -> audioFormats.sortedByDescending { it.bitrate }
-            AudioQuality.LOW -> audioFormats.sortedBy { it.bitrate }
-            AudioQuality.AUTO -> {
-                if (connectivityManager.isActiveNetworkMetered) {
-                    audioFormats.sortedBy { it.bitrate }
-                } else {
-                    val preferred = audioFormats.filter { it.itag == 251 || it.itag == 140 }
-                    if (preferred.isNotEmpty()) preferred else audioFormats.sortedByDescending { it.bitrate }
+        val sortedFormats = if (preferM4a) {
+            val m4aFormats = audioFormats.filter { it.itag == 140 || it.mimeType.contains("mp4", ignoreCase = true) }
+                .sortedByDescending { it.bitrate }
+            if (m4aFormats.isNotEmpty()) {
+                m4aFormats + audioFormats.filterNot { it.itag == 140 || it.mimeType.contains("mp4", ignoreCase = true) }
+            } else {
+                audioFormats.sortedByDescending { it.bitrate }
+            }
+        } else {
+            when (audioQuality) {
+                AudioQuality.HIGH -> audioFormats.sortedByDescending { it.bitrate }
+                AudioQuality.LOW -> audioFormats.sortedBy { it.bitrate }
+                AudioQuality.AUTO -> {
+                    if (connectivityManager.isActiveNetworkMetered) {
+                        audioFormats.sortedBy { it.bitrate }
+                    } else {
+                        val preferred = audioFormats.filter { it.itag == 251 || it.itag == 140 }
+                        if (preferred.isNotEmpty()) preferred else audioFormats.sortedByDescending { it.bitrate }
+                    }
                 }
             }
         }

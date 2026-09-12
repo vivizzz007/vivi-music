@@ -47,7 +47,7 @@ object AudioTagEmbedder {
         return embedMetadata(audioBytes, isM4a, artworkBytes = artworkBytes)
     }
 
-    private fun isMp4Header(audio: ByteArray): Boolean {
+    fun isMp4Header(audio: ByteArray): Boolean {
         if (audio.size < 8) return false
         val type = String(audio.copyOfRange(4, 8), Charsets.US_ASCII)
         return type == "ftyp" || type == "moov"

@@ -553,29 +553,23 @@ private fun PlayerSkeletonCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // REAL-TIME BOTTOM ACTION BAR SKELETON
+            // REAL-TIME BOTTOM ACTION BAR SKELETON (Apple Music 3-section layout)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.Black.copy(alpha = 0.35f))
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                activeButtons.forEachIndexed { index, button ->
+                @Composable
+                fun RenderPreviewButton(index: Int, shape: androidx.compose.ui.graphics.Shape) {
+                    val button = activeButtons[index]
                     val isSelected = index == selectedIndex
-                    val buttonShape = when {
-                        activeButtons.size == 1 -> RoundedCornerShape(12.dp)
-                        index == 0 -> RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp, topEnd = 4.dp, bottomEnd = 4.dp)
-                        index == activeButtons.lastIndex -> RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp, topStart = 4.dp, bottomStart = 4.dp)
-                        else -> RoundedCornerShape(4.dp)
-                    }
-
                     Box(
                         modifier = Modifier
                             .size(38.dp)
-                            .clip(buttonShape)
+                            .clip(shape)
                             .background(
                                 if (isSelected) MaterialTheme.colorScheme.primary
                                 else Color.White.copy(alpha = 0.12f)
@@ -583,7 +577,7 @@ private fun PlayerSkeletonCard(
                             .border(
                                 width = if (isSelected) 2.dp else 0.dp,
                                 color = if (isSelected) Color.White else Color.Transparent,
-                                shape = buttonShape
+                                shape = shape
                             )
                             .clickable { onSelectButton(index) },
                         contentAlignment = Alignment.Center
@@ -594,6 +588,46 @@ private fun PlayerSkeletonCard(
                             tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
                             modifier = Modifier.size(18.dp)
                         )
+                    }
+                }
+
+                val circleShape = RoundedCornerShape(percent = 50)
+                if (activeButtons.isEmpty()) {
+                    // Empty state placeholder
+                } else if (activeButtons.size >= 3) {
+                    // Left pinned button
+                    RenderPreviewButton(0, circleShape)
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Middle connected pill
+                    val middleIndices = (1 until activeButtons.lastIndex).toList()
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        middleIndices.forEach { midIdx ->
+                            val midShape = when {
+                                middleIndices.size == 1 -> circleShape
+                                midIdx == middleIndices.first() -> RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp, topEnd = 3.dp, bottomEnd = 3.dp)
+                                midIdx == middleIndices.last() -> RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp, topStart = 3.dp, bottomStart = 3.dp)
+                                else -> RoundedCornerShape(3.dp)
+                            }
+                            RenderPreviewButton(midIdx, midShape)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Right pinned button
+                    RenderPreviewButton(activeButtons.lastIndex, circleShape)
+                } else if (activeButtons.size == 2) {
+                    RenderPreviewButton(0, circleShape)
+                    Spacer(modifier = Modifier.weight(1f))
+                    RenderPreviewButton(1, circleShape)
+                } else {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        RenderPreviewButton(0, circleShape)
                     }
                 }
             }
