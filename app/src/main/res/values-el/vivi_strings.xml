@@ -248,8 +248,6 @@
     <string name="lyrics_glow_effect_desc">Προσθήκη κινούμενης εικόνας λάμψης και εφέ αναπήδησης σε ενεργούς στίχους</string>
     <string name="enable_better_lyrics">Ενεργοποίηση καλύτερων στοίχων</string>
     <string name="enable_better_lyrics_desc">Χρησιμοποιήστε την υπηρεσία καλύτερων στοίχων για συγχρονισμένους στίχους λέξη προς λέξη</string>
-    <string name="enable_simpmusic">Ενεργοποίηση στοίχων SimpMusic</string>
-    <string name="enable_simpmusic_desc">Χρήση του παρόχου στίχων SimpMusic για συγχρονισμένους στίχους</string>
     <string name="auto_scroll">Επανασυγχρονισμός</string>
     <string name="shuffle_playlist_first">Τυχαία λίστα αναπαραγωγής/άλμπουμ πρώτα</string>
     <string name="shuffle_playlist_first_desc">Κατά την τυχαία αναπαραγωγή, παίξτε πρώτα όλα τα τραγούδια από την αρχική λίστα αναπαραγωγής/άλμπουμ και μετά παρόμοιο περιεχόμενο</string>

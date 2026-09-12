@@ -403,8 +403,6 @@
     <string name="lyrics_line_spacing">Giãn dòng lời bài hát</string>
     <string name="enable_wavy_slider">Bật thanh trượt lượn sóng</string>
     <string name="wavy">Lượn sóng</string>
-    <string name="enable_simpmusic">Kiếm lời nhạc từ SimpMusic</string>
-    <string name="enable_simpmusic_desc">Sử dụng trình cung cấp SimpMusic để đồng bộ lời bài hát</string>
     <string name="lyrics_offset">Độ trễ của lời</string>
     <string name="play_next_desc">Thêm vào đầu danh sách phát nhạc</string>
     <string name="add_to_queue_desc">Thêm vào cuối danh sách phát nhạc</string>

@@ -7,6 +7,7 @@ package com.music.vivi.ui.screens.settings.integrations
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +40,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -56,6 +59,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -72,6 +77,7 @@ import com.music.vivi.constants.ListenTogetherServerUrlKey
 import com.music.vivi.constants.ListenTogetherSmartResyncKey
 import com.music.vivi.constants.ListenTogetherSyncVolumeKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
+import com.music.vivi.constants.ListenTogetherAvatarIndexKey
 import com.music.vivi.listentogether.ListenTogetherEvent
 import com.music.vivi.listentogether.ListenTogetherServer
 import com.music.vivi.listentogether.ListenTogetherServers
@@ -80,8 +86,8 @@ import com.music.vivi.listentogether.LogLevel
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.IntegrationCard
-import com.music.vivi.ui.component.IntegrationCardItem
+import com.music.vivi.ui.component.ExpressiveSettingGroup
+import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ListenTogetherViewModel
@@ -107,17 +113,38 @@ fun ListenTogetherSettings(
     val servers = remember { ListenTogetherServers.servers }
     var serverUrl by rememberPreference(ListenTogetherServerUrlKey, ListenTogetherServers.defaultServerUrl)
     var username by rememberPreference(ListenTogetherUsernameKey, "")
+    var avatarIndex by rememberPreference(ListenTogetherAvatarIndexKey, 0)
     var autoApproval by rememberPreference(ListenTogetherAutoApprovalKey, false)
     var syncHostVolume by rememberPreference(ListenTogetherSyncVolumeKey, true)
     var smartResync by rememberPreference(ListenTogetherSmartResyncKey, true)
     
     var showServerUrlDialog by rememberSaveable { mutableStateOf(false) }
     var showUsernameDialog by rememberSaveable { mutableStateOf(false) }
+    var showAvatarPicker by rememberSaveable { mutableStateOf(false) }
     var showCreateRoomDialog by rememberSaveable { mutableStateOf(false) }
     var showJoinRoomDialog by rememberSaveable { mutableStateOf(false) }
     var showLogsDialog by rememberSaveable { mutableStateOf(false) }
     var showBlockedUsersDialog by rememberSaveable { mutableStateOf(false) }
     var roomCodeInput by rememberSaveable { mutableStateOf("") }
+    
+    val avatarOptions = remember {
+        listOf(
+            R.drawable.person,
+            R.drawable.man,
+            R.drawable.woman,
+            R.drawable.man_1,
+            R.drawable.man_2,
+            R.drawable.man_3,
+            R.drawable.man_4,
+            R.drawable.man_5,
+            R.drawable.man_6,
+            R.drawable.woman_1,
+            R.drawable.woman_2,
+            R.drawable.woman_3,
+            R.drawable.woman_4,
+            R.drawable.luxury_women
+        )
+    }
     
     // Handle events
     LaunchedEffect(Unit) {
@@ -327,10 +354,24 @@ fun ListenTogetherSettings(
         )
     }
 
+    if (showAvatarPicker) {
+        com.music.vivi.ui.component.AvatarBottomSheet(
+            avatarOptions = avatarOptions,
+            selectedAvatarIndex = avatarIndex,
+            title = "Choose Avatar",
+            onAvatarSelected = { index ->
+                avatarIndex = index
+                showAvatarPicker = false
+            },
+            onDismissRequest = { showAvatarPicker = false }
+        )
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
     ) {
         Spacer(
             Modifier.windowInsetsPadding(
@@ -338,139 +379,176 @@ fun ListenTogetherSettings(
             )
         )
         
-        // Settings section using IntegrationCard
+        // Settings section
         val selectedServer = remember(serverUrl) { ListenTogetherServers.findByUrl(serverUrl) }
         
-        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            IntegrationCard(
-                title = stringResource(R.string.settings),
-                items = listOf(
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.person),
-                        title = { Text(stringResource(R.string.listen_together_blocked_users)) },
-                        description = {
-                            Text(
-                                if (blockedUsernames.isNotEmpty()) 
-                                    stringResource(R.string.listen_together_blocked_users_count, blockedUsernames.size)
-                                else 
-                                    stringResource(R.string.listen_together_no_blocked_users)
-                            )
-                        },
-                        onClick = if (blockedUsernames.isNotEmpty()) {
-                            { showBlockedUsersDialog = true }
-                        } else null
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.cloud),
-                        title = { Text(stringResource(R.string.listen_together_server_url)) },
-                        description = {
-                            Text(
-                                selectedServer?.let { server ->
-                                    "${server.name} - ${server.location}"
-                                } ?: serverUrl,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        },
-                        onClick = { showServerUrlDialog = true }
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.person),
-                        title = { Text(stringResource(R.string.listen_together_username)) },
-                        description = {
-                            Text(username.ifEmpty { stringResource(R.string.not_set) })
-                        },
-                        onClick = if (roomState == null) {
-                            { showUsernameDialog = true }
-                        } else {
-                            { Toast.makeText(context, context.getString(R.string.listen_together_cannot_edit_username_in_room), Toast.LENGTH_SHORT).show() }
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.settings),
+            items = listOf(
+                Material3SettingsItem(
+                    leadingContent = {
+                        Surface(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .clickable(
+                                    onClick = if (roomState == null) {
+                                        { showAvatarPicker = true }
+                                    } else {
+                                        { Toast.makeText(context, context.getString(R.string.listen_together_cannot_edit_username_in_room), Toast.LENGTH_SHORT).show() }
+                                    }
+                                ),
+                            shape = androidx.compose.foundation.shape.CircleShape,
+                            color = MaterialTheme.colorScheme.primaryContainer
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Image(
+                                    painter = painterResource(avatarOptions.getOrElse(avatarIndex) { R.drawable.person }),
+                                    contentDescription = null,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
                         }
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.done),
-                        title = { Text(stringResource(R.string.listen_together_auto_approval)) },
-                        description = {
-                            Text(stringResource(R.string.listen_together_auto_approval_desc))
-                        },
-                        trailingContent = {
-                            Switch(
-                                checked = autoApproval,
-                                onCheckedChange = { autoApproval = it },
-                                // Only disable for guests in a room (hosts can always change)
-                                enabled = roomState == null || role != RoomRole.GUEST,
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (autoApproval) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    )
-                                }
-                            )
-                        },
-                        // Allow clicking to see disabled state, but only change if enabled
-                        onClick = { if (roomState == null || role != RoomRole.GUEST) autoApproval = !autoApproval }
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.volume_up),
-                        title = { Text(stringResource(R.string.listen_together_sync_volume)) },
-                        description = {
-                            Text(stringResource(R.string.listen_together_sync_volume_desc))
-                        },
-                        trailingContent = {
-                            Switch(
-                                checked = syncHostVolume,
-                                onCheckedChange = { syncHostVolume = it },
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (syncHostVolume) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    )
-                                }
-                            )
-                        },
-                        onClick = { syncHostVolume = !syncHostVolume }
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.automation_slow_connecttion),
-                        title = { Text(stringResource(R.string.listen_together_smart_resync)) },
-                        description = {
-                            Text(stringResource(R.string.listen_together_smart_resync_desc))
-                        },
-                        trailingContent = {
-                            Switch(
-                                checked = smartResync,
-                                onCheckedChange = { smartResync = it },
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (smartResync) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize),
-                                    )
-                                }
-                            )
-                        },
-                        onClick = { smartResync = !smartResync }
-                    ),
-                    IntegrationCardItem(
-                        icon = painterResource(R.drawable.bug_report),
-                        title = { Text(stringResource(R.string.listen_together_view_logs)) },
-                        description = {
-                            Text(stringResource(R.string.listen_together_view_logs_desc))
-                        },
-                        onClick = { showLogsDialog = true }
-                    )
+                    },
+                    title = { Text(stringResource(R.string.listen_together_username)) },
+                    description = {
+                        Text(username.ifEmpty { stringResource(R.string.not_set) })
+                    },
+                    onClick = if (roomState == null) {
+                        { showUsernameDialog = true }
+                    } else {
+                        { Toast.makeText(context, context.getString(R.string.listen_together_cannot_edit_username_in_room), Toast.LENGTH_SHORT).show() }
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cloud),
+                    title = { Text(stringResource(R.string.listen_together_server_url)) },
+                    description = {
+                        Text(
+                            selectedServer?.let { server ->
+                                "${server.name} - ${server.location}"
+                            } ?: serverUrl,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
+                    onClick = { showServerUrlDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.person),
+                    title = { Text(stringResource(R.string.listen_together_blocked_users)) },
+                    description = {
+                        Text(
+                            if (blockedUsernames.isNotEmpty())
+                                stringResource(R.string.listen_together_blocked_users_count, blockedUsernames.size)
+                            else
+                                stringResource(R.string.listen_together_no_blocked_users)
+                        )
+                    },
+                    onClick = if (blockedUsernames.isNotEmpty()) {
+                        { showBlockedUsersDialog = true }
+                    } else null
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.done),
+                    title = { Text(stringResource(R.string.listen_together_auto_approval)) },
+                    description = {
+                        Text(stringResource(R.string.listen_together_auto_approval_desc))
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = autoApproval,
+                            onCheckedChange = { autoApproval = it },
+                            enabled = roomState == null || role != RoomRole.GUEST,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (autoApproval) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { if (roomState == null || role != RoomRole.GUEST) autoApproval = !autoApproval }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.volume_up),
+                    title = { Text(stringResource(R.string.listen_together_sync_volume)) },
+                    description = {
+                        Text(stringResource(R.string.listen_together_sync_volume_desc))
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = syncHostVolume,
+                            onCheckedChange = { syncHostVolume = it },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (syncHostVolume) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { syncHostVolume = !syncHostVolume }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.automation_slow_connecttion),
+                    title = { Text(stringResource(R.string.listen_together_smart_resync)) },
+                    description = {
+                        Text(stringResource(R.string.listen_together_smart_resync_desc))
+                    },
+                    trailingContent = {
+                        Switch(
+                            checked = smartResync,
+                            onCheckedChange = { smartResync = it },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (smartResync) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize),
+                                )
+                            }
+                        )
+                    },
+                    onClick = { smartResync = !smartResync }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.bug_report),
+                    title = { Text(stringResource(R.string.listen_together_view_logs)) },
+                    description = {
+                        Text(stringResource(R.string.listen_together_view_logs_desc))
+                    },
+                    onClick = { showLogsDialog = true }
                 )
             )
+        )
+
+        Row(
+            modifier = Modifier.padding(top = 16.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.info),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Text(
+                text = stringResource(R.string.listen_together_description),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(36.dp))
     }
 
     TopAppBar(

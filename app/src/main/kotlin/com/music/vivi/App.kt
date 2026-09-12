@@ -27,12 +27,16 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
 import com.music.lastfm.LastFM
 import com.music.vivi.constants.*
+import com.music.vivi.vivimusic.release.NewReleaseCheckWorker
 import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
+import com.music.vivi.utils.ViviPrefCache
+import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -54,15 +58,23 @@ import javax.inject.Inject
 @HiltAndroidApp
 class App : Application(), SingletonImageLoader.Factory {
 
+
     @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
     override fun onCreate() {
         super.onCreate()
+        context = this
+
+        // Start preferences cache immediately
+        ViviPrefCache.start(this)
 
         // Install crash handler first
         CrashHandler.install(this)
+
+        // Initialize InnerTubeX stream extractor
+        InnerTubeXPlayer.initialize(this)
 
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)
@@ -129,7 +141,7 @@ class App : Application(), SingletonImageLoader.Factory {
         }
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
-        YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+        YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
 
         val channel = NotificationChannel(
             "updates",
@@ -162,11 +174,7 @@ class App : Application(), SingletonImageLoader.Factory {
                 .map { it[DataSyncIdKey] }
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
-                    YouTube.dataSyncId = dataSyncId?.let {
-                        it.takeIf { !it.contains("||") }
-                            ?: it.takeIf { it.endsWith("||") }?.substringBefore("||")
-                            ?: it.substringAfter("||")
-                    }
+                    YouTube.dataSyncId = normalizeDataSyncId(dataSyncId)
                 }
         }
 
@@ -226,7 +234,33 @@ class App : Application(), SingletonImageLoader.Factory {
                 .map { it[IpVersionKey] }
                 .distinctUntilChanged()
                 .collect { ipVersion ->
-                    YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.AUTO) ?: IpVersion.AUTO
+                    YouTube.ipVersion = ipVersion?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
+                }
+        }
+
+        // One-time migration: clear stale "seen releases" baseline from the buggy first run
+        // so the worker re-snapshots all artists correctly on next launch.
+        val migrationPrefs = getSharedPreferences("app_migrations", Context.MODE_PRIVATE)
+        val NEW_RELEASE_MIGRATION_V1 = "new_release_seen_reset_v1"
+        if (!migrationPrefs.getBoolean(NEW_RELEASE_MIGRATION_V1, false)) {
+            NewReleaseCheckWorker.clearSeenReleases(this)
+            migrationPrefs.edit().putBoolean(NEW_RELEASE_MIGRATION_V1, true).apply()
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map {
+                    val bookmarkedEnabled = it[NewReleaseNotificationsKey] ?: true
+                    val tasteBasedEnabled = it[TasteBasedReleaseNotificationsKey] ?: false
+                    bookmarkedEnabled || tasteBasedEnabled
+                }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    if (enabled) {
+                        NewReleaseCheckWorker.schedule(this@App)
+                    } else {
+                        NewReleaseCheckWorker.cancel(this@App)
+                    }
                 }
         }
     }
@@ -258,6 +292,9 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     companion object {
+        lateinit var context: Context
+            private set
+
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")
 

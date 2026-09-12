@@ -1,5 +1,10 @@
-                     GNU GENERAL PUBLIC LICENSE
-                       Version 3, 29 June 2007
+SPECIAL EXCEPTION FOR THE MUSIXMATCH MODULE:
+As a special exception to the GNU General Public License v3.0, permission is granted to link this program with the proprietary "musixmatch" module. You may inspect the source code of the "musixmatch" module, but copying, reproducing, adapting, modifying, or redistributing the "musixmatch" source code in any other application, fork, or repository is strictly prohibited without the express permission of the author.
+
+===============================================================================
+
+                    GNU GENERAL PUBLIC LICENSE
+                      Version 3, 29 June 2007
 
  Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
  Everyone is permitted to copy and distribute verbatim copies

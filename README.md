@@ -1,19 +1,25 @@
 <div align="center">
- <img src="https://github.com/vivizzz007/vivi-music/blob/main/assets/ic_launcher-playstore.png?raw=true" width="160" height="160" style="display: block; margin: 0 auto"/>
- <h1>VIVI Music</h1>
- <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
+  <a href="https://vivimusic.mkmdevilmi.workers.dev/">
+    <img src="assets/bannerofficial.png" alt="VIVI Music Banner" style="display: block; margin: 0 auto; max-width: 100%"/>
+  </a>
+  <br>
+  <h1>VIVI Music</h1>
+  <h3>More Than Just Music — Your Ultimate Audio Experience</h3>
 
- <p>
-   <a href="https://github.com/vivizzz007/vivi-music/releases">
-     <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download&style=for-the-badge&color=4CAF50" alt="Download Latest">
-   </a>
-   <a href="https://github.com/vivizzz007/vivi-music/releases">
-     <img src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?style=for-the-badge&color=blue" alt="Downloads">
-   </a>
-   <a href="LICENSE">
-     <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
-   </a>
- </p>
+  <p>
+    <a href="https://github.com/vivizzz007/vivi-music/releases">
+      <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download&style=for-the-badge&color=4CAF50" alt="Download Latest">
+    </a>
+    <a href="https://github.com/vivizzz007/vivi-music/releases">
+      <img src="https://img.shields.io/github/downloads/vivizzz007/vivi-music/total?style=for-the-badge&color=blue" alt="Downloads">
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/github/license/vivizzz007/vivi-music?style=for-the-badge" alt="License">
+    </a>
+    <a href="https://ko-fi.com/vividhpashokan">
+      <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+    </a>
+  </p>
 
 </div>
 
@@ -21,150 +27,148 @@
 
 <h2>🎵 About VIVI</h2>
 
-<p><strong>VIVI</strong> isn't just another music player — it's a complete audio experience designed for music lovers who demand more. With a sleek Material You-inspired design, intelligent features, and deep personalization, VIVI redefines how you connect with your music.</p>
-
-<p>From stunning visual effects to smooth, intuitive controls, every element is crafted to match your vibe and elevate every beat. Stream from YouTube, enjoy synced lyrics, share songs via QR codes, and experience your music library like never before.</p>
-
-<p><strong>This is your music, your way — only with VIVI.</strong></p>
+<table align="center" width="100%">
+  <tr valign="middle">
+    <td width="60%" align="left">
+      <p>✨ <b>VIVI</b> isn't just another music player — it's a premium, modern audio ecosystem engineered for listeners who demand more. Powered by a responsive design engine that dynamically matches your album art's color palette, VIVI completely shifts to match your aesthetic on every single beat.</p>
+      <p>From stunning animated canvas visualizers to fluid physics-based micro-animations, every interaction is crafted to elevate your listening. Stream ad-free, sync karaoke lyrics, share your sound instantly, and enjoy an elegant interface designed with modern Material 3 guidelines.</p>
+      <blockquote>
+        <b>🎵 Your music, your aesthetic — only with VIVI.</b>
+      </blockquote>
+    </td>
+    <td width="40%" align="center">
+      <p>🛡️ <b>100% Privacy-First</b><br><small>Completely local database. Absolutely zero trackers, analytics, or background telemetry.</small></p>
+      <hr width="80%">
+      <p>🎨 <b>Material You Engine</b><br><small>Stunning adaptive interface that dynamically morphs colors based on what's playing.</small></p>
+      <hr width="80%">
+      <p>🚀 <b>Ad-Free Streaming</b><br><small>Seamless background playback with high-fidelity streams from YouTube Music.</small></p>
+    </td>
+  </tr>
+</table>
 
 <hr>
 
 <h2>📸 Screenshots</h2>
 
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="30%" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="30%" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/10.png?raw=true" width="30%" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/11.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/12.png?raw=true" width="30%" />
-  <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/13.png?raw=true" width="30%" />
-</p>
+<table align="center">
+  <tr valign="top">
+    <td align="center">
+      <b>Player</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/1.png?raw=true" width="220" alt="Player Screen 1" />
+    </td>
+    <td align="center">
+      <b>Player</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/2.png?raw=true" width="220" alt="Player Screen 2" />
+    </td>
+    <td align="center">
+      <b>Artist Screen</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/3.png?raw=true" width="220" alt="Artist Screen" />
+    </td>
+  </tr>
+  <tr valign="top">
+    <td align="center">
+      <b>Album Page</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/4.png?raw=true" width="220" alt="Album Page" />
+    </td>
+    <td align="center">
+      <b>Search Section</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/5.png?raw=true" width="220" alt="Search Section" />
+    </td>
+    <td align="center">
+      <b>Home Page</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/6.png?raw=true" width="220" alt="Home Page" />
+    </td>
+  </tr>
+  <tr valign="top">
+    <td align="center">
+      <b>Built-in Updater</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/7.png?raw=true" width="220" alt="Built-in Updater" />
+    </td>
+    <td align="center">
+      <b>Audio Control Section</b><br><br>
+      <img src="https://github.com/vivizzz007/vivi-music/blob/main/NEW-UI/8.png?raw=true" width="220" alt="Audio Control Section" />
+    </td>
+    <td></td>
+  </tr>
+</table>
 
 <hr>
 
 <h2>✨ Features</h2>
 
-<h3>🎨 Modern Design</h3>
-<ul>
-  <li><strong>Material You</strong> inspired UI with dynamic theming</li>
-  <li>Smooth animations and transitions</li>
-  <li>Adaptive color schemes based on album art</li>
-  <li>Clean, intuitive interface</li>
-</ul>
+<table align="center" width="100%">
+  <tr valign="top">
+    <td width="50%">
+      <h3>🎨 Expressive UI & Design</h3>
+      <ul>
+        <li><b>Dynamic Material You:</b> Beautiful adaptive colors that shift to match your playing album art.</li>
+        <li><b>Premium Animations:</b> Silky-smooth micro-animations and seamless screen transitions.</li>
+        <li><b>Modern Architecture:</b> Sleek, modern layouts engineered with Android's latest Material 3 guidelines.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>🎵 Advanced Streaming</h3>
+      <ul>
+        <li><b>Full Catalog Integration:</b> Stream any song from YouTube and YT Music, completely ad-free.</li>
+        <li><b>Animated Canvas:</b> Stunning Apple Music-style animated backdrops that bring music to life.</li>
+        <li><b>Background Playback:</b> High-quality continuous playback with full notification drawer controls.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr valign="top">
+    <td width="50%">
+      <h3>📝 Synced Lyrics & Audio</h3>
+      <ul>
+        <li><b>Karaoke Syncing:</b> Beautiful, precise word-by-word highlighted lyrics.</li>
+        <li><b>Integrated EQ:</b> High-fidelity audio customization with an in-app Equalizer.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>📥 Offline Experience</h3>
+      <ul>
+        <li><b>Local Downloads:</b> Download and cache tracks onto your device for offline enjoyment.</li>
+        <li><b>Smart Storage:</b> Intelligent cache management that optimizes space automatically.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr valign="top">
+    <td width="50%">
+      <h3>🔄 OTA Updater</h3>
+      <ul>
+        <li><b>Seamless Updates:</b> Instant Over-the-Air updates directly inside the app.</li>
+        <li><b>Direct Delivery:</b> Always stay ahead with instant feature upgrades and patch fixes.</li>
+      </ul>
+    </td>
+    <td width="50%">
+      <h3>🛡️ 100% Privacy</h3>
+      <ul>
+        <li><b>Zero Data Collection:</b> No trackers, no telemetry, and no telemetry analytics.</li>
+        <li><b>Local Security:</b> All user libraries, preferences, and downloaded tracks are stored locally.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-<h3>🎵 Streaming & Playback</h3>
-<ul>
-  <li><strong>YouTube & YT Music</strong> integration with ad-free playback</li>
-  <li>Background playback support</li>
-  <li>High-quality audio streaming</li>
-  <li>Seamless playback controls</li>
-</ul>
-
-<h3>📥 Offline Experience</h3>
-<ul>
-  <li>Download and cache music for offline listening</li>
-  <li>Smart storage management</li>
-  <li>Queue downloads for batch processing</li>
-  <li>Listen anytime, anywhere without internet</li>
-</ul>
-
-<h3>📝 Enhanced Listening</h3>
-<ul>
-  <li><strong>Synced Lyrics</strong> with karaoke-style highlighting</li>
-  <li>Skip silence automatically for uninterrupted flow</li>
-  <li>Audio normalization for consistent volume</li>
-  <li>Equalizer and audio effects</li>
-</ul>
-
-<h3>🔗 Smart Sharing</h3>
-<ul>
-  <li><strong>QR Code Sharing</strong> for instant song/playlist transfers</li>
-  <li>Share to social media platforms</li>
-  <li>Generate shareable links</li>
-  <li>Cross-device music sync</li>
-</ul>
-
-<h3>🚗 Android Auto Support</h3>
-<ul>
-  <li>Fully optimized car-friendly interface</li>
-  <li>Voice command integration</li>
-  <li>Safe, hands-free music control</li>
-  <li>Seamless driving experience</li>
-</ul>
-
-<h3>🌐 Global & Accessible</h3>
-<ul>
-  <li>Multi-language localization</li>
-  <li>Accessibility features</li>
-  <li>Customizable controls</li>
-  <li>Theme customization</li>
-</ul>
-
-<h3>🔄 Built-in Updater</h3>
-<ul>
-  <li>OTA (Over-The-Air) updates</li>
-  <li>No need to manually check for updates</li>
-  <li>Seamless update installation</li>
-  <li>Always stay up-to-date</li>
-</ul>
+<br>
 
 <hr>
-
-<h2 align="center">📥 Download</h2>
 
 <div align="center">
-  <h3><a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Download Latest Release</a></h3>
-  <p><strong>Current Version:</strong> Check the <a href="https://github.com/vivizzz007/vivi-music/releases">releases page</a> for the latest stable version.</p>
+  <table border="0" cellpadding="15" cellspacing="0" width="85%">
+    <tr>
+      <td align="center">
+        <h3>💖 Support the Project</h3>
+        <p>If you love VIVI Music and want to support its maintenance and active development, please consider buying me a coffee! Your support helps keep this premium audio experience completely active, clean, and ad-free.</p>
+        <br>
+        <a href="https://ko-fi.com/vividhpashokan">
+          <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
+        </a>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<p><strong>Recommendation:</strong> Always download releases tagged with <code>v*.*.*</code> (e.g., <code>v3.2.1</code>) to receive automatic updates through the app.</p>
-
-<hr>
-
-<h2 align="center">💖 Support the Project</h2>
-
-<div align="center">
-  <p>If you enjoy VIVI Music and want to support its maintenance and development, you can buy me a coffee!</p>
-  <a href="https://ko-fi.com/vividhpashokan">
-    <img src="https://img.shields.io/badge/Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
-  </a>
-</div>
-
-<hr>
-
-<h2>🔄 Setting Up OTA Updates</h2>
-
-<p>To receive automatic updates within VIVI Music, you need to grant the app permission to install updates:</p>
-
-<h3>Step-by-Step Guide:</h3>
-
-<ol>
-  <li>Open your device's <strong>Settings</strong></li>
-  <li>Navigate to <strong>Apps & notifications</strong> (or <strong>Apps</strong>)</li>
-  <li>Find and select <strong>VIVI Music</strong></li>
-  <li>Scroll down and tap <strong>Install unknown apps</strong></li>
-  <li>Toggle <strong>ON</strong> the option "Allow from this source"</li>
-  <li>Done! You'll now receive automatic OTA updates</li>
-</ol>
-
-<blockquote>
-  <p>💡 <strong>Note:</strong> This permission is only used for app updates and follows Android's security guidelines.</p>
-</blockquote>
+<br>
 
 <hr>
 
@@ -184,31 +188,6 @@
 
 <hr>
 
-<h2>🛠️ Technical Details</h2>
-
-<ul>
-  <li><strong>Platform:</strong> Android 5.0+</li>
-  <li><strong>Architecture:</strong> Native Android with Kotlin/Java</li>
-  <li><strong>Streaming:</strong> YouTube Data API integration</li>
-  <li><strong>Audio:</strong> ExoPlayer for high-quality playback</li>
-  <li><strong>UI Framework:</strong> Material Design 3 (Material You)</li>
-  <li><strong>Updates:</strong> Custom OTA implementation</li>
-</ul>
-
-<hr>
-
-<h2>👥 Contributors</h2>
-
-<p>We appreciate everyone who has contributed to making VIVI Music better!</p>
-
-<p>To see all our amazing contributors and learn how you can join them, visit:</p>
-
-<div align="center">
-  <h3><a href="https://vivimusic.vercel.app/contributor.html">🌟 View All Contributors</a></h3>
-</div>
-
-<hr>
-
 <h2>🤝 Contributing</h2>
 
 <p>Contributions are welcome! Whether it's bug reports, feature requests, or code contributions:</p>
@@ -223,6 +202,20 @@
 
 <hr>
 
+<h2>🛡️ Privacy & Data Collection</h2>
+
+<p>At <strong>VIVI Music</strong>, your privacy is our top priority. We believe that your music and data belong exclusively to you.</p>
+
+<ul>
+  <li><strong>Zero Data Collection:</strong> We do <strong>not</strong> collect, store, or share any of your personal information, usage habits, or listening history.</li>
+  <li><strong>100% Local:</strong> All your settings, downloaded tracks, and offline caches are stored securely on your device.</li>
+  <li><strong>No Tracking:</strong> There are no hidden trackers, analytics, or background services monitoring your activity.</li>
+</ul>
+
+<p>Enjoy your music with complete peace of mind, knowing that your privacy is fully protected.</p>
+
+<hr>
+
 <h2>📜 Disclaimer</h2>
 
 <p>This project and its contents are <strong>not affiliated with, funded, authorized, endorsed by, or in any way associated with</strong> YouTube, Google LLC, or any of their affiliates and subsidiaries.</p>
@@ -233,41 +226,65 @@
 
 <hr>
 
-<h2>📄 License</h2>
-<p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> file.</p>
+<h2>📄 License & Guidelines</h2>
+<p>This project is licensed under the terms specified in the <a href="LICENSE">LICENSE</a> (GPL-3.0) file.</p>
+<p>If you copy, adapt, or reuse any part of the source code, you must adhere to the guidelines outlined in the <a href="rules.md">rules.md</a> file.</p>
+
 
 <hr>
 
-<h2>💬 Support & Community</h2>
-
 <div align="center">
-  <a href="https://t.me/+Nen-QpiY0tk1OTE9">
-    <img src="https://img.shields.io/badge/Telegram-Join%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
-  </a>
-  <p>Connect with other music lovers, get support, share feedback, and stay updated with the latest news!</p>
+  <table border="0" cellpadding="15" cellspacing="0" width="85%">
+    <tr>
+      <td align="center">
+        <h3>💬 Community & Support</h3>
+        <p>Connect with other music lovers, suggest new features, report bugs, and stay updated with the latest releases!</p>
+        <br>
+        <a href="https://t.me/+Nen-QpiY0tk1OTE9">
+          <img src="https://img.shields.io/badge/Telegram-Join%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
+        </a>
+        <br><br>
+        <sub>
+          <a href="https://github.com/vivizzz007/vivi-music/issues">🐞 Report Bugs</a> &nbsp;•&nbsp;
+          <a href="https://github.com/vivizzz007/vivi-music/discussions">💬 Discussions</a> &nbsp;•&nbsp;
+          <a href="https://github.com/vivizzz007/vivi-music/releases">🚀 Releases</a>
+        </sub>
+      </td>
+    </tr>
+  </table>
 </div>
 
-<ul>
-  <li><strong>Issues:</strong> Report bugs or request features in <a href="https://github.com/vivizzz007/vivi-music/issues">GitHub Issues</a></li>
-  <li><strong>Discussions:</strong> Join conversations in <a href="https://github.com/vivizzz007/vivi-music/discussions">GitHub Discussions</a></li>
-  <li><strong>Releases:</strong> Stay updated with <a href="https://github.com/vivizzz007/vivi-music/releases">latest releases</a></li>
-</ul>
-
 <hr>
 
 <div align="center">
 
-## Special Thanks 🙏
+  <h2>🙏 Special Thanks & Credits</h2>
 
-  <p>A heartfelt thank you to <strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> for their inspiration and contributions to the open source community.</p>
-  <p><strong><a href="https://github.com/koiverse/ArchiveTune">ArchiveTune</a></strong> – For canvas functionality.</p>
-  <p><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For lyrics functionality.</p>
-  <p><strong><a href="https://github.com/monochrome-music/monochrome">Monochrome</a></strong> – For canvas functionality.</p>
-<hr width="60%">
-## 🎖️ Credits
-  <p>VIVI Music is built upon the foundation of amazing open-source projects:</p>
-  <p><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful time-synced lyrics with word-by-word highlighting, and seamless YouTube Music integration.</p>
-  <p><strong><a href="https://github.com/maxrave-dev/SimpMusic">SimpMusic</a></strong> – For lyrics functionality and integration.</p>
+  <p>VIVI Music is built upon the foundation of amazing open-source projects and developers:</p>
+  <br>
+
+  <table border="0" cellpadding="10" cellspacing="0" width="90%">
+    <tr valign="top">
+      <td width="40%" align="left">
+        <b>💡 Special Thanks</b>
+        <ul>
+          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+          <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – Huge congratulations and thanks for inventing the new playback method! 🎉</li>
+        </ul>
+      </td>
+      <td width="60%" align="left">
+        <b>🎖️ Foundational Projects</b>
+        <ul>
+          <li><strong><a href="https://github.com/better-lyrics/better-lyrics">Better Lyrics</a></strong> – For beautiful synced lyrics and YouTube Music integration.</li>
+          <li><strong><a href="https://github.com/ibratabian17/YouLyPlus">YouLyPlus</a></strong> – For smooth in-app lyrics styling.</li>
+          <li><strong><a href="https://github.com/better-lyrics/unison">Unison</a></strong> – For the premium Apple Music-style visualizer canvas.</li>
+          <li><strong><a href="https://github.com/ajayyy/SponsorBlock">SponsorBlock</a></strong> – For automatic skipping of sponsored and non-music segments.</li>
+        </ul>
+      </td>
+    </tr>
+  </table>
+
+  <br>
   <p align="center">The open-source community for tools, libraries, and APIs that make this project possible.</p>
   <p align="center"><strong>Thank you to all the amazing developers who made this project possible!</strong></p>
   <hr width="60%">

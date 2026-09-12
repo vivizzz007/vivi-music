@@ -1,0 +1,15 @@
+New player design (toggle in Appearance)
+New player backgrounds (Apple Music/LiveMesh)
+Background theme for miniplayer
+Highest quality AM canvas
+Paxsenix added as lyrics provider
+Spotify Wrapped section in Stats
+New album screen UI
+Nightly Beta update option
+Volume slider in old player menu
+Logout dialog with backup options
+Badge on Online Playlist screen
+New headphone & speaker design
+Option to turn off comments
+Fixed streaming, library sync & equalizer
+Fixed image quality to highest

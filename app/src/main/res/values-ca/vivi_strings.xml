@@ -369,7 +369,6 @@
     <string name="player_client">Reproductor</string>
     <string name="player_client_android_vr">Android VR</string>
     <string name="player_client_web_remix">Remix Web</string>
-    <string name="enable_simpmusic">Activa les lletres de SimpMusic</string>
     <string name="no_song_playing">No s\'està reproduint res</string>
     <string name="skip_silence_instant">Omet el silenci immediatament</string>
     <string name="show_artist_description">Mostra la descripció de l\'artista</string>
@@ -383,7 +382,6 @@
     <string name="pause_music_when_media_is_muted">Pausa la música en silenciar la multimèdia</string>
     <string name="widget_description">Giny reproductor de música amb controls integrats</string>
     <string name="error_eq_apply_failed">Error en aplicar el perfil d\'equalització: %1$s</string>
-    <string name="enable_simpmusic_desc">Utilitza el proveïdor SimpMusic Lyrics per sincronitzar les lletres</string>
     <string name="skip_silence_desc">Avança ràpidament les parts silencioses de les cançons</string>
     <string name="turntable_widget_description">Dispositiu musical circular amb controls de reproducció i m\'agrada</string>
     <string name="remember_shuffle_and_repeat_desc">Recorda l\'aleatori i la repetició en reiniciar l\'aplicació</string>

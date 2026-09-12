@@ -18,12 +18,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -62,17 +68,19 @@ import com.music.vivi.constants.SuggestionRegionSlugToName
 import com.music.vivi.ui.screens.search.suggestions.SuggestionRegionSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
+import com.music.vivi.constants.EnableMusixmatchKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
-import com.music.vivi.constants.EnableSimpMusicKey
 import com.music.vivi.constants.EnableYouLyPlusKey
+import com.music.vivi.constants.EnablePaxsenixKey
+import com.music.vivi.constants.EnableUnisonKey
+import com.music.vivi.constants.EnableBiniLyricsKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
 import com.music.vivi.constants.AlbumCanvasEnabledKey
 import com.music.vivi.constants.LanguageCodeToName
-import com.music.vivi.constants.PreferredLyricsProvider
-import com.music.vivi.constants.PreferredLyricsProviderKey
+import com.music.vivi.constants.LyricsProviderOrderKey
 import com.music.vivi.constants.ProxyEnabledKey
 import com.music.vivi.constants.ProxyPasswordKey
 import com.music.vivi.constants.ProxyTypeKey
@@ -91,18 +99,33 @@ import com.music.vivi.constants.ShowWrappedCardKey
 import com.music.vivi.constants.TopSize
 import com.music.vivi.ui.component.EnumDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import androidx.compose.ui.text.font.FontWeight
+import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.IpVersionKey
 
+import com.music.vivi.lyrics.LyricsProviderRegistry
+import com.music.vivi.ui.component.DraggableLyricsProviderItem
+import com.music.vivi.ui.component.DraggableLyricsProviderList
+import androidx.compose.runtime.mutableStateListOf
 import com.music.vivi.utils.PlaybackLogManager
 import com.music.vivi.ui.component.PlaybackLogsDialog
 import androidx.compose.runtime.collectAsState
 import java.net.Proxy
+import androidx.datastore.preferences.core.edit
+import kotlinx.coroutines.launch
+import com.music.vivi.utils.dataStore
+import com.music.vivi.constants.DataSaverKey
+import com.music.vivi.constants.DataSaverBackupCanvasKey
+import com.music.vivi.constants.DataSaverBackupArtistVideoKey
+import com.music.vivi.constants.DataSaverBackupArtistBgVideoKey
+import com.music.vivi.constants.DataSaverBackupAlbumCanvasKey
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,6 +135,32 @@ fun ContentSettings(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val (dataSaver, _) = rememberPreference(DataSaverKey, defaultValue = false)
+    fun toggleDataSaver(enable: Boolean) {
+        scope.launch {
+            context.dataStore.edit { prefs ->
+                if (enable) {
+                    prefs[DataSaverBackupCanvasKey]        = prefs[CanvasThumbnailAnimationKey] ?: true
+                    prefs[DataSaverBackupArtistVideoKey]   = prefs[ShowArtistVideoKey] ?: true
+                    prefs[DataSaverBackupArtistBgVideoKey] = prefs[ShowArtistBackgroundVideoKey] ?: true
+                    prefs[DataSaverBackupAlbumCanvasKey]   = prefs[AlbumCanvasEnabledKey] ?: false
+                    
+                    prefs[CanvasThumbnailAnimationKey]  = false
+                    prefs[ShowArtistVideoKey]           = false
+                    prefs[ShowArtistBackgroundVideoKey] = false
+                    prefs[AlbumCanvasEnabledKey]        = false
+                    prefs[DataSaverKey]                 = true
+                } else {
+                    prefs[CanvasThumbnailAnimationKey]  = prefs[DataSaverBackupCanvasKey] ?: true
+                    prefs[ShowArtistVideoKey]           = prefs[DataSaverBackupArtistVideoKey] ?: true
+                    prefs[ShowArtistBackgroundVideoKey] = prefs[DataSaverBackupArtistBgVideoKey] ?: true
+                    prefs[AlbumCanvasEnabledKey]        = prefs[DataSaverBackupAlbumCanvasKey] ?: false
+                    prefs[DataSaverKey]                 = false
+                }
+            }
+        }
+    }
 
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
@@ -136,13 +185,15 @@ fun ContentSettings(
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
-    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
+    val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
-    val (preferredProvider, onPreferredProviderChange) =
-        rememberEnumPreference(
-            key = PreferredLyricsProviderKey,
-            defaultValue = PreferredLyricsProvider.YOULYPLUS,
-        )
+    val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
+    val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
+    val (enableBiniLyrics, onEnableBiniLyricsChange) = rememberPreference(key = EnableBiniLyricsKey, defaultValue = true)
+    val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(
+        key = LyricsProviderOrderKey,
+        defaultValue = "",
+    )
     val (lengthTop, onLengthTopChange) = rememberPreference(key = TopSize, defaultValue = "50")
     val (quickPicks, onQuickPicksChange) = rememberEnumPreference(key = QuickPicksKey, defaultValue = QuickPicks.QUICK_PICKS)
     val (showWrappedCard, onShowWrappedCardChange) = rememberPreference(key = ShowWrappedCardKey, defaultValue = false)
@@ -159,33 +210,6 @@ fun ContentSettings(
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
     var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
-
-    // Auto-switch preferred provider if current one is disabled
-    LaunchedEffect(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus, preferredProvider) {
-        val isPreferredProviderEnabled = when (preferredProvider) {
-            PreferredLyricsProvider.LRCLIB -> enableLrclib
-            PreferredLyricsProvider.KUGOU -> enableKugou
-            PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
-            PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
-            PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
-        }
-        
-        if (!isPreferredProviderEnabled) {
-            val firstEnabledProvider = PreferredLyricsProvider.values().firstOrNull { provider ->
-                when (provider) {
-                    PreferredLyricsProvider.LRCLIB -> enableLrclib
-                    PreferredLyricsProvider.KUGOU -> enableKugou
-                    PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
-                    PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
-                    PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
-                }
-            }
-            firstEnabledProvider?.let { onPreferredProviderChange(it) }
-        }
-    }
-
-    // Calculate enabled providers count for UI logic
-    val enabledProvidersCount = listOf(enableLrclib, enableKugou, enableBetterLyrics, enableSimpMusic, enableYouLyPlus).count { it }
 
     var showProxyConfigurationDialog by rememberSaveable {
         mutableStateOf(false)
@@ -370,38 +394,149 @@ fun ContentSettings(
         )
     }
 
-    var showPreferredProviderDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
+    var showProviderPriorityDialog by rememberSaveable { mutableStateOf(false) }
 
-    if (showPreferredProviderDialog) {
-        EnumDialog(
-            onDismiss = { showPreferredProviderDialog = false },
-            onSelect = {
-                onPreferredProviderChange(it)
-                showPreferredProviderDialog = false
-            },
-            title = stringResource(R.string.set_first_lyrics_provider),
-            current = preferredProvider,
-            values = PreferredLyricsProvider.values().toList().filter { provider ->
-                when (provider) {
-                    PreferredLyricsProvider.LRCLIB -> enableLrclib
-                    PreferredLyricsProvider.KUGOU -> enableKugou
-                    PreferredLyricsProvider.BETTER_LYRICS -> enableBetterLyrics
-                    PreferredLyricsProvider.SIMPMUSIC -> enableSimpMusic
-                    PreferredLyricsProvider.YOULYPLUS -> enableYouLyPlus
+    if (showProviderPriorityDialog) {
+        val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
+        // User-toggleable provider names (excludes always-on YouTube providers)
+        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "Kugou", "Unison", "BiniLyrics")
+        val enabledProviders = setOfNotNull(
+            "LrcLib".takeIf { enableLrclib },
+            "Kugou".takeIf { enableKugou },
+            "BetterLyrics".takeIf { enableBetterLyrics },
+            "Musixmatch".takeIf { enableMusixmatch },
+            "YouLyPlus".takeIf { enableYouLyPlus },
+            "Paxsenix".takeIf { enablePaxsenix },
+            "Unison".takeIf { enableUnison },
+            "BiniLyrics".takeIf { enableBiniLyrics },
+        )
+
+        // Build a normalized order: saved order first (only known providers), then any missing ones
+        val savedOrder = LyricsProviderRegistry.deserializeProviderOrder(lyricsProviderOrder)
+        val normalizedOrder = savedOrder + defaultOrder.filter { it !in savedOrder }
+
+        val lyricsIcon = painterResource(R.drawable.lyrics)
+        val draggableItems = remember { mutableStateListOf<DraggableLyricsProviderItem>() }
+
+        LaunchedEffect(normalizedOrder, enabledProviders) {
+            val orderedEnabled = normalizedOrder.filter { it in enabledProviders }
+            draggableItems.clear()
+            draggableItems.addAll(
+                orderedEnabled.map { name ->
+                    DraggableLyricsProviderItem(
+                        id = name,
+                        name = LyricsProviderRegistry.getDisplayName(name),
+                        icon = lyricsIcon,
+                    )
                 }
-            },
-            valueText = {
-                when (it) {
-                    PreferredLyricsProvider.LRCLIB -> "LrcLib"
-                    PreferredLyricsProvider.KUGOU -> "KuGou"
-                    PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
-                    PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
-                    PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
+            )
+        }
+
+        val cardShape = AbsoluteSmoothCornerShape(30.dp, 60)
+        val blockShape = AbsoluteSmoothCornerShape(22.dp, 60)
+        val actionShape = AbsoluteSmoothCornerShape(18.dp, 60)
+
+        BasicAlertDialog(onDismissRequest = { showProviderPriorityDialog = false }) {
+            Surface(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .widthIn(max = 360.dp),
+                shape = cardShape,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 8.dp,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 18.dp, vertical = 18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    // Title block / Header
+                    Surface(
+                        shape = blockShape,
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = AbsoluteSmoothCornerShape(12.dp, 60),
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.lyrics),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(16.dp),
+                                        )
+                                        Text(
+                                            text = stringResource(R.string.lyrics_provider_priority),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        )
+                                    }
+                                }
+                            }
+
+                            Text(
+                                text = stringResource(R.string.lyrics_provider_priority_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    // Content block with draggable list
+                    Surface(
+                        shape = blockShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(300.dp),
+                    ) {
+                        DraggableLyricsProviderList(
+                            items = draggableItems,
+                            onItemsReordered = { reordered ->
+                                val enabledOrder = reordered.map { it.id }
+                                // Disabled user providers + YouTube providers go to the end
+                                val rest = normalizedOrder.filter { it !in enabledProviders }
+                                onLyricsProviderOrderChange(
+                                    LyricsProviderRegistry.serializeProviderOrder(enabledOrder + rest)
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                        )
+                    }
+
+                    // Action buttons
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        Button(
+                            onClick = { showProviderPriorityDialog = false },
+                            shape = actionShape,
+                        ) {
+                            Text(text = stringResource(R.string.close))
+                        }
+                    }
                 }
             }
-        )
+        }
     }
 
     var showQuickPicksDialog by rememberSaveable {
@@ -511,13 +646,13 @@ fun ContentSettings(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
     ) {
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.general),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.content_language)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
                         )
@@ -527,7 +662,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.location_on),
                     title = { Text(stringResource(R.string.content_country)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
                         )
@@ -537,7 +672,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
                     title = { Text("Suggestions Region") },
-                    description = {
+                    trailingContent = {
                         Text(
                             SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
                         )
@@ -604,13 +739,34 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onHideYoutubeShortsChange(!hideYoutubeShorts) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.energy_savings_leaf),
+                    title = { Text(stringResource(R.string.data_saver)) },
+                    description = { Text(stringResource(R.string.setting_data_saver_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = dataSaver,
+                            onCheckedChange = { toggleDataSaver(it) },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (dataSaver) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { toggleDataSaver(!dataSaver) }
                 )
             )
         )
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.artist_page_settings),
             items = listOf(
                 Material3SettingsItem(
@@ -718,7 +874,7 @@ fun ContentSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.album_text),
             items = listOf(
                 Material3SettingsItem(
@@ -747,7 +903,7 @@ fun ContentSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.app_language),
             items = listOf(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -780,13 +936,13 @@ fun ContentSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.proxy),
             items = buildList {
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.network_node),
                     title = { Text(stringResource(R.string.network_ip_version)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             when (ipVersion) {
                                 IpVersion.AUTO -> stringResource(R.string.ip_version_auto)
@@ -833,7 +989,7 @@ fun ContentSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.lyrics),
             items = listOf(
                 Material3SettingsItem(
@@ -899,16 +1055,16 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
-                    title = { Text(stringResource(R.string.enable_simpmusic)) },
-                    description = { Text(stringResource(R.string.enable_simpmusic_desc)) },
+                    title = { Text("Musixmatch") },
+                    description = { Text("World's largest lyrics database (supports word-level and line-level sync)") },
                     trailingContent = {
                         Switch(
-                            checked = enableSimpMusic,
-                            onCheckedChange = onEnableSimpMusicChange,
+                            checked = enableMusixmatch,
+                            onCheckedChange = onEnableMusixmatchChange,
                             thumbContent = {
                                 Icon(
                                     painter = painterResource(
-                                        id = if (enableSimpMusic) R.drawable.check else R.drawable.close
+                                        id = if (enableMusixmatch) R.drawable.check else R.drawable.close
                                     ),
                                     contentDescription = null,
                                     modifier = Modifier.size(SwitchDefaults.IconSize)
@@ -916,7 +1072,7 @@ fun ContentSettings(
                             }
                         )
                     },
-                    onClick = { onEnableSimpMusicChange(!enableSimpMusic) }
+                    onClick = { onEnableMusixmatchChange(!enableMusixmatch) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -941,24 +1097,72 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
-                    title = { Text(stringResource(R.string.set_first_lyrics_provider)) },
-                    description = {
-                        Text(
-                            when (preferredProvider) {
-                                PreferredLyricsProvider.LRCLIB -> "LrcLib"
-                                PreferredLyricsProvider.KUGOU -> "KuGou"
-                                PreferredLyricsProvider.BETTER_LYRICS -> "Better Lyrics"
-                                PreferredLyricsProvider.SIMPMUSIC -> "SimpMusic"
-                                PreferredLyricsProvider.YOULYPLUS -> "YouLyPlus"
+                    title = { Text("PaxSenix") },
+                    description = { Text("Apple Music quality synced lyrics with syllable-level timing") },
+                    trailingContent = {
+                        Switch(
+                            checked = enablePaxsenix,
+                            onCheckedChange = onEnablePaxsenixChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enablePaxsenix) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
                             }
                         )
                     },
-                    onClick = { 
-                        if (enabledProvidersCount >= 2) {
-                            showPreferredProviderDialog = true
-                        }
+                    onClick = { onEnablePaxsenixChange(!enablePaxsenix) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text("Unison") },
+                    description = { Text("Crowdsourced community lyrics with voting & confidence scores") },
+                    trailingContent = {
+                        Switch(
+                            checked = enableUnison,
+                            onCheckedChange = onEnableUnisonChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableUnison) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
                     },
-                    enabled = enabledProvidersCount >= 2
+                    onClick = { onEnableUnisonChange(!enableUnison) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text("Bini Lyrics") },
+                    description = { Text("Binimum/KPoe LyricsPlus (Apple Music, Musixmatch, Spotify & more — word-synced)") },
+                    trailingContent = {
+                        Switch(
+                            checked = enableBiniLyrics,
+                            onCheckedChange = onEnableBiniLyricsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableBiniLyrics) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableBiniLyricsChange(!enableBiniLyrics) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.lyrics_provider_priority)) },
+                    description = { Text(stringResource(R.string.lyrics_provider_priority_desc)) },
+                    onClick = { showProviderPriorityDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language_korean_latin),
@@ -969,7 +1173,7 @@ fun ContentSettings(
         )
 //        Spacer(modifier = Modifier.height(27.dp))
 //
-//        Material3SettingsGroup(
+//        ExpressiveSettingGroup(
 //            title = "Wrapped",
 //            items = listOf(
 //                Material3SettingsItem(
@@ -997,7 +1201,7 @@ fun ContentSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(
@@ -1024,13 +1228,13 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.top_length)) },
-                    description = { Text(lengthTop) },
+                    trailingContent = { Text(lengthTop) },
                     onClick = { showTopLengthDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.home_outlined),
                     title = { Text(stringResource(R.string.set_quick_picks)) },
-                    description = {
+                    trailingContent = {
                         Text(
                             when (quickPicks) {
                                 QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
@@ -1045,7 +1249,7 @@ fun ContentSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.logs_heading),
             items = listOf(
                 Material3SettingsItem(

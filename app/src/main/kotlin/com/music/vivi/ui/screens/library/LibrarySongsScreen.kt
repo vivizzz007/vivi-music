@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -97,7 +98,6 @@ fun LibrarySongsScreen(
             when (filter) {
                 SongFilter.LIKED -> viewModel.syncLikedSongs()
                 SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
-                SongFilter.UPLOADED -> viewModel.syncUploadedSongs()
                 else -> return@LaunchedEffect
             }
         }
@@ -147,13 +147,13 @@ fun LibrarySongsScreen(
                                 contentDescription = ""
                             )
                         },
+                        modifier = Modifier.height(35.dp)
                     )
                     ChipsRow(
                         chips =
                         listOf(
                             SongFilter.LIKED to stringResource(R.string.filter_liked),
                             SongFilter.LIBRARY to stringResource(R.string.filter_library),
-                            SongFilter.UPLOADED to stringResource(R.string.filter_uploaded),
                             SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
                         ),
                         currentValue = filter,
@@ -173,7 +173,19 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp),
                 ) {
-                    SortHeader(
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.n_song,
+                            filteredSongs.size,
+                            filteredSongs.size
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+
+                    Spacer(Modifier.weight(1f))
+                    
+                    com.music.vivi.ui.component.SortDropdownMenu(
                         sortType = sortType,
                         sortDescending = sortDescending,
                         onSortTypeChange = onSortTypeChange,
@@ -186,18 +198,6 @@ fun LibrarySongsScreen(
                                 SongSortType.PLAY_TIME -> R.string.sort_by_play_time
                             }
                         },
-                    )
-
-                    Spacer(Modifier.weight(1f))
-
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.n_song,
-                            filteredSongs.size,
-                            filteredSongs.size
-                        ),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary,
                     )
                 }
             }

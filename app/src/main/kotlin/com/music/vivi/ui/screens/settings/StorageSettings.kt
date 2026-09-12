@@ -53,7 +53,7 @@ import com.music.vivi.constants.MaxSongCacheSizeKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
@@ -64,6 +64,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import okio.ByteString.Companion.encodeUtf8
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class, DelicateCoilApi::class)
@@ -93,6 +94,7 @@ fun StorageSettings(
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
     var clearImageCacheDialog by remember { mutableStateOf(false) }
+    android.util.Log.d("StorageSettings", "Recomposed: clearImageCacheDialog = $clearImageCacheDialog")
 
     // State for the confirmation dialog
     var showCacheWarningDialog by remember { mutableStateOf(false) }
@@ -225,6 +227,7 @@ fun StorageSettings(
                             }
                         }
                     }
+                    imageDiskCache.clear()
                 }
                 clearImageCacheDialog = false
             },
@@ -287,13 +290,13 @@ fun StorageSettings(
                 )
             )
         )
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.storage),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.storage),
                     title = { Text(stringResource(R.string.downloaded_songs)) },
-                    description = {
+                    trailingContent = {
                         Text(text = formatFileSize(downloadCacheSize))
                     }
                 ),
@@ -307,7 +310,7 @@ fun StorageSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.song_cache),
             items = listOf(
                 Material3SettingsItem(
@@ -363,7 +366,7 @@ fun StorageSettings(
                                     }"
                                 },
                                 style = MaterialTheme.typography.bodyMedium,
-                            )
+                             )
                         }
                     }
                 ),
@@ -377,7 +380,7 @@ fun StorageSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.image_cache),
             items = listOf(
                 Material3SettingsItem(
@@ -432,6 +435,7 @@ fun StorageSettings(
                     icon = painterResource(R.drawable.clear_all),
                     title = { Text(stringResource(R.string.clear_image_cache)) },
                     onClick = {
+                        android.util.Log.d("StorageSettings", "Clear image cache button clicked!")
                         clearImageCacheDialog = true
                     }
                 )

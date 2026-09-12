@@ -10,8 +10,10 @@ import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
@@ -54,14 +56,24 @@ import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
+import com.music.vivi.constants.LastSeenStarPromptVersionKey
+import com.music.vivi.constants.HasStarredRepoKey
+import com.music.vivi.ui.component.ActionPromptDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarResult
+import com.music.vivi.ui.component.snackbar.SnackbarManager
+import com.music.vivi.ui.component.snackbar.LocalSnackbarHostState
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
@@ -137,6 +149,7 @@ import com.music.vivi.constants.DefaultOpenTabKey
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.DynamicThemeKey
 import com.music.vivi.constants.EnableHighRefreshRateKey
+import com.music.vivi.constants.EnableSettingsPopupKey
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.ListenTogetherUsernameKey
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -148,6 +161,10 @@ import com.music.vivi.vivimusic.updater.getAutoUpdateCheckSetting
 import com.music.vivi.vivimusic.updater.isNewerVersion
 import com.music.vivi.vivimusic.updater.saveUpdateAvailableState
 import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
+import com.music.vivi.vivimusic.updater.getBetaUpdatesSetting
+import com.music.vivi.vivimusic.updater.getUpdateAvailableState
+import com.music.vivi.vivimusic.updater.shouldRunNightlyCheck
+import com.music.vivi.vivimusic.updater.markNightlyCheckDone
 import com.music.vivi.vivimusic.UpdateNotificationHelper
 import android.util.Log
 import androidx.compose.ui.platform.LocalContext
@@ -158,8 +175,10 @@ import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.SelectedThemeColorKey
 import com.music.vivi.constants.SlimNavBarHeight
 import com.music.vivi.constants.SlimNavBarKey
+import com.music.vivi.constants.FloatingNavBarKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.extensions.toEnum
@@ -180,6 +199,7 @@ import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
 import com.music.vivi.ui.screens.Screens
+import com.music.vivi.ui.screens.SettingsDropdownMenu
 import com.music.vivi.ui.screens.navigationBuilder
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.NavigationTab
@@ -196,7 +216,9 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
+import com.music.vivi.viewmodels.HistoryViewModel
 import com.music.vivi.viewmodels.HomeViewModel
+import com.music.vivi.ui.screens.search.suggestions.SuggestionsViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -210,7 +232,10 @@ import timber.log.Timber
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.util.Locale
+import com.music.vivi.github.GitHubViewModel
 import javax.inject.Inject
+import androidx.activity.viewModels
+import androidx.compose.material3.LocalContentColor
 
 @Suppress("DEPRECATION", "ASSIGNED_BUT_NEVER_ACCESSED_VARIABLE")
 @AndroidEntryPoint
@@ -231,6 +256,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var listenTogetherManager: com.music.vivi.listentogether.ListenTogetherManager
+
+    private val gitHubViewModel: GitHubViewModel by viewModels()
 
     private lateinit var navController: NavHostController
     private var pendingIntent: Intent? = null
@@ -371,9 +398,37 @@ class MainActivity : ComponentActivity() {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(Unit) {
+            SnackbarManager.events.collectLatest { event ->
+                snackbarHostState.currentSnackbarData?.dismiss()
+                val messageStr = context.getString(event.messageResource)
+                val actionLabelStr = event.actionLabel?.let { context.getString(it) }
+                val result = snackbarHostState.showSnackbar(
+                    message = messageStr,
+                    actionLabel = actionLabelStr,
+                    duration = event.duration
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    event.onAction?.invoke()
+                }
+            }
+        }
 
         LaunchedEffect(Unit) {
             if (getAutoUpdateCheckSetting(context)) {
+                val betaEnabled = getBetaUpdatesSetting(context)
+
+                // Beta/nightly path: only run once per day at 9 PM or later.
+                // The run-number comparison ("is there a new commit?") is already
+                // handled inside checkForUpdate — we just gate WHEN it is allowed
+                // to execute so it doesn't fire on every single app launch.
+                if (betaEnabled && !shouldRunNightlyCheck(context)) {
+                    Log.d("UpdateCheck", "Beta check skipped: outside 9 PM window or already ran today")
+                    return@LaunchedEffect
+                }
+
                 // Delay to not block app startup
                 delay(2000L)
                 checkForUpdate(
@@ -382,15 +437,20 @@ class MainActivity : ComponentActivity() {
                         val currentVersion = BuildConfig.VERSION_NAME
                         Log.d("UpdateCheck", "Startup check success. Latest: $latestVersion, Current: $currentVersion, isAvailable: $isAvailable")
                         saveUpdateAvailableState(context, isAvailable)
-                        
+
                         if (isAvailable && getUpdateNotificationsSetting(context)) {
                             Log.d("UpdateCheck", "Posting update notification for $latestVersion")
                             UpdateNotificationHelper.showUpdateNotification(context, latestVersion)
                         }
+
+                        // Stamp today so no more nightly checks until tomorrow 9 PM
+                        if (betaEnabled) markNightlyCheckDone(context)
                     },
                     onError = {
                         Log.e("UpdateCheck", "Startup check failed")
                         // Do not clear the state on error, in case of offline launch
+                        // Note: we do NOT stamp markNightlyCheckDone on error so it
+                        // can retry later the same night if the user reopens the app.
                     }
                 )
             }
@@ -424,6 +484,13 @@ class MainActivity : ComponentActivity() {
         }
 
         val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+
+        val (lastSeenStarPromptVersion, setLastSeenStarPromptVersion) = rememberPreference(LastSeenStarPromptVersionKey, "")
+        val (hasStarredRepo) = rememberPreference(HasStarredRepoKey, false)
+        val uriHandler = LocalUriHandler.current
+        val currentVersion = BuildConfig.VERSION_NAME
+
+
         val isSystemInDarkTheme = isSystemInDarkTheme()
         val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -484,11 +551,116 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val gitHubViewModel: GitHubViewModel = hiltViewModel()
+        val isStarred by gitHubViewModel.isStarred.collectAsState()
+        val showThankYouDialog by gitHubViewModel.showThankYouDialog.collectAsState()
+
+        LaunchedEffect(Unit) {
+            gitHubViewModel.checkStarStatus(this@MainActivity)
+        }
+
         vivimusicTheme(
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
+            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
+                ActionPromptDialog(
+                    title = "Support ViviMusic \u2B50",
+                    onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
+                    onConfirm = {
+                        setLastSeenStarPromptVersion(currentVersion)
+                        val clientId = BuildConfig.GITHUB_CLIENT_ID
+                        uriHandler.openUri("https://github.com/login/oauth/authorize?client_id=${clientId}&scope=public_repo")
+                    },
+                    onCancel = { setLastSeenStarPromptVersion(currentVersion) },
+                    content = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "If you enjoy using ViviMusic, would you consider starring our repository on GitHub?",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "It takes just a second and helps keep our open-source project alive and growing!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                )
+            }
+
+            if (showThankYouDialog) {
+                ActionPromptDialog(
+                    title = "Thank You!",
+                    onDismiss = { gitHubViewModel.dismissThankYouDialog() },
+                    onConfirm = { gitHubViewModel.dismissThankYouDialog() },
+                    content = {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Text(
+                                text = "Thank you so much for your support! \u2764\uFE0F",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = "Starring the repository helps us grow and keep the project alive. Enjoy the music!",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val btnModifier = Modifier.size(44.dp)
+                                val btnColors = androidx.compose.material3.IconButtonDefaults.iconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                )
+                                val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
+                                
+                                IconButton(
+                                    onClick = { uriHandler.openUri("https://ko-fi.com/vivizzz007") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.buymeacoffee), contentDescription = "Buy Me A Coffee", tint = iconTint)
+                                }
+                                IconButton(
+                                    onClick = { uriHandler.openUri("https://paypal.me/vivizzz007") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.paypal), contentDescription = "PayPal", tint = iconTint)
+                                }
+                                IconButton(
+                                    onClick = { uriHandler.openUri("upi://pay?pa=vivizzz007@upi") },
+                                    modifier = btnModifier,
+                                    colors = btnColors
+                                ) {
+                                    Icon(painter = painterResource(R.drawable.currency_rupee_upi), contentDescription = "UPI", tint = iconTint)
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
             BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
@@ -504,6 +676,12 @@ class MainActivity : ComponentActivity() {
 
                 val navController = rememberNavController()
                 val homeViewModel: HomeViewModel = hiltViewModel()
+                // Pre-warm HistoryViewModel at Activity scope so history data loads
+                // in background immediately — zero lag when user taps the history icon
+                hiltViewModel<HistoryViewModel>()
+                // Pre-warm SuggestionsViewModel at Activity scope so suggestions data loads
+                // in background immediately — zero lag when user opens the Search screen
+                hiltViewModel<SuggestionsViewModel>()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
@@ -517,7 +695,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
+                val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = false)
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
+                val (useAppleMiniPlayer) = rememberPreference(UseAppleMiniPlayerKey, defaultValue = false)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }
@@ -592,11 +772,18 @@ class MainActivity : ComponentActivity() {
                     label = "navBarHeight",
                 )
 
+                val isSnackbarShowing = snackbarHostState.currentSnackbarData != null
+                val extraSnackbarHeight by animateDpAsState(
+                    targetValue = if (isSnackbarShowing) 64.dp else 0.dp,
+                    label = "snackbarHeight"
+                )
+
                 val playerBottomSheetState = rememberBottomSheetState(
                     dismissedBound = 0.dp,
                     collapsedBound = bottomInset +
                         (if (!showRail && shouldShowNavigationBar) navPadding else 0.dp) +
-                        (if (useNewMiniPlayerDesign) MiniPlayerBottomSpacing else 0.dp) +
+                        extraSnackbarHeight +
+                        (if (useNewMiniPlayerDesign || useAppleMiniPlayer) MiniPlayerBottomSpacing else 0.dp) +
                         MiniPlayerHeight,
                     expandedBound = maxHeight,
                 )
@@ -606,11 +793,13 @@ class MainActivity : ComponentActivity() {
                     shouldShowNavigationBar,
                     playerBottomSheetState.isDismissed,
                     showRail,
+                    extraSnackbarHeight
                 ) {
                     var bottom = bottomInset
                     if (shouldShowNavigationBar && !showRail) {
                         bottom += NavigationBarHeight
                     }
+                    bottom += extraSnackbarHeight
                     if (!playerBottomSheetState.isDismissed) bottom += MiniPlayerHeight
                     windowsInsets
                         .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
@@ -711,11 +900,28 @@ class MainActivity : ComponentActivity() {
                         !(isListenTogetherScreen && listenTogetherInTopBar)
                 }
 
+                val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+                val isUpdateAvailable = remember { mutableStateOf(getUpdateAvailableState(context)) }
+                
+                val updateListener = remember {
+                    SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+                        if (key == "update_available") {
+                            isUpdateAvailable.value = getUpdateAvailableState(context)
+                        }
+                    }
+                }
+                
+                DisposableEffect(sharedPrefs, updateListener) {
+                    sharedPrefs.registerOnSharedPreferenceChangeListener(updateListener)
+                    onDispose {
+                        sharedPrefs.unregisterOnSharedPreferenceChangeListener(updateListener)
+                    }
+                }
+                // Snackbar is now triggered in checkForUpdate directly
                 val coroutineScope = rememberCoroutineScope()
                 var sharedSong: SongItem? by remember {
                     mutableStateOf(null)
                 }
-                val snackbarHostState = remember { SnackbarHostState() }
 
                 LaunchedEffect(Unit) {
                     if (pendingIntent != null) {
@@ -764,10 +970,10 @@ class MainActivity : ComponentActivity() {
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
+                    LocalSnackbarHostState provides snackbarHostState,
                 ) {
-
                     Scaffold(
-                        snackbarHost = { SnackbarHost(snackbarHostState) },
+                        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
                         topBar = {
                             AnimatedVisibility(
                                 visible = shouldShowTopBar,
@@ -798,63 +1004,94 @@ class MainActivity : ComponentActivity() {
                                             )
                                         },
                                         actions = {
-                                            if (showHistoryButton) {
-                                                IconButton(onClick = { navController.navigate("history") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.music_history),
-                                                        contentDescription = stringResource(R.string.history)
-                                                    )
-                                                }
-                                            }
-                                            IconButton(onClick = { navController.navigate("stats") }) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.stats),
-                                                    contentDescription = stringResource(R.string.stats)
-                                                )
-                                            }
-                                            if (listenTogetherInTopBar) {
-                                                IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.group_outlined),
-                                                        contentDescription = stringResource(R.string.together)
-                                                    )
-                                                }
-                                            }
-                                            IconButton(onClick = { navController.navigate("settings") }) {
-                                                BadgedBox(badge = {}) {
-                                                    if (accountImageUrl != null) {
-                                                        AsyncImage(
-                                                            model = accountImageUrl,
-                                                            contentDescription = stringResource(R.string.account),
-                                                            modifier = Modifier
-                                                                .size(24.dp)
-                                                                .clip(CircleShape)
-                                                        )
-                                                    } else {
-                                                        val composition by rememberLottieComposition(
-                                                            LottieCompositionSpec.RawRes(R.raw.setting)
-                                                        )
-                                                        val progress by animateLottieCompositionAsState(
-                                                            composition = composition,
-                                                            isPlaying = true,
-                                                            iterations = 1,
-                                                            speed = 1.5f
-                                                        )
+                                            val (enableSettingsPopup) = rememberPreference(EnableSettingsPopupKey, defaultValue = true)
 
-                                                        LottieAnimation(
-                                                            composition = composition,
-                                                            progress = { progress },
-                                                            modifier = Modifier.size(50.dp),
-                                                            contentScale = ContentScale.Fit
+                                            if (!enableSettingsPopup) {
+                                                if (showHistoryButton) {
+                                                    IconButton(onClick = { navController.navigate("history") }) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.music_history),
+                                                            contentDescription = stringResource(R.string.history)
+                                                        )
+                                                    }
+                                                }
+                                                IconButton(onClick = { navController.navigate("stats") }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.stats),
+                                                        contentDescription = stringResource(R.string.stats)
+                                                    )
+                                                }
+                                                if (listenTogetherInTopBar) {
+                                                    IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.group_outlined),
+                                                            contentDescription = stringResource(R.string.together)
                                                         )
                                                     }
                                                 }
                                             }
+                                            if (enableSettingsPopup && accountImageUrl != null) {
+                                                IconButton(onClick = { navController.navigate("settings/account") }) {
+                                                    AsyncImage(
+                                                        model = accountImageUrl,
+                                                        contentDescription = stringResource(R.string.account),
+                                                        modifier = Modifier
+                                                            .size(24.dp)
+                                                            .clip(CircleShape)
+                                                    )
+                                                }
+                                            }
+                                            
+                                            Box {
+                                                var showSettingsDropdown by remember { mutableStateOf(false) }
+                                                IconButton(onClick = { 
+                                                    if (enableSettingsPopup) {
+                                                        showSettingsDropdown = true 
+                                                    } else {
+                                                        navController.navigate("settings")
+                                                    }
+                                                }) {
+                                                    BadgedBox(badge = {}) {
+                                                        if (!enableSettingsPopup && accountImageUrl != null) {
+                                                            AsyncImage(
+                                                                model = accountImageUrl,
+                                                                contentDescription = stringResource(R.string.account),
+                                                                modifier = Modifier
+                                                                    .size(24.dp)
+                                                                    .clip(CircleShape)
+                                                            )
+                                                        } else {
+                                                            val composition by rememberLottieComposition(
+                                                                LottieCompositionSpec.RawRes(R.raw.setting)
+                                                            )
+                                                            val progress by animateLottieCompositionAsState(
+                                                                composition = composition,
+                                                                isPlaying = true,
+                                                                iterations = 1,
+                                                                speed = 1.5f
+                                                            )
+    
+                                                            LottieAnimation(
+                                                                composition = composition,
+                                                                progress = { progress },
+                                                                modifier = Modifier.size(50.dp),
+                                                                contentScale = ContentScale.Fit
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                                SettingsDropdownMenu(
+                                                    expanded = showSettingsDropdown,
+                                                    onDismissRequest = { showSettingsDropdown = false },
+                                                    onNavigate = { route -> navController.navigate(route) },
+                                                    homeViewModel = homeViewModel
+                                                )
+                                            }
                                         },
                                         scrollBehavior = topAppBarScrollBehavior,
                                         colors = TopAppBarDefaults.topAppBarColors(
-                                            containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
-                                            scrolledContainerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                                            containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
+                                            scrolledContainerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
                                             titleContentColor = MaterialTheme.colorScheme.onSurface,
                                             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                                             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -914,6 +1151,33 @@ class MainActivity : ComponentActivity() {
                                         pureBlack = pureBlack
                                     )
 
+                                    val snackbarBottomPadding = remember(bottomInset, shouldShowNavigationBar, slimNav) {
+                                        var bottom = bottomInset
+                                        if (shouldShowNavigationBar) {
+                                            bottom += if (slimNav) SlimNavBarHeight else NavigationBarHeight
+                                        }
+                                        bottom
+                                    }
+
+                                    SnackbarHost(
+                                        hostState = snackbarHostState,
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = snackbarBottomPadding)
+                                            .graphicsLayer {
+                                                alpha = (1f - playerBottomSheetState.progress).coerceIn(0f, 1f)
+                                            }
+                                    ) { data ->
+                                        Snackbar(
+                                            snackbarData = data,
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            actionColor = MaterialTheme.colorScheme.primary,
+                                            actionContentColor = MaterialTheme.colorScheme.primary,
+                                            dismissActionContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    }
+
                                     AppNavigationBar(
                                         navigationItems = navigationItems,
                                         currentRoute = currentRoute,
@@ -921,6 +1185,8 @@ class MainActivity : ComponentActivity() {
                                         pureBlack = pureBlack,
                                         slimNav = slimNav,
                                         onSearchLongClick = onSearchLongClick,
+                                        floatingNav = floatingNav,
+                                        bottomInset = bottomInset,
                                         modifier = Modifier
                                             .align(Alignment.BottomCenter)
                                             .height(bottomInset + navPadding)
@@ -950,7 +1216,7 @@ class MainActivity : ComponentActivity() {
                                             // Use graphicsLayer for background color changes
                                             .graphicsLayer {
                                                 val progress = playerBottomSheetState.progress
-                                                alpha = if (progress > 0f || (useNewMiniPlayerDesign && !shouldShowNavigationBar)) 0f else 1f
+                                                alpha = if (progress > 0f || (useNewMiniPlayerDesign && !shouldShowNavigationBar) || floatingNav) 0f else 1f
                                             }
                                             .background(baseBg)
                                     )
@@ -1156,6 +1422,15 @@ class MainActivity : ComponentActivity() {
         if (!listenCode.isNullOrBlank() && isListenLink) {
             val username = dataStore.get(ListenTogetherUsernameKey, "").ifBlank { "Guest" }
             listenTogetherManager.joinRoom(listenCode, username)
+            return
+        }
+
+        val isOAuthCallback = uri.host?.equals("oauth2callback", ignoreCase = true) == true
+        if (isOAuthCallback) {
+            val code = uri.getQueryParameter("code")
+            if (!code.isNullOrBlank()) {
+                gitHubViewModel.exchangeCodeForToken(this, code)
+            }
             return
         }
 

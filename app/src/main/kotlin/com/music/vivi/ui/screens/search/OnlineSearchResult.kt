@@ -6,9 +6,14 @@
 package com.music.vivi.ui.screens.search
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -21,20 +26,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,24 +49,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
+import com.music.vivi.db.entities.Event
+import java.time.LocalDateTime
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
@@ -90,8 +90,6 @@ import com.music.vivi.ui.component.EmptyPlaceholder
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.ui.component.YouTubeListItem
-import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
-import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.menu.YouTubeArtistMenu
 import com.music.vivi.ui.menu.YouTubePlaylistMenu
@@ -103,8 +101,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URLDecoder
 import java.net.URLEncoder
+import androidx.compose.ui.platform.LocalContext
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
+import com.music.vivi.constants.SearchListenHistoryKey
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialTheme
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnlineSearchResult(
     navController: NavController,
@@ -118,19 +123,26 @@ fun OnlineSearchResult(
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
-
-    var isSearchFocused by remember { mutableStateOf(false) }
 
     val pauseSearchHistory by rememberPreference(PauseSearchHistoryKey, defaultValue = false)
 
-    BackHandler(enabled = isSearchFocused) {
-        isSearchFocused = false
-        focusManager.clearFocus()
-    }
+    // Whether the SearchBar is in its "active/expanded" state (showing suggestions)
+    var searchActive by rememberSaveable { mutableStateOf(false) }
+
+    // Same animated padding as SearchScreen — pill expands edge-to-edge on activation
+    val searchBarHorizontalPadding by animateDpAsState(
+        targetValue = if (searchActive) 0.dp else 16.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "SearchBarHorizontalPadding"
+    )
+    val searchBarVerticalPadding by animateDpAsState(
+        targetValue = if (searchActive) 0.dp else 8.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "SearchBarVerticalPadding"
+    )
 
     // Extract query from navigation arguments
     val encodedQuery = navController.currentBackStackEntry?.arguments?.getString("query") ?: ""
@@ -145,13 +157,11 @@ fun OnlineSearchResult(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue(decodedQuery, TextRange(decodedQuery.length)))
     }
- 
+
     val onSearch: (String) -> Unit = remember {
         { searchQuery ->
             if (searchQuery.isNotEmpty()) {
-                isSearchFocused = false
-                focusManager.clearFocus()
-
+                searchActive = false
                 navController.navigate("search/${URLEncoder.encode(searchQuery, "UTF-8")}") {
                     popUpTo("search/${URLEncoder.encode(decodedQuery, "UTF-8")}") {
                         inclusive = true
@@ -169,9 +179,14 @@ fun OnlineSearchResult(
         }
     }
 
-    // Update query when decodedQuery changes
+    // Sync query text when navigating to a new search result
     LaunchedEffect(decodedQuery) {
         query = TextFieldValue(decodedQuery, TextRange(decodedQuery.length))
+    }
+
+    // Hardware back when suggestions overlay is open — dismiss it first
+    BackHandler(enabled = searchActive) {
+        searchActive = false
     }
 
     val searchFilter by viewModel.filter.collectAsState()
@@ -183,9 +198,6 @@ fun OnlineSearchResult(
             }
         }
     }
-    
-    // Suggestion states
-
 
     LaunchedEffect(lazyListState) {
         snapshotFlow {
@@ -265,6 +277,17 @@ fun OnlineSearchResult(
                                             item.toMediaMetadata()
                                         )
                                     )
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val metadata = item.toMediaMetadata()
+                                        database.query {
+                                            insert(metadata)
+                                        }
+                                        context.dataStore.edit { prefs ->
+                                            val current = prefs[SearchListenHistoryKey]?.split(",")?.filter { it.isNotEmpty() } ?: emptyList()
+                                            val newList = (listOf(item.id) + current.filter { it != item.id }).take(9)
+                                            prefs[SearchListenHistoryKey] = newList.joinToString(",")
+                                        }
+                                    }
                                 }
                             }
 
@@ -279,89 +302,93 @@ fun OnlineSearchResult(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.background)
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
-    ) {
-        // Google-style SearchBar with Material 3 design
-        OutlinedTextField(
-            value = query,
-            onValueChange = { newQuery ->
-                query = newQuery
-            },
-            placeholder = {
-                Text(
-                    text = stringResource(R.string.search_yt_music),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            leadingIcon = {
-                IconButton(
-                    onClick = { navController.navigateUp() }
+    Scaffold(
+        topBar = {
+            SearchBar(
+                    query = query.text,
+                    onQueryChange = { newText ->
+                        query = TextFieldValue(newText, TextRange(newText.length))
+                    },
+                    onSearch = { searchQuery ->
+                        onSearch(searchQuery)
+                        searchActive = false
+                    },
+                    active = searchActive,
+                    onActiveChange = { searchActive = it },
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.search_yt_music),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (searchActive) {
+                                    searchActive = false
+                                } else {
+                                    searchActive = true
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (searchActive) R.drawable.arrow_back else R.drawable.search
+                                ),
+                                contentDescription = if (searchActive) stringResource(R.string.dismiss) else null,
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        if (query.text.isNotEmpty()) {
+                            IconButton(
+                                onClick = { query = TextFieldValue("") }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    },
+                    colors = SearchBarDefaults.colors(
+                        containerColor = if (pureBlack)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = searchBarHorizontalPadding)
+                        .padding(vertical = searchBarVerticalPadding)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = stringResource(R.string.dismiss),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    // Content shown inside the SearchBar when active (expanded):
+                    // reuses the same OnlineSearchScreen suggestion list
+                    OnlineSearchScreen(
+                        query = query.text,
+                        onQueryChange = { query = it },
+                        navController = navController,
+                        onSearch = { searchQuery ->
+                            onSearch(searchQuery)
+                            searchActive = false
+                        },
+                        onDismiss = { searchActive = false },
+                        pureBlack = pureBlack
                     )
                 }
-            },
-            trailingIcon = {
-                if (query.text.isNotEmpty()) {
-                    IconButton(
-                        onClick = {
-                            query = TextFieldValue("")
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            },
-            keyboardOptions = KeyboardOptions(
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = { 
-                    onSearch(query.text)
-                }
-            ),
-            singleLine = true,
-            shape = RoundedCornerShape(28.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = if (pureBlack) 
-                    MaterialTheme.colorScheme.surface 
-                else 
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedContainerColor = if (pureBlack) 
-                    MaterialTheme.colorScheme.surface 
-                else 
-                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent
-            ),
+        },
+        containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .focusRequester(focusRequester)
-                .onFocusChanged { focusState ->
-                    if (focusState.isFocused) {
-                        isSearchFocused = true
-                    }
-                }
-        )
+                .padding(top = paddingValues.calculateTopPadding())
+                .fillMaxSize()
+        ) {
+            Spacer(modifier = Modifier.height(10.dp))
 
-        // Main content area below search bar
-        Box(modifier = Modifier.weight(1f)) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
             ChipsRow(
                 chips = listOf(
                     null to stringResource(R.string.filter_all),
@@ -383,6 +410,8 @@ fun OnlineSearchResult(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
+
+            Spacer(modifier = Modifier.height(4.dp))
 
             LazyColumn(
                 state = lazyListState,
@@ -421,10 +450,13 @@ fun OnlineSearchResult(
 
                     if (itemsPage?.continuation != null) {
                         item(key = "loading") {
-                            ShimmerHost {
-                                repeat(3) {
-                                    ListItemPlaceHolder()
-                                }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
                             }
                         }
                     }
@@ -441,10 +473,13 @@ fun OnlineSearchResult(
 
                 if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
                     item {
-                        ShimmerHost {
-                            repeat(8) {
-                                ListItemPlaceHolder()
-                            }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(64.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            LoadingIndicator()
                         }
                     }
                 }
@@ -452,23 +487,7 @@ fun OnlineSearchResult(
                 item(key = "bottom_spacer") {
                     Spacer(modifier = Modifier.height(MiniPlayerHeight + MiniPlayerBottomSpacing + NavigationBarHeight))
                 }
-
-            }
-        }
-            if (isSearchFocused) {
-                OnlineSearchScreen(
-                    query = query.text,
-                    onQueryChange = { query = it },
-                    navController = navController,
-                    onSearch = onSearch,
-                    onDismiss = {
-                        isSearchFocused = false
-                        focusManager.clearFocus()
-                    },
-                    pureBlack = pureBlack
-                )
             }
         }
     }
 }
-

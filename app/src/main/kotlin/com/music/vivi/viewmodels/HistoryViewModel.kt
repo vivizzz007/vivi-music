@@ -5,6 +5,9 @@
 
 package com.music.vivi.viewmodels
 
+import kotlinx.coroutines.flow.combine
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.Immutable
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +15,8 @@ import com.music.innertube.YouTube
 import com.music.innertube.pages.HistoryPage
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistorySource
+import com.music.vivi.constants.InnerTubeCookieKey
+import com.music.innertube.utils.parseCookieString
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
@@ -23,8 +28,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -81,10 +88,124 @@ constructor(
                                 entry.value.distinctBy { it.song.id }
                             }
                     }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
+            }
+            .flowOn(Dispatchers.Default)
+            .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    val flatEvents = events
+        .map { map -> map.values.flatten() }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val searchQuery = MutableStateFlow("")
+
+    val filteredEvents = combine(events, searchQuery) { eventsMap, queryText ->
+        if (queryText.isEmpty()) {
+            eventsMap
+        } else {
+            eventsMap.mapValues { (_, songs) ->
+                songs.filter { event ->
+                    event.song.song.title.contains(queryText, ignoreCase = true) ||
+                            event.song.artists.any {
+                                it.name.contains(queryText, ignoreCase = true)
+                            }
+                }
+            }.filterValues { it.isNotEmpty() }
+        }
+    }.flowOn(Dispatchers.Default)
+     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
+    val filteredFlatEvents = combine(flatEvents, searchQuery) { flatList, queryText ->
+        if (queryText.isEmpty()) {
+            flatList
+        } else {
+            flatList.filter { event ->
+                event.song.song.title.contains(queryText, ignoreCase = true) ||
+                        event.song.artists.any {
+                            it.name.contains(queryText, ignoreCase = true)
+                        }
+            }
+        }
+    }.flowOn(Dispatchers.Default)
+     .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    /**
+     * Pre-flattened list of local history items (headers + songs) ready for a single
+     * LazyColumn `items {}` call. Computed on [Dispatchers.Default] so zero work
+     * happens on the composition thread.
+     */
+    val flatLocalItems = filteredEvents
+        .map { eventsMap ->
+            val result = mutableListOf<FlatHistoryItem>()
+            eventsMap.forEach { (dateAgo, dateEvents) ->
+                result += FlatHistoryItem.LocalHeader(dateAgo)
+                dateEvents.forEachIndexed { index, event ->
+                    result += FlatHistoryItem.LocalSong(
+                        event = event,
+                        index = index,
+                        sectionSize = dateEvents.size,
+                        dateAgo = dateAgo
+                    )
+                }
+            }
+            result.toList()
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+
+    val filteredRemoteContent = combine(historyPage, searchQuery) { page, queryText ->
+        if (queryText.isEmpty()) {
+            page?.sections
+        } else {
+            page?.sections?.map { section ->
+                section.copy(
+                    songs = section.songs.filter { song ->
+                        song.title.contains(queryText, ignoreCase = true) ||
+                                song.artists.any { it.name.contains(queryText, ignoreCase = true) }
+                    }
+                )
+            }?.filter { it.songs.isNotEmpty() }
+        }
+    }.flowOn(Dispatchers.Default)
+     .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /**
+     * Pre-flattened list of remote history items (section headers + songs) ready for a
+     * single LazyColumn `items {}` call. Computed on [Dispatchers.Default].
+     */
+    val flatRemoteItems = filteredRemoteContent
+        .map { sections ->
+            val result = mutableListOf<FlatHistoryItem>()
+            sections?.forEach { section ->
+                result += FlatHistoryItem.RemoteHeader(section.title)
+                section.songs.forEachIndexed { index, song ->
+                    result += FlatHistoryItem.RemoteSong(
+                        song = song,
+                        index = index,
+                        sectionSize = section.songs.size,
+                        sectionTitle = section.title
+                    )
+                }
+            }
+            result.toList()
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     init {
         fetchRemoteHistory()
+        // Auto-clear remote history when user logs out
+        viewModelScope.launch(Dispatchers.IO) {
+            context.dataStore.data
+                .map { it[InnerTubeCookieKey] ?: "" }
+                .distinctUntilChanged()
+                .collect { cookie ->
+                    if ("SAPISID" !in parseCookieString(cookie)) {
+                        historyPage.value = null
+                        historySource.value = HistorySource.LOCAL
+                    }
+                }
+        }
     }
 
     fun fetchRemoteHistory() {
@@ -98,15 +219,51 @@ constructor(
     }
 }
 
+/**
+ * Flat item types for HistoryScreen LazyColumn.
+ * Precomputed in the ViewModel on a background thread, consumed as a single
+ * `items {}` block in the screen — eliminates the `forEach` anti-pattern.
+ */
+@Stable
+sealed class FlatHistoryItem {
+    /** Section date header for local history. */
+    data class LocalHeader(val dateAgo: DateAgo) : FlatHistoryItem()
+
+    /** A single local history song row. */
+    data class LocalSong(
+        val event: com.music.vivi.db.entities.EventWithSong,
+        val index: Int,
+        val sectionSize: Int,
+        val dateAgo: DateAgo,
+    ) : FlatHistoryItem()
+
+    /** Section title header for remote history. */
+    data class RemoteHeader(val title: String) : FlatHistoryItem()
+
+    /** A single remote history song row. */
+    data class RemoteSong(
+        val song: com.music.innertube.models.SongItem,
+        val index: Int,
+        val sectionSize: Int,
+        val sectionTitle: String,
+    ) : FlatHistoryItem()
+}
+
+@Immutable
 sealed class DateAgo {
+    @Immutable
     data object Today : DateAgo()
 
+    @Immutable
     data object Yesterday : DateAgo()
 
+    @Immutable
     data object ThisWeek : DateAgo()
 
+    @Immutable
     data object LastWeek : DateAgo()
 
+    @Immutable
     class Other(
         val date: LocalDate,
     ) : DateAgo() {

@@ -48,7 +48,10 @@
     <string name="search">Search</string>
     <string name="search_yt_music">Search YouTube Music…</string>
     <string name="search_library">Search library…</string>
+    <string name="search_albums">Search albums…</string>
+    <string name="search_playlists">Search playlists…</string>
     <string name="filter_library">Library</string>
+    <string name="all">All</string>
     <string name="filter_liked">Liked</string>
     <string name="filter_downloaded">Downloaded</string>
     <string name="filter_all">All</string>
@@ -72,6 +75,7 @@
     <string name="from_your_library">From your library</string>
 
     <!-- Album screen -->
+    <string name="album_label">Album</string>
     <string name="other_versions">Other versions</string>
     <string name="album_description_placeholder">This is a placeholder description for the album. Enjoy listening to the tracks below!</string>
 
@@ -95,6 +99,8 @@
     <string name="details">Details</string>
     <string name="edit">Edit</string>
     <string name="start_radio">Start radio</string>
+    <string name="apple_mini_player_design">Apple-style mini player</string>
+    <string name="classic_mini_player">Classic mini player</string>
     <string name="play">Play</string>
     <string name="pause">Pause</string>
     <string name="play_next">Play next</string>
@@ -129,6 +135,7 @@
     <string name="remove_from_playlist">Remove from playlist</string>
     <string name="remove_from_queue">Remove from queue</string>
     <string name="search_online">Search online</string>
+    <string name="search_listen_history">Jump back in</string>
     <string name="action_sync">Sync</string>
     <string name="advanced">Advanced</string>
     <string name="tempo_and_pitch">Tempo and Pitch</string>
@@ -282,6 +289,7 @@
     <string name="right">Right</string>
     <string name="player_slider_style">Player slider style</string>
     <string name="default_">Default</string>
+    <string name="apple_music">Apple Music</string>
     <string name="squiggly">Squiggly</string>
     <string name="misc">Misc</string>
     <string name="default_open_tab">Default open tab</string>
@@ -293,6 +301,9 @@
     <string name="action_logout">Log out</string>
     <string name="action_login">Log in</string>
     <string name="login">Login</string>
+    <string name="login_confirm">Confirm login</string>
+    <string name="login_brand_account_hint">If you want to use a Brand Account, switch to it using the account menu above, then tap the check mark to confirm.</string>
+    <string name="show_audio_quality_badge">Show audio quality badge</string>
     <string name="not_logged_in">Not logged in</string>
     <string name="login_failed">Login failed</string>
 
@@ -314,6 +325,7 @@
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
     <string name="queue">Queue</string>
+    <string name="playing_from">Playing from</string>
     <string name="persistent_queue">Persistent queue</string>
     <string name="persistent_queue_desc">Restore your last queue when the app starts</string>
     <string name="auto_load_more">Auto load more songs</string>
@@ -339,7 +351,7 @@
     <string name="size_used">%s used</string>
 
     <string name="clear_downloaded_updates">Clear downloaded updates</string>
-    <string name="clear_downloaded_updates_desc">Remove downloaded APK files to free up space</string>
+    <string name="clear_downloaded_updates_desc">Remove downloaded APK files</string>
 
     <string name="privacy">Privacy</string>
     <string name="listen_history">Listen history</string>
@@ -390,8 +402,67 @@
     <string name="done">Done</string>
     <string name="audio_devices">Audio devices</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
-    <string name="license">GNU General Public License v3.0</string>
+    <string name="license">GNU License 3.0</string>
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
     <string name="listen_together_smart_resync">Smart Network Resync</string>
     <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop</string>
+
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">Enable JioSaavn Streaming</string>
+    <string name="enable_saavn_streaming_desc">Stream audio from JioSaavn instead of YouTube Music (falls back to YT if not available)</string>
+    <string name="saavn_audio_quality">JioSaavn Audio Quality</string>
+    <string name="retry_stream">Retry Stream</string>
+    <string name="retry_stream_desc_saavn">Re-fetch from JioSaavn at 320 kbps</string>
+    <string name="retry_stream_desc_yt">Re-fetch from YouTube Music</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">What\'s on your mind?</string>
+    <string name="search_prompt_todays_pick">What\'s today\'s pick?</string>
+    <string name="search_prompt_trending">Search trending hits…</string>
+    <string name="search_prompt_vibe">Feeling lucky? Search a vibe…</string>
+    <string name="search_prompt_songs_artists">Search for songs, artists, albums…</string>
+    <string name="search_prompt_template_song">Search \"%s\"…</string>
+    <string name="search_prompt_template_song_try">Try searching \"%s\"…</string>
+    <string name="search_prompt_template_artist">Search artist \"%s\"…</string>
+    <string name="enable_settings_popup">Enable settings popup</string>
+    <string name="enable_settings_popup_desc">Show quick settings popup when tapping the settings button instead of opening settings directly</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Automatic backup</string>
+    <string name="automatic_backup_desc">Configure automatic backups of your settings and database to prevent data loss.</string>
+    <string name="enable_automatic_backup">Enable Automatic Backup</string>
+    <string name="weekly_backup">Weekly backup</string>
+    <string name="weekly_backup_desc">Automatically backup your data every week in the background.</string>
+    <string name="backup_before_update">Backup before update</string>
+    <string name="backup_before_update_desc">Automatically backup your data before downloading an app update.</string>
+    <string name="stored_backups">Stored backups</string>
+    <string name="no_stored_backups">No automatic backups stored yet.</string>
+    <string name="backup_type_weekly">Weekly Backup</string>
+    <string name="backup_type_before_update">Before Update</string>
+    <string name="delete_backup_confirm">Are you sure you want to delete this backup?</string>
+    <string name="restore_backup_confirm">Are you sure you want to restore this backup? The app will close and restart to apply changes.</string>
+    <string name="backup_deleted">Backup deleted successfully</string>
+    <string name="others">Others</string>
+    <string name="last_backed_up">Last backed up: %s</string>
+    <string name="never_backed_up">Never</string>
+    <string name="autobackup_settings">Auto Backup Settings</string>
+    <string name="new_release_notifications">New release alerts</string>
+    <string name="new_release_notifications_subtitle">Notify when bookmarked artists release new songs or albums (beta)</string>
+    <string name="new_release_channel_name">New Releases</string>
+    <string name="new_release_channel_desc">Notifications for new releases from your bookmarked artists</string>
+    <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
+    <string name="taste_based_release_notifications">Taste-based release alerts</string>
+    <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
+
+    <!-- Library Toggle -->
+    <string name="switch_to_grid_view">Switch to grid view</string>
+    <string name="switch_to_list_view">Switch to list view</string>
+
+    <!-- Force Library Sync -->
+    <string name="library_force_sync">Sync Library Now</string>
+    <string name="library_syncing">Syncing library…</string>
+    <string name="library_sync_done">Library synced successfully</string>
+    <string name="library_sync_error">Sync failed — tap to retry</string>
+    <string name="listening_summary">Listening summary</string>
+    <string name="setting_listening_summary_desc">View your daily listening trends and historical playback analytics.</string>
 </resources>

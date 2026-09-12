@@ -266,6 +266,7 @@ fun SelectionSongMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (!isGuest) {
                         add(
@@ -396,6 +397,7 @@ fun SelectionSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         when (downloadState) {
@@ -641,6 +643,7 @@ fun SelectionMediaMetadataMenu(
     ) {
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (currentItems.isNotEmpty() && !isGuest) {
                         add(
@@ -752,6 +755,7 @@ fun SelectionMediaMetadataMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

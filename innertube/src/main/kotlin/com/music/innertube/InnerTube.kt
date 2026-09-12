@@ -127,7 +127,12 @@ class InnerTube {
                         return when (this@InnerTube.ipVersion) {
                             IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
                             IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
-                            IpVersion.AUTO -> addresses
+                            IpVersion.AUTO -> {
+                                // Prioritize IPv4 to fix prevalent home Wi-Fi IPv6 routing blackholes
+                                val ipv4 = addresses.filterIsInstance<Inet4Address>()
+                                val ipv6 = addresses.filterIsInstance<Inet6Address>()
+                                ipv4 + ipv6 
+                            }
                         }
                     }
                 })

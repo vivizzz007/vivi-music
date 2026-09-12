@@ -55,36 +55,50 @@ fun WrappedMinutesScreen(
         }
     }
 
+    // Cache and remember all random offsets and sizes once so they remain stable during recompositions (counter animation)
+    val topStartElements = remember {
+        List(5) { Pair(Random.nextInt(0, 150).dp to Random.nextInt(0, 150).dp, Random.nextInt(20, 100).dp) }
+    }
+    val bottomEndElements = remember {
+        List(5) { Pair(Random.nextInt(0, 150).dp to Random.nextInt(0, 150).dp, Random.nextInt(20, 100).dp) }
+    }
+    val topEndElements = remember {
+        List(3) { Pair(Random.nextInt(0, 100).dp to Random.nextInt(0, 100).dp, Random.nextInt(20, 80).dp) }
+    }
+    val bottomStartElements = remember {
+        List(3) { Pair(Random.nextInt(0, 100).dp to Random.nextInt(0, 100).dp, Random.nextInt(20, 80).dp) }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // More dynamic and overlapping decorative elements
         Box(modifier = Modifier.align(Alignment.TopStart)) {
-            repeat(5) {
+            topStartElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 150)).dp, top = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
+                    Modifier.padding(start = padding.first, top = padding.second).size(size),
                     isVisible
                 )
             }
         }
         Box(modifier = Modifier.align(Alignment.BottomEnd)) {
-            repeat(5) {
+            bottomEndElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 150)).dp, bottom = (Random.nextInt(0, 150)).dp).size((Random.nextInt(20, 100)).dp),
+                    Modifier.padding(end = padding.first, bottom = padding.second).size(size),
                     isVisible
                 )
             }
         }
         Box(modifier = Modifier.align(Alignment.TopEnd)) {
-            repeat(3) {
+            topEndElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(end = (Random.nextInt(0, 100)).dp, top = (Random.nextInt(0, 100)).dp).size((Random.nextInt(20, 80)).dp),
+                    Modifier.padding(end = padding.first, top = padding.second).size(size),
                     isVisible
                 )
             }
         }
         Box(modifier = Modifier.align(Alignment.BottomStart)) {
-            repeat(3) {
+            bottomStartElements.forEach { (padding, size) ->
                 AnimatedDecorativeElement(
-                    Modifier.padding(start = (Random.nextInt(0, 100)).dp, bottom = (Random.nextInt(0, 100)).dp).size((Random.nextInt(20, 80)).dp),
+                    Modifier.padding(start = padding.first, bottom = padding.second).size(size),
                     isVisible
                 )
             }

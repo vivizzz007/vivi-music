@@ -6,6 +6,8 @@
 package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.util.lerp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -60,6 +63,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalUncontainedCarousel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -81,6 +85,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.Font
@@ -171,6 +176,7 @@ import com.music.vivi.viewmodels.DailyDiscoverItem
 sealed class HomeSection(val id: String, val baseWeight: Int) {
     data object SpeedDial : HomeSection("speed_dial", 100)
     data object QuickPicks : HomeSection("quick_picks", 90)
+    data object CoversAndRemixes : HomeSection("covers_and_remixes", 85)
     data object DailyDiscover : HomeSection("daily_discover", 80)
     data object KeepListening : HomeSection("keep_listening", 50)
     data object AccountPlaylists : HomeSection("account_playlists", 40)
@@ -209,7 +215,7 @@ fun CommunityPlaylistCard(
         colors = CardDefaults.cardColors(
             containerColor = containerColor
         ),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(16.dp),
         onClick = onClick
     ) {
         Column(
@@ -447,7 +453,7 @@ fun DailyDiscoverCard(
     Card(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(28.dp))
+            .clip(RoundedCornerShape(16.dp))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -466,14 +472,24 @@ fun DailyDiscoverCard(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
-        shape = RoundedCornerShape(28.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            var currentThumbnailUrl by remember(dailyDiscover.recommendation.thumbnail) {
+                mutableStateOf(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+            }
+            
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(dailyDiscover.recommendation.thumbnail?.resize(1200, 1200))
+                    .data(currentThumbnailUrl)
                     .crossfade(true)
                     .build(),
+                onError = {
+                    val url = currentThumbnailUrl
+                    if (url != null && url.contains("maxresdefault.jpg")) {
+                        currentThumbnailUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                    }
+                },
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -570,11 +586,13 @@ fun HomeScreen(
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
     val dailyDiscover by viewModel.dailyDiscover.collectAsState()
+    val coversAndRemixes by viewModel.coversAndRemixes.collectAsState()
     val communityPlaylists by viewModel.communityPlaylists.collectAsState()
 
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
     val speedDialItems by viewModel.speedDialItems.collectAsState()
+    val pinnedSpeedDialItems by viewModel.pinnedSpeedDialItems.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
 
     val isLoading: Boolean by viewModel.isLoading.collectAsState()
@@ -649,6 +667,10 @@ fun HomeScreen(
                 }
             }
     }
+
+    NetworkReload(
+        onReload = viewModel::refresh
+    )
 
     if (selectedChip != null) {
         BackHandler {
@@ -801,6 +823,7 @@ fun HomeScreen(
     val homeSections = remember(
         randomizeHomeOrder,
         randomSeed,
+        selectedChip,
         speedDialItems,
         quickPicks,
         dailyDiscover,
@@ -813,17 +836,21 @@ fun HomeScreen(
         explorePage?.moodAndGenres
     ) {
         val list = mutableListOf<HomeSection>()
+        val chipActive = selectedChip != null
 
-        if (speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
-        if (quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
-        if (communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
-        if (dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
-        if (keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
-        if (accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
-        if (forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
+        if (!chipActive && speedDialItems.isNotEmpty()) list.add(HomeSection.SpeedDial)
+        if (!chipActive && quickPicks?.isNotEmpty() == true) list.add(HomeSection.QuickPicks)
+        if (!chipActive && coversAndRemixes?.items?.isNotEmpty() == true) list.add(HomeSection.CoversAndRemixes)
+        if (!chipActive && communityPlaylists?.isNotEmpty() == true) list.add(HomeSection.FromTheCommunity)
+        if (!chipActive && dailyDiscover?.isNotEmpty() == true) list.add(HomeSection.DailyDiscover)
+        if (!chipActive && keepListening?.isNotEmpty() == true) list.add(HomeSection.KeepListening)
+        if (!chipActive && accountPlaylists?.isNotEmpty() == true) list.add(HomeSection.AccountPlaylists)
+        if (!chipActive && forgottenFavorites?.isNotEmpty() == true) list.add(HomeSection.ForgottenFavorites)
 
-        similarRecommendations?.indices?.forEach { i ->
-            list.add(HomeSection.SimilarRecommendation(i))
+        if (!chipActive) {
+            similarRecommendations?.indices?.forEach { i ->
+                list.add(HomeSection.SimilarRecommendation(i))
+            }
         }
 
         homePage?.sections?.indices?.forEach { i ->
@@ -832,52 +859,37 @@ fun HomeScreen(
 
         if (explorePage?.moodAndGenres != null) list.add(HomeSection.MoodAndGenres)
 
-        if (randomizeHomeOrder) {
+        val sortedList = if (randomizeHomeOrder) {
             list.sortedByDescending { section ->
-                // Use a stable seed for each section based on the session seed + section ID hash
-                // This ensures the weight for a specific section remains constant during a session (until refresh)
-                // even if other sections appear/disappear, preventing jumping.
                 val sectionRandom = Random(randomSeed + section.id.hashCode())
-
-                // Flatten the base values to allow for more overlap and variation
-                // All "main" sections start closer together
                 val base = when (section) {
+                    HomeSection.QuickPicks -> 700
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
-                    HomeSection.DailyDiscover -> 500 // Top tier starts equal
-
+                    HomeSection.DailyDiscover -> 500
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
-                    HomeSection.FromTheCommunity -> 300 // Middle tier starts equal
-
-                    else -> 100 // Bottom tier
+                    HomeSection.FromTheCommunity -> 300
+                    else -> 100
                 }
-
                 val modifier = when (section) {
-                    // Top tier: High variance to allow shuffling among themselves
-                    // Range: [500-200, 500+400] = [300, 900]
+                    HomeSection.QuickPicks -> 0
                     HomeSection.SpeedDial,
-                    HomeSection.QuickPicks,
+                    HomeSection.CoversAndRemixes,
                     HomeSection.DailyDiscover -> sectionRandom.nextInt(-200, 400)
-
-                    // Middle tier: Can jump up to challenge top tier, or drop lower
-                    // Range: [300-100, 300+400] = [200, 700]
-                    // This allows them to occasionally appear above a "bad roll" top tier item
                     HomeSection.KeepListening,
                     HomeSection.AccountPlaylists,
                     HomeSection.ForgottenFavorites,
                     HomeSection.FromTheCommunity -> sectionRandom.nextInt(-100, 400)
-
-                    // Bottom tier: Standard variance
                     else -> sectionRandom.nextInt(-50, 50)
                 }
                 base + modifier
             }
         } else {
             val defaultOrder = mapOf(
+                HomeSection.QuickPicks to 110,
                 HomeSection.SpeedDial to 100,
-                HomeSection.QuickPicks to 90,
+                HomeSection.CoversAndRemixes to 85,
                 HomeSection.FromTheCommunity to 80,
                 HomeSection.DailyDiscover to 70,
                 HomeSection.KeepListening to 60,
@@ -894,6 +906,26 @@ fun HomeScreen(
                 }
             }
         }
+
+        // If logged in, YouTube provides its own superior "Quick picks" section. 
+        // If logged out as guest, we use our local app-generated Quick Picks.
+        val hasYouTubeQuickPicks = sortedList.any { 
+            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true 
+        }
+
+        val deduplicatedList = if (hasYouTubeQuickPicks) {
+            sortedList.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        } else {
+            sortedList
+        }
+
+        // Always pin the surviving QuickPicks to the very top regardless of sort order
+        val isQuickPicksSection: (HomeSection) -> Boolean = {
+            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
+        }
+        val qpItems = deduplicatedList.filter(isQuickPicksSection)
+        if (qpItems.isNotEmpty()) qpItems + deduplicatedList.filterNot(isQuickPicksSection)
+        else deduplicatedList
     }
 
     LaunchedEffect(quickPicks) {
@@ -904,20 +936,47 @@ fun HomeScreen(
         forgottenFavoritesLazyGridState.scrollToItem(0)
     }
 
+    val pullDensity = LocalDensity.current
+    val maxOffsetPx = with(pullDensity) { PullToRefreshDefaults.PositionalThreshold.toPx() + 16.dp.toPx() }
+    val topInsetPx = with(pullDensity) {
+        LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding().toPx() + 16.dp.toPx()
+    }
+    val indicatorHeightPx = with(pullDensity) { 56.dp.toPx() }
+    val expressiveSpring = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+    val targetFraction = if (isRefreshing) 1f
+                         else pullRefreshState.distanceFraction.coerceIn(0f, 1f)
+    val animatedFraction by animateFloatAsState(
+        targetValue = targetFraction,
+        animationSpec = expressiveSpring,
+        label = "pull_fraction"
+    )
+
     PullToRefreshBox(
         state = pullRefreshState,
         isRefreshing = isRefreshing,
         onRefresh = viewModel::refresh,
         indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                state = pullRefreshState,
-                isRefreshing = isRefreshing,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
-            )
+            if (animatedFraction > 0.001f) {
+                val yOffset = lerp(-indicatorHeightPx, topInsetPx, animatedFraction)
+                if (isRefreshing) {
+                    ContainedLoadingIndicator(
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset { IntOffset(0, yOffset.toInt()) }
+                    )
+                } else {
+                    ContainedLoadingIndicator(
+                        progress = { pullRefreshState.distanceFraction.coerceIn(0f, 1f) },
+                        modifier = Modifier
+                            .align(Alignment.TopCenter)
+                            .offset { IntOffset(0, yOffset.toInt()) }
+                    )
+                }
+            }
         }
     ) {
+        val density = LocalDensity.current
+
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopStart
@@ -943,11 +1002,16 @@ fun HomeScreen(
 
             LazyColumn(
                 state = lazylistState,
-                contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+                modifier = Modifier.offset {
+                    IntOffset(0, (animatedFraction * maxOffsetPx).toInt())
+                }
             ) {
                 item {
                     ChipsRow(
-                        chips = homePage?.chips?.map { it to it.title } ?: emptyList(),
+                        chips = homePage?.chips
+                            ?.filter { !it.title.equals("Podcasts", ignoreCase = true) }
+                            ?.map { it to it.title } ?: emptyList(),
                         currentValue = selectedChip,
                         onValueUpdate = {
                             viewModel.toggleChip(it)
@@ -1053,7 +1117,8 @@ fun HomeScreen(
                                     val itemsPerPage = columns * rows
                                     val itemWidth = availableWidth / columns
 
-                                    val pagerState = rememberPagerState(pageCount = { (items.size + itemsPerPage - 1) / itemsPerPage })
+                                    val totalSlots = items.size + 1 // +1 for the Randomize button
+                                    val pagerState = rememberPagerState(pageCount = { (totalSlots + itemsPerPage - 1) / itemsPerPage })
 
                                     Column(
                                         modifier =
@@ -1070,16 +1135,14 @@ fun HomeScreen(
                                                     .fillMaxWidth()
                                                     .height(itemWidth * rows),
                                         ) { page ->
-                                            val pageStartIndex = page * itemsPerPage
-                                            val pageItems = items.drop(pageStartIndex).take(itemsPerPage)
-
                                             Column(modifier = Modifier.fillMaxSize()) {
                                                 for (row in 0 until rows) {
                                                     Row(modifier = Modifier.fillMaxWidth()) {
                                                         for (col in 0 until columns) {
                                                             val itemIndex = row * columns + col
+                                                            val globalItemIndex = page * itemsPerPage + itemIndex
 
-                                                            val isRandomizeSlot = (page == 0 && itemIndex == itemsPerPage - 1)
+                                                            val isRandomizeSlot = (globalItemIndex == itemsPerPage - 1)
 
                                                             if (isRandomizeSlot) {
                                                                 Box(
@@ -1106,7 +1169,15 @@ fun HomeScreen(
                                                                                             )
                                                                                             is AlbumItem -> navController.navigate("album/${randomItem.id}")
                                                                                             is ArtistItem -> navController.navigate("artist/${randomItem.id}")
-                                                                                            is PlaylistItem -> navController.navigate("online_playlist/${randomItem.id}") //patched directly shows corresponding screens
+                                                                                            is PlaylistItem -> {
+                                                                                                val rawType = pinnedSpeedDialItems
+                                                                                                    .find { it.id == randomItem.id }?.type
+                                                                                                if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                    navController.navigate("local_playlist/${randomItem.id}")
+                                                                                                } else {
+                                                                                                    navController.navigate("online_playlist/${randomItem.id}")
+                                                                                                }
+                                                                                            }
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1114,9 +1185,11 @@ fun HomeScreen(
                                                                         }
                                                                     )
                                                                 }
-                                                            } else if (itemIndex < pageItems.size) {
-                                                                val item = pageItems[itemIndex]
-                                                                val isPinned by database.speedDialDao.isPinned(item.id).collectAsState(initial = false)
+                                                            } else {
+                                                                val actualIndex = if (globalItemIndex < itemsPerPage - 1) globalItemIndex else globalItemIndex - 1
+                                                                if (actualIndex < items.size) {
+                                                                    val item = items[actualIndex]
+                                                                    val isPinned by database.speedDialDao.isPinned(item.id).collectAsState(initial = false)
 
                                                                 Box(
                                                                     modifier = Modifier
@@ -1142,8 +1215,15 @@ fun HomeScreen(
                                                                                         )
                                                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-
-                                                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}") //patched navigation to correct screens
+                                                                                        is PlaylistItem -> {
+                                                                                            val rawType = pinnedSpeedDialItems
+                                                                                                .find { it.id == item.id }?.type
+                                                                                            if (rawType == "LOCAL_PLAYLIST") {
+                                                                                                navController.navigate("local_playlist/${item.id}")
+                                                                                            } else {
+                                                                                                navController.navigate("online_playlist/${item.id}")
+                                                                                            }
+                                                                                        }
                                                                                     }
                                                                                 },
                                                                                 onLongClick = {
@@ -1177,6 +1257,7 @@ fun HomeScreen(
                                                                 }
                                                             } else {
                                                                 Spacer(modifier = Modifier.width(itemWidth))
+                                                            }
                                                             }
                                                         }
                                                     }
@@ -1305,6 +1386,94 @@ fun HomeScreen(
                                 }
                             }
                         }
+                        HomeSection.CoversAndRemixes -> {
+                            coversAndRemixes?.takeIf { it.items.isNotEmpty() }?.let { mixSection ->
+                                val mixSongs = mixSection.items.filterIsInstance<SongItem>()
+                                if (mixSongs.isEmpty()) return@let
+
+                                item(key = "covers_and_remixes_title") {
+                                    val mixTitle = mixSection.title
+                                    NavigationTitle(
+                                        title = mixTitle,
+                                        modifier = Modifier.animateItem(),
+                                        onPlayAllClick = {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = mixTitle,
+                                                    items = mixSongs.distinctBy { it.id }.map { it.toMediaMetadata().toMediaItem() }
+                                                )
+                                            )
+                                        }
+                                    )
+                                }
+
+                                item(key = "covers_and_remixes_list") {
+                                    LazyHorizontalGrid(
+                                        state = rememberLazyGridState(),
+                                        rows = GridCells.Fixed(4),
+                                        contentPadding = WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).asPaddingValues(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(ListItemHeight * 4)
+                                            .animateItem()
+                                    ) {
+                                        itemsIndexed(
+                                            items = mixSongs.distinctBy { it.id },
+                                            key = { _, it -> it.id }
+                                        ) { index, song ->
+                                            YouTubeListItem(
+                                                item = song,
+                                                isActive = song.id == mediaMetadata?.id,
+                                                isPlaying = isPlaying,
+                                                isSwipeable = false,
+                                                shape = listItemShape(index = index % 4, count = 4),
+                                                trailingContent = {
+                                                    IconButton(
+                                                        onClick = {
+                                                            menuState.show {
+                                                                YouTubeSongMenu(
+                                                                    song = song,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+                                                            }
+                                                        }
+                                                    ) {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.more_vert),
+                                                            contentDescription = null
+                                                        )
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .width(horizontalLazyGridItemWidth)
+                                                    .combinedClickable(
+                                                        onClick = {
+                                                            if (song.id == mediaMetadata?.id) {
+                                                                playerConnection.togglePlayPause()
+                                                            } else {
+                                                                playerConnection.playQueue(
+                                                                    YouTubeQueue.radio(song.toMediaMetadata())
+                                                                )
+                                                            }
+                                                        },
+                                                        onLongClick = {
+                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                            menuState.show {
+                                                                YouTubeSongMenu(
+                                                                    song = song,
+                                                                    navController = navController,
+                                                                    onDismiss = menuState::dismiss
+                                                                )
+                                                            }
+                                                        }
+                                                    )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         HomeSection.FromTheCommunity -> {
                             communityPlaylists?.takeIf { it.isNotEmpty() }?.let { playlists ->
                                 item(key = "community_playlists_title") {
@@ -1367,18 +1536,18 @@ fun HomeScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(340.dp)
-                                            .padding(horizontal = 16.dp),
+                                            .height(230.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         val carouselState = rememberCarouselState { discoverList.size }
-                                        HorizontalMultiBrowseCarousel(
+                                        HorizontalUncontainedCarousel(
                                             state = carouselState,
-                                            preferredItemWidth = 320.dp,
-                                            itemSpacing = 16.dp,
+                                            itemWidth = 320.dp,
+                                            itemSpacing = 8.dp,
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .height(320.dp)
+                                                .height(210.dp)
                                         ) { i ->
                                             val item = discoverList[i]
                                             DailyDiscoverCard(
@@ -1396,7 +1565,7 @@ fun HomeScreen(
                                                     }
                                                 },
                                                 navController = navController,
-                                                modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge)
+                                                modifier = Modifier.maskClip(MaterialTheme.shapes.large)
                                             )
                                         }
                                     }
@@ -1704,15 +1873,16 @@ fun HomeScreen(
                                                 .height(ListItemHeight * 4)
                                                 .animateItem()
                                         ) {
-                                            items(
+                                            itemsIndexed(
                                                 items = sectionSongs.distinctBy { it.id },
-                                                key = { it.id }
-                                            ) { song ->
+                                                key = { _, it -> it.id }
+                                            ) { index, song ->
                                                 YouTubeListItem(
                                                     item = song,
                                                     isActive = song.id == mediaMetadata?.id,
                                                     isPlaying = isPlaying,
                                                     isSwipeable = false,
+                                                    shape = listItemShape(index = index % 4, count = 4),
                                                     trailingContent = {
                                                         IconButton(
                                                             onClick = {
@@ -1857,6 +2027,10 @@ fun HomeScreen(
                             }
                         }
                     }
+                }
+
+                item(key = "bottom_spacer") {
+                    Spacer(modifier = Modifier.height(30.dp))
                 }
             }
 

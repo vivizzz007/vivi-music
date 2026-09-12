@@ -6,30 +6,22 @@
 package com.music.vivi.ui.screens.wrapped.pages
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,10 +31,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -51,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.music.vivi.R
+import com.music.vivi.ui.screens.wrapped.components.WrappedBackground
 import com.music.vivi.ui.theme.bbhBartle
 import kotlinx.coroutines.delay
 
@@ -101,57 +93,7 @@ fun WrappedIntro(onNext: () -> Unit) {
         visible = true
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-    ) {
-        val infiniteTransition = rememberInfiniteTransition(label = "WrappedIntro bg")
-        val scale by infiniteTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = 1.1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 3000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "intro scale"
-        )
-        val rotation by infiniteTransition.animateFloat(
-            initialValue = -95f,
-            targetValue = -85f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "intro rotation"
-        )
-
-        // Background "2025" text
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    rotationZ = rotation
-                }
-        ) {
-            BoxWithConstraints {
-                AutoResizingText(
-                    text = stringResource(id = R.string.wrapped_year),
-                    style = TextStyle.Default.copy(
-                        fontFamily = bbhBartle,
-                        fontSize = 800.sp, // Increased size
-                        color = Color.White,
-                        drawStyle = Stroke(width = 2f)
-                    ),
-                    modifier = Modifier.width(this.maxHeight) // Use height for width due to rotation
-                )
-            }
-        }
-
-
-
+    WrappedBackground(modifier = Modifier.fillMaxSize()) {
         // Main Content Column
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -161,12 +103,15 @@ fun WrappedIntro(onNext: () -> Unit) {
             // App Icon
             AnimatedVisibility(
                 visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
+                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = ICON_DELAY)) +
+                        slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = ICON_DELAY))
             ) {
-                Icon(
+                Image(
                     painter = painterResource(id = R.drawable.icon),
                     contentDescription = stringResource(id = R.string.wrapped_logo_content_description),
-                    modifier = Modifier.size(100.dp)
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
                 )
             }
 
@@ -175,7 +120,8 @@ fun WrappedIntro(onNext: () -> Unit) {
             // vivimusic Title with Layered Effect
             AnimatedVisibility(
                 visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = TITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = TITLE_DELAY))
+                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = TITLE_DELAY)) +
+                        slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = TITLE_DELAY))
             ) {
                 Box {
                     val baseStyle = TextStyle(
@@ -184,19 +130,32 @@ fun WrappedIntro(onNext: () -> Unit) {
                         letterSpacing = 2.sp,
                         fontSize = 50.sp
                     )
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.DarkGray), modifier = Modifier.offset(x = 2.dp, y = 2.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.Gray), modifier = Modifier.offset(x = 1.dp, y = 1.dp))
-                    AutoResizingText(text = stringResource(id = R.string.wrapped_intro_title), style = baseStyle.copy(color = Color.White))
+                    AutoResizingText(
+                        text = stringResource(id = R.string.wrapped_intro_title),
+                        style = baseStyle.copy(color = Color.DarkGray),
+                        modifier = Modifier
+                            .padding(start = 2.dp, top = 2.dp)
+                    )
+                    AutoResizingText(
+                        text = stringResource(id = R.string.wrapped_intro_title),
+                        style = baseStyle.copy(color = Color.Gray),
+                        modifier = Modifier
+                            .padding(start = 1.dp, top = 1.dp)
+                    )
+                    AutoResizingText(
+                        text = stringResource(id = R.string.wrapped_intro_title),
+                        style = baseStyle.copy(color = Color.White)
+                    )
                 }
             }
-
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Subtitle
             AnimatedVisibility(
                 visible = visible,
-                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY))
+                enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = SUBTITLE_DELAY)) +
+                        slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = SUBTITLE_DELAY))
             ) {
                 Text(
                     text = stringResource(id = R.string.wrapped_intro_subtitle),
@@ -210,7 +169,8 @@ fun WrappedIntro(onNext: () -> Unit) {
         // "Let's go!" Button at the bottom
         AnimatedVisibility(
             visible = visible,
-            enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = BUTTON_DELAY)) + slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = BUTTON_DELAY)) { it },
+            enter = fadeIn(animationSpec = tween(FADE_IN_DURATION, delayMillis = BUTTON_DELAY)) +
+                    slideInVertically(animationSpec = tween(SLIDE_IN_DURATION, delayMillis = BUTTON_DELAY)) { it },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = BOTTOM_PADDING)

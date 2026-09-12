@@ -9,6 +9,7 @@
 <resources>
     <!-- Bottom navigation -->
     <string name="home">Accueil</string>
+    <string name="music">Musique</string>
     <string name="songs">Titres</string>
     <string name="artists">Artistes</string>
     <string name="albums">Albums</string>
@@ -47,7 +48,10 @@
     <string name="search">Rechercher</string>
     <string name="search_yt_music">Rechercher sur YouTube Music…</string>
     <string name="search_library">Rechercher dans votre bibliothèque…</string>
+    <string name="search_albums">Rechercher des albums…</string>
+    <string name="search_playlists">Rechercher des playlists…</string>
     <string name="filter_library">Bibliothèque</string>
+    <string name="all">Tout</string>
     <string name="filter_liked">Favoris</string>
     <string name="filter_downloaded">Téléchargés</string>
     <string name="filter_all">Tout</string>
@@ -71,6 +75,7 @@
     <string name="from_your_library">De votre bibliothèque</string>
 
     <!-- Album screen -->
+    <string name="album_label">Album</string>
     <string name="other_versions">Autres versions</string>
     <string name="album_description_placeholder">Ceci est une description provisoire de l\'album. Bonne écoute des titres ci-dessous !</string>
 
@@ -94,6 +99,8 @@
     <string name="details">Détails</string>
     <string name="edit">Modifier</string>
     <string name="start_radio">Démarrer la radio</string>
+    <string name="apple_mini_player_design">Mini-lecteur façon Apple</string>
+    <string name="classic_mini_player">Mini-lecteur classique</string>
     <string name="play">Lecture</string>
     <string name="pause">Pause</string>
     <string name="play_next">Lire ensuite</string>
@@ -123,6 +130,7 @@
     <string name="remove_from_playlist">Supprimer de la playlist</string>
     <string name="remove_from_queue">Supprimer de la file d\'attente</string>
     <string name="search_online">Rechercher en ligne</string>
+    <string name="search_listen_history">Replongez-y</string>
     <string name="action_sync">Synchronisation</string>
     <string name="advanced">Avancé</string>
     <string name="tempo_and_pitch">Tempo et Hauteur</string>
@@ -276,6 +284,7 @@
     <string name="right">Droite</string>
     <string name="player_slider_style">Style du curseur du lecteur</string>
     <string name="default_">Par défaut</string>
+    <string name="apple_music">Apple Music</string>
     <string name="squiggly">Ondulations</string>
     <string name="misc">Divers</string>
     <string name="default_open_tab">Onglet ouvert par défaut</string>
@@ -286,7 +295,10 @@
     <string name="content">Contenu</string>
     <string name="action_logout">Déconnexion</string>
     <string name="action_login">Connexion</string>
+    <string name="login_confirm">Confirmer la connexion</string>
+    <string name="login_brand_account_hint">Si vous souhaitez utiliser un compte de marque, sélectionnez-le dans le menu des comptes ci-dessus, puis appuyez sur la coche pour confirmer.</string>
     <string name="login">Se connecter</string>
+    <string name="show_audio_quality_badge">Afficher le badge de qualité audio</string>
     <string name="not_logged_in">Non connecté</string>
     <string name="login_failed">Échec de la connexion</string>
 
@@ -308,6 +320,7 @@
     <string name="audio_quality_high">Élevée</string>
     <string name="audio_quality_low">Faible</string>
     <string name="queue">File d\'attente</string>
+    <string name="playing_from">Diffusion à partir de</string>
     <string name="persistent_queue">File d\'attente persistante</string>
     <string name="persistent_queue_desc">Restaurer votre dernière file d\'attente au démarrage de l\'application</string>
     <string name="auto_load_more">Charger automatiquement plus de titres</string>
@@ -333,7 +346,7 @@
     <string name="size_used">%s utilisée</string>
 
     <string name="clear_downloaded_updates">Effacer les mises à jour téléchargées</string>
-    <string name="clear_downloaded_updates_desc">Supprimez les fichiers APK téléchargés pour libérer de l\'espace.</string>
+    <string name="clear_downloaded_updates_desc">Supprimez les fichiers APK téléchargés</string>
 
     <string name="privacy">Confidentialité</string>
     <string name="listen_history">Historique d\'écoute</string>
@@ -384,7 +397,7 @@
     <string name="done">Terminé</string>
     <string name="audio_devices">Appareils audio</string>
     <string name="bluetooth_headphones">Casque Bluetooth</string>
-    <string name="license">Licence publique générale GNU v3.0</string>
+    <string name="license">Licence GNU 3.0</string>
     <string name="standard_lyrics_blur">Paroles standard floues</string>
     <string name="listen_together_smart_resync">Resynchronisation intelligente du réseau</string>
     <string name="listen_together_smart_resync_desc">Reprendre automatiquement la connexion avec l\'hôte après une perte de connexion</string>
@@ -395,4 +408,60 @@
     <string name="spotify_import_failed">Impossible d\'importer cette liste de lecture Spotify.</string>
     <string name="spotify_import_timeout">L\'importation a pris trop de temps. Vérifiez votre réseau et réessayez.</string>
     <string name="music">Musique</string>
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">Activer le streaming JioSaavn</string>
+    <string name="enable_saavn_streaming_desc">Écoutez de la musique en streaming depuis JioSaavn plutôt que depuis YouTube Music (retour à YouTube Music si JioSaavn n\'est pas disponible)</string>
+    <string name="saavn_audio_quality">Qualité audio de JioSaavn</string>
+    <string name="retry_stream">Réessayer le flux</string>
+    <string name="retry_stream_desc_saavn">Récupérer depuis JioSaavn à 320 kbps</string>
+    <string name="retry_stream_desc_yt">Récupérer depuis YouTube Music</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">À quoi pensez-vous ?</string>
+    <string name="search_prompt_todays_pick">C\'est quoi le choix du jour ?</string>
+    <string name="search_prompt_trending">Recherche des hits les plus populaires…</string>
+    <string name="search_prompt_vibe">Vous vous sentez chanceux ? Cherchez une ambiance…</string>
+    <string name="search_prompt_songs_artists">Recherchez des titres, des artistes, des albums…</string>
+    <string name="search_prompt_template_song">Rechercher « %s »…</string>
+    <string name="search_prompt_template_song_try">Essayez de rechercher « %s »…</string>
+    <string name="search_prompt_template_artist">Rechercher l\'artiste « %s »…</string>
+    <string name="enable_settings_popup">Activer la fenêtre contextuelle des paramètres</string>
+    <string name="enable_settings_popup_desc">Afficher la fenêtre contextuelle des réglages rapides lorsque l\'on appuie sur le bouton des réglages, au lieu d\'ouvrir directement les réglages</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Sauvegarde Automatique</string>
+    <string name="automatic_backup_desc">Configurez des sauvegardes automatiques de vos paramètres et de votre base de données afin d\'éviter toute perte de données.</string>
+    <string name="enable_automatic_backup">Activer la sauvegarde automatique</string>
+    <string name="weekly_backup">Sauvegarde hebdomadaire</string>
+    <string name="weekly_backup_desc">Sauvegardez automatiquement vos données chaque semaine en arrière-plan.</string>
+    <string name="backup_before_update">Sauvegarde avant la mise à jour</string>
+    <string name="backup_before_update_desc">Sauvegardez automatiquement vos données avant de télécharger une mise à jour d\'application.</string>
+    <string name="stored_backups">Sauvegardes archivées</string>
+    <string name="no_stored_backups">Aucune sauvegarde automatique n\'a encore été enregistrée.</string>
+    <string name="backup_type_weekly">Sauvegarde hebdomadaire</string>
+    <string name="backup_type_before_update">Avant la mise à jour</string>
+    <string name="delete_backup_confirm">Êtes-vous sûr de vouloir supprimer cette sauvegarde ?</string>
+    <string name="restore_backup_confirm">Êtes-vous sûr de vouloir restaurer cette sauvegarde ? L\'application va se fermer puis redémarrer pour appliquer les modifications.</string>
+    <string name="backup_deleted">Sauvegarde supprimée avec succès</string>
+    <string name="others">Autres</string>
+    <string name="last_backed_up">Dernière sauvegarde : %s</string>
+    <string name="never_backed_up">Jamais</string>
+    <string name="autobackup_settings">Paramètres de sauvegarde automatique</string>
+    <string name="new_release_notifications">Alertes de nouvelles sorties</string>
+    <string name="new_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous avez ajoutés à vos favoris sortent de nouveaux titres ou de nouveaux albums (version bêta)</string>
+    <string name="new_release_channel_name">Nouveautés</string>
+    <string name="new_release_channel_desc">Notifications concernant les nouvelles sorties de vos artistes favoris</string>
+    <string name="new_release_notifications_info">Sur certains appareils (Samsung, Xiaomi, etc.), l\'optimisation de la batterie peut retarder ou bloquer les notifications en arrière-plan. Pour vous assurer de recevoir vos alertes en temps voulu, configurez Vivi Music sur « Utilisation de la batterie sans restriction » dans les paramètres de votre appareil.</string>
+    <string name="taste_based_release_notifications">Alertes de sortie basées sur les goûts</string>
+    <string name="taste_based_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous écoutez régulièrement sortent de nouveaux titres ou de nouveaux albums</string>
+
+    <!-- Library Toggle -->
+    <string name="switch_to_grid_view">Passer à l\'affichage en grille</string>
+    <string name="switch_to_list_view">Passer à l\'affichage sous forme de liste</string>
+
+    <!-- Force Library Sync -->
+    <string name="library_force_sync">Synchroniser la bibliothèque maintenant</string>
+    <string name="library_syncing">Synchronisation de la bibliothèque…</string>
+    <string name="library_sync_done">La bibliothèque a été synchronisée avec succès</string>
+    <string name="library_sync_error">Échec de la synchronisation — appuyez ici pour réessayer</string>
 </resources>

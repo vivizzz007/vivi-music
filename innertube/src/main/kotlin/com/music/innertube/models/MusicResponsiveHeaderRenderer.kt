@@ -10,8 +10,13 @@ data class MusicResponsiveHeaderRenderer(
     val subtitle: Runs,
     val secondSubtitle: Runs?,
     val straplineTextOne: Runs?,
-    val description: Runs? = null,
+    val description: Description? = null,
 ) {
+    @Serializable
+    data class Description(
+        val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
+    )
+
     @Serializable
     data class Button(
         val musicPlayButtonRenderer: MusicPlayButtonRenderer?,

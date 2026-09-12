@@ -7,8 +7,10 @@ package com.music.vivi.ui.screens.wrapped
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -54,6 +56,7 @@ import com.music.vivi.ui.screens.wrapped.pages.WrappedTopSongScreen
 import com.music.vivi.ui.screens.wrapped.pages.WrappedTotalAlbumsScreen
 import com.music.vivi.ui.screens.wrapped.pages.WrappedTotalArtistsScreen
 import com.music.vivi.ui.screens.wrapped.pages.WrappedTotalSongsScreen
+import com.music.vivi.ui.screens.wrapped.components.WrappedBackground
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -188,60 +191,63 @@ fun WrappedScreenContent(navController: NavController) {
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
-        containerColor = Color.Black
+        containerColor = Color.Transparent
     ) { paddingValues ->
-        VerticalPager(state = pagerState, modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)) { page ->
-            when (screens[page]) {
-                is WrappedScreenType.Welcome -> WrappedIntro { scope.launch { pagerState.animateScrollToPage(page = 1) } }
-                is WrappedScreenType.MinutesTease -> WrappedMinutesTease(
-                    messagePair = messagePair,
-                    onNavigateForward = { scope.launch { pagerState.animateScrollToPage(page = 2) } },
-                    isDataReady = state.isDataReady
-                )
-                is WrappedScreenType.MinutesReveal -> WrappedMinutesScreen(
-                    messagePair = messagePair, totalMinutes = state.totalMinutes,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.MinutesReveal)
-                )
-                is WrappedScreenType.TotalSongs -> WrappedTotalSongsScreen(
-                    uniqueSongCount = state.uniqueSongCount,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalSongs)
-                )
-                is WrappedScreenType.TopSongReveal -> WrappedTopSongScreen(
-                    topSong = state.topSongs.firstOrNull(),
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopSongReveal)
-                )
-                is WrappedScreenType.Top5Songs -> WrappedTop5SongsScreen(
-                    topSongs = state.topSongs.take(5),
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Songs)
-                )
-                is WrappedScreenType.TotalAlbums -> WrappedTotalAlbumsScreen(
-                    uniqueAlbumCount = state.totalAlbums,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalAlbums)
-                )
-                is WrappedScreenType.TopAlbumReveal -> WrappedTopAlbumScreen(
-                    topAlbum = state.topAlbum,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopAlbumReveal)
-                )
-                is WrappedScreenType.Top5Albums -> WrappedTop5AlbumsScreen(
-                    topAlbums = state.top5Albums,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Albums)
-                )
-                is WrappedScreenType.TotalArtists -> WrappedTotalArtistsScreen(
-                    uniqueArtistCount = state.uniqueArtistCount,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalArtists)
-                )
-                is WrappedScreenType.TopArtistReveal -> WrappedTopArtistScreen(
-                    topArtist = state.topArtists.firstOrNull(),
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopArtistReveal)
-                )
-                is WrappedScreenType.Top5Artists -> WrappedTop5ArtistsScreen(
-                    topArtists = state.topArtists,
-                    isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Artists)
-                )
-                is WrappedScreenType.Playlist -> PlaylistPage()
-                is WrappedScreenType.Conclusion -> ConclusionPage(onClose = onClose)
+        WrappedBackground {
+            VerticalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                when (screens[page]) {
+                    is WrappedScreenType.Welcome -> WrappedIntro { scope.launch { pagerState.animateScrollToPage(page = 1) } }
+                    is WrappedScreenType.MinutesTease -> WrappedMinutesTease(
+                        messagePair = messagePair,
+                        onNavigateForward = { scope.launch { pagerState.animateScrollToPage(page = 2) } },
+                        isDataReady = state.isDataReady
+                    )
+                    is WrappedScreenType.MinutesReveal -> WrappedMinutesScreen(
+                        messagePair = messagePair, totalMinutes = state.totalMinutes,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.MinutesReveal)
+                    )
+                    is WrappedScreenType.TotalSongs -> WrappedTotalSongsScreen(
+                        uniqueSongCount = state.uniqueSongCount,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalSongs)
+                    )
+                    is WrappedScreenType.TopSongReveal -> WrappedTopSongScreen(
+                        topSong = state.topSongs.firstOrNull(),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopSongReveal)
+                    )
+                    is WrappedScreenType.Top5Songs -> WrappedTop5SongsScreen(
+                        topSongs = state.topSongs.take(5),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Songs)
+                    )
+                    is WrappedScreenType.TotalAlbums -> WrappedTotalAlbumsScreen(
+                        uniqueAlbumCount = state.totalAlbums,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalAlbums)
+                    )
+                    is WrappedScreenType.TopAlbumReveal -> WrappedTopAlbumScreen(
+                        topAlbum = state.topAlbum,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopAlbumReveal)
+                    )
+                    is WrappedScreenType.Top5Albums -> WrappedTop5AlbumsScreen(
+                        topAlbums = state.top5Albums,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Albums)
+                    )
+                    is WrappedScreenType.TotalArtists -> WrappedTotalArtistsScreen(
+                        uniqueArtistCount = state.uniqueArtistCount,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TotalArtists)
+                    )
+                    is WrappedScreenType.TopArtistReveal -> WrappedTopArtistScreen(
+                        topArtist = state.topArtists.firstOrNull(),
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.TopArtistReveal)
+                    )
+                    is WrappedScreenType.Top5Artists -> WrappedTop5ArtistsScreen(
+                        topArtists = state.topArtists,
+                        isVisible = pagerState.currentPage == screens.indexOf(WrappedScreenType.Top5Artists)
+                    )
+                    is WrappedScreenType.Playlist -> PlaylistPage()
+                    is WrappedScreenType.Conclusion -> ConclusionPage(onClose = onClose)
+                }
             }
         }
     }

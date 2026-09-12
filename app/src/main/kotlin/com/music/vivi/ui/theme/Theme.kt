@@ -10,6 +10,8 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -26,6 +28,15 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.rememberDynamicColorScheme
 import com.materialkolor.score.Score
 
+import androidx.compose.runtime.getValue
+import com.music.vivi.constants.SelectedFontKey
+import com.music.vivi.constants.CustomFontPathKey
+import com.music.vivi.constants.AppFont
+import com.music.vivi.utils.rememberPreference
+import androidx.compose.ui.text.font.FontFamily
+import android.graphics.Typeface as AndroidTypeface
+import androidx.compose.ui.text.font.Typeface as ComposeTypeface
+
 val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
@@ -36,6 +47,37 @@ fun vivimusicTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
+    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
+    val customFontPath by rememberPreference(CustomFontPathKey, "")
+
+    val brandFont = remember(selectedFontValue, customFontPath) {
+        when (AppFont.fromValue(selectedFontValue)) {
+            AppFont.SYSTEM -> FontFamily.Default
+            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
+            AppFont.SANS_FLEX -> SansFlexFontFamily
+            AppFont.OUTFIT -> OutfitFontFamily
+            AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
+            AppFont.CUSTOM -> {
+                try {
+                    if (customFontPath.isNotEmpty() && java.io.File(customFontPath).exists()) {
+                        val typeface = AndroidTypeface.createFromFile(customFontPath)
+                        FontFamily(ComposeTypeface(typeface))
+                    } else {
+                        FontFamily.Default
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    FontFamily.Default
+                }
+            }
+        }
+    }
+
+        val typography = remember(brandFont) {
+        getTypography(brandFont = brandFont, plainFont = brandFont)
+    }
+
+
     // Determine if system dynamic colors should be used (Android S+ and default theme color)
     val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
@@ -49,7 +91,7 @@ fun vivimusicTheme(
             seedColor = themeColor, // themeColor is guaranteed non-default here
             isDark = darkTheme,
             specVersion = ColorSpec.SpecVersion.SPEC_2025,
-            style = PaletteStyle.TonalSpot // Keep existing style
+            style = if (themeColor.toArgb() == 0xFF000000.toInt()) PaletteStyle.Monochrome else PaletteStyle.TonalSpot
         )
     }
 
@@ -62,10 +104,10 @@ fun vivimusicTheme(
         }
     }
 
-    // Use standard MaterialTheme instead of MaterialExpressiveTheme
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
-        typography = AppTypography, // Use the defined AppTypography
+        typography = typography, // Use the dynamically configured typography
+        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }

@@ -14,14 +14,11 @@ on:
 
 jobs:
   build_debug:
-    name: Build Universal ${{ matrix.variant }} Debug
+    name: Build Universal GMS Debug
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
-    strategy:
-      matrix:
-        variant: [foss, gms]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -54,12 +51,13 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+          VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
+          VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
         run: |
-          VARIANT_CAP=$(echo "${{ matrix.variant }}" | sed 's/./\U&/')
-          ./gradlew assembleUniversal${VARIANT_CAP}Debug --no-configuration-cache --console=plain --warning-mode summary
+          ./gradlew assembleUniversalGmsDebug --no-configuration-cache --console=plain --warning-mode summary
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-universal-${{ matrix.variant }}-debug
-          path: app/build/outputs/apk/universal${{ matrix.variant == 'foss' && 'Foss' || 'Gms' }}/debug/*.apk
+          name: app-universal-gms-debug
+          path: app/build/outputs/apk/universalGms/debug/*.apk

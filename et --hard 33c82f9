@@ -1,0 +1,375 @@
+[33m3bf55543[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m updated canvas website
+[33m300b07ee[m fix(jiosaavn): fix wrong song matching + add debug logging
+[33mf6a9b0b2[m fix(sync): prevent local files from being un-liked during sync
+[33mdf6254c8[m added new strings
+[33ma8793a40[m Merge pull request #705 from Anto426/feature/large-artwork-library-sections
+[33m33c82f92[m added missing itag and download size
+[33mc5c5b4fe[m added retry button to both playermenu
+[33m4ea09b27[m Fixed issue random song playing
+[33macc7bee8[m feat: add JioSaavn streaming integration with query cleaning
+[33m1bfe1c67[m fixed shuffle core logic
+[33m90f736e9[m fixed artistsection not showing top songs
+[33md0431081[m testing
+[33m1a2b7071[m added an text
+[33mf96008a7[m fixed issue on apk building
+[33me4770a01[m fixed search summary page
+[33mb2be0003[m "fix(lyrics): restore Paxsenix lyrics search by querying Apple Music directly - Bypasses the broken and rate-limited 'lyrics.paxsenix.org/apple-music/search' proxy endpoint. - Integrates AppleTokenManager to scrape and cache a valid Apple developer token from beta.music.apple.com. - Queries Apple Music search API directly and performs fuzzy track matching. - Ports the robust lyrics quality ranking (word-level, line-level, plain) from Metrolist."
+[33mf39a2fa8[m retuen back nightly
+[33mee2e3586[m fix(queue): use suspending database transaction when adding song to playlist
+[33mcdbe8a81[m Merge pull request #719 from vivizzz007/fix/search-tabs
+[33m1bd37838[m[33m ([m[1;31morigin/fix/search-tabs[m[33m)[m fixed search section not loading
+[33m4ddcea7e[m fix(parser): resolve empty explore/search album and playlist pages with robust selectors
+[33me7e095dc[m chore(deps): normalize dependency aliases
+[33m3b6f8575[m Fixed issue gemni
+[33m8ef27119[m Merge branch 'main' of https://github.com/vivizzz007/vivi-music
+[33m1a57cc7e[m Fixed issue with gemni translation
+[33mbe653a41[m fix(menu): guard listen together resync manager
+[33mf7f3e8e1[m fix(innertube): clean compiler warnings
+[33m18c9225c[m fix(app): clean compiler warnings
+[33md59700de[m chore(deps): align module build config
+[33me4f76261[m fix(ui): opt in trending albums expressive API
+[33m8f194125[m fix(playback): support Media3 notification channel info
+[33m8f88a7a2[m chore(deps): update Android build dependencies
+[33mb3f7f8d2[m feat(android-auto): enlarge library artwork
+[33m4397705a[m removed nightly
+[33mcad38dd9[m "feat(innertube): upgrade contextual player recommendations parser - Added support for parsing standard shelves (musicShelfRenderer) and flat item sections (itemSectionRenderer) inside related() player recommendations. - Defined ItemSectionRenderer data structures in SectionListRenderer.kt to map newly supported InnerTube layout formats. - Ensures all contextually recommended tracks, albums, artists, and playlists load fully in the player's Related feed."
+[33m8cfe5949[m fixed search issue
+[33m3d4b04d6[m feat(lyrics): add draggable provider priority ordering in Content Settings - Add LyricsProviderRegistry to map and serialize/deserialize provider order - Add DraggableLyricsProviderList reorderable UI component - Add LyricsProviderOrderKey preference to persist user-defined order - Refactor LyricsHelper to respect saved provider order when fetching lyrics - Replace AlertDialog with premium BasicAlertDialog using smooth squircles - Add lyrics_provider_priority strings to vivi_strings.xml Migrates old PreferredLyricsProvider enum preference: on first launch after update, the previously selected provider is promoted to first in the new order.
+[33md0e4d1bb[m testing 2
+[33m3c117747[m testing
+[33mabe98d57[m added link support
+[33ma6759c42[m updated settingdialoge
+[33m825c3e38[m added url support
+[33m92e305fa[m added an new setting ui to home
+[33mf98cc8bf[m Fixed issue on text visibility https://github.com/vivizzz007/vivi-music/issues/682#issue-4496606627
+[33mde64cbaa[m fixed starting page https://github.com/vivizzz007/vivi-music/issues/684#issue-4502633342
+[33m8cb4c880[m Updated view model
+[33m3e1eec1e[m added search option in add to playlist
+[33m251a6631[m reverted
+[33m6f6b01dd[m fixed not build nightly build
+[33mbbccafe6[m perf(home): optimize loading speed and implement auto-reload on reconnection - Restructured HomeViewModel load logic into two phases:   1. Instantly loads cached content from local database to minimize perceived wait time.   2. Spawns all network requests concurrently in the background using coroutines.
+[33md927d76f[m added reload of home section when ever network is lost
+[33m32c062b3[m Merge pull request #638 from Anto426/feature/android-auto-media-player
+[33mfa835789[m fixed image rendering issue for video songs
+[33mc026fa19[m[33m ([m[1;33mtag: [m[1;33mv6.0.1[m[33m)[m Updated app to v6.0.1
+[33m348e4a1b[m new ui
+[33m6803aa08[m updating readme
+[33md65e78c2[m updating readme
+[33mc1b80a42[m updated feature sections
+[33m2439ea01[m updated
+[33m8099da7e[m updated readme
+[33m78cf7cac[m updated
+[33mba3f5ed5[m updated canvas
+[33md6fcdd7b[m fixed video rendering issue
+[33m33cb137b[m canvas album and player to readme
+[33m733d3aa7[m updated readme
+[33mc9b28ece[m updated readme
+[33mc870343d[m disabled the audio quality badge by default for the old player layout
+[33madbcd61b[m feat: upgrade youtube video thumbnail quality to maxresdefault
+[33m9f69dee1[m added space to homescreen bottom section
+[33m6303c305[m fix: show only subject line in nightly changelog Previously, the nightly changelog was built by splitting the full `head_commit.message` on newlines, causing multi-line commit messages (subject + body) to render as multiple separate bullet points. The body lines (implementation details) appeared as extra changelog entries, showing as truncated "..." dots in the UI. Fix by extracting only the first non-blank line (the subject) of the commit message as the single changelog entry.
+[33m13ca83fa[m fix: apply listItemShape to song-only homepage sections
+[33m5e989632[m feat(ui): implement high-quality image rendering for library components - Apply dynamic resizing (544x544) to Coil image data sources in Items.kt. - Enhance thumbnail clarity for ItemThumbnail (Songs/Albums), ArtistListItem, ArtistGridItem, and PlaylistThumbnail. - Improve rendering across both grid and list layouts in all library tabs. - Retain safety for non-Google/local URLs using the existing resize utility.
+[33m708f7bcf[m feat(sync): implement instant background playlist auto-sync"- Automatically sync YouTube playlists in the background when opened in the app - Optimize playlist sync to run in parallel immediately, bypassing the sequential sync queue to avoid startup delays - Fix empty remote playlist handling by clearing local playlists when all remote songs are removed"
+[33mf61b0496[m updated eq
+[33me434cee8[m Updated albumscreen.kt
+[33mb3660c71[m Updater now enable users to update beta version directly from the nighly
+[33mcde14ef7[m removed unwanted build
+[33m209476ef[m updated build.yml
+[33ma61318c0[m added new icons
+[33m336bb539[m feat(wrapped): optimize UI rendering, sound safety, and visual polish - Performance: Optimized dynamic background mesh dot-grid drawing from ~3,000 separate drawCircle calls down to 1 batched GPU call via `drawPoints` - Performance: Cached animated gradient colors and layout randomizers in `remember` blocks to eliminate GC pauses and layout thrashing (fixes shape jittering) - UX: Restored transparent, immersive full-screen story layout by overlaying TopAppBar and omitting status padding on VerticalPager - UI: Styled Top Songs and Top Artists headers with premium 'bbh_bartle' typography, custom line height, and corrected newline wrapping - Audio: Added strict startup silence inside `initPlayer` to prevent transient sound leakage before track-load coroutines execute - Polish: Fixed app icon in final ConclusionPage to render the colorful, circular app logo instead of the flat, tinted vector icon"
+[33m7f36afc1[m Removed support bottomsheet
+[33m85301681[m updated readme
+[33md1abcf95[m updated readme
+[33mc96a3f10[m added privacy and data collection info
+[33md851d704[m renamed strings to new vivi_strings from old
+[33mad9c7022[m feat: implement expressive 'Support the Developer' bottom sheet
+[33m69cd3a6d[m removed canvas storage
+[33m80b6d647[m feat: implement persistent disk caching for Apple Music Canvas - Added CanvasVideoCache singleton to manage disk-based video caching. - Integrated CacheDataSource into CanvasArtworkPlayer for thumbnail animations. - Refactored BackgroundVideoView in Player.kt to support background video caching. - Added Canvas Cache management to Storage Settings with size slider and real-time usage monitoring. - Included manual cache clearing functionality and updated string resources.
+[33m3491f5ed[m improved recognitionhistoryscreen
+[33mb7c6aeb3[m new improved welcome
+[33m2a998d37[m added navigation to new equlizer
+[33mc91c33ab[m fixed an issue where the equlizer when deleting isnt get deleted
+[33ma9ae49bf[m added volume slider to oldplayermenu
+[33mfdb84b31[m added apple music canvas for background
+[33m9fe6056c[m Merge branch 'vivizzz007:main' into feature/android-auto-media-player
+[33ma29742bb[m perf(lyrics): parallelize YouLyPlus & Paxsenix fetching
+[33m7b7ccb5b[m added smooth animation to volume slider m3e
+[33mb71f82c0[m added an option to disable the badge of the audio quality showing in player.kt {old player}
+[33m5f5136fa[m Merge pull request #663 from vivizzz007/feature/audio-output-switching
+[33mdbc7ccc3[m[33m ([m[1;31morigin/feature/audio-output-switching[m[33m)[m feat(ui): modernize AudioDeviceBottomSheet with Android 15 expressive design
+[33m48675682[m added sleeptimer to audio quality section in old player progress
+[33m7068e72c[m added new audio quality showing in old player
+[33m261cd5e5[m ui: Add metadata badge to OnlinePlaylistScreen header
+[33m71ff0428[m fix(innertube): correctly parse artist names for albums in browsing results
+[33m72538fc8[m feat: implement logout confirmation dialog with Keep/Clear data options
+[33m6350e16e[m feat(ui): implement advanced background styling for NewMiniPlayer
+[33m0ceb8039[m added text
+[33m7423f48a[m feat(ui): add nightly build label support
+[33m03264c7b[m feat(ui): add Live Mesh player background style with optimized rendering
+[33me230ebeb[m fix(playback): improve bot detection mitigation and fix logged-in streaming Description of changes included:
+[33m3138fd08[m feat: integrate PaxSenix lyrics provider and fix provider initialization
+[33mdc2a0cca[m added apple music design and updated the motion of the slider buttons
+[33me3b02ca5[m ui(equalizer): refine Axion EQ interaction and stability
+[33m080f3e3c[m disabled collaborater
+[33mec848030[m added animation to volume slider and now uses volume of the system
+[33m6b77ca7c[m added new icons
+[33m2d318e22[m Now, the download link will update automatically every time you push a commit to the main branch.
+[33m4770afc9[m cleaned nighty build
+[33mb8f4a129[m changed position
+[33mdff118fc[m removed sleeptimer in queue and implimented radio option
+[33m30da81df[m added smooth animation to show bluetooth device like in applemusic
+[33m1211912e[m new player design
+[33m089c366f[m improved applecanas fetching logic
+[33mc19de2eb[m now you can turn off comment
+[33mc75b379d[m fixed the video not playing song
+[33mac4902de[m  it will now update truly dynamically!
+[33mbe5e00fb[m The parallelization is now properly implemented. The three network calls (songs, albums, videos) are all kicked off simultaneously with async, and await is called to collect results.
+[33mff22de1f[m Networking Library: Switched to OkHttp, which is the industry standard for Android and offers better performance and connection pooling.
+[33ma1abe286[m new CircularWavyProgressIndicator
+[33ma2de782c[m Parallel Resilience: Each section (Songs, Artists, Albums, Videos) now has its own error handling. If one fails, the others will still load.
+[33mb013bf4c[m shifted from billboard to applemusic suggetions
+[33mc13a9d8e[m Merge branch 'feature/android-auto-media-player' of https://github.com/Anto426/vivi-music into feature/android-auto-media-player
+[33me1fde257[m fix(android-auto): restore artwork loading
+[33m27be08e0[m Merge branch 'vivizzz007:main' into feature/android-auto-media-player
+[33m566bc287[m missing icons added
+[33m14baffa2[m git commit -m "feat: implement ultra-high quality thumbnails and optimized canvas delivery
+[33m4a932f74[m Fixed local search not able to scroll in search
+[33m0ad6f917[m added M3E search and new tab sections to enhance
+[33m418cd696[m fixed download image not showing
+[33m812555de[m reverted commit
+[33m8cbfe914[m fixed media image quality
+[33m6221b464[m feat(playback): improve Android Auto media browsing
+[33mf0846a27[m Fixed lyrics issue some song lyrics big and small
+[33mfb879891[m improved search result and link fetching
+[33m117c4d8c[m updated  to material3 = "1.5.0-alpha18"
+[33m52cbba77[m fixed metro lyrics not working properly in hindi and other lng
+[33mdd8a74e2[m added new icons
+[33m983602ed[m Merge pull request #590 from Mickael81/Mickael81-patch
+[33mf5c78e52[m Merge pull request #10 from Mickael81/Mickael81-patch-10
+[33mb27092d4[m Delete app/src/main/res/values-fr/app_name.xml
+[33m9e4bd23c[m git commit -m "fix(updater): add clickable hyperlink support and enforce vivi.apk requirement"
+[33m3bff27b4[m[33m ([m[1;33mtag: [m[1;33mv6.0.0[m[33m)[m Updated V6.0.0
+[33md00feefd[m fix(canvas): prevent wrong album animation from showing for Apple Music canvas
+[33m8e417a20[m added radio button in old playermenu
+[33mda243a37[m added missing string
+[33ma89ae5d3[m Replaced home with app-logo
+[33mf651041b[m added missing IPV6 codes
+[33m87305ab8[m fixed an issue where crashing was occuring random
+[33m5e0d0315[m Added comment section in listentogether
+[33m7c6e878a[m Improvements: Raw Asset Prioritization: The app now searches for and prioritizes Apple's motionDetailRaw and motionDetailTall masters. these variants provide the highest possible resolution and bitrate available from Apple's servers. Forced Maximum Bitrate: I've reconfigured the CanvasArtworkPlayer internal engine to disable adaptive quality for canvasses. It will now bypass low-quality streams and force the highest supported bitrate from the moment the animation starts.
+[33m358328fd[m Automated Prefetching: The player now "looks ahead" and prefetches high-quality thumbnails for the next and previous songs in your queue while the current song is playing. This makes transitions feel instant and smooth. WebP Efficiency: I've switched the image encoding to WebP, which delivers the same "Ultra" quality at a much smaller file size. This speeds up fetching and reduces memory pressure without sacrificing clarity. Maximum Quality: All images remain at 1200x1200px with 100% quality encoding, ensuring a premium look on all displays.
+[33md2a36dd7[m added option to paste link and play song directly in search
+[33mc3e0ce18[m Updated eq
+[33m84ceecf3[m feat(canvas): prioritize album-based matching for Apple Music motion artwork
+[33mbcf205d1[m feat(playback): implement antibot mitigation system and real-time diagnostic logs
+[33m00e419eb[m No moew direct build releases
+[33m24ec9156[m Added new equlizer
+[33m1fb2ad35[m Removed Archivetune cnavs fetching improved applemusic canvas
+[33m87b3d293[m an new homescreen startup
+[33m004320c5[m removed_xml
+[33md2ea6c83[m updated icons
+[33m232974a9[m updated icon
+[33mea92d976[m updated icons
+[33m2948d32c[m removed old images
+[33m637dec1a[m removed unused images and xml
+[33m74a1277b[m[33m ([m[1;33mtag: [m[1;33mv5.0.9[m[33m)[m updated app to v5.0.9
+[33m7fde4aa0[m Updated readme
+[33m0f3e0417[m added ko-fi
+[33m83c2b020[m added lastfm
+[33md366e3f9[m added rotating thumbnail
+[33mcc05209f[m Added automatically deleting update after one day from the updater
+[33me732f9b0[m Now you can when an apk isnt removed from updater download location it shows which apk is there
+[33mf929ec95[m Updated string and color
+[33m47c37cd7[m added Ko-Fi link
+[33m51980759[m Fix missing newline at end of vivi_strings.xml
+[33m60e678fc[m Fix duplicate closing tag in vivi_strings.xml
+[33m70c77ea9[m Merge pull request #4 from Mickael81/Mickael81-patch-4
+[33m3cae961b[m Add French strings for suggestions and comments
+[33m5b8b6723[m Merge branch 'vivizzz007:main' into main
+[33m920a13d4[m added wavyslider to audiodevicesheet
+[33m536312dc[m updated agents.md
+[33me15aa9f9[m reverted
+[33ma4bdbfd8[m Merge pull request #588 from vivizzz007/feature/switch-to-android-comments
+[33m9867d790[m[33m ([m[1;31morigin/feature/switch-to-android-comments[m[33m)[m My code ready for main
+[33mae607cf8[m removed text
+[33mb097d6fa[m Merge branch 'main' of https://github.com/vivizzz007/vivi-music
+[33m464100a9[m added a text
+[33m7c63ac1b[m New design for bottomsheet bluetooth
+[33ma7338d84[m Updated changelogscreen
+[33m12182028[m The pause/play detection is now Improved
+[33m23297eef[m Merge branch 'main' of https://github.com/vivizzz007/vivi-music
+[33me43ca375[m The timing engine now reads playerConnection.player.currentPosition directly from the media player every single frame. This gives zero-delay, real-time position data at 60/120 FPS.
+[33mdb204333[m fix(ui): resolve SQLite crash when adding songs to playlist in OnlinePlaylistScreen
+[33mb3e39393[m fixed image issue in localplaylist
+[33mbdda7d13[m increased button scize of artistscreen
+[33m7850a599[m New search and history showing
+[33m2feeb67f[m Merge pull request #3 from Mickael81/Mickael81-patch-3
+[33m74a1b31c[m Add Metro lyrics string to French resources
+[33m29db45fb[m Merge branch 'vivizzz007:main' into main
+[33m62f2ea09[m Updated icon
+[33mddf4de96[m added space to history screen
+[33mc8cbb16a[m Updated icon
+[33mc386fd1e[m added missing space
+[33m4f65b7a0[m added missing strings
+[33m490fafb5[m Added new animation Metro_lyrics
+[33mde7e0ac8[m Updated updater to M3e style
+[33mdaeafc0e[m Fixed issue in artist canvas black screen it will hide video when background video enabled
+[33m3da2345c[m Merge pull request #2 from Mickael81/Mickael81-patch-2
+[33m8da10522[m Add background video strings for artist display
+[33m634ea151[m Merge branch 'vivizzz007:main' into main
+[33mf8eed0a8[m simpmusic lyrics fetch fix
+[33m53707c4e[m Updated
+[33m0a525d7d[m Merge branch 'main' of https://github.com/vivizzz007/vivi-music
+[33m8058d47d[m Added: https://lyricsplus.prjktla.my.id (Primary server). Updated: https://youlyplus.binimum.org → https://lyricsplus.binimum.org. Removed: http://ly.mxtiy.xyz (Insecure and deprecated). Reordered: Servers now follow the priority order from the official extension.
+[33m8f5308fa[m Added applemusicArtist background
+[33md3089816[m Revert "moved the AppleMusicCanvasProvider from the separate applecanvas module directly into the canvas module"
+[33m51b810a1[m moved the AppleMusicCanvasProvider from the separate applecanvas module directly into the canvas module
+[33ma3116921[m Updated readme
+[33m0a415565[m removed
+[33mba9cdf0e[m Both of these styles cleanly render their own translated text during their independent internal layout creation, so this perfectly resolves your duplicate translation issue.
+[33m0913adf7[m nstant Content Sync: I reduced the manifest cache from 1 hour to just 1 minute. This means if you add a new song to canvas.json and push it to Vercel, the app will now pick it up almost immediately instead of making you wait an hour. Fix HLS (.m3u8) Playback: I made the MIME type detection in CanvasArtworkPlayer.kt much more robust. It now explicitly recognizes .m3u8 streams from your Vercel repository, ensuring that tracks like the Spider-Verse collection (e.g., 7.m3u8) play cinematic-quality video without errors.
+[33m2a3835b2[m added vivimusic canvas custom canvas support
+[33m5bd4cdba[m increased the curve GLOBALLY (for all thumbnails) from 3 to 6
+[33m22d5a8f6[m added applemusic description as fallback when wikipedia didn't get
+[33m864c479d[m improved fetching and logic for applemusic
+[33m24ebf2be[m optimize speed dial grid for tablets and large screens
+[33m5b548951[m Added apple music canvas support
+[33m7ae36491[m added text
+[33m74ce2dd7[m some content
+[33mbb4c1613[m Added missing Daily Discover title in Home screen
+[33m691b2db9[m Partial implimentation of apple music player
+[33m1aac70c0[m added apple desing initial
+[33mb17fe94b[m Merge branch 'vivizzz007:main' into main
+[33m271023ae[m Translate updater strings to French
+[33mb454ead7[m Add album canvas strings in French localization
+[33m23bf035b[m Fix formatting in vivi_strings.xml
+[33mbf6dd993[m Fix formatting of persistent_queue_desc string
+[33m85591363[m Fix typo in failed_to_parse_proxy string
+[33m8c45f742[m Added album canvas
+[33m3461950f[m Add French localization for updater strings
+[33mc65ed98e[m Create updater_strings.xml
+[33me2f02a70[m Merge branch 'vivizzz007:main' into main
+[33m91f86340[m Fixed some patch
+[33m333cfb0a[m removed some text
+[33mff3ec9df[m New updater and animations
+[33m7c5025a1[m Merge branch 'vivizzz007:main' into main
+[33mf63d024f[m Merge pull request #1 from Mickael81/Mickael81-patch-1
+[33me03257ea[m Update French translations in vivi_strings.xml
+[33m5c066cdd[m Update French translations in vivi_strings.xml
+[33ma7432d1a[m Reverted commit regarding to translation
+[33m3c2917fa[m Fixed lyrics translation issue
+[33mc1766cf2[m Update French strings for equalizer and playback
+[33m9df3aecb[m Translate Last.fm integration strings to French
+[33m21eba6bc[m Translate updater and audio offload strings to French
+[33m99f72be7[m Update French translations in vivi_strings.xml
+[33m451fcfbc[m Translate player settings strings to French
+[33m48531195[m added an option to copy logs
+[33mf721e287[m Translate strings in vivi_strings.xml to French
+[33m5877dae6[m Add network IP version strings in French
+[33m551eacd3[m Update default library chip string to French
+[33mf8fe0a41[m  Moved the "Network IP Version" setting from the Player settings to the Content settings
+[33mdac6bf8b[m implementing the IPv4/IPv6 streaming option
+[33me6221dcc[m Added missing ow, when you manually scroll through the lyrics, the blur effect will automatically drop so that all lines are clearly readable. Once you re-enable Auto Scroll, the blur will return to lines away from the current playback position.
+[33me7c1d0df[m Translate strings to French in vivi_strings.xml
+[33m538ece3d[m Translate strings in vivi_strings.xml to French
+[33m2f8b3e13[m Translate player settings strings to French
+[33mf511f232[m Add strings for clearing downloaded updates
+[33m84620e26[m Add plural strings for APK found messages in French
+[33ma2cd7e90[m Added option to clear storage of the updater
+[33m985f3bd9[m FIxed canvas showing irregular tidal animations
+[33mb6748c62[m Update French strings for playback and settings
+[33mca1d3b35[m Translate strings in French localization file
+[33m219a64b6[m Add French app name to resources
+[33m593d9325[m Create app_name.xml
+[33m4d6f3a30[m Add French translations for smart resync feature
+[33mfe8f6680[m reverted commit
+[33mdf746819[m[33m ([m[1;33mtag: [m[1;33mv5.0.8[m[33m)[m Bumbed to 5.0.7
+[33mae630e3b[m Fixed lastfm not working
+[33m6411690b[m Translate strings to French in strings.xml
+[33m770afb8d[m Translate strings.xml content to French
+[33mfc0e3b5d[m Translate settings strings to French
+[33mfcf0370f[m[33m ([m[1;33mtag: [m[1;33mv5.0.7[m[33m)[m Bumbed to 5.0.7
+[33m3635367d[m Merge pull request #511 from mertcaners12/localization
+[33mea640d27[m implemented the Smart Network Resync feature!
+[33m0baeddc6[m reverted the libs version
+[33m8d3814a7[m new ui for the last.fm setting page
+[33ma0ee7ea0[m implemented a fix to ensure that artist thumbnails are correctly fetched and displayed in the AlbumScreen  for single-artist albums, even if the artist was previously unknown to the database.
+[33m60cd3b98[m Now only default as one server vivimusic server for the listen together will bring back Meowery after sometime
+[33meba1f9fd[m Now vivimusic shows update dynamically even if you at b tag dosent matter you will be given rollback to stable build
+[33m8a389f81[m[33m ([m[1;33mtag: [m[1;33mb5.0.7[m[33m, [m[1;33mtag: [m[1;33mb5.0.6[m[33m)[m chore: bump newpipeextractor version to v0.26.0
+[33m397e5a69[m currently main server as vivimusic
+[33md0599f8e[m New blurbackground for onlineplaylistscreen
+[33m4aaa8989[m new upgraded albumgradient
+[33me8b3bb82[m Update French translations in strings.xml
+[33m55adb97e[m Update French strings for UI elements
+[33md1d9cf87[m Update French translations in strings.xml
+[33m920e8f93[m Update print statement from 'Hello' to 'Goodbye'
+[33mf50b76f5[m Update print statement from 'Hello' to 'Goodbye'
+[33md5ae34bc[m fix(listen-together): update server region to USA
+[33ma440dffb[m Updated images
+[33m367d5c3b[m Add files via upload
+[33m8119d3b8[m Update Turkish localization.
+[33m790349ec[m Fixed issue when pressing aboutscreen the coffee,upi,payapal causing crash
+[33m0736e6b0[m New release and build.yml
+[33m2cdf9662[m new release.yml
+[33m97f15add[m New album page added gradient support
+[33m9393aad1[m fixed debug build
+[33m5a3018ef[m new build_quick
+[33m030f7dd8[m fixed some issue
+[33m493b8744[m Added canvas support in artistscreen
+[33m3afb7658[m improved tracking of the slider n listen together
+[33m4a79afb1[m Added switch for apple blur to non word for word added an switch for it
+[33m50be55b0[m fixed the lyrics spacing for ALL animation styles (Standard, Fade, Glow, Slide, Karaoke, Apple, etc.).
+[33m55642839[m added line space upto 4.0x
+[33m4f6aaac6[m Reverted
+[33m4db4d7ab[m Added VIVIMUSIC_1 blur animation to standardLyrics as a toogle default its off
+[33m74fb0494[m Updated thumbnail.kt to show album name
+[33m23b7153f[m Fixed streaming issue in metro.mowery server for listen together
+[33mc542783c[m Fixed issue where the listen together not working when google account sign in occured
+[33m25a2957a[m Found and fixed the root cause. Here's what happened:
+[33mb188caf8[m[33m ([m[1;33mtag: [m[1;33mv5.0.6[m[33m)[m Bumbed to new version v5.0.6
+[33mc4d47e67[m fix: resolve streaming delay by switching to ANDROID_VR client and deferring PoToken generation
+[33m36a76881[m[33m ([m[1;33mtag: [m[1;33mb5.0.5[m[33m)[m Fixed issue https://github.com/vivizzz007/vivi-music/issues/469#issue-4027155987
+[33m95fd8943[m[33m ([m[1;33mtag: [m[1;33mv5.0.5[m[33m)[m Updated
+[33m4770a91b[m added enhancement  listen togather
+[33m58816e28[m Beta to stable
+[33maf575c35[m updated image format
+[33me87b809e[m Updated server and added new server
+[33md50dad1a[m[33m ([m[1;33mtag: [m[1;33mv5.0.4[m[33m)[m Updated app to 5.0.4
+[33m608a7f96[m fixed strings
+[33ma37f24bd[m add space to storage setting
+[33m69eb803e[m for foss build you cant update through updater
+[33m78cdce85[m Version Display: The Update Settings screen now displays the app version, architecture (ABI), and build variant (GMS/FOSS),
+[33m935248d4[m fdroid buid no more include install permission in building
+[33m7b1fa152[m Added tidal thumnail canvas thanks to monochrome codes
+[33m60b3cc74[m added  YouLyPlus as default provider for the lyrics and added vivimusic_1 as default animation
+[33m798681a0[m Updated Web icon
+[33m207ab953[m Updated icon
+[33mb340a31b[m added some space below in aboutscreen
+[33m5b2f54fe[m Text updated in about screen
+[33mcf74cf8b[m Added some space below the cache screen for better UI
+[33m2c2bb409[m Reworked about screen
+[33m646defd2[m Updated icon for artist added GNU 3.0 licence strings
+[33m2c55f64d[m removed link for paypal and buyme coffee
+[33m6bfcb6ae[m improved albumscreen
+[33m1a6b64e4[m fixed artistscreen issue were the swtich to not show the artist sub count turned on , then now on it wont show
+[33ma3f0507a[m fixed explicit showing simply even if there isnt any explicit songs
+[33mdb94caa2[m fixed explicit icon showig issue updated the ui fixed the save and saved button showing in error fixed space and alignment between the artist discription and the artist name
+[33m2986a3a6[m updated app icon
+[33m49b28680[m changed app icon
+[33mb65128ef[m fixed version code
+[33m0c50cbb6[m refactor buildgradle
+[33mf5efd709[m Visual ui changed for aboutscreen
+[33m8dffee1b[m Updated and fixed thumnailcorner radius
+[33m70f424bf[m Fixed updater now showing beta update
+[33mbd3b7f59[m updated app icon
+[33m7f41074a[m Added new lyrics support YouLy+ improved lyrics tracking
+[33mc76d360d[m fixed issue in canvas Switching to TextureView will allow the video to be treated as a regular view in the hierarchy, supporting smooth alpha transitions and preventing the "punch through" effect that causes flickering or "holes" during initialization.
+[33m52fcd763[m fixed image issue in accountsetting page
+[33m45e4f0cc[m Updated implementation to include album and duration parameters in the API request, matching the logic from the Better Lyrics Shaders project. This will improve the accuracy of animated artwork matching in the player.
+[33ma65d4dda[m fixed crash in audio recognition using shazzam migrate to a pure Kotlin implementation of the Shazam signature algorithm. This eliminates the need for native libraries, reduces app size, and avoids architecture-specific crashes
+[33mfff0f09c[m fixed some strings
+[33mc9e707ae[m fully added animation on thumbnail canvas ported from archivetune
+[33m49643f06[m Updated
+[33m9480e16a[m updated to 5.0.4

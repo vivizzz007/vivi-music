@@ -11,6 +11,10 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.graphics.toColorInt
 import com.music.vivi.R
+import com.music.vivi.constants.EnableNotificationsKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import com.music.vivi.vivimusic.updater.getDownloadNotificationsSetting
 
 object DownloadNotificationManager {
     private lateinit var notificationManager: NotificationManager
@@ -44,6 +48,8 @@ object DownloadNotificationManager {
      * Show download starting notification
      */
     fun showDownloadStarting(version: String, fileSize: String) {
+        val notificationsEnabled = appContext.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled || !getDownloadNotificationsSetting(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
             showDownloadStartingModern(version, fileSize)
         } else {
@@ -55,6 +61,8 @@ object DownloadNotificationManager {
      * Update download progress notification
      */
     fun updateDownloadProgress(progress: Int, version: String) {
+        val notificationsEnabled = appContext.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled || !getDownloadNotificationsSetting(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
             updateDownloadProgressModern(progress, version)
         } else {
@@ -66,6 +74,8 @@ object DownloadNotificationManager {
      * Show download completed notification
      */
     fun showDownloadComplete(version: String, filePath: String) {
+        val notificationsEnabled = appContext.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled || !getDownloadNotificationsSetting(appContext)) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.BAKLAVA) {
             showDownloadCompleteModern(version, filePath)
         } else {
@@ -77,6 +87,8 @@ object DownloadNotificationManager {
      * Show download failed notification
      */
     fun showDownloadFailed(version: String, errorMessage: String) {
+        val notificationsEnabled = appContext.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled || !getDownloadNotificationsSetting(appContext)) return
         val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.stat_sys_warning)
             .setContentTitle(appContext.getString(R.string.update_failed))

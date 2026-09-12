@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -17,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -40,6 +42,7 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.db.entities.Song
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
@@ -134,8 +137,23 @@ fun BackupAndRestore(
             )
         )
 
-        Material3SettingsGroup(
+        Text(
+            text = stringResource(R.string.backup_restore),
+            style = MaterialTheme.typography.headlineLarge,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 16.dp)
+        )
+
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.backup_restore),
             items = listOf(
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.autobackup_settings)) },
+                    icon = painterResource(R.drawable.database_upload),
+                    onClick = {
+                        navController.navigate("settings/backup_restore/autobackup")
+                    }
+                ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.action_backup)) },
                     icon = painterResource(R.drawable.backup),
@@ -146,15 +164,23 @@ fun BackupAndRestore(
                                 LocalDateTime.now().format(formatter)
                             }.backup"
                         )
-                    },
+                    }
                 ),
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.action_restore)) },
                     icon = painterResource(R.drawable.restore),
                     onClick = {
                         restoreLauncher.launch(arrayOf("application/octet-stream"))
-                    },
-                ),
+                    }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.others),
+            items = listOf(
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.import_online)) },
                     icon = painterResource(R.drawable.playlist_add),
@@ -168,13 +194,20 @@ fun BackupAndRestore(
                     onClick = {
                         importPlaylistFromCsv.launch(arrayOf("text/csv", "text/comma-separated-values", "application/csv", "text/plain"))
                     }
+                ),
+                Material3SettingsItem(
+                    title = { Text(stringResource(R.string.import_from_spotify)) },
+                    icon = painterResource(R.drawable.spotify),
+                    onClick = {
+                        navController.navigate("settings/spotify")
+                    }
                 )
             )
         )
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.backup_restore)) },
+        title = { },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

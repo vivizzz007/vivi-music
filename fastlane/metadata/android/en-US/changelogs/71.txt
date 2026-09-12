@@ -1,0 +1,13 @@
+Imported new android auto from @Anto426
+improved canvas fetching logic
+added jio savaan as streaming provider and can be downloaded
+added retry button in playermenu and old playermenu
+fixed shuffle core logic
+fixed search logic
+fixed empty playlist
+added priority lyrics provider selection
+fixed image rendering issue for the video song
+Fixed apple canvas logic
+Improved speed in homescreen
+Added dynamic suggetion in search
+fixed image issue for video

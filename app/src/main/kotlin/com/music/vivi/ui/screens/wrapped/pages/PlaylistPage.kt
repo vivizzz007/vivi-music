@@ -55,9 +55,9 @@ fun PlaylistPage() {
 
     val (playlistImageRes, playlistImageName) = remember {
         if (Random.nextBoolean()) {
-            Pair(R.drawable.wrapped_playlistv1, "wrapped_playlistv1")
+            Pair(R.drawable.viviwrapped_v1, "viviwrapped_v1")
         } else {
-            Pair(R.drawable.wrapped_playlistv2, "wrapped_playlistv2")
+            Pair(R.drawable.viviwrapped_v2, "viviwrapped_v2")
         }
     }
 

@@ -1,0 +1,9 @@
+ViviMusic Update!
+- Added seamless audio crossfade for smooth track transitions
+- Added BiniLyrics and Unison lyrics providers
+- InnerTubeX integration & YouTube Kids support
+- Fullscreen Detailed Listening History with precise play counters
+- Redesigned History Screen with integrated search and Remote toggles
+- New library mix layout & Expressive Material 3 tablet sidebar
+- Fixed search suggestions, UI freezes, and remote history sync after playing local songs
+Enjoy the music!

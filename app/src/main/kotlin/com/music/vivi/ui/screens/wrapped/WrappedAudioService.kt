@@ -35,12 +35,13 @@ class WrappedAudioService(
     private var player: ExoPlayer? = null
     private var playbackJob: Job? = null
 
-    private val _isMuted = MutableStateFlow(false)
+    private val _isMuted = MutableStateFlow(true)
     val isMuted = _isMuted.asStateFlow()
 
     private fun initPlayer() {
         if (player == null) {
             player = ExoPlayer.Builder(context).build().apply {
+                volume = if (_isMuted.value) 0f else 1f
                 addListener(object : Player.Listener {
                     override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                         Timber.tag("WrappedAudioService").e(error, "Player error")

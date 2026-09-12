@@ -1,0 +1,15 @@
+updated new playlist in home
+fixed streaming issue
+fixed navigation issue
+fixed library issue 
+fixed apple canvas issue
+fixed tidal issue canvas
+fixed artist background video
+added japanese translation by @haruki55go
+Updated french language by @Mickael81 
+added spotify import thanks to echo music 
+added toggle to disable the popup for the homescreen
+added new image fetching logic to the app
+added playlist search option
+fixed sleeptimer chip issue in player
+added new notification setting

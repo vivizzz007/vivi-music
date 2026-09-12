@@ -24,11 +24,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.music.vivi.constants.PinnedLibraryItemsKey
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -63,11 +66,14 @@ fun ArtistMenu(
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)
     val artist = artistState.value ?: originalArtist
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
+    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
+    val isPinnedToLibraryMix = pinnedLibraryItems.contains("artist:${artist.id}")
 
     ArtistListItem(
         artist = artist,
         badges = {},
         trailingContent = {},
+        backgroundColor = Color.Transparent,
     )
 
     HorizontalDivider()
@@ -155,38 +161,6 @@ fun ArtistMenu(
                         }
                     }
 
-                    add(
-                        NewAction(
-                            icon = {
-                                Icon(
-                                    painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(28.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            text = if (isPinned) "Unpin" else "Pin",
-                            onClick = {
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    if (isPinned) {
-                                        database.speedDialDao.delete(artist.id)
-                                    } else {
-                                        database.speedDialDao.insert(
-                                            SpeedDialItem(
-                                                id = artist.id,
-                                                title = artist.artist.name,
-                                                subtitle = null,
-                                                thumbnailUrl = artist.artist.thumbnailUrl,
-                                                type = "ARTIST"
-                                            )
-                                        )
-                                    }
-                                }
-                                onDismiss()
-                            }
-                        )
-                    )
-
                     if (artist.artist.isYouTubeArtist) {
                         add(
                             NewAction(
@@ -222,7 +196,59 @@ fun ArtistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
+                    Material3MenuItemData(
+                        title = {
+                            Text(text = if (isPinned) "Unpin" else "Pin")
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinned) R.drawable.remove else R.drawable.add),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                if (isPinned) {
+                                    database.speedDialDao.delete(artist.id)
+                                } else {
+                                    database.speedDialDao.insert(
+                                        SpeedDialItem(
+                                            id = artist.id,
+                                            title = artist.artist.name,
+                                            subtitle = null,
+                                            thumbnailUrl = artist.artist.thumbnailUrl,
+                                            type = "ARTIST"
+                                        )
+                                    )
+                                }
+                            }
+                            onDismiss()
+                        }
+                    ),
+                    Material3MenuItemData(
+                        title = {
+                            Text(
+                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            val newItems = if (isPinnedToLibraryMix) {
+                                pinnedLibraryItems - "artist:${artist.id}"
+                            } else {
+                                pinnedLibraryItems + "artist:${artist.id}"
+                            }
+                            onPinnedLibraryItemsChange(newItems)
+                            onDismiss()
+                        }
+                    ),
                     Material3MenuItemData(
                         title = {
                             Text(text = if (artist.artist.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))

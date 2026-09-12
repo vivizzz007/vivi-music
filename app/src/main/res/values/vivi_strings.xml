@@ -41,6 +41,10 @@
     <string name="uploaded_playlist">Uploaded</string>
     <string name="filter_uploaded">Uploaded</string>
     <string name="sync_playlist">Sync playlist</string>
+    <string name="syncing_progress">Syncing %1$d of %2$d songs</string>
+    <string name="playlist_uploaded">Playlist uploaded successfully</string>
+    <string name="sync_completed_success">Synced %1$d songs successfully</string>
+    <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
     <string name="elements_selected">%1$d elements selected</string>
     <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later.</string>
@@ -66,8 +70,8 @@
     <string name="about_artist">About</string>
     <string name="about_album">About</string>
     <string name="about_playlist">About</string>
-    <string name="show_more">Show more</string>
-    <string name="show_less">Show less</string>
+    <string name="show_more">More</string>
+    <string name="show_less">Less</string>
     <string name="artist_page_settings">Artist page</string>
     <string name="show_artist_description">Show artist description</string>
     <string name="show_artist_subscriber_count">Show subscriber count</string>
@@ -99,14 +103,31 @@
     <string name="maximum_volume">Maximum Volume</string>
     <string name="hide_player_thumbnail">Hide Player Thumbnail</string>
     <string name="hide_player_thumbnail_desc">Replace album artwork with app logo in player</string>
+    <string name="show_player_thumbnail_shadow">Player Thumbnail Shadow</string>
+    <string name="show_player_thumbnail_shadow_desc">Show shadow around the player thumbnail image</string>
+    <string name="player_thumbnail_shadow_depth">Shadow Depth</string>
+    <string name="player_thumbnail_shadow_depth_desc">Adjust the intensity and distance of the player thumbnail shadow</string>
     <string name="thumbnail_corner_radius">Thumbnail Corner Radius</string>
-    <string name="thumbnail_corner_radius_desc">Change the corner radius of the album cover thumbnail</string>
+    <string name="thumbnail_corner_radius_desc">Adjust thumbnail corner radius</string>
     <string name="crop_album_art">Crop Album Art</string>
     <string name="crop_album_art_desc">Force a square aspect ratio by cropping video thumbnails</string>
     <string name="vivimusic_canvas">Canvas</string>
-    <string name="vivimusic_canvas_desc">Show animated album covers when available</string>
+    <string name="use_canvas">Use canvas</string>
+    <string name="vivimusic_canvas_desc">Replaces the static album artwork in the player with a looping animated video when one is available for the current song</string>
+    <string name="canvas_source">Canvas source</string>
+    <string name="canvas_source_auto">Auto</string>
+    <string name="canvas_source_auto_desc">Tries Apple Music first, then falls back to ViviMusic and Tidal. Picks the best match for the current song automatically</string>
+    <string name="canvas_source_apple_music">Apple Music</string>
+    <string name="canvas_source_apple_music_desc">Uses Apple Music&#8217;s animated visuals exclusively. Only shows a canvas if Apple Music has one for the playing song</string>
+    <string name="canvas_source_vivimusic">ViviMusic</string>
+    <string name="canvas_source_vivimusic_desc">Uses the ViviMusic curated canvas library exclusively. Only shows a canvas if one has been added for the playing song</string>
+    <string name="canvas_source_tidal">Tidal</string>
+    <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a canvas if Tidal has one for the playing song</string>
     <string name="show_album_canvas">Show Album Canvas</string>
     <string name="show_album_canvas_desc">Display animated canvas in album</string>
+    <string name="canvas_load_only_wifi">Load only on Wi-Fi</string>
+    <string name="canvas_load_only_wifi_desc">Skip loading canvas animations when on cellular or metered connections</string>
+    <string name="canvas_network">Network</string>
     <string name="rotating_thumbnail">Rotating thumbnail</string>
     <string name="rotating_thumbnail_desc">Enable a rotating thumbnail animation effect</string>
 
@@ -141,8 +162,17 @@
     <string name="player_background_solid">Solid</string>
     <string name="follow_theme">Follow theme</string>
     <string name="gradient">Gradient</string>
-    <string name="glow_animated">Glow animated</string>
-    <string name="new_player_design">New player design</string>
+    <string name="glow_animated">Glow motion</string>
+    <string name="live_mesh">Live Mesh</string>
+    <string name="classic_player">Apple player</string>
+    <string name="new_player_design">M3e player</string>
+    <string name="player_design">Player</string>
+    <string name="player_v2">Apple Music v17</string>
+    <string name="use_expressive_album_design">Expressive album design</string>
+    <string name="use_expressive_album_design_desc">Minimal list without thumbnails</string>
+    <string name="show_song_thumbnail_in_list">Show album song thumbnails</string>
+    <string name="show_song_thumbnail_in_list_desc">Show album song artwork instead of track numbers in expressive lists</string>
+    <string name="album_settings">Album Settings</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
     <string name="player_buttons_style">Player button colors</string>
@@ -156,6 +186,7 @@
     <string name="density_restart_message">The display density change will take effect after restarting the app. Do you want to restart now?</string>
     <string name="enable_wavy_slider">Enable wavy slider</string>
     <string name="wavy">Wavy</string>
+    <string name="expressive_wavy">Expressive Wavy</string>
     <string name="enable_swipe_thumbnail">Enable swipe to change song</string>
     <string name="swipe_song_to_add">Swipe song to the left to add it to the queue or to the right to play it next</string>
     <string name="swipe_song_to_remove">Swipe song to remove it from the playlist</string>
@@ -165,8 +196,6 @@
     <string name="lyrics_glow_effect_desc">Add glowing animation and bounce effect to active lyrics</string>
     <string name="enable_better_lyrics">Enable Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Use Better Lyrics provider for word-by-word synced lyrics</string>
-    <string name="enable_simpmusic">Enable SimpMusic Lyrics</string>
-    <string name="enable_simpmusic_desc">Use SimpMusic Lyrics provider for synced lyrics</string>
     <string name="auto_scroll">Re-sync</string>
     <string name="slim">Slim</string>
     <string name="slim_navbar">Slim bottom navigation bar</string>
@@ -215,6 +244,8 @@
     <string name="configure_supported_links">Configure supported links</string>
     <string name="intent_supported_links_not_found">Couldn\'t find supported links settings, please configure them manually</string>
     <string name="set_first_lyrics_provider">Preferred lyrics provider</string>
+    <string name="lyrics_provider_priority">Lyrics provider priority</string>
+    <string name="lyrics_provider_priority_desc">Drag to reorder which provider is tried first</string>
     <string name="config_proxy">Configure proxy</string>
     <string name="proxy_username">Proxy username</string>
     <string name="proxy_password">Proxy password</string>
@@ -248,6 +279,10 @@
     <string name="clear_song_cache_dialog">  Are you sure you want to clear all cached songs?</string>
     <string name="clear_image_cache_dialog">  Are you sure you want to clear all cached image?</string>
     <string name="clear_downloads_dialog">  Are you sure you want to clear all downloads?</string>
+    <string name="logout_dialog_title">Logout</string>
+    <string name="logout_dialog_message">Do you wish to keep every library and other thing?</string>
+    <string name="logout_keep_data">Keep Data</string>
+    <string name="logout_clear_data">Clear Data</string>
 
     <string name="disable">Disable</string>
 
@@ -266,6 +301,14 @@
     <string name="past_year">Past year</string>
     <string name="top_length">My Top list length</string>
     <string name="history_duration">History duration</string>
+    <string name="activity_history">Listening Summary</string>
+    <string name="total_listening_time">Total Listening Time</string>
+    <string name="unique_songs">Unique Songs</string>
+    <string name="unique_artists">Unique Artists</string>
+    <string name="unique_albums">Unique Albums</string>
+    <string name="selected_period">Selected Period</string>
+    <string name="hours_minutes_format">%1$dh %2$dm</string>
+
     <string name="information">Information</string>
     <string name="description">Description</string>
     <string name="numbers">Numbers</string>
@@ -296,6 +339,16 @@
     <string name="crossfade_duration">Crossfade duration</string>
     <string name="crossfade_gapless">Disable for gapless albums</string>
     <string name="crossfade_gapless_desc">Don\'t crossfade if the album is gapless</string>
+    <string name="crossfade_manual_skip">Crossfade on manual skip</string>
+    <string name="crossfade_manual_skip_desc">Also crossfade when you press next/previous, instead of only at the end of a track</string>
+    <string name="crossfade_curve">Crossfade curve</string>
+    <string name="crossfade_curve_desc">Shape of the volume ramp between tracks</string>
+    <string name="crossfade_curve_entry_equal_power">Equal power</string>
+    <string name="crossfade_curve_entry_ease_out_quad">Ease out (quad)</string>
+    <string name="crossfade_curve_entry_ease_out_cubic">Ease out (cubic)</string>
+    <string name="crossfade_curve_entry_smoothstep">Smoothstep</string>
+    <string name="crossfade_curve_preview_outgoing">Outgoing</string>
+    <string name="crossfade_curve_preview_incoming">Incoming</string>
     <string name="crossfade_beta_title">Beta Feature</string>
     <string name="crossfade_beta_message">Crossfade is a new feature and may have bugs. If you experience any issues, please report them.\n\nThis feature disables audio offload due to technical limitations.</string>
 
@@ -332,10 +385,24 @@
     <string name="settings_section_player_content">Player &amp; Content</string>
     <string name="settings_section_storage">Storage &amp; Data</string>
     <string name="settings_section_system">System &amp; About</string>
+    <string name="setting_account_desc">Manage logged-in profiles</string>
+    <string name="setting_appearance_desc">Customize themes and layout</string>
+    <string name="setting_player_desc">Audio quality and equalizer</string>
+    <string name="setting_listen_together_desc">Listen with friends</string>
+    <string name="setting_content_desc">Language and library</string>
+    <string name="setting_ai_lyrics_translation_desc">Setup AI translations</string>
+    <string name="setting_privacy_desc">Security and data</string>
+    <string name="setting_storage_desc">Cache and downloads</string>
+    <string name="setting_data_saver_desc">Restrict network usage</string>
+    <string name="setting_backup_restore_desc">Import/export settings</string>
+    <string name="setting_about_desc">App version and info</string>
+    <string name="setting_auto_update_desc">Automatically check for new app releases</string>
+    <string name="setting_beta_updates_desc">Opt-in to experimental beta builds</string>
 
     <!-- Updater -->
     <string name="updater">Updater</string>
     <string name="check_for_updates">Automatically check for updates</string>
+    <string name="error_checking_updates">Error checking for updates</string>
     <string name="update_available_title">Update available</string>
     <string name="update_channel_name">App updates</string>
     <string name="update_channel_desc">Notifications about new versions</string>
@@ -386,6 +453,7 @@
     <string name="equalizer_desc">Adjust the audio equalizer</string>
     <string name="enable_dynamic_icon">Enable dynamic app icon</string>
     <string name="mini_player">Mini-player</string>
+    <string name="miniplayer_background_style">Mini-player background style</string>
     <string name="pure_black_mini_player">Pure black mini-player</string>
     <string name="mini_player_outline">Mini-player outline</string>
     <string name="cache_size_warning_title">Hold on!</string>
@@ -393,7 +461,7 @@
     <string name="cache_size_warning_confirm">Continue</string>
 
     <!-- Lyrics Animation Styles -->
-    <string name="lyrics_animation_style">Word-by-word animation style</string>
+    <string name="lyrics_animation_style">Lyrics animation</string>
     <string name="none">None</string>
     <string name="fade">Fade</string>
     <string name="glow">Glow</string>
@@ -413,14 +481,14 @@
     <string name="wrapped_total_albums_subtitle">unique albums</string>
     <string name="wrapped_top_album_title">Your top album is</string>
     <string name="wrapped_playlist_ready">Your personal playlist is ready</string>
-    <string name="wrapped_top_5_albums_title">Your top 5 albums</string>
+    <string name="wrapped_top_5_albums_title">Your top 5 album</string>
     <string name="wrapped_album_listening_time">You\'ve listened to this album for %d minutes</string>
     <string name="wrapped_album_listening_time_minutes">%d minutes</string>
     <string name="wrapped_no_data">No data</string>
-    <string name="wrapped_top_5_artists_title">Your top artists of the year</string>
+    <string name="wrapped_top_5_artists_title">Your top artist\nof the year</string>
     <string name="wrapped_artist_image_content_description">Artist image</string>
     <string name="wrapped_artist_listening_time">%d minutes</string>
-    <string name="wrapped_top_5_songs_title">Your top songs of the year</string>
+    <string name="wrapped_top_5_songs_title">Your top songs\nof the year</string>
     <string name="wrapped_top_song_album_art_content_description">Album art</string>
     <string name="wrapped_top_artist_title">Your top artist of the year is</string>
     <string name="wrapped_top_artist_image_content_description">Top artist image</string>
@@ -443,7 +511,7 @@
     <string name="wrapped_ready_title">YOUR WRAPPED IS READY!</string>
     <string name="wrapped_ready_subtitle">Time to see what you loved this year.</string>
     <string name="wrapped_thank_you">Thank you for listening</string>
-    <string name="wrapped_special_thanks">Special thanks to MO Agamy for creating vivimusic</string>
+    <string name="wrapped_special_thanks">Special thanks to Vividh for creating vivimusic</string>
     <string name="wrapped_close">Close wrapped</string>
     <string name="wrapped_playlist_title">Your %s Wrapped</string>
     <string name="wrapped_create_playlist">Create playlist</string>
@@ -482,6 +550,9 @@
     <string name="eq_label_mid">Mids</string>
     <string name="eq_label_treble">Treble</string>
     <string name="eq_preset_flat">Flat</string>
+    <string name="eq_preset_vivi_signature">Vivi Signature</string>
+    <string name="eq_preset_acoustic">Acoustic</string>
+    <string name="eq_preset_spatial">3D Stage</string>
     <string name="eq_preset_bass_boost">Bass Boost</string>
     <string name="eq_preset_pure_clarity">Pure Clarity</string>
     <string name="eq_preset_soft_bass">Soft Bass</string>
@@ -573,7 +644,7 @@
     <string name="listen_together_username">Username</string>
     <string name="listen_together_connected">Connected</string>
     <string name="listen_together_reconnecting">Reconnecting…</string>
-    <string name="listen_together_disconnected">Disconnected</string>
+    <string name="listen_together_disconnected">Offline</string>
     <string name="listen_together_connecting">Connecting…</string>
     <string name="listen_together_error">Connection error</string>
     <string name="listen_together_create_room">Create room</string>
@@ -598,7 +669,7 @@
     <string name="listen_together_in_top_bar">Listen Together in top bar</string>
     <string name="listen_together_in_top_bar_desc">Show Listen Together in top app bar instead of navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real-time. Create a room to be the host or join an existing room with a code.</string>
-    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app.</string>
+    <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app, or if you connect to the server but remain idle without joining a room for 15 minutes.</string>
     <string name="listen_together_not_configured">Listen Together is not configured. Please set up the server URL in Settings → Integrations → Listen Together.</string>
     <string name="listen_together_suggestion_received">%1$s requested %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion sent to host!</string>
@@ -725,6 +796,7 @@
     <string name="palette_brown">Brown</string>
     <string name="palette_grey">Grey</string>
     <string name="palette_blue_grey">Blue Grey</string>
+    <string name="palette_monochrome">Monochrome</string>
 
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Back</string>
@@ -843,9 +915,14 @@
     <string name="version_code">Version code</string>
     <string name="namespace">Namespace</string>
     <string name="telegram_channel">Telegram</string>
+    <string name="version_info">Version Info</string>
+    <string name="flavour">Flavour</string>
+    <string name="version_title">Version</string>
 
     <!-- Onboarding -->
     <string name="welcome_to">Welcome to</string>
+    <string name="welcome_to_vivi">Welcome to Vivi</string>
+    <string name="accessibility">Accessibility</string>
     <string name="welcome_preparing_subtitle">Let\'s get everything ready for you.</string>
     <string name="get_started">Get Started</string>
 
@@ -893,7 +970,7 @@
     <string name="commits">Commits</string>
     <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
-    <string name="comments">Comments</string>
+    <string name="comments">Chat</string>
     <string name="no_comments">No comments found</string>
     <string name="type_message">Type a message…</string>
     <string name="send">Send</string>
@@ -911,4 +988,154 @@
     <string name="no_playback_logs">No playback events recorded yet</string>
     <string name="show_comment_button">Show comment button</string>
     <string name="show_comment_button_description">Show a button to view comments in the player queue</string>
+    <string name="build_stable">STABLE</string>
+    <string name="build_nightly">NIGHTLY</string>
+    <string name="jiosaavn_settings">JioSaavn Settings</string>
+    <string name="jiosaavn_streaming_disabled">Disabled</string>
+    <string name="jiosaavn_beta_info">This is currently in beta, don\'t report things based on JioSaavn. If JioSaavn is enabled and a song isn\'t available in JioSaavn, it will use YouTube Music as the next source. Downloading at 320 kbps is also supported when using JioSaavn.</string>
+
+    <!-- Spotify Import -->
+    <string name="spotify">Spotify</string>
+    <string name="import_action">Import</string>
+    <string name="enable_spotify_import">Import Spotify</string>
+    <string name="import_from_spotify">Import from Spotify</string>
+    <string name="spotify_connect">Connect with Spotify</string>
+    <string name="spotify_not_connected">Not connected to Spotify</string>
+    <string name="spotify_connected_as">Connected as %s</string>
+    <string name="spotify_account">Spotify Account</string>
+    <string name="spotify_loading_library">Loading Spotify playlists…</string>
+    <string name="spotify_select_sources">Select playlists to import</string>
+    <string name="spotify_no_sources">No playlists found</string>
+    <string name="spotify_available_count">%d playlists available</string>
+    <string name="spotify_import_selected">Import Selected</string>
+    <string name="spotify_selected_count">%d playlists selected</string>
+    <string name="spotify_refresh">Refresh Playlists</string>
+    <string name="spotify_import_desc">Easily import your Spotify playlists and Liked Songs into your library. The app will automatically search YouTube for the best matched tracks and mirror them to local playlists, allowing you to access all your music in one place.</string>
+    <string name="spotify_liked_songs">Liked Songs</string>
+    <string name="spotify_track_count">%d songs</string>
+    <string name="spotify_login_title">Spotify Login</string>
+    <string name="spotify_waiting_for_login">Please log in to your Spotify account in the browser below.</string>
+    <string name="spotify_clear_selection">Clear</string>
+    <string name="spotify_select_all">Select All</string>
+    <string name="spotify_liked_songs_desc">Your Spotify Liked Songs</string>
+    <string name="spotify_import_progress_step">Importing %1$s (%2$d/%3$d)…</string>
+    <string name="spotify_import_complete">Import Complete</string>
+    <string name="spotify_import_finished">Finished importing</string>
+    <string name="spotify_importing_songs_count">Importing %1$d of %2$d songs</string>
+    <string name="spotify_imported_songs_count">Finished importing %1$d of %2$d songs</string>
+    <string name="spotify_import_summary">Imported %1$d playlists: %2$d tracks matched, %3$d tracks failed.</string>
+    <string name="spotify_source_summary">\"%1$s\": %2$d of %3$d tracks matched</string>
+    <string name="spotify_import_in_progress">Importing from Spotify</string>
+    <string name="spotify_login_desc">Connecting to Spotify is completely local. Your session credentials are only saved on your device.</string>
+
+    <string name="app_font">App Font</string>
+    <string name="font_selection">Font Selection</string>
+    <string name="font_system">System Default</string>
+    <string name="font_google_sans">Google Sans</string>
+    <string name="font_sans_flex">Sans Flex</string>
+    <string name="font_outfit">Outfit</string>
+    <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+    <string name="typography_preview">Typography Preview</string>
+    <string name="preview_text_quote">\"Where words fail, music speaks.\"</string>
+    <string name="font_system_desc">Use the default system typeface.</string>
+    <string name="font_google_sans_desc">Google\'s signature geometric sans-serif.</string>
+    <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
+    <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
+    <string name="font_plus_jakarta_sans_desc">A premium warm geometric sans-serif typeface.</string>
+    <string name="font_custom">Custom Font</string>
+    <string name="font_custom_desc">Use your own .ttf or .otf file.</string>
+    <string name="import_custom_font">Import Font</string>
+    <string name="error_invalid_font">Invalid font file selected.</string>
+
+    <!-- YouTube Decryption / Cipher Settings -->
+    <string name="youtube_decryption_settings">Vivi-Extractor</string>
+    <string name="youtube_decryption_desc">Configure extractor settings</string>
+    <string name="youtube_decryption_support">Vivi-Extractor</string>
+    <string name="youtube_decryption_support_desc">Automatically extracts YouTube playback configurations. Locked to Active.</string>
+    <string name="auto_cipher_fetching">Automatic Updates</string>
+    <string name="auto_cipher_fetching_desc">Fetch new extractor mappings in the background when issues are detected.</string>
+    <string name="force_update_cipher">Force Update Configurations</string>
+    <string name="force_update_cipher_desc">Download the latest extractor override mappings. Limited to 3 updates per day.</string>
+    <string name="cipher_update_success">Extractor mappings updated! Loaded %d players.</string>
+    <string name="cipher_update_failed">Failed to update extractor mappings: %s</string>
+    <string name="cipher_updating">Updating extractor configurations…</string>
+    <string name="youtube_decryption_info">Extractor mappings are fetched dynamically from your self-hosted node. The countdown at the top displays the time remaining until the next automatic synchronization check. If manual updates are requested more than 3 times, they are blocked for 1 day.</string>
+    <string name="last_updated">Last updated</string>
+    <string name="last_updated_never">Never</string>
+    <string name="next_sync_countdown">Next Sync Countdown</string>
+    <string name="hours_label">Hours</string>
+    <string name="minutes_label">Minutes</string>
+    <string name="seconds_label">Seconds</string>
+    <string name="cipher_rate_limited">Manual update rate limit reached. Please wait before updating again.</string>
+
+    <!-- Floating Navigation Bar -->
+    <string name="floating_navbar">Floating navigation bar</string>
+    <string name="floating_navbar_desc">Show suspended centered navigation bar at the bottom</string>
+    <string name="enabled">Enabled</string>
+    <string name="disabled">Disabled</string>
+
+    <!-- Setup Wizard / Onboarding -->
+    <string name="setting_up_vivimusic">Setting up ViviMusic…</string>
+    <string name="skip">Skip</string>
+
+    <!-- Data Saver -->
+    <string name="data_saver">Data Saver</string>
+    <string name="data_saver_desc">Turns off canvas and background videos, and loads low-quality images to save data and battery</string>
+    <string name="data_saver_turns_off_header">Turns off when enabled</string>
+    <string name="data_saver_player_canvas">Player canvas animation</string>
+    <string name="data_saver_artist_video">Artist canvas video</string>
+    <string name="data_saver_artist_bg_video">Artist background video</string>
+    <string name="data_saver_album_canvas">Album canvas</string>
+    <string name="data_saver_high_quality_images">High-quality images</string>
+
+    <string name="tab_recommended">Recommended</string>
+    <string name="tab_all_services">All services</string>
+    <string name="whats_new_title">What’s new in ViviMusic</string>
+    <string name="whats_new_desc">Discover new features, UI improvements, and updates</string>
+    <string name="account_sync_desc_off">Sign in to sync your YouTube Music library, playlists, and recommendations</string>
+    <string name="settings_for_account">Settings for account</string>
+    <string name="give_feedback">Give feedback</string>
+    <string name="account_services">Account services</string>
+    <string name="account_settings_tab_general">General</string>
+    <string name="account_settings_tab_appearance">Appearance</string>
+    <string name="account_settings_tab_data">Data &amp; Privacy</string>
+    <string name="account_settings_tab_about">About</string>
+    <string name="account_settings_header_actions">Actions</string>
+    <string name="account_settings_desc_general">Manage your account preferences and sync status</string>
+    <string name="account_settings_desc_appearance">Customize your app theme and UI layout</string>
+    <string name="account_settings_desc_data">Control your downloads and cache usage</string>
+    <string name="account_settings_desc_about">Version information and legal details</string>
+    <string name="action_view_update">View</string>
+    <string name="new_version_found">New version found</string>
+    <string name="support">Support</string>
+    <string name="support_desc">Support app development</string>
+
+    <!-- SponsorBlock -->
+    <string name="sponsorblock">SponsorBlock</string>
+    <string name="sponsorblock_desc">Automatically skip sponsor ads and non-music sections in video songs</string>
+    <string name="enable_sponsorblock">SponsorBlock</string>
+    <string name="enable_sponsorblock_desc">Crowdsourced segment skipping for YouTube music videos</string>
+    <string name="sponsorblock_categories">Categories to Skip</string>
+    <string name="sponsorblock_skip_non_music">Non-music video sections</string>
+    <string name="sponsorblock_skip_non_music_desc">Skip dialogues, spoken intros, and video scenes in music videos</string>
+    <string name="sponsorblock_skip_sponsor">Sponsor advertisements</string>
+    <string name="sponsorblock_skip_sponsor_desc">Skip sponsored promotional announcements</string>
+    <string name="sponsorblock_skip_selfpromo">Self-promotion &amp; merch</string>
+    <string name="sponsorblock_skip_selfpromo_desc">Skip merch plugs and channel promotion</string>
+    <string name="sponsorblock_skip_interaction">Subscribe &amp; like reminders</string>
+    <string name="sponsorblock_skip_interaction_desc">Skip calls to action to subscribe or like</string>
+    <string name="sponsorblock_skip_intro_outro">Intros &amp; Outro credits</string>
+    <string name="sponsorblock_skip_intro_outro_desc">Skip intermission cards and end credits</string>
+    <string name="sponsorblock_skip_preview_filler">Previews &amp; Filler</string>
+    <string name="sponsorblock_skip_preview_filler_desc">Skip recap previews and filler commentary</string>
+    <string name="sponsorblock_show_toast">Show skip notification</string>
+    <string name="sponsorblock_show_toast_desc">Display a message when a segment is skipped</string>
+    <string name="sponsorblock_server_url">SponsorBlock API URL</string>
+    <string name="sponsorblock_skipped_non_music">Skipped non-music section</string>
+    <string name="sponsorblock_skipped_sponsor">Skipped sponsor segment</string>
+    <string name="sponsorblock_skipped_selfpromo">Skipped self-promotion segment</string>
+    <string name="sponsorblock_skipped_interaction">Skipped interaction reminder</string>
+    <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
+    <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
+    <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
 </resources>

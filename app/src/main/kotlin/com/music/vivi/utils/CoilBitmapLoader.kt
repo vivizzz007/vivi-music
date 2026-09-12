@@ -12,6 +12,7 @@ import android.net.Uri
 import androidx.core.graphics.createBitmap
 import androidx.media3.common.util.BitmapLoader
 import coil3.imageLoader
+import coil3.request.CachePolicy
 import coil3.request.ErrorResult
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
@@ -61,6 +62,8 @@ class CoilBitmapLoader(
             val request = ImageRequest.Builder(context)
                 .data(uri)
                 .allowHardware(false)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
                 .build()
 
             val result = context.imageLoader.execute(request)

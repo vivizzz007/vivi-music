@@ -30,6 +30,8 @@ import com.music.vivi.ui.screens.artist.ArtistItemsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.equalizer.EqScreen
+import com.music.vivi.ui.screens.library.AlbumLibraryScreen
+import com.music.vivi.ui.screens.library.PlaylistLibraryScreen
 import com.music.vivi.ui.screens.library.LibraryScreen
 import com.music.vivi.ui.screens.playlist.AutoPlaylistScreen
 import com.music.vivi.ui.screens.playlist.CachePlaylistScreen
@@ -40,15 +42,25 @@ import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
+import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
+import com.music.vivi.ui.screens.settings.AutoBackupSettings
+import com.music.vivi.ui.screens.settings.SpotifyScreen
+import com.music.vivi.viewmodels.SpotifyImportViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.PlayerSettings
+import com.music.vivi.ui.screens.settings.JioSettings
+import com.music.vivi.ui.screens.settings.SponsorBlockSettings
 import com.music.vivi.ui.screens.settings.PrivacySettings
 import com.music.vivi.ui.screens.settings.RomanizationSettings
 import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.AccountSettingsScreen
+import com.music.vivi.ui.screens.ListeningSummaryScreen
+import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.ThemeScreen
 import com.music.vivi.ui.screens.settings.AiSettings
@@ -59,6 +71,7 @@ import com.music.vivi.ui.screens.settings.integrations.ListenTogetherSettings
 import com.music.vivi.ui.screens.recognition.RecognitionScreen
 import com.music.vivi.ui.screens.recognition.RecognitionHistoryScreen
 import com.music.vivi.ui.screens.settings.UpdateSettings
+import com.music.vivi.ui.screens.settings.NotificationPermission
 import com.music.vivi.ui.screens.wrapped.WrappedScreen
 import com.music.vivi.vivimusic.updater.UpdateScreen
 import com.music.vivi.utils.rememberEnumPreference
@@ -96,6 +109,18 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable(Screens.Library.route) {
         LibraryScreen(navController)
+    }
+
+    composable("album_library") {
+        AlbumLibraryScreen(navController)
+    }
+
+    composable("artist_library") {
+        com.music.vivi.ui.screens.library.ArtistLibraryScreen(navController)
+    }
+
+    composable("playlist_library") {
+        PlaylistLibraryScreen(navController)
     }
 
     composable(Screens.ListenTogether.route) {
@@ -324,8 +349,26 @@ fun NavGraphBuilder.navigationBuilder(
        UpdateSettings(navController, scrollBehavior)
     }
 
+    composable("settings/update/notification_permission") {
+        NotificationPermission(navController, scrollBehavior)
+    }
+
     composable("settings/account") {
         AccountSettingsScreen(navController, scrollBehavior)
+    }
+    composable("settings/listening_summary") {
+        ListeningSummaryScreen(navController)
+    }
+
+    composable(
+        route = "detailed_listening_history/{startTimestamp}",
+        arguments = listOf(
+            navArgument("startTimestamp") {
+                type = NavType.StringType
+            },
+        ),
+    ) {
+        DetailedListeningHistoryScreen(navController)
     }
 
     composable("settings/appearance") {
@@ -334,6 +377,14 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/appearance/theme") {
         ThemeScreen(navController)
+    }
+
+    composable("settings/player/canvas") {
+        CanvasSelection(navController, scrollBehavior)
+    }
+
+    composable("settings/appearance/font") {
+        FontSelectionScreen(navController, scrollBehavior)
     }
 
     composable("settings/content") {
@@ -352,6 +403,14 @@ fun NavGraphBuilder.navigationBuilder(
         PlayerSettings(navController, scrollBehavior)
     }
 
+    composable("settings/player/jio") {
+        JioSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/player/sponsorblock") {
+        SponsorBlockSettings(navController, scrollBehavior)
+    }
+
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
     }
@@ -367,6 +426,16 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/backup_restore") {
         BackupAndRestore(navController, scrollBehavior)
     }
+
+    composable("settings/backup_restore/autobackup") {
+        AutoBackupSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/spotify") {
+        SpotifyScreen(navController, scrollBehavior)
+    }
+
+
 
     composable("settings/integrations") {
         IntegrationScreen(navController, scrollBehavior)
@@ -405,7 +474,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     dialog("equalizer") {
-        EqScreen()
+        EqScreen(navController = navController)
     }
 
     composable("recognition") {

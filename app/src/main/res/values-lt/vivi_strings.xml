@@ -105,8 +105,6 @@
     <string name="advanced_login">Prisijungti naudojant žetoną</string>
     <string name="token_hidden">Prilieskite kad matytumėte žetoną</string>
     <string name="token_shown">Prilieskite dar kartą, kad kopijuoti ar redaguoti</string>
-    <string name="enable_simpmusic">Įjungti SimpMusic dainos tekstus</string>
-    <string name="enable_simpmusic_desc">Naudoti SimpMusic dainų tekstų tiekėją sinchronizuotiems dainų tekstams</string>
     <string name="auto_scroll">Sinchronizuoti</string>
     <string name="show_less">Rodyti mažiau</string>
     <string name="artist_page_settings">Kūrėjo puslapis</string>

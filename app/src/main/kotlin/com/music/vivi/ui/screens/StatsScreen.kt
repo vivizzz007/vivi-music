@@ -20,12 +20,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +86,12 @@ fun StatsScreen(
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
     val firstEvent by viewModel.firstEvent.collectAsState()
     val currentDate = LocalDateTime.now()
+
+    val totalPlayTime by viewModel.totalPlayTime.collectAsState()
+    val allTimePlayTime by viewModel.allTimePlayTime.collectAsState()
+    val uniqueSongsCount by viewModel.uniqueSongsCount.collectAsState()
+    val uniqueArtistsCount by viewModel.uniqueArtistsCount.collectAsState()
+    val uniqueAlbumsCount by viewModel.uniqueAlbumsCount.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
@@ -420,6 +430,24 @@ fun StatsScreen(
                     )
                 }
             },
+            actions = {
+                IconButton(
+                    onClick = { navController.navigate("settings/listening_summary") }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.history),
+                        contentDescription = null,
+                    )
+                }
+                IconButton(
+                    onClick = { navController.navigate("wrapped") }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.sparks),
+                        contentDescription = null,
+                    )
+                }
+            }
         )
     }
 }

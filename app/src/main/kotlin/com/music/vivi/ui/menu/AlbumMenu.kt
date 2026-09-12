@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -73,6 +74,8 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.ListThumbnailSize
+import com.music.vivi.constants.PinnedLibraryItemsKey
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.Song
@@ -111,6 +114,8 @@ fun AlbumMenu(
     }
 
     val coroutineScope = rememberCoroutineScope()
+    val (pinnedLibraryItems, onPinnedLibraryItemsChange) = rememberPreference(PinnedLibraryItemsKey, emptySet())
+    val isPinnedToLibraryMix = pinnedLibraryItems.contains("album:${album.id}")
 
     LaunchedEffect(Unit) {
         database.albumSongs(album.id).collect {
@@ -267,6 +272,7 @@ fun AlbumMenu(
         album = album,
         showLikedIcon = false,
         badges = {},
+        backgroundColor = Color.Transparent,
         trailingContent = {
             IconButton(
                 onClick = {
@@ -379,6 +385,7 @@ fun AlbumMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (!isGuest) {
                         Material3MenuItemData(
@@ -457,6 +464,28 @@ fun AlbumMenu(
                             }
                             onDismiss()
                         }
+                    ),
+                    Material3MenuItemData(
+                        title = {
+                            Text(
+                                text = if (isPinnedToLibraryMix) "Unpin from Library Mix" else "Pin to Library Mix"
+                            )
+                        },
+                        icon = {
+                            Icon(
+                                painter = painterResource(if (isPinnedToLibraryMix) R.drawable.remove else R.drawable.pin),
+                                contentDescription = null,
+                            )
+                        },
+                        onClick = {
+                            val newItems = if (isPinnedToLibraryMix) {
+                                pinnedLibraryItems - "album:${album.id}"
+                            } else {
+                                pinnedLibraryItems + "album:${album.id}"
+                            }
+                            onPinnedLibraryItemsChange(newItems)
+                            onDismiss()
+                        }
                     )
                 )
             )
@@ -466,15 +495,12 @@ fun AlbumMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (downloadState) {
                         STATE_COMPLETED -> {
                             Material3MenuItemData(
-                                title = {
-                                    Text(
-                                        text = stringResource(R.string.remove_download)
-                                    )
-                                },
+                                title = { Text(text = stringResource(R.string.remove_download)) },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.offline),
@@ -490,6 +516,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -511,6 +538,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -539,6 +567,7 @@ fun AlbumMenu(
                                             false,
                                         )
                                     }
+                                    onDismiss() // <-- added
                                 }
                             )
                         }
@@ -546,11 +575,12 @@ fun AlbumMenu(
                 )
             )
         }
-
+//
         item { Spacer(modifier = Modifier.height(12.dp)) }
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     Material3MenuItemData(
                         title = { Text(text = stringResource(R.string.view_artist)) },

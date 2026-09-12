@@ -22,8 +22,10 @@
     <!-- Microphone feature for music recognition (not required) -->
     <uses-feature android:name="android.hardware.microphone" android:required="false" />
 
-<!--    install permission-->
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Storage permissions for auto backup to Downloads/vivimusic/ -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
     <!-- Android TV -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
@@ -46,7 +48,7 @@
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="false"
+        android:supportsRtl="true"
         android:theme="@style/Theme.vivimusic"
         tools:targetApi="tiramisu">
         <uses-library
@@ -109,6 +111,17 @@
 
                 <data android:scheme="vivimusic" />
                 <data android:host="listen" />
+            </intent-filter>
+
+            <!-- GitHub OAuth callback deep link -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="vivimusic" />
+                <data android:host="oauth2callback" />
             </intent-filter>
 
             <!-- Youtube filter -->
@@ -300,10 +313,6 @@
                 android:resource="@xml/turntable_widget_info" />
         </receiver>
 
-        <!-- Google Cast Options Provider -->
-        <meta-data
-            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
-            android:value="com.music.vivi.cast.CastOptionsProvider" />
     </application>
 
 </manifest>

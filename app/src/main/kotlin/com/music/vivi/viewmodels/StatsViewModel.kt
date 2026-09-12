@@ -42,6 +42,80 @@ constructor(
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
     val indexChips = MutableStateFlow(0)
 
+    val totalPlayTime =
+        combine(
+            selectedOption,
+            indexChips,
+        ) { selection, t -> Pair(selection, t) }
+            .flatMapLatest { (selection, t) ->
+                val fromTimeStamp = statToPeriod(selection, t)
+                val toTimeStamp = if (selection == OptionStats.CONTINUOUS || t == 0) {
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                } else {
+                    statToPeriod(selection, t - 1)
+                }
+                database.getTotalPlayTimeInRange(fromTimeStamp, toTimeStamp)
+            }.map { it ?: 0L }
+            .stateIn(viewModelScope, SharingStarted.Lazily, 0L)
+
+    val allTimePlayTime = database.getTotalPlayTimeInRange(0, Long.MAX_VALUE)
+        .map { it ?: 0L }
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0L)
+
+    val uniqueSongsCount =
+        combine(
+            selectedOption,
+            indexChips,
+        ) { selection, t -> Pair(selection, t) }
+            .flatMapLatest { (selection, t) ->
+                val fromTimeStamp = statToPeriod(selection, t)
+                val toTimeStamp = if (selection == OptionStats.CONTINUOUS || t == 0) {
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                } else {
+                    statToPeriod(selection, t - 1)
+                }
+                database.getUniqueSongCountInRange(fromTimeStamp, toTimeStamp)
+            }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val uniqueArtistsCount =
+        combine(
+            selectedOption,
+            indexChips,
+        ) { selection, t -> Pair(selection, t) }
+            .flatMapLatest { (selection, t) ->
+                val fromTimeStamp = statToPeriod(selection, t)
+                val toTimeStamp = if (selection == OptionStats.CONTINUOUS || t == 0) {
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                } else {
+                    statToPeriod(selection, t - 1)
+                }
+                database.getUniqueArtistCountInRange(fromTimeStamp, toTimeStamp)
+            }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val uniqueAlbumsCount =
+        combine(
+            selectedOption,
+            indexChips,
+        ) { selection, t -> Pair(selection, t) }
+            .flatMapLatest { (selection, t) ->
+                val fromTimeStamp = statToPeriod(selection, t)
+                val toTimeStamp = if (selection == OptionStats.CONTINUOUS || t == 0) {
+                    LocalDateTime.now().toInstant(ZoneOffset.UTC).toEpochMilli()
+                } else {
+                    statToPeriod(selection, t - 1)
+                }
+                database.getUniqueAlbumCountInRange(fromTimeStamp, toTimeStamp)
+            }.stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val allTimeSongsCount = database.getUniqueSongCountInRange(0, Long.MAX_VALUE)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val allTimeArtistsCount = database.getUniqueArtistCountInRange(0, Long.MAX_VALUE)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
+    val allTimeAlbumsCount = database.getUniqueAlbumCountInRange(0, Long.MAX_VALUE)
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+
     val mostPlayedSongsStats =
         combine(
             selectedOption,

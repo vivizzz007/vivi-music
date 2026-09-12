@@ -247,8 +247,6 @@
     <string name="logging_in">Iniciando sesión…</string>
     <string name="enable_wavy_slider">Habilitar deslizador ondulado</string>
     <string name="wavy">Ondulado</string>
-    <string name="enable_simpmusic">Habilitar letras SimpMusic</string>
-    <string name="enable_simpmusic_desc">Usar el proveedor SimpMusic para letras sincronizadas</string>
     <string name="remember_shuffle_and_repeat">Recordar aleatorio y repetir</string>
     <string name="remember_shuffle_and_repeat_desc">Recordar el estado de los modos aleatorio y repetir al reiniciar la app</string>
     <string name="pause_music_when_media_is_muted">Pausar la música al silenciar la multimedia</string>

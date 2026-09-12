@@ -1,0 +1,9 @@
+Added SponsorBlock, Data Saver, miniplayer & Player v17
+New Listen Together, search, album & account settings UI
+Added Remix section & search history
+Added Unison lyrics, improved Musixmatch, removed SimpMusic
+Added SchmidtiTv login & View Album option
+Fixed Spotify login, artist video & streaming (thanks Metrolist)
+Spoofed app for streaming safety
+Updated strings, Turkish (hasanbkaylan) & PT-BR (johnpetersa19) translations
+Under the hood performance improvements

@@ -24,6 +24,8 @@ import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.playback.MusicService.MusicBinder
 import com.music.vivi.playback.queues.Queue
+import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.innertube.pages.RadioChip
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -142,6 +144,7 @@ class PlayerConnection(
             database.format(mediaMetadata?.id)
         }
 
+    val radioChips = service.radioChips
     val queueTitle = MutableStateFlow<String?>(null)
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
@@ -214,6 +217,11 @@ class PlayerConnection(
     }
 
     fun playQueue(queue: Queue) {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("playQueue blocked - Listen Together guest")
+            return
+        }
         if (!playerReadinessFlow.value) {
             Timber.tag(TAG).w("playQueue called before player ready; delegating to service")
         }
@@ -223,6 +231,10 @@ class PlayerConnection(
             Timber.tag(TAG).e(e, "Error in playQueue")
             throw e
         }
+    }
+
+    fun selectRadioChip(chip: RadioChip) {
+        service.applyRadioChip(chip)
     }
 
     fun startRadioSeamlessly() {
@@ -302,6 +314,11 @@ class PlayerConnection(
      * Toggle play/pause - handles Cast when active
      */
     fun togglePlayPause() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("togglePlayPause blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -322,6 +339,11 @@ class PlayerConnection(
      * Start playback - handles Cast when active
      */
     fun play() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("play blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -341,6 +363,11 @@ class PlayerConnection(
      * Pause playback - handles Cast when active
      */
     fun pause() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("pause blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -357,6 +384,11 @@ class PlayerConnection(
      * Seek to position - handles Cast when active
      */
     fun seekTo(position: Long) {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekTo blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -370,6 +402,11 @@ class PlayerConnection(
     }
 
     fun seekToNext() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekToNext blocked - Listen Together guest")
+            return
+        }
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -377,11 +414,16 @@ class PlayerConnection(
                 castHandler.skipToNext()
                 return
             }
-            player.seekToNext()
-            if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                player.prepare()
+            // Try a crossfaded manual skip first (only engages if the user
+            // enabled "Crossfade on manual skip"); fall back to an instant
+            // seek otherwise.
+            if (!service.manualSkipToNextWithCrossfade()) {
+                player.seekToNext()
+                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
+                    player.prepare()
+                }
+                player.playWhenReady = true
             }
-            player.playWhenReady = true
             onSkipNext?.invoke()
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in seekToNext")
@@ -391,6 +433,11 @@ class PlayerConnection(
     var onRestartSong: (() -> Unit)? = null
 
     fun seekToPrevious() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekToPrevious blocked - Listen Together guest")
+            return
+        }
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -409,12 +456,15 @@ class PlayerConnection(
                 player.playWhenReady = true
                 onRestartSong?.invoke()
             } else {
-                // Otherwise go to previous media item
-                player.seekToPreviousMediaItem()
-                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                    player.prepare()
+                // Otherwise go to previous media item — try a crossfaded
+                // manual skip first, falling back to an instant seek.
+                if (!service.manualSkipToPreviousWithCrossfade()) {
+                    player.seekToPreviousMediaItem()
+                    if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
+                        player.prepare()
+                    }
+                    player.playWhenReady = true
                 }
-                player.playWhenReady = true
                 onSkipPrevious?.invoke()
             }
         } catch (e: Exception) {
@@ -442,12 +492,17 @@ class PlayerConnection(
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
+        // Auto-refresh radio filter chips for every newly active song
+        if (mediaItem != null) {
+            service.refreshChipsForCurrentSong()
+        }
     }
 
     override fun onTimelineChanged(
         timeline: Timeline,
         reason: Int,
     ) {
+        mediaMetadata.value = player.currentMetadata
         queueWindows.value = player.getQueueWindows()
         queueTitle.value = service.queueTitle
         currentMediaItemIndex.value = player.currentMediaItemIndex

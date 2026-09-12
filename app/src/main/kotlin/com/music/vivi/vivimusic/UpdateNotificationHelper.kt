@@ -13,12 +13,18 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.music.vivi.R
+import com.music.vivi.constants.EnableNotificationsKey
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 
 object UpdateNotificationHelper {
     private const val CHANNEL_ID = "updates"
     private const val NOTIFICATION_ID = 1001
 
     fun showUpdateNotification(context: Context, versionName: String) {
+        val notificationsEnabled = context.dataStore.get(EnableNotificationsKey, true)
+        if (!notificationsEnabled) return
+
         val nm = context.getSystemService(NotificationManager::class.java)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -30,8 +36,12 @@ object UpdateNotificationHelper {
             nm.createNotificationChannel(channel)
         }
 
-        // Direct download URL format from vivimusicupdater - use the full tag (vX.X.X or bX.X.X)
-        val apkUrl = "https://github.com/vivizzz007/vivi-music/releases/download/$versionName/vivi.apk"
+        // Direct download URL format from vivimusicupdater - use the full tag (vX.X.X or bX.X.X) or nightly link
+        val apkUrl = if (versionName.contains("nightly", ignoreCase = true)) {
+            "https://nightly.link/vivizzz007/vivi-music/workflows/nightly.yml/main/vivi-music-gms-nightly.zip"
+        } else {
+            "https://github.com/vivizzz007/vivi-music/releases/download/$versionName/vivi.apk"
+        }
         val intent = Intent(Intent.ACTION_VIEW, apkUrl.toUri())
 
         val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
