@@ -62,43 +62,44 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
 }
 
 /**
- * Rewrites a YouTube thumbnail URL to request the highest quality tier.
- * Supports fallback to hqdefault/mqdefault for smaller requested widths.
+ * Rewrites a YouTube thumbnail URL to request the highest **reliably available** quality tier.
+ *
+ * Quality ladder (highest → lowest, all guaranteed to exist for every video):
+ *   w >= 1200 → maxresdefault.webp (1280×720, only for HD uploads — used ultra HD path)
+ *   w >= 800  → hqdefault.webp    (480×360,  ALWAYS available — primary player quality)
+ *   w >= 320  → mqdefault.webp    (320×180,  list items)
+ *   w <  320  → default.webp      (120×90,   small icons / data-saver fallback)
+ *
+ * Note: maxresdefault.webp returns 404 for videos without a Full HD upload.
+ * hqdefault.webp is guaranteed to exist for every YouTube video, so it is used
+ * as the primary player thumbnail to avoid blank images in MiniPlayer / Player.
  */
 private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
     // Extract video ID using regex that matches any standard YouTube thumbnail path
-    val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1) ?: return this
+    val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1)
+    if (videoId == null) {
+        Timber.w("[Thumbnail] resizeYtimg: could not extract videoId from: $this")
+        return this
+    }
 
     if (isDataSaverEnabled) {
         val w = width ?: height ?: 150
-        return when {
-            w >= 800 -> {
-                // If data saver is enabled, don't use maxresdefault, use mqdefault (medium quality)
-                "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
-            }
-            else -> {
-                // For small list thumbnails, use default.webp (120x90)
-                "https://i.ytimg.com/vi_webp/$videoId/default.webp"
-            }
+        val result = when {
+            w >= 800 -> "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
+            else     -> "https://i.ytimg.com/vi_webp/$videoId/default.webp"
         }
+        Timber.d("[Thumbnail] resizeYtimg (dataSaver): id=$videoId w=$w → $result")
+        return result
     }
 
     val w = width ?: height ?: 1200
-
-    return when {
-        w >= 800 -> {
-            // For player artwork (high resolution), we always request maxresdefault.webp
-            // If the video does not support Full HD maxresdefault.webp, Coil's client-side
-            // fallback (onError) automatically falls back to hqdefault.jpg/webp, ensuring no breakage.
-            "https://i.ytimg.com/vi_webp/$videoId/maxresdefault.webp"
-        }
-        w >= 320 -> {
-            "https://i.ytimg.com/vi_webp/$videoId/hqdefault.webp"
-        }
-        else -> {
-            "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
-        }
+    val result = when {
+        w >= 800  -> "https://i.ytimg.com/vi_webp/$videoId/hqdefault.webp"  // Always available for every video
+        w >= 320  -> "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
+        else      -> "https://i.ytimg.com/vi_webp/$videoId/default.webp"
     }
+    Timber.d("[Thumbnail] resizeYtimg: id=$videoId w=$w → $result")
+    return result
 }
 
 
