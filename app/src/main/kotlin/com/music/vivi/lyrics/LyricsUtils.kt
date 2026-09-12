@@ -344,6 +344,60 @@ object LyricsUtils {
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
 
+    enum class SyncType {
+        WORD, LINE, NONE
+    }
+
+    fun getSyncType(lyrics: String): SyncType {
+        if (lyrics.isBlank()) return SyncType.NONE
+
+        val unescapedLyrics = lyrics
+            .trim()
+            .removePrefix("\"")
+            .removeSuffix("\"")
+            .replace("\\\\", "\\")
+            .replace("\\n", "\n")
+            .replace("\\r", "\r")
+            .replace("\\t", "\t")
+
+        val decodedLyrics = decodeHtmlEntities(unescapedLyrics)
+        
+        val lines = decodedLyrics.lines()
+            .filter { it.isNotBlank() && !it.trim().startsWith("[offset:") }
+        
+        val isRichSync = lines.any { line ->
+            RICH_SYNC_LINE_REGEX.matches(line.trim()) && 
+            RICH_SYNC_WORD_REGEX.containsMatchIn(line)
+        }
+        
+        if (isRichSync) return SyncType.WORD
+
+        var hasLineSync = false
+        var hasWordSync = false
+
+        for (i in lines.indices) {
+            val line = lines[i].trim()
+            if (!line.startsWith("<") || !line.endsWith(">")) {
+                if (LINE_REGEX.matches(line)) {
+                    hasLineSync = true
+                    if (i + 1 < lines.size) {
+                        val nextLine = lines[i + 1].trim()
+                        if (nextLine.startsWith("<") && nextLine.endsWith(">")) {
+                            hasWordSync = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        return when {
+            hasWordSync -> SyncType.WORD
+            hasLineSync -> SyncType.LINE
+            else -> SyncType.NONE
+        }
+    }
+
     fun parseLyrics(lyrics: String): List<LyricsEntry> {
         // Unescape JSON string if needed
         val unescapedLyrics = lyrics

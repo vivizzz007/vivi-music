@@ -43,7 +43,7 @@ lottie = "6.7.1"
 work = "2.10.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
-innertubex = "v0.2.6"
+innertubex = "v0.6.0"
 expressivelab = "v1.0.0"
 
 [libraries]

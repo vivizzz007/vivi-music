@@ -108,8 +108,8 @@ object BiniLyricsProvider : LyricsProvider {
     // Parsing Logic
     // ──────────────────────────────────────────────────────────────────────
 
-    private val pRegex = """<p\s+begin="([\d.]+)"[^>]*>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    private val spanRegex = """<span\s+begin="([\d.]+)"[^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val pRegex = """<p\s+begin="([\w:.]+)"[^>]*>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val spanRegex = """<span\s+begin="([\w:.]+)"[^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
 
     /**
      * Parse Apple Music TTML format and convert to standard LRC or RichSync LRC
@@ -118,7 +118,7 @@ object BiniLyricsProvider : LyricsProvider {
         val lrcBuilder = java.lang.StringBuilder()
 
         for (pMatch in pRegex.findAll(ttml)) {
-            val pBeginSec = pMatch.groupValues[1].toFloatOrNull() ?: continue
+            val pBeginSec = parseTtmlTimeToSeconds(pMatch.groupValues[1]) ?: continue
             val innerHtml = pMatch.groupValues[2]
 
             val mainTime = formatLrcTime(pBeginSec)
@@ -127,7 +127,7 @@ object BiniLyricsProvider : LyricsProvider {
             val spanMatches = spanRegex.findAll(innerHtml).toList()
             if (spanMatches.isNotEmpty()) {
                 for (spanMatch in spanMatches) {
-                    val spanBeginSec = spanMatch.groupValues[1].toFloatOrNull() ?: continue
+                    val spanBeginSec = parseTtmlTimeToSeconds(spanMatch.groupValues[1]) ?: continue
                     // Clean HTML entities or nested tags from the word just in case
                     val word = spanMatch.groupValues[2].replace(Regex("<[^>]*>"), "").trim()
                     if (word.isNotEmpty()) {
@@ -153,5 +153,29 @@ object BiniLyricsProvider : LyricsProvider {
         val ssStr = String.format(Locale.US, "%05.2f", ss) // "09.52", "45.10" etc
         // ViviMusic regex for Line Rich Sync expects \d{2,3} for ms block: [MM:SS.xx] or [MM:SS.xxx]
         return String.format(Locale.US, "%02d:%s", mm, ssStr)
+    }
+
+    private fun parseTtmlTimeToSeconds(timeStr: String): Float? {
+        val cleanStr = timeStr.replace(Regex("[a-zA-Z]+$"), "")
+        val isMs = timeStr.endsWith("ms", ignoreCase = true)
+        val parts = cleanStr.split(":")
+
+        val seconds = when (parts.size) {
+            3 -> {
+                val h = parts[0].toFloatOrNull() ?: return null
+                val m = parts[1].toFloatOrNull() ?: return null
+                val s = parts[2].toFloatOrNull() ?: return null
+                h * 3600f + m * 60f + s
+            }
+            2 -> {
+                val m = parts[0].toFloatOrNull() ?: return null
+                val s = parts[1].toFloatOrNull() ?: return null
+                m * 60f + s
+            }
+            else -> {
+                cleanStr.toFloatOrNull() ?: return null
+            }
+        }
+        return if (isMs) seconds / 1000f else seconds
     }
 }

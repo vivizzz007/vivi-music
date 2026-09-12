@@ -18,8 +18,10 @@ import com.music.vivi.constants.HistorySource
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.db.MusicDatabase
+import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
+import timber.log.Timber
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -46,6 +48,9 @@ constructor(
     @ApplicationContext private val context: Context,
     val database: MusicDatabase,
 ) : ViewModel() {
+    companion object {
+        private const val TAG = "HistoryViewModel"
+    }
     var historySource = MutableStateFlow(HistorySource.LOCAL)
 
     private val today = LocalDate.now()
@@ -209,11 +214,43 @@ constructor(
     }
 
     fun fetchRemoteHistory() {
+        Timber.tag(TAG).d("[HistorySync] fetchRemoteHistory() called — requesting YouTube.musicHistory()")
         viewModelScope.launch(Dispatchers.IO) {
-            YouTube.musicHistory().onSuccess {
-                historyPage.value = it
-            }.onFailure {
-                reportException(it)
+            YouTube.musicHistory()
+                .onSuccess { page ->
+                    val sections = page.sections.orEmpty()
+                    val sectionCount = sections.size
+                    val songCount = sections.sumOf { it.songs.size }
+                    Timber.tag(TAG).i(
+                        "[HistorySync] musicHistory() SUCCESS — %d sections, %d total songs",
+                        sectionCount, songCount
+                    )
+                    historyPage.value = page
+                }
+                .onFailure { err ->
+                    Timber.tag(TAG).e(err, "[HistorySync] musicHistory() FAILED")
+                    reportException(err)
+                }
+        }
+    }
+
+    /**
+     * Call once from the screen when a [PlayerConnection] is available.
+     * Collects [MusicService.playbackRegistered] and automatically triggers a
+     * remote-history refresh after each successful YouTube.registerPlayback,
+     * regardless of which tab (Local / Remote) is currently visible.
+     */
+    fun bindPlayerConnection(playerConnection: PlayerConnection) {
+        viewModelScope.launch(Dispatchers.IO) {
+            playerConnection.service.playbackRegistered.collect { songId ->
+                Timber.tag(TAG).i(
+                    "[HistorySync] playbackRegistered received for song=%s — scheduling remote refresh in 3.5s",
+                    songId
+                )
+                // Give YouTube ~3.5 s to propagate the registration before querying.
+                // A shorter delay (e.g., 1.5s) frequently queries before YouTube's DB updates.
+                kotlinx.coroutines.delay(3500)
+                fetchRemoteHistory()
             }
         }
     }

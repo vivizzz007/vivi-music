@@ -48,81 +48,24 @@ class GitHubViewModel @Inject constructor(
 
     fun checkStarStatus(context: Context) {
         viewModelScope.launch {
-            val token = context.dataStore[GitHubAccessTokenKey]
-            if (!token.isNullOrBlank()) {
-                val starred = gitHubService.isRepoStarred(token)
-                _isStarred.value = starred
-                context.dataStore.edit { preferences ->
-                    preferences[HasStarredRepoKey] = starred
-                }
-            } else {
-                _isStarred.value = context.dataStore[HasStarredRepoKey] ?: false
-            }
+            _isStarred.value = context.dataStore[HasStarredRepoKey] ?: false
         }
     }
 
     fun toggleStar(
         context: Context,
-        onAuthRequired: () -> Unit
+        onNavigateToRepo: () -> Unit
     ) {
         viewModelScope.launch {
-            val token = context.dataStore[GitHubAccessTokenKey]
-            if (token.isNullOrBlank()) {
-                onAuthRequired()
-                return@launch
-            }
-
-            // Already starred — do nothing (we only allow starring, not unstarring)
+            // Already starred — do nothing
             if (_isStarred.value) return@launch
 
-            _isLoading.value = true
-            val success = gitHubService.starRepo(token)
-            if (success) {
-                _isStarred.value = true
-                _showThankYouDialog.value = true
-                context.dataStore.edit { preferences ->
-                    preferences[HasStarredRepoKey] = true
-                }
-            }
-            _isLoading.value = false
-        }
-    }
-
-    fun saveAccessToken(context: Context, token: String) {
-        viewModelScope.launch {
+            _isStarred.value = true
+            _showThankYouDialog.value = true
             context.dataStore.edit { preferences ->
-                preferences[GitHubAccessTokenKey] = token
+                preferences[HasStarredRepoKey] = true
             }
-            checkStarStatus(context)
-        }
-    }
-
-    fun exchangeCodeForToken(context: Context, code: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            // TODO: Replace with the actual OAuth Client ID and Secret obtained from GitHub Developer Settings
-            // Read the OAuth Client ID and Secret securely from BuildConfig (which reads from local.properties)
-            val clientId = com.music.vivi.BuildConfig.GITHUB_CLIENT_ID
-            val clientSecret = com.music.vivi.BuildConfig.GITHUB_CLIENT_SECRET
-
-            val token = gitHubService.getAccessToken(clientId, clientSecret, code)
-            
-            if (token != null) {
-                saveAccessToken(context, token)
-                
-                // Automatically star the repo if we just logged in for that purpose
-                val success = gitHubService.starRepo(token)
-                if (success) {
-                    _isStarred.value = true
-                    _showThankYouDialog.value = true
-                    context.dataStore.edit { preferences ->
-                        preferences[HasStarredRepoKey] = true
-                    }
-                }
-            } else {
-                // Handle error or just ignore for now
-            }
-            _isLoading.value = false
+            onNavigateToRepo()
         }
     }
 }

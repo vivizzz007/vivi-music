@@ -570,8 +570,7 @@ class MainActivity : ComponentActivity() {
                     onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
                     onConfirm = {
                         setLastSeenStarPromptVersion(currentVersion)
-                        val clientId = BuildConfig.GITHUB_CLIENT_ID
-                        uriHandler.openUri("https://github.com/login/oauth/authorize?client_id=${clientId}&scope=public_repo")
+                        uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
                     },
                     onCancel = { setLastSeenStarPromptVersion(currentVersion) },
                     content = {
@@ -1425,14 +1424,7 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        val isOAuthCallback = uri.host?.equals("oauth2callback", ignoreCase = true) == true
-        if (isOAuthCallback) {
-            val code = uri.getQueryParameter("code")
-            if (!code.isNullOrBlank()) {
-                gitHubViewModel.exchangeCodeForToken(this, code)
-            }
-            return
-        }
+
 
         when (val path = uri.pathSegments.firstOrNull()) {
             "playlist" -> uri.getQueryParameter("list")?.let { playlistId ->

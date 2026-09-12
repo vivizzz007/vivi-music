@@ -111,7 +111,7 @@ fun SettingsScreen(
             items = buildList {
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(if (isUpdateAvailable) R.drawable.vivimusicnotification else R.drawable.network_update),
+                        icon = painterResource(if (isUpdateAvailable) R.drawable.update_alert else R.drawable.system_update_uptodate),
                         title = { Text(stringResource(R.string.system_update)) },
                         description = {
                             if (isUpdateAvailable) {

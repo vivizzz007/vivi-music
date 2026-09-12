@@ -434,7 +434,7 @@ fun ListenTogetherScreen(
                 }
             },
             colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent
+                containerColor = MaterialTheme.colorScheme.background
             )
         )
     }

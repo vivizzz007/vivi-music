@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -57,6 +58,20 @@ constructor(
          viewModelScope.launch(Dispatchers.IO) {
              syncUtils.tryAutoSync()
          }
+    }
+
+    private val _isSyncing = MutableStateFlow(false)
+    val isSyncing: StateFlow<Boolean> = _isSyncing
+
+    fun forceRefresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isSyncing.value = true
+            try {
+                syncUtils.forceSyncAll()
+            } finally {
+                _isSyncing.value = false
+            }
+        }
     }
 
     fun refresh() {
@@ -112,9 +127,8 @@ constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val playlistsCount = database.playlists(PlaylistSortType.CREATE_DATE, true)
-        .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
 
 
@@ -148,11 +162,11 @@ constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val filteredUiItems = combine(
-        artists, debouncedSearchQuery, sortSettings
-    ) { arts, query, sortSet ->
+        artists, albums, playlists, debouncedSearchQuery, sortSettings
+    ) { arts, albs, plists, query, sortSet ->
         val (sortType, descending) = sortSet
         
-        val mergedList: List<Any> = arts
+        val mergedList: List<Any> = arts + albs + plists
         val collator = Collator.getInstance(Locale.getDefault())
         collator.strength = Collator.PRIMARY
         

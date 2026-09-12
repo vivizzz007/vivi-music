@@ -91,6 +91,7 @@ import com.music.vivi.viewmodels.DateAgo
 import com.music.vivi.viewmodels.FlatHistoryItem
 import com.music.vivi.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -170,13 +171,10 @@ fun HistoryScreen(
         }
     }
 
-    // Re-fetch remote history whenever the active song changes (e.g. a local song starts playing)
-    // so the Remote tab stays up to date without requiring a manual toggle.
-    LaunchedEffect(mediaMetadata) {
-        if (historySource == HistorySource.REMOTE) {
-            kotlinx.coroutines.delay(500)
-            viewModel.fetchRemoteHistory()
-        }
+    // Bind the player connection to the ViewModel once so it can observe
+    // the SharedFlow for successful remote history registrations.
+    LaunchedEffect(playerConnection) {
+        viewModel.bindPlayerConnection(playerConnection)
     }
 
     val lazyListState = rememberLazyListState()
@@ -192,71 +190,6 @@ fun HistoryScreen(
                 )
             )
         ) {
-            item(key = "search_box") {
-                TextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.search_history),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge,
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
-                        onSearch = { keyboardController?.hide() }
-                    ),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                        .height(52.dp)
-                        .focusRequester(focusRequester),
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        androidx.compose.foundation.layout.Row(
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                        ) {
-                            if (query.text.isNotEmpty()) {
-                                IconButton(onClick = { query = TextFieldValue("") }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.close),
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                            IconButton(onClick = {
-                                val newSource = if (historySource == HistorySource.LOCAL) HistorySource.REMOTE else HistorySource.LOCAL
-                                viewModel.historySource.value = newSource
-                                if (newSource == HistorySource.REMOTE) {
-                                    viewModel.fetchRemoteHistory()
-                                }
-                            }) {
-                                Icon(
-                                    painter = painterResource(
-                                        if (historySource == HistorySource.LOCAL) R.drawable.cloud_off_listentogether else R.drawable.globe_search
-                                    ),
-                                    contentDescription = null
-                                )
-                            }
-                        }
-                    }
-                )
-            }
 
             if (historySource == HistorySource.REMOTE && isLoggedIn) {
                 items(
@@ -493,6 +426,86 @@ fun HistoryScreen(
         title = {
             if (inSelectMode) {
                 Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+            } else {
+                TextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = {
+                        Text(
+                            text = stringResource(R.string.search_history),
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    },
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                        onSearch = { keyboardController?.hide() }
+                    ),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 12.dp)
+                        .height(52.dp)
+                        .focusRequester(focusRequester),
+                    leadingIcon = {
+                        IconButton(
+                            onClick = {
+                                if (isSearching) {
+                                    isSearching = false
+                                    query = TextFieldValue()
+                                } else {
+                                    navController.navigateUp()
+                                }
+                            },
+                            onLongClick = {
+                                if (!isSearching) {
+                                    navController.backToMain()
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        androidx.compose.foundation.layout.Row(
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            if (query.text.isNotEmpty()) {
+                                IconButton(onClick = { query = TextFieldValue("") }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            IconButton(onClick = {
+                                val newSource = if (historySource == HistorySource.LOCAL) HistorySource.REMOTE else HistorySource.LOCAL
+                                viewModel.historySource.value = newSource
+                                if (newSource == HistorySource.REMOTE) {
+                                    viewModel.fetchRemoteHistory()
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (historySource == HistorySource.LOCAL) R.drawable.cloud_off_listentogether else R.drawable.globe_search
+                                    ),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                )
             }
         },
         navigationIcon = {
@@ -501,27 +514,6 @@ fun HistoryScreen(
                     Icon(
                         painter = painterResource(R.drawable.close),
                         contentDescription = null,
-                    )
-                }
-            } else {
-                IconButton(
-                    onClick = {
-                        if (isSearching) {
-                            isSearching = false
-                            query = TextFieldValue()
-                        } else {
-                            navController.navigateUp()
-                        }
-                    },
-                    onLongClick = {
-                        if (!isSearching) {
-                            navController.backToMain()
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.arrow_back),
-                        contentDescription = null
                     )
                 }
             }
