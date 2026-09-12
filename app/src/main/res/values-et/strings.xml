@@ -279,4 +279,12 @@
     <string name="use_login_for_browse">Sisu sirvimiseks logi sisse</string>
     <string name="use_login_for_browse_desc">See võib mõjutada mis sisu sa näed, sealhulgas kui kasutad YouTube Premium-kontot, siis YouTube Premiumi jaoks mõeldud albumeid</string>
     <string name="action_login">Logi sisse</string>
+
+    <string name="create_playlist_or_spotify_hint">Esitusloendi nimi või Spotify esitusloendi link</string>
+    <string name="spotify_importing_playlist">Importimine Spotifyst…</string>
+    <string name="spotify_import_result">Imporditi %1$d lugu. %2$d ei leitud vastet.</string>
+    <string name="spotify_import_failed">Seda Spotify esitusloendit ei saanud importida.</string>
+    <string name="spotify_import_timeout">Import võttis liiga kaua aega. Kontrollige oma võrku ja proovige uuesti.</string>
+    <string name="music">Muusika</string>
+
 </resources>

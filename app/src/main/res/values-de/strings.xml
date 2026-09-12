@@ -279,4 +279,11 @@
     <string name="use_login_for_browse">Anmeldung zum Durchsuchen von Inhalten verwenden</string>
     <string name="use_login_for_browse_desc">Dies kann Einfluss darauf haben, welche Inhalte du siehst und zeigt zum Beispiel nur Premium-Alben an, wenn Sie mit einem Premium-Konto angemeldet sind</string>
     <string name="action_login">Anmelden</string>
+
+    <string name="create_playlist_or_spotify_hint">Name der Playlist oder Link zur Spotify-Playlist</string>
+    <string name="spotify_importing_playlist">Von Spotify importieren…</string>
+    <string name="spotify_import_result">%1$d Titel wurden importiert. %2$d konnte nicht abgeglichen werden.</string>
+    <string name="spotify_import_failed">Diese Spotify-Playlist konnte nicht importiert werden.</string>
+    <string name="spotify_import_timeout">Der Import hat zu lange gedauert. Überprüfen Sie Ihr Netzwerk und versuchen Sie es erneut.</string>
+    <string name="music">Musik</string>
 </resources>

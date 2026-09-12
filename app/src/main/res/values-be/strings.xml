@@ -231,4 +231,12 @@
     <string name="new_version_available">Даступная новая версія</string>
     <string name="translation_models">Мадэлі перакладу</string>
     <string name="clear_translation_models">Ачысціць мадэлі перакладу</string>
+
+    <string name="create_playlist_or_spotify_hint">Назва спісу прайгравання або спасылка на спіс прайгравання Spotify</string>
+    <string name="spotify_importing_playlist">Імпарт з Spotify…</string>
+    <string name="spotify_import_result">Імпартавана %1$d трэкаў. %2$d не знойдзена.</string>
+    <string name="spotify_import_failed">Немагчыма імпартаваць гэты плэйліст Spotify.</string>
+    <string name="spotify_import_timeout">Імпарт заняў занадта шмат часу. Праверце сетку і паўтарыце спробу.</string>
+    <string name="music">Музыка</string>
+
 </resources>

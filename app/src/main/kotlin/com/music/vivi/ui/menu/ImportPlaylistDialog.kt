@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -19,6 +18,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
 import com.music.vivi.db.entities.PlaylistEntity
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.music.vivi.ui.component.TextFieldDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
@@ -32,7 +33,7 @@ fun ImportPlaylistDialog(
     onDismiss: () -> Unit,
 ) {
     val database = LocalDatabase.current
-    val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val textFieldValue by remember { mutableStateOf(TextFieldValue(text = playlistTitle)) }
     var songIds by remember {
@@ -50,17 +51,18 @@ fun ImportPlaylistDialog(
                 val newPlaylist = PlaylistEntity(
                     name = finalName
                 )
-                database.query { insert(newPlaylist) }
 
-                coroutineScope.launch(Dispatchers.IO) {
+                lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    database.withTransaction {
+                        insert(newPlaylist)
+                    }
                     val playlist = database.playlist(newPlaylist.id).firstOrNull()
 
                     if (playlist != null) {
                         songIds = onGetSong()
                         database.addSongToPlaylist(playlist, songIds!!)
                     }
-
-                    onDismiss()
+                    // Dialog already dismissed by TextFieldDialog before onDone; avoid second onDismiss().
                 }
             }
         )

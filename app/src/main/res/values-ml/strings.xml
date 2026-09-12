@@ -279,4 +279,11 @@
     <string name="new_version_available">പുതിയ വേർഷൻ ലഭ്യമാണ്</string>
     <string name="translation_models">വിവർത്തന പദ്ധതികൾ</string>
     <string name="clear_translation_models">വിവർത്തന പദ്ധതികൾ കളയുക</string>
+
+    <string name="create_playlist_or_spotify_hint">പ്ലേലിസ്റ്റ് പേര് അല്ലെങ്കിൽ Spotify പ്ലേലിസ്റ്റ് ലിങ്ക്</string>
+    <string name="spotify_importing_playlist">Spotify-ൽ നിന്ന് ഇമ്പോർട്ടുചെയ്യുന്നു...</string>
+    <string name="spotify_import_result">%1$d ട്രാക്കുകൾ ഇറക്കുമതി ചെയ്തു. %2$d പൊരുത്തപ്പെടുത്താനായില്ല.</string>
+    <string name="spotify_import_failed">ഈ Spotify പ്ലേലിസ്റ്റ് ഇറക്കുമതി ചെയ്യാൻ കഴിഞ്ഞില്ല.</string>
+    <string name="spotify_import_timeout">ഇറക്കുമതി വളരെ സമയമെടുത്തു. നിങ്ങളുടെ നെറ്റ്‌വർക്ക് പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="music">സംഗീതം</string>
 </resources>

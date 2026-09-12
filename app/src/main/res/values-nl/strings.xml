@@ -279,4 +279,11 @@
     <string name="use_login_for_browse_desc">Dit kan invloed hebben op welke inhoud u ziet en laat bijvoorbeeld alleen premium albums zien als u bent ingelogd met een Premium account</string>
     <string name="use_login_for_browse">Gebruik login om inhoud te bekijken</string>
     <string name="action_login">Inloggen</string>
+
+    <string name="create_playlist_or_spotify_hint">Naam van afspeellijst of link naar Spotify-afspeellijst</string>
+    <string name="spotify_importing_playlist">Importeren vanuit Spotify…</string>
+    <string name="spotify_import_result">%1$d nummers geïmporteerd. %2$d kon niet worden gematcht.</string>
+    <string name="spotify_import_failed">Kan deze Spotify-afspeellijst niet importeren.</string>
+    <string name="spotify_import_timeout">Het importeren duurde te lang. Controleer uw netwerk en probeer het opnieuw.</string>
+    <string name="music">Muziek</string>
 </resources>

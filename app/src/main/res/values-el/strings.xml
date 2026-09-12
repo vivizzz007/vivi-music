@@ -277,4 +277,12 @@
     <string name="search_history">Ιστορικό αναζήτησης</string>
     <string name="disable_screenshot">Απενεργοποίηση στιγμιότυπων οθόνης</string>
     <string name="action_login">Συνδεθείτε</string>
+
+    <string name="create_playlist_or_spotify_hint">Όνομα λίστας αναπαραγωγής ή σύνδεσμος λίστας αναπαραγωγής Spotify</string>
+    <string name="spotify_importing_playlist">Εισαγωγή από το Spotify…</string>
+    <string name="spotify_import_result">Έγινε εισαγωγή %1$d κομματιών. Δεν ήταν δυνατή η αντιστοίχιση του %2$d.</string>
+    <string name="spotify_import_failed">Δεν ήταν δυνατή η εισαγωγή αυτής της λίστας αναπαραγωγής Spotify.</string>
+    <string name="spotify_import_timeout">Η εισαγωγή άργησε πολύ. Ελέγξτε το δίκτυό σας και δοκιμάστε ξανά.</string>
+    <string name="music">Μουσική</string>
+
 </resources>

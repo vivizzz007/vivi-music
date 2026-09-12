@@ -279,4 +279,11 @@
     <string name="new_version_available">Uusi versio saatavilla</string>
     <string name="translation_models">Käännösmallit</string>
     <string name="clear_translation_models">Tyhjennä käännösmallit</string>
+
+    <string name="create_playlist_or_spotify_hint">Soittolistan nimi tai Spotify-soittolistan linkki</string>
+    <string name="spotify_importing_playlist">Tuodaan Spotifysta…</string>
+    <string name="spotify_import_result">Tuotu %1$d kappaletta. %2$d ei löytynyt.</string>
+    <string name="spotify_import_failed">Tätä Spotify-soittolistaa ei voitu tuoda.</string>
+    <string name="spotify_import_timeout">Tuonti kesti liian kauan. Tarkista verkkosi ja yritä uudelleen.</string>
+    <string name="music">Musiikki</string>
 </resources>

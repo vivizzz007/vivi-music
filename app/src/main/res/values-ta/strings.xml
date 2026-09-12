@@ -279,4 +279,11 @@
         <item quantity="other">%d தேர்ந்தெடுக்கப்பட்டன</item>
     </plurals>
     <string name="action_login">புகுபதிகை</string>
+
+    <string name="create_playlist_or_spotify_hint">பிளேலிஸ்ட் பெயர் அல்லது Spotify பிளேலிஸ்ட் இணைப்பு</string>
+    <string name="spotify_importing_playlist">Spotify இலிருந்து இறக்குமதி செய்கிறது…</string>
+    <string name="spotify_import_result">%1$d டிராக்குகள் இறக்குமதி செய்யப்பட்டன. %2$d ஐப் பொருத்த முடியவில்லை.</string>
+    <string name="spotify_import_failed">இந்த Spotify பிளேலிஸ்ட்டை இறக்குமதி செய்ய முடியவில்லை.</string>
+    <string name="spotify_import_timeout">இறக்குமதி அதிக நேரம் எடுத்தது. உங்கள் நெட்வொர்க்கைச் சரிபார்த்து, மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="music">இசை</string>
 </resources>

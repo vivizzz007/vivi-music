@@ -288,4 +288,11 @@
     <string name="use_login_for_browse">Inicie a sessão para ver o conteúdo de navegação</string>
     <string name="use_login_for_browse_desc">Isto influencia o conteúdo visível, e por exemplo, mostra apenas álbuns Premium, se estiver autenticado com uma conta Premium</string>
     <string name="action_login">Iniciar sessão</string>
+
+    <string name="create_playlist_or_spotify_hint">Nome da lista de reprodução ou link da lista de reprodução do Spotify</string>
+    <string name="spotify_importing_playlist">Importando do Spotify…</string>
+    <string name="spotify_import_result">%1$d faixas importadas. %2$d não pôde ser correspondido.</string>
+    <string name="spotify_import_failed">Não foi possível importar esta playlist do Spotify.</string>
+    <string name="spotify_import_timeout">A importação demorou muito. Verifique sua rede e tente novamente.</string>
+    <string name="music">Música</string>
 </resources>

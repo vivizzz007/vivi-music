@@ -315,4 +315,13 @@
     <string name="use_login_for_browse">استخدم تسجيل الدخول لتصفح المحتوى</string>
     <string name="use_login_for_browse_desc">يمكن أن يؤثر ذلك على المحتوى الذي تراه، فعلى سبيل المثال، يعرض الألبومات المخصصة للمشتركين المميزين فقط إذا كنت مسجلاً الدخول باستخدام حساب مميز</string>
     <string name="action_login">تسجيل دخول</string>
+
+    <string name="create_playlist_or_spotify_hint">اسم قائمة التشغيل أو رابط قائمة التشغيل Spotify</string>
+    <string name="spotify_importing_playlist">جارٍ الاستيراد من Spotify...</string>
+    <string name="spotify_import_result">تم استيراد %1$d من المسارات. تعذرت مطابقة %2$d.</string>
+    <string name="spotify_import_failed">تعذر استيراد قائمة تشغيل Spotify هذه.</string>
+    <string name="spotify_import_timeout">استغرق الاستيراد وقتا طويلا. تحقق من شبكتك وحاول مرة أخرى.</string>
+    <string name="music">موسيقى</string>
+
+
 </resources>
