@@ -112,9 +112,8 @@ constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val playlistsCount = database.playlists(PlaylistSortType.CREATE_DATE, true)
-        .map { it.size }
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
 
 
@@ -148,11 +147,11 @@ constructor(
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val filteredUiItems = combine(
-        artists, debouncedSearchQuery, sortSettings
-    ) { arts, query, sortSet ->
+        artists, albums, playlists, debouncedSearchQuery, sortSettings
+    ) { arts, albs, plists, query, sortSet ->
         val (sortType, descending) = sortSet
         
-        val mergedList: List<Any> = arts
+        val mergedList: List<Any> = arts + albs + plists
         val collator = Collator.getInstance(Locale.getDefault())
         collator.strength = Collator.PRIMARY
         

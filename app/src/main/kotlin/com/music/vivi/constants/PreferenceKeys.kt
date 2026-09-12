@@ -345,8 +345,7 @@ val ShowTopPlaylistKey = booleanPreferencesKey("show_top_playlist")
 val ShowCachedPlaylistKey = booleanPreferencesKey("show_cached_playlist")
 val ShowAudioQualityBadgeKey = booleanPreferencesKey("show_audio_quality_badge")
 val ShowCommentButtonKey = booleanPreferencesKey("show_comment_button")
-
-
+val LibraryMixIsGridViewKey = booleanPreferencesKey("library_mix_is_grid_view")
 enum class SongFilter {
     LIBRARY,
     LIKED,
