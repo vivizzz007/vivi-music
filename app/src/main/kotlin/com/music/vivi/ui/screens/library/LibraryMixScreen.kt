@@ -104,8 +104,12 @@ import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.LibraryMixViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 enum class LibraryFilterType { ALL, ARTIST, ALBUM, PLAYLIST }
 
@@ -249,9 +253,32 @@ fun LibraryMixScreen(
          }
     }
 
+    // Periodic auto-sync every 5 minutes while screen is open
+    LaunchedEffect(ytmSync) {
+        if (ytmSync) {
+            while (true) {
+                delay(60 * 1000L) // 1 minute
+                viewModel.forceRefresh()
+            }
+        }
+    }
 
+    val isSyncing by viewModel.isSyncing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
-    Box(
+    PullToRefreshBox(
+        isRefreshing = isSyncing,
+        onRefresh = { viewModel.forceRefresh() },
+        state = pullRefreshState,
+        indicator = {
+            PullToRefreshDefaults.LoadingIndicator(
+                state = pullRefreshState,
+                isRefreshing = isSyncing,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding())
+            )
+        },
         modifier = Modifier.fillMaxSize(),
     ) {
                 LazyVerticalGrid(
