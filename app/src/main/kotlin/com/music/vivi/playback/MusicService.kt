@@ -399,14 +399,9 @@ class MusicService :
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
     private var prefetchJob: Job? = null
 
-    private data class ServiceCachedStream(
-        val url: String,
-        val headers: Map<String, String>,
-        val expiresAt: Long
-    )
-
     // URL cache for stream URLs - class-level so it can be invalidated on errors
-    private val songUrlCache = HashMap<String, ServiceCachedStream>()
+    internal val songUrlCache = StreamUrlCache()
+    val currentStreamClient = MutableStateFlow<String?>(null)
 
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
@@ -642,7 +637,7 @@ class MusicService :
                     Timber.tag("MusicService").i("RELOADING STREAM: $mediaId at position ${currentPosition}ms")
 
                     // Clear cached URL to force fresh fetch
-                    songUrlCache.remove(mediaId)
+                    songUrlCache.invalidate(mediaId)
 
                     // CRITICAL: Clear caches synchronously to prevent format parsing errors
                     runBlocking(Dispatchers.IO) {
@@ -689,7 +684,7 @@ class MusicService :
                     val wasPlaying = player.isPlaying
 
                     // Clear cached URL
-                    songUrlCache.remove(mediaId)
+                    songUrlCache.invalidate(mediaId)
 
                     // Reload player
                     player.stop()
@@ -2117,9 +2112,10 @@ class MusicService :
 
         // Nothing to do — URL is already cached and hasn't expired
         val cachedEntry = songUrlCache[nextMediaId]
-        if (cachedEntry != null && cachedEntry.expiresAt > System.currentTimeMillis()) return
+        if (cachedEntry != null) return
 
         prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
+            val cacheGeneration = songUrlCache.generation(nextMediaId)
             Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
             val result = runCatching {
                 YTPlayerUtils.playerResponseForPlayback(
@@ -2132,10 +2128,16 @@ class MusicService :
             result.getOrNull()?.getOrNull()?.let { playbackData ->
                 // Only write to cache if the job wasn't cancelled while we were resolving
                 if (isActive) {
-                    songUrlCache[nextMediaId] = ServiceCachedStream(
+                    songUrlCache.put(
+                        mediaId = nextMediaId,
                         url = playbackData.streamUrl,
-                        headers = playbackData.streamHeaders,
-                        expiresAt = System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                        requestHeaders = playbackData.streamHeaders,
+                        clientName = playbackData.streamClient,
+                        expiresInSeconds = playbackData.streamExpiresInSeconds,
+                        requireBoundedRange = playbackData.requireBoundedRange,
+                        rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                        useRangeChunks = playbackData.useRangeChunks,
+                        expectedGeneration = cacheGeneration,
                     )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
 
@@ -2457,7 +2459,7 @@ class MusicService :
      */
     private fun isExpiredUrlError(error: PlaybackException): Boolean {
         val responseCode = getHttpResponseCode(error)
-        return responseCode == 403
+        return responseCode == 403 || responseCode == 410
     }
 
     /**
@@ -2507,6 +2509,18 @@ class MusicService :
                 (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_IO_NETWORK_CONNECTION_FAILED
     }
 
+    private fun isRemotePlaybackError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_REMOTE_ERROR
+
+    private fun isStreamClientError(error: PlaybackException): Boolean =
+        error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_INVALID_HTTP_CONTENT_TYPE ||
+            error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_MALFORMED ||
+            error.errorCode == PlaybackException.ERROR_CODE_PARSING_MANIFEST_UNSUPPORTED
+
     /**
      * Checks if the error is caused by AudioTrack write or initialization failures.
      * These errors indicate the audio renderer is in a corrupted/invalid state.
@@ -2528,6 +2542,7 @@ class MusicService :
         }
 
         val mediaId = player.currentMediaItem?.mediaId
+        val failedStreamClient = mediaId?.let(songUrlCache::clientName)
         Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
         reportException(error)
 
@@ -2562,24 +2577,33 @@ class MusicService :
                 return
             }
             isExpiredUrlError(error) -> {
-                Timber.tag(TAG).d("Expired URL (403) detected, refreshing stream URL")
-                handleExpiredUrlError(mediaId)
+                Timber.tag(TAG).d("Expired URL (403/410) detected, refreshing stream URL")
+                handleExpiredUrlError(mediaId, failedStreamClient)
+                return
+            }
+            isRemotePlaybackError(error) -> {
+                Timber.tag(TAG).d("Remote playback error detected (${error.errorCode}), refreshing stream URL")
+                handleExpiredUrlError(mediaId, failedStreamClient)
                 return
             }
 
-            !isNetworkConnected.value || isNetworkRelatedError(error) -> {
+            !isNetworkConnected.value -> {
                 Timber.tag(TAG).d("Network-related error detected, waiting for connection")
                 waitOnNetworkError()
                 return
             }
-        }
 
-        // For IO_UNSPECIFIED and IO_BAD_HTTP_STATUS, try recovery first
-        if (error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED ||
-            error.errorCode == PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS) {
-            Timber.tag(TAG).d("IO error detected (${error.errorCode}), attempting recovery")
-            handleGenericIOError(mediaId)
-            return
+            isNetworkRelatedError(error) -> {
+                Timber.tag(TAG).d("Network-related error detected while connected, attempting recovery")
+                handleGenericIOError(mediaId)
+                return
+            }
+
+            isStreamClientError(error) -> {
+                Timber.tag(TAG).d("Stream client error detected (${error.errorCode}), trying next client")
+                handleStreamClientError(mediaId, failedStreamClient)
+                return
+            }
         }
 
         // Final fallback
@@ -2600,7 +2624,7 @@ class MusicService :
         Timber.tag(TAG).d("Performing aggressive cache clear for $mediaId")
 
         // Clear URL cache
-        songUrlCache.remove(mediaId)
+        songUrlCache.invalidate(mediaId)
 
         // Clear player cache
         try {
@@ -2803,39 +2827,93 @@ class MusicService :
     }
 
     /**
-     * Handles expired URL (403) errors by clearing caches and retrying.
+     * Handles expired URL (403/410) errors by clearing caches and retrying.
      */
-    private fun handleExpiredUrlError(mediaId: String?) {
+    private fun handleExpiredUrlError(
+        mediaId: String?,
+        failedStreamClient: String?,
+    ) {
         if (mediaId == null) {
+            handleFinalFailure()
+            return
+        }
+
+        refreshStreamAndRetry(
+            mediaId = mediaId,
+            failedStreamClient = failedStreamClient,
+            refreshCipherConfig = true,
+            retryReason = "expired URL error",
+        )
+    }
+
+    private fun handleStreamClientError(
+        mediaId: String?,
+        failedStreamClient: String?,
+    ) {
+        if (mediaId == null) {
+            handleFinalFailure()
+            return
+        }
+
+        refreshStreamAndRetry(
+            mediaId = mediaId,
+            failedStreamClient = failedStreamClient,
+            refreshCipherConfig = false,
+            retryReason = "stream client error",
+        )
+    }
+
+    private fun refreshStreamAndRetry(
+        mediaId: String,
+        failedStreamClient: String?,
+        refreshCipherConfig: Boolean,
+        retryReason: String,
+    ) {
+        if (hasExceededRetryLimit(mediaId)) {
+            Timber.tag(TAG).w("Song reached the retry limit during $retryReason")
+            markSongAsFailed(mediaId)
             handleFinalFailure()
             return
         }
 
         incrementRetryCount(mediaId)
 
-        // Clear the cached URL
-        songUrlCache.remove(mediaId)
-        Timber.tag(TAG).d("Cleared cached URL for $mediaId")
+        songUrlCache.invalidate(mediaId)
+        failedStreamClient?.let { InnerTubeXPlayer.markStreamClientFailed(mediaId, it) }
+        Timber.tag(TAG).d("Cleared cached URL after $retryReason (client=$failedStreamClient)")
 
-        // Clear decryption caches
-        try {
-            YTPlayerUtils.forceRefreshForVideo(mediaId)
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Failed to clear decryption caches")
+        if (refreshCipherConfig) {
+            scope.launch {
+                if (InnerTubeXPlayer.refreshAfterStreamRejection()) {
+                    Timber.tag(TAG).d("Player config changed after stream rejection: restoring stream clients")
+                    InnerTubeXPlayer.clearStreamClientFailures()
+                }
+            }
         }
 
+        val retryPosition = player.currentPosition
+        val retryIndex = player.currentMediaItemIndex
+        val retryPlayWhenReady = player.playWhenReady
         retryJob?.cancel()
-        retryJob = scope.launch {
-            delay(RETRY_DELAY_MS)
+        retryJob =
+            scope.launch {
+                delay(RETRY_DELAY_MS)
 
-            // Seek to current position to force URL re-resolution
-            val currentPosition = player.currentPosition
-            val currentIndex = player.currentMediaItemIndex
-            player.seekTo(currentIndex, currentPosition)
-            player.prepare()
+                if (player.currentMediaItem?.mediaId != mediaId ||
+                    player.currentMediaItemIndex != retryIndex ||
+                    player.currentPosition != retryPosition ||
+                    player.playWhenReady != retryPlayWhenReady
+                ) {
+                    Timber.tag(TAG).d("Skipping stale retry for $mediaId after $retryReason")
+                    return@launch
+                }
 
-            Timber.tag(TAG).d("Retrying playback for $mediaId after 403 error")
-        }
+                retryJob = null
+                player.seekTo(retryIndex, retryPosition)
+                player.prepare()
+
+                Timber.tag(TAG).d("Retrying playback for $mediaId after $retryReason")
+            }
     }
 
     /**
@@ -3041,16 +3119,16 @@ class MusicService :
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.takeIf { it.expiresAt > System.currentTimeMillis() }?.let { cached ->
+                songUrlCache[mediaId]?.let { cachedStream ->
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                    return@Factory dataSpec
-                        .withUri(cached.url.toUri())
-                        .withRequestHeaders(dataSpec.httpRequestHeaders + cached.headers)
+                    currentStreamClient.value = cachedStream.clientName
+                    return@Factory dataSpec.withResolvedStream(cachedStream)
                 }
             } else {
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
             }
 
+            val cacheGeneration = songUrlCache.generation(mediaId)
             Timber.tag("MusicService").i("FETCHING STREAM: $mediaId | quality=$audioQuality")
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(
@@ -3124,15 +3202,30 @@ class MusicService :
                 }
 
                 val streamUrl = nonNullPlayback.streamUrl
+                currentStreamClient.value = nonNullPlayback.streamClient
 
-                songUrlCache[mediaId] = ServiceCachedStream(
+                songUrlCache.put(
+                    mediaId = mediaId,
                     url = streamUrl,
-                    headers = nonNullPlayback.streamHeaders,
-                    expiresAt = System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
+                    requestHeaders = nonNullPlayback.streamHeaders,
+                    clientName = nonNullPlayback.streamClient,
+                    expiresInSeconds = nonNullPlayback.streamExpiresInSeconds,
+                    requireBoundedRange = nonNullPlayback.requireBoundedRange,
+                    rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
+                    useRangeChunks = nonNullPlayback.useRangeChunks,
+                    expectedGeneration = cacheGeneration,
                 )
-                return@Factory dataSpec
-                    .withUri(streamUrl.toUri())
-                    .withRequestHeaders(dataSpec.httpRequestHeaders + nonNullPlayback.streamHeaders)
+
+                return@Factory dataSpec.withResolvedStream(
+                    CachedStreamUrl(
+                        url = streamUrl,
+                        requestHeaders = nonNullPlayback.streamHeaders,
+                        clientName = nonNullPlayback.streamClient,
+                        requireBoundedRange = nonNullPlayback.requireBoundedRange,
+                        rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
+                        useRangeChunks = nonNullPlayback.useRangeChunks,
+                    ),
+                )
             }
         }
     }

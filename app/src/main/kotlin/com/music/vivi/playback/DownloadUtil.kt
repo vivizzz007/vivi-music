@@ -141,9 +141,7 @@ constructor(
 
             songUrlCache[mediaId]?.let { cachedStream ->
                 Timber.tag("DownloadDiagnostics").d("Using cached stream URL from valid songUrlCache for $mediaId")
-                return@Factory dataSpec
-                    .withUri(cachedStream.url.toUri())
-                    .withRequestHeaders(dataSpec.httpRequestHeaders + cachedStream.requestHeaders)
+                return@Factory dataSpec.withResolvedStream(cachedStream)
             }
             Timber.tag("DownloadDiagnostics").w("No valid cached URL found for $mediaId. Triggering heavy network playback resolution!")
             val cacheGeneration = songUrlCache.generation(mediaId)
@@ -247,13 +245,7 @@ constructor(
                 }
             }
 
-            val streamUrl = if (playbackData.isSaavnStream || !playbackData.requireBoundedRange) {
-                playbackData.streamUrl
-            } else if (actualContentLength > 0L) {
-                "${playbackData.streamUrl}&range=0-${actualContentLength}"
-            } else {
-                playbackData.streamUrl
-            }
+            val streamUrl = playbackData.streamUrl
 
             songUrlCache.put(
                 mediaId = mediaId,
@@ -261,11 +253,21 @@ constructor(
                 requestHeaders = playbackData.streamHeaders,
                 clientName = playbackData.streamClient,
                 expiresInSeconds = playbackData.streamExpiresInSeconds,
+                requireBoundedRange = playbackData.requireBoundedRange,
+                rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                useRangeChunks = playbackData.useRangeChunks,
                 expectedGeneration = cacheGeneration,
             )
-            dataSpec
-                .withUri(streamUrl.toUri())
-                .withRequestHeaders(dataSpec.httpRequestHeaders + playbackData.streamHeaders)
+            dataSpec.withResolvedStream(
+                CachedStreamUrl(
+                    url = streamUrl,
+                    requestHeaders = playbackData.streamHeaders,
+                    clientName = playbackData.streamClient,
+                    requireBoundedRange = playbackData.requireBoundedRange,
+                    rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                    useRangeChunks = playbackData.useRangeChunks,
+                ),
+            )
         }
 
     val downloadNotificationHelper =
