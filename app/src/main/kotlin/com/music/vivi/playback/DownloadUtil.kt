@@ -104,6 +104,11 @@ constructor(
 
     private val streamHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
+            .connectionPool(okhttp3.ConnectionPool(32, 5, java.util.concurrent.TimeUnit.MINUTES))
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .dns(object : Dns {
                 override fun lookup(hostname: String): List<InetAddress> {
                     val addresses = Dns.SYSTEM.lookup(hostname)
@@ -132,7 +137,8 @@ constructor(
                 .setCache(playerCache)
                 .setCacheWriteDataSinkFactory(null) // PREVENTS DEADLOCKS! Don't write to playerCache here; just read from it!
                 .setUpstreamDataSourceFactory(
-                    OkHttpDataSource.Factory(streamHttpClient),
+                    OkHttpDataSource.Factory(streamHttpClient)
+                        .setUserAgent(com.music.innertube.models.YouTubeClient.USER_AGENT_WEB),
                 ),
         ) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -140,7 +146,12 @@ constructor(
             Timber.tag("DownloadDiagnostics").d("dataSourceFactory triggered for mediaId=$mediaId, position=${dataSpec.position}, length=${dataSpec.length}")
 
             if (dataSpec.uri.scheme == "http" || dataSpec.uri.scheme == "https") {
-                return@Factory dataSpec
+                val cached = songUrlCache[mediaId]
+                return@Factory if (cached != null) {
+                    dataSpec.withResolvedStream(cached)
+                } else {
+                    dataSpec
+                }
             }
 
             val knownContentLength = database.getSongByIdBlocking(mediaId)?.format?.contentLength
@@ -169,7 +180,7 @@ constructor(
                         isExplicit = song?.explicit,
                         isUploaded = song?.isUploaded,
                     ),
-                    allowBoundedRange = false,
+                    allowBoundedRange = true,
                 )
             }.getOrThrow()
             val format = playbackData.format
@@ -255,6 +266,18 @@ constructor(
             }
 
             val streamUrl = playbackData.streamUrl
+            val isYouTubeStream = playbackData.streamClient != "JIOSAAVN"
+            val effectiveRequireBoundedRange = if (isYouTubeStream) true else playbackData.requireBoundedRange
+            val effectiveUseRangeChunks = if (isYouTubeStream) true else playbackData.useRangeChunks
+            val effectiveRangeChunkSizeBytes = if (isYouTubeStream) {
+                if (playbackData.rangeChunkSizeBytes in 1L..(1024 * 1024L)) {
+                    playbackData.rangeChunkSizeBytes
+                } else {
+                    512 * 1024L
+                }
+            } else {
+                playbackData.rangeChunkSizeBytes
+            }
 
             songUrlCache.put(
                 mediaId = mediaId,
@@ -262,9 +285,9 @@ constructor(
                 requestHeaders = playbackData.streamHeaders,
                 clientName = playbackData.streamClient,
                 expiresInSeconds = playbackData.streamExpiresInSeconds,
-                requireBoundedRange = playbackData.requireBoundedRange,
-                rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
-                useRangeChunks = playbackData.useRangeChunks,
+                requireBoundedRange = effectiveRequireBoundedRange,
+                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
+                useRangeChunks = effectiveUseRangeChunks,
                 expectedGeneration = cacheGeneration,
             )
             dataSpec.withResolvedStream(
@@ -272,9 +295,9 @@ constructor(
                     url = streamUrl,
                     requestHeaders = playbackData.streamHeaders,
                     clientName = playbackData.streamClient,
-                    requireBoundedRange = playbackData.requireBoundedRange,
-                    rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
-                    useRangeChunks = playbackData.useRangeChunks,
+                    requireBoundedRange = effectiveRequireBoundedRange,
+                    rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
+                    useRangeChunks = effectiveUseRangeChunks,
                 ),
             )
         }
@@ -369,7 +392,7 @@ constructor(
             dataSourceFactory,
             java.util.concurrent.Executors.newFixedThreadPool(6)
         ).apply {
-            maxParallelDownloads = 5
+            maxParallelDownloads = 4
             addListener(
                 object : DownloadManager.Listener {
                     override fun onDownloadChanged(
