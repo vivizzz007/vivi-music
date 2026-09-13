@@ -1140,4 +1140,22 @@
     <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
+
+    <!-- Download folder -->
+    <string name="download_folder">Download folder</string>
+    <string name="download_folder_desc">Choose where downloaded songs are saved, including an SD card or other external storage</string>
+    <string name="choose_folder">Choose folder</string>
+    <string name="reset_to_default">Reset to default</string>
+    <string name="internal_storage_default">Internal storage (default)</string>
+
+    <!-- Authenticated downloads -->
+    <string name="authenticated_downloads">Authenticated downloads</string>
+    <string name="use_cookie_for_downloads">Use an account cookie</string>
+    <string name="use_cookie_for_downloads_desc">Authenticate playback and downloads with a Google account cookie, which can unlock higher quality or restricted streams</string>
+    <string name="cookie_source_account">Signed-in account</string>
+    <string name="cookie_source_account_not_logged_in">Sign in first to use this option</string>
+    <string name="cookie_source_import_file">Import cookies.txt</string>
+    <string name="cookie_source_import_file_desc">Import a Netscape-format cookies.txt file exported by a browser extension</string>
+    <string name="cookie_file_imported">Imported: %1$s</string>
+    <string name="cookie_file_import_failed">Could not read a valid cookie from this file</string>
 </resources>
