@@ -194,67 +194,13 @@ constructor(
                         isUploaded = song?.isUploaded,
                     ),
                     allowBoundedRange = true,
-                    preferM4a = true,
+                    preferM4a = false,
                 )
             }.getOrThrow()
             var activePlaybackData = playbackData
             var format = activePlaybackData.format
 
-            val initialContentLength = format.contentLength?.takeIf { it > 0L }
-            val actualContentLength = if (initialContentLength != null && initialContentLength > 0L) {
-                initialContentLength
-            } else {
-                val probeRequest = okhttp3.Request.Builder()
-                    .get()
-                    .url(activePlaybackData.streamUrl)
-                    .header("Range", "bytes=0-0")
-                    .apply {
-                        activePlaybackData.streamHeaders.forEach { (name, value) ->
-                            header(name, value)
-                        }
-                    }
-                    .build()
-                val probeResult = try {
-                    streamHttpClient.newCall(probeRequest).execute().use { response ->
-                        if (response.code == 403) {
-                            Timber.tag("DownloadDiagnostics").w("Stream probe returned 403 for $mediaId! Retrying with InnerTubeX unthrottled resolution")
-                            -403L
-                        } else {
-                            downloadContentLength(
-                                statusCode = response.code,
-                                contentRange = response.header("Content-Range"),
-                                contentLength = response.header("Content-Length"),
-                            ) ?: 0L
-                        }
-                    }
-                } catch (_: java.io.IOException) {
-                    0L
-                }
-
-                if (probeResult == -403L) {
-                    val fallback = runBlocking(Dispatchers.IO) {
-                        YTPlayerUtils.playerResponseForPlayback(
-                            mediaId,
-                            audioQuality = audioQuality,
-                            connectivityManager = connectivityManager,
-                            context = appContext,
-                            allowBoundedRange = true,
-                            preferM4a = false,
-                        )
-                    }.getOrNull()
-
-                    if (fallback != null) {
-                        Timber.tag("DownloadDiagnostics").i("InnerTubeX unthrottled fallback successfully recovered stream for $mediaId")
-                        activePlaybackData = fallback
-                        format = activePlaybackData.format
-                        format.contentLength?.takeIf { it > 0L } ?: 0L
-                    } else {
-                        0L
-                    }
-                } else {
-                    probeResult
-                }
-            }
+            val actualContentLength = format.contentLength?.takeIf { it > 0L } ?: 0L
 
             database.query {
                 upsert(
@@ -315,33 +261,6 @@ constructor(
                             .diskCachePolicy(CachePolicy.ENABLED)
                             .build()
                         imageLoader.enqueue(request)
-                    }
-                }
-
-                // Opportunistically pre-cache canvas animation in background without blocking audio download
-                scope.launch(Dispatchers.IO) {
-                    runCatching {
-                        val songWithData = database.song(mediaId).firstOrNull()
-                        val s = songWithData?.song ?: return@launch
-                        val artists = songWithData.artists.joinToString { it.name }.ifBlank { songWithData.artists.firstOrNull()?.name ?: "" }
-                        val album = songWithData.album?.title ?: ""
-                        val storefront = java.util.Locale.getDefault().country.let { if (it.length == 2) it.lowercase(java.util.Locale.ROOT) else "us" }
-
-                        val canvas = com.music.vivi.applecanvas.AppleMusicCanvasProvider.getBySongArtist(s.title, artists, album, storefront)
-                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                            ?: com.music.vivi.canvas.TidalCanvasProvider.getBySongArtist(s.title, artists, album)
-                                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-                            ?: com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider.getBySongArtist(s.title, artists, album)
-                                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
-
-                        if (canvas != null) {
-                            listOf("AUTO", "APPLE_MUSIC", "TIDAL", "VIVIMUSIC").forEach { src ->
-                                com.music.vivi.ui.player.CanvasArtworkPlaybackCache.put("${mediaId}:${src}", canvas)
-                            }
-                            Timber.tag("DownloadUtil").i("Pre-cached canvas animation for $mediaId (${s.title})")
-                        }
-                    }.onFailure {
-                        Timber.tag("DownloadUtil").d("Canvas pre-cache skipped for $mediaId")
                     }
                 }
             }

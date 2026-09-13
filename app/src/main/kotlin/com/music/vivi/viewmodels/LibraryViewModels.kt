@@ -59,6 +59,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
@@ -243,6 +244,39 @@ constructor(
                 val (sortType, descending) = sortDesc
                 database.artistSongs(artistId, sortType, descending).map { it.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs) }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+}
+
+@HiltViewModel
+class ArtistPlaylistSongsViewModel
+@Inject
+constructor(
+    @ApplicationContext context: Context,
+    val database: MusicDatabase,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    val artistId = savedStateHandle.get<String>("artistId")!!
+    val passedArtistName = savedStateHandle.get<String>("artistName").orEmpty()
+
+    val artist =
+        database
+            .artist(artistId)
+            .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val songs =
+        combine(
+            artist,
+            context.dataStore.data.map {
+                (it[HideExplicitKey] ?: false) to (it[HideVideoSongsKey] ?: false)
+            }.distinctUntilChanged()
+        ) { artistEntity, (hideExplicit, hideVideoSongs) ->
+            val name = passedArtistName.ifBlank { artistEntity?.artist?.name.orEmpty() }
+            Triple(name, hideExplicit, hideVideoSongs)
+        }.distinctUntilChanged()
+        .flatMapLatest { (name, hideExplicit, hideVideoSongs) ->
+            database.artistPlaylistSongs(artistId, name).map { list ->
+                list.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs)
+            }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 }
 
 @HiltViewModel

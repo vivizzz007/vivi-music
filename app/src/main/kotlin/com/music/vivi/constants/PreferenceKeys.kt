@@ -429,11 +429,9 @@ enum class PlayerActionButton(val displayName: String) {
     companion object {
         val DEFAULT_BUTTONS = listOf(
             QUEUE,
+            AUDIO_DEVICE,
             SLEEP_TIMER,
-            LYRICS,
-            SHUFFLE,
-            REPEAT,
-            MORE_OPTIONS
+            LYRICS
         )
 
         fun parseList(serialized: String?): List<PlayerActionButton> {

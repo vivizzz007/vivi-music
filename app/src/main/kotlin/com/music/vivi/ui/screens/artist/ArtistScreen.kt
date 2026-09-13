@@ -737,12 +737,8 @@ fun ArtistScreen(
                             title = stringResource(R.string.in_your_playlists),
                             modifier = Modifier.animateItem(),
                             onClick = {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = "${artistName ?: "Artist"} ($inYourPlaylistsLabel)",
-                                        items = playlistSongs.map { it.toMediaItem() }
-                                    )
-                                )
+                                val encodedName = java.net.URLEncoder.encode(artistName.orEmpty(), "UTF-8")
+                                navController.navigate("artist/${viewModel.artistId}/playlist_songs?artistName=$encodedName")
                             }
                         )
                     }
@@ -752,8 +748,9 @@ fun ArtistScreen(
                     } else {
                         playlistSongs
                     }
+                    val previewPlaylistSongs = filteredPlaylistSongs.take(5)
                     itemsIndexed(
-                        items = filteredPlaylistSongs,
+                        items = previewPlaylistSongs,
                         key = { index, item -> "artist_playlist_song_${item.id}_$index" }
                     ) { index, song ->
                         SongListItem(
@@ -761,7 +758,7 @@ fun ArtistScreen(
                             showInLibraryIcon = true,
                             isActive = song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
-                            shape = listItemShape(index, filteredPlaylistSongs.size),
+                            shape = listItemShape(index, previewPlaylistSongs.size),
                             trailingContent = {
                                 IconButton(
                                     onClick = {

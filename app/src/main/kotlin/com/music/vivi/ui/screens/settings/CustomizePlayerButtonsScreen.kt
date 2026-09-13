@@ -37,15 +37,15 @@ import com.music.vivi.constants.PlayerActionButton
 
 fun getPlayerButtonIcon(button: PlayerActionButton): Int {
     return when (button) {
-        PlayerActionButton.QUEUE -> R.drawable.queue_music
-        PlayerActionButton.SLEEP_TIMER -> R.drawable.bedtime
-        PlayerActionButton.LYRICS -> R.drawable.lyrics
+        PlayerActionButton.QUEUE -> R.drawable.apple_queue
+        PlayerActionButton.SLEEP_TIMER -> R.drawable.sleep_timer
+        PlayerActionButton.LYRICS -> R.drawable.apple_music_me
         PlayerActionButton.COMMENTS -> R.drawable.chat_msg
         PlayerActionButton.SHUFFLE -> R.drawable.shuffle
         PlayerActionButton.REPEAT -> R.drawable.repeat
         PlayerActionButton.LIKE -> R.drawable.favorite
         PlayerActionButton.DOWNLOAD -> R.drawable.download
-        PlayerActionButton.EQUALIZER -> R.drawable.equalizer
+        PlayerActionButton.EQUALIZER -> R.drawable.graphic_eq
         PlayerActionButton.AUDIO_DEVICE -> R.drawable.speaker_apple
         PlayerActionButton.MORE_OPTIONS -> R.drawable.more_vert
     }
@@ -553,26 +553,56 @@ private fun PlayerSkeletonCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // REAL-TIME BOTTOM ACTION BAR SKELETON (Apple Music 3-section layout)
+            // REAL-TIME BOTTOM ACTION BAR SKELETON (Apple Music layout)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .background(Color.Black.copy(alpha = 0.35f))
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 @Composable
-                fun RenderPreviewButton(index: Int, shape: androidx.compose.ui.graphics.Shape) {
+                fun RenderPreviewOuterButton(index: Int) {
                     val button = activeButtons[index]
                     val isSelected = index == selectedIndex
                     Box(
                         modifier = Modifier
                             .size(38.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primary
+                                else Color.Transparent
+                            )
+                            .border(
+                                width = if (isSelected) 2.dp else 0.dp,
+                                color = if (isSelected) Color.White else Color.Transparent,
+                                shape = CircleShape
+                            )
+                            .clickable { onSelectButton(index) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(getPlayerButtonIcon(button)),
+                            contentDescription = button.displayName,
+                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                @Composable
+                fun RenderPreviewMiddleButton(index: Int, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier = Modifier) {
+                    val button = activeButtons[index]
+                    val isSelected = index == selectedIndex
+                    Box(
+                        modifier = modifier
+                            .height(36.dp)
                             .clip(shape)
                             .background(
                                 if (isSelected) MaterialTheme.colorScheme.primary
-                                else Color.White.copy(alpha = 0.12f)
+                                else Color.White.copy(alpha = 0.2f)
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 0.dp,
@@ -596,38 +626,35 @@ private fun PlayerSkeletonCard(
                     // Empty state placeholder
                 } else if (activeButtons.size >= 3) {
                     // Left pinned button
-                    RenderPreviewButton(0, circleShape)
-
-                    Spacer(modifier = Modifier.weight(1f))
+                    RenderPreviewOuterButton(0)
 
                     // Middle connected pill
                     val middleIndices = (1 until activeButtons.lastIndex).toList()
+                    val pillWidth = (42 * middleIndices.size).dp.coerceAtMost(180.dp)
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.width(pillWidth)
                     ) {
                         middleIndices.forEach { midIdx ->
                             val midShape = when {
                                 middleIndices.size == 1 -> circleShape
-                                midIdx == middleIndices.first() -> RoundedCornerShape(topStart = 50.dp, bottomStart = 50.dp, topEnd = 3.dp, bottomEnd = 3.dp)
-                                midIdx == middleIndices.last() -> RoundedCornerShape(topEnd = 50.dp, bottomEnd = 50.dp, topStart = 3.dp, bottomStart = 3.dp)
+                                midIdx == middleIndices.first() -> RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp, topEnd = 3.dp, bottomEnd = 3.dp)
+                                midIdx == middleIndices.last() -> RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp, topStart = 3.dp, bottomStart = 3.dp)
                                 else -> RoundedCornerShape(3.dp)
                             }
-                            RenderPreviewButton(midIdx, midShape)
+                            RenderPreviewMiddleButton(midIdx, midShape, Modifier.weight(1f))
                         }
                     }
 
-                    Spacer(modifier = Modifier.weight(1f))
-
                     // Right pinned button
-                    RenderPreviewButton(activeButtons.lastIndex, circleShape)
+                    RenderPreviewOuterButton(activeButtons.lastIndex)
                 } else if (activeButtons.size == 2) {
-                    RenderPreviewButton(0, circleShape)
-                    Spacer(modifier = Modifier.weight(1f))
-                    RenderPreviewButton(1, circleShape)
+                    RenderPreviewOuterButton(0)
+                    RenderPreviewOuterButton(1)
                 } else {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        RenderPreviewButton(0, circleShape)
+                        RenderPreviewOuterButton(0)
                     }
                 }
             }

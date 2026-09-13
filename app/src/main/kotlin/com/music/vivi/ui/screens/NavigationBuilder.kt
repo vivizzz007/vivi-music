@@ -27,6 +27,7 @@ import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.ui.screens.artist.ArtistAlbumsScreen
 import com.music.vivi.ui.screens.artist.ArtistItemsScreen
+import com.music.vivi.ui.screens.artist.ArtistPlaylistSongsScreen
 import com.music.vivi.ui.screens.artist.ArtistScreen
 import com.music.vivi.ui.screens.artist.ArtistSongsScreen
 import com.music.vivi.ui.screens.equalizer.EqScreen
@@ -240,6 +241,21 @@ fun NavGraphBuilder.navigationBuilder(
         ),
     ) {
         ArtistSongsScreen(navController, scrollBehavior)
+    }
+
+    composable(
+        route = "artist/{artistId}/playlist_songs?artistName={artistName}",
+        arguments = listOf(
+            navArgument("artistId") {
+                type = NavType.StringType
+            },
+            navArgument("artistName") {
+                type = NavType.StringType
+                nullable = true
+            },
+        ),
+    ) {
+        ArtistPlaylistSongsScreen(navController, scrollBehavior)
     }
 
     composable(
