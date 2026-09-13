@@ -186,6 +186,7 @@
     <string name="density_restart_message">Le changement de densité d\'affichage prendra effet après le redémarrage de l\'application. Voulez-vous redémarrer maintenant ?</string>
     <string name="enable_wavy_slider">Activer le curseur ondulé</string>
     <string name="wavy">Ondulé</string>
+	<string name="expressive_wavy">Ondulé expressif</string>
     <string name="enable_swipe_thumbnail">Activer le balayage pour changer de titre</string>
     <string name="swipe_song_to_add">Balayez le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
     <string name="swipe_song_to_remove">Balayez le titre pour le supprimer de la playlist.</string>
@@ -245,6 +246,8 @@
     <string name="set_first_lyrics_provider">Fournisseur de paroles préféré</string>
 	<string name="lyrics_provider_priority">Priorité au fournisseur de paroles</string>
     <string name="lyrics_provider_priority_desc">Faites glisser pour choisir l\'ordre dans lequel les fournisseurs seront testés</string>
+	<string name="lyrics_prioritize_sync_accuracy">Privilégier la précision de la synchronisation</string>
+    <string name="lyrics_prioritize_sync_accuracy_desc">Récupérer des paroles synchronisées au mot ou à la ligne sous forme de texte brut auprès des fournisseurs disponibles</string>
     <string name="config_proxy">Configurer le proxy</string>
     <string name="proxy_username">Nom d\'utilisateur du proxy</string>
     <string name="proxy_password">Mot de passe proxy</string>
