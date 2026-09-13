@@ -80,11 +80,10 @@ import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -95,7 +94,6 @@ import com.music.vivi.constants.SongSortTypeKey
 import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.DraggableScrollbar
@@ -262,12 +260,7 @@ fun AutoPlaylistScreen(
                     onClick = {
                         showRemoveDownloadDialog = false
                         songs!!.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false,
-                            )
+                            downloadUtil.cancelOrRemove(song.song.id)
                         }
                     },
                 ) {
@@ -597,7 +590,8 @@ private fun AutoPlaylistHeader(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
-    
+    val downloadUtil = LocalDownloadUtil.current
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -752,27 +746,12 @@ private fun AutoPlaylistHeader(
                                     Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()
                                     Download.STATE_DOWNLOADING -> {
                                         songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.song.id,
-                                                false,
-                                            )
+                                            downloadUtil.cancelOrRemove(song.song.id)
                                         }
                                     }
                                     else -> {
                                         songs.forEach { song ->
-                                            val downloadRequest = DownloadRequest
-                                                .Builder(song.song.id, song.song.id.toUri())
-                                                .setCustomCacheKey(song.song.id)
-                                                .setData(song.song.title.toByteArray())
-                                                .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
+                                            downloadUtil.download(song.toMediaMetadata())
                                         }
                                     }
                                 }

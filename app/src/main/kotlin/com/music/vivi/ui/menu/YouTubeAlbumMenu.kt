@@ -55,13 +55,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -70,7 +69,6 @@ import com.music.vivi.constants.ListThumbnailSize
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.YouTubeAlbumRadio
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.Material3MenuGroup
@@ -451,12 +449,7 @@ fun YouTubeAlbumMenu(
                                 },
                                 onClick = {
                                     album?.songs?.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
+                                        downloadUtil.cancelOrRemove(song.id)
                                     }
                                 }
                             )
@@ -472,12 +465,7 @@ fun YouTubeAlbumMenu(
                                 },
                                 onClick = {
                                     album?.songs?.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
+                                        downloadUtil.cancelOrRemove(song.id)
                                     }
                                 }
                             )
@@ -494,18 +482,7 @@ fun YouTubeAlbumMenu(
                                 },
                                 onClick = {
                                     album?.songs?.forEach { song ->
-                                        val downloadRequest =
-                                            DownloadRequest
-                                                .Builder(song.id, song.id.toUri())
-                                                .setCustomCacheKey(song.id)
-                                                .setData(song.song.title.toByteArray())
-                                                .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false,
-                                        )
+                                        downloadUtil.download(song.toMediaMetadata())
                                     }
                                 }
                             )

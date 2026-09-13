@@ -110,8 +110,6 @@ import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
@@ -135,7 +133,6 @@ import com.music.vivi.db.entities.PlaylistSongMap
 import com.music.vivi.extensions.move
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
@@ -360,12 +357,7 @@ fun LocalPlaylistScreen(
                             }
                         }
                         songs.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false
-                            )
+                            downloadUtil.cancelOrRemove(song.song.id)
                         }
                     }
                 ) {
@@ -1322,27 +1314,12 @@ fun LocalPlaylistHeader(
                                     Download.STATE_COMPLETED -> onShowRemoveDownloadDialog()
                                     Download.STATE_DOWNLOADING -> {
                                         songs.forEach { song ->
-                                            DownloadService.sendRemoveDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                song.song.id,
-                                                false
-                                            )
+                                            downloadUtil.cancelOrRemove(song.song.id)
                                         }
                                     }
                                     else -> {
                                         songs.forEach { song ->
-                                            val downloadRequest = DownloadRequest
-                                                .Builder(song.song.id, song.song.id.toUri())
-                                                .setCustomCacheKey(song.song.id)
-                                                .setData(song.song.song.title.toByteArray())
-                                                .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false
-                                            )
+                                            downloadUtil.download(song.song.toMediaMetadata())
                                         }
                                     }
                                 }

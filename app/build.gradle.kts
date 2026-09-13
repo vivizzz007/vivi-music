@@ -314,6 +314,7 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.haze)
     implementation(libs.work.runtime.ktx)
+    implementation(libs.documentfile)
     implementation(libs.androidx.core.splashscreen)
 }
 
