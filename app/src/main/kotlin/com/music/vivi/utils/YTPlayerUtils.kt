@@ -336,19 +336,26 @@ object YTPlayerUtils {
         }
         // ── End JioSaavn intercept ───────────────────────────────────────────
 
-        if (preferM4a) {
-            val m4aAttempt = fallbackFromYouTubeWaterfall(videoId, playlistId, audioQuality, connectivityManager, preferM4a = true)
-            if (m4aAttempt.isSuccess && m4aAttempt.getOrNull()?.format?.mimeType?.contains("mp4", ignoreCase = true) == true) {
-                Timber.tag(TAG).i("Successfully obtained M4A format for videoId=$videoId")
-                BotDetectionMitigator.notifyPlaybackSuccess()
-                return m4aAttempt
-            }
-        }
-
         val firstAttempt = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager, contentHints, allowBoundedRange)
         if (firstAttempt.isSuccess) {
-            BotDetectionMitigator.notifyPlaybackSuccess()
-            return firstAttempt
+            val data = firstAttempt.getOrNull()
+            if (data != null) {
+                // If caller prefers M4A and firstAttempt is already M4A (or if preferM4a is false):
+                if (!preferM4a || data.format.mimeType.contains("mp4", ignoreCase = true) || data.format.itag == 140) {
+                    BotDetectionMitigator.notifyPlaybackSuccess()
+                    return firstAttempt
+                }
+                // Caller prefers M4A and firstAttempt is Opus. Try to see if waterfall has M4A without failing.
+                val m4aAttempt = fallbackFromYouTubeWaterfall(videoId, playlistId, audioQuality, connectivityManager, preferM4a = true)
+                if (m4aAttempt.isSuccess && m4aAttempt.getOrNull()?.format?.mimeType?.contains("mp4", ignoreCase = true) == true) {
+                    Timber.tag(TAG).i("Successfully obtained M4A format for videoId=$videoId")
+                    BotDetectionMitigator.notifyPlaybackSuccess()
+                    return m4aAttempt
+                }
+                // If waterfall couldn't get M4A, ALWAYS return the valid firstAttempt (Opus) so download never fails or skips!
+                BotDetectionMitigator.notifyPlaybackSuccess()
+                return firstAttempt
+            }
         }
 
         if (YouTube.cookie == null) {
@@ -521,6 +528,14 @@ object YTPlayerUtils {
         val selectedFormat = resolvedFormat ?: throw IllegalStateException("Failed to resolve stream URL for any format of videoId=$videoId")
         val streamUrl = resolvedStreamUrl ?: throw IllegalStateException("Stream URL is null for format ${selectedFormat.itag}")
 
+        val userAgent = when {
+            streamUrl.contains("c=ANDROID_VR") -> YouTubeClient.ANDROID_VR_NO_AUTH.userAgent
+            streamUrl.contains("c=TVHTML5") -> YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER.userAgent
+            streamUrl.contains("c=IOS") -> YouTubeClient.IOS.userAgent
+            streamUrl.contains("c=ANDROID") -> YouTubeClient.MOBILE.userAgent
+            else -> YouTubeClient.USER_AGENT_WEB
+        }
+
         InnerTubeXPlayer.PlaybackData(
             audioConfig = playerResponse.playerConfig?.audioConfig,
             videoDetails = playerResponse.videoDetails,
@@ -529,10 +544,13 @@ object YTPlayerUtils {
             streamUrl = streamUrl,
             streamExpiresInSeconds = 21600,
             streamClient = "WATERFALL_FALLBACK",
-            streamHeaders = mapOf(
-                "User-Agent" to YouTubeClient.USER_AGENT_WEB,
-                "Referer" to "https://www.youtube.com/"
-            ),
+            streamHeaders = buildMap {
+                put("User-Agent", userAgent)
+                if (userAgent == YouTubeClient.USER_AGENT_WEB) {
+                    put("Referer", "https://www.youtube.com/")
+                    put("Origin", "https://www.youtube.com")
+                }
+            },
             requireBoundedRange = false,
             rangeChunkSizeBytes = 0L,
             useRangeChunks = false,

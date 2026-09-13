@@ -166,6 +166,7 @@ fun ArtistScreen(
     val libraryArtist by viewModel.libraryArtist.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState()
     val libraryAlbums by viewModel.libraryAlbums.collectAsState()
+    val playlistSongs by viewModel.playlistSongs.collectAsState()
     val artistVideoUrl by viewModel.artistVideoUrl.collectAsState()
     val artistVideoSong by viewModel.artistVideoSong.collectAsState()
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
@@ -174,6 +175,8 @@ fun ArtistScreen(
     val showMonthlyListeners by rememberPreference(key = ShowMonthlyListenersKey, defaultValue = true)
     val showArtistVideo by rememberPreference(key = ShowArtistVideoKey, defaultValue = true)
     val showArtistBackgroundVideo by rememberPreference(key = ShowArtistBackgroundVideoKey, defaultValue = true)
+    val artistName = artistPage?.artist?.title ?: libraryArtist?.artist?.name
+    val inYourPlaylistsLabel = stringResource(R.string.in_your_playlists)
 
     val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -657,12 +660,157 @@ fun ArtistScreen(
                                         }
                                     }
                                 }
+
+                                if (playlistSongs.isNotEmpty() && !isGuest) {
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        androidx.compose.material3.Button(
+                                            onClick = {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = "${artistName ?: "Artist"} ($inYourPlaylistsLabel)",
+                                                        items = playlistSongs.map { it.toMediaItem() }
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .height(48.dp),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.queue_music),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = stringResource(R.string.play_playlist_songs_count, playlistSongs.size),
+                                                style = MaterialTheme.typography.labelLarge,
+                                                fontWeight = FontWeight.SemiBold,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                        androidx.compose.material3.FilledTonalIconButton(
+                                            onClick = {
+                                                val shuffled = playlistSongs.shuffled()
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = "${artistName ?: "Artist"} ($inYourPlaylistsLabel)",
+                                                        items = shuffled.map { it.toMediaItem() }
+                                                    )
+                                                )
+                                            },
+                                            modifier = Modifier.size(48.dp),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = androidx.compose.material3.IconButtonDefaults.filledTonalIconButtonColors(
+                                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.shuffle),
+                                                contentDescription = stringResource(R.string.shuffle_playlist_songs),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
 
+                if (playlistSongs.isNotEmpty()) {
+                    item(key = "playlist_songs_title") {
+                        NavigationTitle(
+                            title = stringResource(R.string.in_your_playlists),
+                            modifier = Modifier.animateItem(),
+                            onClick = {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = "${artistName ?: "Artist"} ($inYourPlaylistsLabel)",
+                                        items = playlistSongs.map { it.toMediaItem() }
+                                    )
+                                )
+                            }
+                        )
+                    }
+
+                    val filteredPlaylistSongs = if (hideExplicit) {
+                        playlistSongs.filter { !it.song.explicit }
+                    } else {
+                        playlistSongs
+                    }
+                    itemsIndexed(
+                        items = filteredPlaylistSongs,
+                        key = { index, item -> "artist_playlist_song_${item.id}_$index" }
+                    ) { index, song ->
+                        SongListItem(
+                            song = song,
+                            showInLibraryIcon = true,
+                            isActive = song.id == mediaMetadata?.id,
+                            isPlaying = isPlaying,
+                            shape = listItemShape(index, filteredPlaylistSongs.size),
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = song,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss,
+                                            )
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = {
+                                        if (song.id == mediaMetadata?.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = "${artistName ?: "Artist"} ($inYourPlaylistsLabel)",
+                                                    items = filteredPlaylistSongs.map { it.toMediaItem() },
+                                                    startIndex = index
+                                                )
+                                            )
+                                        }
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = song,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss,
+                                            )
+                                        }
+                                    },
+                                )
+                                .animateItem(),
+                        )
+                    }
+                }
 
                 if (showLocal) {
                     if (librarySongs.isNotEmpty()) {

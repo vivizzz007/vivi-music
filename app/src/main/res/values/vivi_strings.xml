@@ -58,6 +58,10 @@
     <string name="generating_image">Generating image</string>
     <string name="please_wait">Please wait</string>
     <string name="cancel">Cancel</string>
+    <string name="in_your_playlists">In your playlists</string>
+    <string name="play_playlist_songs">Play from playlists</string>
+    <string name="play_playlist_songs_count">Play from your playlists (%d)</string>
+    <string name="shuffle_playlist_songs">Shuffle songs in playlists</string>
     <string name="enable">Enable</string>
     <string name="share_lyrics">Share lyrics</string>
     <string name="share_as_text">Share as text</string>

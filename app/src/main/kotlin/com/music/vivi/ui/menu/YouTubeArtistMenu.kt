@@ -39,6 +39,8 @@ import com.music.vivi.R
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.vivi.playback.queues.ListQueue
+import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.ui.component.Material3MenuGroup
 import com.music.vivi.ui.component.Material3MenuItemData
 import com.music.vivi.ui.component.NewAction
@@ -59,6 +61,7 @@ fun YouTubeArtistMenu(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)
+    val playlistSongs by database.artistPlaylistSongs(artist.id, artist.title).collectAsState(initial = emptyList())
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
     val isPinned by database.speedDialDao.isPinned(artist.id).collectAsState(initial = false)
@@ -165,42 +168,68 @@ fun YouTubeArtistMenu(
         item {
             Material3MenuGroup(
                 expressive = true,
-                items = listOf(
-                    Material3MenuItemData(
-                        title = {
-                            Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(
-                                    if (libraryArtist?.artist?.bookmarkedAt != null) {
-                                        R.drawable.subscribed
-                                    } else {
-                                        R.drawable.subscribe
-                                    }
-                                ),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            database.query {
-                                val libraryArtist = libraryArtist
-                                if (libraryArtist != null) {
-                                    update(libraryArtist.artist.toggleLike())
-                                } else {
-                                    insert(
-                                        ArtistEntity(
-                                            id = artist.id,
-                                            name = artist.title,
-                                            channelId = artist.channelId,
-                                            thumbnailUrl = artist.thumbnail,
-                                        ).toggleLike()
+                items = buildList {
+                    if (playlistSongs.isNotEmpty()) {
+                        add(
+                            Material3MenuItemData(
+                                title = {
+                                    Text(text = stringResource(R.string.play_playlist_songs_count, playlistSongs.size))
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.queue_music),
+                                        contentDescription = null,
                                     )
+                                },
+                                onClick = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = "${artist.title} (${context.getString(R.string.in_your_playlists)})",
+                                            items = playlistSongs.map { it.toMediaItem() }
+                                        )
+                                    )
+                                    onDismiss()
+                                }
+                            )
+                        )
+                    }
+                    add(
+                        Material3MenuItemData(
+                            title = {
+                                Text(text = if (libraryArtist?.artist?.bookmarkedAt != null) stringResource(R.string.subscribed) else stringResource(R.string.subscribe))
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (libraryArtist?.artist?.bookmarkedAt != null) {
+                                            R.drawable.subscribed
+                                        } else {
+                                            R.drawable.subscribe
+                                        }
+                                    ),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                database.query {
+                                    val libraryArtist = libraryArtist
+                                    if (libraryArtist != null) {
+                                        update(libraryArtist.artist.toggleLike())
+                                    } else {
+                                        insert(
+                                            ArtistEntity(
+                                                id = artist.id,
+                                                name = artist.title,
+                                                channelId = artist.channelId,
+                                                thumbnailUrl = artist.thumbnail,
+                                            ).toggleLike()
+                                        )
+                                    }
                                 }
                             }
-                        }
+                        )
                     )
-                )
+                }
             )
         }
     }

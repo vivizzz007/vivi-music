@@ -31,6 +31,7 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
@@ -83,6 +84,13 @@ import java.time.LocalDateTime
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
+
+data class DownloadBatchStats(
+    val totalSongs: Int,
+    val completedSongs: Int,
+    val overallPercent: Int,
+    val currentSongTitle: String? = null,
+)
 
 @Singleton
 class DownloadUtil
@@ -189,32 +197,64 @@ constructor(
                     preferM4a = true,
                 )
             }.getOrThrow()
-            val format = playbackData.format
+            var activePlaybackData = playbackData
+            var format = activePlaybackData.format
 
-            val actualContentLength =
-                format.contentLength?.takeIf { it > 0L } ?: run {
-                    val request = okhttp3.Request.Builder()
-                        .get()
-                        .url(playbackData.streamUrl)
-                        .header("Range", "bytes=0-0")
-                        .apply {
-                            playbackData.streamHeaders.forEach { (name, value) ->
-                                header(name, value)
-                            }
+            val initialContentLength = format.contentLength?.takeIf { it > 0L }
+            val actualContentLength = if (initialContentLength != null && initialContentLength > 0L) {
+                initialContentLength
+            } else {
+                val probeRequest = okhttp3.Request.Builder()
+                    .get()
+                    .url(activePlaybackData.streamUrl)
+                    .header("Range", "bytes=0-0")
+                    .apply {
+                        activePlaybackData.streamHeaders.forEach { (name, value) ->
+                            header(name, value)
                         }
-                        .build()
-                    try {
-                        streamHttpClient.newCall(request).execute().use { response ->
+                    }
+                    .build()
+                val probeResult = try {
+                    streamHttpClient.newCall(probeRequest).execute().use { response ->
+                        if (response.code == 403) {
+                            Timber.tag("DownloadDiagnostics").w("Stream probe returned 403 for $mediaId! Retrying with InnerTubeX unthrottled resolution")
+                            -403L
+                        } else {
                             downloadContentLength(
                                 statusCode = response.code,
                                 contentRange = response.header("Content-Range"),
                                 contentLength = response.header("Content-Length"),
-                            )
+                            ) ?: 0L
                         }
-                    } catch (_: java.io.IOException) {
-                        null
                     }
-                } ?: 0L
+                } catch (_: java.io.IOException) {
+                    0L
+                }
+
+                if (probeResult == -403L) {
+                    val fallback = runBlocking(Dispatchers.IO) {
+                        YTPlayerUtils.playerResponseForPlayback(
+                            mediaId,
+                            audioQuality = audioQuality,
+                            connectivityManager = connectivityManager,
+                            context = appContext,
+                            allowBoundedRange = true,
+                            preferM4a = false,
+                        )
+                    }.getOrNull()
+
+                    if (fallback != null) {
+                        Timber.tag("DownloadDiagnostics").i("InnerTubeX unthrottled fallback successfully recovered stream for $mediaId")
+                        activePlaybackData = fallback
+                        format = activePlaybackData.format
+                        format.contentLength?.takeIf { it > 0L } ?: 0L
+                    } else {
+                        0L
+                    }
+                } else {
+                    probeResult
+                }
+            }
 
             database.query {
                 upsert(
@@ -226,9 +266,9 @@ constructor(
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
                         contentLength = actualContentLength,
-                        loudnessDb = playbackData.audioConfig?.loudnessDb,
-                        perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
-                        playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                        loudnessDb = activePlaybackData.audioConfig?.loudnessDb,
+                        perceptualLoudnessDb = activePlaybackData.audioConfig?.perceptualLoudnessDb,
+                        playbackUrl = activePlaybackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                     ),
                 )
 
@@ -241,18 +281,18 @@ constructor(
                     downloadManager.downloadIndex.getDownload(mediaId)?.request?.data?.let { String(it) }
                 }.getOrNull()?.takeIf { it.isNotBlank() }
 
-                val resolvedDuration = playbackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0
+                val resolvedDuration = activePlaybackData.videoDetails?.lengthSeconds?.toIntOrNull() ?: 0
                 val updatedSong = if (existing != null) {
                     existing.copy(
                         duration = if (existing.duration > 0) existing.duration else resolvedDuration,
-                        thumbnailUrl = existing.thumbnailUrl ?: playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
+                        thumbnailUrl = existing.thumbnailUrl ?: activePlaybackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
                     )
                 } else {
                     SongEntity(
                         id = mediaId,
-                        title = playbackData.videoDetails?.title ?: fallbackTitle ?: "Unknown",
+                        title = activePlaybackData.videoDetails?.title ?: fallbackTitle ?: "Unknown",
                         duration = resolvedDuration,
-                        thumbnailUrl = playbackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
+                        thumbnailUrl = activePlaybackData.videoDetails?.thumbnail?.thumbnails?.lastOrNull()?.url?.resize(1200, 1200),
                         dateDownload = null,
                         isDownloaded = false
                     )
@@ -277,27 +317,133 @@ constructor(
                         imageLoader.enqueue(request)
                     }
                 }
+
+                // Opportunistically pre-cache canvas animation in background without blocking audio download
+                scope.launch(Dispatchers.IO) {
+                    runCatching {
+                        val songWithData = database.song(mediaId).firstOrNull()
+                        val s = songWithData?.song ?: return@launch
+                        val artists = songWithData.artists.joinToString { it.name }.ifBlank { songWithData.artists.firstOrNull()?.name ?: "" }
+                        val album = songWithData.album?.title ?: ""
+                        val storefront = java.util.Locale.getDefault().country.let { if (it.length == 2) it.lowercase(java.util.Locale.ROOT) else "us" }
+
+                        val canvas = com.music.vivi.applecanvas.AppleMusicCanvasProvider.getBySongArtist(s.title, artists, album, storefront)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                            ?: com.music.vivi.canvas.TidalCanvasProvider.getBySongArtist(s.title, artists, album)
+                                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                            ?: com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider.getBySongArtist(s.title, artists, album)
+                                ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+
+                        if (canvas != null) {
+                            listOf("AUTO", "APPLE_MUSIC", "TIDAL", "VIVIMUSIC").forEach { src ->
+                                com.music.vivi.ui.player.CanvasArtworkPlaybackCache.put("${mediaId}:${src}", canvas)
+                            }
+                            Timber.tag("DownloadUtil").i("Pre-cached canvas animation for $mediaId (${s.title})")
+                        }
+                    }.onFailure {
+                        Timber.tag("DownloadUtil").d("Canvas pre-cache skipped for $mediaId")
+                    }
+                }
             }
 
-            val streamUrl = playbackData.streamUrl
+            val streamUrl = activePlaybackData.streamUrl
 
             songUrlCache.put(
                 mediaId = mediaId,
                 url = streamUrl,
-                requestHeaders = playbackData.streamHeaders,
-                clientName = playbackData.streamClient,
-                expiresInSeconds = playbackData.streamExpiresInSeconds,
+                requestHeaders = activePlaybackData.streamHeaders,
+                clientName = activePlaybackData.streamClient,
+                expiresInSeconds = activePlaybackData.streamExpiresInSeconds,
                 requireBoundedRange = false,
                 rangeChunkSizeBytes = 0L,
                 useRangeChunks = false,
                 expectedGeneration = cacheGeneration,
             )
             dataSpec.withUri(streamUrl.toUri())
-                .withRequestHeaders(dataSpec.httpRequestHeaders + playbackData.streamHeaders)
+                .withRequestHeaders(dataSpec.httpRequestHeaders + activePlaybackData.streamHeaders)
         }
 
     val downloadNotificationHelper =
         DownloadNotificationHelper(context, ExoDownloadService.CHANNEL_ID)
+
+    val activeBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    val completedBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    val failedBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    fun clearBatchProgress() {
+        activeBatchSongIds.clear()
+        completedBatchSongIds.clear()
+        failedBatchSongIds.clear()
+    }
+
+    fun registerBatchDownload(songIds: Collection<String>) {
+        if (songIds.isEmpty()) return
+        val isIdle = downloadManager.currentDownloads.none {
+            it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED || it.state == Download.STATE_RESTARTING
+        }
+        if (isIdle && activeBatchSongIds.isEmpty()) {
+            clearBatchProgress()
+        }
+        activeBatchSongIds.addAll(songIds)
+    }
+
+    fun getBatchProgress(currentDownloads: List<Download>): DownloadBatchStats {
+        currentDownloads.forEach { d ->
+            if (!completedBatchSongIds.contains(d.request.id) && !failedBatchSongIds.contains(d.request.id)) {
+                activeBatchSongIds.add(d.request.id)
+            }
+        }
+
+        val total = (activeBatchSongIds.size + completedBatchSongIds.size + failedBatchSongIds.size)
+        if (total == 0) {
+            val fallbackTotal = currentDownloads.size
+            if (fallbackTotal == 0) {
+                return DownloadBatchStats(0, 0, 0, null)
+            }
+            val sum = currentDownloads.sumOf { if (it.percentDownloaded > 0f) it.percentDownloaded.toDouble() else 0.0 }
+            val pct = (sum / fallbackTotal).toInt().coerceIn(0, 100)
+            val title = currentDownloads.firstOrNull { it.request.data.isNotEmpty() }?.let {
+                runCatching { Util.fromUtf8Bytes(it.request.data) }.getOrNull()
+            }
+            return DownloadBatchStats(fallbackTotal, 0, pct, title)
+        }
+
+        val completed = completedBatchSongIds.size.coerceAtMost(total)
+        val processed = (completedBatchSongIds.size + failedBatchSongIds.size).coerceAtMost(total)
+
+        var inFlightProgressSum = 0.0
+        var currentTitle: String? = null
+
+        for (d in currentDownloads) {
+            if (d.state == Download.STATE_DOWNLOADING) {
+                val pct = d.percentDownloaded
+                if (pct > 0f) {
+                    inFlightProgressSum += (pct / 100.0)
+                }
+                if (currentTitle == null && d.request.data.isNotEmpty()) {
+                    currentTitle = runCatching { Util.fromUtf8Bytes(d.request.data) }.getOrNull()
+                }
+            }
+        }
+
+        if (currentTitle == null && currentDownloads.isNotEmpty()) {
+            val firstWithData = currentDownloads.firstOrNull { it.request.data.isNotEmpty() }
+            if (firstWithData != null) {
+                currentTitle = runCatching { Util.fromUtf8Bytes(firstWithData.request.data) }.getOrNull()
+            }
+        }
+
+        val overallPercent = (((processed.toDouble() + inFlightProgressSum) / total.toDouble()) * 100.0)
+            .toInt()
+            .coerceIn(0, 100)
+
+        return DownloadBatchStats(
+            totalSongs = total,
+            completedSongs = completed,
+            overallPercent = overallPercent,
+            currentSongTitle = currentTitle
+        )
+    }
 
     private var progressPollingJob: kotlinx.coroutines.Job? = null
 
@@ -357,6 +503,7 @@ constructor(
 
     fun reDownloadSong(songId: String, title: String) {
         scope.launch(Dispatchers.IO) {
+            registerBatchDownload(listOf(songId))
             database.updateDownloadedInfo(songId, false, null)
             songUrlCache.invalidate(songId)
             DownloadService.sendRemoveDownload(
@@ -382,6 +529,7 @@ constructor(
     fun download(songId: String, title: String) {
         scope.launch {
             if (!shouldDownloadSong(songId)) return@launch
+            registerBatchDownload(listOf(songId))
             val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
                 .Builder(songId, songId.toUri())
                 .setCustomCacheKey(songId)
@@ -398,20 +546,21 @@ constructor(
 
     fun downloadSongs(songs: List<Pair<String, String>>) {
         scope.launch {
-            songs.forEach { (songId, title) ->
-                if (shouldDownloadSong(songId)) {
-                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
-                        .Builder(songId, songId.toUri())
-                        .setCustomCacheKey(songId)
-                        .setData(title.toByteArray())
-                        .build()
-                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                        appContext,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
-                }
+            val eligible = songs.filter { shouldDownloadSong(it.first) }
+            if (eligible.isEmpty()) return@launch
+            registerBatchDownload(eligible.map { it.first })
+            eligible.forEach { (songId, title) ->
+                val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                    .Builder(songId, songId.toUri())
+                    .setCustomCacheKey(songId)
+                    .setData(title.toByteArray())
+                    .build()
+                androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                    appContext,
+                    ExoDownloadService::class.java,
+                    downloadRequest,
+                    false
+                )
             }
         }
     }
@@ -452,7 +601,26 @@ constructor(
                         }
 
                         if (download.state == Download.STATE_DOWNLOADING || download.state == Download.STATE_QUEUED) {
+                            if (!activeBatchSongIds.contains(download.request.id) &&
+                                !completedBatchSongIds.contains(download.request.id) &&
+                                !failedBatchSongIds.contains(download.request.id)
+                            ) {
+                                val isIdle = downloadManager.currentDownloads.none {
+                                    it.request.id != download.request.id &&
+                                    (it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED || it.state == Download.STATE_RESTARTING)
+                                }
+                                if (isIdle && activeBatchSongIds.isEmpty()) {
+                                    clearBatchProgress()
+                                }
+                                activeBatchSongIds.add(download.request.id)
+                            }
                             startProgressPollingIfNeeded()
+                        } else if (download.state == Download.STATE_COMPLETED) {
+                            activeBatchSongIds.remove(download.request.id)
+                            completedBatchSongIds.add(download.request.id)
+                        } else if (download.state == Download.STATE_FAILED || download.state == Download.STATE_STOPPED) {
+                            activeBatchSongIds.remove(download.request.id)
+                            failedBatchSongIds.add(download.request.id)
                         }
 
                         scope.launch {
@@ -484,6 +652,12 @@ constructor(
                         val downloadId = download.request.id
                         Timber.tag("DownloadDiagnostics").d("onDownloadRemoved [%s]: App requested download removal", downloadId)
                         songUrlCache.invalidate(downloadId)
+                        activeBatchSongIds.remove(downloadId)
+                        completedBatchSongIds.remove(downloadId)
+                        failedBatchSongIds.remove(downloadId)
+                        if (activeBatchSongIds.isEmpty() && downloadManager.currentDownloads.isEmpty()) {
+                            clearBatchProgress()
+                        }
 
                         scope.launch {
                             runCatching {
@@ -510,7 +684,11 @@ constructor(
         val result = mutableMapOf<String, Download>()
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
-            result[cursor.download.request.id] = cursor.download
+            val d = cursor.download
+            result[d.request.id] = d
+            if (d.state == Download.STATE_DOWNLOADING || d.state == Download.STATE_QUEUED || d.state == Download.STATE_RESTARTING) {
+                activeBatchSongIds.add(d.request.id)
+            }
         }
         downloads.value = result
         if (result.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED }) {
@@ -763,6 +941,7 @@ constructor(
                     exportSongToPublicStorage(songId)
                 } else {
                     pendingExternalExportSongIds.add(songId)
+                    registerBatchDownload(listOf(songId))
                     val song = database.song(songId).firstOrNull()?.song
                     val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
                         .Builder(songId, songId.toUri())
@@ -800,8 +979,9 @@ constructor(
                     val current = prefs[AutoDownloadPlaylistsKey]?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
                     prefs[AutoDownloadPlaylistsKey] = (current + playlistId).joinToString(",")
                 }
-                songIds.forEach { songId ->
-                    if (!shouldDownloadSong(songId)) return@forEach
+                val eligible = songIds.filter { shouldDownloadSong(it) }
+                registerBatchDownload(eligible)
+                eligible.forEach { songId ->
                     val song = database.song(songId).firstOrNull()?.song
                     val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
                         .Builder(songId, songId.toUri())

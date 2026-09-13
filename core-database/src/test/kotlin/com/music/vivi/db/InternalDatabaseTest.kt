@@ -124,6 +124,44 @@ class InternalDatabaseTest {
     }
 
     @Test
+    fun testArtistPlaylistSongs() = runBlocking {
+        val artist = ArtistEntity(id = "artist_queen", name = "Queen")
+        val otherArtist = ArtistEntity(id = "artist_other", name = "Other Artist")
+        val playlist1 = PlaylistEntity(id = "pl_rock", name = "Classic Rock", isEditable = true)
+        val playlist2 = PlaylistEntity(id = "pl_favs", name = "My Favorites", isEditable = true)
+        val song1 = SongEntity(id = "song_bohemian", title = "Bohemian Rhapsody", duration = 354)
+        val song2 = SongEntity(id = "song_champions", title = "We Are The Champions", duration = 179)
+        val songOtherArtist = SongEntity(id = "song_other", title = "Other Song", duration = 200)
+
+        dao.insert(artist)
+        dao.insert(otherArtist)
+        dao.insert(playlist1)
+        dao.insert(playlist2)
+        dao.insert(song1)
+        dao.insert(song2)
+        dao.insert(songOtherArtist)
+
+        dao.insert(SongArtistMap(songId = "song_bohemian", artistId = "artist_queen", position = 0))
+        dao.insert(SongArtistMap(songId = "song_champions", artistId = "artist_queen", position = 0))
+        dao.insert(SongArtistMap(songId = "song_other", artistId = "artist_other", position = 0))
+
+        // song1 in playlist 1, song2 in playlist 2, and song1 also duplicated in playlist 2
+        dao.insert(PlaylistSongMap(playlistId = "pl_rock", songId = "song_bohemian", position = 0))
+        dao.insert(PlaylistSongMap(playlistId = "pl_favs", songId = "song_champions", position = 0))
+        dao.insert(PlaylistSongMap(playlistId = "pl_favs", songId = "song_bohemian", position = 1))
+        dao.insert(PlaylistSongMap(playlistId = "pl_rock", songId = "song_other", position = 1))
+
+        val queenPlaylistSongs = dao.artistPlaylistSongs("artist_queen", "Queen").first()
+        // Should find Bohemian Rhapsody and We Are The Champions (distinct, ordered by title)
+        assertEquals(2, queenPlaylistSongs.size)
+        assertEquals("Bohemian Rhapsody", queenPlaylistSongs[0].song.title)
+        assertEquals("We Are The Champions", queenPlaylistSongs[1].song.title)
+
+        val count = dao.artistPlaylistSongsCount("artist_queen", "Queen").first()
+        assertEquals(2, count)
+    }
+
+    @Test
     fun testSpeedDialDaoOperations() = runBlocking {
         val speedDial = db.speedDialDao
         val item = SpeedDialItem(

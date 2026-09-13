@@ -36,6 +36,7 @@ class ExoDownloadService : DownloadService(
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == REMOVE_ALL_PENDING_DOWNLOADS) {
+            downloadUtil.clearBatchProgress()
             downloadManager.currentDownloads.forEach { download ->
                 downloadManager.removeDownload(download.request.id)
             }
@@ -50,18 +51,50 @@ class ExoDownloadService : DownloadService(
     override fun getForegroundNotification(
         downloads: MutableList<Download>,
         notMetRequirements: Int
-    ): Notification =
-        Notification.Builder.recoverBuilder(
-            this, downloadUtil.downloadNotificationHelper.buildProgressNotification(
-                this,
-                R.drawable.download,
-                null,
-                if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
-                else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
-                downloads,
-                notMetRequirements
-            )
-        ).addAction(
+    ): Notification {
+        val batchStats = downloadUtil.getBatchProgress(downloads)
+        val title = if (batchStats.totalSongs > 1) {
+            "${getString(R.string.downloading)} (${batchStats.completedSongs}/${batchStats.totalSongs})"
+        } else {
+            getString(R.string.downloading)
+        }
+
+        val message = if (batchStats.totalSongs > 1) {
+            val countStr = "${batchStats.completedSongs} of ${batchStats.totalSongs} (${batchStats.overallPercent}%)"
+            if (!batchStats.currentSongTitle.isNullOrBlank()) {
+                "$countStr • ${batchStats.currentSongTitle}"
+            } else {
+                countStr
+            }
+        } else {
+            if (!batchStats.currentSongTitle.isNullOrBlank()) {
+                "${batchStats.overallPercent}% • ${batchStats.currentSongTitle}"
+            } else if (downloads.isNotEmpty() && downloads[0].request.data.isNotEmpty()) {
+                "${batchStats.overallPercent}% • ${Util.fromUtf8Bytes(downloads[0].request.data)}"
+            } else {
+                "${batchStats.overallPercent}%"
+            }
+        }
+
+        val baseNotification = downloadUtil.downloadNotificationHelper.buildProgressNotification(
+            this,
+            R.drawable.download,
+            null,
+            message,
+            downloads,
+            notMetRequirements
+        )
+
+        val builder = Notification.Builder.recoverBuilder(this, baseNotification)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setProgress(100, batchStats.overallPercent, false)
+
+        if (batchStats.totalSongs > 1) {
+            builder.setSubText("${batchStats.overallPercent}%")
+        }
+
+        return builder.addAction(
             Notification.Action.Builder(
                 Icon.createWithResource(this, R.drawable.close),
                 getString(android.R.string.cancel),
@@ -75,6 +108,7 @@ class ExoDownloadService : DownloadService(
                 )
             ).build()
         ).build()
+    }
 
 
     /**

@@ -259,6 +259,40 @@ interface DatabaseDao {
     @Transaction
     @Query(
         """
+        SELECT DISTINCT song.* FROM song
+        JOIN song_artist_map sam ON sam.songId = song.id
+        JOIN playlist_song_map psm ON psm.songId = song.id
+        JOIN playlist p ON p.id = psm.playlistId
+        WHERE (
+            sam.artistId = :artistId
+            OR sam.artistId IN (SELECT a2.id FROM artist a1, artist a2 WHERE a1.id = :artistId AND a1.name = a2.name)
+            OR (:artistName != '' AND sam.artistId IN (SELECT id FROM artist WHERE name = :artistName))
+        )
+        AND (p.bookmarkedAt IS NOT NULL OR p.isEditable = 1)
+        ORDER BY song.title ASC
+        """
+    )
+    fun artistPlaylistSongs(artistId: String, artistName: String = ""): Flow<List<Song>>
+
+    @Query(
+        """
+        SELECT COUNT(DISTINCT song.id) FROM song
+        JOIN song_artist_map sam ON sam.songId = song.id
+        JOIN playlist_song_map psm ON psm.songId = song.id
+        JOIN playlist p ON p.id = psm.playlistId
+        WHERE (
+            sam.artistId = :artistId
+            OR sam.artistId IN (SELECT a2.id FROM artist a1, artist a2 WHERE a1.id = :artistId AND a1.name = a2.name)
+            OR (:artistName != '' AND sam.artistId IN (SELECT id FROM artist WHERE name = :artistName))
+        )
+        AND (p.bookmarkedAt IS NOT NULL OR p.isEditable = 1)
+        """
+    )
+    fun artistPlaylistSongsCount(artistId: String, artistName: String = ""): Flow<Int>
+
+    @Transaction
+    @Query(
+        """
         SELECT song.*
         FROM (SELECT *, COUNT(1) AS referredCount
               FROM related_song_map

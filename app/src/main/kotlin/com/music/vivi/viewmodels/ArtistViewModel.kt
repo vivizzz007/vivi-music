@@ -74,7 +74,30 @@ class ArtistViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val artistNameState = MutableStateFlow("")
+
+    val playlistSongs = context.dataStore.data
+        .map { (it[HideExplicitKey] ?: false) to (it[HideVideoSongsKey] ?: false) }
+        .distinctUntilChanged()
+        .flatMapLatest { (hideExplicit, hideVideoSongs) ->
+            artistNameState.flatMapLatest { name ->
+                database.artistPlaylistSongs(artistId, name).map { songs ->
+                    songs.filterExplicit(hideExplicit).filterVideoSongsLocal(hideVideoSongs)
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     init {
+        viewModelScope.launch {
+            libraryArtist.collect {
+                it?.artist?.name?.let { name ->
+                    if (artistNameState.value.isEmpty()) {
+                        artistNameState.value = name
+                    }
+                }
+            }
+        }
         // Load artist page and reload when hide explicit setting changes
         viewModelScope.launch {
             context.dataStore.data
@@ -99,6 +122,9 @@ class ArtistViewModel @Inject constructor(
             val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
             YouTube.artist(artistId)
                 .onSuccess { page ->
+                    page.artist?.title?.let { title ->
+                        artistNameState.value = title
+                    }
                     val filteredSections = page.sections
                         .map { section ->
                             section.copy(items = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts))
