@@ -151,24 +151,31 @@ constructor(
                                     }
                                 } else {
                                     val syncType = LyricsUtils.getSyncType(lyrics)
-                                    if (syncType == LyricsUtils.SyncType.WORD) {
-                                        if (bestSyncType != LyricsUtils.SyncType.WORD || index < bestIndex) {
+                                    val isSynced = syncType == LyricsUtils.SyncType.WORD || syncType == LyricsUtils.SyncType.LINE
+
+                                    if (isSynced) {
+                                        // If we found a synced lyric, keep it if we don't have one yet,
+                                        // or if this provider is higher up in the priority list (lower index).
+                                        val bestIsAlsoSynced = bestSyncType == LyricsUtils.SyncType.WORD || bestSyncType == LyricsUtils.SyncType.LINE
+                                        
+                                        if (!bestIsAlsoSynced || index < bestIndex) {
                                             bestLyrics = lyrics
                                             bestProvider = providerName
                                             bestSyncType = syncType
                                             bestIndex = index
                                         }
+                                        
+                                        // IF the highest priority provider (index 0) gave us a synced lyric, 
+                                        // we don't need to wait for anything else. It's the absolute best case!
                                         if (index == 0) break
-                                    } else if (syncType == LyricsUtils.SyncType.LINE && (bestSyncType == LyricsUtils.SyncType.NONE || (bestSyncType == LyricsUtils.SyncType.LINE && index < bestIndex))) {
-                                        bestLyrics = lyrics
-                                        bestProvider = providerName
-                                        bestSyncType = syncType
-                                        bestIndex = index
-                                    } else if (bestLyrics == LYRICS_NOT_FOUND || (syncType == bestSyncType && index < bestIndex)) {
-                                        bestLyrics = lyrics
-                                        bestProvider = providerName
-                                        bestSyncType = syncType
-                                        bestIndex = index
+                                    } else {
+                                        // It's plain text.
+                                        if (bestLyrics == LYRICS_NOT_FOUND || index < bestIndex) {
+                                            bestLyrics = lyrics
+                                            bestProvider = providerName
+                                            bestSyncType = syncType
+                                            bestIndex = index
+                                        }
                                     }
                                 }
                             }
