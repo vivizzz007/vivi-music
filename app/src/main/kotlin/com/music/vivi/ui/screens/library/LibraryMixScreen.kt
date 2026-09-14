@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.shape.CircleShape
 import kotlinx.coroutines.delay
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.shape.RoundedCornerShape
