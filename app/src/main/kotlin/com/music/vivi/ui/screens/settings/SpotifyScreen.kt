@@ -73,7 +73,9 @@ fun SpotifyScreen(
 
     var showSpotifyLogin by remember { mutableStateOf(false) }
     var showPlaylistsSheet by remember { mutableStateOf(false) }
+    var showPushSheet by remember { mutableStateOf(false) }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
+    val pushProgress by viewModel.pushProgress.collectAsStateWithLifecycle()
     val (spotifyAutoSync, onSpotifyAutoSyncChange) = rememberPreference(SpotifyAutoSyncKey, true)
 
     val refreshEnabled = state.isAuthenticated && !state.isLoading
@@ -207,6 +209,23 @@ fun SpotifyScreen(
                     icon = painterResource(R.drawable.bookmark_star_library),
                     enabled = state.isAuthenticated && totalPlaylists > 0 && !state.isLoading,
                     onClick = { showPlaylistsSheet = true }
+                ),
+                Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
+                    title = { Text(stringResource(R.string.push_to_spotify)) },
+                    description = { Text(stringResource(R.string.push_to_spotify_desc)) },
+                    icon = painterResource(R.drawable.database_upload),
+                    enabled = state.isAuthenticated && !state.isLoading,
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = { showPushSheet = true }
                 ),
                 Material3SettingsItem(
                     isExpressive = true,
@@ -395,6 +414,61 @@ fun SpotifyScreen(
             onDismiss = { showPlaylistsSheet = false },
             viewModel = viewModel
         )
+    }
+
+    if (showPushSheet) {
+        SpotifyPushBottomSheet(
+            onDismiss = { showPushSheet = false },
+            viewModel = viewModel
+        )
+    }
+
+    pushProgress?.let { progress ->
+        DefaultDialog(
+            onDismiss = {
+                if (progress.isFinished) viewModel.dismissPushProgress()
+            },
+            title = {
+                Text(
+                    text = if (progress.isFinished) stringResource(R.string.push_complete)
+                    else stringResource(R.string.push_in_progress)
+                )
+            },
+            buttons = {
+                if (progress.isFinished) {
+                    Button(
+                        onClick = { viewModel.dismissPushProgress() },
+                        shape = CircleShape
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (progress.playlistName.isNotBlank()) {
+                    Text(
+                        text = progress.playlistName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                if (!progress.isFinished) {
+                    LinearProgressIndicator(
+                        progress = { progress.percent },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Text(
+                    text = progress.status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

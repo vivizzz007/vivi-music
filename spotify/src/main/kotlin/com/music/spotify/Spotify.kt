@@ -642,10 +642,36 @@ object Spotify {
         )
     }
 
-    suspend fun createPlaylist(name: String, description: String? = null): Result<SpotifyPlaylist> = runCatching {
+    private val trackSearchCleanPatterns = listOf(
+        Regex("""\s*\(.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\[.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\]""", RegexOption.IGNORE_CASE),
+        Regex("""\s*【.*?】"""),
+        Regex("""\s*\|.*$"""),
+        Regex("""\s*-\s*(official|video|audio|lyrics|lyric|visualizer).*$""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\(feat\..*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\(ft\..*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*feat\..*$""", RegexOption.IGNORE_CASE),
+        Regex("""\s*ft\..*$""", RegexOption.IGNORE_CASE),
+    )
+
+    fun cleanTrackSearchQuery(query: String): String {
+        var cleaned = query.trim()
+        for (pattern in trackSearchCleanPatterns) {
+            cleaned = cleaned.replace(pattern, "")
+        }
+        return cleaned.replace(Regex("""\s+"""), " ").trim()
+    }
+
+    suspend fun createPlaylist(
+        name: String,
+        description: String? = null,
+        userId: String? = null,
+    ): Result<SpotifyPlaylist> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
-        val user = me().getOrNull()
-        val userId = user?.id?.ifBlank { null }
+        val targetUserId = userId?.ifBlank { null }
+            ?: me().getOrNull()?.id?.ifBlank { null }
+            ?: myPlaylists(limit = 1).getOrNull()?.items?.firstOrNull()?.owner?.id?.ifBlank { null }
+
         val payload = buildJsonObject {
             put("name", name)
             if (!description.isNullOrBlank()) {
@@ -653,92 +679,114 @@ object Spotify {
             }
             put("public", false)
         }
+
+        val endpoints = buildList {
+            if (!targetUserId.isNullOrBlank()) {
+                add("https://api.spotify.com/v1/users/$targetUserId/playlists")
+            }
+            add("https://api.spotify.com/v1/me/playlists")
+        }
+
         val maxRetries = 3
+        var lastError: Exception? = null
+
         for (attempt in 0..maxRetries) {
             checkRateLimitCooldown()
 
-            val endpoints = buildList {
-                add("https://api.spotify.com/v1/me/playlists")
-                if (!userId.isNullOrBlank()) {
-                    add("https://api.spotify.com/v1/users/$userId/playlists")
-                }
-            }
-
-            var lastResponse: io.ktor.client.statement.HttpResponse? = null
             for (url in endpoints) {
-                val response = gqlClient.post(url) {
-                    header("Authorization", "Bearer $token")
-                    setBody(
-                        TextContent(
-                            payload.toString(),
-                            ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                try {
+                    val response = gqlClient.post(url) {
+                        header("Authorization", "Bearer $token")
+                        setBody(
+                            TextContent(
+                                payload.toString(),
+                                ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                            )
                         )
-                    )
-                }
-                lastResponse = response
-
-                if (response.status.value in 200..299) {
-                    val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
-                    val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")
-                    return@runCatching SpotifyPlaylist(
-                        id = id,
-                        name = responseJson.str("name") ?: name,
-                        description = responseJson.str("description"),
-                        images = emptyList(),
-                        owner = null,
-                        tracks = null,
-                        uri = responseJson.str("uri") ?: "spotify:playlist:$id"
-                    )
-                } else if (response.status.value == 429) {
-                    val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
-                    handleRateLimit(retryAfter)
-                    if (attempt < maxRetries) {
-                        delay(retryAfter * 1000L)
                     }
-                    break
+
+                    if (response.status.value in 200..299) {
+                        val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                        val id = responseJson.str("id") ?: throw SpotifyException(500, "Missing playlist id")
+                        return@runCatching SpotifyPlaylist(
+                            id = id,
+                            name = responseJson.str("name") ?: name,
+                            description = responseJson.str("description"),
+                            images = emptyList(),
+                            owner = null,
+                            tracks = null,
+                            uri = responseJson.str("uri") ?: "spotify:playlist:$id"
+                        )
+                    } else if (response.status.value == 429) {
+                        val retryAfter = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
+                        handleRateLimit(retryAfter)
+                        if (attempt < maxRetries) {
+                            delay(retryAfter * 1000L)
+                        }
+                    } else {
+                        val errorBody = response.bodyAsText()
+                        val parsedMessage = runCatching {
+                            val jsonElem = json.parseToJsonElement(errorBody).jsonObject
+                            jsonElem.obj("error")?.str("message") ?: errorBody
+                        }.getOrDefault(errorBody)
+                        lastError = SpotifyException(response.status.value, parsedMessage)
+                    }
+                } catch (e: Exception) {
+                    lastError = e
                 }
             }
 
-            if (lastResponse != null && lastResponse.status.value !in 200..299 && lastResponse.status.value != 429) {
-                val errorBody = lastResponse.bodyAsText()
-                val parsedMessage = runCatching {
-                    val jsonElem = json.parseToJsonElement(errorBody).jsonObject
-                    jsonElem.obj("error")?.str("message") ?: errorBody
-                }.getOrDefault(errorBody)
-                throw SpotifyException(lastResponse.status.value, parsedMessage)
+            if (attempt < maxRetries) {
+                delay(500L * (attempt + 1))
             }
         }
-        throw SpotifyException(429, "Spotify rate limit exceeded creating playlist")
+
+        throw lastError ?: SpotifyException(500, "Failed to create Spotify playlist after retries")
     }
 
     suspend fun searchTrack(query: String): Result<String?> = runCatching {
         val token = accessToken ?: throw SpotifyException(401, "Not authenticated")
-        val maxRetries = 3
-        for (attempt in 0..maxRetries) {
-            checkRateLimitCooldown()
-            val response = gqlClient.get("https://api.spotify.com/v1/search") {
-                header("Authorization", "Bearer $token")
-                parameter("q", query)
-                parameter("type", "track")
-                parameter("limit", 1)
-            }
-            if (response.status.value == 429) {
-                val retryAfterHeader = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
-                handleRateLimit(retryAfterHeader)
-                if (attempt < maxRetries) {
-                    delay(retryAfterHeader * 1000L)
-                    continue
+        val searchWithQuery: suspend (String) -> String? = { q ->
+            var matchedUri: String? = null
+            val maxRetries = 2
+            for (attempt in 0..maxRetries) {
+                checkRateLimitCooldown()
+                val response = gqlClient.get("https://api.spotify.com/v1/search") {
+                    header("Authorization", "Bearer $token")
+                    parameter("q", q)
+                    parameter("type", "track")
+                    parameter("limit", 1)
                 }
-                return@runCatching null
+                if (response.status.value == 429) {
+                    val retryAfterHeader = response.headers["Retry-After"]?.toLongOrNull() ?: (2L * (attempt + 1))
+                    handleRateLimit(retryAfterHeader)
+                    if (attempt < maxRetries) {
+                        delay(retryAfterHeader * 1000L)
+                        continue
+                    }
+                    break
+                }
+                if (response.status.value in 200..299) {
+                    val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
+                    val items = responseJson.obj("tracks")?.arr("items")
+                    val firstTrack = items?.firstOrNull()?.jsonObject
+                    matchedUri = firstTrack?.str("uri") ?: firstTrack?.str("id")?.let { "spotify:track:$it" }
+                    break
+                }
             }
-            if (response.status.value !in 200..299) {
-                return@runCatching null
-            }
-            val responseJson = json.parseToJsonElement(response.bodyAsText()).jsonObject
-            val items = responseJson.obj("tracks")?.arr("items")
-            val firstTrack = items?.firstOrNull()?.jsonObject
-            return@runCatching firstTrack?.str("uri") ?: firstTrack?.str("id")?.let { "spotify:track:$it" }
+            matchedUri
         }
+
+        val primaryResult = searchWithQuery(query)
+        if (primaryResult != null) {
+            return@runCatching primaryResult
+        }
+
+        val cleaned = cleanTrackSearchQuery(query)
+        if (cleaned.isNotBlank() && !cleaned.equals(query, ignoreCase = true)) {
+            return@runCatching searchWithQuery(cleaned)
+        }
+
         null
     }
 

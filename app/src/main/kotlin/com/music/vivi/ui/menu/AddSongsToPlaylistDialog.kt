@@ -42,6 +42,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -49,6 +51,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -60,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -77,6 +81,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.db.entities.Playlist
@@ -84,6 +89,7 @@ import com.music.vivi.db.entities.PlaylistSong
 import com.music.vivi.constants.ArtistSongSortType
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.ui.utils.resize
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +99,7 @@ import kotlinx.coroutines.withContext
 
 data class RecommendedSong(
     val metadata: MediaMetadata,
-    val source: String, // "Playlist", "Your Taste", "Followed Artist"
+    val source: String, // "Playlist", "Followed Artist"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -116,6 +122,10 @@ fun AddSongsToPlaylistDialog(
         currentSongs.map { it.song.id }.toSet()
     }
 
+    val playerConnection = LocalPlayerConnection.current
+    val currentMediaMetadata by playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
+    val isPlaying by playerConnection?.isEffectivelyPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
+
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val selectedSongs = remember { mutableStateMapOf<String, MediaMetadata>() }
 
@@ -127,6 +137,29 @@ fun AddSongsToPlaylistDialog(
     var selectedArtistName by remember { mutableStateOf<String?>(null) }
     var artistSongsList by remember { mutableStateOf<List<MediaMetadata>>(emptyList()) }
     var isLoadingArtistSongs by remember { mutableStateOf(false) }
+
+    // Suggestions state
+    var searchSuggestions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var searchHistoryList by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        database.searchHistory().collect { history ->
+            searchHistoryList = history.map { it.query }.distinct().take(10)
+        }
+    }
+
+    LaunchedEffect(searchQuery) {
+        val trimmed = searchQuery.trim()
+        if (trimmed.length >= 2) {
+            try {
+                searchSuggestions = YouTube.searchSuggestions(trimmed).getOrNull()?.queries.orEmpty()
+            } catch (_: Exception) {
+                searchSuggestions = emptyList()
+            }
+        } else {
+            searchSuggestions = emptyList()
+        }
+    }
 
     // Recommended tab state
     var isLoadingRecommendations by remember { mutableStateOf(false) }
@@ -214,14 +247,22 @@ fun AddSongsToPlaylistDialog(
             val recList = mutableListOf<RecommendedSong>()
             val seenIds = existingSongIds.toMutableSet()
 
-            // 1. Based on Playlist (Seeds from playlist tracks)
+            // 1. Based on Playlist (Algorithmic radio recommendations from playlist tracks)
             if (currentSongs.isNotEmpty()) {
-                val seedSongs = currentSongs.shuffled().take(3)
+                val seedSongs = currentSongs.shuffled().take(4)
                 for (seed in seedSongs) {
                     try {
-                        val nextResult = YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()
-                        val relatedEndpoint = nextResult?.relatedEndpoint
-                        if (relatedEndpoint != null) {
+                        val radioEndpoint = WatchEndpoint(videoId = seed.song.id, playlistId = "RDAMVM${seed.song.id}")
+                        val nextResult = YouTube.next(radioEndpoint).getOrNull()
+                            ?: YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()
+
+                        nextResult?.items?.filterIsInstance<SongItem>()?.forEach { songItem ->
+                            if (seenIds.add(songItem.id)) {
+                                recList.add(RecommendedSong(songItem.toMediaMetadata(), "Playlist"))
+                            }
+                        }
+
+                        nextResult?.relatedEndpoint?.let { relatedEndpoint ->
                             val relatedPage = YouTube.related(relatedEndpoint).getOrNull()
                             relatedPage?.songs?.forEach { songItem ->
                                 if (seenIds.add(songItem.id)) {
@@ -233,27 +274,7 @@ fun AddSongsToPlaylistDialog(
                 }
             }
 
-            // 2. Based on Listening Taste (most played tracks)
-            try {
-                val fromTimeStamp = System.currentTimeMillis() - 86400000L * 14
-                val mostPlayed = database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
-                for (played in mostPlayed.shuffled().take(3)) {
-                    try {
-                        val nextResult = YouTube.next(WatchEndpoint(videoId = played.id)).getOrNull()
-                        val relatedEndpoint = nextResult?.relatedEndpoint
-                        if (relatedEndpoint != null) {
-                            val relatedPage = YouTube.related(relatedEndpoint).getOrNull()
-                            relatedPage?.songs?.forEach { songItem ->
-                                if (seenIds.add(songItem.id)) {
-                                    recList.add(RecommendedSong(songItem.toMediaMetadata(), "Your Taste"))
-                                }
-                            }
-                        }
-                    } catch (_: Exception) {}
-                }
-            } catch (_: Exception) {}
-
-            // 3. Based on Followed Artists
+            // 2. Based on Followed Artists
             try {
                 val bookmarkedArtists = database.artistsBookmarkedByNameAsc().first()
                 for (artist in bookmarkedArtists.shuffled().take(3)) {
@@ -408,6 +429,42 @@ fun AddSongsToPlaylistDialog(
                             shape = RoundedCornerShape(12.dp)
                         )
 
+                        // Suggestions Row (live search suggestions or recent searches)
+                        val suggestions = if (searchQuery.isNotBlank()) searchSuggestions else searchHistoryList
+                        if (suggestions.isNotEmpty()) {
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                items(suggestions) { itemText ->
+                                    SuggestionChip(
+                                        onClick = {
+                                            searchQuery = itemText
+                                            focusManager.clearFocus()
+                                            performSearch(itemText)
+                                        },
+                                        label = {
+                                            Text(
+                                                text = itemText,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        },
+                                        icon = {
+                                            Icon(
+                                                painter = painterResource(
+                                                    if (searchQuery.isNotBlank()) R.drawable.search
+                                                    else R.drawable.history
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
                         if (isSearching) {
                             Box(
                                 modifier = Modifier
@@ -488,12 +545,21 @@ fun AddSongsToPlaylistDialog(
                                         items(artistSongsList, key = { "artist_${it.id}" }) { song ->
                                             val inPlaylist = existingSongIds.contains(song.id)
                                             val isChecked = selectedSongs.containsKey(song.id)
+                                            val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
 
                                             SongSelectRow(
                                                 song = song,
                                                 badgeText = null,
                                                 inPlaylist = inPlaylist,
                                                 checked = isChecked,
+                                                isPlaying = isSongPlaying,
+                                                onPreviewClick = {
+                                                    if (currentMediaMetadata?.id == song.id) {
+                                                        playerConnection?.togglePlayPause()
+                                                    } else {
+                                                        playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
+                                                    }
+                                                },
                                                 onCheckedChange = { checked ->
                                                     if (checked) selectedSongs[song.id] = song
                                                     else selectedSongs.remove(song.id)
@@ -522,12 +588,21 @@ fun AddSongsToPlaylistDialog(
                                     items(searchSongResults, key = { it.id }) { song ->
                                         val inPlaylist = existingSongIds.contains(song.id)
                                         val isChecked = selectedSongs.containsKey(song.id)
+                                        val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
 
                                         SongSelectRow(
                                             song = song,
                                             badgeText = null,
                                             inPlaylist = inPlaylist,
                                             checked = isChecked,
+                                            isPlaying = isSongPlaying,
+                                            onPreviewClick = {
+                                                if (currentMediaMetadata?.id == song.id) {
+                                                    playerConnection?.togglePlayPause()
+                                                } else {
+                                                    playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
+                                                }
+                                            },
                                             onCheckedChange = { checked ->
                                                 if (checked) selectedSongs[song.id] = song
                                                 else selectedSongs.remove(song.id)
@@ -561,7 +636,7 @@ fun AddSongsToPlaylistDialog(
                             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            val filters = listOf("All", "Playlist", "Your Taste", "Followed Artist")
+                            val filters = listOf("All", "Playlist", "Followed Artist")
                             items(filters) { filterName ->
                                 FilterChip(
                                     selected = recommendationFilter == filterName,
@@ -571,7 +646,6 @@ fun AddSongsToPlaylistDialog(
                                             when (filterName) {
                                                 "All" -> "All"
                                                 "Playlist" -> "From Playlist"
-                                                "Your Taste" -> "Listening Taste"
                                                 "Followed Artist" -> "Followed Artists"
                                                 else -> filterName
                                             }
@@ -631,12 +705,21 @@ fun AddSongsToPlaylistDialog(
                                         val song = rec.metadata
                                         val inPlaylist = existingSongIds.contains(song.id)
                                         val isChecked = selectedSongs.containsKey(song.id)
+                                        val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
 
                                         SongSelectRow(
                                             song = song,
-                                            badgeText = rec.source,
+                                            badgeText = if (rec.source == "Playlist") "From Playlist" else rec.source,
                                             inPlaylist = inPlaylist,
                                             checked = isChecked,
+                                            isPlaying = isSongPlaying,
+                                            onPreviewClick = {
+                                                if (currentMediaMetadata?.id == song.id) {
+                                                    playerConnection?.togglePlayPause()
+                                                } else {
+                                                    playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
+                                                }
+                                            },
                                             onCheckedChange = { checked ->
                                                 if (checked) selectedSongs[song.id] = song
                                                 else selectedSongs.remove(song.id)
@@ -714,6 +797,8 @@ private fun SongSelectRow(
     badgeText: String?,
     inPlaylist: Boolean,
     checked: Boolean,
+    isPlaying: Boolean,
+    onPreviewClick: () -> Unit,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Surface(
@@ -731,12 +816,14 @@ private fun SongSelectRow(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Thumbnail
+            // Thumbnail with click-to-preview overlay
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .clickable { onPreviewClick() },
+                contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
                     model = song.thumbnailUrl?.resize(120, 120),
@@ -744,6 +831,21 @@ private fun SongSelectRow(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
+                if (isPlaying) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.pause),
+                            contentDescription = "Pause",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.width(12.dp))
@@ -810,6 +912,21 @@ private fun SongSelectRow(
             }
 
             Spacer(Modifier.width(8.dp))
+
+            // Listen into song preview button
+            IconButton(
+                onClick = onPreviewClick,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Icon(
+                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
+                    contentDescription = if (isPlaying) "Pause preview" else "Preview song",
+                    tint = if (isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            Spacer(Modifier.width(4.dp))
 
             // Checkbox
             Checkbox(

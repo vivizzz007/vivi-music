@@ -48,6 +48,11 @@ import javax.inject.Inject
 import com.music.vivi.constants.SpotifyPlaylistsCacheKey
 import java.io.File
 
+import com.music.vivi.utils.SyncUtils
+import com.music.vivi.db.entities.Playlist
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
 @Serializable
 data class SpotifySession(
     val spDc: String,
@@ -84,6 +89,13 @@ data class SpotifyImportProgress(
     val isFinished: Boolean = false
 )
 
+data class SpotifyPushProgress(
+    val playlistName: String,
+    val percent: Float,
+    val status: String,
+    val isFinished: Boolean = false,
+)
+
 private data class PlaylistImportData(
     val title: String,
     val songs: List<Song>,
@@ -95,6 +107,7 @@ private data class PlaylistImportData(
 class SpotifyImportViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
+    private val syncUtils: SyncUtils,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SpotifyImportUiState(isLoading = true))
@@ -103,7 +116,14 @@ class SpotifyImportViewModel @Inject constructor(
     private val _importProgress = MutableStateFlow<SpotifyImportProgress?>(null)
     val importProgress: StateFlow<SpotifyImportProgress?> = _importProgress.asStateFlow()
 
+    private val _pushProgress = MutableStateFlow<SpotifyPushProgress?>(null)
+    val pushProgress: StateFlow<SpotifyPushProgress?> = _pushProgress.asStateFlow()
+
+    val localPlaylists: StateFlow<List<Playlist>> = database.playlistsByNameAsc()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     private var importJob: Job? = null
+    private var pushJob: Job? = null
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -111,6 +131,53 @@ class SpotifyImportViewModel @Inject constructor(
 
     init {
         restoreSession()
+    }
+
+    fun pushLocalPlaylists(playlistIds: List<String>) {
+        if (playlistIds.isEmpty()) return
+        pushJob?.cancel()
+        pushJob = viewModelScope.launch {
+            try {
+                ensureAuthenticated()
+                _pushProgress.value = SpotifyPushProgress(
+                    playlistName = "",
+                    percent = 0f,
+                    status = context.getString(R.string.push_in_progress),
+                    isFinished = false,
+                )
+                syncUtils.pushMultipleLocalPlaylistsToSpotify(
+                    playlistIds = playlistIds,
+                    onProgress = { name, percent, status ->
+                        _pushProgress.value = SpotifyPushProgress(
+                            playlistName = name,
+                            percent = percent,
+                            status = status,
+                            isFinished = false,
+                        )
+                    },
+                    onComplete = { succeeded, total ->
+                        _pushProgress.value = SpotifyPushProgress(
+                            playlistName = "",
+                            percent = 1f,
+                            status = "Successfully pushed $succeeded of $total playlists to Spotify!",
+                            isFinished = true,
+                        )
+                        loadSources()
+                    }
+                )
+            } catch (e: Exception) {
+                _pushProgress.value = SpotifyPushProgress(
+                    playlistName = "",
+                    percent = 1f,
+                    status = e.message ?: "Failed to push to Spotify",
+                    isFinished = true,
+                )
+            }
+        }
+    }
+
+    fun dismissPushProgress() {
+        _pushProgress.value = null
     }
 
     private suspend fun getSession(): SpotifySession? {

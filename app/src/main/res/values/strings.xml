@@ -263,9 +263,9 @@
     <string name="appearance">Appearance</string>
     <string name="theme">Theme</string>
     <string name="theme_desc">Customize your app theme</string>
-    <string name="theme_colors">Theme &amp; Colors</string>
-    <string name="theme_mode">Theme Mode</string>
-    <string name="color_palette">Color Palette</string>
+    <string name="theme_colors">Theme &amp; colors</string>
+    <string name="theme_mode">Theme mode</string>
+    <string name="color_palette">Color palette</string>
     <string name="use_system_colors">Use system colors</string>
     <string name="enable_dynamic_theme">Enable dynamic theme</string>
     <string name="dark_theme">Dark theme</string>
@@ -311,7 +311,7 @@
 
     <string name="player_and_audio">Player and audio</string>
     <string name="audio_quality">Audio quality</string>
-    <string name="network_ip_version">Network IP Version</string>
+    <string name="network_ip_version">Network IP version</string>
     <string name="ip_version_auto">Automatic</string>
     <string name="ip_version_ipv4">Forced IPv4</string>
     <string name="ip_version_ipv6">Forced IPv6</string>
@@ -332,8 +332,8 @@
 
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
-    <string name="image_cache">Image Cache</string>
-    <string name="song_cache">Song Cache</string>
+    <string name="image_cache">Image cache</string>
+    <string name="song_cache">Song cache</string>
     <string name="max_cache_size">Max cache size</string>
     <string name="unlimited">Unlimited</string>
     <string name="clear_all_downloads">Clear all downloads</string>
@@ -382,7 +382,7 @@
     <string name="backup_create_failed">Couldn\'t create backup</string>
     <string name="restore_failed">Failed to restore backup</string>
 
-    <string name="discord_integration">Discord Integration</string>
+    <string name="discord_integration">Discord integration</string>
     <string name="discord_information">vivimusic uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\vivimusic will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
@@ -393,7 +393,7 @@
     <string name="app_version">App version</string>
 
     <string name="new_version_available">New version available</string>
-    <string name="translation_models">Translation Models</string>
+    <string name="translation_models">Translation models</string>
     <string name="clear_translation_models">Clear translation models</string>
     <string name="bluetooth_permission_required">Bluetooth permission is required to discover audio devices.</string>
     <string name="streaming_to">Streaming to</string>
@@ -401,21 +401,21 @@
     <string name="wired_headphones">Wired headphones</string>
     <string name="hdmi">HDMI</string>
     <string name="phone_speaker">Phone speaker</string>
-    <string name="audio_quality_title">Audio Quality</string>
-    <string name="battery_content_desc">Battery Level</string>
+    <string name="audio_quality_title">Audio quality</string>
+    <string name="battery_content_desc">Battery level</string>
     <string name="done">Done</string>
     <string name="audio_devices">Audio devices</string>
     <string name="bluetooth_headphones">Bluetooth headphones</string>
     <string name="license">GNU License 3.0</string>
     <string name="standard_lyrics_blur">Standard lyrics blur</string>
-    <string name="listen_together_smart_resync">Smart Network Resync</string>
+    <string name="listen_together_smart_resync">Smart network resync</string>
     <string name="listen_together_smart_resync_desc">Automatically catch up with the host after a connection drop</string>
 
     <!-- JioSaavn Streaming -->
-    <string name="enable_saavn_streaming">Enable JioSaavn Streaming</string>
+    <string name="enable_saavn_streaming">Enable JioSaavn streaming</string>
     <string name="enable_saavn_streaming_desc">Stream audio from JioSaavn instead of YouTube Music (falls back to YT if not available)</string>
-    <string name="saavn_audio_quality">JioSaavn Audio Quality</string>
-    <string name="retry_stream">Retry Stream</string>
+    <string name="saavn_audio_quality">JioSaavn audio quality</string>
+    <string name="retry_stream">Retry stream</string>
     <string name="retry_stream_desc_saavn">Re-fetch from JioSaavn at 320 kbps</string>
     <string name="retry_stream_desc_yt">Re-fetch from YouTube Music</string>
 
@@ -434,25 +434,25 @@
     <!-- Automatic Backup -->
     <string name="automatic_backup">Automatic backup</string>
     <string name="automatic_backup_desc">Configure automatic backups of your settings and database to prevent data loss.</string>
-    <string name="enable_automatic_backup">Enable Automatic Backup</string>
+    <string name="enable_automatic_backup">Enable automatic backup</string>
     <string name="weekly_backup">Weekly backup</string>
     <string name="weekly_backup_desc">Automatically backup your data every week in the background.</string>
     <string name="backup_before_update">Backup before update</string>
     <string name="backup_before_update_desc">Automatically backup your data before downloading an app update.</string>
     <string name="stored_backups">Stored backups</string>
     <string name="no_stored_backups">No automatic backups stored yet.</string>
-    <string name="backup_type_weekly">Weekly Backup</string>
-    <string name="backup_type_before_update">Before Update</string>
+    <string name="backup_type_weekly">Weekly backup</string>
+    <string name="backup_type_before_update">Before update</string>
     <string name="delete_backup_confirm">Are you sure you want to delete this backup?</string>
     <string name="restore_backup_confirm">Are you sure you want to restore this backup? The app will close and restart to apply changes.</string>
     <string name="backup_deleted">Backup deleted successfully</string>
     <string name="others">Others</string>
     <string name="last_backed_up">Last backed up: %s</string>
     <string name="never_backed_up">Never</string>
-    <string name="autobackup_settings">Auto Backup Settings</string>
+    <string name="autobackup_settings">Auto backup settings</string>
     <string name="new_release_notifications">New release alerts</string>
     <string name="new_release_notifications_subtitle">Notify when bookmarked artists release new songs or albums (beta)</string>
-    <string name="new_release_channel_name">New Releases</string>
+    <string name="new_release_channel_name">New releases</string>
     <string name="new_release_channel_desc">Notifications for new releases from your bookmarked artists</string>
     <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
     <string name="taste_based_release_notifications">Taste-based release alerts</string>
@@ -461,7 +461,7 @@
     <!-- Custom Font -->
     <string name="font_custom">Custom font</string>
     <string name="font_custom_desc">Import a .ttf or .otf font from your device</string>
-    <string name="import_font">Import Font</string>
+    <string name="import_font">Import font</string>
     <string name="custom_font_applied">Custom font applied successfully</string>
     <string name="custom_font_invalid">Invalid font file. Please select a valid TTF or OTF font.</string>
     <string name="custom_font_error">Failed to import font file</string>
@@ -479,11 +479,11 @@
     <string name="maps_not_installed">Google Maps is not installed on this device</string>
 
     <!-- Wear OS Watch Pairing -->
-    <string name="pair_wear_watch">Pair Wear OS Watch</string>
+    <string name="pair_wear_watch">Pair Wear OS watch</string>
     <string name="pair_wear_watch_desc">Transfer YouTube Music session to your Galaxy Watch</string>
     <string name="watch_ip_address">Watch IP / Address</string>
-    <string name="watch_pin">4-Digit PIN</string>
-    <string name="send_to_watch">Pair Watch</string>
+    <string name="watch_pin">4-digit PIN</string>
+    <string name="send_to_watch">Pair watch</string>
     <string name="watch_paired_success">Watch paired successfully!</string>
     <string name="watch_pairing_failed">Failed to pair with watch. Check IP and Wi-Fi connection.</string>
     <string name="login_first_to_pair_watch">Please log in to YouTube Music on this phone first.</string>

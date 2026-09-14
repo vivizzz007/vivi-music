@@ -46,8 +46,15 @@
     <string name="sync_completed_success">Synced %1$d songs successfully</string>
     <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
-    <string name="spotify_sync">Spotify Sync</string>
+    <string name="spotify_sync">Spotify sync</string>
     <string name="spotify_sync_desc">Automatically keep imported Spotify playlists up to date</string>
+    <string name="push_to_spotify">Push playlists to Spotify</string>
+    <string name="push_to_spotify_desc">Export and sync local playlists to your Spotify account</string>
+    <string name="push_to_spotify_action">Push to Spotify</string>
+    <string name="push_in_progress">Pushing to Spotify…</string>
+    <string name="push_complete">Push to Spotify complete</string>
+    <string name="select_playlists_to_push">Select playlists to export</string>
+    <string name="no_local_playlists">No local playlists found to export</string>
     <string name="app_logo_title">App logo</string>
     <string name="app_logo_desc">Customize the app logo appearance</string>
     <string name="choose_custom_logo">Upload custom logo</string>
@@ -373,7 +380,7 @@
     <string name="romanize_current_track">Romanize current track</string>
 
     <!-- Lyrics Offset Settings -->
-    <string name="lyrics_offset">Lyrics Offset</string>
+    <string name="lyrics_offset">Lyrics offset</string>
 
     <!-- Material 3 Settings Sections -->
     <string name="settings_section_ui">Interface</string>
@@ -421,14 +428,14 @@
     <string name="password">Password</string>
 
     <!-- Last.fm -->
-    <string name="lastfm_integration">Last.fm Integration</string>
+    <string name="lastfm_integration">Last.fm integration</string>
     <string name="enable_scrobbling">Enable scrobbling</string>
-    <string name="lastfm_now_playing">Send Now Playing</string>
-    <string name="last_fm_send_likes">Send Likes/Unlikes</string>
+    <string name="lastfm_now_playing">Send now playing</string>
+    <string name="last_fm_send_likes">Send likes/unlikes</string>
     <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in vivimusic</string>
     <string name="logging_in">Logging in…</string>
 
-    <string name="scrobbling_configuration">Scrobbling Configuration</string>
+    <string name="scrobbling_configuration">Scrobbling configuration</string>
     <string name="scrobble_min_track_duration">Scrobble songs longer than</string>
     <string name="scrobble_delay_percent">Scrobble delay percent</string>
     <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
@@ -471,7 +478,7 @@
     <string name="apple_music_style">Apple Music</string>
     <string name="apple_music_style_letter">Apple Music V2 (Letter by Letter)</string>
     <string name="vivimusic_1">Vivimusic (Fluid)</string>
-    <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
+    <string name="apple_music_lyrics_blur">Apple Music lyrics blur</string>
     <string name="apple_music_lyrics_blur_desc">Apply blur to inactive lyrics lines for a premium focus effect</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
     <string name="lyrics_animation_metro">MetroLyrics</string>
@@ -504,9 +511,9 @@
     <string name="wrapped_intro_subtitle">it\'s time to see what you\'ve been listening to</string>
     <string name="wrapped_intro_button">let\'s go!</string>
     <string name="wrapped_end_thanks">Thanks for listening with vivimusic!</string>
-    <string name="wrapped_end_create_playlist">Create Your Wrapped Playlist</string>
+    <string name="wrapped_end_create_playlist">Create your wrapped playlist</string>
     <string name="wrapped_end_creating_playlist">Creating...</string>
-    <string name="wrapped_end_playlist_saved">Playlist Saved</string>
+    <string name="wrapped_end_playlist_saved">Playlist saved</string>
     <string name="wrapped_logo_content_description">vivimusic Logo</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">YOUR WRAPPED IS READY!</string>
@@ -525,20 +532,20 @@
     </plurals>
     <string name="equalizer_header">Equalizer</string>
     <string name="no_profiles">No equalizer profiles</string>
-    <string name="import_profile">Import Profile</string>
-    <string name="system_equalizer">System Equalizer</string>
+    <string name="import_profile">Import profile</string>
+    <string name="system_equalizer">System equalizer</string>
     <string name="eq_disabled">Disabled</string>
     <plurals name="band_count">
         <item quantity="one">%d band</item>
         <item quantity="other">%d bands</item>
     </plurals>
-    <string name="delete_profile_desc">Delete Profile</string>
+    <string name="delete_profile_desc">Delete profile</string>
     <string name="delete_profile_confirmation">Are you sure you want to delete "%1$s"? This action
         cannot be undone.
     </string>
     <string name="error_file_read">Could not read file</string>
     <string name="error_file_open">Failed to open file: %1$s</string>
-    <string name="import_error_title">Import Error</string>
+    <string name="import_error_title">Import error</string>
     <string name="error_title">Error</string>
     <string name="error_eq_apply_failed">Failed to apply EQ profile: %1$s</string>
 
@@ -554,9 +561,9 @@
     <string name="eq_preset_vivi_signature">Vivi Signature</string>
     <string name="eq_preset_acoustic">Acoustic</string>
     <string name="eq_preset_spatial">3D Stage</string>
-    <string name="eq_preset_bass_boost">Bass Boost</string>
-    <string name="eq_preset_pure_clarity">Pure Clarity</string>
-    <string name="eq_preset_soft_bass">Soft Bass</string>
+    <string name="eq_preset_bass_boost">Bass boost</string>
+    <string name="eq_preset_pure_clarity">Pure clarity</string>
+    <string name="eq_preset_soft_bass">Soft bass</string>
     <string name="eq_preset_electronic">Electronic</string>
     <string name="eq_preset_rock">Rock</string>
     <string name="eq_preset_pop">Pop</string>
@@ -576,10 +583,10 @@
     <string name="eq_reset">Reset</string>
     <string name="eq_label_custom">Custom</string>
     <string name="eq_save">Save</string>
-    <string name="eq_save_dialog_title">Save Preset</string>
-    <string name="eq_save_name_hint">Preset Name</string>
+    <string name="eq_save_dialog_title">Save preset</string>
+    <string name="eq_save_name_hint">Preset name</string>
     <string name="eq_profile_saved">Preset saved</string>
-    <string name="eq_manage_presets">Manage Presets</string>
+    <string name="eq_manage_presets">Manage presets</string>
     <string name="eq_delete_selected">Delete</string>
     <string name="eq_no_custom_presets">No custom presets found</string>
 
@@ -1112,7 +1119,7 @@
     <string name="sponsorblock_desc">Automatically skip sponsor ads and non-music sections in video songs</string>
     <string name="enable_sponsorblock">SponsorBlock</string>
     <string name="enable_sponsorblock_desc">Crowdsourced segment skipping for YouTube music videos</string>
-    <string name="sponsorblock_categories">Categories to Skip</string>
+    <string name="sponsorblock_categories">Categories to skip</string>
     <string name="sponsorblock_skip_non_music">Non-music video sections</string>
     <string name="sponsorblock_skip_non_music_desc">Skip dialogues, spoken intros, and video scenes in music videos</string>
     <string name="sponsorblock_skip_sponsor">Sponsor advertisements</string>
@@ -1121,9 +1128,9 @@
     <string name="sponsorblock_skip_selfpromo_desc">Skip merch plugs and channel promotion</string>
     <string name="sponsorblock_skip_interaction">Subscribe &amp; like reminders</string>
     <string name="sponsorblock_skip_interaction_desc">Skip calls to action to subscribe or like</string>
-    <string name="sponsorblock_skip_intro_outro">Intros &amp; Outro credits</string>
+    <string name="sponsorblock_skip_intro_outro">Intros &amp; outro credits</string>
     <string name="sponsorblock_skip_intro_outro_desc">Skip intermission cards and end credits</string>
-    <string name="sponsorblock_skip_preview_filler">Previews &amp; Filler</string>
+    <string name="sponsorblock_skip_preview_filler">Previews &amp; filler</string>
     <string name="sponsorblock_skip_preview_filler_desc">Skip recap previews and filler commentary</string>
     <string name="sponsorblock_show_toast">Show skip notification</string>
     <string name="sponsorblock_show_toast_desc">Display a message when a segment is skipped</string>
@@ -1136,7 +1143,7 @@
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
     <string name="sync_playlist_spotify_desc">Sync playlist with Spotify</string>
-    <string name="persistent_control_center">Persistent Control Center player</string>
+    <string name="persistent_control_center">Persistent control center player</string>
     <string name="persistent_control_center_desc">Keep player tile in Control Center even when app is closed to resume playback anytime</string>
     <string name="sync_to_spotify">Sync to Spotify</string>
     <string name="sync_to_spotify_desc">Export and sync this playlist to your Spotify account</string>
@@ -1149,12 +1156,12 @@
     <string name="export_playlists_to_phone_desc">Select playlists and albums to save directly to phone storage</string>
     <string name="select_items_to_export">Select items to export</string>
     <string name="export_selected">Export selected</string>
-    <string name="upstream_tracker_title">Original Repo Updates &amp; Nightly Builds</string>
+    <string name="upstream_tracker_title">Original repo updates &amp; nightly builds</string>
     <string name="upstream_tracker_desc">Inspect releases and nightly builds from the original vivizzz007 repository</string>
     <string name="upstream_releases">Releases</string>
-    <string name="upstream_nightly">Nightly Builds</string>
+    <string name="upstream_nightly">Nightly builds</string>
     <string name="upstream_no_updates">No upstream updates found</string>
-    <string name="view_spotify_account">View Spotify Account</string>
+    <string name="view_spotify_account">View Spotify account</string>
     <string name="view_spotify_account_desc">View your Spotify profile, playlists, and synced library</string>
     <string name="spotify_no_playlists">No Spotify playlists found</string>
 </resources>

@@ -1439,7 +1439,11 @@ class SyncUtils @Inject constructor(
 
             val targetSpotifyId = if (linkedSpotifyId.isNullOrBlank()) {
                 if (playlistId.startsWith("SPOTIFY_PLAYLIST_")) {
-                    playlistId.removePrefix("SPOTIFY_PLAYLIST_")
+                    val spId = playlistId.removePrefix("SPOTIFY_PLAYLIST_")
+                    context.dataStore.edit { prefs ->
+                        prefs[linkedKey] = spId
+                    }
+                    spId
                 } else if (isAutoSync) {
                     return@withContext
                 } else {
@@ -1465,6 +1469,11 @@ class SyncUtils @Inject constructor(
                 linkedSpotifyId
             }
 
+            // Mark local playlist with auto-sync enabled so it stays linked
+            database.playlist(playlistId).first()?.playlist?.let { entity ->
+                database.update(entity.copy(isAutoSync = true, lastUpdateTime = java.time.LocalDateTime.now()))
+            }
+
             val trackUris = mutableListOf<String>()
             for ((index, playlistSong) in songs.withIndex()) {
                 val artistName = playlistSong.song.artists.firstOrNull()?.name.orEmpty()
@@ -1480,12 +1489,18 @@ class SyncUtils @Inject constructor(
                 if (uri != null) {
                     trackUris.add(uri)
                 }
-                delay(200)
+                delay(100)
             }
 
-            // Fetch existing tracks in the Spotify playlist to prevent duplicate additions
-            val existingTracks = Spotify.playlistTracks(targetSpotifyId, limit = 100).getOrNull()
-            val existingUris = existingTracks?.items?.mapNotNull { it.track?.uri }?.toSet() ?: emptySet()
+            // Fetch all existing tracks in the Spotify playlist to prevent duplicate additions
+            val existingUris = mutableSetOf<String>()
+            var trackOffset = 0
+            while (true) {
+                val page = Spotify.playlistTracks(targetSpotifyId, limit = 100, offset = trackOffset).getOrNull() ?: break
+                existingUris.addAll(page.items.mapNotNull { it.track?.uri })
+                trackOffset += 100
+                if (trackOffset >= page.total || page.items.isEmpty()) break
+            }
 
             val newUrisToAdd = trackUris.filter { it !in existingUris }
 
@@ -1516,6 +1531,39 @@ class SyncUtils @Inject constructor(
                     onComplete?.invoke(false, errorMsg)
                 }
             }
+        }
+    }
+
+    suspend fun pushMultipleLocalPlaylistsToSpotify(
+        playlistIds: List<String>,
+        onProgress: ((playlistName: String, progressPercent: Float, status: String) -> Unit)? = null,
+        onComplete: ((succeededCount: Int, totalPlaylists: Int) -> Unit)? = null,
+    ) = withContext(Dispatchers.IO) {
+        var succeeded = 0
+        for ((idx, pId) in playlistIds.withIndex()) {
+            val pl = database.playlist(pId).first()
+            val name = pl?.playlist?.name ?: "Playlist"
+            val basePercent = idx.toFloat() / playlistIds.size.toFloat()
+            onProgress?.invoke(name, basePercent, "Starting sync for $name…")
+
+            var playlistSuccess = false
+            syncLocalPlaylistToSpotify(
+                playlistId = pId,
+                isAutoSync = false,
+                onProgress = { status ->
+                    onProgress?.invoke(name, basePercent, status)
+                },
+                onComplete = { success, msg ->
+                    playlistSuccess = success
+                }
+            )
+            if (playlistSuccess) {
+                succeeded++
+            }
+            delay(500)
+        }
+        withContext(Dispatchers.Main) {
+            onComplete?.invoke(succeeded, playlistIds.size)
         }
     }
 }

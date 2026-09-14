@@ -1281,7 +1281,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "speed_dial_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1378,7 +1378,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "quick_picks_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1469,7 +1469,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "covers_and_remixes_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1507,7 +1507,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "from_the_community_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1573,7 +1573,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "daily_discover_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1607,7 +1607,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "keep_listening_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1665,7 +1665,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "account_playlists_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1766,7 +1766,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "forgotten_favorites_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1818,7 +1818,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "similar_to_spacer_${section.index}") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1962,7 +1962,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "home_section_spacer_${section.index}") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
                         }
@@ -1999,7 +1999,7 @@ fun HomeScreen(
                                     }
                                 }
                                 item(key = "mood_and_genres_spacer") {
-                                    Spacer(modifier = Modifier.height(20.dp))
+                                    Spacer(modifier = Modifier.height(32.dp))
                                 }
                             }
 

@@ -43,6 +43,8 @@ import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.shimmer.ListItemPlaceHolder
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.component.DefaultDialog
+import com.music.vivi.ui.screens.settings.SpotifyPushBottomSheet
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +55,8 @@ fun SpotifyAccountScreen(
     viewModel: SpotifyImportViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val pushProgress by viewModel.pushProgress.collectAsStateWithLifecycle()
+    var showPushSheet by remember { mutableStateOf(false) }
 
     val rotationAngle by if (state.isLoading) {
         val transition = rememberInfiniteTransition(label = "rotation")
@@ -97,6 +101,15 @@ fun SpotifyAccountScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { showPushSheet = true },
+                        enabled = !state.isLoading
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.database_upload),
+                            contentDescription = stringResource(R.string.push_to_spotify)
+                        )
+                    }
                     IconButton(
                         onClick = { viewModel.loadSources() },
                         enabled = !state.isLoading
@@ -192,6 +205,62 @@ fun SpotifyAccountScreen(
                 }
             }
 
+            // Push to Spotify Action Card
+            item(key = "push_action_card") {
+                Surface(
+                    onClick = { showPushSheet = true },
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.database_upload),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.push_to_spotify),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = stringResource(R.string.push_to_spotify_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+
             // Liked Songs Row (unified in single column at top of items)
             if (state.likedSongsCount > 0 || state.isAuthenticated) {
                 item(key = "liked_songs") {
@@ -238,6 +307,61 @@ fun SpotifyAccountScreen(
                         }
                     )
                 }
+            }
+        }
+    }
+
+    if (showPushSheet) {
+        SpotifyPushBottomSheet(
+            onDismiss = { showPushSheet = false },
+            viewModel = viewModel
+        )
+    }
+
+    pushProgress?.let { progress ->
+        DefaultDialog(
+            onDismiss = {
+                if (progress.isFinished) viewModel.dismissPushProgress()
+            },
+            title = {
+                Text(
+                    text = if (progress.isFinished) stringResource(R.string.push_complete)
+                    else stringResource(R.string.push_in_progress)
+                )
+            },
+            buttons = {
+                if (progress.isFinished) {
+                    Button(
+                        onClick = { viewModel.dismissPushProgress() },
+                        shape = CircleShape
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (progress.playlistName.isNotBlank()) {
+                    Text(
+                        text = progress.playlistName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                if (!progress.isFinished) {
+                    LinearProgressIndicator(
+                        progress = { progress.percent },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                Text(
+                    text = progress.status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

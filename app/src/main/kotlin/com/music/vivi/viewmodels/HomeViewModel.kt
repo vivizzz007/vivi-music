@@ -87,29 +87,51 @@ class HomeViewModel @Inject constructor(
     val wrappedManager: WrappedManager,
     private val wrappedAudioService: WrappedAudioService,
 ) : ViewModel() {
+    companion object {
+        var cachedHomePage: HomePage? = null
+        var cachedExplorePage: ExplorePage? = null
+        var cachedQuickPicks: List<Song>? = null
+        var cachedDailyDiscover: List<DailyDiscoverItem>? = null
+        var cachedForgottenFavorites: List<Song>? = null
+        var cachedKeepListening: List<LocalItem>? = null
+        var cachedSimilarRecommendations: List<SimilarRecommendation>? = null
+        var cachedCommunityPlaylists: List<CommunityPlaylistItem>? = null
+        var cachedCoversAndRemixes: HomePage.Section? = null
+        var cachedAccountPlaylists: List<PlaylistItem>? = null
+
+        val hasFeedCache: Boolean
+            get() = cachedHomePage != null || cachedQuickPicks != null
+    }
+
     val isRefreshing = MutableStateFlow(false)
-    val isLoading = MutableStateFlow(false)
+    val isLoading = MutableStateFlow(!hasFeedCache)
     val isRandomizing = MutableStateFlow(false)
 
     private val quickPicksEnum = context.dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
     }.distinctUntilChanged()
 
-    val quickPicks = MutableStateFlow<List<Song>?>(null)
-    val dailyDiscover = MutableStateFlow<List<DailyDiscoverItem>?>(null)
-    val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
-    val keepListening = MutableStateFlow<List<LocalItem>?>(null)
-    val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
-    val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
-    val homePage = MutableStateFlow<HomePage?>(null)
-    val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
-    val coversAndRemixes = MutableStateFlow<HomePage.Section?>(null)
+    val quickPicks = MutableStateFlow<List<Song>?>(cachedQuickPicks)
+    val dailyDiscover = MutableStateFlow<List<DailyDiscoverItem>?>(cachedDailyDiscover)
+    val forgottenFavorites = MutableStateFlow<List<Song>?>(cachedForgottenFavorites)
+    val keepListening = MutableStateFlow<List<LocalItem>?>(cachedKeepListening)
+    val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(cachedSimilarRecommendations)
+    val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(cachedAccountPlaylists)
+    val homePage = MutableStateFlow<HomePage?>(cachedHomePage)
+    val explorePage = MutableStateFlow<ExplorePage?>(cachedExplorePage)
+    val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(cachedCommunityPlaylists)
+    val coversAndRemixes = MutableStateFlow<HomePage.Section?>(cachedCoversAndRemixes)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
-    val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
-    val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
+    val allLocalItems = MutableStateFlow<List<LocalItem>>(
+        (cachedQuickPicks.orEmpty() + cachedForgottenFavorites.orEmpty() + cachedKeepListening.orEmpty())
+            .filter { it is Song || it is Album }
+    )
+    val allYtItems = MutableStateFlow<List<YTItem>>(
+        cachedSimilarRecommendations?.flatMap { it.items }.orEmpty() +
+            cachedHomePage?.sections?.flatMap { it.items }.orEmpty()
+    )
 
     val speedDialItems: StateFlow<List<YTItem>> =
         combine(
@@ -334,7 +356,9 @@ class HomeViewModel @Inject constructor(
         }
 
         // Final deduplication just in case multiple seeds recommended the same song
-        dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
+        val finalDiscover = items.toList().distinctBy { it.recommendation.id }.shuffled()
+        dailyDiscover.value = finalDiscover
+        cachedDailyDiscover = finalDiscover
     }
 
     private suspend fun getQuickPicks() {
@@ -370,12 +394,16 @@ class HomeViewModel @Inject constructor(
                     .shuffled()
                     .take(20)
 
-                quickPicks.value = combined.ifEmpty { relatedSongs.shuffled().take(20) }
+                val finalPicks = combined.ifEmpty { relatedSongs.shuffled().take(20) }
+                quickPicks.value = finalPicks
+                cachedQuickPicks = finalPicks
             }
             QuickPicks.LAST_LISTEN -> {
                 val song = database.events().first().firstOrNull()?.song
                 if (song != null && database.hasRelatedSongs(song.id)) {
-                    quickPicks.value = database.getRelatedSongs(song.id).first().filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                    val finalRelated = database.getRelatedSongs(song.id).first().filterVideoSongs(hideVideoSongs).shuffled().take(20)
+                    quickPicks.value = finalRelated
+                    cachedQuickPicks = finalRelated
                 }
             }
         }
@@ -453,7 +481,9 @@ class HomeViewModel @Inject constructor(
             }.forEach { it.join() }
         }
 
-        communityPlaylists.value = playlists.shuffled()
+        val shuffledPlaylists = playlists.shuffled()
+        communityPlaylists.value = shuffledPlaylists
+        cachedCommunityPlaylists = shuffledPlaylists
     }
 
     /**
@@ -465,8 +495,10 @@ class HomeViewModel @Inject constructor(
 
         getQuickPicks()
 
-        forgottenFavorites.value = database.forgottenFavorites().first()
+        val forgotten = database.forgottenFavorites().first()
             .filterVideoSongs(hideVideoSongs).shuffled().take(20)
+        forgottenFavorites.value = forgotten
+        cachedForgottenFavorites = forgotten
 
         val fromTimeStamp = System.currentTimeMillis() - 86400000L * 7 * 2
         val keepListeningSongs = database.mostPlayedSongs(fromTimeStamp, limit = 15, offset = 5).first()
@@ -475,7 +507,9 @@ class HomeViewModel @Inject constructor(
             .filter { it.album.thumbnailUrl != null }.shuffled().take(5)
         val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp).first()
             .filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
-        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+        val kl = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+        keepListening.value = kl
+        cachedKeepListening = kl
 
         allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
             .filter { it is Song || it is Album }
@@ -564,7 +598,9 @@ class HomeViewModel @Inject constructor(
                 }
 
             val results = (artistDeferreds + songDeferreds + albumDeferreds).awaitAll()
-            similarRecommendations.value = results.filterNotNull().shuffled()
+            val finalSimilar = results.filterNotNull().shuffled()
+            similarRecommendations.value = finalSimilar
+            cachedSimilarRecommendations = finalSimilar
         }
     }
 
@@ -590,14 +626,16 @@ class HomeViewModel @Inject constructor(
                             .filterExplicit(hideExplicit)
                             .filterYoutubeShorts(hideYoutubeShorts)
                         if (filteredItems.isNotEmpty()) {
-                            coversAndRemixes.value = cnrSection.copy(items = filteredItems)
+                            val cnr = cnrSection.copy(items = filteredItems)
+                            coversAndRemixes.value = cnr
+                            cachedCoversAndRemixes = cnr
                         }
                     } else {
                         // Force fetch backend if not returned in initial home page natively
                         launch(Dispatchers.IO) { loadFallbackCoversAndRemixes() }
                     }
 
-                    homePage.value = page.copy(
+                    val processedHomePage = page.copy(
                         sections = page.sections.mapNotNull { section ->
                             if (section == cnrSection) return@mapNotNull null
                             val filteredItems = section.items
@@ -607,13 +645,17 @@ class HomeViewModel @Inject constructor(
                             if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                         }
                     )
+                    homePage.value = processedHomePage
+                    cachedHomePage = processedHomePage
                 }.onFailure { reportException(it) }
             }
             launch(Dispatchers.IO) {
                 YouTube.explore().onSuccess { page ->
-                    explorePage.value = page.copy(
+                    val processedExplore = page.copy(
                         newReleaseAlbums = page.newReleaseAlbums.filterExplicit(hideExplicit)
                     )
+                    explorePage.value = processedExplore
+                    cachedExplorePage = processedExplore
                 }.onFailure { reportException(it) }
             }
             if (YouTube.cookie != null) {
@@ -627,7 +669,9 @@ class HomeViewModel @Inject constructor(
     }
 
     private suspend fun load() {
-        isLoading.value = true
+        if (!hasFeedCache) {
+            isLoading.value = true
+        }
 
         // Phase 1: Local DB only — UI renders immediately after this
         loadLocalDataPhase()
@@ -651,13 +695,15 @@ class HomeViewModel @Inject constructor(
                 .shuffled()
             
             if (combined.isNotEmpty()) {
-                coversAndRemixes.value = HomePage.Section(
+                val cnr = HomePage.Section(
                     title = "Covers and remixes",
                     label = null,
                     thumbnail = null,
                     endpoint = null,
                     items = combined.take(20) // max 20 covers like other standard shelves
                 )
+                coversAndRemixes.value = cnr
+                cachedCoversAndRemixes = cnr
             }
         }.onFailure { reportException(it) }
     }
@@ -681,11 +727,13 @@ class HomeViewModel @Inject constructor(
                     .filterExplicit(hideExplicit)
                     .filterYoutubeShorts(hideYoutubeShorts)
                 if (filteredItems.isNotEmpty()) {
-                    coversAndRemixes.value = cnrSection.copy(items = filteredItems)
+                    val cnr = cnrSection.copy(items = filteredItems)
+                    coversAndRemixes.value = cnr
+                    cachedCoversAndRemixes = cnr
                 }
             }
 
-            homePage.value = nextSections.copy(
+            val updatedHomePage = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = (homePage.value?.sections.orEmpty() + nextSections.sections).mapNotNull { section ->
                     if (section == cnrSection) return@mapNotNull null
@@ -693,6 +741,8 @@ class HomeViewModel @Inject constructor(
                     if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                 }
             )
+            homePage.value = updatedHomePage
+            cachedHomePage = updatedHomePage
             _isLoadingMore.value = false
         }
     }
@@ -728,9 +778,11 @@ class HomeViewModel @Inject constructor(
     private suspend fun loadAccountPlaylists() {
         val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
         YouTube.library("FEmusic_liked_playlists").completed().onSuccess {
-            accountPlaylists.value = it.items.filterIsInstance<PlaylistItem>()
+            val playlists = it.items.filterIsInstance<PlaylistItem>()
                 .filterNot { it.id == "SE" }
                 .filterYoutubeShorts(hideYoutubeShorts)
+            accountPlaylists.value = playlists
+            cachedAccountPlaylists = playlists
         }.onFailure {
             reportException(it)
         }

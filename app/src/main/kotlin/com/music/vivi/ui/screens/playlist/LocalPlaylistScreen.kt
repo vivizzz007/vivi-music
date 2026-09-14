@@ -1345,28 +1345,6 @@ fun LocalPlaylistHeader(
                 )
             }
 
-            // Add Songs Button
-            if (editable) {
-                Surface(
-                    onClick = onShowAddSongsDialog,
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.add),
-                            contentDescription = stringResource(R.string.add_to_playlist),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
             // More Options
             Surface(
                 onClick = {
