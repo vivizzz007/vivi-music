@@ -53,6 +53,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -152,6 +153,7 @@ import com.music.vivi.ui.component.SortHeader
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu
 import com.music.vivi.ui.component.ExpandableText
+import com.music.vivi.ui.menu.AddSongsToPlaylistDialog
 import com.music.vivi.ui.menu.LocalPlaylistMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
@@ -332,6 +334,18 @@ fun LocalPlaylistScreen(
         }
     }
 
+    var showAddSongsDialog by remember {
+        mutableStateOf(false)
+    }
+    val currentPlaylist = playlist
+    if (showAddSongsDialog && currentPlaylist != null) {
+        AddSongsToPlaylistDialog(
+            playlist = currentPlaylist,
+            currentSongs = songs,
+            onDismiss = { showAddSongsDialog = false }
+        )
+    }
+
     var showRemoveDownloadDialog by remember {
         mutableStateOf(false)
     }
@@ -497,11 +511,32 @@ fun LocalPlaylistScreen(
             playlist?.let { playlist ->
                 if (playlist.songCount == 0 && playlist.playlist.remoteSongCount == 0) {
                     item(key = "empty_placeholder") {
-                        EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
-                            modifier = Modifier.animateItem()
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateItem()
+                        ) {
+                            EmptyPlaceholder(
+                                icon = R.drawable.music_note,
+                                text = stringResource(R.string.playlist_is_empty)
+                            )
+                            if (editable) {
+                                Spacer(Modifier.height(16.dp))
+                                Button(
+                                    onClick = { showAddSongsDialog = true },
+                                    modifier = Modifier.padding(bottom = 24.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.add),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(stringResource(R.string.add_to_playlist))
+                                }
+                            }
+                        }
                     }
                 } else {
                     if (!isSearching) {
@@ -512,6 +547,7 @@ fun LocalPlaylistScreen(
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
+                                onShowAddSongsDialog = { showAddSongsDialog = true },
                                 onStartSearch = { isSearching = true },
                                 snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem()
@@ -844,7 +880,16 @@ fun LocalPlaylistScreen(
                         )
                     }
                 } else if (!isSearching) {
-                    // Only search button remains in TopAppBar
+                    if (editable) {
+                        IconButton(
+                            onClick = { showAddSongsDialog = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.add),
+                                contentDescription = stringResource(R.string.add_to_playlist)
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = { isSearching = true }
                     ) {
@@ -874,6 +919,7 @@ fun LocalPlaylistHeader(
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
     onshowDeletePlaylistDialog: () -> Unit,
+    onShowAddSongsDialog: () -> Unit,
     onStartSearch: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
@@ -1299,6 +1345,28 @@ fun LocalPlaylistHeader(
                 )
             }
 
+            // Add Songs Button
+            if (editable) {
+                Surface(
+                    onClick = onShowAddSongsDialog,
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.add),
+                            contentDescription = stringResource(R.string.add_to_playlist),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
             // More Options
             Surface(
                 onClick = {
@@ -1309,6 +1377,7 @@ fun LocalPlaylistHeader(
                             context = context,
                             downloadState = downloadState,
                             onEdit = onShowEditDialog,
+                            onAddSongs = onShowAddSongsDialog,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
                                     if (playlist.id.startsWith("SPOTIFY_")) {

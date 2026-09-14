@@ -1018,6 +1018,11 @@ class SyncUtils @Inject constructor(
                         return@onSuccess
                     }
 
+                    if (page.songsContinuation != null || (songs.size < localIds.size && !context.isInternetConnected())) {
+                        Timber.w("syncPlaylist: Remote songs incomplete or offline, preserving existing ${localIds.size} local songs")
+                        return@onSuccess
+                    }
+
                     Timber.d("syncPlaylist: Updating local playlist (remote: ${remoteIds.size}, local: ${localIds.size})")
 
                     database.withTransaction {
@@ -1160,9 +1165,6 @@ class SyncUtils @Inject constructor(
             }
 
             if (tracks.isEmpty()) {
-                database.withTransaction {
-                    database.clearPlaylist(localPlaylistId)
-                }
                 return@withContext
             }
 
@@ -1208,23 +1210,67 @@ class SyncUtils @Inject constructor(
                 }
             }
 
+            val currentPlaylistSongs = database.playlistSongs(localPlaylistId).first()
+            val existingSongIds = currentPlaylistSongs.map { it.song.id }.toSet()
+            var currentMaxPosition = currentPlaylistSongs.maxOfOrNull { it.map.position } ?: -1
+
             database.withTransaction {
-                database.clearPlaylist(localPlaylistId)
-                matchedList.forEachIndexed { idx, song ->
-                    if (database.song(song.id).firstOrNull() == null) {
-                        database.insert(song)
-                    }
-                    database.insert(
-                        PlaylistSongMap(
-                            songId = song.id,
-                            playlistId = localPlaylistId,
-                            position = idx,
-                            setVideoId = song.setVideoId
+                for (song in matchedList) {
+                    if (song.id !in existingSongIds) {
+                        if (database.song(song.id).firstOrNull() == null) {
+                            database.insert(song)
+                        }
+                        currentMaxPosition++
+                        database.insert(
+                            PlaylistSongMap(
+                                songId = song.id,
+                                playlistId = localPlaylistId,
+                                position = currentMaxPosition,
+                                setVideoId = song.setVideoId
+                            )
                         )
-                    )
+                    }
                 }
                 database.playlist(localPlaylistId).first()?.playlist?.let {
                     database.update(it.copy(lastUpdateTime = LocalDateTime.now()))
+                }
+            }
+
+            // Bidirectional push: If there are songs added locally in Vivi that aren't on Spotify yet, push them to Spotify
+            if (localPlaylistId.startsWith("SPOTIFY_PLAYLIST_")) {
+                val spotifyId = localPlaylistId.removePrefix("SPOTIFY_PLAYLIST_")
+                val remoteSpotifyTrackUris = tracks.mapNotNull { it.uri }.toSet()
+                val localSongsToPush = currentPlaylistSongs.filter { localSong ->
+                    val localTitle = localSong.song.song.title.lowercase()
+                    val localArtist = localSong.song.artists.firstOrNull()?.name.orEmpty().lowercase()
+                    val fullLocal = "$localArtist $localTitle"
+                    tracks.none { t ->
+                        val tTitle = t.name.lowercase()
+                        val tArtist = t.artists.firstOrNull()?.name.orEmpty().lowercase()
+                        (tTitle.isNotBlank() && (localTitle.contains(tTitle) || tTitle.contains(localTitle))) &&
+                        (tArtist.isBlank() || fullLocal.contains(tArtist) || tArtist.contains(localArtist))
+                    }
+                }
+
+                if (localSongsToPush.isNotEmpty()) {
+                    val urisToAdd = mutableListOf<String>()
+                    for (playlistSong in localSongsToPush) {
+                        val artistName = playlistSong.song.artists.firstOrNull()?.name.orEmpty()
+                        val title = playlistSong.song.song.title
+                        val query = if (artistName.isNotBlank()) "$artistName $title" else title
+                        val uri = try {
+                            Spotify.searchTrack(query).getOrNull()
+                        } catch (_: Exception) {
+                            null
+                        }
+                        if (uri != null && uri !in remoteSpotifyTrackUris && uri !in urisToAdd) {
+                            urisToAdd.add(uri)
+                        }
+                        delay(200)
+                    }
+                    if (urisToAdd.isNotEmpty()) {
+                        Spotify.addTracksToPlaylist(spotifyId, urisToAdd)
+                    }
                 }
             }
             Timber.d("Successfully synced Spotify playlist $localPlaylistId with ${matchedList.size} tracks")
@@ -1338,25 +1384,30 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncLocalPlaylistToSpotify(
         playlistId: String,
+        isAutoSync: Boolean = false,
         onProgress: ((String) -> Unit)? = null,
         onComplete: ((Boolean, String) -> Unit)? = null,
     ) = withContext(Dispatchers.IO) {
         val session = getSpotifySession()
         if (session == null) {
-            val msg = context.getString(R.string.spotify_not_connected)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                onComplete?.invoke(false, msg)
+            if (!isAutoSync) {
+                val msg = context.getString(R.string.spotify_not_connected)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    onComplete?.invoke(false, msg)
+                }
             }
             return@withContext
         }
 
         val authSession = ensureSpotifyAuthenticated(session)
         if (authSession == null) {
-            val msg = context.getString(R.string.spotify_auth_failed)
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                onComplete?.invoke(false, msg)
+            if (!isAutoSync) {
+                val msg = context.getString(R.string.spotify_auth_failed)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    onComplete?.invoke(false, msg)
+                }
             }
             return@withContext
         }
@@ -1367,38 +1418,48 @@ class SyncUtils @Inject constructor(
             val songs = database.playlistSongs(playlistId).first()
 
             if (songs.isEmpty()) {
-                val msg = "Playlist is empty"
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                    onComplete?.invoke(false, msg)
+                if (!isAutoSync) {
+                    val msg = "Playlist is empty"
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        onComplete?.invoke(false, msg)
+                    }
                 }
                 return@withContext
             }
 
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, "Syncing \"$playlistName\" to Spotify...", Toast.LENGTH_SHORT).show()
+            if (!isAutoSync) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Syncing \"$playlistName\" to Spotify...", Toast.LENGTH_SHORT).show()
+                }
             }
 
             val linkedKey = androidx.datastore.preferences.core.stringPreferencesKey("spotify_linked_$playlistId")
             val linkedSpotifyId = context.dataStore.data.map { it[linkedKey] }.firstOrNull()
 
             val targetSpotifyId = if (linkedSpotifyId.isNullOrBlank()) {
-                val existingPlaylists = Spotify.myPlaylists(limit = 50).getOrNull()?.items.orEmpty()
-                val matched = existingPlaylists.firstOrNull { it.name.equals(playlistName, ignoreCase = true) }
-                if (matched != null) {
-                    context.dataStore.edit { prefs ->
-                        prefs[linkedKey] = matched.id
-                    }
-                    matched.id
+                if (playlistId.startsWith("SPOTIFY_PLAYLIST_")) {
+                    playlistId.removePrefix("SPOTIFY_PLAYLIST_")
+                } else if (isAutoSync) {
+                    return@withContext
                 } else {
-                    val created = Spotify.createPlaylist(
-                        name = playlistName,
-                        description = "Synced from Vivi Music"
-                    ).getOrThrow()
-                    context.dataStore.edit { prefs ->
-                        prefs[linkedKey] = created.id
+                    val existingPlaylists = Spotify.myPlaylists(limit = 50).getOrNull()?.items.orEmpty()
+                    val matched = existingPlaylists.firstOrNull { it.name.equals(playlistName, ignoreCase = true) }
+                    if (matched != null) {
+                        context.dataStore.edit { prefs ->
+                            prefs[linkedKey] = matched.id
+                        }
+                        matched.id
+                    } else {
+                        val created = Spotify.createPlaylist(
+                            name = playlistName,
+                            description = "Synced from Vivi Music"
+                        ).getOrThrow()
+                        context.dataStore.edit { prefs ->
+                            prefs[linkedKey] = created.id
+                        }
+                        created.id
                     }
-                    created.id
                 }
             } else {
                 linkedSpotifyId
@@ -1419,39 +1480,41 @@ class SyncUtils @Inject constructor(
                 if (uri != null) {
                     trackUris.add(uri)
                 }
-                delay(350)
+                delay(200)
             }
 
             // Fetch existing tracks in the Spotify playlist to prevent duplicate additions
-            val existingUris = if (!linkedSpotifyId.isNullOrBlank()) {
-                val existingTracks = Spotify.playlistTracks(targetSpotifyId, limit = 100).getOrNull()
-                existingTracks?.items?.mapNotNull { it.track?.uri }?.toSet() ?: emptySet()
-            } else {
-                emptySet()
-            }
+            val existingTracks = Spotify.playlistTracks(targetSpotifyId, limit = 100).getOrNull()
+            val existingUris = existingTracks?.items?.mapNotNull { it.track?.uri }?.toSet() ?: emptySet()
 
             val newUrisToAdd = trackUris.filter { it !in existingUris }
 
             if (newUrisToAdd.isNotEmpty()) {
                 Spotify.addTracksToPlaylist(targetSpotifyId, newUrisToAdd).getOrThrow()
                 val successMsg = "Successfully synced ${newUrisToAdd.size} new tracks to Spotify!"
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
-                    onComplete?.invoke(true, successMsg)
+                if (!isAutoSync) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
+                        onComplete?.invoke(true, successMsg)
+                    }
                 }
             } else {
                 val upToDateMsg = if (trackUris.isNotEmpty()) "Spotify playlist is already up to date" else "No matching songs found on Spotify"
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, upToDateMsg, Toast.LENGTH_SHORT).show()
-                    onComplete?.invoke(true, upToDateMsg)
+                if (!isAutoSync) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, upToDateMsg, Toast.LENGTH_SHORT).show()
+                        onComplete?.invoke(true, upToDateMsg)
+                    }
                 }
             }
         } catch (e: Exception) {
             Timber.e(e, "syncLocalPlaylistToSpotify failed")
             val errorMsg = e.message ?: "Sync to Spotify failed"
-            withContext(Dispatchers.Main) {
-                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                onComplete?.invoke(false, errorMsg)
+            if (!isAutoSync) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    onComplete?.invoke(false, errorMsg)
+                }
             }
         }
     }

@@ -343,6 +343,7 @@ fun Queue(
 
             val leadingShapeTop = ButtonGroupDefaults.connectedLeadingButtonShape
             val trailingShapeTop = ButtonGroupDefaults.connectedTrailingButtonShape
+            val middleShapeTop = RoundedCornerShape(4.dp)
 
             @Composable
             fun RenderOuterActionButton(
@@ -605,7 +606,10 @@ fun Queue(
                         shape = trailingShapeTop,
                         checkedShape = trailingShapeTop
                     )
-                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes(
+                        shape = middleShapeTop,
+                        checkedShape = middleShapeTop
+                    )
                 }
 
                 ToggleButton(

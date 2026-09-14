@@ -5,6 +5,7 @@
 
 package com.music.vivi.ui.screens.artist
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -17,6 +18,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,8 +29,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.util.fastForEachReversed
+import com.music.vivi.ui.menu.YouTubeSelectionSongMenu
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -86,6 +97,30 @@ fun ArtistItemsScreen(
     val title by viewModel.title.collectAsState()
     val itemsPage by viewModel.itemsPage.collectAsState()
 
+    var inSelectMode by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberSaveable(
+        saver = listSaver<MutableList<String>, String>(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() }
+        )
+    ) { mutableStateListOf<String>() }
+    val onExitSelectionMode: () -> Unit = {
+        inSelectMode = false
+        selection.clear()
+    }
+    if (inSelectMode) {
+        BackHandler(onBack = { onExitSelectionMode() })
+    }
+
+    val songItems = itemsPage?.items.orEmpty().filterIsInstance<SongItem>()
+    LaunchedEffect(songItems) {
+        selection.fastForEachReversed { songId: String ->
+            if (songItems.find { it.id == songId } == null) {
+                selection.remove(songId)
+            }
+        }
+    }
+
     LaunchedEffect(lazyListState) {
         snapshotFlow {
             lazyListState.layoutInfo.visibleItemsInfo.any { it.key == "loading" }
@@ -123,6 +158,11 @@ fun ArtistItemsScreen(
                 items = itemsPage?.items.orEmpty().distinctBy { it.id },
                 key = { _, it -> it.id },
             ) { index, item ->
+                val isSelected = inSelectMode && item.id in selection
+                val onCheckedChange: (Boolean) -> Unit = { checked ->
+                    if (checked) selection.add(item.id) else selection.remove(item.id)
+                }
+
                 YouTubeListItem(
                     item = item,
                     isActive =
@@ -132,70 +172,92 @@ fun ArtistItemsScreen(
                         else -> false
                     },
                     isPlaying = isPlaying,
+                    isSelected = isSelected,
                     shape = listItemShape(index, itemsPage?.items.orEmpty().distinctBy { it.id }.size),
                     trailingContent = {
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    when (item) {
-                                        is SongItem ->
-                                            YouTubeSongMenu(
-                                                song = item,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                            )
-
-                                        is AlbumItem ->
-                                            YouTubeAlbumMenu(
-                                                albumItem = item,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                            )
-
-                                        is ArtistItem ->
-                                            YouTubeArtistMenu(
-                                                artist = item,
-                                                onDismiss = menuState::dismiss,
-                                            )
-
-                                        is PlaylistItem ->
-                                            YouTubePlaylistMenu(
-                                                playlist = item,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                    }
-                                }
-                            },
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null,
+                        if (inSelectMode && item is SongItem) {
+                            Checkbox(
+                                checked = isSelected,
+                                onCheckedChange = onCheckedChange,
                             )
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        when (item) {
+                                            is SongItem ->
+                                                YouTubeSongMenu(
+                                                    song = item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+
+                                            is AlbumItem ->
+                                                YouTubeAlbumMenu(
+                                                    albumItem = item,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+
+                                            is ArtistItem ->
+                                                YouTubeArtistMenu(
+                                                    artist = item,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+
+                                            is PlaylistItem ->
+                                                YouTubePlaylistMenu(
+                                                    playlist = item,
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+                                        }
+                                    }
+                                },
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null,
+                                )
+                            }
                         }
                     },
                     modifier =
                     Modifier
-                        .clickable {
-                            when (item) {
-                                is SongItem -> {
-                                    if (item.id == mediaMetadata?.id) {
-                                        playerConnection.togglePlayPause()
-                                    } else {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                item.endpoint ?: WatchEndpoint(videoId = item.id),
-                                                item.toMediaMetadata()
-                                            ),
-                                        )
+                        .combinedClickable(
+                            onClick = {
+                                if (inSelectMode && item is SongItem) {
+                                    onCheckedChange(!isSelected)
+                                } else {
+                                    when (item) {
+                                        is SongItem -> {
+                                            if (item.id == mediaMetadata?.id) {
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                                        item.toMediaMetadata()
+                                                    ),
+                                                )
+                                            }
+                                        }
+
+                                        is AlbumItem -> navController.navigate("album/${item.id}")
+                                        is ArtistItem -> navController.navigate("artist/${item.id}")
+                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                     }
                                 }
-
-                                is AlbumItem -> navController.navigate("album/${item.id}")
-                                is ArtistItem -> navController.navigate("artist/${item.id}")
-                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                            },
+                            onLongClick = {
+                                if (item is SongItem && !inSelectMode) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    inSelectMode = true
+                                    selection.add(item.id)
+                                }
                             }
-                        },
+                        )
+                        .animateItem(),
                 )
             }
 
@@ -290,17 +352,66 @@ fun ArtistItemsScreen(
     }
 
     TopAppBar(
-        title = { Text(title) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain,
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null,
-                )
+        title = {
+            if (inSelectMode) {
+                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+            } else {
+                Text(title)
             }
         },
+        navigationIcon = {
+            if (inSelectMode) {
+                IconButton(onClick = { onExitSelectionMode() }) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = null,
+                    )
+                }
+            } else {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain,
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null,
+                    )
+                }
+            }
+        },
+        actions = {
+            if (inSelectMode) {
+                Checkbox(
+                    checked = selection.size == songItems.size && songItems.isNotEmpty(),
+                    onCheckedChange = {
+                        if (selection.size == songItems.size) {
+                            selection.clear()
+                        } else {
+                            selection.clear()
+                            selection.addAll(songItems.map { it.id })
+                        }
+                    }
+                )
+                IconButton(
+                    enabled = selection.isNotEmpty(),
+                    onClick = {
+                        menuState.show {
+                            YouTubeSelectionSongMenu(
+                                songSelection = selection.mapNotNull { songId: String ->
+                                    songItems.find { it.id == songId }
+                                },
+                                onDismiss = menuState::dismiss,
+                                clearAction = { onExitSelectionMode() },
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.more_vert),
+                        contentDescription = null,
+                    )
+                }
+            }
+        }
     )
 }

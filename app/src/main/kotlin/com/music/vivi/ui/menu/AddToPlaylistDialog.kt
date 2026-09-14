@@ -242,7 +242,7 @@ fun AddToPlaylistDialog(
                                 database.addSongToPlaylist(playlist, songIds!!)
                                 downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds!!)
                                 coroutineScope.launch {
-                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id, isAutoSync = true)
                                 }
 
                                 playlist.playlist.browseId?.let { plist ->
@@ -286,7 +286,7 @@ fun AddToPlaylistDialog(
                             }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, toAdd)
                             coroutineScope.launch {
-                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id)
+                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id, isAutoSync = true)
                             }
                         }
                     ) {
@@ -302,7 +302,7 @@ fun AddToPlaylistDialog(
                             }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, songIds!!)
                             coroutineScope.launch {
-                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id)
+                                syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id, isAutoSync = true)
                             }
                         }
                     ) {

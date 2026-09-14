@@ -181,9 +181,10 @@ constructor(
             Timber.tag("DownloadDiagnostics").w("No valid cached URL found for $mediaId. Triggering heavy network playback resolution!")
             val cacheGeneration = songUrlCache.generation(mediaId)
 
-            val playbackData = runBlocking(Dispatchers.IO) {
-                val song = database.song(mediaId).firstOrNull()?.song
-                YTPlayerUtils.playerResponseForPlayback(
+            val playbackResult = runBlocking(Dispatchers.IO) {
+                val songWithData = database.song(mediaId).firstOrNull()
+                val song = songWithData?.song
+                val initialAttempt = YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
@@ -196,7 +197,54 @@ constructor(
                     allowBoundedRange = true,
                     preferM4a = false,
                 )
-            }.getOrThrow()
+                if (initialAttempt.isSuccess) {
+                    return@runBlocking initialAttempt
+                }
+
+                // If primary resolution failed (e.g. deleted/unavailable track in imported playlist),
+                // search for an alternative playable version using song title and artist
+                val title = song?.title ?: runCatching {
+                    downloadManager.downloadIndex.getDownload(mediaId)?.request?.data?.let { String(it) }
+                }.getOrNull()
+
+                val artist = songWithData?.artists?.joinToString(" ") { it.name }
+                    ?: songWithData?.artists?.firstOrNull()?.name.orEmpty()
+
+                if (!title.isNullOrBlank()) {
+                    val query = if (artist.isNotBlank()) "$artist $title" else title
+                    Timber.tag("DownloadDiagnostics").w("Primary resolution failed for $mediaId (\"$title\"). Searching for alternative track: $query")
+                    val searchResult = runCatching {
+                        com.music.innertube.YouTube.search(query, filter = com.music.innertube.YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                    }.getOrNull()
+
+                    val candidate = searchResult?.items
+                        ?.filterIsInstance<com.music.innertube.models.SongItem>()
+                        ?.firstOrNull { it.id != mediaId }
+
+                    if (candidate != null) {
+                        Timber.tag("DownloadDiagnostics").i("Found alternative candidate ${candidate.id} (\"${candidate.title}\") for $mediaId. Resolving playback...")
+                        val candidateAttempt = YTPlayerUtils.playerResponseForPlayback(
+                            candidate.id,
+                            audioQuality = audioQuality,
+                            connectivityManager = connectivityManager,
+                            context = appContext,
+                            contentHints = com.music.innertube.strategy.ContentHints(
+                                isExplicit = candidate.explicit,
+                                isUploaded = false,
+                            ),
+                            allowBoundedRange = true,
+                            preferM4a = false,
+                        )
+                        if (candidateAttempt.isSuccess) {
+                            Timber.tag("DownloadDiagnostics").i("Alternative candidate ${candidate.id} succeeded for download of $mediaId")
+                            return@runBlocking candidateAttempt
+                        }
+                    }
+                }
+
+                initialAttempt
+            }
+            val playbackData = playbackResult.getOrThrow()
             var activePlaybackData = playbackData
             var format = activePlaybackData.format
 
@@ -266,6 +314,27 @@ constructor(
             }
 
             val streamUrl = activePlaybackData.streamUrl
+            val isYouTubeStream = activePlaybackData.streamClient != "JIOSAAVN" && !activePlaybackData.isSaavnStream
+            val effectiveRequireBoundedRange = if (isYouTubeStream) true else activePlaybackData.requireBoundedRange
+            val effectiveUseRangeChunks = if (isYouTubeStream) true else activePlaybackData.useRangeChunks
+            val effectiveRangeChunkSizeBytes = if (isYouTubeStream) {
+                if (activePlaybackData.rangeChunkSizeBytes in 1L..(1024 * 1024L)) {
+                    activePlaybackData.rangeChunkSizeBytes
+                } else {
+                    512 * 1024L
+                }
+            } else {
+                activePlaybackData.rangeChunkSizeBytes
+            }
+
+            val cachedStream = CachedStreamUrl(
+                url = streamUrl,
+                requestHeaders = activePlaybackData.streamHeaders,
+                clientName = activePlaybackData.streamClient,
+                requireBoundedRange = effectiveRequireBoundedRange,
+                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
+                useRangeChunks = effectiveUseRangeChunks,
+            )
 
             songUrlCache.put(
                 mediaId = mediaId,
@@ -273,13 +342,12 @@ constructor(
                 requestHeaders = activePlaybackData.streamHeaders,
                 clientName = activePlaybackData.streamClient,
                 expiresInSeconds = activePlaybackData.streamExpiresInSeconds,
-                requireBoundedRange = false,
-                rangeChunkSizeBytes = 0L,
-                useRangeChunks = false,
+                requireBoundedRange = effectiveRequireBoundedRange,
+                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
+                useRangeChunks = effectiveUseRangeChunks,
                 expectedGeneration = cacheGeneration,
             )
-            dataSpec.withUri(streamUrl.toUri())
-                .withRequestHeaders(dataSpec.httpRequestHeaders + activePlaybackData.streamHeaders)
+            dataSpec.withResolvedStream(cachedStream)
         }
 
     val downloadNotificationHelper =

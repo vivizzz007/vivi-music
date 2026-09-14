@@ -22,7 +22,7 @@ suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching
         seenContinuations.add(continuation)
         requestCount++
         
-        val continuationPage = YouTube.playlistContinuation(continuation).getOrNull() ?: break
+        val continuationPage = YouTube.playlistContinuation(continuation).getOrThrow()
         
         if (continuationPage.songs.isEmpty()) {
             consecutiveEmptyResponses++
@@ -59,7 +59,7 @@ suspend fun Result<LibraryPage>.completed(): Result<LibraryPage> = runCatching {
         seenContinuations.add(continuation)
         requestCount++
         
-        val continuationPage = YouTube.libraryContinuation(continuation).getOrNull() ?: break
+        val continuationPage = YouTube.libraryContinuation(continuation).getOrThrow()
         
         if (continuationPage.items.isEmpty()) {
             consecutiveEmptyResponses++

@@ -1,11 +1,19 @@
 {
-  "version": "6.0.7",
-  "description": "VIVI MUSIC v6.0.7 implements Android System UI playback resumption and persistent Quick Settings media controls.",
+  "version": "6.0.8.1",
+  "description": "VIVI MUSIC v6.0.8.1 includes download acceleration, in-playlist song search & recommendations, Spotify two-way sync overhaul, offline stability fixes, automatic lyrics pre-fetching, and artist page multi-select.",
   "image": "https://raw.githubusercontent.com/pwpp08/vivi-music/main/NEW-UI/update/v6.0.6.jpg",
   "changelog": [
     {
       "title": "What's New",
       "items": [
+        "In-playlist Add Songs menu with search and recommendations based on playlist, listening taste, and followed artists",
+        "Multi-select support on artist pages (preview songs, library songs, and online songs)",
+        "Automatic background lyrics pre-fetching when playing songs online",
+        "Two-way Spotify sync and fixed playlist creation on Spotify profile",
+        "Optimized download engine with 512KB CDN range chunking and automated stream search fallback",
+        "Fixed offline thumbnail caching with persistent OkHttp cache and headers override",
+        "Fixed offline playlist truncation glitch",
+        "Refined player action button bounds"
         "Implemented full Android System UI playback resumption (Spotify-style persistent widget)",
         "Added dormant Quick Settings media panel pinning on OnePlus / OxygenOS",
         "Added automatic queue restoration from disk & database on playback resumption",

@@ -42,6 +42,7 @@ fun LocalPlaylistMenu(
     onQueue: () -> Unit,
     onDismiss: () -> Unit,
     onSyncToSpotify: (() -> Unit)? = null,
+    onAddSongs: (() -> Unit)? = null,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val downloadUtil = LocalDownloadUtil.current
@@ -96,6 +97,25 @@ fun LocalPlaylistMenu(
     val isSpotifyPlaylist = playlist.id.startsWith("SPOTIFY_")
 
     val menuItems = buildList {
+        if (playlist.playlist.isEditable && onAddSongs != null) {
+            add(
+                Material3MenuItemData(
+                    title = { Text(stringResource(R.string.add_to_playlist)) },
+                    description = { Text(stringResource(R.string.add_to_playlist_desc)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.add),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        onAddSongs()
+                        onDismiss()
+                    }
+                )
+            )
+        }
+
         add(
             Material3MenuItemData(
                 title = { Text(stringResource(R.string.edit)) },

@@ -21,9 +21,13 @@ import coil3.disk.directory
 import coil3.key.Keyer
 import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.Options
 import coil3.request.allowHardware
 import coil3.request.crossfade
+import okhttp3.Cache
+import okhttp3.OkHttpClient
+import com.music.vivi.extensions.isInternetConnected
 import com.music.innertube.YouTube
 import com.music.innertube.models.IpVersion
 import com.music.innertube.models.YouTubeLocale
@@ -278,6 +282,52 @@ class App : Application(), SingletonImageLoader.Factory {
             components {
                 add(StringThumbnailKeyer())
                 add(UriThumbnailKeyer())
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            val okHttpCacheDir = cacheDir.resolve("okhttp_image_cache")
+                            val okHttpCache = Cache(
+                                directory = okHttpCacheDir,
+                                maxSize = (cacheSize * 1024 * 1024L).coerceAtLeast(64 * 1024 * 1024L)
+                            )
+                            OkHttpClient.Builder()
+                                .cache(okHttpCache)
+                                .addInterceptor { chain ->
+                                    var request = chain.request()
+                                    if (!isInternetConnected()) {
+                                        request = request.newBuilder()
+                                            .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365)
+                                            .build()
+                                    }
+                                    try {
+                                        chain.proceed(request)
+                                    } catch (e: Exception) {
+                                        if (!request.cacheControl.onlyIfCached) {
+                                            val fallbackRequest = request.newBuilder()
+                                                .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365)
+                                                .build()
+                                            try {
+                                                chain.proceed(fallbackRequest)
+                                            } catch (_: Exception) {
+                                                throw e
+                                            }
+                                        } else {
+                                            throw e
+                                        }
+                                    }
+                                }
+                                .addNetworkInterceptor { chain ->
+                                    val response = chain.proceed(chain.request())
+                                    response.newBuilder()
+                                        .removeHeader("Pragma")
+                                        .removeHeader("Cache-Control")
+                                        .header("Cache-Control", "public, max-age=" + 60 * 60 * 24 * 365)
+                                        .build()
+                                }
+                                .build()
+                        }
+                    )
+                )
             }
             // Memory cache for fast image loading (prevents network requests on recomposition)
             memoryCache {

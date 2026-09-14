@@ -1,0 +1,822 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.music.vivi.ui.menu
+
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import com.music.innertube.YouTube
+import com.music.innertube.models.ArtistItem
+import com.music.innertube.models.SongItem
+import com.music.innertube.models.WatchEndpoint
+import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.LocalSyncUtils
+import com.music.vivi.R
+import com.music.vivi.db.entities.Playlist
+import com.music.vivi.db.entities.PlaylistSong
+import com.music.vivi.constants.ArtistSongSortType
+import com.music.vivi.models.MediaMetadata
+import com.music.vivi.models.toMediaMetadata
+import com.music.vivi.utils.makeTimeString
+import com.music.vivi.ui.utils.resize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+data class RecommendedSong(
+    val metadata: MediaMetadata,
+    val source: String, // "Playlist", "Your Taste", "Followed Artist"
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddSongsToPlaylistDialog(
+    playlist: Playlist,
+    currentSongs: List<PlaylistSong>,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val database = LocalDatabase.current
+    val downloadUtil = LocalDownloadUtil.current
+    val syncUtils = LocalSyncUtils.current
+    val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val existingSongIds = remember(currentSongs) {
+        currentSongs.map { it.song.id }.toSet()
+    }
+
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+    val selectedSongs = remember { mutableStateMapOf<String, MediaMetadata>() }
+
+    // Search tab state
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var isSearching by remember { mutableStateOf(false) }
+    var searchSongResults by remember { mutableStateOf<List<MediaMetadata>>(emptyList()) }
+    var searchArtistResults by remember { mutableStateOf<List<ArtistItem>>(emptyList()) }
+    var selectedArtistName by remember { mutableStateOf<String?>(null) }
+    var artistSongsList by remember { mutableStateOf<List<MediaMetadata>>(emptyList()) }
+    var isLoadingArtistSongs by remember { mutableStateOf(false) }
+
+    // Recommended tab state
+    var isLoadingRecommendations by remember { mutableStateOf(false) }
+    var recommendedSongs by remember { mutableStateOf<List<RecommendedSong>>(emptyList()) }
+    var recommendationFilter by rememberSaveable { mutableStateOf("All") }
+
+    fun performSearch(queryText: String) {
+        val q = queryText.trim()
+        if (q.isEmpty()) return
+        isSearching = true
+        selectedArtistName = null
+        artistSongsList = emptyList()
+
+        scope.launch(Dispatchers.IO) {
+            val songsList = mutableListOf<MediaMetadata>()
+
+            // 1. Local database search
+            try {
+                val localSongs = database.searchSongs(q, 20).first()
+                localSongs.forEach { song ->
+                    songsList.add(song.toMediaMetadata())
+                }
+            } catch (_: Exception) {}
+
+            // 2. YouTube online song search
+            try {
+                val onlineResult = YouTube.search(q, YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                onlineResult?.items?.filterIsInstance<SongItem>()?.forEach { songItem ->
+                    if (songsList.none { it.id == songItem.id }) {
+                        songsList.add(songItem.toMediaMetadata())
+                    }
+                }
+            } catch (_: Exception) {}
+
+            // 3. YouTube online artist search
+            val artists = try {
+                YouTube.search(q, YouTube.SearchFilter.FILTER_ARTIST).getOrNull()
+                    ?.items?.filterIsInstance<ArtistItem>().orEmpty()
+            } catch (_: Exception) {
+                emptyList()
+            }
+
+            withContext(Dispatchers.Main) {
+                searchSongResults = songsList
+                searchArtistResults = artists
+                isSearching = false
+            }
+        }
+    }
+
+    fun loadArtistSongs(artist: ArtistItem) {
+        selectedArtistName = artist.title
+        isLoadingArtistSongs = true
+        scope.launch(Dispatchers.IO) {
+            val songs = mutableListOf<MediaMetadata>()
+            try {
+                // Online artist page sections
+                val page = YouTube.artist(artist.id).getOrNull()
+                page?.sections?.flatMap { it.items }?.filterIsInstance<SongItem>()?.forEach {
+                    songs.add(it.toMediaMetadata())
+                }
+            } catch (_: Exception) {}
+
+            try {
+                // Local artist songs
+                val localSongs = database.artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true).first()
+                localSongs.forEach { song ->
+                    if (songs.none { it.id == song.id }) {
+                        songs.add(song.toMediaMetadata())
+                    }
+                }
+            } catch (_: Exception) {}
+
+            withContext(Dispatchers.Main) {
+                artistSongsList = songs.distinctBy { it.id }
+                isLoadingArtistSongs = false
+            }
+        }
+    }
+
+    // Load recommendations once
+    LaunchedEffect(Unit) {
+        isLoadingRecommendations = true
+        scope.launch(Dispatchers.IO) {
+            val recList = mutableListOf<RecommendedSong>()
+            val seenIds = existingSongIds.toMutableSet()
+
+            // 1. Based on Playlist (Seeds from playlist tracks)
+            if (currentSongs.isNotEmpty()) {
+                val seedSongs = currentSongs.shuffled().take(3)
+                for (seed in seedSongs) {
+                    try {
+                        val nextResult = YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()
+                        val relatedEndpoint = nextResult?.relatedEndpoint
+                        if (relatedEndpoint != null) {
+                            val relatedPage = YouTube.related(relatedEndpoint).getOrNull()
+                            relatedPage?.songs?.forEach { songItem ->
+                                if (seenIds.add(songItem.id)) {
+                                    recList.add(RecommendedSong(songItem.toMediaMetadata(), "Playlist"))
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+
+            // 2. Based on Listening Taste (most played tracks)
+            try {
+                val fromTimeStamp = System.currentTimeMillis() - 86400000L * 14
+                val mostPlayed = database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
+                for (played in mostPlayed.shuffled().take(3)) {
+                    try {
+                        val nextResult = YouTube.next(WatchEndpoint(videoId = played.id)).getOrNull()
+                        val relatedEndpoint = nextResult?.relatedEndpoint
+                        if (relatedEndpoint != null) {
+                            val relatedPage = YouTube.related(relatedEndpoint).getOrNull()
+                            relatedPage?.songs?.forEach { songItem ->
+                                if (seenIds.add(songItem.id)) {
+                                    recList.add(RecommendedSong(songItem.toMediaMetadata(), "Your Taste"))
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+            } catch (_: Exception) {}
+
+            // 3. Based on Followed Artists
+            try {
+                val bookmarkedArtists = database.artistsBookmarkedByNameAsc().first()
+                for (artist in bookmarkedArtists.shuffled().take(3)) {
+                    try {
+                        if (artist.artist.isYouTubeArtist) {
+                            val page = YouTube.artist(artist.id).getOrNull()
+                            page?.sections?.flatMap { it.items }?.filterIsInstance<SongItem>()?.forEach { songItem ->
+                                if (seenIds.add(songItem.id)) {
+                                    recList.add(RecommendedSong(songItem.toMediaMetadata(), "Followed Artist"))
+                                }
+                            }
+                        } else {
+                            database.artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true).first().forEach { song ->
+                                if (seenIds.add(song.id)) {
+                                    recList.add(RecommendedSong(song.toMediaMetadata(), "Followed Artist"))
+                                }
+                            }
+                        }
+                    } catch (_: Exception) {}
+                }
+            } catch (_: Exception) {}
+
+            withContext(Dispatchers.Main) {
+                recommendedSongs = recList
+                isLoadingRecommendations = false
+            }
+        }
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState,
+        containerColor = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.imePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxSize(0.9f)
+        ) {
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.add_to_playlist),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = playlist.playlist.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                if (selectedSongs.isNotEmpty()) {
+                    TextButton(onClick = { selectedSongs.clear() }) {
+                        Text(stringResource(R.string.clear))
+                    }
+                }
+            }
+
+            // Tabs: Search vs Recommended
+            PrimaryTabRow(
+                selectedTabIndex = selectedTab,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text(stringResource(R.string.search)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.search),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text(stringResource(R.string.tab_recommended)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.star),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                )
+            }
+
+            // Tab Content
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                if (selectedTab == 0) {
+                    // Search Tab Content
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Search Bar
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = {
+                                searchQuery = it
+                                if (it.length >= 3) {
+                                    performSearch(it)
+                                }
+                            },
+                            placeholder = { Text(stringResource(R.string.search)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(onClick = {
+                                        searchQuery = ""
+                                        searchSongResults = emptyList()
+                                        searchArtistResults = emptyList()
+                                        selectedArtistName = null
+                                        artistSongsList = emptyList()
+                                    }) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.close),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(onSearch = {
+                                focusManager.clearFocus()
+                                performSearch(searchQuery)
+                            }),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        if (isSearching) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                // Artist chips row
+                                if (searchArtistResults.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            text = stringResource(R.string.view_artist),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                                        )
+                                        LazyRow(
+                                            contentPadding = PaddingValues(horizontal = 16.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            items(searchArtistResults) { artist ->
+                                                FilterChip(
+                                                    selected = selectedArtistName == artist.title,
+                                                    onClick = {
+                                                        if (selectedArtistName == artist.title) {
+                                                            selectedArtistName = null
+                                                            artistSongsList = emptyList()
+                                                        } else {
+                                                            loadArtistSongs(artist)
+                                                        }
+                                                    },
+                                                    label = { Text(artist.title) },
+                                                    leadingIcon = {
+                                                        Icon(
+                                                            painter = painterResource(R.drawable.artist),
+                                                            contentDescription = null,
+                                                            modifier = Modifier.size(16.dp)
+                                                        )
+                                                    }
+                                                )
+                                            }
+                                        }
+                                        Spacer(Modifier.height(8.dp))
+                                    }
+                                }
+
+                                // Artist selected songs sub-list
+                                if (selectedArtistName != null) {
+                                    item {
+                                        Text(
+                                            text = "Songs by $selectedArtistName",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                        )
+                                    }
+                                    if (isLoadingArtistSongs) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                                            }
+                                        }
+                                    } else {
+                                        items(artistSongsList, key = { "artist_${it.id}" }) { song ->
+                                            val inPlaylist = existingSongIds.contains(song.id)
+                                            val isChecked = selectedSongs.containsKey(song.id)
+
+                                            SongSelectRow(
+                                                song = song,
+                                                badgeText = null,
+                                                inPlaylist = inPlaylist,
+                                                checked = isChecked,
+                                                onCheckedChange = { checked ->
+                                                    if (checked) selectedSongs[song.id] = song
+                                                    else selectedSongs.remove(song.id)
+                                                }
+                                            )
+                                        }
+                                    }
+                                    item {
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                            thickness = 0.5.dp
+                                        )
+                                    }
+                                }
+
+                                // General search songs
+                                if (searchSongResults.isNotEmpty()) {
+                                    item {
+                                        Text(
+                                            text = stringResource(R.string.songs),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                        )
+                                    }
+                                    items(searchSongResults, key = { it.id }) { song ->
+                                        val inPlaylist = existingSongIds.contains(song.id)
+                                        val isChecked = selectedSongs.containsKey(song.id)
+
+                                        SongSelectRow(
+                                            song = song,
+                                            badgeText = null,
+                                            inPlaylist = inPlaylist,
+                                            checked = isChecked,
+                                            onCheckedChange = { checked ->
+                                                if (checked) selectedSongs[song.id] = song
+                                                else selectedSongs.remove(song.id)
+                                            }
+                                        )
+                                    }
+                                } else if (searchQuery.isNotBlank() && !isSearching && searchArtistResults.isEmpty()) {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(32.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = stringResource(R.string.no_results_found),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // Recommended Tab Content
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Filter Chips
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            val filters = listOf("All", "Playlist", "Your Taste", "Followed Artist")
+                            items(filters) { filterName ->
+                                FilterChip(
+                                    selected = recommendationFilter == filterName,
+                                    onClick = { recommendationFilter = filterName },
+                                    label = {
+                                        Text(
+                                            when (filterName) {
+                                                "All" -> "All"
+                                                "Playlist" -> "From Playlist"
+                                                "Your Taste" -> "Listening Taste"
+                                                "Followed Artist" -> "Followed Artists"
+                                                else -> filterName
+                                            }
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+
+                        if (isLoadingRecommendations) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    CircularProgressIndicator()
+                                    Spacer(Modifier.height(12.dp))
+                                    Text(
+                                        text = "Finding recommendations...",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        } else {
+                            val filteredRecs = remember(recommendedSongs, recommendationFilter) {
+                                if (recommendationFilter == "All") recommendedSongs
+                                else recommendedSongs.filter { it.source == recommendationFilter }
+                            }
+
+                            if (filteredRecs.isEmpty()) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "No recommendations available right now.",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            } else {
+                                LazyColumn(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
+                                ) {
+                                    items(filteredRecs, key = { "${it.source}_${it.metadata.id}" }) { rec ->
+                                        val song = rec.metadata
+                                        val inPlaylist = existingSongIds.contains(song.id)
+                                        val isChecked = selectedSongs.containsKey(song.id)
+
+                                        SongSelectRow(
+                                            song = song,
+                                            badgeText = rec.source,
+                                            inPlaylist = inPlaylist,
+                                            checked = isChecked,
+                                            onCheckedChange = { checked ->
+                                                if (checked) selectedSongs[song.id] = song
+                                                else selectedSongs.remove(song.id)
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Bottom Sticky Bar
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+
+                Button(
+                    enabled = selectedSongs.isNotEmpty(),
+                    onClick = {
+                        val songsToAdd = selectedSongs.values.toList()
+                        scope.launch(Dispatchers.IO) {
+                            database.transaction {
+                                songsToAdd.forEach { mediaMetadata ->
+                                    insert(mediaMetadata)
+                                }
+                            }
+                            val songIds = songsToAdd.map { it.id }
+                            database.addSongToPlaylist(playlist, songIds)
+                            downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds)
+
+                            scope.launch {
+                                syncUtils.syncLocalPlaylistToSpotify(playlist.id, isAutoSync = true)
+                            }
+
+                            playlist.playlist.browseId?.let { browseId ->
+                                songIds.forEach { songId ->
+                                    YouTube.addToPlaylist(browseId, songId)
+                                }
+                            }
+                        }
+                        Toast.makeText(
+                            context,
+                            "Added ${songsToAdd.size} songs to ${playlist.playlist.name}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        onDismiss()
+                    }
+                ) {
+                    Text(
+                        if (selectedSongs.isEmpty()) {
+                            stringResource(R.string.add_to_an_playlist)
+                        } else {
+                            "${stringResource(R.string.add_to_an_playlist)} (${selectedSongs.size})"
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SongSelectRow(
+    song: MediaMetadata,
+    badgeText: String?,
+    inPlaylist: Boolean,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = !inPlaylist) {
+                onCheckedChange(!checked)
+            },
+        color = if (checked) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+        else MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Thumbnail
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                AsyncImage(
+                    model = song.thumbnailUrl?.resize(120, 120),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            // Details
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = song.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = song.artists.joinToString { it.name }.ifEmpty { "Unknown Artist" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (song.duration > 0) {
+                        Text(
+                            text = " • ${makeTimeString(song.duration * 1000L)}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                if (badgeText != null || inPlaylist) {
+                    Spacer(Modifier.height(2.dp))
+                    Row {
+                        if (inPlaylist) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            ) {
+                                Text(
+                                    text = "In playlist",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                                )
+                            }
+                        } else if (badgeText != null) {
+                            Surface(
+                                shape = RoundedCornerShape(4.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                            ) {
+                                Text(
+                                    text = badgeText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            // Checkbox
+            Checkbox(
+                checked = checked || inPlaylist,
+                enabled = !inPlaylist,
+                onCheckedChange = { onCheckedChange(it) }
+            )
+        }
+    }
+}
