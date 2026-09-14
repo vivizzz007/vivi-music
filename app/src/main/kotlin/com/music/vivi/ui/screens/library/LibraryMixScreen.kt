@@ -400,7 +400,7 @@ fun LibraryMixScreen(
                                         Box(
                                             modifier = Modifier
                                                 .size(48.dp)
-                                                .clip(MaterialShapes.Cookie4Sided.toShape())
+                                                .clip(CircleShape)
                                                 .background(MaterialTheme.colorScheme.primary),
                                             contentAlignment = Alignment.Center
                                         ) {
