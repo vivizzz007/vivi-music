@@ -399,16 +399,13 @@ fun LibraryMixScreen(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .background(MaterialTheme.colorScheme.primary),
+                                            modifier = Modifier.size(48.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.favorite_border),
                                                 contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimary,
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(24.dp)
                                             )
                                         }
