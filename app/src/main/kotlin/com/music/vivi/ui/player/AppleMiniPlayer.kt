@@ -43,7 +43,12 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import com.music.vivi.utils.resize
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -252,8 +257,14 @@ fun AppleMiniPlayer(
                         .background(color = outlineColor.copy(alpha = 0.2f))
                 ) {
                     mediaMetadata?.let { metadata ->
+                        val thumbUrl = metadata.thumbnailUrl?.resize(120, 120) ?: metadata.thumbnailUrl
                         AsyncImage(
-                            model = metadata.thumbnailUrl,
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(thumbUrl)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(true)
+                                .build(),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()

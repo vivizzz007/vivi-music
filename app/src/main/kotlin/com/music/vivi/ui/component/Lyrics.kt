@@ -65,6 +65,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -281,6 +282,7 @@ fun Lyrics(
     val deeplFormality by rememberPreference(DeeplFormalityKey, "default")
     
     val scope = rememberCoroutineScope()
+    var showSwitchProviderDialog by rememberSaveable { mutableStateOf(false) }
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
@@ -1322,16 +1324,38 @@ fun Lyrics(
                             },
                             label = "lyricsProviderOffset"
                         )
-                        Text(
-                            text = "Lyrics from ${lyricsEntity?.provider}",
-                            fontSize = 12.sp,
-                            color = providerTextColor.copy(alpha = if (isInitialLayout) 0f else 0.6f),
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .offset { IntOffset(0, (animatedProviderBase + userManualOffset).roundToInt()) }
                                 .padding(horizontal = 24.dp, vertical = 4.dp),
-                            textAlign = TextAlign.Center
-                        )
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (isInitialLayout) 0f else 0.4f),
+                                modifier = Modifier.clickable { showSwitchProviderDialog = true }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = "Lyrics from ${lyricsEntity?.provider}",
+                                        fontSize = 12.sp,
+                                        color = providerTextColor.copy(alpha = if (isInitialLayout) 0f else 0.85f),
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Icon(
+                                        painter = painterResource(R.drawable.cached),
+                                        contentDescription = stringResource(R.string.switch_lyrics_provider),
+                                        tint = providerTextColor.copy(alpha = if (isInitialLayout) 0f else 0.85f),
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     mergedLyricsList.forEachIndexed { listIndex, listItem ->
@@ -1438,15 +1462,32 @@ fun Lyrics(
             // Show lyrics provider at the top, scrolling with content
             if (isLyricsProviderShown) {
                 item {
-                    Text(
-                        text = "Lyrics from ${lyricsEntity?.provider}",
-                        fontSize = 12.sp,
-                        color = providerTextColor.copy(alpha = 0.6f),
-                        fontWeight = FontWeight.Medium,
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
                         modifier = Modifier
-                            .fillMaxWidth()
                             .padding(horizontal = 12.dp, vertical = 8.dp)
-                    )
+                            .clickable { showSwitchProviderDialog = true }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "Lyrics from ${lyricsEntity?.provider}",
+                                fontSize = 12.sp,
+                                color = providerTextColor.copy(alpha = 0.85f),
+                                fontWeight = FontWeight.Medium
+                            )
+                            Icon(
+                                painter = painterResource(R.drawable.cached),
+                                contentDescription = stringResource(R.string.switch_lyrics_provider),
+                                tint = providerTextColor.copy(alpha = 0.85f),
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
                 }
             }
 
@@ -2864,6 +2905,16 @@ fun Lyrics(
             }
         }
         } //else block
+    }
+
+    if (showSwitchProviderDialog) {
+        mediaMetadata?.let { metadata ->
+            com.music.vivi.ui.menu.SwitchLyricsProviderDialog(
+                mediaMetadata = metadata,
+                currentProvider = lyricsEntity?.provider,
+                onDismiss = { showSwitchProviderDialog = false }
+            )
+        }
     }
 }
 

@@ -340,10 +340,22 @@ class MusicService :
 
     fun setPreferredAudioDevice(deviceId: Int?) { // this helps us to change between devices
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            val devices = mutableListOf<AudioDeviceInfo>()
+            devices.addAll(audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                devices.addAll(audioManager.availableCommunicationDevices)
+            }
             val deviceInfo = devices.find { it.id == deviceId }
             player.setPreferredAudioDevice(deviceInfo)
+            secondaryPlayer?.setPreferredAudioDevice(deviceInfo)
             preferredDeviceId = deviceId
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (deviceInfo != null && deviceInfo.type != AudioDeviceInfo.TYPE_BUILTIN_SPEAKER) {
+                    audioManager.setCommunicationDevice(deviceInfo)
+                } else {
+                    audioManager.clearCommunicationDevice()
+                }
+            }
         }
     }
 //

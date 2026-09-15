@@ -11,6 +11,7 @@ import android.content.res.Configuration
 import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,6 +56,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -365,6 +368,10 @@ fun LyricsMenu(
         mutableStateOf(false)
     }
 
+    var showSwitchProviderDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     var showRomanization by rememberSaveable { mutableStateOf(false) }
     var isChecked by remember { mutableStateOf(songProvider()?.romanizeLyrics ?: true) }
 
@@ -507,6 +514,28 @@ fun LyricsMenu(
                     
                     add(
                         Material3MenuItemData(
+                            title = { Text(stringResource(R.string.switch_lyrics_provider)) },
+                            description = {
+                                Text(
+                                    text = lyricsProvider()?.provider?.let { stringResource(R.string.current_provider_label, it) }
+                                        ?: stringResource(R.string.tap_to_switch_provider),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.cached),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = {
+                                showSwitchProviderDialog = true
+                            },
+                        )
+                    )
+
+                    add(
+                        Material3MenuItemData(
                             title = { Text(stringResource(R.string.lyrics_offset)) },
                             icon = {
                                 Icon(
@@ -619,4 +648,165 @@ fun LyricsMenu(
             }
         }
     } */
+
+    if (showSwitchProviderDialog) {
+        SwitchLyricsProviderDialog(
+            mediaMetadata = mediaMetadataProvider(),
+            currentProvider = lyricsProvider()?.provider,
+            onDismiss = { showSwitchProviderDialog = false },
+            viewModel = viewModel
+        )
+    }
+}
+
+@Composable
+fun SwitchLyricsProviderDialog(
+    mediaMetadata: MediaMetadata,
+    currentProvider: String?,
+    onDismiss: () -> Unit,
+    viewModel: LyricsMenuViewModel = hiltViewModel(),
+) {
+    val candidates by viewModel.providerCandidates.collectAsState()
+    val isProbing by viewModel.isProbingProviders.collectAsState()
+
+    LaunchedEffect(mediaMetadata.id) {
+        viewModel.probeAllProviders(mediaMetadata)
+    }
+
+    ListDialog(
+        onDismiss = onDismiss,
+    ) {
+        item {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.switch_lyrics_provider),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                if (currentProvider != null) {
+                    Text(
+                        text = stringResource(R.string.current_provider_label, currentProvider),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        itemsIndexed(candidates) { _, item ->
+            val isSelected = currentProvider.equals(item.providerName, ignoreCase = true)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        viewModel.selectProviderLyrics(
+                            mediaMetadata = mediaMetadata,
+                            providerName = item.providerName,
+                            lyrics = item.lyrics,
+                            onSelected = onDismiss
+                        )
+                    },
+                color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f) else Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = item.providerName,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            // Sync capability badge
+                            val (badgeText, badgeColor) = when {
+                                item.hasWordSync -> stringResource(R.string.word_synced) to MaterialTheme.colorScheme.primary
+                                item.hasLineSync -> stringResource(R.string.line_synced) to MaterialTheme.colorScheme.secondary
+                                else -> stringResource(R.string.plain_lyrics) to MaterialTheme.colorScheme.outline
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = badgeColor.copy(alpha = 0.15f),
+                                modifier = Modifier.padding(vertical = 2.dp)
+                            ) {
+                                Text(
+                                    text = badgeText,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = badgeColor,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+
+                        if (item.previewSnippet.isNotBlank()) {
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = item.previewSnippet,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+
+                    if (isSelected) {
+                        Icon(
+                            painter = painterResource(R.drawable.check),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        if (isProbing) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(R.string.searching_providers),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        if (!isProbing && candidates.isEmpty()) {
+            item {
+                Text(
+                    text = stringResource(R.string.no_alternative_providers),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                )
+            }
+        }
+    }
 }

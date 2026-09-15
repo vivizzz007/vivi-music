@@ -847,6 +847,22 @@ fun applyAudioQuality(context: Context, quality: AudioQuality) {
     // Ported from alpha - logic can be added here if needed
 }
 
+private fun isBluetoothDeviceType(type: Int): Boolean = when (type) {
+    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
+    AudioDeviceInfo.TYPE_HEARING_AID -> true
+    else -> {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            (type == AudioDeviceInfo.TYPE_BLE_HEADSET || type == AudioDeviceInfo.TYPE_BLE_SPEAKER)) {
+            true
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && type == AudioDeviceInfo.TYPE_BLE_BROADCAST) {
+            true
+        } else {
+            false
+        }
+    }
+}
+
 private fun loadDevices(
     context: Context,
     preferredDeviceId: Int?,
@@ -858,15 +874,22 @@ private fun loadDevices(
         val devices = mutableListOf<AudioDevice>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val audioDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            var hasActiveDevice = false
+            val allAudioDevices = mutableListOf<AudioDeviceInfo>()
+            allAudioDevices.addAll(audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                audioManager.availableCommunicationDevices.forEach { commDevice ->
+                    if (!allAudioDevices.any { it.id == commDevice.id }) {
+                        allAudioDevices.add(commDevice)
+                    }
+                }
+            }
 
-            audioDevices.forEach { deviceInfo ->
-                val device = when (deviceInfo.type) {
-                    AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> {
+            allAudioDevices.forEach { deviceInfo ->
+                val device = when {
+                    isBluetoothDeviceType(deviceInfo.type) -> {
                         val batteryLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                             try {
-                                if (ActivityCompat.checkSelfPermission(
+                                if (ContextCompat.checkSelfPermission(
                                         context,
                                         Manifest.permission.BLUETOOTH_CONNECT
                                     ) == PackageManager.PERMISSION_GRANTED
@@ -877,16 +900,17 @@ private fun loadDevices(
                                     val bluetoothAdapter = bluetoothManager.adapter
                                     val pairedDevices = bluetoothAdapter?.bondedDevices
                                     val btDevice = pairedDevices?.find {
-                                        it.name == deviceInfo.productName.toString()
+                                        it.name == deviceInfo.productName.toString() ||
+                                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address)
                                     }
 
                                     @SuppressLint("MissingPermission")
-                                    val battery = btDevice?.let { device ->
+                                    val battery = btDevice?.let { dev ->
                                         try {
                                             val method = android.bluetooth.BluetoothDevice::class.java.getMethod(
                                                 "getBatteryLevel"
                                             )
-                                            val level = method.invoke(device) as? Int
+                                            val level = method.invoke(dev) as? Int
                                             level
                                         } catch (e: Exception) {
                                             null
@@ -909,7 +933,7 @@ private fun loadDevices(
                         )
                     }
 
-                    AudioDeviceInfo.TYPE_WIRED_HEADPHONES, AudioDeviceInfo.TYPE_WIRED_HEADSET -> {
+                    deviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || deviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADSET -> {
                         AudioDevice(
                             name = context.getString(R.string.wired_headphones),
                             type = AudioDeviceType.WIRED_HEADPHONES,
@@ -918,7 +942,7 @@ private fun loadDevices(
                             deviceId = deviceInfo.id
                         )
                     }
-                    AudioDeviceInfo.TYPE_USB_HEADSET, AudioDeviceInfo.TYPE_USB_DEVICE -> {
+                    deviceInfo.type == AudioDeviceInfo.TYPE_USB_HEADSET || deviceInfo.type == AudioDeviceInfo.TYPE_USB_DEVICE -> {
                         AudioDevice(
                             name = deviceInfo.productName?.toString() ?: "USB Audio",
                             type = AudioDeviceType.USB_HEADSET,
@@ -927,7 +951,7 @@ private fun loadDevices(
                             deviceId = deviceInfo.id
                         )
                     }
-                    AudioDeviceInfo.TYPE_HDMI -> {
+                    deviceInfo.type == AudioDeviceInfo.TYPE_HDMI -> {
                         AudioDevice(
                             name = context.getString(R.string.hdmi),
                             type = AudioDeviceType.HDMI,
@@ -936,7 +960,7 @@ private fun loadDevices(
                             deviceId = deviceInfo.id
                         )
                     }
-                    AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> {
+                    deviceInfo.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> {
                         AudioDevice(
                             name = context.getString(R.string.phone_speaker),
                             type = AudioDeviceType.PHONE_SPEAKER,
@@ -950,7 +974,7 @@ private fun loadDevices(
                 device?.let { devices.add(it) }
             }
 
-            val activeDevice = determineActiveDevice(audioManager, audioDevices, preferredDeviceId)
+            val activeDevice = determineActiveDevice(audioManager, allAudioDevices, preferredDeviceId)
             val updatedDevices = devices.map { device ->
                 device.copy(isActive = device.deviceId == activeDevice?.id)
             }
@@ -966,7 +990,7 @@ private fun loadDevices(
                 }
             }.thenBy { it.name })
 
-            onSuccess(sortedDevices.distinctBy { it.name })
+            onSuccess(sortedDevices.distinctBy { "${it.name}_${it.type}" })
         } else {
             loadDevicesLegacy(context, onSuccess, onError)
         }
@@ -977,7 +1001,7 @@ private fun loadDevices(
 
 private fun determineActiveDevice(
     audioManager: AudioManager,
-    audioDevices: Array<AudioDeviceInfo>,
+    audioDevices: List<AudioDeviceInfo>,
     preferredDeviceId: Int?
 ): AudioDeviceInfo? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -986,8 +1010,8 @@ private fun determineActiveDevice(
         } else null
 
         preferred ?: when {
-            audioDevices.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP } ->
-                audioDevices.find { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
+            audioDevices.any { isBluetoothDeviceType(it.type) } ->
+                audioDevices.find { isBluetoothDeviceType(it.type) }
             audioDevices.any {
                 it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                         it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET

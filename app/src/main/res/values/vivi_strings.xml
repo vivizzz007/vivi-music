@@ -1164,4 +1164,13 @@
     <string name="view_spotify_account">View Spotify account</string>
     <string name="view_spotify_account_desc">View your Spotify profile, playlists, and synced library</string>
     <string name="spotify_no_playlists">No Spotify playlists found</string>
+    <string name="switch_lyrics_provider">Switch lyrics provider</string>
+    <string name="switch_provider">Switch provider</string>
+    <string name="searching_providers">Searching available providers…</string>
+    <string name="no_alternative_providers">No alternative providers found</string>
+    <string name="word_synced">Word-synced</string>
+    <string name="line_synced">Line-synced</string>
+    <string name="plain_lyrics">Plain text</string>
+    <string name="current_provider_label">Current: %1$s</string>
+    <string name="tap_to_switch_provider">Tap to switch lyrics provider</string>
 </resources>

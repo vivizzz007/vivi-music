@@ -953,6 +953,10 @@ private fun ThumbnailImage(
                 val url = currentUrl
                 if (url != null && url.contains("maxresdefault.jpg")) {
                     currentUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
+                } else if (url != null && url.contains("=w1200-h1200")) {
+                    currentUrl = url.replace("=w1200-h1200", "=w544-h544")
+                } else if (url != null && url.contains("=w544-h544")) {
+                    currentUrl = url.replace("=w544-h544", "=w120-h120")
                 }
             },
             contentDescription = null,

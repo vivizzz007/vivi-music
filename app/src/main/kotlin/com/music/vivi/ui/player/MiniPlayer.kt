@@ -101,9 +101,12 @@ import androidx.media3.common.Player
 import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
 import coil3.imageLoader
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
 import coil3.toBitmap
+import com.music.vivi.utils.resize
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -529,8 +532,14 @@ private fun NewMiniPlayerPlayButton(
                 }
         ) {
             mediaMetadata?.let { metadata ->
+                val thumbUrl = metadata.thumbnailUrl?.resize(120, 120) ?: metadata.thumbnailUrl
                 AsyncImage(
-                    model = metadata.thumbnailUrl,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(thumbUrl)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize().clip(CircleShape)

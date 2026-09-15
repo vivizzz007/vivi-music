@@ -14,6 +14,7 @@ import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.db.entities.Song
 import com.music.vivi.lyrics.LyricsHelper
 import com.music.vivi.lyrics.LyricsResult
+import com.music.vivi.lyrics.LyricsUtils
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.utils.NetworkConnectivityObserver
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,4 +103,77 @@ constructor(
             upsert(LyricsEntity(mediaMetadata.id, lyricsWithProvider.lyrics, lyricsWithProvider.provider))
         }
     }
+
+    val providerCandidates = MutableStateFlow<List<ProviderLyricsItem>>(emptyList())
+    val isProbingProviders = MutableStateFlow(false)
+    private var probeJob: Job? = null
+
+    fun probeAllProviders(mediaMetadata: MediaMetadata) {
+        probeJob?.cancel()
+        isProbingProviders.value = true
+        providerCandidates.value = emptyList()
+        probeJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                lyricsHelper.getAllLyrics(
+                    mediaId = mediaMetadata.id,
+                    songTitle = mediaMetadata.title,
+                    songArtists = mediaMetadata.artists.joinToString { it.name },
+                    duration = mediaMetadata.duration,
+                    album = mediaMetadata.album?.title
+                ) { result ->
+                    val parsed = LyricsUtils.parseLyrics(result.lyrics)
+                    val hasWordSync = parsed.any { !it.words.isNullOrEmpty() }
+                    val hasLineSync = parsed.any { it.time > 0 }
+                    val previewSnippet = parsed
+                        .filter { it.text.isNotBlank() }
+                        .take(2)
+                        .joinToString(" / ") { it.text.trim() }
+                        .ifBlank { result.lyrics.lines().filter { it.isNotBlank() }.take(2).joinToString(" / ") }
+
+                    val item = ProviderLyricsItem(
+                        providerName = result.providerName,
+                        lyrics = result.lyrics,
+                        hasWordSync = hasWordSync,
+                        hasLineSync = hasLineSync,
+                        previewSnippet = previewSnippet
+                    )
+                    providerCandidates.update { current ->
+                        if (current.any { it.providerName.equals(result.providerName, ignoreCase = true) }) {
+                            current
+                        } else {
+                            current + item
+                        }
+                    }
+                }
+            } finally {
+                isProbingProviders.value = false
+            }
+        }
+    }
+
+    fun selectProviderLyrics(
+        mediaMetadata: MediaMetadata,
+        providerName: String,
+        lyrics: String,
+        onSelected: () -> Unit = {}
+    ) {
+        database.query {
+            upsert(
+                LyricsEntity(
+                    id = mediaMetadata.id,
+                    lyrics = lyrics,
+                    provider = providerName
+                )
+            )
+        }
+        onSelected()
+    }
 }
+
+data class ProviderLyricsItem(
+    val providerName: String,
+    val lyrics: String,
+    val hasWordSync: Boolean,
+    val hasLineSync: Boolean,
+    val previewSnippet: String,
+)

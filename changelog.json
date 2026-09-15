@@ -1,11 +1,16 @@
 {
-  "version": "6.0.8.2",
-  "description": "VIVI MUSIC v6.0.8.2 brings in-playlist song suggestions and YouTube automix recommendations with audio preview, full Spotify push and sync overhaul, typo-tolerant fuzzy settings search with sentence casing, persistent Home feed caching, and expanded section layout.",
+  "version": "6.0.8.3",
+  "description": "VIVI MUSIC v6.0.8.3 introduces seamless lyrics provider switching with word-sync capability detection, offline thumbnail cache persistence across mini player and full player, and multi-Bluetooth output routing for concurrent audio devices.",
   "image": "https://raw.githubusercontent.com/pwpp08/vivi-music/main/NEW-UI/update/v6.0.6.jpg",
   "changelog": [
     {
       "title": "What's New",
       "items": [
+        "Interactive lyrics provider switch directly from the lyrics screen header chip and lyrics menu",
+        "Multi-provider probing for current track detecting word-by-word highlight sync, line sync, and lyric snippets",
+        "Fixed offline music thumbnail loading across mini player and full player via unified canonical disk cache interceptor and multi-tier resolution fallback",
+        "Show all concurrently connected Bluetooth devices (earbuds, BLE headsets, A2DP speakers) in audio output selector",
+        "Enhanced audio routing with communication device management on Android 12+",
         "Live search suggestions and audio preview in in-playlist Add Songs dialog",
         "Similar song recommendations (From playlist) powered by YouTube automix radio engine",
         "Push local playlists directly to Spotify account with selection sheet, duplicate prevention, and live progress dialog",

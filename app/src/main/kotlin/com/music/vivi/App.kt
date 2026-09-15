@@ -22,6 +22,8 @@ import coil3.key.Keyer
 import coil3.memory.MemoryCache
 import coil3.request.CachePolicy
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.intercept.Interceptor
+import coil3.request.ImageResult
 import coil3.request.Options
 import coil3.request.allowHardware
 import coil3.request.crossfade
@@ -280,6 +282,7 @@ class App : Application(), SingletonImageLoader.Factory {
             crossfade(true)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
             components {
+                add(ThumbnailDiskCacheInterceptor())
                 add(StringThumbnailKeyer())
                 add(UriThumbnailKeyer())
                 add(
@@ -420,4 +423,44 @@ class UriThumbnailKeyer : Keyer<Uri> {
         return null
     }
 }
+
+fun getCanonicalThumbnailKey(data: Any?): String? {
+    val str = when (data) {
+        is String -> data
+        is Uri -> data.toString()
+        is android.net.Uri -> data.toString()
+        else -> data?.toString() ?: return null
+    }
+    val isGoogleCdn = str.contains("googleusercontent.com") || str.contains("ggpht.com")
+    if (isGoogleCdn) {
+        return str.split(Regex("=[wshd]"), limit = 2)[0]
+    }
+    val ytMatch = Regex("/vi(?:_webp)?/([^/]+)/").find(str)
+    if (ytMatch != null) {
+        val videoId = ytMatch.groupValues[1]
+        return "yt_thumb:$videoId"
+    }
+    return null
+}
+
+class ThumbnailDiskCacheInterceptor : Interceptor {
+    override suspend fun intercept(chain: Interceptor.Chain): ImageResult {
+        val request = chain.request
+        val canonicalKey = getCanonicalThumbnailKey(request.data)
+        val modifiedRequest = if (canonicalKey != null) {
+            val builder = request.newBuilder()
+            if (request.diskCacheKey == null) {
+                builder.diskCacheKey(canonicalKey)
+            }
+            if (request.memoryCacheKey == null) {
+                builder.memoryCacheKey(canonicalKey)
+            }
+            builder.build()
+        } else {
+            request
+        }
+        return chain.withRequest(modifiedRequest).proceed()
+    }
+}
+
 
