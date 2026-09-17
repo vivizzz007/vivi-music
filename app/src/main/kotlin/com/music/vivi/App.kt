@@ -45,7 +45,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
 import timber.log.Timber
@@ -79,7 +78,20 @@ class App : Application(), SingletonImageLoader.Factory {
         // Initialize cipher deobfuscator for WEB_REMIX streaming
         CipherDeobfuscator.initialize(this)
 
-        Timber.plant(Timber.DebugTree())
+        if (BuildConfig.DEBUG) {
+            Timber.plant(Timber.DebugTree())
+        } else {
+            // Avoid the cost of formatting/logging verbose and debug messages on every
+            // playback/UI update in release builds; keep warnings and errors for diagnostics.
+            Timber.plant(object : Timber.Tree() {
+                override fun isLoggable(tag: String?, priority: Int) =
+                    priority >= android.util.Log.WARN
+
+                override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                    android.util.Log.println(priority, tag ?: "vivimusic", message)
+                }
+            })
+        }
 
         // تهيئة إعدادات التطبيق عند الإقلاع
         applicationScope.launch {
@@ -266,9 +278,11 @@ class App : Application(), SingletonImageLoader.Factory {
     }
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
-        val cacheSize = runBlocking {
-            dataStore.data.map { it[MaxImageCacheSizeKey] ?: 512 }.first()
-        }
+        // Coil creates this lazily, often on the main thread the first time an image is
+        // requested during cold start. Reading DataStore synchronously here (runBlocking)
+        // used to stall the UI thread on disk I/O; use the in-memory prefs cache instead,
+        // which is already being populated from App.onCreate.
+        val cacheSize = ViviPrefCache.get(MaxImageCacheSizeKey) ?: 512
         return ImageLoader.Builder(this).apply {
             crossfade(true)
             allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
