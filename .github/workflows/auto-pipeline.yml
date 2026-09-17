@@ -86,6 +86,8 @@ jobs:
           }
           with open("release_meta/changelog.json", "w") as f:
               json.dump(data, f, indent=2)
+          with open("release_meta/release_notes.txt", "w", encoding="utf-8") as f:
+              f.write(f"## What's Changed in v{full_ver}\n\n{commits_raw}\n")
           EOF
 
       - name: Decode Signing Keystore
@@ -102,11 +104,24 @@ jobs:
           ./gradlew assembleUniversalFossRelease --no-configuration-cache --console=plain --warning-mode summary -x lint
 
       - name: Publish Release to GitHub
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: "v${{ steps.prep_release.outputs.full_version }}"
-          name: "Vivi Music v${{ steps.prep_release.outputs.full_version }}"
-          body: "${{ steps.prep_release.outputs.changelog }}"
-          files: |
-            app/build/outputs/apk/**/*.apk
-            release_meta/changelog.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="v${{ steps.prep_release.outputs.full_version }}"
+          mkdir -p release_dist
+          find app/build/outputs/apk -type f -name "*.apk" -exec cp {} release_dist/ \;
+          cp release_meta/changelog.json release_dist/
+          
+          echo "Files prepared for release:"
+          ls -la release_dist/
+
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION already exists. Uploading assets..."
+            gh release upload "$VERSION" release_dist/* --clobber
+          else
+            echo "Creating release $VERSION..."
+            gh release create "$VERSION" release_dist/* \
+              --title "Vivi Music $VERSION" \
+              --notes-file release_meta/release_notes.txt \
+              --target main
+          fi
