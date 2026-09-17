@@ -173,6 +173,7 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.time.LocalDateTime
+import androidx.datastore.preferences.core.stringPreferencesKey
 
 @SuppressLint("RememberReturnType")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -469,8 +470,17 @@ fun LocalPlaylistScreen(
     LaunchedEffect(reorderableState.isAnyItemDragging) {
         if (!reorderableState.isAnyItemDragging) {
             dragInfo?.let { (from, to) ->
-                database.transaction {
-                    move(viewModel.playlistId, from, to)
+                val orderedMapIds = mutableSongs.map { it.map.id }
+                coroutineScope.launch(Dispatchers.IO) {
+                    context.dataStore.edit { prefs ->
+                        prefs[stringPreferencesKey("playlist_order_${viewModel.playlistId}_${sortType.name}")] =
+                            orderedMapIds.joinToString(",")
+                    }
+                    database.transaction {
+                        orderedMapIds.forEachIndexed { index, mapId ->
+                            updatePlaylistSongPosition(mapId, index)
+                        }
+                    }
                 }
 
                 // Sync order with YT Music
@@ -565,8 +575,22 @@ fun LocalPlaylistScreen(
                             SortHeader(
                                 sortType = sortType,
                                 sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
+                                onSortTypeChange = { newSortType ->
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        context.dataStore.edit { prefs ->
+                                            prefs.remove(stringPreferencesKey("playlist_order_${viewModel.playlistId}_${newSortType.name}"))
+                                        }
+                                    }
+                                    onSortTypeChange(newSortType)
+                                },
+                                onSortDescendingChange = { newSortDescending ->
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        context.dataStore.edit { prefs ->
+                                            prefs.remove(stringPreferencesKey("playlist_order_${viewModel.playlistId}_${sortType.name}"))
+                                        }
+                                    }
+                                    onSortDescendingChange(newSortDescending)
+                                },
                                 sortTypeText = { sortType ->
                                     when (sortType) {
                                         PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
@@ -707,7 +731,7 @@ fun LocalPlaylistScreen(
                                         )
                                     }
 
-                                    if (sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode && !isSearching && editable) {
+                                    if (!locked && !inSelectMode && !isSearching && editable) {
                                         IconButton(
                                             onClick = { },
                                             modifier = Modifier.draggableHandle(),

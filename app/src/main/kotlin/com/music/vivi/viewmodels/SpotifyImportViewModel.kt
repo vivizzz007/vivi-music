@@ -55,12 +55,14 @@ import kotlinx.coroutines.flow.stateIn
 
 @Serializable
 data class SpotifySession(
-    val spDc: String,
+    val spDc: String = "",
     val spKey: String? = null,
     val accessToken: String? = null,
     val expiresAt: Long = 0,
     val accountName: String? = null,
     val accountAvatarUrl: String? = null,
+    val refreshToken: String? = null,
+    val clientId: String? = null,
 )
 
 @Serializable
@@ -202,7 +204,82 @@ class SpotifyImportViewModel @Inject constructor(
             Spotify.accessToken = session.accessToken
             return session
         }
-        return refreshWithCookies(session.spDc, session.spKey.orEmpty())
+        if (!session.refreshToken.isNullOrBlank()) {
+            return refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID)
+        }
+        if (session.spDc.isNotBlank()) {
+            return refreshWithCookies(session.spDc, session.spKey.orEmpty())
+        }
+        throw IllegalStateException("No valid credentials for Spotify")
+    }
+
+    private suspend fun refreshWithRefreshToken(refreshToken: String, clientId: String): SpotifySession =
+        withContext(Dispatchers.IO) {
+            val token = SpotifyAuth.refreshAccessToken(clientId, refreshToken).getOrThrow()
+            Spotify.accessToken = token.access_token
+            val profile = Spotify.me().getOrNull()
+
+            val session = getSession()
+            val newSession = (session ?: SpotifySession()).copy(
+                accessToken = token.access_token,
+                expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
+                refreshToken = token.refresh_token ?: refreshToken,
+                clientId = clientId,
+                accountName = profile?.displayName ?: session?.accountName,
+                accountAvatarUrl = profile?.images?.firstOrNull()?.url ?: session?.accountAvatarUrl
+            )
+            saveSession(newSession)
+            _uiState.update {
+                it.copy(
+                    isAuthenticated = true,
+                    accountName = newSession.accountName.orEmpty(),
+                    accountAvatarUrl = newSession.accountAvatarUrl,
+                )
+            }
+            newSession
+        }
+
+    fun connectWithOAuthCode(
+        code: String,
+        codeVerifier: String,
+        clientId: String = SpotifyAuth.DEFAULT_CLIENT_ID,
+        redirectUri: String = SpotifyAuth.DEFAULT_REDIRECT_URI,
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            runCatching {
+                val token = SpotifyAuth.exchangeCode(clientId, redirectUri, code, codeVerifier).getOrThrow()
+                Spotify.accessToken = token.access_token
+                val profile = Spotify.me().getOrNull()
+
+                val newSession = SpotifySession(
+                    accessToken = token.access_token,
+                    expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
+                    refreshToken = token.refresh_token,
+                    clientId = clientId,
+                    accountName = profile?.displayName,
+                    accountAvatarUrl = profile?.images?.firstOrNull()?.url
+                )
+                saveSession(newSession)
+                _uiState.update {
+                    it.copy(
+                        isAuthenticated = true,
+                        accountName = newSession.accountName.orEmpty(),
+                        accountAvatarUrl = newSession.accountAvatarUrl,
+                    )
+                }
+                newSession
+            }.onSuccess {
+                loadSources()
+            }.onFailure { error ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = error.message ?: "Failed to log in to Spotify"
+                    )
+                }
+            }
+        }
     }
 
     private suspend fun refreshWithCookies(spDc: String, spKey: String): SpotifySession =
@@ -271,6 +348,21 @@ class SpotifyImportViewModel @Inject constructor(
                         )
                     }
                     loadSources()
+                } else if (!session.refreshToken.isNullOrBlank()) {
+                    runCatching { refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID) }
+                        .onSuccess { loadSources() }
+                        .onFailure { error ->
+                            if (_uiState.value.playlists.isEmpty()) {
+                                logout()
+                                _uiState.update {
+                                    it.copy(
+                                        isAuthenticated = false,
+                                        isLoading = false,
+                                        errorMessage = "Session expired. Please log in again."
+                                    )
+                                }
+                            }
+                        }
                 } else {
                     runCatching { refreshWithCookies(session.spDc, session.spKey.orEmpty()) }
                         .onSuccess { loadSources() }

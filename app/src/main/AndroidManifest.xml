@@ -267,6 +267,19 @@
             android:name=".listentogether.ListenTogetherActionReceiver"
             android:exported="false" />
 
+        <!-- Wear OS Bluetooth Sync Service -->
+        <service
+            android:name=".wear.WearSyncService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:host="*"
+                    android:pathPrefix="/vivi/auth"
+                    android:scheme="wear" />
+            </intent-filter>
+        </service>
+
         <receiver
             android:name="androidx.media3.session.MediaButtonReceiver"
             android:exported="true">

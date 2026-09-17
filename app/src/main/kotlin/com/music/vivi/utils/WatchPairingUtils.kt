@@ -8,6 +8,8 @@ package com.music.vivi.utils
 import android.content.Context
 import android.widget.Toast
 import com.music.vivi.R
+import com.music.vivi.constants.AccountEmailKey
+import com.music.vivi.constants.AccountNameKey
 import com.music.vivi.constants.DataSyncIdKey
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.VisitorDataKey
@@ -29,6 +31,8 @@ object WatchPairingUtils {
      * @param cookie InnerTubeCookie from the phone
      * @param visitorData Optional visitorData token
      * @param dataSyncId Optional dataSyncId token
+     * @param accountName Optional account name
+     * @param accountEmail Optional account email
      * @return true if credentials were accepted by the watch
      */
     suspend fun sendCredentialsToWatch(
@@ -38,6 +42,8 @@ object WatchPairingUtils {
         cookie: String,
         visitorData: String? = null,
         dataSyncId: String? = null,
+        accountName: String? = null,
+        accountEmail: String? = null,
     ): Boolean = withContext(Dispatchers.IO) {
         val trimmedHost = targetHost.trim()
             .removePrefix("http://")
@@ -62,6 +68,8 @@ object WatchPairingUtils {
                 put("cookie", cookie.trim())
                 if (!visitorData.isNullOrBlank()) put("visitorData", visitorData.trim())
                 if (!dataSyncId.isNullOrBlank()) put("dataSyncId", dataSyncId.trim())
+                if (!accountName.isNullOrBlank()) put("accountName", accountName.trim())
+                if (!accountEmail.isNullOrBlank()) put("accountEmail", accountEmail.trim())
             }.toString()
 
             conn.outputStream.use { os ->
@@ -91,6 +99,8 @@ object WatchPairingUtils {
         val cookie = context.dataStore.get(InnerTubeCookieKey, "")
         val visitorData = context.dataStore.get(VisitorDataKey, "")
         val dataSyncId = context.dataStore.get(DataSyncIdKey, "")
+        val accountName = context.dataStore.get(AccountNameKey, "")
+        val accountEmail = context.dataStore.get(AccountEmailKey, "")
 
         if (cookie.isBlank()) {
             withContext(Dispatchers.Main) {
@@ -107,6 +117,8 @@ object WatchPairingUtils {
             cookie = cookie,
             visitorData = visitorData,
             dataSyncId = dataSyncId,
+            accountName = accountName,
+            accountEmail = accountEmail,
         )
 
         withContext(Dispatchers.Main) {

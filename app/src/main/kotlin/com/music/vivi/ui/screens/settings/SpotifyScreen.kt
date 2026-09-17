@@ -319,6 +319,10 @@ fun SpotifyScreen(
     if (showSpotifyLogin) {
         SpotifyLoginSheet(
             onDismiss = { showSpotifyLogin = false },
+            onOAuthCodeCaptured = { code, verifier ->
+                showSpotifyLogin = false
+                viewModel.connectWithOAuthCode(code, verifier)
+            },
             onCookiesCaptured = { spDc, spKey ->
                 showSpotifyLogin = false
                 viewModel.connectWithCookies(spDc, spKey)
@@ -477,11 +481,18 @@ fun SpotifyScreen(
 @Composable
 private fun SpotifyLoginSheet(
     onDismiss: () -> Unit,
+    onOAuthCodeCaptured: (code: String, verifier: String) -> Unit,
     onCookiesCaptured: (spDc: String, spKey: String) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var webView by remember { mutableStateOf<WebView?>(null) }
     var captured by remember { mutableStateOf(false) }
+
+    val codeVerifier = rememberSaveable { SpotifyAuth.generateCodeVerifier() }
+    val authUrl = remember(codeVerifier) {
+        val codeChallenge = SpotifyAuth.generateCodeChallenge(codeVerifier)
+        SpotifyAuth.buildAuthorizeUrl(codeChallenge = codeChallenge)
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -552,45 +563,63 @@ private fun SpotifyLoginSheet(
                         }
 
                         webViewClient = object : WebViewClient() {
-                            private fun captureCookies(url: String?): Boolean {
+                            private fun checkUrlOrCookies(url: String?): Boolean {
                                 if (captured) return true
-                                cookieManager.flush()
-                                val cookiesStr = cookieManager.getCookie("https://open.spotify.com") ?: ""
-                                val cookies = cookiesStr.split(";").associate {
-                                    val parts = it.split("=")
-                                    val key = parts.firstOrNull()?.trim().orEmpty()
-                                    val valStr = parts.drop(1).joinToString("=").trim()
-                                    key to valStr
+                                val urlStr = url.orEmpty()
+
+                                // 1. Check for OAuth code in redirect URL
+                                if (urlStr.contains("code=")) {
+                                    val uri = android.net.Uri.parse(urlStr)
+                                    val code = uri.getQueryParameter("code")
+                                    if (!code.isNullOrBlank()) {
+                                        captured = true
+                                        onOAuthCodeCaptured(code, codeVerifier)
+                                        return true
+                                    }
                                 }
-                                val spDc = cookies["sp_dc"].orEmpty()
-                                if (spDc.isBlank()) return false
-                                captured = true
-                                onCookiesCaptured(spDc, cookies["sp_key"].orEmpty())
-                                return true
+
+                                // 2. Cookie fallback if open.spotify.com reached
+                                if (urlStr.startsWith("https://open.spotify.com")) {
+                                    cookieManager.flush()
+                                    val cookiesStr = cookieManager.getCookie("https://open.spotify.com") ?: ""
+                                    val cookies = cookiesStr.split(";").associate {
+                                        val parts = it.split("=")
+                                        val key = parts.firstOrNull()?.trim().orEmpty()
+                                        val valStr = parts.drop(1).joinToString("=").trim()
+                                        key to valStr
+                                    }
+                                    val spDc = cookies["sp_dc"].orEmpty()
+                                    if (spDc.isNotBlank()) {
+                                        captured = true
+                                        onCookiesCaptured(spDc, cookies["sp_key"].orEmpty())
+                                        return true
+                                    }
+                                }
+                                return false
                             }
 
                             override fun shouldOverrideUrlLoading(
                                 view: WebView,
                                 request: WebResourceRequest,
-                            ): Boolean = captureCookies(request.url?.toString())
+                            ): Boolean = checkUrlOrCookies(request.url?.toString())
 
                             override fun onPageStarted(
                                 view: WebView,
                                 url: String?,
                                 favicon: android.graphics.Bitmap?,
                             ) {
-                                captureCookies(url)
+                                checkUrlOrCookies(url)
                             }
 
                             override fun onPageFinished(view: WebView, url: String?) {
-                                captureCookies(url)
+                                checkUrlOrCookies(url)
                             }
                         }
                         webChromeClient = android.webkit.WebChromeClient()
                         webView = this
                         cookieManager.removeAllCookies(null)
                         cookieManager.flush()
-                        loadUrl(SpotifyAuth.LOGIN_URL)
+                        loadUrl(authUrl)
                     }
                 },
                 update = { view ->

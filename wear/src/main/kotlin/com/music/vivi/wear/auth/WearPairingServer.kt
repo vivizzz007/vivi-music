@@ -46,8 +46,13 @@ data class PairingServerInfo(
  */
 class WearPairingServer(
     private val context: Context,
-    private val onCredentialsReceived: suspend (cookie: String, dataSyncId: String?, visitorData: String?) -> Unit = { _, _, _ -> },
+    private val onCredentialsReceived: suspend (cookie: String, dataSyncId: String?, visitorData: String?, accountName: String?, accountEmail: String?) -> Unit,
 ) {
+    constructor(
+        context: Context,
+        callback: suspend (cookie: String, dataSyncId: String?, visitorData: String?) -> Unit = { _, _, _ -> },
+    ) : this(context, { cookie, dataSyncId, visitorData, _, _ -> callback(cookie, dataSyncId, visitorData) })
+
     companion object {
         private const val TAG = "WearPairingServer"
         const val DEFAULT_PORT = 8888
@@ -82,7 +87,7 @@ class WearPairingServer(
      */
     fun start(
         port: Int = DEFAULT_PORT,
-        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?) -> Unit)? = null,
+        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?, accountName: String?, accountEmail: String?) -> Unit)? = null,
     ): PairingServerInfo {
         stop()
 
@@ -141,7 +146,7 @@ class WearPairingServer(
 
     private suspend fun handleClient(
         socket: Socket,
-        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?) -> Unit)?,
+        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?, accountName: String?, accountEmail: String?) -> Unit)?,
     ) {
         try {
             socket.use { s ->
@@ -205,7 +210,9 @@ class WearPairingServer(
                         } else {
                             val dataSyncId = params["dataSyncId"]?.takeIf { it != "null" && it.isNotBlank() }
                             val visitorData = params["visitorData"]?.takeIf { it != "null" && it.isNotBlank() }
-                            callback?.invoke(cookie, dataSyncId, visitorData)
+                            val accountName = params["accountName"]?.takeIf { it != "null" && it.isNotBlank() }
+                            val accountEmail = params["accountEmail"]?.takeIf { it != "null" && it.isNotBlank() }
+                            callback?.invoke(cookie, dataSyncId, visitorData, accountName, accountEmail)
                             sendJson(writer, 200, """{"status":"ok"}""")
                         }
                     }
@@ -225,12 +232,14 @@ class WearPairingServer(
         isForm: Boolean,
         isHtmlPreferred: Boolean,
         writer: PrintWriter,
-        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?) -> Unit)?,
+        callback: (suspend (cookie: String, dataSyncId: String?, visitorData: String?, accountName: String?, accountEmail: String?) -> Unit)?,
     ) {
         var cookie = ""
         var reqPin = ""
         var visitorData: String? = null
         var dataSyncId: String? = null
+        var accountName: String? = null
+        var accountEmail: String? = null
 
         try {
             val trimmed = body.trim()
@@ -249,12 +258,16 @@ class WearPairingServer(
                 cookie = json["cookie"]?.jsonPrimitive?.content?.trim() ?: ""
                 visitorData = (json["visitorData"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
                 dataSyncId = (json["dataSyncId"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
+                accountName = (json["accountName"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
+                accountEmail = (json["accountEmail"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
             } else if (isForm || trimmed.contains("=") && !trimmed.startsWith("{")) {
                 val params = parseQuery(trimmed)
                 reqPin = params["pin"]?.trim() ?: ""
                 cookie = params["cookie"]?.trim() ?: ""
                 visitorData = params["visitorData"]?.takeIf { it.isNotBlank() }
                 dataSyncId = params["dataSyncId"]?.takeIf { it.isNotBlank() }
+                accountName = params["accountName"]?.takeIf { it.isNotBlank() }
+                accountEmail = params["accountEmail"]?.takeIf { it.isNotBlank() }
             } else {
                 sendJson(writer, 400, """{"error":"Malformed payload"}""")
                 return
@@ -278,7 +291,7 @@ class WearPairingServer(
                 return
             }
 
-            callback?.invoke(cookie, dataSyncId, visitorData)
+            callback?.invoke(cookie, dataSyncId, visitorData, accountName, accountEmail)
 
             if (isHtmlPreferred) {
                 sendHtml(writer, buildResultHtml(success = true, message = "✓ Watch paired successfully! You can now use your watch."))

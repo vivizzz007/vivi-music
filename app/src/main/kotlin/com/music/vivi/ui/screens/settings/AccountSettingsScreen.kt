@@ -641,6 +641,37 @@ fun AccountSettingsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !isSending,
+                            onClick = {
+                                isSending = true
+                                coroutineScope.launch {
+                                    val sent = com.music.vivi.wear.WearSyncService.pushAuthToWatch(context)
+                                    isSending = false
+                                    if (sent) {
+                                        android.widget.Toast.makeText(context, "Credentials sent to watch via Bluetooth!", android.widget.Toast.LENGTH_SHORT).show()
+                                        showWatchPairDialog = false
+                                    } else {
+                                        android.widget.Toast.makeText(context, "No connected watch found via Bluetooth. Try manual Wi-Fi pairing below.", android.widget.Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.bluetooth),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text("Sync via Bluetooth")
+                        }
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+                        Text(
+                            text = "Or pair manually via Wi-Fi:",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         OutlinedTextField(
                             value = watchAddress,
                             onValueChange = { watchAddress = it },

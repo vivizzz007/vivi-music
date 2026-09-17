@@ -15,6 +15,7 @@
     <string name="unknown_item_type">Unknown item type</string>
     <string name="loading_charts">Loading charts…</string>
     <string name="retry_button">Retry</string>
+    <string name="remove">Remove</string>
     <string name="album_cover_desc">Album cover</string>
     <string name="top_music_videos">Top music videos</string>
     <string name="trending">Trending</string>

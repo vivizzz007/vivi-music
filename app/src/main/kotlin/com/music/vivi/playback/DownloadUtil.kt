@@ -40,6 +40,7 @@ import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadPlaylistsKey
 import com.music.vivi.constants.IpVersionKey
+import com.music.vivi.constants.PermanentlyFailedDownloadSongIdsKey
 import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
 import androidx.datastore.preferences.core.edit
 import com.music.innertube.models.IpVersion
@@ -356,6 +357,7 @@ constructor(
     val activeBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     val completedBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
     val failedBatchSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+    val permanentlyFailedSongIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
 
     fun clearBatchProgress() {
         activeBatchSongIds.clear()
@@ -605,9 +607,29 @@ constructor(
                         } else if (download.state == Download.STATE_COMPLETED) {
                             activeBatchSongIds.remove(download.request.id)
                             completedBatchSongIds.add(download.request.id)
+                            val completedId = download.request.id
+                            permanentlyFailedSongIds.remove(completedId)
+                            scope.launch(Dispatchers.IO) {
+                                appContext.dataStore.edit { prefs ->
+                                    val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
+                                    if (completedId in current) {
+                                        prefs[PermanentlyFailedDownloadSongIdsKey] = current - completedId
+                                    }
+                                }
+                            }
                         } else if (download.state == Download.STATE_FAILED || download.state == Download.STATE_STOPPED) {
                             activeBatchSongIds.remove(download.request.id)
                             failedBatchSongIds.add(download.request.id)
+                            if (download.state == Download.STATE_FAILED) {
+                                val failedId = download.request.id
+                                permanentlyFailedSongIds.add(failedId)
+                                scope.launch(Dispatchers.IO) {
+                                    appContext.dataStore.edit { prefs ->
+                                        val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
+                                        prefs[PermanentlyFailedDownloadSongIdsKey] = current + failedId
+                                    }
+                                }
+                            }
                         }
 
                         scope.launch {
@@ -681,7 +703,11 @@ constructor(
         if (result.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED }) {
             startProgressPollingIfNeeded()
         }
-        repairIncompleteDownloads()
+        scope.launch(Dispatchers.IO) {
+            val savedFailed = appContext.dataStore.data.firstOrNull()?.get(PermanentlyFailedDownloadSongIdsKey) ?: emptySet()
+            permanentlyFailedSongIds.addAll(savedFailed)
+            repairIncompleteDownloads()
+        }
     }
 
     fun repairIncompleteDownloads() {
@@ -695,6 +721,10 @@ constructor(
                 for (songWithData in downloadedSongs) {
                     val song = songWithData.song
                     val songId = song.id
+                    if (songId in permanentlyFailedSongIds) {
+                        Timber.tag("DownloadUtil").d("Skipping song repair for permanently failed song: $songId")
+                        continue
+                    }
                     val download = downloads.value[songId]
                     if (download != null && (download.state == Download.STATE_DOWNLOADING || download.state == Download.STATE_QUEUED || download.state == Download.STATE_RESTARTING)) {
                         continue
@@ -721,6 +751,42 @@ constructor(
                 }
             } catch (e: Exception) {
                 Timber.tag("DownloadUtil").e(e, "Error repairing incomplete downloads")
+            }
+        }
+    }
+
+    fun retryDownload(songId: String, title: String) {
+        permanentlyFailedSongIds.remove(songId)
+        failedBatchSongIds.remove(songId)
+        scope.launch(Dispatchers.IO) {
+            appContext.dataStore.edit { prefs ->
+                val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
+                prefs[PermanentlyFailedDownloadSongIdsKey] = current - songId
+            }
+        }
+        reDownloadSong(songId, title)
+    }
+
+    fun removeDownload(songId: String) {
+        permanentlyFailedSongIds.remove(songId)
+        activeBatchSongIds.remove(songId)
+        completedBatchSongIds.remove(songId)
+        failedBatchSongIds.remove(songId)
+        songUrlCache.invalidate(songId)
+        scope.launch(Dispatchers.IO) {
+            appContext.dataStore.edit { prefs ->
+                val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
+                prefs[PermanentlyFailedDownloadSongIdsKey] = current - songId
+            }
+            database.updateDownloadedInfo(songId, false, null)
+            DownloadService.sendRemoveDownload(
+                appContext,
+                ExoDownloadService::class.java,
+                songId,
+                false
+            )
+            downloads.update { map ->
+                map.toMutableMap().apply { remove(songId) }
             }
         }
     }

@@ -33,6 +33,15 @@ import java.text.Collator
 import java.util.Locale
 import javax.inject.Inject
 
+import androidx.datastore.preferences.core.stringPreferencesKey
+
+private data class OrderConfig(
+    val sortType: PlaylistSongSortType,
+    val sortDescending: Boolean,
+    val hideVideoSongs: Boolean,
+    val orderOverrideStr: String?,
+)
+
 @HiltViewModel
 class LocalPlaylistViewModel
 @Inject
@@ -51,44 +60,50 @@ constructor(
         combine(
             database.playlistSongs(playlistId),
             context.dataStore.data
-                .map {
-                    Triple(
-                        it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM),
-                        it[PlaylistSongSortDescendingKey] ?: true,
-                        it[HideVideoSongsKey] ?: false
-                    )
+                .map { prefs ->
+                    val sortType = prefs[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM)
+                    val sortDescending = prefs[PlaylistSongSortDescendingKey] ?: true
+                    val hideVideoSongs = prefs[HideVideoSongsKey] ?: false
+                    val orderOverrideStr = prefs[stringPreferencesKey("playlist_order_${playlistId}_${sortType.name}")]
+                    OrderConfig(sortType, sortDescending, hideVideoSongs, orderOverrideStr)
                 }.distinctUntilChanged(),
-        ) { songs, (sortType, sortDescending, hideVideoSongs) ->
+        ) { songs, (sortType, sortDescending, hideVideoSongs, orderOverrideStr) ->
             val filteredSongs = if (hideVideoSongs) {
                 songs.filter { !it.song.song.isVideo }
             } else {
                 songs
             }
-            when (sortType) {
-                PlaylistSongSortType.CUSTOM -> filteredSongs
-                PlaylistSongSortType.CREATE_DATE -> filteredSongs.sortedBy { it.map.id }
-                PlaylistSongSortType.NAME -> {
-                    val collator = Collator.getInstance(Locale.getDefault())
-                    collator.strength = Collator.PRIMARY
-                    filteredSongs.sortedWith(compareBy(collator) { it.song.song.title })
-                }
-                PlaylistSongSortType.ARTIST -> {
-                    val collator = Collator.getInstance(Locale.getDefault())
-                    collator.strength = Collator.PRIMARY
-                    filteredSongs
-                        .sortedWith(compareBy(collator) { song -> song.song.artists.joinToString("") { it.name } })
-                        .groupBy { it.song.album?.title }
-                        .flatMap { (_, songsByAlbum) ->
-                            songsByAlbum.sortedBy {
-                                it.song.artists.joinToString(
-                                    ""
-                                ) { it.name }
+            val overrideOrderIds = orderOverrideStr?.split(",")?.mapNotNull { it.toIntOrNull() }
+            if (overrideOrderIds != null && overrideOrderIds.isNotEmpty()) {
+                val orderMap = overrideOrderIds.withIndex().associate { it.value to it.index }
+                filteredSongs.sortedBy { orderMap[it.map.id] ?: Int.MAX_VALUE }
+            } else {
+                when (sortType) {
+                    PlaylistSongSortType.CUSTOM -> filteredSongs
+                    PlaylistSongSortType.CREATE_DATE -> filteredSongs.sortedBy { it.map.id }
+                    PlaylistSongSortType.NAME -> {
+                        val collator = Collator.getInstance(Locale.getDefault())
+                        collator.strength = Collator.PRIMARY
+                        filteredSongs.sortedWith(compareBy(collator) { it.song.song.title })
+                    }
+                    PlaylistSongSortType.ARTIST -> {
+                        val collator = Collator.getInstance(Locale.getDefault())
+                        collator.strength = Collator.PRIMARY
+                        filteredSongs
+                            .sortedWith(compareBy(collator) { song -> song.song.artists.joinToString("") { it.name } })
+                            .groupBy { it.song.album?.title }
+                            .flatMap { (_, songsByAlbum) ->
+                                songsByAlbum.sortedBy {
+                                    it.song.artists.joinToString(
+                                        ""
+                                    ) { it.name }
+                                }
                             }
-                        }
-                }
+                    }
 
-                PlaylistSongSortType.PLAY_TIME -> filteredSongs.sortedBy { it.song.song.totalPlayTime }
-            }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
+                    PlaylistSongSortType.PLAY_TIME -> filteredSongs.sortedBy { it.song.song.totalPlayTime }
+                }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
+            }
         }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {

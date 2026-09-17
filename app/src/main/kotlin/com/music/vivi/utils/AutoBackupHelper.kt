@@ -144,10 +144,11 @@ object AutoBackupHelper {
             file.name.startsWith("auto_backup_${backupType}_")
         }
 
-        if (backups.size > 5) {
+        val maxToKeep = if (backupType == "before_update") 1 else 5
+        if (backups.size > maxToKeep) {
             // getAutoBackups returns sorted descending (newest first).
-            // So we delete backups from index 5 to end (oldest).
-            for (i in 5 until backups.size) {
+            // For before_update, this deletes all previous before_update backups (keeping only the latest).
+            for (i in maxToKeep until backups.size) {
                 val file = backups[i]
                 Timber.tag("AutoBackup").d("Deleting old backup: %s", file.name)
                 deleteBackup(context, file)

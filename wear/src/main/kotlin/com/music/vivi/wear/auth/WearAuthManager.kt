@@ -156,6 +156,8 @@ class WearAuthManager(
         cookie: String,
         dataSyncId: String?,
         visitorData: String?,
+        accountName: String? = null,
+        accountEmail: String? = null,
     ): Result<AccountInfo> {
         val trimmedCookie = cookie.trim()
         if (trimmedCookie.isBlank()) {
@@ -170,15 +172,15 @@ class WearAuthManager(
         YouTube.visitorData = visitorData?.takeIf { it.isNotBlank() }
         YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)
 
-        // 2. Persist immediately into DataStore with default account name
-        val initialName = "My Account"
+        // 2. Persist immediately into DataStore
+        val initialName = accountName?.takeIf { it.isNotBlank() } ?: "My Account"
         try {
             preferences.saveCredentials(
                 cookie = trimmedCookie,
                 dataSyncId = dataSyncId,
                 visitorData = visitorData,
                 accountName = initialName,
-                accountEmail = null,
+                accountEmail = accountEmail,
                 accountChannelHandle = null,
             )
         } catch (e: Exception) {
@@ -192,29 +194,31 @@ class WearAuthManager(
         activePairingServer = null
         _authState.value = WearAuthState.LoggedIn(
             name = initialName,
-            email = null,
+            email = accountEmail,
         )
         Timber.i("Session saved successfully. Enriching account info in background...")
 
         // 4. Best-effort background profile enrichment (does not block or fail login if account_menu fails)
-        var enrichedInfo = AccountInfo(name = initialName, email = null, channelHandle = null, thumbnailUrl = null)
+        var enrichedInfo = AccountInfo(name = initialName, email = accountEmail, channelHandle = null, thumbnailUrl = null)
         try {
             val accountResult = YouTube.accountInfo()
             accountResult.onSuccess { info ->
-                enrichedInfo = info
+                val resolvedName = info.name.takeIf { it.isNotBlank() } ?: initialName
+                val resolvedEmail = info.email ?: accountEmail
+                enrichedInfo = info.copy(name = resolvedName, email = resolvedEmail)
                 preferences.saveCredentials(
                     cookie = trimmedCookie,
                     dataSyncId = dataSyncId,
                     visitorData = visitorData,
-                    accountName = info.name,
-                    accountEmail = info.email,
+                    accountName = resolvedName,
+                    accountEmail = resolvedEmail,
                     accountChannelHandle = info.channelHandle,
                 )
                 _authState.value = WearAuthState.LoggedIn(
-                    name = info.name,
-                    email = info.email,
+                    name = resolvedName,
+                    email = resolvedEmail,
                 )
-                Timber.i("Enriched profile info: %s (%s)", info.name, info.email)
+                Timber.i("Enriched profile info: %s (%s)", resolvedName, resolvedEmail)
             }.onFailure { err ->
                 Timber.w(err, "Background accountInfo enrichment skipped (non-fatal)")
             }
@@ -232,8 +236,10 @@ class WearAuthManager(
         cookie: String,
         visitorData: String?,
         dataSyncId: String?,
+        accountName: String? = null,
+        accountEmail: String? = null,
     ): AccountInfo? {
-        return validateAndSaveSession(cookie, dataSyncId, visitorData).getOrNull()
+        return validateAndSaveSession(cookie, dataSyncId, visitorData, accountName, accountEmail).getOrNull()
     }
 
     /**

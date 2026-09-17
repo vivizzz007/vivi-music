@@ -480,8 +480,12 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
 
                                             Surface(
                                                 onClick = {
-                                                    service?.setPreferredAudioDevice(dev.deviceId)
-                                                    refreshDevices()
+                                                    try {
+                                                        service?.setPreferredAudioDevice(dev.deviceId)
+                                                        refreshDevices()
+                                                    } catch (e: Exception) {
+                                                        Log.e("AudioDeviceBottomSheet", "Error switching audio device", e)
+                                                    }
                                                     showDevicePopup = false
                                                 },
                                                 shape = itemShape,
@@ -849,7 +853,6 @@ fun applyAudioQuality(context: Context, quality: AudioQuality) {
 
 private fun isBluetoothDeviceType(type: Int): Boolean = when (type) {
     AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
     AudioDeviceInfo.TYPE_HEARING_AID -> true
     else -> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
@@ -874,63 +877,65 @@ private fun loadDevices(
         val devices = mutableListOf<AudioDevice>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val allAudioDevices = mutableListOf<AudioDeviceInfo>()
-            allAudioDevices.addAll(audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS))
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                audioManager.availableCommunicationDevices.forEach { commDevice ->
-                    if (!allAudioDevices.any { it.id == commDevice.id }) {
-                        allAudioDevices.add(commDevice)
-                    }
-                }
-            }
+            // Only query media outputs; do NOT merge communication devices which inject phone telephony/earpiece
+            val allAudioDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).toList()
 
             allAudioDevices.forEach { deviceInfo ->
+                val isPhoneModel = deviceInfo.productName?.toString()?.let { name ->
+                    name.equals(Build.MODEL, ignoreCase = true) ||
+                    name.equals(Build.DEVICE, ignoreCase = true) ||
+                    name.equals(Build.PRODUCT, ignoreCase = true)
+                } ?: false
+
                 val device = when {
                     isBluetoothDeviceType(deviceInfo.type) -> {
-                        val batteryLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            try {
-                                if (ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.BLUETOOTH_CONNECT
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    val bluetoothManager = context.getSystemService(
-                                        Context.BLUETOOTH_SERVICE
-                                    ) as BluetoothManager
-                                    val bluetoothAdapter = bluetoothManager.adapter
-                                    val pairedDevices = bluetoothAdapter?.bondedDevices
-                                    val btDevice = pairedDevices?.find {
-                                        it.name == deviceInfo.productName.toString() ||
-                                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address)
-                                    }
-
-                                    @SuppressLint("MissingPermission")
-                                    val battery = btDevice?.let { dev ->
-                                        try {
-                                            val method = android.bluetooth.BluetoothDevice::class.java.getMethod(
-                                                "getBatteryLevel"
-                                            )
-                                            val level = method.invoke(dev) as? Int
-                                            level
-                                        } catch (e: Exception) {
-                                            null
+                        if (isPhoneModel) null
+                        else {
+                            val batteryLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                try {
+                                    if (ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.BLUETOOTH_CONNECT
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    ) {
+                                        val bluetoothManager = context.getSystemService(
+                                            Context.BLUETOOTH_SERVICE
+                                        ) as BluetoothManager
+                                        val bluetoothAdapter = bluetoothManager.adapter
+                                        val pairedDevices = bluetoothAdapter?.bondedDevices
+                                        val btDevice = pairedDevices?.find {
+                                            it.name == deviceInfo.productName.toString() ||
+                                            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address)
                                         }
-                                    }
-                                    if (battery != null && battery >= 0 && battery <= 100) battery else null
-                                } else null
-                            } catch (e: Exception) {
-                                null
-                            }
-                        } else null
 
-                        AudioDevice(
-                            name = deviceInfo.productName?.toString() ?: "Bluetooth Device",
-                            type = AudioDeviceType.BLUETOOTH,
-                            isConnected = true,
-                            isActive = false,
-                            batteryLevel = batteryLevel,
-                            deviceId = deviceInfo.id
-                        )
+                                        @SuppressLint("MissingPermission")
+                                        val battery = btDevice?.let { dev ->
+                                            try {
+                                                val method = android.bluetooth.BluetoothDevice::class.java.getMethod(
+                                                    "getBatteryLevel"
+                                                )
+                                                val level = method.invoke(dev) as? Int
+                                                level
+                                            } catch (e: Exception) {
+                                                null
+                                            }
+                                        }
+                                        if (battery != null && battery >= 0 && battery <= 100) battery else null
+                                    } else null
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            } else null
+
+                            AudioDevice(
+                                name = deviceInfo.productName?.toString() ?: "Bluetooth Device",
+                                type = AudioDeviceType.BLUETOOTH,
+                                isConnected = true,
+                                isActive = false,
+                                batteryLevel = batteryLevel,
+                                deviceId = deviceInfo.id
+                            )
+                        }
                     }
 
                     deviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES || deviceInfo.type == AudioDeviceInfo.TYPE_WIRED_HEADSET -> {
@@ -1010,6 +1015,8 @@ private fun determineActiveDevice(
         } else null
 
         preferred ?: when {
+            audioDevices.any { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP } ->
+                audioDevices.find { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP }
             audioDevices.any { isBluetoothDeviceType(it.type) } ->
                 audioDevices.find { isBluetoothDeviceType(it.type) }
             audioDevices.any {
@@ -1020,6 +1027,8 @@ private fun determineActiveDevice(
                     it.type == AudioDeviceInfo.TYPE_WIRED_HEADPHONES ||
                             it.type == AudioDeviceInfo.TYPE_WIRED_HEADSET
                 }
+            audioDevices.any { it.type == AudioDeviceInfo.TYPE_USB_HEADSET || it.type == AudioDeviceInfo.TYPE_USB_DEVICE } ->
+                audioDevices.find { it.type == AudioDeviceInfo.TYPE_USB_HEADSET || it.type == AudioDeviceInfo.TYPE_USB_DEVICE }
             else -> audioDevices.find { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
         }
     } else null

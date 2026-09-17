@@ -7,11 +7,28 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
+import java.security.MessageDigest
+import java.security.SecureRandom
+import android.util.Base64
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 import kotlin.math.floor
 
+@Serializable
+data class SpotifyTokenResponse(
+    val access_token: String,
+    val token_type: String = "Bearer",
+    val scope: String? = null,
+    val expires_in: Long = 3600,
+    val refresh_token: String? = null,
+)
+
 object SpotifyAuth {
+    const val DEFAULT_CLIENT_ID = "27915201a590446c80075c3e79060e67"
+    const val DEFAULT_REDIRECT_URI = "https://open.spotify.com/"
+    const val SCOPES = "playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read"
+
     private const val TOKEN_URL = "https://open.spotify.com/api/token"
     private const val SERVER_TIME_URL = "https://open.spotify.com/api/server-time"
     private const val NUANCE_GIST_URL =
@@ -20,6 +37,110 @@ object SpotifyAuth {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
     const val LOGIN_URL = "https://accounts.spotify.com/login?continue=https%3A%2F%2Fopen.spotify.com%2F"
+
+    fun generateCodeVerifier(): String {
+        val secureRandom = SecureRandom()
+        val code = ByteArray(64)
+        secureRandom.nextBytes(code)
+        return Base64.encodeToString(code, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    }
+
+    fun generateCodeChallenge(verifier: String): String {
+        val bytes = verifier.toByteArray(Charsets.US_ASCII)
+        val messageDigest = MessageDigest.getInstance("SHA-256")
+        messageDigest.update(bytes, 0, bytes.size)
+        val digest = messageDigest.digest()
+        return Base64.encodeToString(digest, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    }
+
+    fun buildAuthorizeUrl(
+        clientId: String = DEFAULT_CLIENT_ID,
+        redirectUri: String = DEFAULT_REDIRECT_URI,
+        codeChallenge: String,
+    ): String {
+        val encodedRedirect = URLEncoder.encode(redirectUri, "UTF-8")
+        val encodedScopes = URLEncoder.encode(SCOPES, "UTF-8")
+        return "https://accounts.spotify.com/authorize?" +
+                "client_id=$clientId" +
+                "&response_type=code" +
+                "&redirect_uri=$encodedRedirect" +
+                "&code_challenge_method=S256" +
+                "&code_challenge=$codeChallenge" +
+                "&scope=$encodedScopes"
+    }
+
+    suspend fun exchangeCode(
+        clientId: String = DEFAULT_CLIENT_ID,
+        redirectUri: String = DEFAULT_REDIRECT_URI,
+        code: String,
+        codeVerifier: String,
+    ): Result<SpotifyTokenResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val url = URL("https://accounts.spotify.com/api/token")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 15_000
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            connection.setRequestProperty("User-Agent", USER_AGENT)
+
+            val params = "grant_type=authorization_code" +
+                    "&client_id=" + URLEncoder.encode(clientId, "UTF-8") +
+                    "&code=" + URLEncoder.encode(code, "UTF-8") +
+                    "&redirect_uri=" + URLEncoder.encode(redirectUri, "UTF-8") +
+                    "&code_verifier=" + URLEncoder.encode(codeVerifier, "UTF-8")
+
+            connection.outputStream.use { it.write(params.toByteArray(Charsets.UTF_8)) }
+
+            val responseCode = connection.responseCode
+            val responseBody = if (responseCode in 200..299) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                val err = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                throw Spotify.SpotifyException(responseCode, "Token exchange failed ($responseCode): $err")
+            }
+
+            json.decodeFromString<SpotifyTokenResponse>(responseBody)
+        }
+    }
+
+    suspend fun refreshAccessToken(
+        clientId: String = DEFAULT_CLIENT_ID,
+        refreshToken: String,
+    ): Result<SpotifyTokenResponse> = withContext(Dispatchers.IO) {
+        runCatching {
+            val url = URL("https://accounts.spotify.com/api/token")
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "POST"
+            connection.doOutput = true
+            connection.connectTimeout = 15_000
+            connection.readTimeout = 15_000
+            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+            connection.setRequestProperty("User-Agent", USER_AGENT)
+
+            val params = "grant_type=refresh_token" +
+                    "&client_id=" + URLEncoder.encode(clientId, "UTF-8") +
+                    "&refresh_token=" + URLEncoder.encode(refreshToken, "UTF-8")
+
+            connection.outputStream.use { it.write(params.toByteArray(Charsets.UTF_8)) }
+
+            val responseCode = connection.responseCode
+            val responseBody = if (responseCode in 200..299) {
+                connection.inputStream.bufferedReader().use { it.readText() }
+            } else {
+                val err = connection.errorStream?.bufferedReader()?.use { it.readText() } ?: ""
+                throw Spotify.SpotifyException(responseCode, "Token refresh failed ($responseCode): $err")
+            }
+
+            val parsed = json.decodeFromString<SpotifyTokenResponse>(responseBody)
+            if (parsed.refresh_token == null) {
+                parsed.copy(refresh_token = refreshToken)
+            } else {
+                parsed
+            }
+        }
+    }
 
     private val json = Json {
         isLenient = true

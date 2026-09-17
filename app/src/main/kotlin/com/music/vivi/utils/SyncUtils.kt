@@ -1066,16 +1066,34 @@ class SyncUtils @Inject constructor(
             return session
         }
         return try {
-            val token = SpotifyAuth.fetchAccessToken(session.spDc, session.spKey.orEmpty()).getOrThrow()
-            Spotify.accessToken = token.accessToken
-            val updated = session.copy(
-                accessToken = token.accessToken,
-                expiresAt = token.accessTokenExpirationTimestampMs
-            )
-            context.dataStore.edit { prefs ->
-                prefs[SpotifySessionKey] = Json.encodeToString(updated)
+            if (!session.refreshToken.isNullOrBlank()) {
+                val clientId = session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID
+                val token = SpotifyAuth.refreshAccessToken(clientId, session.refreshToken).getOrThrow()
+                Spotify.accessToken = token.access_token
+                val updated = session.copy(
+                    accessToken = token.access_token,
+                    expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
+                    refreshToken = token.refresh_token ?: session.refreshToken,
+                    clientId = clientId,
+                )
+                context.dataStore.edit { prefs ->
+                    prefs[SpotifySessionKey] = Json.encodeToString(updated)
+                }
+                updated
+            } else if (session.spDc.isNotBlank()) {
+                val token = SpotifyAuth.fetchAccessToken(session.spDc, session.spKey.orEmpty()).getOrThrow()
+                Spotify.accessToken = token.accessToken
+                val updated = session.copy(
+                    accessToken = token.accessToken,
+                    expiresAt = token.accessTokenExpirationTimestampMs
+                )
+                context.dataStore.edit { prefs ->
+                    prefs[SpotifySessionKey] = Json.encodeToString(updated)
+                }
+                updated
+            } else {
+                null
             }
-            updated
         } catch (e: Exception) {
             Timber.e(e, "Failed to authenticate with Spotify during sync")
             null

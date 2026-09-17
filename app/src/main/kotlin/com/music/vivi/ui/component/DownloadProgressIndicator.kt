@@ -84,33 +84,44 @@ fun DownloadProgressPill(
             it.state == Download.STATE_RESTARTING
         }
     }
+    val failedDownloads = remember(downloads) {
+        downloads.values.filter { it.state == Download.STATE_FAILED }
+    }
+
+    val isVisible = activeDownloads.isNotEmpty() || failedDownloads.isNotEmpty()
 
     AnimatedVisibility(
-        visible = activeDownloads.isNotEmpty(),
+        visible = isVisible,
         enter = fadeIn() + slideInVertically { it / 2 },
         exit = fadeOut() + slideOutVertically { it / 2 },
         modifier = modifier
     ) {
-        if (activeDownloads.isEmpty()) return@AnimatedVisibility
+        if (!isVisible) return@AnimatedVisibility
 
-        val downloadingItem = activeDownloads.firstOrNull { it.state == Download.STATE_DOWNLOADING }
-            ?: activeDownloads.first()
-        val title = remember(downloadingItem.request.data, downloadingItem.request.id) {
-            runCatching { String(downloadingItem.request.data) }.getOrNull()?.takeIf { it.isNotBlank() }
-                ?: downloadingItem.request.id
+        val hasActive = activeDownloads.isNotEmpty()
+        val downloadingItem = if (hasActive) {
+            activeDownloads.firstOrNull { it.state == Download.STATE_DOWNLOADING } ?: activeDownloads.first()
+        } else null
+
+        val title = downloadingItem?.let { item ->
+            runCatching { String(item.request.data) }.getOrNull()?.takeIf { it.isNotBlank() } ?: item.request.id
         }
 
-        val progress = downloadingItem.percentDownloaded
+        val progress = downloadingItem?.percentDownloaded ?: -1f
         val progressText = if (progress >= 0f) "${progress.toInt()}%" else "Queued"
         val countText = "${activeDownloads.size}"
 
         Surface(
             onClick = onClick,
             shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            color = if (hasActive) MaterialTheme.colorScheme.surfaceContainerHigh else MaterialTheme.colorScheme.errorContainer,
+            contentColor = if (hasActive) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onErrorContainer,
             shadowElevation = 6.dp,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+            border = BorderStroke(
+                1.dp,
+                if (hasActive) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+            ),
             modifier = Modifier
                 .padding(horizontal = 16.dp)
                 .height(44.dp)
@@ -119,26 +130,39 @@ fun DownloadProgressPill(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 14.dp)
             ) {
-                if (progress >= 0f) {
-                    CircularProgressIndicator(
-                        progress = { (progress / 100f).coerceIn(0f, 1f) },
-                        modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.5.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                if (hasActive) {
+                    if (progress >= 0f) {
+                        CircularProgressIndicator(
+                            progress = { (progress / 100f).coerceIn(0f, 1f) },
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.5.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.5.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 } else {
-                    CircularProgressIndicator(
+                    Icon(
+                        painter = painterResource(R.drawable.error),
+                        contentDescription = null,
                         modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.5.dp,
-                        color = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
 
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Text(
-                    text = "$title • $progressText ($countText remaining)",
+                    text = if (hasActive) {
+                        "$title • $progressText ($countText remaining)"
+                    } else {
+                        "${failedDownloads.size} download${if (failedDownloads.size > 1) "s" else ""} failed"
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -151,7 +175,7 @@ fun DownloadProgressPill(
                     imageVector = Icons.Rounded.KeyboardArrowUp,
                     contentDescription = "Expand queue",
                     modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = if (hasActive) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onErrorContainer
                 )
             }
         }
@@ -167,21 +191,27 @@ fun DownloadQueueBottomSheet(
     val database = LocalDatabase.current
     val downloads by downloadUtil.downloads.collectAsState()
 
-    val activeDownloads = remember(downloads) {
+    val queueDownloads = remember(downloads) {
         downloads.values.filter {
             it.state == Download.STATE_DOWNLOADING ||
             it.state == Download.STATE_QUEUED ||
-            it.state == Download.STATE_RESTARTING
+            it.state == Download.STATE_RESTARTING ||
+            it.state == Download.STATE_FAILED
         }.sortedWith(
             compareBy<Download> {
-                if (it.state == Download.STATE_DOWNLOADING) 0 else 1
+                when (it.state) {
+                    Download.STATE_DOWNLOADING -> 0
+                    Download.STATE_QUEUED, Download.STATE_RESTARTING -> 1
+                    Download.STATE_FAILED -> 2
+                    else -> 3
+                }
             }.thenBy { it.request.id }
         )
     }
 
     val (pureBlack) = rememberPreference(PureBlackKey, defaultValue = false)
 
-    if (activeDownloads.isEmpty()) {
+    if (queueDownloads.isEmpty()) {
         LaunchedEffect(Unit) {
             onDismissRequest()
         }
@@ -214,7 +244,7 @@ fun DownloadQueueBottomSheet(
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "${stringResource(R.string.downloading)} (${activeDownloads.size})",
+                    text = "${stringResource(R.string.downloading)} (${queueDownloads.size})",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
@@ -240,8 +270,8 @@ fun DownloadQueueBottomSheet(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(activeDownloads, key = { it.request.id }) { download ->
-                    DownloadQueueItem(download = download, database = database)
+                items(queueDownloads, key = { it.request.id }) { download ->
+                    DownloadQueueItem(download = download, database = database, downloadUtil = downloadUtil)
                 }
             }
         }
@@ -252,6 +282,7 @@ fun DownloadQueueBottomSheet(
 private fun DownloadQueueItem(
     download: Download,
     database: MusicDatabase,
+    downloadUtil: com.music.vivi.playback.DownloadUtil,
 ) {
     val songId = download.request.id
     val title = remember(download.request.data, songId) {
@@ -265,13 +296,14 @@ private fun DownloadQueueItem(
     }
 
     val isDownloading = download.state == Download.STATE_DOWNLOADING
+    val isFailed = download.state == Download.STATE_FAILED
     val percent = download.percentDownloaded
     val bytesDownloaded = download.bytesDownloaded
     val contentLength = download.contentLength
 
     Surface(
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = if (isFailed) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.35f) else MaterialTheme.colorScheme.surfaceContainer,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -318,7 +350,9 @@ private fun DownloadQueueItem(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (isDownloading) {
+                        text = if (isFailed) {
+                            stringResource(R.string.download_failed)
+                        } else if (isDownloading) {
                             if (percent >= 0f && contentLength > 0L) {
                                 "${percent.toInt()}% • ${formatFileSize(bytesDownloaded)} / ${formatFileSize(contentLength)}"
                             } else if (percent >= 0f) {
@@ -330,8 +364,42 @@ private fun DownloadQueueItem(
                             "Queued"
                         },
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isFailed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+
+                if (isFailed) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        IconButton(
+                            onClick = {
+                                downloadUtil.retryDownload(songId, songEntity?.title ?: title)
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.refresh),
+                                contentDescription = stringResource(R.string.retry_button),
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                downloadUtil.removeDownload(songId)
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = stringResource(R.string.remove),
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
             }
 

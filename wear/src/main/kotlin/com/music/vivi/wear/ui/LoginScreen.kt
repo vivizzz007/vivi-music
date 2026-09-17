@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.runtime.Composable
@@ -57,6 +58,7 @@ import com.music.vivi.wear.WearApp
 import com.music.vivi.wear.auth.WearAuthManager
 import com.music.vivi.wear.auth.WearAuthState
 import com.music.vivi.wear.auth.WearAuthUtils
+import com.music.vivi.wear.auth.WearBluetoothSyncManager
 import com.music.vivi.wear.auth.WearPairingServer
 import com.music.vivi.wear.auth.WearQrCodeGenerator
 import kotlinx.coroutines.Dispatchers
@@ -92,6 +94,8 @@ fun LoginScreen(
     var localUrl by remember { mutableStateOf("") }
     var currentPin by remember { mutableStateOf("") }
     var isValidating by remember { mutableStateOf(false) }
+    var isBluetoothSyncing by remember { mutableStateOf(false) }
+    var bluetoothErrorMessage by remember { mutableStateOf<String?>(null) }
     var localErrorMessage by remember { mutableStateOf<String?>(null) }
 
     fun refreshWifiAndStartServer() {
@@ -101,12 +105,12 @@ fun LoginScreen(
 
         if (ip != null && !ip.startsWith("127.")) {
             pairingServer?.stop()
-            val server = WearPairingServer(context) { cookie, dataSyncId, visitorData ->
+            val server = WearPairingServer(context) { cookie, dataSyncId, visitorData, name, email ->
                 withContext(Dispatchers.Main) {
                     isValidating = true
                     localErrorMessage = null
                 }
-                val result = authManager.validateAndSaveSession(cookie, dataSyncId, visitorData)
+                val result = authManager.validateAndSaveSession(cookie, dataSyncId, visitorData, name, email)
                 withContext(Dispatchers.Main) {
                     isValidating = false
                     result.fold(
@@ -131,6 +135,18 @@ fun LoginScreen(
                 withContext(Dispatchers.Main) {
                     qrBitmap = bmp
                 }
+            }
+        }
+    }
+
+    LaunchedEffect(isAccountConnected) {
+        if (!isAccountConnected) {
+            try {
+                val res = WearBluetoothSyncManager.requestSyncFromPhone(context, timeoutMs = 4000L)
+                if (res.isSuccess) {
+                    onLoginSuccess()
+                }
+            } catch (_: Exception) {
             }
         }
     }
@@ -243,7 +259,7 @@ fun LoginScreen(
             }
 
             // State 2: Validating credentials received from phone
-            isValidating || authState is WearAuthState.Validating -> {
+            isValidating || authState is WearAuthState.Validating || isBluetoothSyncing -> {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -257,14 +273,14 @@ fun LoginScreen(
                     )
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        text = "Verifying account…",
+                        text = if (isBluetoothSyncing) "Syncing via Bluetooth…" else "Verifying account…",
                         style = MaterialTheme.typography.titleSmall,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Connecting to YouTube Music",
+                        text = if (isBluetoothSyncing) "Fetching session from phone" else "Connecting to YouTube Music",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -272,68 +288,10 @@ fun LoginScreen(
                 }
             }
 
-            // State 3: Wi-Fi is disconnected or no active local IPv4
-            wifiIp == null || wifiIp!!.startsWith("127.") -> {
-                ScalingLazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .focusRequester(focusRequester)
-                        .focusable(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    item {
-                        Text(
-                            text = "Pair Account",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                    item {
-                        Icon(
-                            imageVector = Icons.Default.WifiOff,
-                            contentDescription = "Wi-Fi Off",
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .padding(vertical = 4.dp),
-                        )
-                    }
-                    item {
-                        Text(
-                            text = "Connect to Wi-Fi to pair",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
-                    }
-                    item {
-                        Text(
-                            text = "Watch and phone must be on the same Wi-Fi network to transfer credentials.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                        )
-                    }
-                    item {
-                        Button(
-                            onClick = { refreshWifiAndStartServer() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            ),
-                            modifier = Modifier.fillMaxWidth(0.7f),
-                        ) {
-                            Text("Retry", style = MaterialTheme.typography.labelSmall)
-                        }
-                    }
-                }
-            }
-
-            // State 4: Server is running and QR code is ready
+            // State 3: Unauthenticated - Bluetooth Sync + Wi-Fi / QR code
             else -> {
                 val error = localErrorMessage ?: (authState as? WearAuthState.Error)?.message
+                val isWifiAvailable = wifiIp != null && !wifiIp!!.startsWith("127.")
 
                 ScalingLazyColumn(
                     state = listState,
@@ -350,77 +308,48 @@ fun LoginScreen(
                             color = MaterialTheme.colorScheme.primary,
                         )
                     }
+
+                    // Section 1: Bluetooth Sync (Fast & Recommended)
                     item {
-                        Text(
-                            text = "Scan with phone camera",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    item {
-                        Spacer(Modifier.height(6.dp))
-                    }
-                    item {
-                        if (qrBitmap != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(140.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(Color.White)
-                                    .padding(6.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Image(
-                                    bitmap = qrBitmap!!,
-                                    contentDescription = "Pairing QR code",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize(),
-                                )
-                            }
-                        } else {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(36.dp),
-                                colors = androidx.wear.compose.material3.ProgressIndicatorDefaults.colors(
-                                    indicatorColor = MaterialTheme.colorScheme.primary,
-                                ),
-                            )
-                        }
-                    }
-                    item {
-                        Spacer(Modifier.height(6.dp))
-                    }
-                    item {
-                        Text(
-                            text = "PIN: $currentPin",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 3.sp,
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    isBluetoothSyncing = true
+                                    bluetoothErrorMessage = null
+                                    val result = WearBluetoothSyncManager.requestSyncFromPhone(context, timeoutMs = 8000L)
+                                    isBluetoothSyncing = false
+                                    result.fold(
+                                        onSuccess = { onLoginSuccess() },
+                                        onFailure = { err ->
+                                            bluetoothErrorMessage = err.message ?: "Bluetooth sync failed"
+                                        }
+                                    )
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                             ),
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
-                    item {
-                        Text(
-                            text = localUrl,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                        )
+                            modifier = Modifier.fillMaxWidth(0.9f).padding(top = 6.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Bluetooth,
+                                contentDescription = "Bluetooth",
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(Modifier.size(6.dp))
+                            Text("Sync via Phone (Bluetooth)", style = MaterialTheme.typography.labelSmall)
+                        }
                     }
 
-                    if (!error.isNullOrBlank()) {
-                        item {
-                            Spacer(Modifier.height(4.dp))
-                        }
+                    if (!bluetoothErrorMessage.isNullOrBlank()) {
                         item {
                             Text(
-                                text = error,
+                                text = bluetoothErrorMessage!!,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                                 textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 16.dp),
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
                             )
                         }
                     }
@@ -428,15 +357,127 @@ fun LoginScreen(
                     item {
                         Spacer(Modifier.height(8.dp))
                     }
+
+                    // Section 2: Wi-Fi & QR Code Alternative
                     item {
-                        Button(
-                            onClick = { refreshWifiAndStartServer() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                            ),
-                            modifier = Modifier.fillMaxWidth(0.7f),
-                        ) {
-                            Text("Refresh QR", style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            text = "Or pair via Wi-Fi",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+
+                    if (isWifiAvailable) {
+                        item {
+                            Spacer(Modifier.height(4.dp))
+                        }
+                        item {
+                            if (qrBitmap != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(130.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color.White)
+                                        .padding(6.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Image(
+                                        bitmap = qrBitmap!!,
+                                        contentDescription = "Pairing QR code",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                }
+                            } else {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    colors = androidx.wear.compose.material3.ProgressIndicatorDefaults.colors(
+                                        indicatorColor = MaterialTheme.colorScheme.primary,
+                                    ),
+                                )
+                            }
+                        }
+                        item {
+                            Spacer(Modifier.height(4.dp))
+                        }
+                        item {
+                            Text(
+                                text = "PIN: $currentPin",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 3.sp,
+                                ),
+                                color = MaterialTheme.colorScheme.secondary,
+                            )
+                        }
+                        item {
+                            Text(
+                                text = localUrl,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            )
+                        }
+                        if (!error.isNullOrBlank()) {
+                            item {
+                                Spacer(Modifier.height(4.dp))
+                            }
+                            item {
+                                Text(
+                                    text = error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                )
+                            }
+                        }
+                        item {
+                            Spacer(Modifier.height(6.dp))
+                        }
+                        item {
+                            Button(
+                                onClick = { refreshWifiAndStartServer() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                ),
+                                modifier = Modifier.fillMaxWidth(0.7f),
+                            ) {
+                                Text("Refresh QR", style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                    } else {
+                        item {
+                            Icon(
+                                imageVector = Icons.Default.WifiOff,
+                                contentDescription = "Wi-Fi Off",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .padding(vertical = 4.dp),
+                            )
+                        }
+                        item {
+                            Text(
+                                text = "Wi-Fi is disconnected",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                            )
+                        }
+                        item {
+                            Button(
+                                onClick = { refreshWifiAndStartServer() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                ),
+                                modifier = Modifier.fillMaxWidth(0.7f).padding(top = 4.dp),
+                            ) {
+                                Text("Retry Wi-Fi", style = MaterialTheme.typography.labelSmall)
+                            }
                         }
                     }
                 }

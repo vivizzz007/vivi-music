@@ -1322,6 +1322,9 @@ interface DatabaseDao {
         toPosition: Int,
     )
 
+    @Query("UPDATE playlist_song_map SET position = :position WHERE id = :id")
+    fun updatePlaylistSongPosition(id: Int, position: Int)
+
     @Transaction
     @Query("DELETE FROM playlist_song_map WHERE playlistId = :playlistId")
     fun clearPlaylist(playlistId: String)
