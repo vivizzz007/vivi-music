@@ -15,8 +15,11 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import com.music.vivi.ui.utils.fadingEdge
 
 @Composable
@@ -24,10 +27,18 @@ fun OnlineBlur(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     Box(modifier = modifier) {
         if (thumbnailUrl != null) {
             AsyncImage(
-                model = thumbnailUrl,
+                // Decode a small source bitmap instead of the full-resolution thumbnail:
+                // a heavy blur destroys detail anyway, so this cuts the GPU blur cost
+                // (proportional to pixel count) without any visible difference.
+                model = ImageRequest.Builder(context)
+                    .data(thumbnailUrl)
+                    .size(128, 128)
+                    .allowHardware(false)
+                    .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
