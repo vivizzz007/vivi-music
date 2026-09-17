@@ -97,10 +97,10 @@ jobs:
         uses: ilharp/sign-android-release@v2.0.0
         with:
           releaseDir: app/build/outputs/apk/universalGms/release/
-          signingKey: ${{ secrets.KEYSTORE }}
+          signingKey: ${{ secrets.KEYSTORE || secrets.KEYSTORE_BASE64 }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD || secrets.STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD || secrets.STORE_PASSWORD }}
           buildToolsVersion: 35.0.0
 
       - name: Sign FOSS APK
@@ -109,10 +109,10 @@ jobs:
         uses: ilharp/sign-android-release@v2.0.0
         with:
           releaseDir: app/build/outputs/apk/universalFoss/release/
-          signingKey: ${{ secrets.KEYSTORE }}
+          signingKey: ${{ secrets.KEYSTORE || secrets.KEYSTORE_BASE64 }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD || secrets.STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD || secrets.STORE_PASSWORD }}
           buildToolsVersion: 35.0.0
 
       - name: Prepare Release Assets
