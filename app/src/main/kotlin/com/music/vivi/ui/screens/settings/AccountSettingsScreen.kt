@@ -653,7 +653,7 @@ fun AccountSettingsScreen(
                                         android.widget.Toast.makeText(context, "Credentials sent to watch via Bluetooth!", android.widget.Toast.LENGTH_SHORT).show()
                                         showWatchPairDialog = false
                                     } else {
-                                        android.widget.Toast.makeText(context, "No connected watch found via Bluetooth. Try manual Wi-Fi pairing below.", android.widget.Toast.LENGTH_LONG).show()
+                                        android.widget.Toast.makeText(context, "No connected watch with Vivi found via Bluetooth. Ensure the latest Vivi Wear OS app is installed on the watch and active, or use manual Wi-Fi pairing below.", android.widget.Toast.LENGTH_LONG).show()
                                     }
                                 }
                             }

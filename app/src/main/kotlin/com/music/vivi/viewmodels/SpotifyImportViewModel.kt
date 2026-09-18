@@ -23,12 +23,16 @@ import com.music.innertube.models.SongItem
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import com.music.vivi.R
+import android.widget.Toast
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -117,15 +121,22 @@ class SpotifyImportViewModel @Inject constructor(
 
     private val _importProgress = MutableStateFlow<SpotifyImportProgress?>(null)
     val importProgress: StateFlow<SpotifyImportProgress?> = _importProgress.asStateFlow()
-
-    private val _pushProgress = MutableStateFlow<SpotifyPushProgress?>(null)
     val pushProgress: StateFlow<SpotifyPushProgress?> = _pushProgress.asStateFlow()
+    val isImportMinimized: StateFlow<Boolean> = _isImportMinimized.asStateFlow()
+    val isPushMinimized: StateFlow<Boolean> = _isPushMinimized.asStateFlow()
 
     val localPlaylists: StateFlow<List<Playlist>> = database.playlistsByNameAsc()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private var importJob: Job? = null
-    private var pushJob: Job? = null
+    companion object {
+        private val backgroundScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        private val _importProgress = MutableStateFlow<SpotifyImportProgress?>(null)
+        private val _pushProgress = MutableStateFlow<SpotifyPushProgress?>(null)
+        private val _isImportMinimized = MutableStateFlow(false)
+        private val _isPushMinimized = MutableStateFlow(false)
+        private var importJob: Job? = null
+        private var pushJob: Job? = null
+    }
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -135,10 +146,27 @@ class SpotifyImportViewModel @Inject constructor(
         restoreSession()
     }
 
+    fun minimizeImport() {
+        _isImportMinimized.value = true
+    }
+
+    fun restoreImportDialog() {
+        _isImportMinimized.value = false
+    }
+
+    fun minimizePush() {
+        _isPushMinimized.value = true
+    }
+
+    fun restorePushDialog() {
+        _isPushMinimized.value = false
+    }
+
     fun pushLocalPlaylists(playlistIds: List<String>) {
         if (playlistIds.isEmpty()) return
+        _isPushMinimized.value = false
         pushJob?.cancel()
-        pushJob = viewModelScope.launch {
+        pushJob = backgroundScope.launch {
             try {
                 ensureAuthenticated()
                 _pushProgress.value = SpotifyPushProgress(
@@ -158,13 +186,15 @@ class SpotifyImportViewModel @Inject constructor(
                         )
                     },
                     onComplete = { succeeded, total ->
+                        val msg = "Successfully pushed $succeeded of $total playlists to Spotify!"
                         _pushProgress.value = SpotifyPushProgress(
                             playlistName = "",
                             percent = 1f,
-                            status = "Successfully pushed $succeeded of $total playlists to Spotify!",
+                            status = msg,
                             isFinished = true,
                         )
                         loadSources()
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     }
                 )
             } catch (e: Exception) {
@@ -178,8 +208,16 @@ class SpotifyImportViewModel @Inject constructor(
         }
     }
 
+    fun cancelPush() {
+        pushJob?.cancel()
+        pushJob = null
+        _pushProgress.value = null
+        _isPushMinimized.value = false
+    }
+
     fun dismissPushProgress() {
         _pushProgress.value = null
+        _isPushMinimized.value = false
     }
 
     private suspend fun getSession(): SpotifySession? {
@@ -427,7 +465,7 @@ class SpotifyImportViewModel @Inject constructor(
                     }
                     playlistsList.addAll(page.items)
                     offset += limit
-                    if (offset >= page.total) break
+                    if (page.items.isEmpty() || offset >= page.total) break
                 }
 
                 val enrichedPlaylists = playlistsList.map { pl ->
@@ -518,7 +556,7 @@ class SpotifyImportViewModel @Inject constructor(
             }
             tracks.addAll(page.items.mapNotNull { it.track })
             offset += limit
-            if (offset >= page.total) break
+            if (page.items.isEmpty() || offset >= page.total) break
         }
 
         return@withContext tracks.map { track ->
@@ -544,7 +582,7 @@ class SpotifyImportViewModel @Inject constructor(
             }
             tracks.addAll(page.items.map { it.track })
             offset += limit
-            if (offset >= page.total) break
+            if (page.items.isEmpty() || offset >= page.total) break
         }
 
         return@withContext tracks.map { track ->
@@ -561,8 +599,9 @@ class SpotifyImportViewModel @Inject constructor(
     }
 
     fun startImport(selectedIds: List<String>) {
+        _isImportMinimized.value = false
         importJob?.cancel()
-        importJob = viewModelScope.launch(Dispatchers.IO) {
+        importJob = backgroundScope.launch(Dispatchers.IO) {
             _importProgress.update { null }
 
             try {
@@ -636,7 +675,7 @@ class SpotifyImportViewModel @Inject constructor(
                     }
 
                     val completedCount = AtomicInteger(0)
-                    val semaphore = Semaphore(4)
+                    val semaphore = Semaphore(2)
 
                     val matchedMedia = importData.songs.mapIndexed { _, song ->
                         async {
@@ -644,32 +683,40 @@ class SpotifyImportViewModel @Inject constructor(
                                 var resultMedia: MediaMetadata? = null
                                 try {
                                     val artist = song.artists.firstOrNull()?.name.orEmpty()
-                                    val songTitle = song.title
-                                    val query = if (artist.isEmpty()) songTitle else "$artist $songTitle"
+                                    val cleanTitle = Spotify.cleanTrackSearchQuery(song.title)
+                                    val query = if (artist.isEmpty()) cleanTitle else "$artist $cleanTitle"
 
-                                    val searchResult = YouTube.search(
-                                        query = query,
-                                        filter = YouTube.SearchFilter.FILTER_SONG,
-                                    ).getOrNull()
+                                    // 1. Check local DB first to avoid unnecessary network calls
+                                    val existingLocal = database.searchSongs(query, 1).first().firstOrNull()
+                                    if (existingLocal != null) {
+                                        resultMedia = existingLocal.toMediaMetadata()
+                                    } else {
+                                        // Pacing delay to avoid YouTube rate limit
+                                        delay(100)
+                                        val searchResult = YouTube.search(
+                                            query = query,
+                                            filter = YouTube.SearchFilter.FILTER_SONG,
+                                        ).getOrNull()
 
-                                    val candidates = searchResult?.items
-                                        ?.filterIsInstance<SongItem>()
-                                        ?.distinctBy { it.id }
-                                        .orEmpty()
+                                        val candidates = searchResult?.items
+                                            ?.filterIsInstance<SongItem>()
+                                            ?.distinctBy { it.id }
+                                            .orEmpty()
 
-                                    val best = candidates.maxByOrNull { candidate ->
-                                        SpotifyMapper.matchScore(
-                                            spotifyTitle = song.title,
-                                            spotifyArtist = song.artists.joinToString(" ") { it.name },
-                                            spotifyDurationMs = song.song.duration * 1000,
-                                            candidateTitle = candidate.title,
-                                            candidateArtist = candidate.artists.joinToString(" ") { it.name },
-                                            candidateDurationSec = candidate.duration,
-                                        )
-                                    }
+                                        val best = candidates.maxByOrNull { candidate ->
+                                            SpotifyMapper.matchScore(
+                                                spotifyTitle = song.title,
+                                                spotifyArtist = song.artists.joinToString(" ") { it.name },
+                                                spotifyDurationMs = song.song.duration * 1000,
+                                                candidateTitle = candidate.title,
+                                                candidateArtist = candidate.artists.joinToString(" ") { it.name },
+                                                candidateDurationSec = candidate.duration,
+                                            )
+                                        }
 
-                                    if (best != null) {
-                                        resultMedia = best.toMediaMetadata()
+                                        if (best != null) {
+                                            resultMedia = best.toMediaMetadata()
+                                        }
                                     }
                                 } catch (e: Exception) {
                                     reportException(e)
@@ -742,6 +789,9 @@ class SpotifyImportViewModel @Inject constructor(
                         isFinished = true
                     )
                 }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Spotify import completed!", Toast.LENGTH_SHORT).show()
+                }
             } catch (e: Exception) {
                 if (e !is kotlinx.coroutines.CancellationException) {
                     reportException(e)
@@ -759,10 +809,12 @@ class SpotifyImportViewModel @Inject constructor(
         importJob?.cancel()
         importJob = null
         _importProgress.update { null }
+        _isImportMinimized.value = false
     }
 
     fun dismissImportProgress() {
         _importProgress.update { null }
+        _isImportMinimized.value = false
     }
 
     fun dismissError() {

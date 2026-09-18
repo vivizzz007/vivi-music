@@ -1412,7 +1412,13 @@ fun LocalPlaylistHeader(
                             onDelete = onshowDeletePlaylistDialog,
                             onSyncToSpotify = {
                                 scope.launch {
-                                    syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                    if (playlist.id.startsWith("SPOTIFY_PLAYLIST_") || playlist.id == "SPOTIFY_LIKED_SONGS") {
+                                        android.widget.Toast.makeText(context, "Syncing with Spotify...", android.widget.Toast.LENGTH_SHORT).show()
+                                        syncUtils.syncSpotifyPlaylistSuspend(playlist.id)
+                                        snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                    } else {
+                                        syncUtils.syncLocalPlaylistToSpotify(playlist.id)
+                                    }
                                 }
                             },
                             onDownload = {

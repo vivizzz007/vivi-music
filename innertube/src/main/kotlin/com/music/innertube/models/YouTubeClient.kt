@@ -36,12 +36,12 @@ data class YouTubeClient(
             deviceMake = deviceMake,
             deviceModel = deviceModel,
             androidSdkVersion = androidSdkVersion,
-            gl = locale.gl,
-            hl = locale.hl,
-            visitorData = visitorData
+            gl = locale.gl.takeIf { it.isNotBlank() } ?: "US",
+            hl = locale.hl.takeIf { it.isNotBlank() } ?: "en",
+            visitorData = visitorData?.takeIf { it.isNotBlank() && it != "null" }
         ),
         user = Context.User(
-            onBehalfOfUser = if (loginSupported) dataSyncId else null
+            onBehalfOfUser = if (loginSupported) dataSyncId?.takeIf { it.isNotBlank() && it != "null" } else null
         ),
     )
 

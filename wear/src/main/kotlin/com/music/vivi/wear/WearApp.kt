@@ -12,6 +12,7 @@ import android.content.Context
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeLocale
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.wear.auth.WearAuthManager
 import com.music.vivi.wear.auth.WearAuthPreferences
@@ -24,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import java.util.Locale
 import timber.log.Timber
 
 /**
@@ -58,6 +60,15 @@ class WearApp : Application() {
         }
         Timber.i("WearApp initializing on Wear OS 5 / API %d", android.os.Build.VERSION.SDK_INT)
 
+        // 0. Initialize YouTube locale with safe fallbacks for Wear OS (avoiding empty gl/hl)
+        val defaultLocale = Locale.getDefault()
+        val country = defaultLocale.country.takeIf { it.length == 2 } ?: "US"
+        val language = defaultLocale.language.takeIf { it.isNotBlank() } ?: "en"
+        YouTube.locale = YouTubeLocale(
+            gl = country,
+            hl = language,
+        )
+
         // 1. Initialize persistent Room database from :core-database
         database = MusicDatabase.newInstance(this)
 
@@ -90,13 +101,13 @@ class WearApp : Application() {
         }
         authScope.launch {
             authPreferences.dataSyncId.distinctUntilChanged().collect { dataSyncId ->
-                YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)
+                YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)?.takeIf { it.isNotBlank() && it != "null" }
                 Timber.d("YouTube.dataSyncId updated from DataStore")
             }
         }
         authScope.launch {
             authPreferences.visitorData.distinctUntilChanged().collect { visitorData ->
-                YouTube.visitorData = visitorData
+                YouTube.visitorData = visitorData?.takeIf { it.isNotBlank() && it != "null" }
                 Timber.d("YouTube.visitorData updated from DataStore")
             }
         }

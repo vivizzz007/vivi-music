@@ -4,8 +4,7 @@ import android.webkit.CookieManager
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.*
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -76,6 +75,8 @@ fun SpotifyScreen(
     var showPushSheet by remember { mutableStateOf(false) }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
     val pushProgress by viewModel.pushProgress.collectAsStateWithLifecycle()
+    val isImportMinimized by viewModel.isImportMinimized.collectAsStateWithLifecycle()
+    val isPushMinimized by viewModel.isPushMinimized.collectAsStateWithLifecycle()
     val (spotifyAutoSync, onSpotifyAutoSyncChange) = rememberPreference(SpotifyAutoSyncKey, true)
 
     val refreshEnabled = state.isAuthenticated && !state.isLoading
@@ -107,6 +108,137 @@ fun SpotifyScreen(
                 LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)
             )
         )
+
+        AnimatedVisibility(
+            visible = importProgress != null && isImportMinimized,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            importProgress?.let { progress ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (progress.isFinished) {
+                            Icon(
+                                painter = painterResource(R.drawable.check),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        } else {
+                            CircularProgressIndicator(
+                                progress = { progress.percent },
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 3.dp,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (progress.isFinished) stringResource(R.string.spotify_import_complete)
+                                else stringResource(R.string.spotify_import_in_progress) + (if (progress.playlistName.isNotBlank()) ": ${progress.playlistName}" else ""),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = if (progress.isFinished) stringResource(R.string.spotify_imported_songs_count, progress.currentSongIndex, progress.totalSongs)
+                                else stringResource(R.string.spotify_importing_songs_count, progress.currentSongIndex, progress.totalSongs),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        TextButton(onClick = { viewModel.restoreImportDialog() }) {
+                            Text(stringResource(R.string.view_progress))
+                        }
+                        IconButton(onClick = {
+                            if (progress.isFinished) viewModel.dismissImportProgress() else viewModel.cancelImport()
+                        }) {
+                            Icon(painterResource(R.drawable.close), contentDescription = stringResource(android.R.string.cancel))
+                        }
+                    }
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = pushProgress != null && isPushMinimized,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            pushProgress?.let { progress ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    tonalElevation = 2.dp
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (progress.isFinished) {
+                            Icon(
+                                painter = painterResource(R.drawable.check),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        } else {
+                            CircularProgressIndicator(
+                                progress = { progress.percent },
+                                modifier = Modifier.size(28.dp),
+                                strokeWidth = 3.dp,
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (progress.isFinished) stringResource(R.string.push_complete)
+                                else if (progress.playlistName.isNotBlank()) progress.playlistName else stringResource(R.string.push_in_progress),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = progress.status,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        TextButton(onClick = { viewModel.restorePushDialog() }) {
+                            Text(stringResource(R.string.view_progress))
+                        }
+                        IconButton(onClick = {
+                            if (progress.isFinished) viewModel.dismissPushProgress() else viewModel.cancelPush()
+                        }) {
+                            Icon(painterResource(R.drawable.close), contentDescription = stringResource(android.R.string.cancel))
+                        }
+                    }
+                }
+            }
+        }
 
         Text(
             text = stringResource(R.string.spotify),
@@ -330,14 +462,15 @@ fun SpotifyScreen(
         )
     }
 
-    importProgress?.let { progress ->
+    if (importProgress != null && !isImportMinimized) {
+        val progress = importProgress!!
         val isFinished = progress.isFinished || progress.percent >= 1f
         DefaultDialog(
             onDismiss = {
                 if (isFinished) {
                     viewModel.dismissImportProgress()
                 } else {
-                    viewModel.cancelImport()
+                    viewModel.minimizeImport()
                 }
             },
             title = {
@@ -358,6 +491,10 @@ fun SpotifyScreen(
                         Text(stringResource(android.R.string.ok))
                     }
                 } else {
+                    TextButton(onClick = { viewModel.minimizeImport() }) {
+                        Text(stringResource(R.string.run_in_background))
+                    }
+                    Spacer(Modifier.width(8.dp))
                     TextButton(onClick = { viewModel.cancelImport() }) {
                         Text(stringResource(android.R.string.cancel))
                     }
@@ -427,10 +564,15 @@ fun SpotifyScreen(
         )
     }
 
-    pushProgress?.let { progress ->
+    if (pushProgress != null && !isPushMinimized) {
+        val progress = pushProgress!!
         DefaultDialog(
             onDismiss = {
-                if (progress.isFinished) viewModel.dismissPushProgress()
+                if (progress.isFinished) {
+                    viewModel.dismissPushProgress()
+                } else {
+                    viewModel.minimizePush()
+                }
             },
             title = {
                 Text(
@@ -445,6 +587,14 @@ fun SpotifyScreen(
                         shape = CircleShape
                     ) {
                         Text(stringResource(android.R.string.ok))
+                    }
+                } else {
+                    TextButton(onClick = { viewModel.minimizePush() }) {
+                        Text(stringResource(R.string.run_in_background))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    TextButton(onClick = { viewModel.cancelPush() }) {
+                        Text(stringResource(android.R.string.cancel))
                     }
                 }
             }

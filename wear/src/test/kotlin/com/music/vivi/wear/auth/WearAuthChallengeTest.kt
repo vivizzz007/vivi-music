@@ -10,6 +10,8 @@ import android.graphics.Color
 import androidx.test.core.app.ApplicationProvider
 import com.google.zxing.WriterException
 import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeClient
+import com.music.innertube.models.YouTubeLocale
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -564,5 +566,58 @@ class WearAuthChallengeTest {
         assertNotNull(serverInstance.pairingInfo)
 
         serverInstance.stop()
+    }
+
+    @Test
+    fun testYouTubeContext_sanitizationProtectsAgainstEmptyLocaleAndBlankUser() {
+        val emptyLocale = YouTubeLocale(gl = "", hl = "")
+        val context = YouTubeClient.WEB_REMIX.toContext(
+            locale = emptyLocale,
+            visitorData = "",
+            dataSyncId = "   "
+        )
+        // Verify gl & hl fall back to valid values
+        assertEquals("US", context.client.gl)
+        assertEquals("en", context.client.hl)
+        // Verify blank visitorData and dataSyncId become null
+        assertNull(context.client.visitorData)
+        assertNull(context.user.onBehalfOfUser)
+
+        val nullStringContext = YouTubeClient.WEB_REMIX.toContext(
+            locale = YouTubeLocale(gl = "HU", hl = "hu"),
+            visitorData = "null",
+            dataSyncId = "null"
+        )
+        assertEquals("HU", nullStringContext.client.gl)
+        assertEquals("hu", nullStringContext.client.hl)
+        assertNull(nullStringContext.client.visitorData)
+        assertNull(nullStringContext.user.onBehalfOfUser)
+    }
+
+    @Test
+    fun testParseCookieString_supportsVariousDelimitersAndSpaces() {
+        val rawCookies = "SID=val1;HSID=val2;__Secure-3PAPISID=secret_token;SAPISID=sapisid_token"
+        val parsed = com.music.innertube.utils.parseCookieString(rawCookies)
+        assertEquals("val1", parsed["SID"])
+        assertEquals("val2", parsed["HSID"])
+        assertEquals("secret_token", parsed["__Secure-3PAPISID"])
+        assertEquals("sapisid_token", parsed["SAPISID"])
+    }
+
+    @Test
+    fun testWearAuthManager_sanitizesBlankAndNullStringCredentials() = runBlocking {
+        val prefs = WearAuthPreferences(context)
+        val authManager = WearAuthManager(context, prefs)
+
+        authManager.validateAndSaveSession(
+            cookie = "SAPISID=valid_cookie_123",
+            dataSyncId = "null",
+            visitorData = "",
+            accountName = "Test Account",
+        )
+
+        assertNull("YouTube.dataSyncId must be sanitized to null", YouTube.dataSyncId)
+        assertNull("YouTube.visitorData must be sanitized to null", YouTube.visitorData)
+        assertEquals("SAPISID=valid_cookie_123", YouTube.cookie)
     }
 }

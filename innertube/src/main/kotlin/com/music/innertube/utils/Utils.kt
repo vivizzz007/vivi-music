@@ -82,12 +82,13 @@ fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x
 fun sha1(str: String): String = MessageDigest.getInstance("SHA-1").digest(str.toByteArray()).toHex()
 
 fun parseCookieString(cookie: String): Map<String, String> =
-    cookie.split("; ")
+    cookie.split(';')
+        .map { it.trim() }
         .filter { it.isNotEmpty() }
         .mapNotNull { part ->
             val splitIndex = part.indexOf('=')
             if (splitIndex == -1) null
-            else part.substring(0, splitIndex) to part.substring(splitIndex + 1)
+            else part.substring(0, splitIndex).trim() to part.substring(splitIndex + 1).trim()
         }
         .toMap()
 

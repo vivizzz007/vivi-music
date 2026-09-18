@@ -195,8 +195,8 @@ constructor(
                         isExplicit = song?.explicit,
                         isUploaded = song?.isUploaded,
                     ),
-                    allowBoundedRange = true,
-                    preferM4a = false,
+                    allowBoundedRange = false,
+                    preferM4a = true,
                 )
                 if (initialAttempt.isSuccess) {
                     return@runBlocking initialAttempt
@@ -233,8 +233,8 @@ constructor(
                                 isExplicit = candidate.explicit,
                                 isUploaded = false,
                             ),
-                            allowBoundedRange = true,
-                            preferM4a = false,
+                            allowBoundedRange = false,
+                            preferM4a = true,
                         )
                         if (candidateAttempt.isSuccess) {
                             Timber.tag("DownloadDiagnostics").i("Alternative candidate ${candidate.id} succeeded for download of $mediaId")
@@ -315,26 +315,15 @@ constructor(
             }
 
             val streamUrl = activePlaybackData.streamUrl
-            val isYouTubeStream = activePlaybackData.streamClient != "JIOSAAVN" && !activePlaybackData.isSaavnStream
-            val effectiveRequireBoundedRange = if (isYouTubeStream) true else activePlaybackData.requireBoundedRange
-            val effectiveUseRangeChunks = if (isYouTubeStream) true else activePlaybackData.useRangeChunks
-            val effectiveRangeChunkSizeBytes = if (isYouTubeStream) {
-                if (activePlaybackData.rangeChunkSizeBytes in 1L..(1024 * 1024L)) {
-                    activePlaybackData.rangeChunkSizeBytes
-                } else {
-                    512 * 1024L
-                }
-            } else {
-                activePlaybackData.rangeChunkSizeBytes
-            }
-
+            // Downloads MUST NOT use bounded range chunks because ProgressiveDownloader terminates
+            // upon reaching dataSpec.length. Setting bounded range truncated downloads to 512 KB!
             val cachedStream = CachedStreamUrl(
                 url = streamUrl,
                 requestHeaders = activePlaybackData.streamHeaders,
                 clientName = activePlaybackData.streamClient,
-                requireBoundedRange = effectiveRequireBoundedRange,
-                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
-                useRangeChunks = effectiveUseRangeChunks,
+                requireBoundedRange = false,
+                rangeChunkSizeBytes = 0L,
+                useRangeChunks = false,
             )
 
             songUrlCache.put(
@@ -343,9 +332,9 @@ constructor(
                 requestHeaders = activePlaybackData.streamHeaders,
                 clientName = activePlaybackData.streamClient,
                 expiresInSeconds = activePlaybackData.streamExpiresInSeconds,
-                requireBoundedRange = effectiveRequireBoundedRange,
-                rangeChunkSizeBytes = effectiveRangeChunkSizeBytes,
-                useRangeChunks = effectiveUseRangeChunks,
+                requireBoundedRange = false,
+                rangeChunkSizeBytes = 0L,
+                useRangeChunks = false,
                 expectedGeneration = cacheGeneration,
             )
             dataSpec.withResolvedStream(cachedStream)
@@ -636,11 +625,33 @@ constructor(
                             when (download.state) {
                                 Download.STATE_COMPLETED -> {
                                     val songId = download.request.id
-                                    database.updateDownloadedInfo(songId, true, LocalDateTime.now())
+                                    val cacheKey = when {
+                                        downloadCache.keys.contains(songId) -> songId
+                                        downloadCache.keys.contains(songId.toUri().toString()) -> songId.toUri().toString()
+                                        else -> downloadCache.keys.firstOrNull { it.contains(songId) } ?: songId
+                                    }
+                                    val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+                                    val song = database.getSongByIdBlocking(songId)?.song
+                                    val duration = song?.duration ?: 0
+                                    val format = database.format(songId).firstOrNull()
+                                    val expectedLength = format?.contentLength ?: 0L
 
-                                    val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
-                                    if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
-                                        exportSongToPublicStorage(songId)
+                                    val isTruncated = (cachedBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
+                                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong()) ||
+                                            (cachedBytes < 300_000L && duration > 25)
+
+                                    if (isTruncated) {
+                                        Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated (cached: $cachedBytes, expected: $expectedLength, duration: $duration) for $songId. Retrying download...")
+                                        database.updateDownloadedInfo(songId, false, null)
+                                        permanentlyFailedSongIds.remove(songId)
+                                        reDownloadSong(songId, song?.title ?: songId)
+                                    } else {
+                                        database.updateDownloadedInfo(songId, true, LocalDateTime.now())
+
+                                        val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
+                                        if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
+                                            exportSongToPublicStorage(songId)
+                                        }
                                     }
                                 }
                                 Download.STATE_FAILED,
@@ -721,10 +732,6 @@ constructor(
                 for (songWithData in downloadedSongs) {
                     val song = songWithData.song
                     val songId = song.id
-                    if (songId in permanentlyFailedSongIds) {
-                        Timber.tag("DownloadUtil").d("Skipping song repair for permanently failed song: $songId")
-                        continue
-                    }
                     val download = downloads.value[songId]
                     if (download != null && (download.state == Download.STATE_DOWNLOADING || download.state == Download.STATE_QUEUED || download.state == Download.STATE_RESTARTING)) {
                         continue
@@ -741,11 +748,19 @@ constructor(
 
                     val isTruncated = (cachedBytes in 1L..1_150_000L && (song.duration > 30 || (format?.bitrate ?: 0) > 0)) ||
                             (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong()) ||
+                            (cachedBytes < 300_000L && song.duration > 25) ||
                             cachedBytes == 0L ||
                             song.duration <= 0
 
                     if (isTruncated) {
                         Timber.tag("DownloadUtil").w("Repairing corrupt/truncated song: \"${song.title}\" ($songId) - cached=$cachedBytes bytes, expected=$expectedLength, duration=${song.duration}")
+                        permanentlyFailedSongIds.remove(songId)
+                        appContext.dataStore.edit { prefs ->
+                            val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
+                            if (songId in current) {
+                                prefs[PermanentlyFailedDownloadSongIdsKey] = current - songId
+                            }
+                        }
                         reDownloadSong(songId, song.title)
                     }
                 }

@@ -53,29 +53,35 @@ class InnerTube {
     private var extractionHttpClient = createExtractionClient()
     private var innerTubeX = InnerTubeX(extractionHttpClient).also {
         it.locale = com.metrolist.innertubex.models.YouTubeLocale(
-            gl = Locale.getDefault().country,
-            hl = Locale.getDefault().toLanguageTag()
+            gl = Locale.getDefault().country.takeIf { c -> c.isNotBlank() } ?: "US",
+            hl = Locale.getDefault().language.takeIf { l -> l.isNotBlank() } ?: "en"
         )
     }
     private var extractionGeneration = 0L
 
     var locale = YouTubeLocale(
-        gl = Locale.getDefault().country,
-        hl = Locale.getDefault().toLanguageTag()
+        gl = Locale.getDefault().country.takeIf { it.isNotBlank() } ?: "US",
+        hl = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "en"
     )
         set(value) {
-            field = value
-            innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(value.gl, value.hl)
+            val sanitized = YouTubeLocale(
+                gl = value.gl.takeIf { it.isNotBlank() } ?: "US",
+                hl = value.hl.takeIf { it.isNotBlank() } ?: "en"
+            )
+            field = sanitized
+            innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(sanitized.gl, sanitized.hl)
         }
     var visitorData: String? = null
         set(value) {
-            field = value
-            innerTubeX.visitorData = value
+            val sanitized = value?.takeIf { it.isNotBlank() && it != "null" }
+            field = sanitized
+            innerTubeX.visitorData = sanitized
         }
     var dataSyncId: String? = null
         set(value) {
-            field = value
-            innerTubeX.dataSyncId = value
+            val sanitized = value?.takeIf { it.isNotBlank() && it != "null" }
+            field = sanitized
+            innerTubeX.dataSyncId = sanitized
         }
     var cookie: String? = null
         set(value) {
@@ -330,14 +336,18 @@ class InnerTube {
             append("X-YouTube-Client-Version", client.clientVersion)
             append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
             append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
-            visitorData?.let { append("X-Goog-Visitor-Id", it) }
+            visitorData?.takeIf { it.isNotBlank() && it != "null" }?.let { append("X-Goog-Visitor-Id", it) }
             if (setLogin && client.loginSupported) {
                 cookie?.let { cookie ->
                     append("cookie", cookie)
-                    if ("SAPISID" !in cookieMap) return@let
-                    val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
-                    append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
+                    val sapisid = cookieMap["SAPISID"]
+                        ?: cookieMap["__Secure-3PAPISID"]
+                        ?: cookieMap["__Secure-1PAPISID"]
+                    if (sapisid != null) {
+                        val currentTime = System.currentTimeMillis() / 1000
+                        val sapisidHash = sha1("$currentTime $sapisid ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
+                        append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
+                    }
                 }
             }
         }

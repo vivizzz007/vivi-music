@@ -1166,7 +1166,7 @@ class SyncUtils @Inject constructor(
                     val page = Spotify.likedSongs(limit = limit, offset = offset).getOrThrow()
                     tracks.addAll(page.items.map { it.track })
                     offset += limit
-                    if (offset >= page.total) break
+                    if (page.items.isEmpty() || offset >= page.total) break
                 }
             } else if (localPlaylistId.startsWith("SPOTIFY_PLAYLIST_")) {
                 val spotifyId = localPlaylistId.removePrefix("SPOTIFY_PLAYLIST_")
@@ -1176,7 +1176,7 @@ class SyncUtils @Inject constructor(
                     val page = Spotify.playlistTracks(spotifyId, limit = limit, offset = offset).getOrThrow()
                     tracks.addAll(page.items.mapNotNull { it.track })
                     offset += limit
-                    if (offset >= page.total) break
+                    if (page.items.isEmpty() || offset >= page.total) break
                 }
             } else {
                 return@withContext
@@ -1186,11 +1186,26 @@ class SyncUtils @Inject constructor(
                 return@withContext
             }
 
+            val currentPlaylistSongs = database.playlistSongs(localPlaylistId).first()
+            val existingSongIds = currentPlaylistSongs.map { it.song.id }.toSet()
+            var currentMaxPosition = currentPlaylistSongs.maxOfOrNull { it.map.position } ?: -1
+
+            val existingLocalPlaylistCleaned = currentPlaylistSongs.map { ps ->
+                Spotify.cleanTrackSearchQuery(ps.song.song.title).lowercase()
+            }.toSet()
+
             val matchedList = mutableListOf<com.music.vivi.models.MediaMetadata>()
             for (track in tracks) {
+                val cleanTitle = Spotify.cleanTrackSearchQuery(track.name)
+                val cleanTitleLower = cleanTitle.lowercase()
+
+                // Skip YouTube search if track is already present in this playlist
+                if (cleanTitleLower in existingLocalPlaylistCleaned) {
+                    continue
+                }
+
                 val artist = track.artists.firstOrNull()?.name.orEmpty()
-                val title = track.name
-                val query = if (artist.isEmpty()) title else "$artist $title"
+                val query = if (artist.isEmpty()) cleanTitle else "$artist $cleanTitle"
 
                 val existingLocal = database.searchSongs(query, 1).first().firstOrNull()
                 if (existingLocal != null) {
@@ -1199,6 +1214,7 @@ class SyncUtils @Inject constructor(
                 }
 
                 try {
+                    delay(100)
                     val searchResult = YouTube.search(
                         query = query,
                         filter = YouTube.SearchFilter.FILTER_SONG
@@ -1224,13 +1240,9 @@ class SyncUtils @Inject constructor(
                         matchedList.add(best.toMediaMetadata())
                     }
                 } catch (e: Exception) {
-                    Timber.w(e, "Failed to match Spotify track $title")
+                    Timber.w(e, "Failed to match Spotify track $cleanTitle")
                 }
             }
-
-            val currentPlaylistSongs = database.playlistSongs(localPlaylistId).first()
-            val existingSongIds = currentPlaylistSongs.map { it.song.id }.toSet()
-            var currentMaxPosition = currentPlaylistSongs.maxOfOrNull { it.map.position } ?: -1
 
             database.withTransaction {
                 for (song in matchedList) {
@@ -1492,11 +1504,30 @@ class SyncUtils @Inject constructor(
                 database.update(entity.copy(isAutoSync = true, lastUpdateTime = java.time.LocalDateTime.now()))
             }
 
+            // Fetch all existing tracks in the Spotify playlist first to skip searching songs already present
+            val existingSpotifyTracks = mutableListOf<SpotifyTrack>()
+            var trackOffset = 0
+            while (true) {
+                val page = Spotify.playlistTracks(targetSpotifyId, limit = 100, offset = trackOffset).getOrNull() ?: break
+                existingSpotifyTracks.addAll(page.items.mapNotNull { it.track })
+                trackOffset += 100
+                if (trackOffset >= page.total || page.items.isEmpty()) break
+            }
+            val existingUris = existingSpotifyTracks.mapNotNull { it.uri }.toSet()
+            val existingTitlesLower = existingSpotifyTracks.map { Spotify.cleanTrackSearchQuery(it.name).lowercase() }.toSet()
+
             val trackUris = mutableListOf<String>()
             for ((index, playlistSong) in songs.withIndex()) {
-                val artistName = playlistSong.song.artists.firstOrNull()?.name.orEmpty()
                 val title = playlistSong.song.song.title
-                val query = if (artistName.isNotBlank()) "$artistName $title" else title
+                val cleanTitle = Spotify.cleanTrackSearchQuery(title)
+                val cleanTitleLower = cleanTitle.lowercase()
+
+                if (cleanTitleLower in existingTitlesLower) {
+                    continue // Already exists on Spotify
+                }
+
+                val artistName = playlistSong.song.artists.firstOrNull()?.name.orEmpty()
+                val query = if (artistName.isNotBlank()) "$artistName $cleanTitle" else cleanTitle
                 onProgress?.invoke("Matching track ${index + 1}/${songs.size}: $query")
                 val uri = try {
                     Spotify.searchTrack(query).getOrNull()
@@ -1504,23 +1535,13 @@ class SyncUtils @Inject constructor(
                     Timber.w(e, "Error searching track on Spotify: $query")
                     null
                 }
-                if (uri != null) {
+                if (uri != null && uri !in existingUris && uri !in trackUris) {
                     trackUris.add(uri)
                 }
                 delay(100)
             }
 
-            // Fetch all existing tracks in the Spotify playlist to prevent duplicate additions
-            val existingUris = mutableSetOf<String>()
-            var trackOffset = 0
-            while (true) {
-                val page = Spotify.playlistTracks(targetSpotifyId, limit = 100, offset = trackOffset).getOrNull() ?: break
-                existingUris.addAll(page.items.mapNotNull { it.track?.uri })
-                trackOffset += 100
-                if (trackOffset >= page.total || page.items.isEmpty()) break
-            }
-
-            val newUrisToAdd = trackUris.filter { it !in existingUris }
+            val newUrisToAdd = trackUris
 
             if (newUrisToAdd.isNotEmpty()) {
                 Spotify.addTracksToPlaylist(targetSpotifyId, newUrisToAdd).getOrThrow()

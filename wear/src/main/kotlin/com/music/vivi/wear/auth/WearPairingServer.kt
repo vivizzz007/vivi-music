@@ -256,18 +256,18 @@ class WearPairingServer(
                 }
                 reqPin = json["pin"]?.jsonPrimitive?.content?.trim() ?: ""
                 cookie = json["cookie"]?.jsonPrimitive?.content?.trim() ?: ""
-                visitorData = (json["visitorData"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
-                dataSyncId = (json["dataSyncId"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
-                accountName = (json["accountName"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
-                accountEmail = (json["accountEmail"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()
+                visitorData = (json["visitorData"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                dataSyncId = (json["dataSyncId"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                accountName = (json["accountName"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                accountEmail = (json["accountEmail"] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.contentOrNull?.trim()?.takeIf { it.isNotBlank() && it != "null" }
             } else if (isForm || trimmed.contains("=") && !trimmed.startsWith("{")) {
                 val params = parseQuery(trimmed)
                 reqPin = params["pin"]?.trim() ?: ""
                 cookie = params["cookie"]?.trim() ?: ""
-                visitorData = params["visitorData"]?.takeIf { it.isNotBlank() }
-                dataSyncId = params["dataSyncId"]?.takeIf { it.isNotBlank() }
-                accountName = params["accountName"]?.takeIf { it.isNotBlank() }
-                accountEmail = params["accountEmail"]?.takeIf { it.isNotBlank() }
+                visitorData = params["visitorData"]?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                dataSyncId = params["dataSyncId"]?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                accountName = params["accountName"]?.trim()?.takeIf { it.isNotBlank() && it != "null" }
+                accountEmail = params["accountEmail"]?.trim()?.takeIf { it.isNotBlank() && it != "null" }
             } else {
                 sendJson(writer, 400, """{"error":"Malformed payload"}""")
                 return

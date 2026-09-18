@@ -128,7 +128,13 @@ class LibraryViewModel(
             val albums = albumsResult.getOrDefault(emptyList())
 
             val errorMsg = if (playlistsResult.isFailure && albumsResult.isFailure) {
-                playlistError?.message ?: albumError?.message ?: "Failed to load library"
+                val raw = playlistError?.message ?: albumError?.message ?: "Failed to load library"
+                when {
+                    raw.contains("400") || raw.contains("INVALID_ARGUMENT") -> "Unable to load library from YouTube Music. Please tap to retry."
+                    raw.contains("401") || raw.contains("403") -> "Session expired. Please re-pair your watch."
+                    raw.length > 80 -> "Failed to load library. Check connection and retry."
+                    else -> raw
+                }
             } else {
                 null
             }

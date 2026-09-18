@@ -3116,17 +3116,19 @@ class MusicService :
                 }
                 val requiredLength = when {
                     dataSpec.length >= 0 -> dataSpec.length
-                    contentLength != null -> (contentLength - dataSpec.position).coerceAtLeast(1)
+                    contentLength != null && contentLength > 0L -> (contentLength - dataSpec.position).coerceAtLeast(CHUNK_LENGTH)
                     else -> CHUNK_LENGTH
                 }
 
-                if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength) ||
-                    playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
-                ) {
+                // If the entire audio file is 100% cached in downloadCache, we can safely play from cache
+                // without resolving network stream URL.
+                val isFullyCached = contentLength != null && contentLength > 0L && downloadCache.isCached(mediaId, 0, contentLength)
+                if (isFullyCached) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                     return@Factory dataSpec
                 }
 
+                // If partially cached or streaming, resolve URL so seeking or reading beyond cached chunk works seamlessly
                 songUrlCache[mediaId]?.let { cachedStream ->
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                     currentStreamClient.value = cachedStream.clientName

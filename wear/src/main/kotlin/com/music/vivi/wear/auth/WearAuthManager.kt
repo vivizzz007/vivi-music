@@ -94,8 +94,8 @@ class WearAuthManager(
 
             if (!cookie.isNullOrBlank()) {
                 YouTube.cookie = cookie
-                YouTube.visitorData = visitorData?.takeIf { it.isNotBlank() }
-                YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)
+                YouTube.visitorData = visitorData?.takeIf { it.isNotBlank() && it != "null" }
+                YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)?.takeIf { it.isNotBlank() && it != "null" }
                 _authState.value = WearAuthState.LoggedIn(
                     name = name ?: "My Account",
                     email = email,
@@ -168,17 +168,19 @@ class WearAuthManager(
         _authState.value = WearAuthState.Validating
 
         // 1. Immediately apply credentials to YouTube singleton
+        val normalizedVisitorData = visitorData?.takeIf { it.isNotBlank() && it != "null" }
+        val normalizedDataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)?.takeIf { it.isNotBlank() && it != "null" }
         YouTube.cookie = trimmedCookie
-        YouTube.visitorData = visitorData?.takeIf { it.isNotBlank() }
-        YouTube.dataSyncId = WearAuthUtils.normalizeDataSyncId(dataSyncId)
+        YouTube.visitorData = normalizedVisitorData
+        YouTube.dataSyncId = normalizedDataSyncId
 
         // 2. Persist immediately into DataStore
         val initialName = accountName?.takeIf { it.isNotBlank() } ?: "My Account"
         try {
             preferences.saveCredentials(
                 cookie = trimmedCookie,
-                dataSyncId = dataSyncId,
-                visitorData = visitorData,
+                dataSyncId = normalizedDataSyncId,
+                visitorData = normalizedVisitorData,
                 accountName = initialName,
                 accountEmail = accountEmail,
                 accountChannelHandle = null,
@@ -208,8 +210,8 @@ class WearAuthManager(
                 enrichedInfo = info.copy(name = resolvedName, email = resolvedEmail)
                 preferences.saveCredentials(
                     cookie = trimmedCookie,
-                    dataSyncId = dataSyncId,
-                    visitorData = visitorData,
+                    dataSyncId = normalizedDataSyncId,
+                    visitorData = normalizedVisitorData,
                     accountName = resolvedName,
                     accountEmail = resolvedEmail,
                     accountChannelHandle = info.channelHandle,

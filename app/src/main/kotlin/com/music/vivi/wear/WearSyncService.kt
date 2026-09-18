@@ -7,6 +7,7 @@ package com.music.vivi.wear
 
 import android.content.Context
 import com.google.android.gms.tasks.Tasks
+import java.util.concurrent.TimeUnit
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
@@ -50,7 +51,9 @@ class WearSyncService : WearableListenerService() {
 
                         Tasks.await(
                             Wearable.getMessageClient(this@WearSyncService)
-                                .sendMessage(sourceNodeId, PATH_AUTH_RESPONSE, json.toByteArray(Charsets.UTF_8))
+                                .sendMessage(sourceNodeId, PATH_AUTH_RESPONSE, json.toByteArray(Charsets.UTF_8)),
+                            5,
+                            TimeUnit.SECONDS
                         )
                         Timber.i("Sent auth credentials via Bluetooth to watch node: %s", sourceNodeId)
                     } else {
@@ -59,7 +62,9 @@ class WearSyncService : WearableListenerService() {
                         }.toString()
                         Tasks.await(
                             Wearable.getMessageClient(this@WearSyncService)
-                                .sendMessage(sourceNodeId, PATH_AUTH_RESPONSE, errJson.toByteArray(Charsets.UTF_8))
+                                .sendMessage(sourceNodeId, PATH_AUTH_RESPONSE, errJson.toByteArray(Charsets.UTF_8)),
+                            5,
+                            TimeUnit.SECONDS
                         )
                         Timber.w("Watch requested auth via Bluetooth, but phone is not logged in")
                     }
@@ -92,13 +97,13 @@ class WearSyncService : WearableListenerService() {
                     if (email.isNotBlank()) put("accountEmail", email)
                 }.toString()
 
-                val nodes: List<Node> = Tasks.await(Wearable.getNodeClient(context).connectedNodes)
+                val nodes: List<Node> = Tasks.await(Wearable.getNodeClient(context).connectedNodes, 5, TimeUnit.SECONDS)
                 if (nodes.isEmpty()) return false
                 val bytes = json.toByteArray(Charsets.UTF_8)
                 val messageClient = Wearable.getMessageClient(context)
                 var sentAny = false
                 for (node in nodes) {
-                    Tasks.await(messageClient.sendMessage(node.id, PATH_AUTH_PUSH, bytes))
+                    Tasks.await(messageClient.sendMessage(node.id, PATH_AUTH_PUSH, bytes), 5, TimeUnit.SECONDS)
                     sentAny = true
                     Timber.i("Pushed auth credentials to watch node: %s", node.displayName)
                 }

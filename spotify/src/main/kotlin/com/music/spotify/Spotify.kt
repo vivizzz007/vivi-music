@@ -681,10 +681,10 @@ object Spotify {
         }
 
         val endpoints = buildList {
+            add("https://api.spotify.com/v1/me/playlists")
             if (!targetUserId.isNullOrBlank()) {
                 add("https://api.spotify.com/v1/users/$targetUserId/playlists")
             }
-            add("https://api.spotify.com/v1/me/playlists")
         }
 
         val maxRetries = 3

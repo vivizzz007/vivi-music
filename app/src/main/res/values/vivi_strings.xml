@@ -54,6 +54,8 @@
     <string name="push_to_spotify_action">Push to Spotify</string>
     <string name="push_in_progress">Pushing to Spotify…</string>
     <string name="push_complete">Push to Spotify complete</string>
+    <string name="run_in_background">Run in background</string>
+    <string name="view_progress">View</string>
     <string name="select_playlists_to_push">Select playlists to export</string>
     <string name="no_local_playlists">No local playlists found to export</string>
     <string name="app_logo_title">App logo</string>
