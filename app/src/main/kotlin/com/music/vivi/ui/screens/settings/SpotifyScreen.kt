@@ -73,6 +73,8 @@ fun SpotifyScreen(
     var showSpotifyLogin by remember { mutableStateOf(false) }
     var showPlaylistsSheet by remember { mutableStateOf(false) }
     var showPushSheet by remember { mutableStateOf(false) }
+    var showLinkImportDialog by remember { mutableStateOf(false) }
+    var linkImportInput by remember { mutableStateOf("") }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
     val pushProgress by viewModel.pushProgress.collectAsStateWithLifecycle()
     val isImportMinimized by viewModel.isImportMinimized.collectAsStateWithLifecycle()
@@ -341,6 +343,26 @@ fun SpotifyScreen(
                     icon = painterResource(R.drawable.bookmark_star_library),
                     enabled = state.isAuthenticated && totalPlaylists > 0 && !state.isLoading,
                     onClick = { showPlaylistsSheet = true }
+                ),
+                Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
+                    title = { Text(stringResource(R.string.spotify_import_by_link)) },
+                    description = { Text(stringResource(R.string.spotify_import_by_link_desc)) },
+                    icon = painterResource(R.drawable.link),
+                    enabled = state.isAuthenticated && !state.isLoading,
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = {
+                        linkImportInput = ""
+                        showLinkImportDialog = true
+                    }
                 ),
                 Material3SettingsItem(
                     isExpressive = true,
@@ -623,6 +645,47 @@ fun SpotifyScreen(
                 )
             }
         }
+    }
+
+    if (showLinkImportDialog) {
+        AlertDialog(
+            onDismissRequest = { showLinkImportDialog = false },
+            title = { Text(stringResource(R.string.spotify_paste_link_dialog_title)) },
+            text = {
+                Column {
+                    Text(
+                        text = stringResource(R.string.spotify_import_by_link_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    OutlinedTextField(
+                        value = linkImportInput,
+                        onValueChange = { linkImportInput = it },
+                        placeholder = { Text(stringResource(R.string.spotify_paste_link_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = linkImportInput.isNotBlank(),
+                    onClick = {
+                        val input = linkImportInput.trim()
+                        showLinkImportDialog = false
+                        viewModel.importPlaylistByUrl(input)
+                    }
+                ) {
+                    Text(stringResource(R.string.import_from_spotify))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLinkImportDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
     }
 }
 

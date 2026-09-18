@@ -25,6 +25,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -81,7 +82,7 @@ constructor(
         currentLyricsJob?.cancel()
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
-        if (cached != null) {
+        if (cached != null && isSyncedLyrics(cached.lyrics)) {
             return LyricsWithProvider(cached.lyrics, cached.providerName)
         }
 
@@ -95,6 +96,9 @@ constructor(
         }
         
         if (!isNetworkAvailable) {
+            if (cached != null) {
+                return LyricsWithProvider(cached.lyrics, cached.providerName)
+            }
             // Still proceed but return not found to avoid hanging
             return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
@@ -126,59 +130,73 @@ constructor(
                             }
                         }
 
-                        // Give the primary (top priority) provider a window to return
-                        val topProviderPair = deferreds.firstOrNull()
-                        var firstUnsyncedResult: LyricsWithProvider? = null
-
-                        if (topProviderPair != null) {
-                            val topLyrics = withTimeoutOrNull(1200L) {
-                                topProviderPair.second.await()
-                            }
-                            if (!topLyrics.isNullOrBlank() && topLyrics != LYRICS_NOT_FOUND) {
-                                if (isSyncedLyrics(topLyrics)) {
-                                    val res = LyricsWithProvider(topLyrics, topProviderPair.first.name)
-                                    cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
-                                    return@coroutineScope res
-                                } else {
-                                    firstUnsyncedResult = LyricsWithProvider(topLyrics, topProviderPair.first.name)
-                                }
-                            }
-                        }
-
-                        // Check if any other provider already finished with synced lyrics
-                        for ((provider, def) in deferreds) {
-                            if (def.isCompleted) {
-                                val lyrics = def.getCompleted()
+                        // Collect results from all concurrent providers in priority order
+                        val results = arrayOfNulls<String>(deferreds.size)
+                        deferreds.forEachIndexed { index, (_, def) ->
+                            launch {
+                                val lyrics = def.await()
                                 if (!lyrics.isNullOrBlank() && lyrics != LYRICS_NOT_FOUND) {
-                                    if (isSyncedLyrics(lyrics)) {
-                                        val res = LyricsWithProvider(lyrics, provider.name)
-                                        cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
-                                        return@coroutineScope res
-                                    } else if (firstUnsyncedResult == null) {
-                                        firstUnsyncedResult = LyricsWithProvider(lyrics, provider.name)
-                                    }
+                                    results[index] = lyrics
                                 }
                             }
                         }
 
-                        // Wait for other providers to see if any returns synced lyrics
-                        for ((provider, def) in deferreds) {
-                            if (def === topProviderPair?.second && firstUnsyncedResult != null) continue
-                            val lyrics = withTimeoutOrNull(1800L) { def.await() }
-                            if (!lyrics.isNullOrBlank() && lyrics != LYRICS_NOT_FOUND) {
-                                if (isSyncedLyrics(lyrics)) {
-                                    val res = LyricsWithProvider(lyrics, provider.name)
+                        // Wait for completion or until a high-priority synced result is determined
+                        val startTime = System.currentTimeMillis()
+                        val maxWaitMs = 3500L
+
+                        while (System.currentTimeMillis() - startTime < maxWaitMs) {
+                            // 1. If provider 0 (highest priority) finished with synced lyrics, return immediately
+                            val topLyrics = results[0]
+                            if (topLyrics != null && isSyncedLyrics(topLyrics)) {
+                                val res = LyricsWithProvider(topLyrics, deferreds[0].first.name)
+                                cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                                return@coroutineScope res
+                            }
+
+                            // 2. Find highest priority synced lyrics available so far
+                            val firstSyncedIndex = results.indexOfFirst { it != null && isSyncedLyrics(it) }
+                            if (firstSyncedIndex != -1) {
+                                // If all providers with higher priority than firstSyncedIndex finished,
+                                // or if we gave higher-priority providers at least 1000ms, use this synced result!
+                                val higherPriorityAllCompleted = (0 until firstSyncedIndex).all { deferreds[it].second.isCompleted }
+                                val waitedEnough = System.currentTimeMillis() - startTime >= 1000L
+                                if (higherPriorityAllCompleted || waitedEnough) {
+                                    val syncedLyrics = results[firstSyncedIndex]!!
+                                    val res = LyricsWithProvider(syncedLyrics, deferreds[firstSyncedIndex].first.name)
                                     cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
                                     return@coroutineScope res
-                                } else if (firstUnsyncedResult == null) {
-                                    firstUnsyncedResult = LyricsWithProvider(lyrics, provider.name)
                                 }
                             }
+
+                            // 3. If all providers have finished, break early
+                            if (deferreds.all { it.second.isCompleted }) {
+                                break
+                            }
+
+                            delay(50)
                         }
 
-                        if (firstUnsyncedResult != null) {
-                            cache.put(cacheKey, listOf(LyricsResult(firstUnsyncedResult.provider, firstUnsyncedResult.lyrics)))
-                            return@coroutineScope firstUnsyncedResult
+                        // Check again for any synced lyrics in priority order
+                        val anySyncedIndex = results.indexOfFirst { it != null && isSyncedLyrics(it) }
+                        if (anySyncedIndex != -1) {
+                            val syncedLyrics = results[anySyncedIndex]!!
+                            val res = LyricsWithProvider(syncedLyrics, deferreds[anySyncedIndex].first.name)
+                            cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                            return@coroutineScope res
+                        }
+
+                        // Fallback to highest-priority unsynced lyrics
+                        val anyUnsyncedIndex = results.indexOfFirst { it != null }
+                        if (anyUnsyncedIndex != -1) {
+                            val unsyncedLyrics = results[anyUnsyncedIndex]!!
+                            val res = LyricsWithProvider(unsyncedLyrics, deferreds[anyUnsyncedIndex].first.name)
+                            cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                            return@coroutineScope res
+                        }
+
+                        if (cached != null) {
+                            return@coroutineScope LyricsWithProvider(cached.lyrics, cached.providerName)
                         }
 
                         LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")

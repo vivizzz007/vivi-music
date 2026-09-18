@@ -212,33 +212,60 @@ constructor(
                     ?: songWithData?.artists?.firstOrNull()?.name.orEmpty()
 
                 if (!title.isNullOrBlank()) {
-                    val query = if (artist.isNotBlank()) "$artist $title" else title
-                    Timber.tag("DownloadDiagnostics").w("Primary resolution failed for $mediaId (\"$title\"). Searching for alternative track: $query")
-                    val searchResult = runCatching {
-                        com.music.innertube.YouTube.search(query, filter = com.music.innertube.YouTube.SearchFilter.FILTER_SONG).getOrNull()
-                    }.getOrNull()
+                    val cleanTitle = com.music.spotify.Spotify.cleanTrackSearchQuery(title)
+                    val queries = listOfNotNull(
+                        if (artist.isNotBlank()) "$artist $cleanTitle" else cleanTitle,
+                        if (cleanTitle != title) (if (artist.isNotBlank()) "$artist $title" else title) else null,
+                        title
+                    ).distinct()
 
-                    val candidate = searchResult?.items
-                        ?.filterIsInstance<com.music.innertube.models.SongItem>()
-                        ?.firstOrNull { it.id != mediaId }
+                    for (q in queries) {
+                        Timber.tag("DownloadDiagnostics").w("Primary resolution failed for $mediaId (\"$title\"). Searching alternative: $q")
+                        val songSearch = runCatching {
+                            com.music.innertube.YouTube.search(q, filter = com.music.innertube.YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                        }.getOrNull()
+                        val videoSearch = if (songSearch?.items.isNullOrEmpty()) {
+                            runCatching { com.music.innertube.YouTube.search(q, filter = com.music.innertube.YouTube.SearchFilter.FILTER_VIDEO).getOrNull() }.getOrNull()
+                        } else null
 
-                    if (candidate != null) {
-                        Timber.tag("DownloadDiagnostics").i("Found alternative candidate ${candidate.id} (\"${candidate.title}\") for $mediaId. Resolving playback...")
-                        val candidateAttempt = YTPlayerUtils.playerResponseForPlayback(
-                            candidate.id,
-                            audioQuality = audioQuality,
-                            connectivityManager = connectivityManager,
-                            context = appContext,
-                            contentHints = com.music.innertube.strategy.ContentHints(
-                                isExplicit = candidate.explicit,
-                                isUploaded = false,
-                            ),
-                            allowBoundedRange = false,
-                            preferM4a = true,
-                        )
-                        if (candidateAttempt.isSuccess) {
-                            Timber.tag("DownloadDiagnostics").i("Alternative candidate ${candidate.id} succeeded for download of $mediaId")
-                            return@runBlocking candidateAttempt
+                        val candidates = listOfNotNull(songSearch, videoSearch).flatMap { it.items }
+                            .filterIsInstance<com.music.innertube.models.SongItem>()
+                            .filter { it.id != mediaId }
+                            .distinctBy { it.id }
+                            .take(4)
+
+                        for (candidate in candidates) {
+                            Timber.tag("DownloadDiagnostics").i("Found alternative candidate ${candidate.id} (\"${candidate.title}\") for $mediaId. Resolving playback...")
+                            var candidateAttempt = YTPlayerUtils.playerResponseForPlayback(
+                                candidate.id,
+                                audioQuality = audioQuality,
+                                connectivityManager = connectivityManager,
+                                context = appContext,
+                                contentHints = com.music.innertube.strategy.ContentHints(
+                                    isExplicit = candidate.explicit,
+                                    isUploaded = false,
+                                ),
+                                allowBoundedRange = false,
+                                preferM4a = true,
+                            )
+                            if (candidateAttempt.isFailure) {
+                                candidateAttempt = YTPlayerUtils.playerResponseForPlayback(
+                                    candidate.id,
+                                    audioQuality = audioQuality,
+                                    connectivityManager = connectivityManager,
+                                    context = appContext,
+                                    contentHints = com.music.innertube.strategy.ContentHints(
+                                        isExplicit = candidate.explicit,
+                                        isUploaded = false,
+                                    ),
+                                    allowBoundedRange = false,
+                                    preferM4a = false,
+                                )
+                            }
+                            if (candidateAttempt.isSuccess) {
+                                Timber.tag("DownloadDiagnostics").i("Alternative candidate ${candidate.id} succeeded for download of $mediaId")
+                                return@runBlocking candidateAttempt
+                            }
                         }
                     }
                 }
@@ -636,22 +663,26 @@ constructor(
                                     val format = database.format(songId).firstOrNull()
                                     val expectedLength = format?.contentLength ?: 0L
 
-                                    val isTruncated = (cachedBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
-                                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong()) ||
-                                            (cachedBytes < 300_000L && duration > 25)
+                                    val isTruncated = cachedBytes == 0L ||
+                                            (cachedBytes < 300_000L && (duration > 25 || duration == 0)) ||
+                                            (cachedBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
+                                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong())
 
                                     if (isTruncated) {
-                                        Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated (cached: $cachedBytes, expected: $expectedLength, duration: $duration) for $songId. Retrying download...")
+                                        Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated/empty (cached: $cachedBytes, expected: $expectedLength, duration: $duration) for $songId.")
                                         database.updateDownloadedInfo(songId, false, null)
                                         permanentlyFailedSongIds.remove(songId)
                                         reDownloadSong(songId, song?.title ?: songId)
-                                    } else {
+                                    } else if (cachedBytes >= 300_000L || (expectedLength > 0L && cachedBytes >= expectedLength * 0.85)) {
                                         database.updateDownloadedInfo(songId, true, LocalDateTime.now())
 
                                         val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
                                         if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
                                             exportSongToPublicStorage(songId)
                                         }
+                                    } else {
+                                        Timber.tag("DownloadDiagnostics").w("Download for $songId had insufficient bytes ($cachedBytes). NOT marking as downloaded.")
+                                        database.updateDownloadedInfo(songId, false, null)
                                     }
                                 }
                                 Download.STATE_FAILED,

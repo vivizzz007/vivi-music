@@ -2142,9 +2142,9 @@ class MusicService :
                         requestHeaders = playbackData.streamHeaders,
                         clientName = playbackData.streamClient,
                         expiresInSeconds = playbackData.streamExpiresInSeconds,
-                        requireBoundedRange = playbackData.requireBoundedRange,
-                        rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
-                        useRangeChunks = playbackData.useRangeChunks,
+                        requireBoundedRange = false,
+                        rangeChunkSizeBytes = 0L,
+                        useRangeChunks = false,
                         expectedGeneration = cacheGeneration,
                     )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
@@ -3151,7 +3151,7 @@ class MusicService :
                         isExplicit = song?.explicit,
                         isUploaded = song?.isUploaded,
                     ),
-                    allowBoundedRange = true,
+                    allowBoundedRange = false,
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -3226,9 +3226,9 @@ class MusicService :
                     requestHeaders = nonNullPlayback.streamHeaders,
                     clientName = nonNullPlayback.streamClient,
                     expiresInSeconds = nonNullPlayback.streamExpiresInSeconds,
-                    requireBoundedRange = nonNullPlayback.requireBoundedRange,
-                    rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
-                    useRangeChunks = nonNullPlayback.useRangeChunks,
+                    requireBoundedRange = false,
+                    rangeChunkSizeBytes = 0L,
+                    useRangeChunks = false,
                     expectedGeneration = cacheGeneration,
                 )
 
@@ -3237,9 +3237,9 @@ class MusicService :
                         url = streamUrl,
                         requestHeaders = nonNullPlayback.streamHeaders,
                         clientName = nonNullPlayback.streamClient,
-                        requireBoundedRange = nonNullPlayback.requireBoundedRange,
-                        rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
-                        useRangeChunks = nonNullPlayback.useRangeChunks,
+                        requireBoundedRange = false,
+                        rangeChunkSizeBytes = 0L,
+                        useRangeChunks = false,
                     ),
                 )
             }

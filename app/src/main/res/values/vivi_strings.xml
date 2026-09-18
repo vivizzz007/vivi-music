@@ -1038,6 +1038,13 @@
     <string name="spotify_source_summary">\"%1$s\": %2$d of %3$d tracks matched</string>
     <string name="spotify_import_in_progress">Importing from Spotify</string>
     <string name="spotify_login_desc">Connecting to Spotify is completely local. Your session credentials are only saved on your device.</string>
+    <string name="spotify_import_by_link">Import from Spotify Link</string>
+    <string name="spotify_import_by_link_desc">Paste a Spotify playlist link to import</string>
+    <string name="spotify_paste_link_dialog_title">Import Spotify Playlist</string>
+    <string name="spotify_paste_link_hint">https://open.spotify.com/playlist/...</string>
+    <string name="spotify_paste_link_invalid">Invalid Spotify playlist URL</string>
+    <string name="spotify_sync_channel_name">Spotify Synchronization</string>
+    <string name="spotify_sync_channel_desc">Notifications for Spotify playlist import and synchronization</string>
 
     <string name="app_font">App Font</string>
     <string name="font_selection">Font Selection</string>

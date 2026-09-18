@@ -88,7 +88,7 @@ object WearBluetoothSyncManager {
         }
 
         if (connectedNodes.isEmpty()) {
-            return@withContext Result.failure(Exception("No connected phone found via Bluetooth. Please make sure Bluetooth is enabled and your watch is connected to your phone."))
+            return@withContext Result.failure(Exception("No paired phone detected by Wearable services. Ensure your watch is connected to your phone via Galaxy Wearable or Pixel Watch app, Bluetooth is active, and both devices run the latest matching Vivi Music."))
         }
 
         val deferred = CompletableDeferred<Result<AccountInfo>>()
@@ -107,14 +107,14 @@ object WearBluetoothSyncManager {
             }
 
             if (!sentAny) {
-                return@withContext Result.failure(Exception("Failed to send message to connected phone."))
+                return@withContext Result.failure(Exception("Failed to send message to connected phone. Make sure both devices are nearby and connected."))
             }
 
             val result = withTimeoutOrNull(timeoutMs) {
                 deferred.await()
             }
 
-            result ?: Result.failure(Exception("Phone did not respond within ${timeoutMs / 1000}s. Make sure Vivi Music is installed and logged in on your phone."))
+            result ?: Result.failure(Exception("Phone did not respond within ${timeoutMs / 1000}s. Make sure the matching Vivi Music app is installed and open on your phone, and you are logged in."))
         } finally {
             if (pendingDeferred === deferred) {
                 pendingDeferred = null

@@ -1417,6 +1417,7 @@ class SyncUtils @Inject constructor(
         isAutoSync: Boolean = false,
         onProgress: ((String) -> Unit)? = null,
         onComplete: ((Boolean, String) -> Unit)? = null,
+        onProgressWithDetails: ((status: String, current: Int, total: Int) -> Unit)? = null,
     ) = withContext(Dispatchers.IO) {
         val session = getSpotifySession()
         if (session == null) {
@@ -1528,7 +1529,9 @@ class SyncUtils @Inject constructor(
 
                 val artistName = playlistSong.song.artists.firstOrNull()?.name.orEmpty()
                 val query = if (artistName.isNotBlank()) "$artistName $cleanTitle" else cleanTitle
-                onProgress?.invoke("Matching track ${index + 1}/${songs.size}: $query")
+                val statusText = "Matching track ${index + 1}/${songs.size}: $query"
+                onProgress?.invoke(statusText)
+                onProgressWithDetails?.invoke(statusText, index + 1, songs.size)
                 val uri = try {
                     Spotify.searchTrack(query).getOrNull()
                 } catch (e: Exception) {
@@ -1579,10 +1582,11 @@ class SyncUtils @Inject constructor(
         onComplete: ((succeededCount: Int, totalPlaylists: Int) -> Unit)? = null,
     ) = withContext(Dispatchers.IO) {
         var succeeded = 0
+        val stepPercent = 1f / playlistIds.size.toFloat()
         for ((idx, pId) in playlistIds.withIndex()) {
             val pl = database.playlist(pId).first()
             val name = pl?.playlist?.name ?: "Playlist"
-            val basePercent = idx.toFloat() / playlistIds.size.toFloat()
+            val basePercent = idx.toFloat() * stepPercent
             onProgress?.invoke(name, basePercent, "Starting sync for $name…")
 
             var playlistSuccess = false
@@ -1591,6 +1595,11 @@ class SyncUtils @Inject constructor(
                 isAutoSync = false,
                 onProgress = { status ->
                     onProgress?.invoke(name, basePercent, status)
+                },
+                onProgressWithDetails = { status, current, total ->
+                    val frac = if (total > 0) current.toFloat() / total.toFloat() else 0f
+                    val progress = (basePercent + (frac * stepPercent)).coerceIn(0f, 1f)
+                    onProgress?.invoke(name, progress, status)
                 },
                 onComplete = { success, msg ->
                     playlistSuccess = success
