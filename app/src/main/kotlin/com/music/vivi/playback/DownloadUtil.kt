@@ -196,7 +196,7 @@ constructor(
                         isUploaded = song?.isUploaded,
                     ),
                     allowBoundedRange = false,
-                    preferM4a = true,
+                    preferM4a = false,
                 )
                 if (initialAttempt.isSuccess) {
                     return@runBlocking initialAttempt
@@ -246,7 +246,7 @@ constructor(
                                     isUploaded = false,
                                 ),
                                 allowBoundedRange = false,
-                                preferM4a = true,
+                                preferM4a = false,
                             )
                             if (candidateAttempt.isFailure) {
                                 candidateAttempt = YTPlayerUtils.playerResponseForPlayback(
@@ -259,7 +259,7 @@ constructor(
                                         isUploaded = false,
                                     ),
                                     allowBoundedRange = false,
-                                    preferM4a = false,
+                                    preferM4a = true,
                                 )
                             }
                             if (candidateAttempt.isSuccess) {
@@ -663,17 +663,18 @@ constructor(
                                     val format = database.format(songId).firstOrNull()
                                     val expectedLength = format?.contentLength ?: 0L
 
-                                    val isTruncated = cachedBytes == 0L ||
-                                            (cachedBytes < 300_000L && (duration > 25 || duration == 0)) ||
-                                            (cachedBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
-                                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong())
+                                    val effectiveBytes = maxOf(cachedBytes, download.bytesDownloaded)
+                                    val isTruncated = effectiveBytes == 0L ||
+                                            (effectiveBytes < 300_000L && (duration > 25 || duration == 0)) ||
+                                            (effectiveBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
+                                            (expectedLength > 1_500_000L && effectiveBytes < (expectedLength * 0.9).toLong())
 
                                     if (isTruncated) {
-                                        Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated/empty (cached: $cachedBytes, expected: $expectedLength, duration: $duration) for $songId.")
+                                        Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated/empty (cached: $cachedBytes, downloaded: ${download.bytesDownloaded}, expected: $expectedLength, duration: $duration) for $songId.")
                                         database.updateDownloadedInfo(songId, false, null)
                                         permanentlyFailedSongIds.remove(songId)
                                         reDownloadSong(songId, song?.title ?: songId)
-                                    } else if (cachedBytes >= 300_000L || (expectedLength > 0L && cachedBytes >= expectedLength * 0.85)) {
+                                    } else if (effectiveBytes >= 300_000L || (expectedLength > 0L && effectiveBytes >= expectedLength * 0.85)) {
                                         database.updateDownloadedInfo(songId, true, LocalDateTime.now())
 
                                         val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
@@ -681,7 +682,7 @@ constructor(
                                             exportSongToPublicStorage(songId)
                                         }
                                     } else {
-                                        Timber.tag("DownloadDiagnostics").w("Download for $songId had insufficient bytes ($cachedBytes). NOT marking as downloaded.")
+                                        Timber.tag("DownloadDiagnostics").w("Download for $songId had insufficient bytes (cached: $cachedBytes, downloaded: ${download.bytesDownloaded}). NOT marking as downloaded.")
                                         database.updateDownloadedInfo(songId, false, null)
                                     }
                                 }
@@ -736,6 +737,22 @@ constructor(
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
             val d = cursor.download
+            if (d.state == Download.STATE_COMPLETED) {
+                val cacheKey = when {
+                    downloadCache.keys.contains(d.request.id) -> d.request.id
+                    downloadCache.keys.contains(d.request.id.toUri().toString()) -> d.request.id.toUri().toString()
+                    else -> downloadCache.keys.firstOrNull { it.contains(d.request.id) } ?: d.request.id
+                }
+                val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+                if (cachedBytes < 300_000L && d.bytesDownloaded < 300_000L) {
+                    Timber.tag("DownloadUtil").w("Purging fake/empty completed download: ${d.request.id} (cached: $cachedBytes, bytesDownloaded: ${d.bytesDownloaded})")
+                    DownloadService.sendRemoveDownload(appContext, ExoDownloadService::class.java, d.request.id, false)
+                    scope.launch(Dispatchers.IO) {
+                        database.updateDownloadedInfo(d.request.id, false, null)
+                    }
+                    continue
+                }
+            }
             result[d.request.id] = d
             if (d.state == Download.STATE_DOWNLOADING || d.state == Download.STATE_QUEUED || d.state == Download.STATE_RESTARTING) {
                 activeBatchSongIds.add(d.request.id)
@@ -837,7 +854,21 @@ constructor(
         }
     }
 
-    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+    fun getDownload(songId: String): Flow<Download?> = downloads.map { map ->
+        val d = map[songId] ?: return@map null
+        if (d.state == Download.STATE_COMPLETED) {
+            val cacheKey = when {
+                downloadCache.keys.contains(songId) -> songId
+                downloadCache.keys.contains(songId.toUri().toString()) -> songId.toUri().toString()
+                else -> downloadCache.keys.firstOrNull { it.contains(songId) } ?: songId
+            }
+            val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
+            if (cachedBytes < 300_000L && d.bytesDownloaded < 300_000L) {
+                return@map null
+            }
+        }
+        d
+    }
 
     fun exportSongToPublicStorage(songId: String) {
         scope.launch(Dispatchers.IO) {

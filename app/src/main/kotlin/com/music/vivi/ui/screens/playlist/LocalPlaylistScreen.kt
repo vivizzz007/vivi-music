@@ -282,10 +282,9 @@ fun LocalPlaylistScreen(
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             val completedCount = songs.count { song ->
-                downloads[song.song.id]?.state == Download.STATE_COMPLETED ||
-                song.song.song.isDownloaded ||
-                song.song.song.dateDownload != null ||
-                downloadUtil.downloadCache.isCached(song.song.id, 0, 1024)
+                val d = downloads[song.song.id]
+                val isDownloadCompleted = d?.state == Download.STATE_COMPLETED && (d.bytesDownloaded >= 300_000L || downloadUtil.downloadCache.getCachedBytes(song.song.id, 0, 100_000_000L) >= 300_000L)
+                isDownloadCompleted || (song.song.song.isDownloaded && song.song.song.dateDownload != null)
             }
             val downloadingCount = songs.count { song ->
                 downloads[song.song.id]?.state == Download.STATE_DOWNLOADING ||
@@ -293,7 +292,7 @@ fun LocalPlaylistScreen(
             }
             downloadState = when {
                 downloadingCount > 0 -> Download.STATE_DOWNLOADING
-                completedCount > 0 && (completedCount == songs.size || (songs.size > 1 && completedCount >= songs.size - 1) || completedCount * 2 >= songs.size) -> Download.STATE_COMPLETED
+                completedCount == songs.size && songs.isNotEmpty() -> Download.STATE_COMPLETED
                 else -> Download.STATE_STOPPED
             }
         }

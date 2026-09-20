@@ -2174,6 +2174,45 @@ class MusicService :
         }
     }
 
+    /**
+     * Public prefetch method to proactively resolve and cache stream URLs for recommended tracks.
+     */
+    fun prefetchSong(mediaId: String) {
+        val cachedEntry = songUrlCache[mediaId]
+        if (cachedEntry != null) return
+
+        scope.launch(Dispatchers.IO + SilentHandler) {
+            val cacheGeneration = songUrlCache.generation(mediaId)
+            Timber.tag(TAG).d("[Prefetch] Background prefetching stream URL for: $mediaId")
+            val result = runCatching {
+                YTPlayerUtils.playerResponseForPlayback(
+                    videoId = mediaId,
+                    audioQuality = audioQuality,
+                    connectivityManager = connectivityManager,
+                    context = this@MusicService,
+                    allowBoundedRange = false,
+                )
+            }
+            result.getOrNull()?.getOrNull()?.let { playbackData ->
+                if (isActive) {
+                    songUrlCache.put(
+                        mediaId = mediaId,
+                        url = playbackData.streamUrl,
+                        requestHeaders = playbackData.streamHeaders,
+                        clientName = playbackData.streamClient,
+                        expiresInSeconds = playbackData.streamExpiresInSeconds,
+                        requireBoundedRange = false,
+                        rangeChunkSizeBytes = 0L,
+                        useRangeChunks = false,
+                        expectedGeneration = cacheGeneration,
+                    )
+                    Timber.tag(TAG).d("[Prefetch] Cached stream URL for $mediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
+                }
+            }
+        }
+    }
+
+
     override fun onPlaybackStateChanged(
         @Player.State playbackState: Int,
     ) {

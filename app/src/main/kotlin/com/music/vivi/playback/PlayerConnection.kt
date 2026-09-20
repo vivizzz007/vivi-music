@@ -230,6 +230,15 @@ class PlayerConnection(
         }
     }
 
+    fun prefetchSong(mediaId: String) {
+        try {
+            service.prefetchSong(mediaId)
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error in prefetchSong")
+        }
+    }
+
+
     fun startRadioSeamlessly() {
         // Block if Listen Together guest
         if (shouldBlockPlaybackChanges?.invoke() == true) {

@@ -7,6 +7,8 @@ package com.music.vivi.ui.menu
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +44,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Surface
@@ -53,7 +57,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,14 +99,69 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.ui.utils.resize
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 data class RecommendedSong(
     val metadata: MediaMetadata,
     val source: String, // "Playlist", "Followed Artist"
 )
+
+private fun normalizeTitleForPlaylist(rawTitle: String): String {
+    var title = rawTitle.lowercase(Locale.ROOT)
+    // Remove content inside brackets/parentheses: (official music video), [live], (feat. xyz), etc.
+    title = title.replace(Regex("\\[.*?\\]|\\(.*?\\)"), "")
+    // Remove common trailing or standalone noise words
+    title = title.replace(Regex("(?i)\\b(official\\s*(music)?\\s*video|official\\s*audio|lyric(s)?\\s*video|lyrics|live\\s*performance|live\\s*version|live|remastered|remaster|visualizer|video\\s*clip|clip\\s*officiel|hd|4k|audio|feat\\.?|ft\\.?)\\b"), "")
+    // Remove leading track numbers like "01 - " or "1. "
+    title = title.replace(Regex("^[0-9]+[.\\-\\s]+"), "")
+    // Replace punctuation/delimiters with space
+    title = title.replace(Regex("[\\-_|:;~•]"), " ")
+    // Strip non-letter non-digit non-space
+    title = title.replace(Regex("[^\\p{L}\\p{Nd}\\s]"), "")
+    // Collapse whitespace
+    return title.replace(Regex("\\s+"), " ").trim()
+}
+
+private fun isSongInPlaylist(
+    songId: String,
+    title: String,
+    artists: List<String>,
+    existingSongIds: Set<String>,
+    currentSongs: List<PlaylistSong>,
+): Boolean {
+    if (existingSongIds.contains(songId)) return true
+    val normTitle = normalizeTitleForPlaylist(title)
+    if (normTitle.length < 2) return false
+    val candidateArtists = artists.map { it.lowercase(Locale.ROOT).trim() }.filter { it.isNotEmpty() }
+
+    return currentSongs.any { existing ->
+        val existingNormTitle = normalizeTitleForPlaylist(existing.song.title)
+        if (existingNormTitle.length < 2) return@any false
+
+        val exactMatch = normTitle == existingNormTitle
+        val substringMatch = (normTitle.length >= 4 && existingNormTitle.length >= 4) &&
+                (normTitle.contains(existingNormTitle) || existingNormTitle.contains(normTitle))
+
+        if (!exactMatch && !substringMatch) return@any false
+
+        val existingArtists: List<String> = existing.song.artists.map { it.name.lowercase(Locale.ROOT).trim() }.filter { it.isNotEmpty() }
+        if (candidateArtists.isEmpty() || existingArtists.isEmpty()) {
+            true
+        } else {
+            candidateArtists.any { ca: String ->
+                existingArtists.any { ea: String ->
+                    ca == ea || ca.contains(ea) || ea.contains(ca)
+                }
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,10 +182,38 @@ fun AddSongsToPlaylistDialog(
     val existingSongIds = remember(currentSongs) {
         currentSongs.map { it.song.id }.toSet()
     }
+    val checkInPlaylist: (String, String, List<String>) -> Boolean = remember(existingSongIds, currentSongs) {
+        { id, title, artists ->
+            isSongInPlaylist(id, title, artists, existingSongIds, currentSongs)
+        }
+    }
 
     val playerConnection = LocalPlayerConnection.current
     val currentMediaMetadata by playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
     val isPlaying by playerConnection?.isEffectivelyPlaying?.collectAsState() ?: remember { mutableStateOf(false) }
+
+    var currentPositionMs by remember { mutableLongStateOf(0L) }
+    var previewDurationMs by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(isPlaying, currentMediaMetadata?.id) {
+        if (isPlaying && currentMediaMetadata != null) {
+            while (isActive) {
+                currentPositionMs = playerConnection?.player?.currentPosition?.coerceAtLeast(0L) ?: 0L
+                val rawDuration = playerConnection?.player?.duration ?: 0L
+                if (rawDuration > 0 && rawDuration != androidx.media3.common.C.TIME_UNSET) {
+                    previewDurationMs = rawDuration
+                } else if ((currentMediaMetadata?.duration ?: 0) > 0) {
+                    previewDurationMs = (currentMediaMetadata?.duration ?: 0) * 1000L
+                }
+                delay(150L)
+            }
+        } else {
+            currentPositionMs = playerConnection?.player?.currentPosition?.coerceAtLeast(0L) ?: 0L
+            if ((currentMediaMetadata?.duration ?: 0) > 0) {
+                previewDurationMs = (currentMediaMetadata?.duration ?: 0) * 1000L
+            }
+        }
+    }
 
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val selectedSongs = remember { mutableStateMapOf<String, MediaMetadata>() }
@@ -240,12 +329,13 @@ fun AddSongsToPlaylistDialog(
         }
     }
 
-    // Load recommendations once
+    // Load recommendations once with name-checked deduplication
     LaunchedEffect(Unit) {
         isLoadingRecommendations = true
         scope.launch(Dispatchers.IO) {
             val recList = mutableListOf<RecommendedSong>()
             val seenIds = existingSongIds.toMutableSet()
+            val seenNormalizedTitles = mutableSetOf<String>()
 
             // 1. Based on Playlist (Algorithmic radio recommendations from playlist tracks)
             if (currentSongs.isNotEmpty()) {
@@ -257,7 +347,12 @@ fun AddSongsToPlaylistDialog(
                             ?: YouTube.next(WatchEndpoint(videoId = seed.song.id)).getOrNull()
 
                         nextResult?.items?.filterIsInstance<SongItem>()?.forEach { songItem ->
-                            if (seenIds.add(songItem.id)) {
+                            val artists = songItem.artists.map { it.name }
+                            val normTitle = normalizeTitleForPlaylist(songItem.title)
+                            if (!checkInPlaylist(songItem.id, songItem.title, artists) &&
+                                seenIds.add(songItem.id) &&
+                                (normTitle.length < 3 || seenNormalizedTitles.add(normTitle))
+                            ) {
                                 recList.add(RecommendedSong(songItem.toMediaMetadata(), "Playlist"))
                             }
                         }
@@ -265,7 +360,12 @@ fun AddSongsToPlaylistDialog(
                         nextResult?.relatedEndpoint?.let { relatedEndpoint ->
                             val relatedPage = YouTube.related(relatedEndpoint).getOrNull()
                             relatedPage?.songs?.forEach { songItem ->
-                                if (seenIds.add(songItem.id)) {
+                                val artists = songItem.artists.map { it.name }
+                                val normTitle = normalizeTitleForPlaylist(songItem.title)
+                                if (!checkInPlaylist(songItem.id, songItem.title, artists) &&
+                                    seenIds.add(songItem.id) &&
+                                    (normTitle.length < 3 || seenNormalizedTitles.add(normTitle))
+                                ) {
                                     recList.add(RecommendedSong(songItem.toMediaMetadata(), "Playlist"))
                                 }
                             }
@@ -282,13 +382,23 @@ fun AddSongsToPlaylistDialog(
                         if (artist.artist.isYouTubeArtist) {
                             val page = YouTube.artist(artist.id).getOrNull()
                             page?.sections?.flatMap { it.items }?.filterIsInstance<SongItem>()?.forEach { songItem ->
-                                if (seenIds.add(songItem.id)) {
+                                val artists = songItem.artists.map { it.name }
+                                val normTitle = normalizeTitleForPlaylist(songItem.title)
+                                if (!checkInPlaylist(songItem.id, songItem.title, artists) &&
+                                    seenIds.add(songItem.id) &&
+                                    (normTitle.length < 3 || seenNormalizedTitles.add(normTitle))
+                                ) {
                                     recList.add(RecommendedSong(songItem.toMediaMetadata(), "Followed Artist"))
                                 }
                             }
                         } else {
                             database.artistSongs(artist.id, ArtistSongSortType.CREATE_DATE, true).first().forEach { song ->
-                                if (seenIds.add(song.id)) {
+                                val artists = song.artists.map { it.name }
+                                val normTitle = normalizeTitleForPlaylist(song.song.title)
+                                if (!checkInPlaylist(song.id, song.song.title, artists) &&
+                                    seenIds.add(song.id) &&
+                                    (normTitle.length < 3 || seenNormalizedTitles.add(normTitle))
+                                ) {
                                     recList.add(RecommendedSong(song.toMediaMetadata(), "Followed Artist"))
                                 }
                             }
@@ -300,6 +410,17 @@ fun AddSongsToPlaylistDialog(
             withContext(Dispatchers.Main) {
                 recommendedSongs = recList
                 isLoadingRecommendations = false
+            }
+        }
+    }
+
+    // Pre-fetch stream URLs in the background for recommended songs
+    LaunchedEffect(recommendedSongs) {
+        if (recommendedSongs.isNotEmpty()) {
+            withContext(Dispatchers.IO) {
+                recommendedSongs.take(8).forEach { rec ->
+                    playerConnection?.prefetchSong(rec.metadata.id)
+                }
             }
         }
     }
@@ -543,9 +664,10 @@ fun AddSongsToPlaylistDialog(
                                         }
                                     } else {
                                         items(artistSongsList, key = { "artist_${it.id}" }) { song ->
-                                            val inPlaylist = existingSongIds.contains(song.id)
+                                            val inPlaylist = checkInPlaylist(song.id, song.title, song.artists.map { it.name })
                                             val isChecked = selectedSongs.containsKey(song.id)
                                             val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
+                                            val isCurrentPreview = currentMediaMetadata?.id == song.id
 
                                             SongSelectRow(
                                                 song = song,
@@ -553,12 +675,18 @@ fun AddSongsToPlaylistDialog(
                                                 inPlaylist = inPlaylist,
                                                 checked = isChecked,
                                                 isPlaying = isSongPlaying,
+                                                isCurrentPreview = isCurrentPreview,
+                                                currentPositionMs = currentPositionMs,
+                                                durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                                 onPreviewClick = {
                                                     if (currentMediaMetadata?.id == song.id) {
                                                         playerConnection?.togglePlayPause()
                                                     } else {
                                                         playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
                                                     }
+                                                },
+                                                onSeekTo = { pos ->
+                                                    playerConnection?.player?.seekTo(pos)
                                                 },
                                                 onCheckedChange = { checked ->
                                                     if (checked) selectedSongs[song.id] = song
@@ -586,9 +714,10 @@ fun AddSongsToPlaylistDialog(
                                         )
                                     }
                                     items(searchSongResults, key = { it.id }) { song ->
-                                        val inPlaylist = existingSongIds.contains(song.id)
+                                        val inPlaylist = checkInPlaylist(song.id, song.title, song.artists.map { it.name })
                                         val isChecked = selectedSongs.containsKey(song.id)
                                         val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
+                                        val isCurrentPreview = currentMediaMetadata?.id == song.id
 
                                         SongSelectRow(
                                             song = song,
@@ -596,12 +725,18 @@ fun AddSongsToPlaylistDialog(
                                             inPlaylist = inPlaylist,
                                             checked = isChecked,
                                             isPlaying = isSongPlaying,
+                                            isCurrentPreview = isCurrentPreview,
+                                            currentPositionMs = currentPositionMs,
+                                            durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                             onPreviewClick = {
                                                 if (currentMediaMetadata?.id == song.id) {
                                                     playerConnection?.togglePlayPause()
                                                 } else {
                                                     playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
                                                 }
+                                            },
+                                            onSeekTo = { pos ->
+                                                playerConnection?.player?.seekTo(pos)
                                             },
                                             onCheckedChange = { checked ->
                                                 if (checked) selectedSongs[song.id] = song
@@ -703,22 +838,29 @@ fun AddSongsToPlaylistDialog(
                                 ) {
                                     items(filteredRecs, key = { "${it.source}_${it.metadata.id}" }) { rec ->
                                         val song = rec.metadata
-                                        val inPlaylist = existingSongIds.contains(song.id)
+                                        val inPlaylist = checkInPlaylist(song.id, song.title, song.artists.map { it.name })
                                         val isChecked = selectedSongs.containsKey(song.id)
                                         val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
+                                        val isCurrentPreview = currentMediaMetadata?.id == song.id
 
-                                        SongSelectRow(
+                                        RecommendationBigCard(
                                             song = song,
-                                            badgeText = if (rec.source == "Playlist") "From Playlist" else rec.source,
+                                            sourceBadge = if (rec.source == "Playlist") "From Playlist" else rec.source,
                                             inPlaylist = inPlaylist,
                                             checked = isChecked,
                                             isPlaying = isSongPlaying,
+                                            isCurrentPreview = isCurrentPreview,
+                                            currentPositionMs = currentPositionMs,
+                                            durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                             onPreviewClick = {
                                                 if (currentMediaMetadata?.id == song.id) {
                                                     playerConnection?.togglePlayPause()
                                                 } else {
                                                     playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
                                                 }
+                                            },
+                                            onSeekTo = { pos ->
+                                                playerConnection?.player?.seekTo(pos)
                                             },
                                             onCheckedChange = { checked ->
                                                 if (checked) selectedSongs[song.id] = song
@@ -792,13 +934,220 @@ fun AddSongsToPlaylistDialog(
 }
 
 @Composable
+private fun PreviewScrubber(
+    currentPositionMs: Long,
+    durationMs: Long,
+    onSeekTo: (Long) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var isScrubbing by remember { mutableStateOf(false) }
+    var scrubPos by remember { mutableFloatStateOf(0f) }
+
+    val effectiveDuration = durationMs.coerceAtLeast(1000L).toFloat()
+    val displayPos = if (isScrubbing) scrubPos else currentPositionMs.toFloat().coerceIn(0f, effectiveDuration)
+
+    Column(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Slider(
+            value = displayPos.coerceIn(0f, effectiveDuration),
+            valueRange = 0f..effectiveDuration,
+            onValueChange = { value ->
+                isScrubbing = true
+                scrubPos = value
+            },
+            onValueChangeFinished = {
+                isScrubbing = false
+                onSeekTo(scrubPos.toLong())
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(28.dp),
+            colors = SliderDefaults.colors(
+                thumbColor = MaterialTheme.colorScheme.primary,
+                activeTrackColor = MaterialTheme.colorScheme.primary,
+                inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = makeTimeString(displayPos.toLong()),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = makeTimeString(durationMs.coerceAtLeast(0L)),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun RecommendationBigCard(
+    song: MediaMetadata,
+    sourceBadge: String,
+    inPlaylist: Boolean,
+    checked: Boolean,
+    isPlaying: Boolean,
+    isCurrentPreview: Boolean,
+    currentPositionMs: Long,
+    durationMs: Long,
+    onPreviewClick: () -> Unit,
+    onSeekTo: (Long) -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(enabled = !inPlaylist) {
+                onCheckedChange(!checked)
+            }
+            .animateContentSize(),
+        shape = RoundedCornerShape(16.dp),
+        color = if (checked) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+        else MaterialTheme.colorScheme.surfaceContainerLow,
+        border = if (checked) BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary)
+        else BorderStroke(0.5.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // 16:9 Thumbnail with Overlay Play Button
+                Box(
+                    modifier = Modifier
+                        .width(104.dp)
+                        .height(58.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { onPreviewClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = song.thumbnailUrl?.resize(240, 135),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Overlay play/pause button circle
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(Color.Black.copy(alpha = if (isCurrentPreview && isPlaying) 0.65f else 0.45f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(if (isCurrentPreview && isPlaying) R.drawable.pause else R.drawable.play),
+                            contentDescription = if (isCurrentPreview && isPlaying) "Pause" else "Play",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.width(12.dp))
+
+                // Song Title & Artist info
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = song.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = song.artists.joinToString { it.name }.ifEmpty { "Unknown Artist" },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
+                        ) {
+                            Text(
+                                text = sourceBadge,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                            )
+                        }
+                        if (song.duration > 0) {
+                            Text(
+                                text = makeTimeString(song.duration * 1000L),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                // Checkbox to select
+                Checkbox(
+                    checked = checked || inPlaylist,
+                    enabled = !inPlaylist,
+                    onCheckedChange = { onCheckedChange(it) }
+                )
+            }
+
+            // Expanding scrubber when preview is playing or active on this song
+            if (isCurrentPreview) {
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                Spacer(Modifier.height(4.dp))
+                PreviewScrubber(
+                    currentPositionMs = currentPositionMs,
+                    durationMs = durationMs,
+                    onSeekTo = onSeekTo
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun SongSelectRow(
     song: MediaMetadata,
     badgeText: String?,
     inPlaylist: Boolean,
     checked: Boolean,
     isPlaying: Boolean,
+    isCurrentPreview: Boolean,
+    currentPositionMs: Long,
+    durationMs: Long,
     onPreviewClick: () -> Unit,
+    onSeekTo: (Long) -> Unit,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     Surface(
@@ -806,134 +1155,155 @@ private fun SongSelectRow(
             .fillMaxWidth()
             .clickable(enabled = !inPlaylist) {
                 onCheckedChange(!checked)
-            },
+            }
+            .animateContentSize(),
         color = if (checked) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
         else MaterialTheme.colorScheme.surface
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            // Thumbnail with click-to-preview overlay
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .clickable { onPreviewClick() },
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                AsyncImage(
-                    model = song.thumbnailUrl?.resize(120, 120),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-                if (isPlaying) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.5f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.pause),
-                            contentDescription = "Pause",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            // Details
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = song.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = song.artists.joinToString { it.name }.ifEmpty { "Unknown Artist" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
+                // Thumbnail with click-to-preview overlay
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .clickable { onPreviewClick() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    AsyncImage(
+                        model = song.thumbnailUrl?.resize(120, 120),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                    if (song.duration > 0) {
-                        Text(
-                            text = " • ${makeTimeString(song.duration * 1000L)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    if (isCurrentPreview && isPlaying) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.5f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.pause),
+                                contentDescription = "Pause",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
 
-                if (badgeText != null || inPlaylist) {
-                    Spacer(Modifier.height(2.dp))
-                    Row {
-                        if (inPlaylist) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            ) {
-                                Text(
-                                    text = "In playlist",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
-                                )
-                            }
-                        } else if (badgeText != null) {
-                            Surface(
-                                shape = RoundedCornerShape(4.dp),
-                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
-                            ) {
-                                Text(
-                                    text = badgeText,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
-                                )
+                Spacer(Modifier.width(12.dp))
+
+                // Details
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = song.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = song.artists.joinToString { it.name }.ifEmpty { "Unknown Artist" },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                        if (song.duration > 0) {
+                            Text(
+                                text = " • ${makeTimeString(song.duration * 1000L)}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    if (badgeText != null || inPlaylist) {
+                        Spacer(Modifier.height(2.dp))
+                        Row {
+                            if (inPlaylist) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                ) {
+                                    Text(
+                                        text = "In playlist",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                                    )
+                                }
+                            } else if (badgeText != null) {
+                                Surface(
+                                    shape = RoundedCornerShape(4.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
+                                ) {
+                                    Text(
+                                        text = badgeText,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp)
+                                    )
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(8.dp))
 
-            // Listen into song preview button
-            IconButton(
-                onClick = onPreviewClick,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    painter = painterResource(if (isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = if (isPlaying) "Pause preview" else "Preview song",
-                    tint = if (isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(20.dp)
+                // Listen into song preview button
+                IconButton(
+                    onClick = onPreviewClick,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(if (isCurrentPreview && isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = if (isCurrentPreview && isPlaying) "Pause preview" else "Preview song",
+                        tint = if (isCurrentPreview && isPlaying) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(4.dp))
+
+                // Checkbox
+                Checkbox(
+                    checked = checked || inPlaylist,
+                    enabled = !inPlaylist,
+                    onCheckedChange = { onCheckedChange(it) }
                 )
             }
 
-            Spacer(Modifier.width(4.dp))
-
-            // Checkbox
-            Checkbox(
-                checked = checked || inPlaylist,
-                enabled = !inPlaylist,
-                onCheckedChange = { onCheckedChange(it) }
-            )
+            // Expanding scrubber when previewing
+            if (isCurrentPreview) {
+                Spacer(Modifier.height(6.dp))
+                HorizontalDivider(
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                Spacer(Modifier.height(2.dp))
+                PreviewScrubber(
+                    currentPositionMs = currentPositionMs,
+                    durationMs = durationMs,
+                    onSeekTo = onSeekTo
+                )
+            }
         }
     }
 }
+
