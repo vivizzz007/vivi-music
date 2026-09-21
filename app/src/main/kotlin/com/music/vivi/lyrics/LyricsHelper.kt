@@ -72,17 +72,44 @@ constructor(
     private val activeFetches = mutableMapOf<String, Deferred<LyricsWithProvider>>()
     private val fetchesMutex = Mutex()
 
+    enum class LyricsType {
+        WORD_SYNCED,
+        LINE_SYNCED,
+        PLAIN_TEXT,
+        NOT_FOUND,
+    }
+
+    private fun getLyricsType(lyrics: String?): LyricsType {
+        if (lyrics.isNullOrBlank() || lyrics == LYRICS_NOT_FOUND) return LyricsType.NOT_FOUND
+
+        // Check for word-synced markers:
+        // 1. Rich sync tags: <00:12.34> or <0:12.345>
+        // 2. Word timestamp segments: <word:start:end>
+        // 3. TTML word spans
+        val hasWordSync = lyrics.contains(Regex("""<\d{1,2}:\d{2}\.\d{2,3}>""")) ||
+                lyrics.contains(Regex("""<[^:>|\n]+:\d+(\.\d+)?:\d+(\.\d+)?""")) ||
+                (lyrics.contains("<tt ") && lyrics.contains("<span begin="))
+
+        if (hasWordSync) return LyricsType.WORD_SYNCED
+
+        // Check for standard line-synced markers: [00:12.34] or [0:12.34]
+        val isLineSynced = lyrics.trimStart().startsWith("[") || lyrics.contains(Regex("""\[\d{1,2}:\d{2}"""))
+        if (isLineSynced) return LyricsType.LINE_SYNCED
+
+        return LyricsType.PLAIN_TEXT
+    }
+
     private fun isSyncedLyrics(lyrics: String?): Boolean {
-        if (lyrics.isNullOrBlank() || lyrics == LYRICS_NOT_FOUND) return false
-        val trimmed = lyrics.trimStart()
-        return trimmed.startsWith("[") || trimmed.contains(Regex("""\[\d{1,2}:\d{2}"""))
+        val type = getLyricsType(lyrics)
+        return type == LyricsType.WORD_SYNCED || type == LyricsType.LINE_SYNCED
     }
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         currentLyricsJob?.cancel()
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
-        if (cached != null && isSyncedLyrics(cached.lyrics)) {
+        // If cached lyrics are word-synced, return immediately as it's the highest tier
+        if (cached != null && getLyricsType(cached.lyrics) == LyricsType.WORD_SYNCED) {
             return LyricsWithProvider(cached.lyrics, cached.providerName)
         }
 
@@ -94,7 +121,7 @@ constructor(
             // If network check fails, try to proceed anyway
             true
         }
-        
+
         if (!isNetworkAvailable) {
             if (cached != null) {
                 return LyricsWithProvider(cached.lyrics, cached.providerName)
@@ -141,35 +168,34 @@ constructor(
                             }
                         }
 
-                        // Wait for completion or until a high-priority synced result is determined
+                        // Wait for completion or until a high-priority word-synced result is determined
                         val startTime = System.currentTimeMillis()
                         val maxWaitMs = 3500L
 
                         while (System.currentTimeMillis() - startTime < maxWaitMs) {
-                            // 1. If provider 0 (highest priority) finished with synced lyrics, return immediately
+                            // 1. If provider 0 (highest priority provider) finished with WORD_SYNCED lyrics, return immediately!
                             val topLyrics = results[0]
-                            if (topLyrics != null && isSyncedLyrics(topLyrics)) {
+                            if (topLyrics != null && getLyricsType(topLyrics) == LyricsType.WORD_SYNCED) {
                                 val res = LyricsWithProvider(topLyrics, deferreds[0].first.name)
                                 cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
                                 return@coroutineScope res
                             }
 
-                            // 2. Find highest priority synced lyrics available so far
-                            val firstSyncedIndex = results.indexOfFirst { it != null && isSyncedLyrics(it) }
-                            if (firstSyncedIndex != -1) {
-                                // If all providers with higher priority than firstSyncedIndex finished,
-                                // or if we gave higher-priority providers at least 1000ms, use this synced result!
-                                val higherPriorityAllCompleted = (0 until firstSyncedIndex).all { deferreds[it].second.isCompleted }
+                            // 2. Find highest priority WORD_SYNCED lyrics available so far
+                            val firstWordSyncedIndex = results.indexOfFirst { it != null && getLyricsType(it) == LyricsType.WORD_SYNCED }
+                            if (firstWordSyncedIndex != -1) {
+                                // If all providers with higher priority finished (or if we waited at least 1000ms), use this word-synced result
+                                val higherPriorityAllCompleted = (0 until firstWordSyncedIndex).all { deferreds[it].second.isCompleted }
                                 val waitedEnough = System.currentTimeMillis() - startTime >= 1000L
                                 if (higherPriorityAllCompleted || waitedEnough) {
-                                    val syncedLyrics = results[firstSyncedIndex]!!
-                                    val res = LyricsWithProvider(syncedLyrics, deferreds[firstSyncedIndex].first.name)
+                                    val wordSyncedLyrics = results[firstWordSyncedIndex]!!
+                                    val res = LyricsWithProvider(wordSyncedLyrics, deferreds[firstWordSyncedIndex].first.name)
                                     cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
                                     return@coroutineScope res
                                 }
                             }
 
-                            // 3. If all providers have finished, break early
+                            // 3. If all providers have finished, break early and pick the best tier
                             if (deferreds.all { it.second.isCompleted }) {
                                 break
                             }
@@ -177,20 +203,29 @@ constructor(
                             delay(50)
                         }
 
-                        // Check again for any synced lyrics in priority order
-                        val anySyncedIndex = results.indexOfFirst { it != null && isSyncedLyrics(it) }
-                        if (anySyncedIndex != -1) {
-                            val syncedLyrics = results[anySyncedIndex]!!
-                            val res = LyricsWithProvider(syncedLyrics, deferreds[anySyncedIndex].first.name)
+                        // Tier 1: Check for any WORD_SYNCED lyrics in priority order
+                        val anyWordSyncedIndex = results.indexOfFirst { it != null && getLyricsType(it) == LyricsType.WORD_SYNCED }
+                        if (anyWordSyncedIndex != -1) {
+                            val wordSyncedLyrics = results[anyWordSyncedIndex]!!
+                            val res = LyricsWithProvider(wordSyncedLyrics, deferreds[anyWordSyncedIndex].first.name)
                             cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
                             return@coroutineScope res
                         }
 
-                        // Fallback to highest-priority unsynced lyrics
-                        val anyUnsyncedIndex = results.indexOfFirst { it != null }
-                        if (anyUnsyncedIndex != -1) {
-                            val unsyncedLyrics = results[anyUnsyncedIndex]!!
-                            val res = LyricsWithProvider(unsyncedLyrics, deferreds[anyUnsyncedIndex].first.name)
+                        // Tier 2: Fallback to LINE_SYNCED lyrics in priority order
+                        val anyLineSyncedIndex = results.indexOfFirst { it != null && getLyricsType(it) == LyricsType.LINE_SYNCED }
+                        if (anyLineSyncedIndex != -1) {
+                            val lineSyncedLyrics = results[anyLineSyncedIndex]!!
+                            val res = LyricsWithProvider(lineSyncedLyrics, deferreds[anyLineSyncedIndex].first.name)
+                            cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
+                            return@coroutineScope res
+                        }
+
+                        // Tier 3: Fallback to PLAIN_TEXT lyrics in priority order
+                        val anyPlainTextIndex = results.indexOfFirst { it != null && getLyricsType(it) == LyricsType.PLAIN_TEXT }
+                        if (anyPlainTextIndex != -1) {
+                            val plainLyrics = results[anyPlainTextIndex]!!
+                            val res = LyricsWithProvider(plainLyrics, deferreds[anyPlainTextIndex].first.name)
                             cache.put(cacheKey, listOf(LyricsResult(res.provider, res.lyrics)))
                             return@coroutineScope res
                         }
@@ -226,7 +261,14 @@ constructor(
 
         val cacheKey = "$songArtists-$songTitle".replace(" ", "")
         cache.get(cacheKey)?.let { results ->
-            results.forEach {
+            results.sortedBy { res ->
+                when (getLyricsType(res.lyrics)) {
+                    LyricsType.WORD_SYNCED -> 0
+                    LyricsType.LINE_SYNCED -> 1
+                    LyricsType.PLAIN_TEXT -> 2
+                    LyricsType.NOT_FOUND -> 3
+                }
+            }.forEach {
                 callback(it)
             }
             return

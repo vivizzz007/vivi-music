@@ -79,6 +79,7 @@ import com.music.vivi.ui.component.Material3MenuItemData
 import com.music.vivi.ui.component.NewAction
 import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.PlaylistListItem
+import com.music.vivi.ui.component.EditPlaylistDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -158,29 +159,27 @@ fun PlaylistMenu(
     }
 
     if (showEditDialog) {
-        TextFieldDialog(
-            icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
-            title = { Text(text = stringResource(R.string.edit_playlist)) },
+        EditPlaylistDialog(
+            initialName = playlist.playlist.name,
+            initialDescription = playlist.playlist.description,
             onDismiss = { showEditDialog = false },
-            initialTextFieldValue =
-            TextFieldValue(
-                playlist.playlist.name,
-                TextRange(playlist.playlist.name.length),
-            ),
-            onDone = { name ->
+            onSave = { name, description ->
                 onDismiss()
                 database.query {
                     update(
                         playlist.playlist.copy(
                             name = name,
+                            description = description,
                             lastUpdateTime = LocalDateTime.now()
                         )
                     )
                 }
                 coroutineScope.launch(Dispatchers.IO) {
-                    playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
+                    if (name != playlist.playlist.name) {
+                        playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
+                    }
                 }
-            },
+            }
         )
     }
 

@@ -471,6 +471,8 @@ constructor(
         }
     }
 
+    private val reDownloadRetryCount = java.util.concurrent.ConcurrentHashMap<String, Int>()
+
     fun shouldDownloadSong(songId: String): Boolean {
         val download = downloads.value[songId]
         if (download != null) {
@@ -483,11 +485,13 @@ constructor(
                 Download.STATE_COMPLETED -> {
                     val cacheKey = if (downloadCache.keys.contains(songId)) songId else songId.toUri().toString()
                     val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
-                    if (cachedBytes in 1L..1_150_000L) {
+                    val effectiveBytes = maxOf(cachedBytes, download.bytesDownloaded)
+                    val song = database.getSongByIdBlocking(songId)?.song
+                    val duration = song?.duration ?: 0
+                    if (effectiveBytes == 0L || (effectiveBytes < 150_000L && duration > 20)) {
                         return true
                     }
-                    val song = database.getSongByIdBlocking(songId)?.song
-                    if (song != null && song.duration <= 0) {
+                    if (duration <= 0 && effectiveBytes < 150_000L) {
                         return true
                     }
                     return false
@@ -497,16 +501,22 @@ constructor(
         }
         val song = database.getSongByIdBlocking(songId)?.song
         if (song != null && (song.isDownloaded || song.dateDownload != null)) {
-            if (song.duration <= 0) return true
             val cacheKey = if (downloadCache.keys.contains(songId)) songId else songId.toUri().toString()
             val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
-            if (cachedBytes in 1L..1_150_000L || cachedBytes == 0L) return true
+            if (cachedBytes == 0L || (cachedBytes < 150_000L && song.duration > 20)) return true
             return false
         }
         return true
     }
 
     fun reDownloadSong(songId: String, title: String) {
+        val count = reDownloadRetryCount.getOrDefault(songId, 0)
+        if (count >= 2) {
+            Timber.tag("DownloadDiagnostics").w("Reached max reDownload retries ($count) for $songId; aborting loop.")
+            return
+        }
+        reDownloadRetryCount[songId] = count + 1
+
         scope.launch(Dispatchers.IO) {
             registerBatchDownload(listOf(songId))
             database.updateDownloadedInfo(songId, false, null)
@@ -665,16 +675,17 @@ constructor(
 
                                     val effectiveBytes = maxOf(cachedBytes, download.bytesDownloaded)
                                     val isTruncated = effectiveBytes == 0L ||
-                                            (effectiveBytes < 300_000L && (duration > 25 || duration == 0)) ||
-                                            (effectiveBytes in 1L..1_150_000L && (duration > 30 || (format?.bitrate ?: 0) > 0)) ||
-                                            (expectedLength > 1_500_000L && effectiveBytes < (expectedLength * 0.9).toLong())
+                                            (effectiveBytes < 150_000L && (duration > 30 || duration == 0)) ||
+                                            (expectedLength > 1_000_000L && effectiveBytes < (expectedLength * 0.7).toLong()) ||
+                                            (duration > 30 && effectiveBytes < duration * 2_500L)
 
                                     if (isTruncated) {
                                         Timber.tag("DownloadDiagnostics").w("Download marked completed but is truncated/empty (cached: $cachedBytes, downloaded: ${download.bytesDownloaded}, expected: $expectedLength, duration: $duration) for $songId.")
                                         database.updateDownloadedInfo(songId, false, null)
                                         permanentlyFailedSongIds.remove(songId)
                                         reDownloadSong(songId, song?.title ?: songId)
-                                    } else if (effectiveBytes >= 300_000L || (expectedLength > 0L && effectiveBytes >= expectedLength * 0.85)) {
+                                    } else {
+                                        reDownloadRetryCount.remove(songId)
                                         database.updateDownloadedInfo(songId, true, LocalDateTime.now())
 
                                         song?.thumbnailUrl?.let { url ->
@@ -698,9 +709,6 @@ constructor(
                                         if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
                                             exportSongToPublicStorage(songId)
                                         }
-                                    } else {
-                                        Timber.tag("DownloadDiagnostics").w("Download for $songId had insufficient bytes (cached: $cachedBytes, downloaded: ${download.bytesDownloaded}). NOT marking as downloaded.")
-                                        database.updateDownloadedInfo(songId, false, null)
                                     }
                                 }
                                 Download.STATE_FAILED,
@@ -779,6 +787,7 @@ constructor(
         if (result.values.any { it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED }) {
             startProgressPollingIfNeeded()
         }
+        runCatching { downloadManager.resumeDownloads() }
         scope.launch(Dispatchers.IO) {
             val savedFailed = appContext.dataStore.data.firstOrNull()?.get(PermanentlyFailedDownloadSongIdsKey) ?: emptySet()
             permanentlyFailedSongIds.addAll(savedFailed)

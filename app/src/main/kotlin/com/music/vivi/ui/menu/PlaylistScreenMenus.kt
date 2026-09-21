@@ -43,6 +43,7 @@ fun LocalPlaylistMenu(
     onDismiss: () -> Unit,
     onSyncToSpotify: (() -> Unit)? = null,
     onAddSongs: (() -> Unit)? = null,
+    onScanDuplicates: (() -> Unit)? = null,
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val downloadUtil = LocalDownloadUtil.current
@@ -132,6 +133,25 @@ fun LocalPlaylistMenu(
                 }
             )
         )
+
+        if (playlist.playlist.isEditable && onScanDuplicates != null && songs.size > 1) {
+            add(
+                Material3MenuItemData(
+                    title = { Text(stringResource(R.string.scan_for_duplicates)) },
+                    description = { Text(stringResource(R.string.scan_for_duplicates_desc)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.content_copy),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = {
+                        onScanDuplicates()
+                        onDismiss()
+                    }
+                )
+            )
+        }
 
         // Show sync button for YouTube or Spotify playlists
         if (isYouTubePlaylist || isSpotifyPlaylist) {

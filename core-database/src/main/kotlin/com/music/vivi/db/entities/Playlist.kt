@@ -36,6 +36,9 @@ data class Playlist(
     override val thumbnailUrl: String?
         get() = null
     
+    val description: String?
+        get() = playlist.description
+
     val thumbnails: List<String>
         get() {
             return if (playlist.thumbnailUrl != null)

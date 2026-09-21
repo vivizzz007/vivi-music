@@ -150,6 +150,8 @@ import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.OverlayEditButton
 import com.music.vivi.ui.component.SongListItem
 import com.music.vivi.ui.component.SortHeader
+import com.music.vivi.ui.component.EditPlaylistDialog
+import com.music.vivi.ui.component.ScanDuplicatesDialog
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.menu.CustomThumbnailMenu
 import com.music.vivi.ui.component.ExpandableText
@@ -305,34 +307,41 @@ fun LocalPlaylistScreen(
 
     if (showEditDialog) {
         playlist?.playlist?.let { playlistEntity ->
-            TextFieldDialog(
-                icon = {
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = null
-                    )
-                },
-                title = { Text(text = stringResource(R.string.edit_playlist)) },
+            EditPlaylistDialog(
+                initialName = playlistEntity.name,
+                initialDescription = playlistEntity.description,
                 onDismiss = { showEditDialog = false },
-                initialTextFieldValue = TextFieldValue(
-                    playlistEntity.name,
-                    TextRange(playlistEntity.name.length)
-                ),
-                onDone = { name ->
+                onSave = { name, description ->
                     database.query {
                         update(
                             playlistEntity.copy(
                                 name = name,
+                                description = description,
                                 lastUpdateTime = LocalDateTime.now()
                             )
                         )
                     }
                     viewModel.viewModelScope.launch(Dispatchers.IO) {
-                        playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
+                        if (name != playlistEntity.name) {
+                            playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
+                        }
                     }
-                },
+                }
             )
         }
+    }
+
+    var showScanDuplicatesDialog by remember {
+        mutableStateOf(false)
+    }
+
+    val currentScanPlaylist = playlist
+    if (showScanDuplicatesDialog && currentScanPlaylist != null) {
+        ScanDuplicatesDialog(
+            playlist = currentScanPlaylist,
+            songs = songs,
+            onDismiss = { showScanDuplicatesDialog = false }
+        )
     }
 
     var showAddSongsDialog by remember {
@@ -558,6 +567,7 @@ fun LocalPlaylistScreen(
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 onshowDeletePlaylistDialog = { showDeletePlaylistDialog = true },
                                 onShowAddSongsDialog = { showAddSongsDialog = true },
+                                onScanDuplicates = { showScanDuplicatesDialog = true },
                                 onStartSearch = { isSearching = true },
                                 snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem()
@@ -755,6 +765,7 @@ fun LocalPlaylistScreen(
                                                     title = playlist!!.playlist.name,
                                                     items = songs.map { it.song.toMediaItem() },
                                                     startIndex = songs.indexOfFirst { it.map.id == song.map.id },
+                                                    playlistId = playlist!!.id,
                                                 ),
                                             )
                                         }
@@ -944,6 +955,7 @@ fun LocalPlaylistHeader(
     onStartSearch: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
+    onScanDuplicates: (() -> Unit)? = null,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
@@ -1271,6 +1283,19 @@ fun LocalPlaylistHeader(
             modifier = Modifier.padding(horizontal = 32.dp)
         )
 
+        if (!playlist.playlist.description.isNullOrBlank()) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = playlist.playlist.description!!,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
+        }
+
         Spacer(modifier = Modifier.height(12.dp))
 
         // Metadata - Song Count • Duration
@@ -1309,6 +1334,7 @@ fun LocalPlaylistHeader(
                         ListQueue(
                             title = playlist.playlist.name,
                             items = songs.map { it.song.toMediaItem() },
+                            playlistId = playlist.id,
                         )
                     )
                 },
@@ -1341,6 +1367,7 @@ fun LocalPlaylistHeader(
                         ListQueue(
                             title = playlist.playlist.name,
                             items = songs.shuffled().map { it.song.toMediaItem() },
+                            playlistId = playlist.id,
                         )
                     )
                 },
@@ -1377,6 +1404,7 @@ fun LocalPlaylistHeader(
                             downloadState = downloadState,
                             onEdit = onShowEditDialog,
                             onAddSongs = onShowAddSongsDialog,
+                            onScanDuplicates = onScanDuplicates,
                             onSync = {
                                 scope.launch(Dispatchers.IO) {
                                     if (playlist.id.startsWith("SPOTIFY_")) {

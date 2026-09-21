@@ -1641,6 +1641,10 @@ interface DatabaseDao {
     fun playlistSongMaps(songId: String): List<PlaylistSongMap>
 
     @Transaction
+    @Query("SELECT playlist.*, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist JOIN playlist_song_map ON playlist_song_map.playlistId = playlist.id WHERE playlist_song_map.songId = :songId AND playlist.isEditable")
+    fun playlistsContainingSong(songId: String): Flow<List<Playlist>>
+
+    @Transaction
     @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId AND position >= :from ORDER BY position")
     fun playlistSongMaps(
         playlistId: String,

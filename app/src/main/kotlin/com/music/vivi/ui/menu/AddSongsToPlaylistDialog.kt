@@ -241,6 +241,20 @@ private fun isSongInPlaylist(
 }
 
 
+private data class PrecomputedSong(
+    val id: String,
+    val normTitle: String,
+    val artists: List<String>,
+)
+
+object AddToPlaylistCache {
+    val playlistRecommendations = mutableMapOf<String, List<RecommendedSong>>()
+    var globalRecommendations: List<RecommendedSong> = emptyList()
+    var lastSearchQuery: String = ""
+    var lastSearchSongs: List<MediaMetadata> = emptyList()
+    var lastSearchArtists: List<ArtistItem> = emptyList()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddSongsToPlaylistDialog(
@@ -260,9 +274,42 @@ fun AddSongsToPlaylistDialog(
     val existingSongIds = remember(currentSongs) {
         currentSongs.map { it.song.id }.toSet()
     }
-    val checkInPlaylist: (String, String, List<String>) -> Boolean = remember(existingSongIds, currentSongs) {
+    val precomputedExisting = remember(currentSongs) {
+        currentSongs.map { ps ->
+            PrecomputedSong(
+                id = ps.song.id,
+                normTitle = normalizeTitleForPlaylist(ps.song.title),
+                artists = ps.song.artists.map { it.name.lowercase(Locale.ROOT).trim() }.filter { it.isNotEmpty() }
+            )
+        }
+    }
+    val checkInPlaylist: (String, String, List<String>) -> Boolean = remember(existingSongIds, precomputedExisting) {
         { id, title, artists ->
-            isSongInPlaylist(id, title, artists, existingSongIds, currentSongs)
+            if (existingSongIds.contains(id)) true
+            else {
+                val normTitle = normalizeTitleForPlaylist(title)
+                if (normTitle.length < 2) false
+                else {
+                    val candidateArtists = artists.map { it.lowercase(Locale.ROOT).trim() }.filter { it.isNotEmpty() }
+                    precomputedExisting.any { existing ->
+                        if (existing.normTitle.length < 2) false
+                        else {
+                            val exactMatch = normTitle == existing.normTitle
+                            val substringMatch = (normTitle.length >= 4 && existing.normTitle.length >= 4) &&
+                                    (normTitle.contains(existing.normTitle) || existing.normTitle.contains(normTitle))
+                            if (!exactMatch && !substringMatch) false
+                            else if (candidateArtists.isEmpty() || existing.artists.isEmpty()) true
+                            else {
+                                candidateArtists.any { ca ->
+                                    existing.artists.any { ea ->
+                                        ca == ea || ca.contains(ea) || ea.contains(ca)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -297,10 +344,10 @@ fun AddSongsToPlaylistDialog(
     val selectedSongs = remember { mutableStateMapOf<String, MediaMetadata>() }
 
     // Search tab state
-    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var searchQuery by rememberSaveable { mutableStateOf(AddToPlaylistCache.lastSearchQuery) }
     var isSearching by remember { mutableStateOf(false) }
-    var searchSongResults by remember { mutableStateOf<List<MediaMetadata>>(emptyList()) }
-    var searchArtistResults by remember { mutableStateOf<List<ArtistItem>>(emptyList()) }
+    var searchSongResults by remember { mutableStateOf<List<MediaMetadata>>(AddToPlaylistCache.lastSearchSongs) }
+    var searchArtistResults by remember { mutableStateOf<List<ArtistItem>>(AddToPlaylistCache.lastSearchArtists) }
     var selectedArtistName by remember { mutableStateOf<String?>(null) }
     var artistSongsList by remember { mutableStateOf<List<MediaMetadata>>(emptyList()) }
     var isLoadingArtistSongs by remember { mutableStateOf(false) }
@@ -329,8 +376,15 @@ fun AddSongsToPlaylistDialog(
     }
 
     // Recommended tab state
-    var isLoadingRecommendations by remember { mutableStateOf(false) }
-    var recommendedSongs by remember { mutableStateOf<List<RecommendedSong>>(emptyList()) }
+    val initialCachedRecs = remember {
+        AddToPlaylistCache.playlistRecommendations[playlist.id]
+            ?: AddToPlaylistCache.globalRecommendations.takeIf { it.isNotEmpty() }
+            ?: runCatching {
+                loadCachedRecommendations(File(context.cacheDir, "rec_cache_${playlist.id}.json"))
+            }.getOrNull().orEmpty()
+    }
+    var recommendedSongs by remember { mutableStateOf(initialCachedRecs) }
+    var isLoadingRecommendations by remember { mutableStateOf(recommendedSongs.isEmpty()) }
     var recommendationFilter by rememberSaveable { mutableStateOf("All") }
 
     fun performSearch(queryText: String) {
@@ -373,6 +427,9 @@ fun AddSongsToPlaylistDialog(
                 searchSongResults = songsList
                 searchArtistResults = artists
                 isSearching = false
+                AddToPlaylistCache.lastSearchQuery = q
+                AddToPlaylistCache.lastSearchSongs = songsList
+                AddToPlaylistCache.lastSearchArtists = artists
             }
         }
     }
@@ -417,6 +474,10 @@ fun AddSongsToPlaylistDialog(
                     val filtered = cached.filterNot { rec ->
                         val artists = rec.metadata.artists.map { it.name }
                         checkInPlaylist(rec.metadata.id, rec.metadata.title, artists)
+                    }
+                    AddToPlaylistCache.playlistRecommendations[playlist.id] = filtered
+                    if (filtered.isNotEmpty()) {
+                        AddToPlaylistCache.globalRecommendations = filtered
                     }
                     withContext(Dispatchers.Main) {
                         recommendedSongs = filtered
@@ -501,6 +562,10 @@ fun AddSongsToPlaylistDialog(
             } catch (_: Exception) {}
 
             saveCachedRecommendations(cacheFile, recList)
+            AddToPlaylistCache.playlistRecommendations[playlist.id] = recList
+            if (recList.isNotEmpty()) {
+                AddToPlaylistCache.globalRecommendations = recList
+            }
 
             withContext(Dispatchers.Main) {
                 recommendedSongs = recList
@@ -776,7 +841,7 @@ fun AddSongsToPlaylistDialog(
                                                 checked = isChecked,
                                                 isPlaying = isSongPlaying,
                                                 isCurrentPreview = isCurrentPreview,
-                                                currentPositionMs = currentPositionMs,
+                                                currentPositionMs = if (isCurrentPreview) currentPositionMs else 0L,
                                                 durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                                 onPreviewClick = {
                                                     if (currentMediaMetadata?.id == song.id) {
@@ -826,7 +891,7 @@ fun AddSongsToPlaylistDialog(
                                             checked = isChecked,
                                             isPlaying = isSongPlaying,
                                             isCurrentPreview = isCurrentPreview,
-                                            currentPositionMs = currentPositionMs,
+                                            currentPositionMs = if (isCurrentPreview) currentPositionMs else 0L,
                                             durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                             onPreviewClick = {
                                                 if (currentMediaMetadata?.id == song.id) {
@@ -888,7 +953,7 @@ fun AddSongsToPlaylistDialog(
                                                 checked = isChecked,
                                                 isPlaying = isSongPlaying,
                                                 isCurrentPreview = isCurrentPreview,
-                                                currentPositionMs = currentPositionMs,
+                                                currentPositionMs = if (isCurrentPreview) currentPositionMs else 0L,
                                                 durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                                 onPreviewClick = {
                                                     if (currentMediaMetadata?.id == song.id) {
@@ -1034,7 +1099,7 @@ fun AddSongsToPlaylistDialog(
                                             checked = isChecked,
                                             isPlaying = isSongPlaying,
                                             isCurrentPreview = isCurrentPreview,
-                                            currentPositionMs = currentPositionMs,
+                                            currentPositionMs = if (isCurrentPreview) currentPositionMs else 0L,
                                             durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
                                             onPreviewClick = {
                                                 if (currentMediaMetadata?.id == song.id) {
@@ -1195,8 +1260,7 @@ private fun RecommendationBigCard(
             .clip(RoundedCornerShape(16.dp))
             .clickable(enabled = !inPlaylist) {
                 onCheckedChange(!checked)
-            }
-            .animateContentSize(),
+            },
         shape = RoundedCornerShape(16.dp),
         color = if (checked) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
         else MaterialTheme.colorScheme.surfaceContainerLow,
@@ -1339,8 +1403,7 @@ private fun SongSelectRow(
             .fillMaxWidth()
             .clickable(enabled = !inPlaylist) {
                 onCheckedChange(!checked)
-            }
-            .animateContentSize(),
+            },
         color = if (checked) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
         else MaterialTheme.colorScheme.surface
     ) {

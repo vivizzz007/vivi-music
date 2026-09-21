@@ -1181,6 +1181,15 @@
     <string name="word_synced">Word-synced</string>
     <string name="line_synced">Line-synced</string>
     <string name="plain_lyrics">Plain text</string>
-    <string name="current_provider_label">Current: %1$s</string>
     <string name="tap_to_switch_provider">Tap to switch lyrics provider</string>
+    <string name="scan_for_duplicates">Scan for duplicates</string>
+    <string name="scan_for_duplicates_desc">Find and remove duplicate tracks in this playlist</string>
+    <string name="no_duplicates_found">No duplicate songs found</string>
+    <string name="duplicates_found_title">Duplicates found</string>
+    <string name="duplicates_found_desc">Found %1$d duplicate tracks</string>
+    <string name="remove_duplicates_count">Remove (%1$d)</string>
+    <string name="duplicates_removed_toast">Removed %1$d duplicate tracks</string>
+    <string name="playlist_description">Description (optional)</string>
+    <string name="current_provider_label">Current: %1$s</string>
+    <string name="removed_from_playlist">Removed from %1$s</string>
 </resources>

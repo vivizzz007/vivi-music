@@ -35,7 +35,9 @@ data class PlaylistEntity(
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
     val isLocal: Boolean = false,
     @ColumnInfo(name = "isAutoSync", defaultValue = false.toString())
-    val isAutoSync: Boolean = false
+    val isAutoSync: Boolean = false,
+    @ColumnInfo(name = "description", defaultValue = "NULL")
+    val description: String? = null
 ) {
     companion object {
         const val LIKED_PLAYLIST_ID = "LP_LIKED"

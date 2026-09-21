@@ -129,6 +129,31 @@ fun PlayerMenu(
     
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
+    val syncUtils = com.music.vivi.LocalSyncUtils.current
+    val currentPlaylistId = (playerConnection.service.activeQueue as? com.music.vivi.playback.queues.ListQueue)?.playlistId
+    val playlistsContainingSong by database.playlistsContainingSong(mediaMetadata.id).collectAsState(initial = emptyList())
+    var showRemoveFromPlaylistPicker by rememberSaveable { mutableStateOf(false) }
+
+    fun removeSongFromPlaylist(targetPlaylistId: String, targetBrowseId: String?, targetName: String) {
+        coroutineScope.launch(Dispatchers.IO) {
+            val maps = database.playlistSongMaps(targetPlaylistId)
+            val mapToRemove = maps.find { it.songId == mediaMetadata.id }
+            if (mapToRemove != null) {
+                syncUtils.markSongRemovedFromPlaylist(
+                    playlistId = targetPlaylistId,
+                    browseId = targetBrowseId,
+                    songId = mediaMetadata.id,
+                    setVideoId = mapToRemove.setVideoId
+                )
+                database.transaction {
+                    move(targetPlaylistId, mapToRemove.position, Int.MAX_VALUE)
+                    delete(mapToRemove.copy(position = Int.MAX_VALUE))
+                }
+            }
+        }
+        Toast.makeText(context, context.getString(R.string.removed_from_playlist, targetName), Toast.LENGTH_SHORT).show()
+        onDismiss()
+    }
     val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
@@ -173,6 +198,49 @@ fun PlayerMenu(
         mediaMetadata = mediaMetadata,
         onDismiss = { showListenTogetherDialog = false }
     )
+
+    if (showRemoveFromPlaylistPicker) {
+        ListDialog(
+            onDismiss = { showRemoveFromPlaylistPicker = false }
+        ) {
+            item {
+                Text(
+                    text = stringResource(R.string.remove_from_playlist),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+                )
+            }
+            items(playlistsContainingSong) { playlistItem ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            showRemoveFromPlaylistPicker = false
+                            removeSongFromPlaylist(
+                                playlistItem.id,
+                                playlistItem.playlist.browseId,
+                                playlistItem.playlist.name
+                            )
+                        }
+                        .padding(horizontal = 24.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        text = playlistItem.playlist.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+    }
 
     var showSelectArtistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -461,6 +529,34 @@ fun PlayerMenu(
                             }
                         )
                     )
+
+                    if (currentPlaylistId != null || playlistsContainingSong.isNotEmpty()) {
+                        val activePlayingPlaylist = playlistsContainingSong.find { it.id == currentPlaylistId }
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.remove_from_playlist)) },
+                                description = activePlayingPlaylist?.playlist?.name?.let { plName -> { Text(plName) } },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.delete),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                onClick = {
+                                    if (currentPlaylistId != null) {
+                                        val pl = activePlayingPlaylist
+                                        removeSongFromPlaylist(currentPlaylistId, pl?.playlist?.browseId, pl?.playlist?.name ?: "Playlist")
+                                    } else if (playlistsContainingSong.size == 1) {
+                                        val pl = playlistsContainingSong.first()
+                                        removeSongFromPlaylist(pl.id, pl.playlist.browseId, pl.playlist.name)
+                                    } else {
+                                        showRemoveFromPlaylistPicker = true
+                                    }
+                                }
+                            )
+                        )
+                    }
                 }
             )
         }

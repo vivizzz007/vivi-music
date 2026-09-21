@@ -302,6 +302,7 @@ class MusicService :
     private lateinit var ipVersion: IpVersion
 
     private var currentQueue: Queue = EmptyQueue
+    val activeQueue: Queue get() = currentQueue
     var queueTitle: String? = null
 
     fun setCurrentQueue(queue: Queue) {
@@ -2411,6 +2412,9 @@ class MusicService :
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
         }
+        if (events.containsAny(EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+            playerSilenceProcessors.values.forEach { it.resetTracking() }
+        }
 
         if (isDualOutputEnabled.value && events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
@@ -3143,43 +3147,38 @@ class MusicService :
 
     // Flag to prevent queue saving during silence skip operations
     private var isSilenceSkipping = false
+    private var lastSilenceSkipTimestamp = 0L
 
     private fun handleLongSilenceDetected() {
         if (!instantSilenceSkipEnabled.value) return
+        if (!player.isPlaying || player.playbackState != Player.STATE_READY) return
+        val now = System.currentTimeMillis()
+        if (now - lastSilenceSkipTimestamp < 3500L) return
         if (silenceSkipJob?.isActive == true) return
 
         silenceSkipJob = scope.launch {
-            // Debounce so short fades or transitions do not trigger a jump.
-            delay(200)
+            delay(400)
+            if (!player.isPlaying || player.playbackState != Player.STATE_READY) return@launch
             performInstantSilenceSkip()
         }
     }
 
     private suspend fun performInstantSilenceSkip() {
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: return
-        if (duration <= INSTANT_SILENCE_SKIP_STEP_MS) return
+        val current = player.currentPosition
+        if (current >= duration - 3000L) return
+
+        val silenceProcessor = playerSilenceProcessors[player] ?: return
+        if (!silenceProcessor.isCurrentlySilent()) return
 
         isSilenceSkipping = true
         try {
-            var hops = 0
-            val silenceProcessor = playerSilenceProcessors[player] ?: return
-            while (coroutineContext.isActive && instantSilenceSkipEnabled.value && silenceProcessor.isCurrentlySilent()) {
-                val current = player.currentPosition
-                val target = (current + INSTANT_SILENCE_SKIP_STEP_MS).coerceAtMost(duration - 500)
-
-                if (target <= current) break
-
-                // Reset silence tracking before seeking to prevent immediate re-trigger
+            lastSilenceSkipTimestamp = System.currentTimeMillis()
+            val target = (current + 5_000L).coerceAtMost(duration - 1000L)
+            if (target > current) {
                 silenceProcessor.resetTracking()
                 player.seekTo(target)
-                hops++
-
-                if (hops >= 80 || target >= duration - 500) break
-
-                delay(INSTANT_SILENCE_SKIP_SETTLE_MS)
-            }
-            if (hops > 0) {
-                Timber.tag(TAG).d("Silence skip: jumped $hops times")
+                Timber.tag(TAG).d("Silence skip: single skip from $current to $target")
             }
         } finally {
             isSilenceSkipping = false

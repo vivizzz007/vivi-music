@@ -329,6 +329,7 @@ fun SpotifyScreen(
             items = listOf(
                 Material3SettingsItem(
                     isExpressive = true,
+                    descriptionBelow = true,
                     title = { Text(stringResource(R.string.spotify_select_sources)) },
                     description = {
                         Text(
@@ -342,6 +343,14 @@ fun SpotifyScreen(
                     },
                     icon = painterResource(R.drawable.bookmark_star_library),
                     enabled = state.isAuthenticated && totalPlaylists > 0 && !state.isLoading,
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
                     onClick = { showPlaylistsSheet = true }
                 ),
                 Material3SettingsItem(
