@@ -240,7 +240,7 @@ fun PlayerSettings(
     )
     val (powerButtonInterval, onPowerButtonIntervalChange) = rememberPreference(
         PowerButtonIntervalKey,
-        defaultValue = 200
+        defaultValue = 250
     )
     val context = LocalContext.current
     var isAccessibilityEnabled by remember {
@@ -1053,8 +1053,8 @@ fun PlayerSettings(
                             Slider(
                                 value = powerButtonInterval.toFloat(),
                                 onValueChange = { onPowerButtonIntervalChange(it.roundToInt()) },
-                                valueRange = 100f..300f,
-                                steps = 19,
+                                valueRange = 100f..500f,
+                                steps = 39,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 4.dp)

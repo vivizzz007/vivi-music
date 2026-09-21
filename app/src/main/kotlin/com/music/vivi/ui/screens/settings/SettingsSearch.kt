@@ -685,6 +685,33 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             keywords = listOf("google cast", "chromecast", "cast", "stream to tv", "smart speaker"),
             iconRes = R.drawable.integration
         ),
+        SettingSearchEntry(
+            title = str(R.string.screen_off_volume_skip).ifEmpty { "Screen-off volume skip track" },
+            description = str(R.string.screen_off_volume_skip_desc).ifEmpty { "Long press volume up/down while screen is off to skip to the next or previous track" },
+            category = "Playback",
+            route = "settings/player",
+            settingKey = "screen_off_volume_skip",
+            keywords = listOf("volume", "screen off", "skip", "next track", "previous track", "volume skip", "long press", "hardware buttons", "physical keys"),
+            iconRes = R.drawable.volume_up
+        ),
+        SettingSearchEntry(
+            title = str(R.string.power_button_camera).ifEmpty { "Double press power button to open camera" },
+            description = str(R.string.power_button_camera_desc).ifEmpty { "Quickly press the power button twice to launch camera" },
+            category = "Playback",
+            route = "settings/player",
+            settingKey = "power_button_camera",
+            keywords = listOf("power button", "camera", "double press", "power", "double tap", "power camera", "shortcut", "hardware key"),
+            iconRes = R.drawable.camera
+        ),
+        SettingSearchEntry(
+            title = "Double press power interval",
+            description = "Adjust maximum delay between power button presses to trigger camera",
+            category = "Playback",
+            route = "settings/player",
+            settingKey = "power_button_interval",
+            keywords = listOf("interval", "power button interval", "double press speed", "delay", "timing", "timeout", "power button"),
+            iconRes = R.drawable.timer
+        ),
 
         // Content & Language
         SettingSearchEntry(

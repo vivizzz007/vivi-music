@@ -186,6 +186,7 @@ fun LocalPlaylistScreen(
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
+    val syncUtils = LocalSyncUtils.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
@@ -643,25 +644,21 @@ fun LocalPlaylistScreen(
                     val currentItem by rememberUpdatedState(song)
 
                     fun deleteFromPlaylist() {
+                        val map = currentItem.map
+                        val browseId = playlist?.playlist?.browseId
+                        syncUtils.markSongRemovedFromPlaylist(
+                            playlistId = map.playlistId,
+                            browseId = browseId,
+                            songId = map.songId,
+                            setVideoId = map.setVideoId
+                        )
                         database.transaction {
-                            coroutineScope.launch {
-                                playlist?.playlist?.browseId?.let { browseId ->
-                                    val setVideoId = getSetVideoId(currentItem.map.songId)
-                                    setVideoId?.setVideoId?.let { setVideoIdValue ->
-                                        YouTube.removeFromPlaylist(
-                                            browseId,
-                                            currentItem.map.songId,
-                                            setVideoIdValue
-                                        )
-                                    }
-                                }
-                            }
                             move(
-                                currentItem.map.playlistId,
-                                currentItem.map.position,
+                                map.playlistId,
+                                map.position,
                                 Int.MAX_VALUE
                             )
-                            delete(currentItem.map.copy(position = Int.MAX_VALUE))
+                            delete(map.copy(position = Int.MAX_VALUE))
                         }
                     }
 
@@ -891,6 +888,7 @@ fun LocalPlaylistScreen(
                                     songPosition = selection.mapNotNull { mapId ->
                                         songs.find { it.map.id == mapId }?.map
                                     },
+                                    playlistBrowseId = playlist?.playlist?.browseId,
                                     onDismiss = menuState::dismiss,
                                     clearAction = onExitSelectionMode
                                 )

@@ -585,19 +585,13 @@ fun SongMenu(
                                     )
                                 },
                                 onClick = {
+                                    syncUtils.markSongRemovedFromPlaylist(
+                                        playlistId = playlistSong.map.playlistId,
+                                        browseId = playlistBrowseId,
+                                        songId = playlistSong.map.songId,
+                                        setVideoId = playlistSong.map.setVideoId
+                                    )
                                     database.transaction {
-                                        coroutineScope.launch {
-                                            playlistBrowseId?.let { playlistId ->
-                                                val setVideoId = playlistSong.map.setVideoId
-                                                if (setVideoId != null) {
-                                                    YouTube.removeFromPlaylist(
-                                                        playlistId,
-                                                        playlistSong.map.songId,
-                                                        setVideoId
-                                                    )
-                                                }
-                                            }
-                                        }
                                         move(
                                             playlistSong.map.playlistId,
                                             playlistSong.map.position,

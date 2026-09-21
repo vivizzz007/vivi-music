@@ -104,12 +104,90 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.Locale
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 data class RecommendedSong(
     val metadata: MediaMetadata,
     val source: String, // "Playlist", "Followed Artist"
 )
+
+@Serializable
+private data class CachedSongDto(
+    val id: String,
+    val title: String,
+    val artistNames: List<String>,
+    val artistIds: List<String?> = emptyList(),
+    val duration: Int,
+    val thumbnailUrl: String? = null,
+    val albumName: String? = null,
+    val albumId: String? = null,
+    val source: String,
+)
+
+@Serializable
+private data class RecommendedSongsCache(
+    val timestamp: Long,
+    val songs: List<CachedSongDto>,
+)
+
+private val recJson = Json {
+    ignoreUnknownKeys = true
+    isLenient = true
+}
+
+private fun loadCachedRecommendations(cacheFile: File): List<RecommendedSong>? {
+    return runCatching {
+        if (!cacheFile.exists()) return null
+        val text = cacheFile.readText()
+        val cache = recJson.decodeFromString<RecommendedSongsCache>(text)
+        if (System.currentTimeMillis() - cache.timestamp < 24 * 60 * 60 * 1000L) {
+            cache.songs.map { dto ->
+                RecommendedSong(
+                    metadata = MediaMetadata(
+                        id = dto.id,
+                        title = dto.title,
+                        artists = dto.artistNames.mapIndexed { idx, name ->
+                            MediaMetadata.Artist(id = dto.artistIds.getOrNull(idx), name = name)
+                        },
+                        duration = dto.duration,
+                        thumbnailUrl = dto.thumbnailUrl,
+                        album = dto.albumName?.let { MediaMetadata.Album(id = dto.albumId ?: "", title = it) }
+                    ),
+                    source = dto.source
+                )
+            }
+        } else {
+            null
+        }
+    }.getOrNull()
+}
+
+private fun saveCachedRecommendations(cacheFile: File, songs: List<RecommendedSong>) {
+    runCatching {
+        val dtos = songs.map { rec ->
+            CachedSongDto(
+                id = rec.metadata.id,
+                title = rec.metadata.title,
+                artistNames = rec.metadata.artists.map { it.name },
+                artistIds = rec.metadata.artists.map { it.id },
+                duration = rec.metadata.duration,
+                thumbnailUrl = rec.metadata.thumbnailUrl,
+                albumName = rec.metadata.album?.title,
+                albumId = rec.metadata.album?.id,
+                source = rec.source
+            )
+        }
+        val cache = RecommendedSongsCache(
+            timestamp = System.currentTimeMillis(),
+            songs = dtos
+        )
+        cacheFile.writeText(recJson.encodeToString(cache))
+    }
+}
 
 private fun normalizeTitleForPlaylist(rawTitle: String): String {
     var title = rawTitle.lowercase(Locale.ROOT)
@@ -329,10 +407,25 @@ fun AddSongsToPlaylistDialog(
         }
     }
 
-    // Load recommendations once with name-checked deduplication
-    LaunchedEffect(Unit) {
+    fun loadRecommendations(forceRefresh: Boolean = false) {
         isLoadingRecommendations = true
         scope.launch(Dispatchers.IO) {
+            val cacheFile = File(context.cacheDir, "rec_cache_${playlist.id}.json")
+            if (!forceRefresh) {
+                val cached = loadCachedRecommendations(cacheFile)
+                if (cached != null && cached.isNotEmpty()) {
+                    val filtered = cached.filterNot { rec ->
+                        val artists = rec.metadata.artists.map { it.name }
+                        checkInPlaylist(rec.metadata.id, rec.metadata.title, artists)
+                    }
+                    withContext(Dispatchers.Main) {
+                        recommendedSongs = filtered
+                        isLoadingRecommendations = false
+                    }
+                    return@launch
+                }
+            }
+
             val recList = mutableListOf<RecommendedSong>()
             val seenIds = existingSongIds.toMutableSet()
             val seenNormalizedTitles = mutableSetOf<String>()
@@ -407,11 +500,18 @@ fun AddSongsToPlaylistDialog(
                 }
             } catch (_: Exception) {}
 
+            saveCachedRecommendations(cacheFile, recList)
+
             withContext(Dispatchers.Main) {
                 recommendedSongs = recList
                 isLoadingRecommendations = false
             }
         }
+    }
+
+    // Load recommendations once with daily cache
+    LaunchedEffect(Unit) {
+        loadRecommendations(forceRefresh = false)
     }
 
     // Pre-fetch stream URLs in the background for recommended songs
@@ -829,30 +929,51 @@ fun AddSongsToPlaylistDialog(
                 } else {
                     // Recommended Tab Content
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Filter Chips
-                        LazyRow(
-                            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        // Filter Chips and Refresh Button
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            val filters = listOf("All", "Playlist", "Followed Artist")
-                            items(filters) { filterName ->
-                                FilterChip(
-                                    selected = recommendationFilter == filterName,
-                                    onClick = { recommendationFilter = filterName },
-                                    label = {
-                                        Text(
-                                            when (filterName) {
-                                                "All" -> "All"
-                                                "Playlist" -> "From Playlist"
-                                                "Followed Artist" -> "Followed Artists"
-                                                else -> filterName
-                                            }
+                            LazyRow(
+                                modifier = Modifier.weight(1f),
+                                contentPadding = PaddingValues(end = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                val filters = listOf("All", "Playlist", "Followed Artist")
+                                items(filters) { filterName ->
+                                    FilterChip(
+                                        selected = recommendationFilter == filterName,
+                                        onClick = { recommendationFilter = filterName },
+                                        label = {
+                                            Text(
+                                                when (filterName) {
+                                                    "All" -> "All"
+                                                    "Playlist" -> "From Playlist"
+                                                    "Followed Artist" -> "Followed Artists"
+                                                    else -> filterName
+                                                }
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
-                                    },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
+                                }
+                            }
+
+                            IconButton(
+                                onClick = { loadRecommendations(forceRefresh = true) },
+                                enabled = !isLoadingRecommendations,
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.sync),
+                                    contentDescription = "Refresh recommendations",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }

@@ -74,6 +74,7 @@ fun SelectionSongMenu(
     onDismiss: () -> Unit,
     clearAction: () -> Unit,
     songPosition: List<PlaylistSongMap>? = emptyList(),
+    playlistBrowseId: String? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -494,6 +495,14 @@ fun SelectionSongMenu(
                                 },
                                 onClick = {
                                     onDismiss()
+                                    songPosition.forEach { cur ->
+                                        syncUtils.markSongRemovedFromPlaylist(
+                                            playlistId = cur.playlistId,
+                                            browseId = playlistBrowseId,
+                                            songId = cur.songId,
+                                            setVideoId = cur.setVideoId
+                                        )
+                                    }
                                     var i = 0
                                     database.query {
                                         songPosition.forEach { cur ->

@@ -64,7 +64,7 @@ class ViviAccessibilityService : AccessibilityService() {
                 if (!powerButtonCameraEnabled) return
 
                 // Check if screen was recently touched (e.g. double tap to wake/sleep on screen)
-                val isFromTouch = (now - lastScreenTouchTime) < 400L
+                val isFromTouch = (now - lastScreenTouchTime) < 300L
                 if (isFromTouch) {
                     Timber.tag(TAG).d("Screen state changed via touchscreen; ignoring power button trigger")
                     lastScreenStateChangeTime = 0L
@@ -72,10 +72,11 @@ class ViviAccessibilityService : AccessibilityService() {
                 }
 
                 val timeDiff = now - lastScreenStateChangeTime
-                if (timeDiff in 40L..powerButtonIntervalMs.toLong()) {
+                val maxInterval = (powerButtonIntervalMs + 350L).coerceAtLeast(600L)
+                if (timeDiff in 50L..maxInterval) {
                     Timber.tag(TAG).d("Power button double-press detected via screen toggle ($timeDiff ms)! Launching camera.")
-                    launchCamera()
                     lastScreenStateChangeTime = 0L
+                    launchCamera()
                 } else {
                     lastScreenStateChangeTime = now
                 }
@@ -126,9 +127,9 @@ class ViviAccessibilityService : AccessibilityService() {
 
         serviceScope.launch {
             dataStore.data.map { preferences ->
-                preferences[PowerButtonIntervalKey] ?: 200
+                preferences[PowerButtonIntervalKey] ?: 250
             }.distinctUntilChanged().collect { interval ->
-                powerButtonIntervalMs = interval.coerceIn(100, 300)
+                powerButtonIntervalMs = interval.coerceIn(100, 600)
                 Timber.tag(TAG).d("powerButtonIntervalMs: $powerButtonIntervalMs")
             }
         }
@@ -140,8 +141,7 @@ class ViviAccessibilityService : AccessibilityService() {
             AccessibilityEvent.TYPE_VIEW_CLICKED,
             AccessibilityEvent.TYPE_VIEW_LONG_CLICKED,
             AccessibilityEvent.TYPE_TOUCH_INTERACTION_START,
-            AccessibilityEvent.TYPE_GESTURE_DETECTION_START,
-            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+            AccessibilityEvent.TYPE_GESTURE_DETECTION_START -> {
                 lastScreenTouchTime = SystemClock.uptimeMillis()
             }
         }
@@ -159,10 +159,11 @@ class ViviAccessibilityService : AccessibilityService() {
             if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
                 val now = SystemClock.uptimeMillis()
                 val diff = now - lastPowerPressTime
-                if (diff in 40L..powerButtonIntervalMs.toLong()) {
+                val maxInterval = (powerButtonIntervalMs + 200L).coerceAtLeast(500L)
+                if (diff in 50L..maxInterval) {
                     Timber.tag(TAG).d("Power button double-press detected directly ($diff ms)! Launching camera.")
-                    launchCamera()
                     lastPowerPressTime = 0L
+                    launchCamera()
                     return false
                 } else {
                     lastPowerPressTime = now
@@ -189,7 +190,7 @@ class ViviAccessibilityService : AccessibilityService() {
 
                             val runnable = Runnable {
                                 isVolumeLongPressTriggered = true
-                                vibrateHaptic()
+                                vibrateVolumeSkip()
                                 if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
                                     Timber.tag(TAG).d("Volume UP long-pressed with screen off: skipping to next track")
                                     MusicService.skipNext()
@@ -244,13 +245,18 @@ class ViviAccessibilityService : AccessibilityService() {
         }
     }
 
-    private fun vibrateHaptic() {
+    private fun vibrateVolumeSkip() {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-                vibratorManager?.defaultVibrator?.vibrate(
-                    VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE)
-                )
+                val vibrator = vibratorManager?.defaultVibrator
+                vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                vibrator?.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                vibrator?.vibrate(VibrationEffect.createOneShot(50L, VibrationEffect.DEFAULT_AMPLITUDE))
             } else {
                 @Suppress("DEPRECATION")
                 val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
@@ -258,12 +264,52 @@ class ViviAccessibilityService : AccessibilityService() {
                 vibrator?.vibrate(50L)
             }
         } catch (e: Exception) {
-            // Ignore vibration errors
+            Timber.tag(TAG).w(e, "Volume skip vibration failed")
+        }
+    }
+
+    private fun vibrateCameraTrigger() {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+                val vibrator = vibratorManager?.defaultVibrator
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    // Double pulse: 0ms delay, 45ms on, 60ms off, 45ms on
+                    vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 45, 60, 45), -1))
+                } else {
+                    vibrator?.vibrate(VibrationEffect.createOneShot(100L, VibrationEffect.DEFAULT_AMPLITUDE))
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 45, 60, 45), -1))
+            } else {
+                @Suppress("DEPRECATION")
+                val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                @Suppress("DEPRECATION")
+                vibrator?.vibrate(100L)
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "Camera trigger vibration failed")
         }
     }
 
     private fun launchCamera() {
         try {
+            vibrateCameraTrigger()
+
+            // Turn screen on if locked/off
+            try {
+                val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+                @Suppress("DEPRECATION")
+                val wakeLock = powerManager?.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    "vivi:camera_wake"
+                )
+                wakeLock?.acquire(2000L)
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "WakeLock acquisition failed")
+            }
+
             val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
             val isLocked = keyguardManager?.isKeyguardLocked == true
             val action = if (isLocked) {
@@ -272,21 +318,41 @@ class ViviAccessibilityService : AccessibilityService() {
                 MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA
             }
 
-            val cameraIntent = Intent(action).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-            }
-            startActivity(cameraIntent)
-            vibrateHaptic()
-        } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Error launching secure camera, attempting fallback")
+            var launched = false
             try {
-                val fallbackIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                val cameraIntent = Intent(action).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
                 }
-                startActivity(fallbackIntent)
-            } catch (e2: Exception) {
-                Timber.tag(TAG).e(e2, "Failed to launch fallback camera")
+                startActivity(cameraIntent)
+                launched = true
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "Error launching camera with action $action")
             }
+
+            if (!launched) {
+                try {
+                    val fallbackIntent = Intent(MediaStore.INTENT_ACTION_STILL_IMAGE_CAMERA).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+                    }
+                    startActivity(fallbackIntent)
+                    launched = true
+                } catch (e: Exception) {
+                    Timber.tag(TAG).w(e, "Error launching standard camera")
+                }
+            }
+
+            if (!launched) {
+                try {
+                    val fallbackCaptureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    }
+                    startActivity(fallbackCaptureIntent)
+                } catch (e2: Exception) {
+                    Timber.tag(TAG).e(e2, "Failed to launch all camera fallbacks")
+                }
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error launching camera")
         }
     }
 

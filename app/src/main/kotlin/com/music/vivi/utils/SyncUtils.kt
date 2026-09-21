@@ -336,6 +336,52 @@ class SyncUtils @Inject constructor(
 
     suspend fun syncSpotifyPlaylistSuspend(playlistId: String) = executeSyncSingleSpotifyPlaylist(playlistId)
 
+    private val playlistTombstonePrefs by lazy {
+        context.getSharedPreferences("playlist_tombstones", Context.MODE_PRIVATE)
+    }
+
+    fun isSongRemovedFromPlaylist(playlistId: String, songId: String): Boolean {
+        val key = "$playlistId:$songId"
+        val timestamp = playlistTombstonePrefs.getLong(key, 0L)
+        if (timestamp == 0L) return false
+        if (System.currentTimeMillis() - timestamp > 24 * 60 * 60 * 1000L) {
+            playlistTombstonePrefs.edit().remove(key).apply()
+            return false
+        }
+        return true
+    }
+
+    fun markSongRemovedFromPlaylist(
+        playlistId: String,
+        browseId: String?,
+        songId: String,
+        setVideoId: String?
+    ) {
+        val key = "$playlistId:$songId"
+        playlistTombstonePrefs.edit().putLong(key, System.currentTimeMillis()).apply()
+        Timber.d("markSongRemovedFromPlaylist: Recorded tombstone for playlistId=$playlistId, songId=$songId")
+
+        if (browseId != null) {
+            syncScope.launch(Dispatchers.IO) {
+                try {
+                    var targetSetVideoId = setVideoId
+                    if (targetSetVideoId == null) {
+                        val page = YouTube.playlist(browseId).completed().getOrNull()
+                        targetSetVideoId = page?.songs?.find { it.id == songId }?.setVideoId
+                    }
+                    if (targetSetVideoId != null) {
+                        val res = YouTube.removeFromPlaylist(browseId, songId, targetSetVideoId)
+                        Timber.d("markSongRemovedFromPlaylist: YouTube.removeFromPlaylist result=$res for songId=$songId, setVideoId=$targetSetVideoId")
+                    } else {
+                        Timber.w("markSongRemovedFromPlaylist: Could not find setVideoId for songId=$songId in playlist $browseId")
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "markSongRemovedFromPlaylist: Error calling YouTube.removeFromPlaylist")
+                }
+            }
+        }
+    }
+
     fun syncPlaylist(browseId: String, playlistId: String) {
         syncScope.launch {
             executeSyncPlaylist(browseId, playlistId)
@@ -1000,15 +1046,34 @@ class SyncUtils @Inject constructor(
                     val songs = page.songs.map(SongItem::toMediaMetadata)
                     Timber.d("syncPlaylist: Fetched ${songs.size} songs from remote")
 
-                    if (songs.isEmpty()) {
-                        Timber.w("syncPlaylist: Remote playlist is empty, clearing local playlist")
+                    // Clean up tombstones that remote YouTube has confirmed deleted
+                    val remoteSongIds = songs.map { it.id }.toSet()
+                    val allTombstones = playlistTombstonePrefs.all
+                    val prefix = "$playlistId:"
+                    val editor = playlistTombstonePrefs.edit()
+                    var cleanedCount = 0
+                    allTombstones.keys.filter { it.startsWith(prefix) }.forEach { k ->
+                        val sid = k.removePrefix(prefix)
+                        if (!remoteSongIds.contains(sid)) {
+                            editor.remove(k)
+                            cleanedCount++
+                        }
+                    }
+                    if (cleanedCount > 0) editor.apply()
+
+                    val validRemoteSongs = songs.filterNot { song ->
+                        isSongRemovedFromPlaylist(playlistId, song.id)
+                    }
+
+                    if (validRemoteSongs.isEmpty()) {
+                        Timber.w("syncPlaylist: Remote playlist is empty or all songs were locally deleted, clearing local playlist")
                         database.withTransaction {
                             database.clearPlaylist(playlistId)
                         }
                         return@onSuccess
                     }
 
-                    val remoteIds = songs.map { it.id }
+                    val remoteIds = validRemoteSongs.map { it.id }
                     val localIds = database.playlistSongs(playlistId).first()
                         .sortedBy { it.map.position }
                         .map { it.song.id }
@@ -1018,7 +1083,7 @@ class SyncUtils @Inject constructor(
                         return@onSuccess
                     }
 
-                    if (page.songsContinuation != null || (songs.size < localIds.size && !context.isInternetConnected())) {
+                    if (page.songsContinuation != null || (validRemoteSongs.size < localIds.size && !context.isInternetConnected())) {
                         Timber.w("syncPlaylist: Remote songs incomplete or offline, preserving existing ${localIds.size} local songs")
                         return@onSuccess
                     }
@@ -1027,7 +1092,7 @@ class SyncUtils @Inject constructor(
 
                     database.withTransaction {
                         database.clearPlaylist(playlistId)
-                        songs.forEachIndexed { idx, song ->
+                        validRemoteSongs.forEachIndexed { idx, song ->
                             if (database.song(song.id).firstOrNull() == null) {
                                 database.insert(song)
                             }
