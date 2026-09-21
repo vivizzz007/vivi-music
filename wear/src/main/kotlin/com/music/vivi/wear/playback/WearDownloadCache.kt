@@ -16,6 +16,7 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import com.music.innertube.YouTube
+import com.music.innertube.models.YouTubeClient
 import okhttp3.OkHttpClient
 import timber.log.Timber
 import java.io.File
@@ -136,7 +137,9 @@ object WearDownloadCache {
      */
     fun getCacheDataSourceFactory(context: Context): DataSource.Factory {
         val okHttpClient = createOkHttpClient()
-        val upstreamFactory = DefaultDataSource.Factory(context, OkHttpDataSource.Factory(okHttpClient))
+        val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            .setUserAgent(YouTubeClient.USER_AGENT_WEB)
+        val upstreamFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
 
         // Layer 2: Player Cache (transient LRU)
         val playerCacheFactory = CacheDataSource.Factory()
@@ -159,7 +162,9 @@ object WearDownloadCache {
      */
     fun getDownloadUpstreamDataSourceFactory(context: Context): DataSource.Factory {
         val okHttpClient = createOkHttpClient()
-        val upstreamFactory = DefaultDataSource.Factory(context, OkHttpDataSource.Factory(okHttpClient))
+        val httpDataSourceFactory = OkHttpDataSource.Factory(okHttpClient)
+            .setUserAgent(YouTubeClient.USER_AGENT_WEB)
+        val upstreamFactory = DefaultDataSource.Factory(context, httpDataSourceFactory)
 
         return CacheDataSource.Factory()
             .setCache(playerCache)

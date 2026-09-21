@@ -19,13 +19,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Bluetooth
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.media3.common.Player
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Speaker
@@ -128,9 +131,18 @@ fun NowPlayingScreen(
                 artist = currentItem.mediaMetadata.artist?.toString(),
                 artworkUri = currentItem.mediaMetadata.artworkUri?.toString(),
                 isPlaying = mediaState.isPlaying,
+                isBuffering = mediaState.playbackState == Player.STATE_BUFFERING,
                 btState = btState,
                 onPlayPause = {
-                    if (mediaState.isPlaying) controller?.pause() else controller?.play()
+                    val ctrl = controller ?: return@PlaybackContent
+                    if (mediaState.isPlaying) {
+                        ctrl.pause()
+                    } else {
+                        if (ctrl.playbackState == Player.STATE_IDLE) {
+                            ctrl.prepare()
+                        }
+                        ctrl.play()
+                    }
                 },
                 onSkipPrevious = { controller?.seekToPrevious() },
                 onSkipNext = { controller?.seekToNext() },
@@ -158,6 +170,7 @@ private fun PlaybackContent(
     artist: String?,
     artworkUri: String?,
     isPlaying: Boolean,
+    isBuffering: Boolean,
     btState: BluetoothOutputState,
     onPlayPause: () -> Unit,
     onSkipPrevious: () -> Unit,
@@ -242,11 +255,21 @@ private fun PlaybackContent(
                 onClick = onPlayPause,
                 modifier = Modifier.size(44.dp),
             ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                    modifier = Modifier.size(26.dp),
-                )
+                if (isBuffering) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        strokeWidth = 2.dp,
+                        colors = androidx.wear.compose.material3.ProgressIndicatorDefaults.colors(
+                            indicatorColor = MaterialTheme.colorScheme.onPrimary,
+                        ),
+                    )
+                } else {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
+                        modifier = Modifier.size(26.dp),
+                    )
+                }
             }
 
             // Skip next
@@ -330,6 +353,12 @@ private fun PlaybackContent(
                 contentColor = MaterialTheme.colorScheme.onSurface,
             ),
         ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                contentDescription = stringResource(R.string.library),
+                modifier = Modifier.size(16.dp),
+            )
+            Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = stringResource(R.string.library),
                 style = MaterialTheme.typography.labelSmall,

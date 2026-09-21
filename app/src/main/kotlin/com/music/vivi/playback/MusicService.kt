@@ -269,8 +269,6 @@ class MusicService :
     private var reentrantFocusGain = false
     private var wasPlayingBeforeVolumeMute = false
     private var isPausedByVolumeMute = false
-    var preferredDeviceId: Int? = null //added for audio device switching
-        private set//improvement
 
     private var crossfadeEnabled = false
     private var crossfadeDuration = 5000f
@@ -338,18 +336,89 @@ class MusicService :
         player.volume = if (muted) 0f else playerVolume.value
     }
 
-    fun setPreferredAudioDevice(deviceId: Int?) { // this helps us to change between devices
+    var preferredDeviceId: Int? = null //added for audio device switching
+    var secondaryPreferredDeviceId: Int? = null
+    val isDualOutputEnabled = MutableStateFlow(false)
+    val primaryDeviceVolume = MutableStateFlow(1f)
+    val secondaryDeviceVolume = MutableStateFlow(1f)
+    private var dualOutputPlayer: ExoPlayer? = null
+
+    fun setPreferredAudioDevice(deviceId: Int?) {
+        setDualPreferredAudioDevices(deviceId, null)
+    }
+
+    fun setDualPreferredAudioDevices(primaryId: Int?, secondaryId: Int?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {
                 val devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-                val deviceInfo = if (deviceId != null) devices.find { it.id == deviceId } else null
-                player.setPreferredAudioDevice(deviceInfo)
-                secondaryPlayer?.setPreferredAudioDevice(deviceInfo)
-                preferredDeviceId = deviceId
-                Timber.tag(TAG).d("setPreferredAudioDevice: id=$deviceId, device=${deviceInfo?.productName}")
+                val primaryDevice = if (primaryId != null) devices.find { it.id == primaryId } else null
+                val secondaryDevice = if (secondaryId != null) devices.find { it.id == secondaryId } else null
+
+                player.setPreferredAudioDevice(primaryDevice)
+                preferredDeviceId = primaryId
+                secondaryPreferredDeviceId = secondaryId
+
+                if (secondaryId != null && secondaryId != primaryId && secondaryDevice != null) {
+                    isDualOutputEnabled.value = true
+                    if (dualOutputPlayer == null) {
+                        dualOutputPlayer = createExoPlayer().apply {
+                            setPreferredAudioDevice(secondaryDevice)
+                            volume = secondaryDeviceVolume.value * (if (isMuted.value) 0f else playerVolume.value)
+                        }
+                    } else {
+                        dualOutputPlayer?.setPreferredAudioDevice(secondaryDevice)
+                    }
+                    syncDualOutputPlayer()
+                } else {
+                    isDualOutputEnabled.value = false
+                    dualOutputPlayer?.stop()
+                    dualOutputPlayer?.clearMediaItems()
+                    dualOutputPlayer?.release()
+                    dualOutputPlayer = null
+                }
+                Timber.tag(TAG).d("setDualPreferredAudioDevices: primary=$primaryId, secondary=$secondaryId")
             } catch (e: Exception) {
-                Timber.tag(TAG).e(e, "Error setting preferred audio device: $deviceId")
+                Timber.tag(TAG).e(e, "Error setting preferred audio devices: primary=$primaryId, secondary=$secondaryId")
             }
+        }
+    }
+
+    fun setPrimaryDeviceVolume(volume: Float) {
+        val v = volume.coerceIn(0f, 1f)
+        primaryDeviceVolume.value = v
+        player.volume = v * (if (isMuted.value) 0f else playerVolume.value)
+    }
+
+    fun setSecondaryDeviceVolume(volume: Float) {
+        val v = volume.coerceIn(0f, 1f)
+        secondaryDeviceVolume.value = v
+        dualOutputPlayer?.volume = v * (if (isMuted.value) 0f else playerVolume.value)
+    }
+
+    fun syncDualOutputPlayer() {
+        val dual = dualOutputPlayer ?: return
+        try {
+            if (player.mediaItemCount > 0) {
+                val currentIndex = player.currentMediaItemIndex
+                val currentPos = player.currentPosition
+                if (dual.mediaItemCount != player.mediaItemCount || dual.currentMediaItemIndex != currentIndex) {
+                    dual.clearMediaItems()
+                    for (i in 0 until player.mediaItemCount) {
+                        dual.addMediaItem(player.getMediaItemAt(i))
+                    }
+                    dual.seekTo(currentIndex, currentPos)
+                    dual.prepare()
+                } else {
+                    if (kotlin.math.abs(dual.currentPosition - currentPos) > 300) {
+                        dual.seekTo(currentIndex, currentPos)
+                    }
+                }
+                dual.playWhenReady = player.playWhenReady
+            } else {
+                dual.clearMediaItems()
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error syncing dual output player")
         }
     }
 //
@@ -471,6 +540,7 @@ class MusicService :
     override fun onCreate() {
         super.onCreate()
         isRunning = true
+        instance = this
 
         // Player rediness reset to false
         playerInitialized.value = false
@@ -1318,6 +1388,12 @@ class MusicService :
             listOf(
                 CommandButton
                     .Builder()
+                    .setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
+                    .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
+                    .setSessionCommand(CommandToggleShuffle)
+                    .build(),
+                CommandButton
+                    .Builder()
                     .setDisplayName(
                         getString(
                             if (currentSong.value?.song?.liked ==
@@ -1352,12 +1428,6 @@ class MusicService :
                             else -> throw IllegalStateException()
                         },
                     ).setSessionCommand(CommandToggleRepeatMode)
-                    .build(),
-                CommandButton
-                    .Builder()
-                    .setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
-                    .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
-                    .setSessionCommand(CommandToggleShuffle)
                     .build(),
                 CommandButton.Builder()
                     .setDisplayName(getString(R.string.start_radio))
@@ -2340,6 +2410,17 @@ class MusicService :
         }
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
+        }
+
+        if (isDualOutputEnabled.value && events.containsAny(
+                Player.EVENT_PLAYBACK_STATE_CHANGED,
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_POSITION_DISCONTINUITY,
+                Player.EVENT_MEDIA_ITEM_TRANSITION,
+                Player.EVENT_IS_PLAYING_CHANGED
+            )
+        ) {
+            syncDualOutputPlayer()
         }
 
         // Widget and Discord RPC updates
@@ -3440,6 +3521,9 @@ class MusicService :
 
     override fun onDestroy() {
         isRunning = false
+        if (instance == this) {
+            instance = null
+        }
 
         try {
             unregisterReceiver(screenStateReceiver)
@@ -3462,9 +3546,8 @@ class MusicService :
         player.removeListener(this)
         player.removeListener(sleepTimer)
         playerSilenceProcessors.remove(player)
-        // Note: equalizerService audio processors are cleared in equalizerService.release() if needed,
-        // or we can't easily reference the specific processor created in createExoPlayer here without storing it.
-        // But since we are destroying the service, it's fine.
+        dualOutputPlayer?.release()
+        dualOutputPlayer = null
         player.release()
         discordUpdateJob?.cancel()
         super.onDestroy()
@@ -3826,6 +3909,40 @@ class MusicService :
         @Volatile
         var isRunning = false
             private set
+
+        @Volatile
+        var instance: MusicService? = null
+            private set
+
+        fun isPlaying(): Boolean {
+            return try {
+                val p = instance?.player
+                p != null && p.isPlaying
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        fun skipNext() {
+            try {
+                instance?.player?.seekToNext()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "skipNext failed")
+            }
+        }
+
+        fun skipPrevious() {
+            try {
+                val p = instance?.player ?: return
+                if (p.currentPosition > 3000L) {
+                    p.seekTo(0)
+                } else {
+                    p.seekToPrevious()
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "skipPrevious failed")
+            }
+        }
     }
 }
 

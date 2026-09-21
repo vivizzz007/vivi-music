@@ -80,7 +80,10 @@ import androidx.compose.material.icons.filled.VolumeOff
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -140,6 +143,7 @@ data class AudioDevice(
     val isActive: Boolean = false,
     val batteryLevel: Int? = null,
     val deviceId: Int? = null,
+    val address: String? = null,
 )
 
 enum class AudioDeviceType {
@@ -171,11 +175,59 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
     val service = playerConnection?.service
     var showDevicePopup by remember { mutableStateOf(false) }
 
+    val isDualOutput by (service?.isDualOutputEnabled ?: remember { MutableStateFlow(false) }).collectAsState()
+    val primaryVol by (service?.primaryDeviceVolume ?: remember { MutableStateFlow(1f) }).collectAsState()
+    val secondaryVol by (service?.secondaryDeviceVolume ?: remember { MutableStateFlow(1f) }).collectAsState()
+
+    fun refreshDevices() {
+        loadDevices(context, service?.preferredDeviceId, service?.secondaryPreferredDeviceId, onSuccess = { devices ->
+            audioDevices = devices
+        }, onError = {})
+    }
+
+    fun toggleDevice(dev: AudioDevice) {
+        try {
+            val currentActives = audioDevices.filter { it.isActive }
+            val isCurrentlyActive = dev.isActive
+
+            val newPrimaryId: Int?
+            val newSecondaryId: Int?
+
+            if (isCurrentlyActive) {
+                val remaining = currentActives.filter { it.deviceId != dev.deviceId }
+                if (remaining.isEmpty()) {
+                    newPrimaryId = null
+                    newSecondaryId = null
+                } else {
+                    newPrimaryId = remaining.first().deviceId
+                    newSecondaryId = null
+                }
+            } else {
+                if (currentActives.isEmpty()) {
+                    newPrimaryId = dev.deviceId
+                    newSecondaryId = null
+                } else if (currentActives.size == 1) {
+                    newPrimaryId = currentActives[0].deviceId
+                    newSecondaryId = dev.deviceId
+                } else {
+                    // Cap at 2 devices: keep the first, replace the second
+                    newPrimaryId = currentActives[0].deviceId
+                    newSecondaryId = dev.deviceId
+                }
+            }
+
+            service?.setDualPreferredAudioDevices(newPrimaryId, newSecondaryId)
+            refreshDevices()
+        } catch (e: Exception) {
+            Log.e("AudioDeviceBottomSheet", "Error toggling audio device", e)
+        }
+    }
+
     val bluetoothLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            loadDevices(context, service?.preferredDeviceId, onSuccess = { devices ->
+            loadDevices(context, service?.preferredDeviceId, service?.secondaryPreferredDeviceId, onSuccess = { devices ->
                 audioDevices = devices
                 isLoading = false
             }, onError = { error ->
@@ -186,12 +238,6 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
             errorMessage = context.getString(R.string.bluetooth_permission_required)
             isLoading = false
         }
-    }
-
-    fun refreshDevices() {
-        loadDevices(context, service?.preferredDeviceId, onSuccess = { devices ->
-            audioDevices = devices
-        }, onError = {})
     }
 
     DisposableEffect(Unit) {
@@ -231,7 +277,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
         }
 
         if (checkBluetoothPermission(context)) {
-            loadDevices(context, service?.preferredDeviceId, onSuccess = { devices ->
+            loadDevices(context, service?.preferredDeviceId, service?.secondaryPreferredDeviceId, onSuccess = { devices ->
                 audioDevices = devices
                 isLoading = false
             }, onError = { error ->
@@ -361,8 +407,24 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                 }
 
                 else -> {
-                    val activeDevice = audioDevices.firstOrNull { it.isActive }
+                    val activeDevices = audioDevices.filter { it.isActive }
+                    val isDualActive = isDualOutput && activeDevices.size >= 2
+                    val activeDevice = activeDevices.firstOrNull()
                     val hasBluetooth = audioDevices.any { it.type == AudioDeviceType.BLUETOOTH }
+
+                    LaunchedEffect(audioDevices) {
+                        if (audioDevices.size > 1 && !showDevicePopup) {
+                            showDevicePopup = true
+                        }
+                    }
+
+                    val displayDevice = if (isDualActive && activeDevices.size >= 2) {
+                        val name1 = if (audioDevices.count { it.name == activeDevices[0].name } > 1) "${activeDevices[0].name} (1)" else activeDevices[0].name
+                        val name2 = if (audioDevices.count { it.name == activeDevices[1].name } > 1) "${activeDevices[1].name} (2)" else activeDevices[1].name
+                        activeDevice?.copy(name = "$name1 + $name2") ?: activeDevice
+                    } else {
+                        activeDevice
+                    }
 
                     Column(
                         modifier = Modifier
@@ -370,7 +432,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             .padding(bottom = 24.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        activeDevice?.let { device ->
+                        displayDevice?.let { device ->
                             // Tappable device row — shows chevron hint when Bluetooth is available
                             Surface(
                                 shape = MaterialTheme.shapes.large,
@@ -445,7 +507,8 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                 shape = MaterialTheme.shapes.extraLarge,
                                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                                 modifier = Modifier.fillMaxWidth()
-                            ) {                                 Column(
+                            ) {
+                                Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(12.dp)
@@ -478,15 +541,14 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                 }
                                             }
 
+                                            val devName = if (audioDevices.count { it.name == dev.name } > 1) {
+                                                val idx = audioDevices.filter { it.name == dev.name }.indexOf(dev) + 1
+                                                "${dev.name} ($idx)"
+                                            } else dev.name
+
                                             Surface(
                                                 onClick = {
-                                                    try {
-                                                        service?.setPreferredAudioDevice(dev.deviceId)
-                                                        refreshDevices()
-                                                    } catch (e: Exception) {
-                                                        Log.e("AudioDeviceBottomSheet", "Error switching audio device", e)
-                                                    }
-                                                    showDevicePopup = false
+                                                    toggleDevice(dev)
                                                 },
                                                 shape = itemShape,
                                                 color = if (isSelected)
@@ -514,7 +576,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                     )
                                                     Text(
                                                         text = if (dev.type == AudioDeviceType.PHONE_SPEAKER)
-                                                            stringResource(R.string.this_phone) else dev.name,
+                                                            stringResource(R.string.this_phone) else devName,
                                                         style = MaterialTheme.typography.bodyLarge,
                                                         color = if (isSelected)
                                                             MaterialTheme.colorScheme.onSecondaryContainer
@@ -524,14 +586,17 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                         overflow = TextOverflow.Ellipsis,
                                                         modifier = Modifier.weight(1f)
                                                     )
-                                                    if (isSelected) {
-                                                        Icon(
-                                                            imageVector = Icons.Filled.VolumeUp,
-                                                            contentDescription = null,
-                                                            modifier = Modifier.size(16.dp),
-                                                            tint = MaterialTheme.colorScheme.secondary
+                                                    if (dev.batteryLevel != null) {
+                                                        Text(
+                                                            text = "${dev.batteryLevel}%",
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
+                                                    Checkbox(
+                                                        checked = isSelected,
+                                                        onCheckedChange = { toggleDevice(dev) }
+                                                    )
                                                 }
                                             }
                                         }
@@ -541,22 +606,51 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                         }
                     }
 
-                    VolumeControlRow(
-                        label = stringResource(R.string.volume),
-                        icon = Icons.Filled.MusicNote,
-                        volume = currentVolume,
-                        maxVolume = maxVolume,
-                        onVolumeChange = { newVolume ->
-                            currentVolume = newVolume
-                            audioManager.setStreamVolume(
-                                AudioManager.STREAM_MUSIC,
-                                newVolume.toInt(),
-                                0
+                    if (isDualActive) {
+                        activeDevices.take(2).forEachIndexed { idx, dev ->
+                            val devVol = if (idx == 0) primaryVol else secondaryVol
+                            val devName = if (audioDevices.count { it.name == dev.name } > 1) {
+                                val i = audioDevices.filter { it.name == dev.name }.indexOf(dev) + 1
+                                "${dev.name} ($i)"
+                            } else dev.name
+                            VolumeControlRow(
+                                label = devName,
+                                icon = Icons.Filled.VolumeUp,
+                                volume = devVol * maxVolume,
+                                maxVolume = maxVolume,
+                                onVolumeChange = { newVolume ->
+                                    val frac = (newVolume / maxVolume.toFloat()).coerceIn(0f, 1f)
+                                    if (idx == 0) {
+                                        service?.setPrimaryDeviceVolume(frac)
+                                    } else {
+                                        service?.setSecondaryDeviceVolume(frac)
+                                    }
+                                },
+                                onDragStart = { isUserDragging = true },
+                                onDragEnd = { isUserDragging = false }
                             )
-                        },
-                        onDragStart = { isUserDragging = true },
-                        onDragEnd = { isUserDragging = false }
-                    )
+                            if (idx == 0) {
+                                Spacer(modifier = Modifier.height(12.dp))
+                            }
+                        }
+                    } else {
+                        VolumeControlRow(
+                            label = stringResource(R.string.volume),
+                            icon = Icons.Filled.MusicNote,
+                            volume = currentVolume,
+                            maxVolume = maxVolume,
+                            onVolumeChange = { newVolume ->
+                                currentVolume = newVolume
+                                audioManager.setStreamVolume(
+                                    AudioManager.STREAM_MUSIC,
+                                    newVolume.toInt(),
+                                    0
+                                )
+                            },
+                            onDragStart = { isUserDragging = true },
+                            onDragEnd = { isUserDragging = false }
+                        )
+                    }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -869,6 +963,7 @@ private fun isBluetoothDeviceType(type: Int): Boolean = when (type) {
 private fun loadDevices(
     context: Context,
     preferredDeviceId: Int?,
+    secondaryPreferredDeviceId: Int? = null,
     onSuccess: (List<AudioDevice>) -> Unit,
     onError: (String) -> Unit
 ) {
@@ -877,7 +972,6 @@ private fun loadDevices(
         val devices = mutableListOf<AudioDevice>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // Only query media outputs; do NOT merge communication devices which inject phone telephony/earpiece
             val allAudioDevices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).toList()
 
             allAudioDevices.forEach { deviceInfo ->
@@ -933,7 +1027,8 @@ private fun loadDevices(
                                 isConnected = true,
                                 isActive = false,
                                 batteryLevel = batteryLevel,
-                                deviceId = deviceInfo.id
+                                deviceId = deviceInfo.id,
+                                address = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) deviceInfo.address else null
                             )
                         }
                     }
@@ -979,9 +1074,51 @@ private fun loadDevices(
                 device?.let { devices.add(it) }
             }
 
+            // Also search bonded Bluetooth devices to surface any connected second headset
+            if (checkBluetoothPermission(context)) {
+                try {
+                    val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+                    val bluetoothAdapter = bluetoothManager?.adapter
+                    val pairedDevices = bluetoothAdapter?.bondedDevices
+                    pairedDevices?.forEach { btDevice ->
+                        val isConnected = try {
+                            val method = BluetoothDevice::class.java.getMethod("isConnected")
+                            method.invoke(btDevice) as? Boolean ?: false
+                        } catch (e: Exception) { false }
+
+                        if (isConnected) {
+                            val alreadyAdded = devices.any {
+                                it.name.equals(btDevice.name, ignoreCase = true) ||
+                                (it.address != null && it.address == btDevice.address)
+                            }
+                            if (!alreadyAdded) {
+                                val battery = try {
+                                    val method = BluetoothDevice::class.java.getMethod("getBatteryLevel")
+                                    method.invoke(btDevice) as? Int
+                                } catch (e: Exception) { null }
+
+                                devices.add(
+                                    AudioDevice(
+                                        name = btDevice.name ?: "Bluetooth Device",
+                                        type = AudioDeviceType.BLUETOOTH,
+                                        isConnected = true,
+                                        isActive = false,
+                                        batteryLevel = if (battery != null && battery >= 0 && battery <= 100) battery else null,
+                                        deviceId = btDevice.hashCode(),
+                                        address = btDevice.address
+                                    )
+                                )
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+
             val activeDevice = determineActiveDevice(audioManager, allAudioDevices, preferredDeviceId)
             val updatedDevices = devices.map { device ->
-                device.copy(isActive = device.deviceId == activeDevice?.id)
+                val isActive = (device.deviceId != null && (device.deviceId == preferredDeviceId || device.deviceId == secondaryPreferredDeviceId)) ||
+                        (preferredDeviceId == null && secondaryPreferredDeviceId == null && device.deviceId == activeDevice?.id)
+                device.copy(isActive = isActive)
             }
 
             // Maintain a stable order: Phone Speaker -> Wired -> Bluetooth -> Others
@@ -995,7 +1132,7 @@ private fun loadDevices(
                 }
             }.thenBy { it.name })
 
-            onSuccess(sortedDevices.distinctBy { "${it.name}_${it.type}" })
+            onSuccess(sortedDevices.distinctBy { it.deviceId?.toString() ?: "${it.name}_${it.address ?: it.hashCode()}" })
         } else {
             loadDevicesLegacy(context, onSuccess, onError)
         }

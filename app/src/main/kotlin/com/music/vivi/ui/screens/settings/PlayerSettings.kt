@@ -79,6 +79,19 @@ import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.CustomPlayerButtonsKey
 import com.music.vivi.constants.PlayerActionButton
 import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.constants.PowerButtonCameraKey
+import com.music.vivi.constants.PowerButtonIntervalKey
+import com.music.vivi.constants.ScreenOffVolumeSkipKey
+import com.music.vivi.accessibility.ViviAccessibilityService
+import android.content.Intent
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
@@ -216,6 +229,36 @@ fun PlayerSettings(
         EnableSponsorBlockKey,
         defaultValue = true
     )
+
+    val (screenOffVolumeSkip, onScreenOffVolumeSkipChange) = rememberPreference(
+        ScreenOffVolumeSkipKey,
+        defaultValue = false
+    )
+    val (powerButtonCamera, onPowerButtonCameraChange) = rememberPreference(
+        PowerButtonCameraKey,
+        defaultValue = false
+    )
+    val (powerButtonInterval, onPowerButtonIntervalChange) = rememberPreference(
+        PowerButtonIntervalKey,
+        defaultValue = 200
+    )
+    val context = LocalContext.current
+    var isAccessibilityEnabled by remember {
+        mutableStateOf(ViviAccessibilityService.isAccessibilityServiceEnabled(context))
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isAccessibilityEnabled = ViviAccessibilityService.isAccessibilityServiceEnabled(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+    var showAccessibilityPromptDialog by remember { mutableStateOf(false) }
 
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
@@ -922,7 +965,175 @@ fun PlayerSettings(
                 )
             )
         )
+
+        Spacer(modifier = Modifier.height(27.dp))
+
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.advanced_controls),
+            items = listOfNotNull(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.volume_up),
+                    modifier = Modifier.settingTarget("screen_off_volume_skip", scrollState),
+                    title = { Text(stringResource(R.string.screen_off_volume_skip)) },
+                    description = { Text(stringResource(R.string.screen_off_volume_skip_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = screenOffVolumeSkip,
+                            onCheckedChange = { enabled ->
+                                onScreenOffVolumeSkipChange(enabled)
+                                if (enabled && !isAccessibilityEnabled) {
+                                    showAccessibilityPromptDialog = true
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (screenOffVolumeSkip) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        val next = !screenOffVolumeSkip
+                        onScreenOffVolumeSkipChange(next)
+                        if (next && !isAccessibilityEnabled) {
+                            showAccessibilityPromptDialog = true
+                        }
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.camera),
+                    modifier = Modifier.settingTarget("power_button_camera", scrollState),
+                    title = { Text(stringResource(R.string.power_button_camera)) },
+                    description = { Text(stringResource(R.string.power_button_camera_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = powerButtonCamera,
+                            onCheckedChange = { enabled ->
+                                onPowerButtonCameraChange(enabled)
+                                if (enabled && !isAccessibilityEnabled) {
+                                    showAccessibilityPromptDialog = true
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (powerButtonCamera) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        val next = !powerButtonCamera
+                        onPowerButtonCameraChange(next)
+                        if (next && !isAccessibilityEnabled) {
+                            showAccessibilityPromptDialog = true
+                        }
+                    }
+                ),
+                if (powerButtonCamera) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.timer),
+                        modifier = Modifier.settingTarget("power_button_interval", scrollState),
+                        title = {
+                            Text(
+                                stringResource(
+                                    R.string.power_double_press_interval,
+                                    powerButtonInterval
+                                )
+                            )
+                        },
+                        description = {
+                            Slider(
+                                value = powerButtonInterval.toFloat(),
+                                onValueChange = { onPowerButtonIntervalChange(it.roundToInt()) },
+                                valueRange = 100f..300f,
+                                steps = 19,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 4.dp)
+                            )
+                        }
+                    )
+                } else null,
+                if ((screenOffVolumeSkip || powerButtonCamera) && !isAccessibilityEnabled) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.info),
+                        title = { Text(stringResource(R.string.accessibility_service_required)) },
+                        description = { Text(stringResource(R.string.accessibility_service_required_desc)) },
+                        trailingContent = {
+                            Button(
+                                onClick = {
+                                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                }
+                            ) {
+                                Text(stringResource(R.string.enable_accessibility_service))
+                            }
+                        },
+                        onClick = {
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                    )
+                } else null
+            )
+        )
         Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    if (showAccessibilityPromptDialog) {
+        DefaultDialog(
+            onDismiss = { showAccessibilityPromptDialog = false }
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = stringResource(R.string.accessibility_service_required),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = stringResource(R.string.accessibility_service_required_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.End
+                ) {
+                    TextButton(onClick = { showAccessibilityPromptDialog = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            showAccessibilityPromptDialog = false
+                            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        }
+                    ) {
+                        Text(stringResource(R.string.enable_accessibility_service))
+                    }
+                }
+            }
+        }
     }
 
     TopAppBar(

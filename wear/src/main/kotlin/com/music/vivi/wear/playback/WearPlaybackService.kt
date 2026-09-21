@@ -108,15 +108,23 @@ class WearPlaybackService : MediaSessionService() {
 
             // 2. If URI already points to direct HTTP/HTTPS stream, play directly
             if (uri.scheme == "http" || uri.scheme == "https") {
-                return@Factory dataSpec
+                return@Factory dataSpec.buildUpon().setKey(songId).build()
             }
 
             // 3. Resolve stream URL on-the-fly via :innertube
-            val streamUrl = runBlocking(Dispatchers.IO) {
-                WearStreamResolver.resolveStreamUrl(songId)
+            val streamUrl = try {
+                runBlocking(Dispatchers.IO) {
+                    WearStreamResolver.resolveStreamUrl(songId)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Exception resolving stream URL for %s", songId)
+                null
             } ?: throw IllegalStateException("Failed to resolve stream URL for $songId")
 
-            dataSpec.withUri(streamUrl.toUri())
+            dataSpec.buildUpon()
+                .setUri(streamUrl.toUri())
+                .setKey(songId)
+                .build()
         }
 
         return DefaultMediaSourceFactory(this)

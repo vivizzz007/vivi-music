@@ -7,6 +7,9 @@ package com.music.vivi.wear.playback
 
 import android.content.Context
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.DataSource
@@ -59,16 +62,25 @@ class WearDownloadManager(
 
     private val resolvingDataSourceFactory: DataSource.Factory = ResolvingDataSource.Factory(upstreamDataSourceFactory) { dataSpec ->
         val uri = dataSpec.uri
+        val songId = dataSpec.key ?: uri.lastPathSegment ?: uri.toString()
+
         if (uri.scheme == "http" || uri.scheme == "https") {
-            return@Factory dataSpec
+            return@Factory dataSpec.buildUpon().setKey(songId).build()
         }
 
-        val songId = dataSpec.key ?: uri.lastPathSegment ?: uri.toString()
-        val resolvedUrl = runBlocking(Dispatchers.IO) {
-            WearStreamResolver.resolveStreamUrl(songId)
+        val resolvedUrl = try {
+            runBlocking(Dispatchers.IO) {
+                WearStreamResolver.resolveStreamUrl(songId)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Exception resolving stream URL for %s during download", songId)
+            null
         } ?: throw IllegalStateException("Failed to resolve stream URL for $songId during download")
 
-        dataSpec.withUri(resolvedUrl.toUri())
+        dataSpec.buildUpon()
+            .setUri(resolvedUrl.toUri())
+            .setKey(songId)
+            .build()
     }
 
     val media3DownloadManager: DownloadManager = DownloadManager(
@@ -94,6 +106,11 @@ class WearDownloadManager(
                         Download.STATE_COMPLETED -> {
                             Timber.i("Download completed for track: %s", download.request.id)
                             database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                            val songTitle = runCatching { String(download.request.data) }.getOrNull()
+                            val msg = if (!songTitle.isNullOrBlank()) "Downloaded $songTitle" else "Download complete"
+                            Handler(Looper.getMainLooper()).post {
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
                         }
                         Download.STATE_FAILED,
                         Download.STATE_REMOVING,
@@ -174,12 +191,32 @@ class WearDownloadManager(
             .setData(title.toByteArray(Charsets.UTF_8))
             .build()
 
-        DownloadService.sendAddDownload(
-            context,
-            WearDownloadService::class.java,
-            request,
-            false,
-        )
+        try {
+            media3DownloadManager.addDownload(request)
+            media3DownloadManager.resumeDownloads()
+        } catch (e: Exception) {
+            Timber.e(e, "Error queuing download directly to media3DownloadManager")
+        }
+
+        try {
+            DownloadService.sendAddDownload(
+                context,
+                WearDownloadService::class.java,
+                request,
+                false,
+            )
+        } catch (e: Exception) {
+            Timber.w(e, "DownloadService.sendAddDownload warning (queued directly)")
+        }
+
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(
+                context,
+                "Downloading $title...",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+
         Timber.i("Dispatched download request for song: %s (%s)", title, songId)
     }
 

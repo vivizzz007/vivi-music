@@ -807,3 +807,7 @@ val SuggestionRegionSlugToName =
 
 val PersistentControlCenterKey = booleanPreferencesKey("persistentControlCenter")
 val AppLogoColorKey = intPreferencesKey("appLogoColor")
+
+val ScreenOffVolumeSkipKey = booleanPreferencesKey("screen_off_volume_skip")
+val PowerButtonCameraKey = booleanPreferencesKey("power_button_camera")
+val PowerButtonIntervalKey = intPreferencesKey("power_button_interval")

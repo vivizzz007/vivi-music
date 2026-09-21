@@ -5,6 +5,7 @@
 
 package com.music.vivi.wear.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
@@ -87,6 +88,7 @@ fun PlaylistDetailScreen(
         factory = PlaylistDetailViewModel.provideFactory(playlistId),
     ),
 ) {
+    val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     val listState = rememberScalingLazyListState()
@@ -237,9 +239,14 @@ fun PlaylistDetailScreen(
                     item {
                         Button(
                             onClick = {
+                                val currentSongs = state.songs
+                                if (currentSongs.isEmpty()) return@Button
+                                Toast.makeText(
+                                    context,
+                                    "Downloading ${currentSongs.size} tracks...",
+                                    Toast.LENGTH_SHORT,
+                                ).show()
                                 scope.launch(Dispatchers.IO) {
-                                    val currentSongs = state.songs
-                                    if (currentSongs.isEmpty()) return@launch
                                     val metaList = currentSongs.map { song ->
                                         MediaMetadata(
                                             id = song.id,

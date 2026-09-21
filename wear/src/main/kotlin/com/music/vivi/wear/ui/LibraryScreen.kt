@@ -27,6 +27,8 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -92,7 +94,8 @@ fun LibraryScreen(
     mediaState: MediaControllerState,
     onNavigateToPlaylist: (playlistId: String, title: String) -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateBack: () -> Unit,
+    onNavigateToNowPlaying: () -> Unit = {},
+    onNavigateBack: () -> Unit = {},
     viewModel: LibraryViewModel = viewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -144,6 +147,45 @@ fun LibraryScreen(
                     selectedTab = state.selectedTab,
                     onTabSelected = { viewModel.selectTab(it) },
                 )
+            }
+
+            // Compact Now Playing bar if active
+            val currentMedia = mediaState.currentMediaItem
+            if (currentMedia != null) {
+                item {
+                    Card(
+                        onClick = onNavigateToNowPlaying,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Icon(
+                                imageVector = if (mediaState.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                contentDescription = "Now Playing",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = currentMedia.mediaMetadata.title?.toString() ?: "Now Playing",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
             }
 
             when (state.selectedTab) {
@@ -270,7 +312,7 @@ fun LibraryScreen(
                                         controller.setMediaItems(mediaItems, index, 0L)
                                         controller.prepare()
                                         controller.play()
-                                        onNavigateBack()
+                                        onNavigateToNowPlaying()
                                     }
                                 },
                                 onRemoveClick = {

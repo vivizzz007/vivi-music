@@ -487,4 +487,18 @@
     <string name="watch_paired_success">Watch paired successfully!</string>
     <string name="watch_pairing_failed">Failed to pair with watch. Check IP and Wi-Fi connection.</string>
     <string name="login_first_to_pair_watch">Please log in to YouTube Music on this phone first.</string>
+    <!-- Playlist Suggestions & Advanced Controls -->
+    <string name="suggested_for_playlist">Suggested for this playlist</string>
+    <string name="finding_recommendations">Finding recommendations…</string>
+    <string name="advanced_controls">Advanced Controls</string>
+    <string name="screen_off_volume_skip">Screen-off volume track skip</string>
+    <string name="screen_off_volume_skip_desc">Long press volume up for next track, volume down for previous track when screen is off without changing volume</string>
+    <string name="power_button_camera">Quick double-press power for camera</string>
+    <string name="power_button_camera_desc">Quickly press the power button twice to launch the camera (works when screen is on or off)</string>
+    <string name="power_double_press_interval">Double-press time threshold: %1$d ms</string>
+    <string name="accessibility_service_required">Vivi Accessibility Service required</string>
+    <string name="accessibility_service_required_desc">Enable Vivi Accessibility Service in system settings to detect hardware key long-press and power button double-press</string>
+    <string name="enable_accessibility_service">Enable in Settings</string>
+    <string name="accessibility_service_enabled">Accessibility Service Active</string>
+    <string name="multi_output_audio">Dual audio output</string>
 </resources>

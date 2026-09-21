@@ -15,6 +15,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +70,7 @@ class MediaControllerState {
     var currentMediaItem: MediaItem? by mutableStateOf(null)
     var duration: Long by mutableLongStateOf(0L)
     var position: Long by mutableLongStateOf(0L)
+    var playbackState: Int by mutableIntStateOf(Player.STATE_IDLE)
 }
 
 /**
@@ -96,6 +98,7 @@ fun rememberMediaControllerState(): MediaControllerState {
                     state.currentMediaItem = ctrl.currentMediaItem
                     state.duration = ctrl.duration.coerceAtLeast(0)
                     state.position = ctrl.currentPosition.coerceAtLeast(0)
+                    state.playbackState = ctrl.playbackState
 
                     ctrl.addListener(object : Player.Listener {
                         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -108,6 +111,7 @@ fun rememberMediaControllerState(): MediaControllerState {
                         }
 
                         override fun onPlaybackStateChanged(playbackState: Int) {
+                            state.playbackState = playbackState
                             state.duration = ctrl.duration.coerceAtLeast(0)
                         }
                     })
@@ -150,7 +154,7 @@ fun WearNavHost() {
     val startDestination = when (isLoggedIn) {
         null -> return // Still loading DataStore — render nothing yet
         false -> "login"
-        true -> "now_playing"
+        true -> "library"
     }
 
     SwipeDismissableNavHost(
@@ -160,7 +164,7 @@ fun WearNavHost() {
         composable("login") {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate("now_playing") {
+                    navController.navigate("library") {
                         popUpTo("login") { inclusive = true }
                     }
                 },
@@ -170,7 +174,11 @@ fun WearNavHost() {
         composable("now_playing") {
             NowPlayingScreen(
                 mediaState = mediaState,
-                onNavigateToLibrary = { navController.navigate("library") },
+                onNavigateToLibrary = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate("library")
+                    }
+                },
             )
         }
 
@@ -182,6 +190,7 @@ fun WearNavHost() {
                     navController.navigate("playlist_detail/$playlistId/$encodedTitle")
                 },
                 onNavigateToLogin = { navController.navigate("login") },
+                onNavigateToNowPlaying = { navController.navigate("now_playing") },
                 onNavigateBack = { navController.popBackStack() },
             )
         }
@@ -202,9 +211,7 @@ fun WearNavHost() {
                 mediaState = mediaState,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToNowPlaying = {
-                    navController.navigate("now_playing") {
-                        popUpTo("now_playing") { inclusive = false }
-                    }
+                    navController.navigate("now_playing")
                 },
             )
         }
@@ -226,9 +233,7 @@ fun WearNavHost() {
                 mediaState = mediaState,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToNowPlaying = {
-                    navController.navigate("now_playing") {
-                        popUpTo("now_playing") { inclusive = false }
-                    }
+                    navController.navigate("now_playing")
                 },
             )
         }

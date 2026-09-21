@@ -27,9 +27,12 @@ import coil3.request.ImageResult
 import coil3.request.Options
 import coil3.request.allowHardware
 import coil3.request.crossfade
-import okhttp3.Cache
-import okhttp3.OkHttpClient
-import com.music.vivi.extensions.isInternetConnected
+import coil3.asImage
+import coil3.decode.DataSource
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
+import android.os.Environment
 import com.music.innertube.YouTube
 import com.music.innertube.models.IpVersion
 import com.music.innertube.models.YouTubeLocale
@@ -57,6 +60,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Credentials
+import okhttp3.Cache
+import okhttp3.OkHttpClient
+import okhttp3.Interceptor as OkHttpInterceptor
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import timber.log.Timber
 import java.net.Authenticator
 import java.net.PasswordAuthentication
@@ -295,11 +303,11 @@ class App : Application(), SingletonImageLoader.Factory {
                             )
                             OkHttpClient.Builder()
                                 .cache(okHttpCache)
-                                .addInterceptor { chain ->
+                                .addInterceptor(OkHttpInterceptor { chain ->
                                     var request = chain.request()
                                     if (!isInternetConnected()) {
                                         request = request.newBuilder()
-                                            .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365)
+                                            .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365 * 10)
                                             .build()
                                     }
                                     try {
@@ -307,7 +315,7 @@ class App : Application(), SingletonImageLoader.Factory {
                                     } catch (e: Exception) {
                                         if (!request.cacheControl.onlyIfCached) {
                                             val fallbackRequest = request.newBuilder()
-                                                .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365)
+                                                .header("Cache-Control", "public, only-if-cached, max-stale=" + 60 * 60 * 24 * 365 * 10)
                                                 .build()
                                             try {
                                                 chain.proceed(fallbackRequest)
@@ -318,15 +326,15 @@ class App : Application(), SingletonImageLoader.Factory {
                                             throw e
                                         }
                                     }
-                                }
-                                .addNetworkInterceptor { chain ->
+                                })
+                                .addNetworkInterceptor(OkHttpInterceptor { chain ->
                                     val response = chain.proceed(chain.request())
                                     response.newBuilder()
                                         .removeHeader("Pragma")
                                         .removeHeader("Cache-Control")
-                                        .header("Cache-Control", "public, max-age=" + 60 * 60 * 24 * 365)
+                                        .header("Cache-Control", "public, max-age=" + 60 * 60 * 24 * 365 * 10)
                                         .build()
-                                }
+                                })
                                 .build()
                         }
                     )
@@ -349,6 +357,13 @@ class App : Application(), SingletonImageLoader.Factory {
                 )
             }
         }.build()
+    }
+
+    private fun isInternetConnected(): Boolean {
+        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+        val network = cm.activeNetwork ?: return false
+        val caps = cm.getNetworkCapabilities(network) ?: return false
+        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
     companion object {
@@ -459,8 +474,62 @@ class ThumbnailDiskCacheInterceptor : Interceptor {
         } else {
             request
         }
-        return chain.withRequest(modifiedRequest).proceed()
+        val result = chain.withRequest(modifiedRequest).proceed()
+        if (result is coil3.request.ErrorResult) {
+            val fallbackBitmap = tryFindDownloadedArtwork(request.data)
+            if (fallbackBitmap != null) {
+                return coil3.request.SuccessResult(
+                    image = fallbackBitmap.asImage(),
+                    request = request,
+                    dataSource = DataSource.DISK
+                )
+            }
+        }
+        return result
     }
+}
+
+private fun tryFindDownloadedArtwork(data: Any?): Bitmap? {
+    val str = when (data) {
+        is String -> data
+        is Uri -> data.toString()
+        is android.net.Uri -> data.toString()
+        else -> data?.toString() ?: return null
+    }
+
+    val videoId = Regex("/vi(?:_webp)?/([^/?]+)").find(str)?.groupValues?.get(1)
+        ?: if (str.startsWith("yt_thumb:")) str.removePrefix("yt_thumb:")
+        else null
+
+    try {
+        val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)?.resolve("ViviMusic")
+        if (musicDir != null && musicDir.exists()) {
+            val files = musicDir.listFiles()
+            if (files != null) {
+                for (file in files) {
+                    if (file.isFile && (file.extension.equals("m4a", true) || file.extension.equals("opus", true) || file.extension.equals("mp3", true))) {
+                        val mmr = MediaMetadataRetriever()
+                        try {
+                            mmr.setDataSource(file.absolutePath)
+                            val picture = mmr.embeddedPicture
+                            if (picture != null) {
+                                val title = mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+                                if (videoId == null || file.name.contains(videoId, ignoreCase = true) || (title != null && str.contains(title, ignoreCase = true))) {
+                                    val bitmap = BitmapFactory.decodeByteArray(picture, 0, picture.size)
+                                    if (bitmap != null) return bitmap
+                                }
+                            }
+                        } catch (_: Exception) {
+                        } finally {
+                            try { mmr.release() } catch (_: Exception) {}
+                        }
+                    }
+                }
+            }
+        }
+    } catch (_: Exception) {}
+
+    return null
 }
 
 

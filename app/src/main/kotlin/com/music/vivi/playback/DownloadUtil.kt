@@ -677,6 +677,23 @@ constructor(
                                     } else if (effectiveBytes >= 300_000L || (expectedLength > 0L && effectiveBytes >= expectedLength * 0.85)) {
                                         database.updateDownloadedInfo(songId, true, LocalDateTime.now())
 
+                                        song?.thumbnailUrl?.let { url ->
+                                            val imageLoader = SingletonImageLoader.get(appContext)
+                                            listOfNotNull(
+                                                url,
+                                                url.resize(120, 120),
+                                                url.resize(544, 544),
+                                                url.resize(1200, 1200)
+                                            ).distinct().forEach { targetUrl ->
+                                                val request = ImageRequest.Builder(appContext)
+                                                    .data(targetUrl)
+                                                    .memoryCachePolicy(CachePolicy.ENABLED)
+                                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                                    .build()
+                                                imageLoader.enqueue(request)
+                                            }
+                                        }
+
                                         val saveToPublic = appContext.dataStore[SaveDownloadsToPublicFolderKey] ?: false
                                         if (saveToPublic || pendingExternalExportSongIds.remove(songId)) {
                                             exportSongToPublicStorage(songId)

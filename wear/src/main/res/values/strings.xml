@@ -28,4 +28,5 @@
     <string name="volume">Volume</string>
     <string name="watch_speaker">Watch Speaker</string>
     <string name="audio_route">Audio Route</string>
+    <string name="back">Back</string>
 </resources>

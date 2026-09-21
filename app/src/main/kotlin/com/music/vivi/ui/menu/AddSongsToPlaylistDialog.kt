@@ -744,6 +744,69 @@ fun AddSongsToPlaylistDialog(
                                             }
                                         )
                                     }
+                                } else if (searchQuery.isBlank()) {
+                                    if (isLoadingRecommendations) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(32.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                                                    Spacer(Modifier.height(12.dp))
+                                                    Text(
+                                                        text = stringResource(R.string.finding_recommendations),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    } else if (recommendedSongs.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                text = stringResource(R.string.suggested_for_playlist),
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            )
+                                        }
+                                        items(recommendedSongs, key = { "search_rec_${it.metadata.id}" }) { rec ->
+                                            val song = rec.metadata
+                                            val inPlaylist = checkInPlaylist(song.id, song.title, song.artists.map { it.name })
+                                            val isChecked = selectedSongs.containsKey(song.id)
+                                            val isSongPlaying = isPlaying && currentMediaMetadata?.id == song.id
+                                            val isCurrentPreview = currentMediaMetadata?.id == song.id
+
+                                            RecommendationBigCard(
+                                                song = song,
+                                                sourceBadge = if (rec.source == "Playlist") "From Playlist" else rec.source,
+                                                inPlaylist = inPlaylist,
+                                                checked = isChecked,
+                                                isPlaying = isSongPlaying,
+                                                isCurrentPreview = isCurrentPreview,
+                                                currentPositionMs = currentPositionMs,
+                                                durationMs = if (isCurrentPreview && previewDurationMs > 0) previewDurationMs else song.duration * 1000L,
+                                                onPreviewClick = {
+                                                    if (currentMediaMetadata?.id == song.id) {
+                                                        playerConnection?.togglePlayPause()
+                                                    } else {
+                                                        playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song))
+                                                    }
+                                                },
+                                                onSeekTo = { pos ->
+                                                    playerConnection?.player?.seekTo(pos)
+                                                },
+                                                onCheckedChange = { checked ->
+                                                    if (checked) selectedSongs[song.id] = song
+                                                    else selectedSongs.remove(song.id)
+                                                }
+                                            )
+                                        }
+                                    }
                                 } else if (searchQuery.isNotBlank() && !isSearching && searchArtistResults.isEmpty()) {
                                     item {
                                         Box(
