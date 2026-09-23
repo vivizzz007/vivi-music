@@ -365,6 +365,36 @@ class MusicService :
         setDualPreferredAudioDevices(deviceId, null)
     }
 
+    /**
+     * Switch audio device with a stop/prepare cycle to force AudioTrack rebinding.
+     * This ensures the audio actually routes to the selected device, fixing the issue
+     * where setPreferredAudioDevice is only a hint that Android may ignore.
+     */
+    fun switchAudioDevice(primaryId: Int?, secondaryId: Int?) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val wasPlaying = player.isPlaying
+            val currentPos = player.currentPosition
+            val currentIdx = player.currentMediaItemIndex
+
+            // Stop the player to force AudioTrack to release its handle on the old device
+            if (wasPlaying || player.playbackState == Player.STATE_READY) {
+                player.stop()
+            }
+
+            // Apply routing changes
+            setDualPreferredAudioDevices(primaryId, secondaryId)
+
+            // Re-prepare and restore position
+            if (player.mediaItemCount > 0) {
+                player.prepare()
+                player.seekTo(currentIdx, currentPos)
+                player.playWhenReady = wasPlaying
+            }
+        } else {
+            setDualPreferredAudioDevices(primaryId, secondaryId)
+        }
+    }
+
     fun setDualPreferredAudioDevices(primaryId: Int?, secondaryId: Int?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             try {

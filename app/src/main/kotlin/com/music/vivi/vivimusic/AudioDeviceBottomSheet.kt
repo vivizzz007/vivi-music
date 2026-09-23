@@ -85,6 +85,7 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.runtime.collectAsState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -140,6 +141,12 @@ import com.music.vivi.utils.rememberEnumPreference
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
+enum class BluetoothDeviceKind {
+    HEADSET,  // earbuds, headphones, hearing aids
+    SPEAKER,  // BT speakers
+    UNKNOWN   // fallback
+}
+
 data class AudioDevice(
     val name: String,
     val type: AudioDeviceType,
@@ -148,6 +155,7 @@ data class AudioDevice(
     val batteryLevel: Int? = null,
     val deviceId: Int? = null,
     val address: String? = null,
+    val bluetoothKind: BluetoothDeviceKind? = null,
 )
 
 enum class AudioDeviceType {
@@ -192,35 +200,43 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
     fun toggleDevice(dev: AudioDevice) {
         try {
             val currentActives = audioDevices.filter { it.isActive }
-            val isCurrentlyActive = dev.isActive
+            val btDevices = audioDevices.filter { it.type == AudioDeviceType.BLUETOOTH }
+
+            // Dual output is only allowed when all connected BT devices are the same kind
+            // (e.g., all HEADSET or all SPEAKER). Different kinds = single-select only.
+            val btKinds = btDevices.mapNotNull { it.bluetoothKind }
+                .filter { it != BluetoothDeviceKind.UNKNOWN }
+                .distinct()
+            val allSameKind = btKinds.size <= 1
 
             val newPrimaryId: Int?
             val newSecondaryId: Int?
 
-            if (isCurrentlyActive) {
+            if (dev.isActive) {
+                // Deselecting a device
                 val remaining = currentActives.filter { it.deviceId != dev.deviceId }
-                if (remaining.isEmpty()) {
-                    newPrimaryId = null
-                    newSecondaryId = null
+                newPrimaryId = remaining.firstOrNull()?.deviceId
+                newSecondaryId = null
+            } else if (allSameKind && dev.type == AudioDeviceType.BLUETOOTH &&
+                       currentActives.all { it.type == AudioDeviceType.BLUETOOTH } &&
+                       currentActives.isNotEmpty()) {
+                // Same-kind BT: allow multi-select (up to 2)
+                if (currentActives.size < 2) {
+                    newPrimaryId = currentActives.first().deviceId
+                    newSecondaryId = dev.deviceId
                 } else {
-                    newPrimaryId = remaining.first().deviceId
-                    newSecondaryId = null
+                    // Replace secondary with newly selected
+                    newPrimaryId = currentActives[0].deviceId
+                    newSecondaryId = dev.deviceId
                 }
             } else {
-                if (currentActives.isEmpty()) {
-                    newPrimaryId = dev.deviceId
-                    newSecondaryId = null
-                } else if (currentActives.size == 1) {
-                    newPrimaryId = currentActives[0].deviceId
-                    newSecondaryId = dev.deviceId
-                } else {
-                    // Cap at 2 devices: keep the first, replace the second
-                    newPrimaryId = currentActives[0].deviceId
-                    newSecondaryId = dev.deviceId
-                }
+                // Different-kind BT or mixed types: single-select (radio button)
+                // Deselect everything else, select only this device
+                newPrimaryId = dev.deviceId
+                newSecondaryId = null
             }
 
-            service?.setDualPreferredAudioDevices(newPrimaryId, newSecondaryId)
+            service?.switchAudioDevice(newPrimaryId, newSecondaryId)
             refreshDevices()
         } catch (e: Exception) {
             Log.e("AudioDeviceBottomSheet", "Error toggling audio device", e)
@@ -415,6 +431,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                     val isDualActive = isDualOutput && activeDevices.size >= 2
                     val activeDevice = activeDevices.firstOrNull()
                     val hasBluetooth = audioDevices.any { it.type == AudioDeviceType.BLUETOOTH }
+                    // Dual output only allowed when all BT devices are the same kind
+                    val btKinds = audioDevices
+                        .filter { it.type == AudioDeviceType.BLUETOOTH }
+                        .mapNotNull { it.bluetoothKind }
+                        .filter { it != BluetoothDeviceKind.UNKNOWN }
+                        .distinct()
+                    val allSameKindBt = btKinds.size <= 1
 
                     LaunchedEffect(audioDevices) {
                         if (audioDevices.size > 1 && !showDevicePopup) {
@@ -597,10 +620,21 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                             color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                                                         )
                                                     }
-                                                    Checkbox(
-                                                        checked = isSelected,
-                                                        onCheckedChange = { toggleDevice(dev) }
-                                                    )
+                                                    // Show Checkbox for same-kind BT (multi-select), RadioButton otherwise
+                                                    val canDualSelect = allSameKindBt &&
+                                                        dev.type == AudioDeviceType.BLUETOOTH &&
+                                                        audioDevices.count { it.type == AudioDeviceType.BLUETOOTH } > 1
+                                                    if (canDualSelect) {
+                                                        Checkbox(
+                                                            checked = isSelected,
+                                                            onCheckedChange = { toggleDevice(dev) }
+                                                        )
+                                                    } else {
+                                                        RadioButton(
+                                                            selected = isSelected,
+                                                            onClick = { toggleDevice(dev) }
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
@@ -635,9 +669,11 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                     if (activeDevices.size >= 2) {
                         activeDevices.take(2).forEachIndexed { idx, dev ->
                             val isPhone = dev.type == AudioDeviceType.PHONE_SPEAKER
+                            // Map volume by device ID, not positional index
+                            val isPrimary = dev.deviceId == service?.preferredDeviceId
                             val devVol = if (isPhone) {
                                 (currentVolume / maxVolume.toFloat()).coerceIn(0f, 1f)
-                            } else if (idx == 0) primaryVol else secondaryVol
+                            } else if (isPrimary) primaryVol else secondaryVol
 
                             val devName = if (isPhone) {
                                 stringResource(R.string.this_phone)
@@ -653,7 +689,8 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                 maxVolume = maxVolume,
                                 onVolumeChange = { newVolume ->
                                     val frac = (newVolume / maxVolume.toFloat()).coerceIn(0f, 1f)
-                                    if (idx == 0) {
+                                    // Use device ID to route volume to the correct device
+                                    if (isPrimary) {
                                         service?.setPrimaryDeviceVolume(frac)
                                     } else {
                                         service?.setSecondaryDeviceVolume(frac)
@@ -997,6 +1034,58 @@ private fun isBluetoothDeviceType(type: Int): Boolean = when (type) {
     }
 }
 
+@SuppressLint("MissingPermission")
+private fun classifyBluetoothDevice(
+    audioDeviceType: Int?,
+    btDevice: BluetoothDevice?,
+    deviceName: String
+): BluetoothDeviceKind {
+    // 1. Use AudioDeviceInfo.type if available (most reliable)
+    if (audioDeviceType != null) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (audioDeviceType == AudioDeviceInfo.TYPE_BLE_HEADSET) return BluetoothDeviceKind.HEADSET
+            if (audioDeviceType == AudioDeviceInfo.TYPE_BLE_SPEAKER) return BluetoothDeviceKind.SPEAKER
+        }
+        if (audioDeviceType == AudioDeviceInfo.TYPE_HEARING_AID) return BluetoothDeviceKind.HEADSET
+    }
+
+    // 2. Use BluetoothClass.Device major/minor if available
+    if (btDevice != null) {
+        try {
+            val btClass = btDevice.bluetoothClass
+            if (btClass != null) {
+                val deviceClass = btClass.deviceClass
+                when (deviceClass) {
+                    0x0404, // AUDIO_VIDEO_WEARABLE_HEADSET
+                    0x0418  // AUDIO_VIDEO_HEADPHONES
+                    -> return BluetoothDeviceKind.HEADSET
+                    0x0414, // AUDIO_VIDEO_LOUDSPEAKER
+                    0x0420  // AUDIO_VIDEO_PORTABLE_AUDIO
+                    -> return BluetoothDeviceKind.SPEAKER
+                }
+            }
+        } catch (_: Exception) { }
+    }
+
+    // 3. Name-based heuristics as fallback
+    val lowerName = deviceName.lowercase()
+    val speakerKeywords = listOf("speaker", " go ", "go 4", "go 3", "go 2", "flip", "charge", "boom",
+        "xtreme", "pulse", "clip", "soundlink", "soundcore", "megaboom", "wonderboom",
+        "marshall", "harman", "bose s", "jbl ", "sonos", "alexa", "echo", "homepod")
+    val headsetKeywords = listOf("buds", "pods", "headphone", "earbud", "earphone", "headset",
+        "airpods", "wf-", "wh-", "galaxy buds", "freebuds", "enco", "bullets",
+        "ear (", "ear(", "hear", "in-ear", "neckband")
+
+    for (keyword in headsetKeywords) {
+        if (lowerName.contains(keyword)) return BluetoothDeviceKind.HEADSET
+    }
+    for (keyword in speakerKeywords) {
+        if (lowerName.contains(keyword)) return BluetoothDeviceKind.SPEAKER
+    }
+
+    return BluetoothDeviceKind.UNKNOWN
+}
+
 private fun loadDevices(
     context: Context,
     preferredDeviceId: Int?,
@@ -1022,53 +1111,47 @@ private fun loadDevices(
                     isBluetoothDeviceType(deviceInfo.type) -> {
                         if (isPhoneModel) null
                         else {
-                            val batteryLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            // Find matching bonded BluetoothDevice for battery + classification
+                            val btDevice = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                                ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
+                            ) {
                                 try {
-                                    if (ContextCompat.checkSelfPermission(
-                                            context,
-                                            Manifest.permission.BLUETOOTH_CONNECT
-                                        ) == PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        val bluetoothManager = context.getSystemService(
-                                            Context.BLUETOOTH_SERVICE
-                                        ) as BluetoothManager
-                                        val bluetoothAdapter = bluetoothManager.adapter
-                                        val pairedDevices = bluetoothAdapter?.bondedDevices
-                                        val btDevice = pairedDevices?.find {
-                                            it.name == deviceInfo.productName.toString() ||
-                                            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address) ||
-                                            (deviceInfo.productName != null && it.name != null &&
-                                                (it.name.contains(deviceInfo.productName.toString(), ignoreCase = true) ||
-                                                 deviceInfo.productName.toString().contains(it.name, ignoreCase = true)))
-                                        }
-
-                                        @SuppressLint("MissingPermission")
-                                        val battery = btDevice?.let { dev ->
-                                            try {
-                                                val method = android.bluetooth.BluetoothDevice::class.java.getMethod(
-                                                    "getBatteryLevel"
-                                                )
-                                                val level = method.invoke(dev) as? Int
-                                                level
-                                            } catch (e: Exception) {
-                                                null
-                                            }
-                                        }
-                                        if (battery != null && battery >= 0 && battery <= 100) battery else null
-                                    } else null
-                                } catch (e: Exception) {
-                                    null
-                                }
+                                    val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                                    val bluetoothAdapter = bluetoothManager.adapter
+                                    bluetoothAdapter?.bondedDevices?.find {
+                                        it.name == deviceInfo.productName.toString() ||
+                                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address) ||
+                                        (deviceInfo.productName != null && it.name != null &&
+                                            (it.name.contains(deviceInfo.productName.toString(), ignoreCase = true) ||
+                                             deviceInfo.productName.toString().contains(it.name, ignoreCase = true)))
+                                    }
+                                } catch (_: Exception) { null }
                             } else null
 
+                            val batteryLevel = try {
+                                @SuppressLint("MissingPermission")
+                                val battery = btDevice?.let { dev ->
+                                    try {
+                                        val method = android.bluetooth.BluetoothDevice::class.java.getMethod("getBatteryLevel")
+                                        val level = method.invoke(dev) as? Int
+                                        level
+                                    } catch (_: Exception) { null }
+                                }
+                                if (battery != null && battery >= 0 && battery <= 100) battery else null
+                            } catch (_: Exception) { null }
+
+                            val deviceName = deviceInfo.productName?.toString() ?: "Bluetooth Device"
+                            val kind = classifyBluetoothDevice(deviceInfo.type, btDevice, deviceName)
+
                             AudioDevice(
-                                name = deviceInfo.productName?.toString() ?: "Bluetooth Device",
+                                name = deviceName,
                                 type = AudioDeviceType.BLUETOOTH,
                                 isConnected = true,
                                 isActive = false,
                                 batteryLevel = batteryLevel,
                                 deviceId = deviceInfo.id,
-                                address = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) deviceInfo.address else null
+                                address = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) deviceInfo.address else null,
+                                bluetoothKind = kind
                             )
                         }
                     }
@@ -1164,15 +1247,19 @@ private fun loadDevices(
                                     method.invoke(btDevice) as? Int
                                 } catch (_: Exception) { null }
 
+                                val devName = btDevice.name ?: "Bluetooth Device"
+                                val kind = classifyBluetoothDevice(matchedDevice?.type, btDevice, devName)
+
                                 devices.add(
                                     AudioDevice(
-                                        name = btDevice.name ?: "Bluetooth Device",
+                                        name = devName,
                                         type = AudioDeviceType.BLUETOOTH,
                                         isConnected = true,
                                         isActive = false,
                                         batteryLevel = if (battery != null && battery >= 0 && battery <= 100) battery else null,
                                         deviceId = matchedDevice?.id ?: btDevice.hashCode(),
-                                        address = btDevice.address
+                                        address = btDevice.address,
+                                        bluetoothKind = kind
                                     )
                                 )
                             }
