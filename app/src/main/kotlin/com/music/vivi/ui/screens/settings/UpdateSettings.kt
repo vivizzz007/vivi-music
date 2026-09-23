@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import android.content.Intent
 import android.net.Uri
@@ -159,6 +160,14 @@ fun UpdateSettings(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.update_settings_title),
+            style = MaterialTheme.typography.displaySmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
         Spacer(modifier = Modifier.height(10.dp))
         ExpressiveSettingGroup(
             items = listOf(
@@ -341,7 +350,9 @@ fun UpdateSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.update_settings_title)) },
+        title = {
+//            Text(stringResource(R.string.update_settings_title))
+        },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
