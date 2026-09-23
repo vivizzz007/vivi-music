@@ -6,6 +6,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -35,6 +36,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +51,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -355,7 +359,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp)
-                .animateContentSize()
+                .verticalScroll(rememberScrollState())
         ) {
             when {
                 isLoading -> {
@@ -630,14 +634,21 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
 
                     if (activeDevices.size >= 2) {
                         activeDevices.take(2).forEachIndexed { idx, dev ->
-                            val devVol = if (idx == 0) primaryVol else secondaryVol
-                            val devName = if (audioDevices.count { it.name == dev.name } > 1) {
+                            val isPhone = dev.type == AudioDeviceType.PHONE_SPEAKER
+                            val devVol = if (isPhone) {
+                                (currentVolume / maxVolume.toFloat()).coerceIn(0f, 1f)
+                            } else if (idx == 0) primaryVol else secondaryVol
+
+                            val devName = if (isPhone) {
+                                stringResource(R.string.this_phone)
+                            } else if (audioDevices.count { it.name == dev.name } > 1) {
                                 val i = audioDevices.filter { it.name == dev.name }.indexOf(dev) + 1
                                 "${dev.name} ($i)"
                             } else dev.name
+
                             VolumeControlRow(
                                 label = devName,
-                                icon = Icons.Filled.VolumeUp,
+                                icon = if (isPhone) Icons.Filled.PhoneAndroid else Icons.Filled.VolumeUp,
                                 volume = devVol * maxVolume,
                                 maxVolume = maxVolume,
                                 onVolumeChange = { newVolume ->
@@ -646,6 +657,17 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                         service?.setPrimaryDeviceVolume(frac)
                                     } else {
                                         service?.setSecondaryDeviceVolume(frac)
+                                    }
+                                    if (isPhone) {
+                                        currentVolume = newVolume
+                                        val intVol = newVolume.toInt()
+                                        if (intVol != audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)) {
+                                            audioManager.setStreamVolume(
+                                                AudioManager.STREAM_MUSIC,
+                                                intVol,
+                                                0
+                                            )
+                                        }
                                     }
                                 },
                                 onDragStart = { isUserDragging = true },
@@ -656,10 +678,16 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             }
                         }
                     } else {
-                        val singleLabel = activeDevices.firstOrNull()?.name ?: stringResource(R.string.volume)
+                        val singleDev = activeDevices.firstOrNull()
+                        val isPhone = singleDev?.type == AudioDeviceType.PHONE_SPEAKER
+                        val singleLabel = if (isPhone) {
+                            stringResource(R.string.this_phone)
+                        } else {
+                            singleDev?.name ?: stringResource(R.string.volume)
+                        }
                         VolumeControlRow(
                             label = singleLabel,
-                            icon = Icons.Filled.MusicNote,
+                            icon = if (isPhone) Icons.Filled.PhoneAndroid else Icons.Filled.MusicNote,
                             volume = currentVolume,
                             maxVolume = maxVolume,
                             onVolumeChange = { newVolume ->
@@ -736,7 +764,6 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun VolumeControlRow(
     label: String,
@@ -748,48 +775,14 @@ fun VolumeControlRow(
     onDragEnd: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val sliderState = rememberSliderState(
-        valueRange = 0f..maxVolume.toFloat(),
-    )
-
-    val snapAnimationSpec = MaterialTheme.motionScheme.fastEffectsSpec<Float>()
-    var currentValue by rememberSaveable { mutableFloatStateOf(volume) }
-    var animateJob: Job? by remember { mutableStateOf(null) }
+    var currentValue by remember(volume) { mutableFloatStateOf(volume) }
+    var isDragging by remember { mutableStateOf(false) }
 
     LaunchedEffect(volume) {
-        if (!sliderState.isDragging) {
+        if (!isDragging) {
             currentValue = volume
-            sliderState.value = volume
         }
     }
-
-    sliderState.onValueChange = { newValue ->
-        currentValue = newValue
-        if (sliderState.isDragging) {
-            onDragStart()
-            animateJob?.cancel()
-            sliderState.value = newValue
-            onVolumeChange(newValue)
-        }
-    }
-
-    sliderState.onValueChangeFinished = {
-        animateJob = coroutineScope.launch {
-            animate(
-                initialValue = sliderState.value,
-                targetValue = currentValue,
-                animationSpec = snapAnimationSpec
-            ) { value, _ ->
-                sliderState.value = value
-            }
-        }
-        onDragEnd()
-    }
-
-    val interactionSource = remember { MutableInteractionSource() }
-
-    var isDragging by remember { mutableStateOf(false) }
 
     // Android 15 Style Volume Pill
     Surface(
@@ -803,7 +796,7 @@ fun VolumeControlRow(
         Box(contentAlignment = Alignment.CenterStart) {
             // Smoothly animate the fill width when not dragging
             val animatedVolumeFraction by animateFloatAsState(
-                targetValue = currentValue / maxVolume.toFloat(),
+                targetValue = (currentValue / maxVolume.toFloat()).coerceIn(0f, 1f),
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioNoBouncy,
                     stiffness = Spring.StiffnessMediumLow
@@ -820,14 +813,16 @@ fun VolumeControlRow(
                     .onSizeChanged { widthState.floatValue = it.width.toFloat() }
                     .pointerInput(maxVolume) {
                         detectTapGestures { offset ->
-                            val percent = (offset.x / widthState.floatValue).coerceIn(0f, 1f)
-                            val newValue = percent * maxVolume
-                            currentValue = newValue
-                            onVolumeChange(newValue)
+                            if (widthState.floatValue > 0f) {
+                                val percent = (offset.x / widthState.floatValue).coerceIn(0f, 1f)
+                                val newValue = percent * maxVolume
+                                currentValue = newValue
+                                onVolumeChange(newValue)
+                            }
                         }
                     }
                     .pointerInput(maxVolume) {
-                        detectDragGestures(
+                        detectHorizontalDragGestures(
                             onDragStart = {
                                 isDragging = true
                                 onDragStart()
@@ -842,10 +837,12 @@ fun VolumeControlRow(
                             }
                         ) { change, _ ->
                             change.consume()
-                            val percent = (change.position.x / widthState.floatValue).coerceIn(0f, 1f)
-                            val newValue = percent * maxVolume
-                            currentValue = newValue
-                            onVolumeChange(newValue)
+                            if (widthState.floatValue > 0f) {
+                                val percent = (change.position.x / widthState.floatValue).coerceIn(0f, 1f)
+                                val newValue = percent * maxVolume
+                                currentValue = newValue
+                                onVolumeChange(newValue)
+                            }
                         }
                     }
             ) {
@@ -858,40 +855,39 @@ fun VolumeControlRow(
                 )
             }
 
-            // Content overlay (Icon and Label)
+            // Content overlay (Icon, Label and Value)
             Row(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically, 
+                    verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    modifier = Modifier.padding(start = 24.dp)
+                    modifier = Modifier.weight(1f, fill = false)
                 ) {
                     Icon(
-                        imageVector = if (currentValue > 0) Icons.Filled.VolumeUp else Icons.Filled.VolumeOff,
+                        imageVector = if (currentValue > 0) icon else Icons.Filled.VolumeOff,
                         contentDescription = null,
-                        tint = if (currentValue / maxVolume > 0.2f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        tint = if (currentValue / maxVolume.toFloat() > 0.2f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
                         text = label,
                         style = MaterialTheme.typography.titleMedium,
-                        color = if (currentValue / maxVolume > 0.4f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold
+                        color = if (currentValue / maxVolume.toFloat() > 0.4f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                
-                // Android 15 Style Max Indicator Dot - Placed at the absolute end
-                Box(
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                        .size(6.dp)
-                        .background(
-                            color = if (currentValue / maxVolume > 0.95f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                            shape = CircleShape
-                        )
+
+                Text(
+                    text = "${((currentValue / maxVolume.toFloat()).coerceIn(0f, 1f) * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = if (currentValue / maxVolume.toFloat() > 0.85f) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -985,12 +981,15 @@ fun applyAudioQuality(context: Context, quality: AudioQuality) {
 
 private fun isBluetoothDeviceType(type: Int): Boolean = when (type) {
     AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+    AudioDeviceInfo.TYPE_BLUETOOTH_SCO,
     AudioDeviceInfo.TYPE_HEARING_AID -> true
     else -> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
             (type == AudioDeviceInfo.TYPE_BLE_HEADSET || type == AudioDeviceInfo.TYPE_BLE_SPEAKER)) {
             true
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && type == AudioDeviceInfo.TYPE_BLE_BROADCAST) {
+            true
+        } else if (type == 26 || type == 27 || type == 30) {
             true
         } else {
             false
@@ -1037,7 +1036,10 @@ private fun loadDevices(
                                         val pairedDevices = bluetoothAdapter?.bondedDevices
                                         val btDevice = pairedDevices?.find {
                                             it.name == deviceInfo.productName.toString() ||
-                                            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address)
+                                            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && it.address == deviceInfo.address) ||
+                                            (deviceInfo.productName != null && it.name != null &&
+                                                (it.name.contains(deviceInfo.productName.toString(), ignoreCase = true) ||
+                                                 deviceInfo.productName.toString().contains(it.name, ignoreCase = true)))
                                         }
 
                                         @SuppressLint("MissingPermission")
@@ -1112,28 +1114,50 @@ private fun loadDevices(
                 device?.let { devices.add(it) }
             }
 
-            // Also search bonded Bluetooth devices to surface any connected second headset
+            // Also search bonded Bluetooth devices to surface any connected second headset (including LE Audio)
             if (checkBluetoothPermission(context)) {
                 try {
                     val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
                     val bluetoothAdapter = bluetoothManager?.adapter
                     val pairedDevices = bluetoothAdapter?.bondedDevices
+                    val profilesToCheck = intArrayOf(
+                        BluetoothProfile.A2DP,
+                        BluetoothProfile.HEADSET,
+                        22, // BluetoothProfile.LE_AUDIO
+                        21, // BluetoothProfile.HEARING_AID
+                        25, // CSIP_SET_MEMBER
+                        28, // HAP_CLIENT
+                    )
                     pairedDevices?.forEach { btDevice ->
                         val isConnected = try {
-                            (bluetoothManager?.getConnectionState(btDevice, android.bluetooth.BluetoothProfile.A2DP) == android.bluetooth.BluetoothProfile.STATE_CONNECTED) ||
-                            (bluetoothManager?.getConnectionState(btDevice, android.bluetooth.BluetoothProfile.HEADSET) == android.bluetooth.BluetoothProfile.STATE_CONNECTED) ||
-                            (try { BluetoothDevice::class.java.getMethod("isConnected").invoke(btDevice) as? Boolean ?: false } catch (_: Exception) { false })
-                        } catch (_: Exception) { false }
+                            profilesToCheck.any { profile ->
+                                try {
+                                    bluetoothManager?.getConnectionState(btDevice, profile) == BluetoothProfile.STATE_CONNECTED
+                                } catch (_: Throwable) { false }
+                            } || (try {
+                                profilesToCheck.any { profile ->
+                                    try {
+                                        bluetoothManager?.getConnectedDevices(profile)?.any { it.address == btDevice.address } == true
+                                    } catch (_: Throwable) { false }
+                                }
+                            } catch (_: Throwable) { false }) || (try {
+                                BluetoothDevice::class.java.getMethod("isConnected").invoke(btDevice) as? Boolean ?: false
+                            } catch (_: Throwable) { false })
+                        } catch (_: Throwable) { false }
 
                         if (isConnected) {
                             val alreadyAdded = devices.any {
                                 it.name.equals(btDevice.name, ignoreCase = true) ||
-                                (it.address != null && it.address == btDevice.address)
+                                (it.address != null && it.address == btDevice.address) ||
+                                (btDevice.name != null && (it.name.contains(btDevice.name!!, ignoreCase = true) || btDevice.name!!.contains(it.name, ignoreCase = true)))
                             }
                             if (!alreadyAdded) {
                                 val matchedDevice = allAudioDevices.find { devInfo ->
                                     (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && devInfo.address == btDevice.address) ||
-                                    devInfo.productName?.toString().equals(btDevice.name, ignoreCase = true)
+                                    devInfo.productName?.toString().equals(btDevice.name, ignoreCase = true) ||
+                                    (devInfo.productName != null && btDevice.name != null &&
+                                        (devInfo.productName.toString().contains(btDevice.name!!, ignoreCase = true) ||
+                                         btDevice.name!!.contains(devInfo.productName.toString(), ignoreCase = true)))
                                 }
                                 val battery = try {
                                     val method = BluetoothDevice::class.java.getMethod("getBatteryLevel")

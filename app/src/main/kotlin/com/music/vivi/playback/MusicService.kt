@@ -63,6 +63,7 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
+import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
@@ -344,6 +345,22 @@ class MusicService :
     val secondaryDeviceVolume = MutableStateFlow(1f)
     private var dualOutputPlayer: ExoPlayer? = null
 
+    private fun createDualExoPlayer(): ExoPlayer {
+        return ExoPlayer.Builder(this)
+            .setMediaSourceFactory(createMediaSourceFactory())
+            .setHandleAudioBecomingNoisy(false)
+            .setWakeMode(C.WAKE_MODE_NETWORK)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                false,
+            )
+            .setDeviceVolumeControlEnabled(false)
+            .build()
+    }
+
     fun setPreferredAudioDevice(deviceId: Int?) {
         setDualPreferredAudioDevices(deviceId, null)
     }
@@ -364,7 +381,7 @@ class MusicService :
                     if (secondaryDevice != null) {
                         player.setPreferredAudioDevice(primaryDevice)
                         if (dualOutputPlayer == null) {
-                            dualOutputPlayer = createExoPlayer().apply {
+                            dualOutputPlayer = createDualExoPlayer().apply {
                                 setPreferredAudioDevice(secondaryDevice)
                                 volume = secondaryDeviceVolume.value * (if (isMuted.value) 0f else playerVolume.value)
                             }
@@ -383,6 +400,11 @@ class MusicService :
                     dualOutputPlayer?.clearMediaItems()
                     dualOutputPlayer?.release()
                     dualOutputPlayer = null
+                    // CRITICAL: Ensure primary player is always active in _playerFlow and metadata remains intact
+                    if (_playerFlow.value != player) {
+                        _playerFlow.value = player
+                    }
+                    currentMediaMetadata.value = player.currentMetadata
                 }
                 Timber.tag(TAG).d("setDualPreferredAudioDevices: primary=$primaryId, secondary=$secondaryId")
             } catch (e: Exception) {
@@ -2220,9 +2242,9 @@ class MusicService :
                         requestHeaders = playbackData.streamHeaders,
                         clientName = playbackData.streamClient,
                         expiresInSeconds = playbackData.streamExpiresInSeconds,
-                        requireBoundedRange = false,
-                        rangeChunkSizeBytes = 0L,
-                        useRangeChunks = false,
+                        requireBoundedRange = playbackData.requireBoundedRange,
+                        rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                        useRangeChunks = playbackData.useRangeChunks,
                         expectedGeneration = cacheGeneration,
                     )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
@@ -2268,7 +2290,7 @@ class MusicService :
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     context = this@MusicService,
-                    allowBoundedRange = false,
+                    allowBoundedRange = true,
                 )
             }
             result.getOrNull()?.getOrNull()?.let { playbackData ->
@@ -2279,9 +2301,9 @@ class MusicService :
                         requestHeaders = playbackData.streamHeaders,
                         clientName = playbackData.streamClient,
                         expiresInSeconds = playbackData.streamExpiresInSeconds,
-                        requireBoundedRange = false,
-                        rangeChunkSizeBytes = 0L,
-                        useRangeChunks = false,
+                        requireBoundedRange = playbackData.requireBoundedRange,
+                        rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                        useRangeChunks = playbackData.useRangeChunks,
                         expectedGeneration = cacheGeneration,
                     )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $mediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
@@ -2421,6 +2443,7 @@ class MusicService :
         }
         if (events.containsAny(EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
             playerSilenceProcessors.values.forEach { it.resetTracking() }
+            consecutiveSilenceSkips = 0
         }
 
         if (isDualOutputEnabled.value && events.containsAny(
@@ -3155,6 +3178,7 @@ class MusicService :
     // Flag to prevent queue saving during silence skip operations
     private var isSilenceSkipping = false
     private var lastSilenceSkipTimestamp = 0L
+    private var consecutiveSilenceSkips = 0
 
     private fun handleLongSilenceDetected() {
         if (!instantSilenceSkipEnabled.value) return
@@ -3176,7 +3200,26 @@ class MusicService :
         if (current >= duration - 3000L) return
 
         val silenceProcessor = playerSilenceProcessors[player] ?: return
-        if (!silenceProcessor.isCurrentlySilent()) return
+        if (!silenceProcessor.isCurrentlySilent()) {
+            consecutiveSilenceSkips = 0
+            return
+        }
+
+        if (consecutiveSilenceSkips >= 3) {
+            Timber.tag(TAG).w("Silence skip: exceeded 3 consecutive skips (stalled stream?). Resetting skips and refreshing stream.")
+            consecutiveSilenceSkips = 0
+            currentSong.value?.id?.let { mediaId ->
+                songUrlCache.invalidate(mediaId)
+                refreshStreamAndRetry(
+                    mediaId = mediaId,
+                    failedStreamClient = currentStreamClient.value,
+                    refreshCipherConfig = false,
+                    retryReason = "consecutive silence skips",
+                )
+            }
+            return
+        }
+        consecutiveSilenceSkips++
 
         isSilenceSkipping = true
         try {
@@ -3185,7 +3228,7 @@ class MusicService :
             if (target > current) {
                 silenceProcessor.resetTracking()
                 player.seekTo(target)
-                Timber.tag(TAG).d("Silence skip: single skip from $current to $target")
+                Timber.tag(TAG).d("Silence skip: single skip from $current to $target (consecutive: $consecutiveSilenceSkips)")
             }
         } finally {
             isSilenceSkipping = false
@@ -3277,7 +3320,7 @@ class MusicService :
                         isExplicit = song?.explicit,
                         isUploaded = song?.isUploaded,
                     ),
-                    allowBoundedRange = false,
+                    allowBoundedRange = true,
                 )
             }.getOrElse { throwable ->
                 when (throwable) {
@@ -3352,9 +3395,9 @@ class MusicService :
                     requestHeaders = nonNullPlayback.streamHeaders,
                     clientName = nonNullPlayback.streamClient,
                     expiresInSeconds = nonNullPlayback.streamExpiresInSeconds,
-                    requireBoundedRange = false,
-                    rangeChunkSizeBytes = 0L,
-                    useRangeChunks = false,
+                    requireBoundedRange = nonNullPlayback.requireBoundedRange,
+                    rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
+                    useRangeChunks = nonNullPlayback.useRangeChunks,
                     expectedGeneration = cacheGeneration,
                 )
 
@@ -3363,9 +3406,9 @@ class MusicService :
                         url = streamUrl,
                         requestHeaders = nonNullPlayback.streamHeaders,
                         clientName = nonNullPlayback.streamClient,
-                        requireBoundedRange = false,
-                        rangeChunkSizeBytes = 0L,
-                        useRangeChunks = false,
+                        requireBoundedRange = nonNullPlayback.requireBoundedRange,
+                        rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
+                        useRangeChunks = nonNullPlayback.useRangeChunks,
                     ),
                 )
             }
@@ -3375,13 +3418,7 @@ class MusicService :
     private fun createMediaSourceFactory() =
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
-            ExtractorsFactory {
-                arrayOf(
-                    MatroskaExtractor(),        // .webm / Opus
-                    FragmentedMp4Extractor(),   // fragmented .mp4 / AAC (YouTube)
-                    Mp4Extractor(),             // regular .mp4 / AAC (JioSaavn)
-                )
-            },
+            DefaultExtractorsFactory().setConstantBitrateSeekingEnabled(true),
         )
 
     private fun createRenderersFactory(
