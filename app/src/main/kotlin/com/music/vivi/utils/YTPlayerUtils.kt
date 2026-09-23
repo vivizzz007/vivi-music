@@ -354,6 +354,15 @@ object YTPlayerUtils {
             BotDetectionMitigator.rotateGuestSession()
             val retryResult = resolvePlaybackData(videoId, playlistId, audioQuality, connectivityManager, contentHints)
             retryResult.onSuccess { BotDetectionMitigator.notifyPlaybackSuccess() }
+            if (retryResult.isFailure) {
+                val err = retryResult.exceptionOrNull()
+                Timber.tag(TAG).e(err, "Stream resolution exhausted for $videoId after session rotation")
+                PlaybackLogManager.log(
+                    PlaybackLogLevel.ERROR,
+                    "No playable stream",
+                    "All clients failed for $videoId: ${err?.message ?: "unknown"}"
+                )
+            }
             return retryResult
         }
         
