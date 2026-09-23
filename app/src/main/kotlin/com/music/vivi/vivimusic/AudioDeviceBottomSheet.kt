@@ -601,12 +601,34 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                             }
                                         }
                                     }
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { openSystemMediaOutput(context) },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Speaker,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            text = "System Multi-Output Settings",
+                                            style = MaterialTheme.typography.labelLarge
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    if (isDualActive) {
+                    if (activeDevices.size >= 2) {
                         activeDevices.take(2).forEachIndexed { idx, dev ->
                             val devVol = if (idx == 0) primaryVol else secondaryVol
                             val devName = if (audioDevices.count { it.name == dev.name } > 1) {
@@ -634,18 +656,22 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             }
                         }
                     } else {
+                        val singleLabel = activeDevices.firstOrNull()?.name ?: stringResource(R.string.volume)
                         VolumeControlRow(
-                            label = stringResource(R.string.volume),
+                            label = singleLabel,
                             icon = Icons.Filled.MusicNote,
                             volume = currentVolume,
                             maxVolume = maxVolume,
                             onVolumeChange = { newVolume ->
                                 currentVolume = newVolume
-                                audioManager.setStreamVolume(
-                                    AudioManager.STREAM_MUSIC,
-                                    newVolume.toInt(),
-                                    0
-                                )
+                                val intVol = newVolume.toInt()
+                                if (intVol != audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)) {
+                                    audioManager.setStreamVolume(
+                                        AudioManager.STREAM_MUSIC,
+                                        intVol,
+                                        0
+                                    )
+                                }
                             },
                             onDragStart = { isUserDragging = true },
                             onDragEnd = { isUserDragging = false }
@@ -763,6 +789,8 @@ fun VolumeControlRow(
 
     val interactionSource = remember { MutableInteractionSource() }
 
+    var isDragging by remember { mutableStateOf(false) }
+
     // Android 15 Style Volume Pill
     Surface(
         modifier = modifier
@@ -773,7 +801,7 @@ fun VolumeControlRow(
         tonalElevation = 1.dp
     ) {
         Box(contentAlignment = Alignment.CenterStart) {
-            // Smoothly animate the fill width for a high-end feel
+            // Smoothly animate the fill width when not dragging
             val animatedVolumeFraction by animateFloatAsState(
                 targetValue = currentValue / maxVolume.toFloat(),
                 animationSpec = spring(
@@ -782,6 +810,7 @@ fun VolumeControlRow(
                 ),
                 label = "VolumeFillAnimation"
             )
+            val displayFraction = if (isDragging) (currentValue / maxVolume.toFloat()).coerceIn(0f, 1f) else animatedVolumeFraction
 
             // Custom Pill Slider for perfect 0-100% fill
             val widthState = remember { mutableFloatStateOf(0f) }
@@ -799,9 +828,18 @@ fun VolumeControlRow(
                     }
                     .pointerInput(maxVolume) {
                         detectDragGestures(
-                            onDragStart = { onDragStart() },
-                            onDragEnd = { onDragEnd() },
-                            onDragCancel = { onDragEnd() }
+                            onDragStart = {
+                                isDragging = true
+                                onDragStart()
+                            },
+                            onDragEnd = {
+                                isDragging = false
+                                onDragEnd()
+                            },
+                            onDragCancel = {
+                                isDragging = false
+                                onDragEnd()
+                            }
                         ) { change, _ ->
                             change.consume()
                             val percent = (change.position.x / widthState.floatValue).coerceIn(0f, 1f)
@@ -811,11 +849,11 @@ fun VolumeControlRow(
                         }
                     }
             ) {
-                // Active Track (Fill) - Uses the animated fraction for smoothness
+                // Active Track (Fill) - Instant while dragging, animated when idle
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(animatedVolumeFraction)
+                        .fillMaxWidth(displayFraction)
                         .background(MaterialTheme.colorScheme.primaryContainer)
                 )
             }
@@ -1082,9 +1120,10 @@ private fun loadDevices(
                     val pairedDevices = bluetoothAdapter?.bondedDevices
                     pairedDevices?.forEach { btDevice ->
                         val isConnected = try {
-                            val method = BluetoothDevice::class.java.getMethod("isConnected")
-                            method.invoke(btDevice) as? Boolean ?: false
-                        } catch (e: Exception) { false }
+                            (bluetoothManager?.getConnectionState(btDevice, android.bluetooth.BluetoothProfile.A2DP) == android.bluetooth.BluetoothProfile.STATE_CONNECTED) ||
+                            (bluetoothManager?.getConnectionState(btDevice, android.bluetooth.BluetoothProfile.HEADSET) == android.bluetooth.BluetoothProfile.STATE_CONNECTED) ||
+                            (try { BluetoothDevice::class.java.getMethod("isConnected").invoke(btDevice) as? Boolean ?: false } catch (_: Exception) { false })
+                        } catch (_: Exception) { false }
 
                         if (isConnected) {
                             val alreadyAdded = devices.any {
@@ -1092,10 +1131,14 @@ private fun loadDevices(
                                 (it.address != null && it.address == btDevice.address)
                             }
                             if (!alreadyAdded) {
+                                val matchedDevice = allAudioDevices.find { devInfo ->
+                                    (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && devInfo.address == btDevice.address) ||
+                                    devInfo.productName?.toString().equals(btDevice.name, ignoreCase = true)
+                                }
                                 val battery = try {
                                     val method = BluetoothDevice::class.java.getMethod("getBatteryLevel")
                                     method.invoke(btDevice) as? Int
-                                } catch (e: Exception) { null }
+                                } catch (_: Exception) { null }
 
                                 devices.add(
                                     AudioDevice(
@@ -1104,7 +1147,7 @@ private fun loadDevices(
                                         isConnected = true,
                                         isActive = false,
                                         batteryLevel = if (battery != null && battery >= 0 && battery <= 100) battery else null,
-                                        deviceId = btDevice.hashCode(),
+                                        deviceId = matchedDevice?.id ?: btDevice.hashCode(),
                                         address = btDevice.address
                                     )
                                 )
@@ -1387,5 +1430,27 @@ fun DeviceSelector(
                 }
             }
         }
+    }
+}
+
+fun openSystemMediaOutput(context: Context) {
+    val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        Intent("com.android.settings.panel.action.MEDIA_OUTPUT").apply {
+            putExtra("com.android.settings.panel.extra.PACKAGE_NAME", context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    } else {
+        Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+    }
+    try {
+        context.startActivity(intent)
+    } catch (_: Exception) {
+        try {
+            context.startActivity(Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+        } catch (_: Exception) {}
     }
 }

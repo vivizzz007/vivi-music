@@ -117,7 +117,8 @@ fun SongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
-    val download by LocalDownloadUtil.current.getDownload(originalSong.id)
+    val downloadUtil = LocalDownloadUtil.current
+    val download by downloadUtil.getDownload(originalSong.id)
         .collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
@@ -599,6 +600,7 @@ fun SongMenu(
                                         )
                                         delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                                     }
+                                    downloadUtil.checkAndRemoveOrphanedDownload(playlistSong.map.songId, playlistSong.map.playlistId)
                                     onDismiss()
                                 }
                             )

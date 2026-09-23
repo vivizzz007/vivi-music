@@ -240,6 +240,7 @@ fun AddToPlaylistDialog(
                             } else {
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, songIds!!)
+                                songIds?.forEach { syncUtils.clearSongTombstone(playlist.id, it) }
                                 downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds!!)
                                 coroutineScope.launch {
                                     syncUtils.syncLocalPlaylistToSpotify(playlist.id, isAutoSync = true)
@@ -284,6 +285,7 @@ fun AddToPlaylistDialog(
                                     toAdd
                                 )
                             }
+                            toAdd.forEach { syncUtils.clearSongTombstone(selectedPlaylist!!.id, it) }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, toAdd)
                             coroutineScope.launch {
                                 syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id, isAutoSync = true)
@@ -300,6 +302,7 @@ fun AddToPlaylistDialog(
                             database.transaction {
                                 addSongToPlaylist(selectedPlaylist!!, songIds!!)
                             }
+                            songIds?.forEach { syncUtils.clearSongTombstone(selectedPlaylist!!.id, it) }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(selectedPlaylist!!.id, songIds!!)
                             coroutineScope.launch {
                                 syncUtils.syncLocalPlaylistToSpotify(selectedPlaylist!!.id, isAutoSync = true)

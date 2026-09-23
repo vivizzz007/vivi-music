@@ -125,6 +125,7 @@ fun OnlineSearchScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val viewState by viewModel.viewState.collectAsState()
+    val playerBottomSheetState = com.music.vivi.LocalPlayerBottomSheetState.current
 
     val lazyListState = rememberLazyListState()
 
@@ -226,8 +227,8 @@ fun OnlineSearchScreen(
                                         playerConnection.playQueue(
                                             YouTubeQueue.radio(event.song.toMediaMetadata())
                                         )
-                                        onDismiss()
                                     }
+                                    playerBottomSheetState?.expandSoft()
                                 },
                                 onLongClick = {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -246,7 +247,6 @@ fun OnlineSearchScreen(
                                             navController = navController,
                                             onDismiss = {
                                                 menuState.dismiss()
-                                                onDismiss()
                                             }
                                         )
                                     }
@@ -407,8 +407,8 @@ fun OnlineSearchScreen(
                                         playerConnection.playQueue(
                                             YouTubeQueue.radio(item.toMediaMetadata())
                                         )
-                                        onDismiss()
                                     }
+                                    playerBottomSheetState?.expandSoft()
                                 }
                                 is AlbumItem -> {
                                     navController.navigate("album/${item.id}")
@@ -433,7 +433,6 @@ fun OnlineSearchScreen(
                                         navController = navController,
                                         onDismiss = {
                                             menuState.dismiss()
-                                            onDismiss()
                                         }
                                     )
                                     is AlbumItem -> YouTubeAlbumMenu(
@@ -534,8 +533,8 @@ fun OnlineSearchScreen(
                                 playerConnection.playQueue(
                                     YouTubeQueue.radio(item.toMediaMetadata())
                                 )
-                                onDismiss()
                             }
+                            playerBottomSheetState?.expandSoft()
                         },
                         onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -545,7 +544,6 @@ fun OnlineSearchScreen(
                                     navController = navController,
                                     onDismiss = {
                                         menuState.dismiss()
-                                        onDismiss()
                                     }
                                 )
                             }

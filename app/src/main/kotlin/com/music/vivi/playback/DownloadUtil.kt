@@ -1155,6 +1155,42 @@ constructor(
         }
     }
 
+    fun checkAndRemoveOrphanedDownload(songId: String, deletedFromPlaylistId: String) {
+        checkAndRemoveOrphanedDownloads(listOf(songId), deletedFromPlaylistId)
+    }
+
+    fun checkAndRemoveOrphanedDownloads(songIds: List<String>, deletedFromPlaylistId: String) {
+        scope.launch(Dispatchers.IO) {
+            val autoDownloadPlaylists = appContext.dataStore.data.firstOrNull()
+                ?.get(AutoDownloadPlaylistsKey)
+                ?.split(",")
+                ?.filter { it.isNotBlank() }
+                ?.toSet() ?: emptySet()
+
+            val isDeletedFromDownloaded = deletedFromPlaylistId in autoDownloadPlaylists
+            if (!isDeletedFromDownloaded) return@launch
+
+            songIds.distinct().forEach { songId ->
+                val otherPlaylistIds = database.playlistSongMaps(songId)
+                    .map { it.playlistId }
+                    .filter { it != deletedFromPlaylistId }
+                    .toSet()
+
+                val inAnotherDownloaded = otherPlaylistIds.any { it in autoDownloadPlaylists }
+                if (!inAnotherDownloaded) {
+                    Timber.d("checkAndRemoveOrphanedDownloads: Removing download for $songId (removed from $deletedFromPlaylistId)")
+                    database.updateDownloadedInfo(songId, false, null)
+                    androidx.media3.exoplayer.offline.DownloadService.sendRemoveDownload(
+                        appContext,
+                        ExoDownloadService::class.java,
+                        songId,
+                        false
+                    )
+                }
+            }
+        }
+    }
+
     fun release() {
         scope.cancel()
     }

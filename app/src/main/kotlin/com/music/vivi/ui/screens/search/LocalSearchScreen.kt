@@ -91,6 +91,7 @@ fun LocalSearchScreen(
 
     val searchFilter by viewModel.filter.collectAsState()
     val result by viewModel.result.collectAsState()
+    val playerBottomSheetState = com.music.vivi.LocalPlayerBottomSheetState.current
 
     val lazyListState = rememberLazyListState()
 
@@ -203,7 +204,6 @@ fun LocalSearchScreen(
                                             originalSong = item,
                                             navController = navController,
                                             onDismiss = {
-                                                onDismiss()
                                                 menuState.dismiss()
                                             },
                                             isFromCache = isFromCache
@@ -235,6 +235,7 @@ fun LocalSearchScreen(
                                             )
                                         )
                                     }
+                                    playerBottomSheetState?.expandSoft()
                                 },
                                 onLongClick = {
                                     menuState.show {
@@ -242,7 +243,6 @@ fun LocalSearchScreen(
                                             originalSong = item,
                                             navController = navController,
                                             onDismiss = {
-                                                onDismiss()
                                                 menuState.dismiss()
                                             },
                                             isFromCache = isFromCache

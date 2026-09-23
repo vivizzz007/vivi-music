@@ -22,6 +22,7 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
+import com.music.vivi.constants.PlusButtonOpenViviKey
 import com.music.vivi.constants.PowerButtonCameraKey
 import com.music.vivi.constants.PowerButtonIntervalKey
 import com.music.vivi.constants.ScreenOffVolumeSkipKey
@@ -45,6 +46,7 @@ class ViviAccessibilityService : AccessibilityService() {
     private var screenOffVolumeSkipEnabled = false
     private var powerButtonCameraEnabled = false
     private var powerButtonIntervalMs = 200
+    private var plusButtonOpenViviEnabled = false
 
     // Volume long-press detection
     private var volumeLongPressRunnable: Runnable? = null
@@ -55,6 +57,9 @@ class ViviAccessibilityService : AccessibilityService() {
     private var lastPowerPressTime = 0L
     private var lastScreenStateChangeTime = 0L
     private var lastScreenTouchTime = 0L
+
+    // Plus button double-press detection
+    private var lastPlusPressTime = 0L
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -133,6 +138,15 @@ class ViviAccessibilityService : AccessibilityService() {
                 Timber.tag(TAG).d("powerButtonIntervalMs: $powerButtonIntervalMs")
             }
         }
+
+        serviceScope.launch {
+            dataStore.data.map { preferences ->
+                preferences[PlusButtonOpenViviKey] ?: false
+            }.distinctUntilChanged().collect { enabled ->
+                plusButtonOpenViviEnabled = enabled
+                Timber.tag(TAG).d("plusButtonOpenViviEnabled: $enabled")
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -167,6 +181,24 @@ class ViviAccessibilityService : AccessibilityService() {
                     return false
                 } else {
                     lastPowerPressTime = now
+                }
+            }
+            return false
+        }
+
+        // Physical Plus key double-press to open Vivi
+        if (plusButtonOpenViviEnabled && isPlusKey(keyCode)) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                val now = SystemClock.uptimeMillis()
+                val diff = now - lastPlusPressTime
+                if (diff in 50L..500L) {
+                    Timber.tag(TAG).d("Plus button double-press detected ($diff ms)! Launching Vivi.")
+                    lastPlusPressTime = 0L
+                    vibrateCameraTrigger()
+                    launchViviApp()
+                    return true
+                } else {
+                    lastPlusPressTime = now
                 }
             }
             return false
@@ -353,6 +385,39 @@ class ViviAccessibilityService : AccessibilityService() {
             }
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error launching camera")
+        }
+    }
+
+    private fun isPlusKey(keyCode: Int): Boolean =
+        keyCode == KeyEvent.KEYCODE_PLUS ||
+        keyCode == KeyEvent.KEYCODE_NUMPAD_ADD ||
+        keyCode == 81 || // KEYCODE_PLUS standard integer value
+        keyCode == 157   // KEYCODE_NUMPAD_ADD standard integer value
+
+    private fun launchViviApp() {
+        try {
+            try {
+                val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+                @Suppress("DEPRECATION")
+                val wakeLock = powerManager?.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    "vivi:plus_wake"
+                )
+                wakeLock?.acquire(2000L)
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "WakeLock acquisition for Plus key failed")
+            }
+
+            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            }
+            if (launchIntent != null) {
+                startActivity(launchIntent)
+            } else {
+                Timber.tag(TAG).w("Could not get launch intent for package: $packageName")
+            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Error launching Vivi Music from Plus key")
         }
     }
 

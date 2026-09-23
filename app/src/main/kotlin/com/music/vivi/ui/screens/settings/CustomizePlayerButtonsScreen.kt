@@ -349,312 +349,356 @@ private fun PlayerSkeletonCard(
     selectedIndex: Int,
     onSelectButton: (Int) -> Unit
 ) {
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E242B)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
+        Card(
             modifier = Modifier
+                .widthIn(max = 280.dp)
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
+                .clip(RoundedCornerShape(32.dp))
+                .border(
+                    width = 2.dp,
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFF2C3E50),
-                            Color(0xFF1A252F),
-                            Color(0xFF12171D)
+                            Color.White.copy(alpha = 0.3f),
+                            Color.White.copy(alpha = 0.08f)
                         )
-                    )
-                )
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                    ),
+                    shape = RoundedCornerShape(32.dp)
+                ),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFF141A22)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 10.dp)
         ) {
-            // Top Bar Header
-            Text(
-                text = "Now Playing",
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White.copy(alpha = 0.7f)
-            )
-            Text(
-                text = "civil",
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Album Art Thumbnail Placeholder
-            Box(
+            Column(
                 modifier = Modifier
-                    .size(160.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(Color(0xFF3B4D61)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.music_note),
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.3f),
-                    modifier = Modifier.size(64.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Title, Artist, and Top Actions
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "reflex",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Dzsúdló, Only U",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                // Download & Like Mock Pills
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.download),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
+                    .fillMaxWidth()
+                    .background(
+                        Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF283645),
+                                Color(0xFF1B242E),
+                                Color(0xFF11171E)
+                            )
                         )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(Color.White.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.favorite_border),
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Volume / Seek Slider Mock
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                    )
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.volume_up),
-                    contentDescription = null,
-                    tint = Color.White.copy(alpha = 0.8f),
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                // Phone speaker notch
                 Box(
                     modifier = Modifier
-                        .weight(1f)
-                        .height(5.dp)
+                        .width(36.dp)
+                        .height(3.5.dp)
                         .clip(CircleShape)
                         .background(Color.White.copy(alpha = 0.25f))
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Top Bar Header
+                Text(
+                    text = "Now Playing",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 10.sp
+                )
+                Text(
+                    text = "civil",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Album Art Thumbnail Placeholder
+                Box(
+                    modifier = Modifier
+                        .size(125.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(0xFF3B4D61),
+                                    Color(0xFF253342)
+                                )
+                            )
+                        )
+                        .border(
+                            width = 1.dp,
+                            color = Color.White.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.45f)
-                            .fillMaxHeight()
-                            .clip(CircleShape)
-                            .background(Color.White)
+                    Icon(
+                        painter = painterResource(R.drawable.music_note),
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.35f),
+                        modifier = Modifier.size(48.dp)
                     )
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = "0:11", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-                Text(text = "2:43", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.6f))
-            }
+                Spacer(modifier = Modifier.height(10.dp))
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Playback Controls Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.skip_previous),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
-
-                // Pause Pill Button
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
-                    modifier = Modifier.height(44.dp)
+                // Title, Artist, and Top Actions
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.pause),
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Pause",
-                            color = Color.Black,
+                            text = "reflex",
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.labelLarge
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
+                        Text(
+                            text = "Dzsúdló, Only U",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    // Download & Like Mock Pills
+                    Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.download),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color.White.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.favorite_border),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
                     }
                 }
 
-                Icon(
-                    painter = painterResource(R.drawable.skip_next),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // REAL-TIME BOTTOM ACTION BAR SKELETON (Apple Music layout)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color.Black.copy(alpha = 0.35f))
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                @Composable
-                fun RenderPreviewOuterButton(index: Int) {
-                    val button = activeButtons[index]
-                    val isSelected = index == selectedIndex
+                // Volume / Seek Slider Mock
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.volume_up),
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.8f),
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
                     Box(
                         modifier = Modifier
-                            .size(38.dp)
+                            .weight(1f)
+                            .height(4.dp)
                             .clip(CircleShape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else Color.Transparent
-                            )
-                            .border(
-                                width = if (isSelected) 2.dp else 0.dp,
-                                color = if (isSelected) Color.White else Color.Transparent,
-                                shape = CircleShape
-                            )
-                            .clickable { onSelectButton(index) },
-                        contentAlignment = Alignment.Center
+                            .background(Color.White.copy(alpha = 0.25f))
                     ) {
-                        Icon(
-                            painter = painterResource(getPlayerButtonIcon(button)),
-                            contentDescription = button.displayName,
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
-                            modifier = Modifier.size(22.dp)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.45f)
+                                .fillMaxHeight()
+                                .clip(CircleShape)
+                                .background(Color.White)
                         )
                     }
                 }
 
-                @Composable
-                fun RenderPreviewMiddleButton(index: Int, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier = Modifier) {
-                    val button = activeButtons[index]
-                    val isSelected = index == selectedIndex
-                    Box(
-                        modifier = modifier
-                            .height(36.dp)
-                            .clip(shape)
-                            .background(
-                                if (isSelected) MaterialTheme.colorScheme.primary
-                                else Color.White.copy(alpha = 0.2f)
-                            )
-                            .border(
-                                width = if (isSelected) 2.dp else 0.dp,
-                                color = if (isSelected) Color.White else Color.Transparent,
-                                shape = shape
-                            )
-                            .clickable { onSelectButton(index) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(getPlayerButtonIcon(button)),
-                            contentDescription = button.displayName,
-                            tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(text = "0:11", style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f))
+                    Text(text = "2:43", style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = Color.White.copy(alpha = 0.6f))
                 }
 
-                val circleShape = RoundedCornerShape(percent = 50)
-                if (activeButtons.isEmpty()) {
-                    // Empty state placeholder
-                } else if (activeButtons.size >= 3) {
-                    // Left pinned button
-                    RenderPreviewOuterButton(0)
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    // Middle connected pill
-                    val middleIndices = (1 until activeButtons.lastIndex).toList()
-                    val pillWidth = (42 * middleIndices.size).dp.coerceAtMost(180.dp)
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.width(pillWidth)
+                // Playback Controls Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_previous),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    // Pause Pill Button
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = Color.White,
+                        modifier = Modifier.height(36.dp)
                     ) {
-                        middleIndices.forEach { midIdx ->
-                            val midShape = when {
-                                middleIndices.size == 1 -> circleShape
-                                midIdx == middleIndices.first() -> RoundedCornerShape(topStart = 18.dp, bottomStart = 18.dp, topEnd = 3.dp, bottomEnd = 3.dp)
-                                midIdx == middleIndices.last() -> RoundedCornerShape(topEnd = 18.dp, bottomEnd = 18.dp, topStart = 3.dp, bottomStart = 3.dp)
-                                else -> RoundedCornerShape(3.dp)
-                            }
-                            RenderPreviewMiddleButton(midIdx, midShape, Modifier.weight(1f))
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.pause),
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "Pause",
+                                color = Color.Black,
+                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelMedium
+                            )
                         }
                     }
 
-                    // Right pinned button
-                    RenderPreviewOuterButton(activeButtons.lastIndex)
-                } else if (activeButtons.size == 2) {
-                    RenderPreviewOuterButton(0)
-                    RenderPreviewOuterButton(1)
-                } else {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_next),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // REAL-TIME BOTTOM ACTION BAR SKELETON (Apple Music layout)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    @Composable
+                    fun RenderPreviewOuterButton(index: Int) {
+                        val button = activeButtons[index]
+                        val isSelected = index == selectedIndex
+                        Box(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.Transparent
+                                )
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 0.dp,
+                                    color = if (isSelected) Color.White else Color.Transparent,
+                                    shape = CircleShape
+                                )
+                                .clickable { onSelectButton(index) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(getPlayerButtonIcon(button)),
+                                contentDescription = button.displayName,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    @Composable
+                    fun RenderPreviewMiddleButton(index: Int, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier = Modifier) {
+                        val button = activeButtons[index]
+                        val isSelected = index == selectedIndex
+                        Box(
+                            modifier = modifier
+                                .height(30.dp)
+                                .clip(shape)
+                                .background(
+                                    if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.White.copy(alpha = 0.18f)
+                                )
+                                .border(
+                                    width = if (isSelected) 1.5.dp else 0.dp,
+                                    color = if (isSelected) Color.White else Color.Transparent,
+                                    shape = shape
+                                )
+                                .clickable { onSelectButton(index) },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(getPlayerButtonIcon(button)),
+                                contentDescription = button.displayName,
+                                tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    val circleShape = RoundedCornerShape(percent = 50)
+                    if (activeButtons.isEmpty()) {
+                        // Empty state placeholder
+                    } else if (activeButtons.size >= 3) {
+                        // Left pinned button
                         RenderPreviewOuterButton(0)
+
+                        // Middle connected pill
+                        val middleIndices = (1 until activeButtons.lastIndex).toList()
+                        val pillWidth = (36 * middleIndices.size).dp.coerceAtMost(160.dp)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.width(pillWidth)
+                        ) {
+                            middleIndices.forEach { midIdx ->
+                                val midShape = when {
+                                    middleIndices.size == 1 -> circleShape
+                                    midIdx == middleIndices.first() -> RoundedCornerShape(topStart = 15.dp, bottomStart = 15.dp, topEnd = 3.dp, bottomEnd = 3.dp)
+                                    midIdx == middleIndices.last() -> RoundedCornerShape(topEnd = 15.dp, bottomEnd = 15.dp, topStart = 3.dp, bottomStart = 3.dp)
+                                    else -> RoundedCornerShape(3.dp)
+                                }
+                                RenderPreviewMiddleButton(midIdx, midShape, Modifier.weight(1f))
+                            }
+                        }
+
+                        // Right pinned button
+                        RenderPreviewOuterButton(activeButtons.lastIndex)
+                    } else if (activeButtons.size == 2) {
+                        RenderPreviewOuterButton(0)
+                        RenderPreviewOuterButton(1)
+                    } else {
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            RenderPreviewOuterButton(0)
+                        }
                     }
                 }
             }

@@ -342,13 +342,13 @@ class SyncUtils @Inject constructor(
 
     fun isSongRemovedFromPlaylist(playlistId: String, songId: String): Boolean {
         val key = "$playlistId:$songId"
-        val timestamp = playlistTombstonePrefs.getLong(key, 0L)
-        if (timestamp == 0L) return false
-        if (System.currentTimeMillis() - timestamp > 24 * 60 * 60 * 1000L) {
-            playlistTombstonePrefs.edit().remove(key).apply()
-            return false
-        }
-        return true
+        return playlistTombstonePrefs.contains(key)
+    }
+
+    fun clearSongTombstone(playlistId: String, songId: String) {
+        val key = "$playlistId:$songId"
+        playlistTombstonePrefs.edit().remove(key).apply()
+        Timber.d("clearSongTombstone: Cleared tombstone for playlistId=$playlistId, songId=$songId")
     }
 
     fun markSongRemovedFromPlaylist(
@@ -1311,7 +1311,7 @@ class SyncUtils @Inject constructor(
 
             database.withTransaction {
                 for (song in matchedList) {
-                    if (song.id !in existingSongIds) {
+                    if (song.id !in existingSongIds && !isSongRemovedFromPlaylist(localPlaylistId, song.id)) {
                         if (database.song(song.id).firstOrNull() == null) {
                             database.insert(song)
                         }

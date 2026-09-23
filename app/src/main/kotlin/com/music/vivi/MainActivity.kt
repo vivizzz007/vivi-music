@@ -877,6 +877,7 @@ class MainActivity : ComponentActivity() {
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalSnackbarHostState provides snackbarHostState,
+                    LocalPlayerBottomSheetState provides playerBottomSheetState,
                 ) {
                     Scaffold(
                         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
@@ -1470,3 +1471,4 @@ val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No Downl
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 val LocalListenTogetherManager = staticCompositionLocalOf<com.music.vivi.listentogether.ListenTogetherManager?> { null }
 val LocalIsPlayerExpanded = compositionLocalOf { false }
+val LocalPlayerBottomSheetState = staticCompositionLocalOf<com.music.vivi.ui.component.BottomSheetState?> { null }

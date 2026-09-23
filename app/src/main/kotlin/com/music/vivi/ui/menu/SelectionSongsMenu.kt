@@ -511,6 +511,13 @@ fun SelectionSongMenu(
                                             i++
                                         }
                                     }
+                                    val targetPlaylistId = songPosition.firstOrNull()?.playlistId
+                                    if (targetPlaylistId != null) {
+                                        downloadUtil.checkAndRemoveOrphanedDownloads(
+                                            songPosition.map { it.songId },
+                                            targetPlaylistId
+                                        )
+                                    }
                                     clearAction()
                                 }
                             )

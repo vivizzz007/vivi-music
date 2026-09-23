@@ -712,6 +712,15 @@ private fun buildSettingSearchIndex(context: Context): List<SettingSearchEntry> 
             keywords = listOf("interval", "power button interval", "double press speed", "delay", "timing", "timeout", "power button"),
             iconRes = R.drawable.timer
         ),
+        SettingSearchEntry(
+            title = str(R.string.plus_button_open_vivi).ifEmpty { "Double press Plus key to open Vivi" },
+            description = str(R.string.plus_button_open_vivi_desc).ifEmpty { "Quickly press the physical Plus (+) key twice to launch Vivi Music" },
+            category = "Playback",
+            route = "settings/player",
+            settingKey = "plus_button_open_vivi",
+            keywords = listOf("plus", "plus key", "plus button", "+", "open vivi", "quick launch", "hardware button", "double press"),
+            iconRes = R.drawable.add
+        ),
 
         // Content & Language
         SettingSearchEntry(

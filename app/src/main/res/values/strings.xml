@@ -501,4 +501,6 @@
     <string name="enable_accessibility_service">Enable in Settings</string>
     <string name="accessibility_service_enabled">Accessibility Service Active</string>
     <string name="multi_output_audio">Dual audio output</string>
+    <string name="plus_button_open_vivi">Quick double-press Plus key to open Vivi</string>
+    <string name="plus_button_open_vivi_desc">Quickly press the physical Plus (+) key twice to open Vivi Music</string>
 </resources>

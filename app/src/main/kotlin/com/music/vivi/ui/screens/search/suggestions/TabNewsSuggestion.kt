@@ -132,7 +132,6 @@ fun SuggestionsTabContent(
                         tracks = suggestionTracks!!,
                         countryCode = regionCode,
                         onTrackClick = { track ->
-                            android.widget.Toast.makeText(context, "Loading ${track.title}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.playTrack(track, playerConnection)
                         },
                         onMoreClick = {
@@ -148,7 +147,6 @@ fun SuggestionsTabContent(
                     YouTubeLatestAlbumsSection(
                         albums = albums,
                         onAlbumClick = { album ->
-                            android.widget.Toast.makeText(context, "Loading ${album.title}...", android.widget.Toast.LENGTH_SHORT).show()
                             navController.navigate("album/${album.id}")
                         },
                         onMoreClick = {
@@ -163,7 +161,6 @@ fun SuggestionsTabContent(
                     TopArtistsSection(
                         artists = artists,
                         onArtistClick = { artist ->
-                            android.widget.Toast.makeText(context, "Loading ${artist.name}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.navigateToArtist(artist, navController)
                         }
                     )
@@ -175,7 +172,6 @@ fun SuggestionsTabContent(
                     TrendingAlbumsSection(
                         albums = albums,
                         onAlbumClick = { album ->
-                            android.widget.Toast.makeText(context, "Loading ${album.title}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.navigateToAlbum(album, navController)
                         },
                         onMoreClick = {
@@ -191,7 +187,6 @@ fun SuggestionsTabContent(
                     TrendingVideosSection(
                         videos = videos,
                         onVideoClick = { video ->
-                            android.widget.Toast.makeText(context, "Loading video ${video.title}...", android.widget.Toast.LENGTH_SHORT).show()
                             viewModel.playVideo(video, playerConnection)
                         },
                         onMoreClick = {

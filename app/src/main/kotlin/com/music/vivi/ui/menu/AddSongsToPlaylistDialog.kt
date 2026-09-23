@@ -1149,6 +1149,7 @@ fun AddSongsToPlaylistDialog(
                             }
                             val songIds = songsToAdd.map { it.id }
                             database.addSongToPlaylist(playlist, songIds)
+                            songIds.forEach { syncUtils.clearSongTombstone(playlist.id, it) }
                             downloadUtil.autoDownloadIfPlaylistDownloaded(playlist.id, songIds)
 
                             scope.launch {

@@ -670,6 +670,7 @@ fun LocalPlaylistScreen(
                             )
                             delete(map.copy(position = Int.MAX_VALUE))
                         }
+                        downloadUtil.checkAndRemoveOrphanedDownload(map.songId, map.playlistId)
                     }
 
                     val swipeRemoveEnabled by rememberPreference(SwipeToRemoveSongKey, defaultValue = false)

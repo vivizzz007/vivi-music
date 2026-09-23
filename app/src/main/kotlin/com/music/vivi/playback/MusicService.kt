@@ -355,23 +355,30 @@ class MusicService :
                 val primaryDevice = if (primaryId != null) devices.find { it.id == primaryId } else null
                 val secondaryDevice = if (secondaryId != null) devices.find { it.id == secondaryId } else null
 
-                player.setPreferredAudioDevice(primaryDevice)
                 preferredDeviceId = primaryId
                 secondaryPreferredDeviceId = secondaryId
 
-                if (secondaryId != null && secondaryId != primaryId && secondaryDevice != null) {
+                if (secondaryId != null && secondaryId != primaryId) {
                     isDualOutputEnabled.value = true
-                    if (dualOutputPlayer == null) {
-                        dualOutputPlayer = createExoPlayer().apply {
-                            setPreferredAudioDevice(secondaryDevice)
-                            volume = secondaryDeviceVolume.value * (if (isMuted.value) 0f else playerVolume.value)
+                    // If secondary device is available as distinct AudioDeviceInfo, set up dual output player
+                    if (secondaryDevice != null) {
+                        player.setPreferredAudioDevice(primaryDevice)
+                        if (dualOutputPlayer == null) {
+                            dualOutputPlayer = createExoPlayer().apply {
+                                setPreferredAudioDevice(secondaryDevice)
+                                volume = secondaryDeviceVolume.value * (if (isMuted.value) 0f else playerVolume.value)
+                            }
+                        } else {
+                            dualOutputPlayer?.setPreferredAudioDevice(secondaryDevice)
                         }
+                        syncDualOutputPlayer()
                     } else {
-                        dualOutputPlayer?.setPreferredAudioDevice(secondaryDevice)
+                        // Allow system-level dual audio routing (Samsung Dual Audio / Android 13+)
+                        player.setPreferredAudioDevice(null)
                     }
-                    syncDualOutputPlayer()
                 } else {
                     isDualOutputEnabled.value = false
+                    player.setPreferredAudioDevice(primaryDevice)
                     dualOutputPlayer?.stop()
                     dualOutputPlayer?.clearMediaItems()
                     dualOutputPlayer?.release()

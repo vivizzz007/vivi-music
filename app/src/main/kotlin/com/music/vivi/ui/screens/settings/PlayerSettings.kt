@@ -81,6 +81,7 @@ import com.music.vivi.constants.PlayerActionButton
 import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.PowerButtonCameraKey
 import com.music.vivi.constants.PowerButtonIntervalKey
+import com.music.vivi.constants.PlusButtonOpenViviKey
 import com.music.vivi.constants.ScreenOffVolumeSkipKey
 import com.music.vivi.accessibility.ViviAccessibilityService
 import android.content.Intent
@@ -241,6 +242,10 @@ fun PlayerSettings(
     val (powerButtonInterval, onPowerButtonIntervalChange) = rememberPreference(
         PowerButtonIntervalKey,
         defaultValue = 250
+    )
+    val (plusButtonOpenVivi, onPlusButtonOpenViviChange) = rememberPreference(
+        PlusButtonOpenViviKey,
+        defaultValue = false
     )
     val context = LocalContext.current
     var isAccessibilityEnabled by remember {
@@ -1062,7 +1067,40 @@ fun PlayerSettings(
                         }
                     )
                 } else null,
-                if ((screenOffVolumeSkip || powerButtonCamera) && !isAccessibilityEnabled) {
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.add),
+                    modifier = Modifier.settingTarget("plus_button_open_vivi", scrollState),
+                    title = { Text(stringResource(R.string.plus_button_open_vivi)) },
+                    description = { Text(stringResource(R.string.plus_button_open_vivi_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = plusButtonOpenVivi,
+                            onCheckedChange = { enabled ->
+                                onPlusButtonOpenViviChange(enabled)
+                                if (enabled && !isAccessibilityEnabled) {
+                                    showAccessibilityPromptDialog = true
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (plusButtonOpenVivi) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        val next = !plusButtonOpenVivi
+                        onPlusButtonOpenViviChange(next)
+                        if (next && !isAccessibilityEnabled) {
+                            showAccessibilityPromptDialog = true
+                        }
+                    }
+                ),
+                if ((screenOffVolumeSkip || powerButtonCamera || plusButtonOpenVivi) && !isAccessibilityEnabled) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.info),
                         title = { Text(stringResource(R.string.accessibility_service_required)) },
