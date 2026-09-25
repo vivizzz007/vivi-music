@@ -45,8 +45,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
@@ -58,7 +56,6 @@ import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.Material3MenuGroup
@@ -98,7 +95,8 @@ fun OldPlayerMenu(
     val castVolume by castHandler?.castVolume?.collectAsState() ?: remember { mutableFloatStateOf(1f) }
     val castDeviceName by castHandler?.castDeviceName?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
 
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+    val downloadUtil = LocalDownloadUtil.current
+    val download by downloadUtil.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
@@ -333,7 +331,7 @@ fun OldPlayerMenu(
                                         )
                                     },
                                     onClick = {
-                                        DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, mediaMetadata.id, false)
+                                        downloadUtil.cancelOrRemove(mediaMetadata.id)
                                         onDismiss()
                                     }
                                 )
@@ -347,7 +345,7 @@ fun OldPlayerMenu(
                                         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                                     },
                                     onClick = {
-                                        DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, mediaMetadata.id, false)
+                                        downloadUtil.cancelOrRemove(mediaMetadata.id)
                                         onDismiss()
                                     }
                                 )
@@ -366,11 +364,7 @@ fun OldPlayerMenu(
                                     },
                                     onClick = {
                                         database.transaction { insert(mediaMetadata) }
-                                        val downloadRequest = DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                                            .setCustomCacheKey(mediaMetadata.id)
-                                            .setData(mediaMetadata.title.toByteArray())
-                                            .build()
-                                        DownloadService.sendAddDownload(context, ExoDownloadService::class.java, downloadRequest, false)
+                                        downloadUtil.download(mediaMetadata)
                                         onDismiss()
                                     }
                                 )

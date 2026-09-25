@@ -52,6 +52,8 @@ data class SongEntity(
     val romanizeLyrics: Boolean = true,
     @ColumnInfo(defaultValue = "0")
     val isDownloaded: Boolean = false,
+    // content:// (SAF) or file:// URI of the downloaded audio file, set by SongDownloadWorker
+    val localFileUri: String? = null,
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false,
     @ColumnInfo(name = "isVideo", defaultValue = false.toString())

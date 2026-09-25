@@ -62,8 +62,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
@@ -82,7 +80,6 @@ import com.music.vivi.db.entities.PlaylistSong
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.ListDialog
 import com.music.vivi.ui.component.LocalBottomSheetPageState
@@ -114,7 +111,8 @@ fun SongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
-    val download by LocalDownloadUtil.current.getDownload(originalSong.id)
+    val downloadUtil = LocalDownloadUtil.current
+    val download by downloadUtil.getDownload(originalSong.id)
         .collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
@@ -647,12 +645,7 @@ fun SongMenu(
                                     )
                                 },
                                 onClick = {
-                                    DownloadService.sendRemoveDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        song.id,
-                                        false,
-                                    )
+                                    downloadUtil.cancelOrRemove(song.id)
                                 }
                             )
                         }
@@ -666,12 +659,7 @@ fun SongMenu(
                                     )
                                 },
                                 onClick = {
-                                    DownloadService.sendRemoveDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        song.id,
-                                        false,
-                                    )
+                                    downloadUtil.cancelOrRemove(song.id)
                                 }
                             )
                         }
@@ -686,18 +674,7 @@ fun SongMenu(
                                     )
                                 },
                                 onClick = {
-                                    val downloadRequest =
-                                        DownloadRequest
-                                            .Builder(song.id, song.id.toUri())
-                                            .setCustomCacheKey(song.id)
-                                            .setData(song.song.title.toByteArray())
-                                            .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
+                                    downloadUtil.download(song.toMediaMetadata())
                                 }
                             )
                         }

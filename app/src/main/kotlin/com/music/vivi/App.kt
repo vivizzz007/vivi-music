@@ -154,6 +154,13 @@ class App : Application(), SingletonImageLoader.Factory {
         nm.createNotificationChannel(channel)
     }
 
+    private data class DownloadCookieSettings(
+        val useCookie: Boolean,
+        val source: String?,
+        val accountCookie: String?,
+        val importedCookie: String?,
+    )
+
     private fun observeSettingsChanges() {
         applicationScope.launch(Dispatchers.IO) {
             dataStore.data
@@ -189,6 +196,28 @@ class App : Application(), SingletonImageLoader.Factory {
                         Timber.e(e, "Could not parse cookie. Clearing existing cookie.")
                         forgetAccount(this@App)
                     }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map {
+                    DownloadCookieSettings(
+                        useCookie = it[UseCookieForDownloadsKey] ?: false,
+                        source = it[DownloadCookieSourceKey],
+                        accountCookie = it[InnerTubeCookieKey],
+                        importedCookie = it[ImportedCookieStringKey],
+                    )
+                }
+                .distinctUntilChanged()
+                .collect { settings ->
+                    val cookie = if (!settings.useCookie) {
+                        null
+                    } else when (settings.source) {
+                        DownloadCookieSource.IMPORTED_FILE.name -> settings.importedCookie
+                        else -> settings.accountCookie
+                    }
+                    InnerTubeXPlayer.updateCookie(cookie?.takeIf { it.isNotBlank() })
                 }
         }
 
