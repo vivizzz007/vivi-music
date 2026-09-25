@@ -122,6 +122,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import com.music.vivi.applecanvas.AppleMusicCanvasProvider
 import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
+import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -939,6 +940,7 @@ private fun ThumbnailImage(
                 .build(),
             onError = {
                 val url = currentUrl
+                Timber.e("[Thumbnail] ThumbnailImage load FAILED: url=$url | error=${it.result.throwable}")
                 if (url != null && url.contains("maxresdefault.jpg")) {
                     currentUrl = url.replace("maxresdefault.jpg", "hqdefault.jpg")
                 }

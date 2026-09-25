@@ -192,6 +192,7 @@ fun StatsScreen(
                         OptionStats.YEARS -> yearlyDates
                         OptionStats.CONTINUOUS -> {
                             listOf(
+                                StatPeriod.ALL.ordinal to stringResource(R.string.filter_all),
                                 StatPeriod.WEEK_1.ordinal to pluralStringResource(
                                     R.plurals.n_week,
                                     1,
@@ -217,7 +218,6 @@ fun StatsScreen(
                                     1,
                                     1
                                 ),
-                                StatPeriod.ALL.ordinal to stringResource(R.string.filter_all),
                             )
                         }
                     },
@@ -231,7 +231,7 @@ fun StatsScreen(
                     selectedOption = selectedOption,
                     onSelectionChange = {
                         viewModel.selectedOption.value = it
-                        viewModel.indexChips.value = 0
+                        viewModel.indexChips.value = if (it == OptionStats.CONTINUOUS) StatPeriod.ALL.ordinal else 0
                     },
                     currentValue = indexChips,
                     onValueUpdate = { viewModel.indexChips.value = it },

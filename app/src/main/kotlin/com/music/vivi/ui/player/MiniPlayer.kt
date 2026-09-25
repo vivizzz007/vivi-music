@@ -126,6 +126,7 @@ import com.music.vivi.playback.CastConnectionHandler
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -144,6 +145,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import com.music.vivi.ui.component.Icon as MIcon
+import timber.log.Timber
 
 /**
  * Stable wrapper for progress state - reads values only during draw phase
@@ -531,9 +533,15 @@ private fun NewMiniPlayerPlayButton(
         ) {
             mediaMetadata?.let { metadata ->
                 AsyncImage(
-                    model = metadata.thumbnailUrl,
+                    model = metadata.thumbnailUrl?.resize(544, 544),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    onSuccess = {
+                        Timber.d("[Thumbnail] MiniPlayer play-button loaded: ${metadata.thumbnailUrl}")
+                    },
+                    onError = {
+                        Timber.e("[Thumbnail] MiniPlayer play-button FAILED: url=${metadata.thumbnailUrl} | error=${it.result.throwable}")
+                    },
                     modifier = Modifier.fillMaxSize().clip(CircleShape)
                 )
             }
@@ -882,9 +890,15 @@ private fun LegacyMiniMediaInfo(
             )
 
             AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
+                model = mediaMetadata.thumbnailUrl?.resize(544, 544),
                 contentDescription = null,
                 contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                onSuccess = {
+                    Timber.d("[Thumbnail] LegacyMiniPlayer loaded: ${mediaMetadata.thumbnailUrl}")
+                },
+                onError = {
+                    Timber.e("[Thumbnail] LegacyMiniPlayer FAILED: url=${mediaMetadata.thumbnailUrl} | error=${it.result.throwable}")
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(ThumbnailCornerRadius)),

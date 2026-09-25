@@ -77,16 +77,22 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.changelog.ChangelogScreen
 import com.music.vivi.vivimusic.commitscreen.CommitScreen
 import com.music.vivi.ui.screens.equalizer.axion.AxionEqScreen
+import com.music.vivi.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    homeViewModel: HomeViewModel
 ) {
     composable(Screens.Home.route) {
-        HomeScreen(navController = navController, snackbarHostState = snackbarHostState)
+        HomeScreen(
+            navController = navController,
+            snackbarHostState = snackbarHostState,
+            viewModel = homeViewModel
+        )
     }
 
     composable(Screens.Search.route) {
@@ -342,7 +348,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/account") {
-        AccountSettingsScreen(navController, scrollBehavior)
+        AccountSettingsScreen(navController, scrollBehavior, homeViewModel)
     }
     composable("settings/listening_summary") {
         ListeningSummaryScreen(navController)

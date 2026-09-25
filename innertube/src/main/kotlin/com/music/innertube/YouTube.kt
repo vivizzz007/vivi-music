@@ -1289,7 +1289,8 @@ object YouTube {
             ?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(0)?.tabRenderer?.content?.musicQueueRenderer
             ?.subHeaderChipCloud?.chipCloudRenderer?.chips
 
-        println("Chippy: YouTube API parsed raw chipsData size: ${chipsData?.size}")
+        // Removed Chippy spam
+        // println("Chippy: YouTube API parsed raw chipsData size: ${chipsData?.size}")
 
         var radioChips = chipsData?.mapNotNull { chip ->
             val renderer = chip.chipCloudChipRenderer ?: return@mapNotNull null

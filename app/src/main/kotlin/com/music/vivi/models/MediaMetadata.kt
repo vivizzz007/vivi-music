@@ -13,6 +13,7 @@ import com.music.vivi.db.entities.SongEntity
 import com.music.vivi.ui.utils.resize
 import java.io.Serializable
 import java.time.LocalDateTime
+import timber.log.Timber
 
 @Immutable
 data class MediaMetadata(
@@ -75,7 +76,9 @@ fun Song.toMediaMetadata() =
             )
         },
         duration = song.duration,
-        thumbnailUrl = song.thumbnailUrl,
+        thumbnailUrl = song.thumbnailUrl?.resize(544, 544).also { resized ->
+            Timber.d("[Thumbnail] Song.toMediaMetadata id=${song.id}: raw=${song.thumbnailUrl} -> resized=$resized")
+        },
         album =
         album?.let {
             MediaMetadata.Album(

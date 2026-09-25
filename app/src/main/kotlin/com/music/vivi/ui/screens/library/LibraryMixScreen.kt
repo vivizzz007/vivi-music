@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.shape.CircleShape
 import kotlinx.coroutines.delay
 import coil3.compose.AsyncImage
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -371,87 +372,29 @@ fun LibraryMixScreen(
                     if (showLiked && activeFilter == LibraryFilterType.ALL) {
                         item(
                             key = "likedPlaylist",
-                            span = { GridItemSpan(maxLineSpan) },
-                            contentType = "stat_card",
+                            contentType = { CONTENT_TYPE_PLAYLIST },
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    // Liked container padding logic: 12dp in Grid, 16dp horizontal w/ 2dp vertical in List
-                                    .padding(
-                                        horizontal = if (isGridView.value) 12.dp else 16.dp, 
-                                        vertical = if (isGridView.value) 12.dp else 2.dp
-                                    )
-                                    .fillMaxWidth()
-                                    .height(80.dp)
-                                    .clip(if (isGridView.value) RoundedCornerShape(12.dp) else getShapeForIndex(visibleStaticItems.indexOf("liked")))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                    .clickable(onClick = { navController.navigate("auto_playlist/liked") })
-                            ) {
-                                Row(
+                            if (isGridView.value) {
+                                PlaylistGridItem(
+                                    playlist = likedPlaylist,
+                                    fillMaxWidth = true,
+                                    autoPlaylist = true,
                                     modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(horizontal = 16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clip(MaterialShapes.Cookie4Sided.toShape())
-                                                .background(MaterialTheme.colorScheme.primary),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.favorite_border),
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onPrimary,
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.size(16.dp))
-                                        androidx.compose.foundation.layout.Column {
-                                            androidx.compose.material3.Text(
-                                                text = stringResource(R.string.liked),
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                                                ),
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                    }
-
-                                    if (recentLikedThumbnails.isNotEmpty()) {
-                                        val displayThumbnails = recentLikedThumbnails.take(5)
-                                        var currentIndex by remember { mutableIntStateOf(0) }
-                                        
-                                        if (displayThumbnails.size > 1) {
-                                            LaunchedEffect(displayThumbnails) {
-                                                while (true) {
-                                                    delay(3000)
-                                                    currentIndex = (currentIndex + 1) % displayThumbnails.size
-                                                }
-                                            }
-                                        }
-
-                                        Crossfade(
-                                            targetState = currentIndex,
-                                            animationSpec = tween(1000),
-                                            label = "LikedImageCrossfade"
-                                        ) { index ->
-                                            AsyncImage(
-                                                model = displayThumbnails[index],
-                                                contentDescription = null,
-                                                contentScale = ContentScale.Crop,
-                                                modifier = Modifier
-                                                    .size(width = 160.dp, height = 64.dp)
-                                                    .clip(RoundedCornerShape(8.dp))
-                                            )
-                                        }
-                                    }
-                                }
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("auto_playlist/liked") },
+                                        ).animateItem(),
+                                )
+                            } else {
+                                PlaylistListItem(
+                                    playlist = likedPlaylist,
+                                    shape = getShapeForIndex(visibleStaticItems.indexOf("liked")),
+                                    autoPlaylist = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { navController.navigate("auto_playlist/liked") }
+                                        .animateItem(),
+                                )
                             }
                         }
                     }

@@ -130,7 +130,7 @@ class SuggestionsViewModel @Inject constructor(
                     // Launch each fetch in its own job so they update the UI independently
                     launch {
                         try {
-                            val tracks = AppleMusicScraper.fetchTopSongs(resolvedCode)
+                            val tracks = AppleMusicScraper.fetchTopSongs(context, resolvedCode)
                             if (tracks.isNotEmpty()) {
                                 _suggestionTracks.value = tracks
                                 _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
@@ -142,7 +142,7 @@ class SuggestionsViewModel @Inject constructor(
 
                     launch {
                         try {
-                            val albums = AppleMusicScraper.fetchTopAlbums(resolvedCode)
+                            val albums = AppleMusicScraper.fetchTopAlbums(context, resolvedCode)
                             if (albums.isNotEmpty()) {
                                 _suggestionAlbums.value = albums
                             }
@@ -153,7 +153,7 @@ class SuggestionsViewModel @Inject constructor(
 
                     launch {
                         try {
-                            val videos = AppleMusicScraper.fetchTopVideos(resolvedCode)
+                            val videos = AppleMusicScraper.fetchTopVideos(context, resolvedCode)
                             if (videos.isNotEmpty()) {
                                 _suggestionVideos.value = videos
                             }

@@ -64,7 +64,8 @@ private enum class AccountTab {
 @Composable
 fun AccountSettingsScreen(
     navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    homeViewModel: HomeViewModel
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -83,7 +84,7 @@ fun AccountSettingsScreen(
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
-    val homeViewModel: HomeViewModel = hiltViewModel()
+
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
     val accountName by homeViewModel.accountName.collectAsState()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()

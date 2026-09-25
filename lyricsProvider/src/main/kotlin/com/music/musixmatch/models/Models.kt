@@ -40,7 +40,10 @@ data class Track(
     @SerialName("track_name") val trackName: String,
     @SerialName("artist_name") val artistName: String,
     @SerialName("track_length") val trackLength: Int? = null,
-    @SerialName("track_isrc") val trackIsrc: String? = null
+    @SerialName("track_isrc") val trackIsrc: String? = null,
+    @SerialName("has_lyrics") val hasLyrics: Int? = null,
+    @SerialName("has_subtitles") val hasSubtitles: Int? = null,
+    @SerialName("has_richsync") val hasRichSync: Int? = null
 )
 
 @Serializable
