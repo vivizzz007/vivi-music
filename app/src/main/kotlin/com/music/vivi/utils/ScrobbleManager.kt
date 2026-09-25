@@ -5,7 +5,9 @@
 
 package com.music.vivi.utils
 
+import android.content.Context
 import com.music.lastfm.LastFM
+import com.music.lastfm.models.PendingScrobble
 import com.music.vivi.models.MediaMetadata
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -14,6 +16,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.min
 
 class ScrobbleManager(
+    private val context: Context,
     private val scope: CoroutineScope,
     var minSongDuration: Int = 30,
     var scrobbleDelayPercent: Float = 0.5f,
@@ -108,18 +111,24 @@ class ScrobbleManager(
 
     private fun scrobbleSong(metadata: MediaMetadata) {
         scope.launch {
-            LastFM.scrobble(
+            if (LastFM.sessionKey == null) return@launch
+            val pending = PendingScrobble(
                 artist = metadata.artists.joinToString { it.name },
                 track = metadata.title,
                 duration = metadata.duration,
                 timestamp = songStartedAt,
                 album = metadata.album?.title,
             )
+            val result = LastFM.scrobble(listOf(pending))
+            if (result.isFailure) {
+                ScrobbleCache.save(context, pending)
+            }
         }
     }
 
     private fun updateNowPlaying(metadata: MediaMetadata) {
         scope.launch {
+            if (LastFM.sessionKey == null) return@launch
             LastFM.updateNowPlaying(
                 artist = metadata.artists.joinToString { it.name },
                 track = metadata.title,

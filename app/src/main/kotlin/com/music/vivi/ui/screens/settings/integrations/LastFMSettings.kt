@@ -19,6 +19,9 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,12 +46,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.music.lastfm.LastFM
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
@@ -57,12 +63,13 @@ import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.LastFMUseSendLikes
 import com.music.vivi.constants.LastFMUsernameKey
+import com.music.vivi.constants.LastFMAvatarUrlKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
 import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.ScrobbleMinSongDurationKey
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.makeTimeString
@@ -82,6 +89,7 @@ fun LastFMSettings(
 
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
+    var lastfmAvatarUrl by rememberPreference(LastFMAvatarUrlKey, "")
 
     val isLoggedIn =
         remember(lastfmSession) {
@@ -214,6 +222,12 @@ fun LastFMSettings(
                                         lastfmSession = auth.session.key
                                         LastFM.sessionKey = auth.session.key
                                         
+                                        LastFM.getUserInfo(auth.session.name).onSuccess { info ->
+                                            val url = info.user.image.find { it.size == "extralarge" }?.url
+                                                ?: info.user.image.lastOrNull()?.url ?: ""
+                                            lastfmAvatarUrl = url
+                                        }
+                                        
                                         // Switch back to main thread to update UI
                                         coroutineScope.launch(Dispatchers.Main) {
                                             isLoggingIn = false
@@ -286,11 +300,37 @@ fun LastFMSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.account),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.music_note),
+                    leadingContent = {
+                        if (isLoggedIn && lastfmAvatarUrl.isNotEmpty()) {
+                            AsyncImage(
+                                model = lastfmAvatarUrl,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.music_note),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    },
                     title = {
                         Text(
                             text = if (isLoggedIn) lastfmUsername else stringResource(R.string.not_logged_in),
@@ -302,6 +342,7 @@ fun LastFMSettings(
                             OutlinedButton(onClick = {
                                 lastfmSession = ""
                                 lastfmUsername = ""
+                                lastfmAvatarUrl = ""
                             }) {
                                 Text(stringResource(R.string.action_logout))
                             }
@@ -319,7 +360,7 @@ fun LastFMSettings(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.options),
             items = listOf(
                 Material3SettingsItem(
@@ -589,7 +630,7 @@ fun LastFMSettings(
             }
         }
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.scrobbling_configuration),
             items = listOf(
                 Material3SettingsItem(

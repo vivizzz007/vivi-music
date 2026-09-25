@@ -1,8 +1,10 @@
 package com.music.lastfm
 
 import com.music.lastfm.models.Authentication
+import com.music.lastfm.models.PendingScrobble
 import com.music.lastfm.models.LastFmError
 import com.music.lastfm.models.TokenResponse
+import com.music.lastfm.models.UserInfoResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
@@ -112,6 +114,15 @@ object LastFM {
         json.decodeFromString<Authentication>(responseText)
     }
 
+    suspend fun getUserInfo(username: String) = runCatching {
+        client.get {
+            parameter("method", "user.getinfo")
+            parameter("user", username)
+            parameter("api_key", API_KEY)
+            parameter("format", "json")
+        }.body<UserInfoResponse>()
+    }
+
     class LastFmException(val code: Int, override val message: String) : Exception(message) {
         override fun toString(): String = "LastFmException(code=$code, message=$message)"
     }
@@ -141,23 +152,35 @@ object LastFM {
     suspend fun scrobble(
         artist: String, track: String, timestamp: Long,
         album: String? = null, trackNumber: Int? = null, duration: Int? = null
-    ) = runCatching {
-        client.post {
-            lastfmParams(
-                method = "track.scrobble",
-                apiKey = API_KEY,
-                secret = SECRET,
-                sessionKey = sessionKey!!,
-                extra = buildMap {
-                    put("artist[0]", artist)
-                    put("track[0]", track)
-                    put("timestamp[0]", timestamp.toString())
-                    album?.let { put("album[0]", it) }
-                    trackNumber?.let { put("trackNumber[0]", it.toString()) }
-                    duration?.let { put("duration[0]", it.toString()) }
-                }
-            )
-            parameter("format", "json")
+    ) = scrobble(listOf(PendingScrobble(artist, track, timestamp, album, trackNumber, duration)))
+
+    suspend fun scrobble(tracks: List<PendingScrobble>) = runCatching {
+        if (tracks.isEmpty()) return@runCatching
+        // Last.fm supports max 50 tracks per batch
+        tracks.chunked(50).forEach { chunk ->
+            val response = client.post {
+                lastfmParams(
+                    method = "track.scrobble",
+                    apiKey = API_KEY,
+                    secret = SECRET,
+                    sessionKey = sessionKey!!,
+                    extra = buildMap {
+                        chunk.forEachIndexed { index, track ->
+                            put("artist[$index]", track.artist)
+                            put("track[$index]", track.track)
+                            put("timestamp[$index]", track.timestamp.toString())
+                            track.album?.let { put("album[$index]", it) }
+                            track.trackNumber?.let { put("trackNumber[$index]", it.toString()) }
+                            track.duration?.let { put("duration[$index]", it.toString()) }
+                        }
+                    }
+                )
+                parameter("format", "json")
+            }
+            if (response.status != io.ktor.http.HttpStatusCode.OK) {
+                // If one chunk fails, abort so we don't say all were scrobbled
+                error("Failed batch scrobble with response ${response.status}")
+            }
         }
     }
 

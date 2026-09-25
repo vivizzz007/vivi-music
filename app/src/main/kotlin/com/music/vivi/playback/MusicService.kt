@@ -78,6 +78,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.pages.RadioChip
 import com.music.lastfm.LastFM
+import com.music.lastfm.models.PendingFavorite
 import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
@@ -189,6 +190,8 @@ import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.FavoriteCache
+import com.music.vivi.utils.ScrobbleCache
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.YTPlayerUtils
@@ -635,6 +638,34 @@ class MusicService :
                         }
                     }
                 }
+                
+                // Sync pending scrobbles if logged in
+                if (isConnected && LastFM.sessionKey != null) {
+                    launch(Dispatchers.IO) {
+                        val cached = ScrobbleCache.read(this@MusicService)
+                        if (cached.isNotEmpty()) {
+                            val result = LastFM.scrobble(cached)
+                            if (result.isSuccess) {
+                                ScrobbleCache.clear(this@MusicService)
+                            }
+                        }
+                        
+                        // Sync pending favorites
+                        val pendingFavorites = FavoriteCache.read(this@MusicService)
+                        if (pendingFavorites.isNotEmpty()) {
+                            val successes = mutableListOf<PendingFavorite>()
+                            for (fav in pendingFavorites) {
+                                val result = LastFM.setLoveStatus(fav.artist, fav.track, fav.isFavorite)
+                                if (result.isSuccess) {
+                                    successes.add(fav)
+                                }
+                            }
+                            if (successes.isNotEmpty()) {
+                                FavoriteCache.remove(this@MusicService, successes)
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -947,7 +978,8 @@ class MusicService :
                     val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
                     val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                     scrobbleManager = ScrobbleManager(
-                        scope,
+                        context = this@MusicService,
+                        scope = scope,
                         minSongDuration = minSongDuration,
                         scrobbleDelayPercent = delayPercent,
                         scrobbleDelaySeconds = delaySeconds

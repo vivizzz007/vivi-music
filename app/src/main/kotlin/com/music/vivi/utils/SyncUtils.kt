@@ -16,6 +16,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.utils.completed
 import com.music.innertube.utils.parseCookieString
 import com.music.lastfm.LastFM
+import com.music.lastfm.models.PendingFavorite
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.LastFMUseSendLikes
 import com.music.vivi.constants.LastFullSyncKey
@@ -446,11 +447,19 @@ class SyncUtils @Inject constructor(
         if (lastfmSendLikes) {
             try {
                 val dbSong = database.song(s.id).firstOrNull()
-                LastFM.setLoveStatus(
-                    artist = dbSong?.artists?.joinToString { a -> a.name } ?: "",
+                val artist = dbSong?.artists?.joinToString { a -> a.name } ?: ""
+                
+                val result = LastFM.setLoveStatus(
+                    artist = artist,
                     track = s.title,
                     love = s.liked
                 )
+                if (result.isFailure) {
+                    FavoriteCache.save(
+                        context,
+                        PendingFavorite(artist, s.title, s.liked)
+                    )
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update LastFM love status")
             }
