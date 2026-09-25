@@ -1,0 +1,458 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <!-- Bottom navigation -->
+    <string name="home">Hem</string>
+    <string name="music">Musik</string>
+    <string name="songs">Låtar</string>
+    <string name="artists">Artister</string>
+    <string name="albums">Album</string>
+    <string name="playlists">Spellistor</string>
+
+    <!-- Top bar -->
+    <plurals name="n_selected">
+        <item quantity="other">%d valda</item>
+    </plurals>
+
+    <!-- Home -->
+    <string name="history">Historik</string>
+    <string name="stats">Statistik</string>
+    <string name="mood_and_genres">Stämning och genrer</string>
+    <string name="account">Konto</string>
+    <string name="quick_picks">Snabbval</string>
+    <string name="quick_picks_empty">Lyssna på låtar för att skapa dina snabbval</string>
+    <string name="forgotten_favorites">Bortglömda favoriter</string>
+    <string name="keep_listening">Fortsätt lyssna</string>
+    <string name="your_youtube_playlists">Dina YouTube‑spellistor</string>
+    <string name="similar_to">Liknande</string>
+    <string name="new_release_albums">Nya albumsläpp</string>
+
+    <!-- History -->
+    <string name="today">Idag</string>
+    <string name="yesterday">Igår</string>
+    <string name="this_week">Denna vecka</string>
+    <string name="last_week">Förra veckan</string>
+
+    <!-- Stats -->
+    <string name="most_played_songs">Mest spelade låtar</string>
+    <string name="most_played_artists">Mest spelade artister</string>
+    <string name="most_played_albums">Mest spelade album</string>
+
+    <!-- Search -->
+    <string name="search">Sök</string>
+    <string name="search_yt_music">Sök på YouTube Music…</string>
+    <string name="search_library">Sök i bibliotek…</string>
+    <string name="search_albums">Sök album…</string>
+    <string name="search_playlists">Sök spellistor…</string>
+    <string name="filter_library">Bibliotek</string>
+    <string name="all">Alla</string>
+    <string name="filter_liked">Gillade</string>
+    <string name="filter_downloaded">Nedladdade</string>
+    <string name="filter_all">Alla</string>
+    <string name="filter_songs">Låtar</string>
+    <string name="filter_videos">Videor</string>
+    <string name="filter_albums">Album</string>
+    <string name="filter_artists">Artister</string>
+    <string name="filter_playlists">Spellistor</string>
+    <string name="filter_community_playlists">Community‑spellistor</string>
+    <string name="filter_featured_playlists">Utvalda spellistor</string>
+    <string name="filter_bookmarked">Bokmärkta</string>
+    <string name="no_results_found">Inga resultat hittades</string>
+
+    <!-- Library -->
+    <string name="library_song_empty">Bibliotekets låtar visas här</string>
+    <string name="library_artist_empty">Bibliotekets artister visas här</string>
+    <string name="library_album_empty">Bibliotekets album visas här</string>
+    <string name="library_playlist_empty">Dina spellistor visas här</string>
+
+    <!-- Artist screen -->
+    <string name="from_your_library">Från ditt bibliotek</string>
+
+    <!-- Album screen -->
+    <string name="album_label">Album</string>
+    <string name="other_versions">Andra versioner</string>
+    <string name="album_description_placeholder">Detta är en platshållarbeskrivning för albumet. Njut av låtarna nedan!</string>
+
+    <!-- Playlist -->
+    <string name="liked_songs">Gillade låtar</string>
+    <string name="downloaded_songs">Nedladdade låtar</string>
+    <string name="playlist_is_empty">Spellistan är tom</string>
+    <string name="remove_download_playlist_confirm">Vill du verkligen ta bort alla låtar från spellistan ”%s” från lagringen för Nedladdade låtar?</string>
+    <string name="delete_playlist_confirm">Vill du verkligen ta bort spellistan ”%s”?</string>
+    <string name="you_might_also_like">Relaterad spellista</string>
+
+    <!-- Button -->
+    <string name="retry">Försök igen</string>
+    <string name="radio">Radio</string>
+    <string name="shuffle">Blanda</string>
+    <string name="shuffle_content_desc">Blanda</string>
+    <string name="shuffle_label">Blanda</string>
+    <string name="reset">Återställ</string>
+
+    <!-- Menu -->
+    <string name="details">Detaljer</string>
+    <string name="edit">Redigera</string>
+    <string name="start_radio">Starta radio</string>
+    <string name="apple_mini_player_design">Apple‑stil minispelare</string>
+    <string name="classic_mini_player">Klassisk minispelare</string>
+    <string name="play">Spela</string>
+    <string name="pause">Pausa</string>
+    <string name="play_next">Spela nästa</string>
+    <string name="add_to_queue">Lägg till i kö</string>
+    <string name="add_to_library">Lägg till i bibliotek</string>
+    <string name="add_all_to_library">Lägg till alla i bibliotek</string>
+    <string name="remove_from_library">Ta bort från bibliotek</string>
+    <string name="remove_all_from_library">Ta bort alla från bibliotek</string>
+    <string name="action_download">Ladda ner</string>
+    <string name="downloading">Laddar ner</string>
+    <string name="saving">Sparar</string>
+    <string name="saved">Sparad</string>
+    <string name="remove_download">Ta bort nedladdning</string>
+    <string name="import_playlist">Importera spellista</string>
+    <string name="add_to_playlist">Lägg till i spellista</string>
+    <string name="start_an_radio">Radio</string>
+    <string name="add_to_an_playlist">Lägg till</string>
+    <string name="view_artist">Visa artist</string>
+    <string name="view_album">Visa album</string>
+    <string name="refetch">Hämta igen</string>
+    <string name="share">Dela</string>
+    <string name="more_options">Fler alternativ</string>
+    <string name="more_label">Mer</string>
+    <string name="releases_for_you">Släpp för dig</string>
+    <string name="delete">Ta bort</string>
+    <string name="remove_from_history">Ta bort från historik</string>
+    <string name="remove_from_playlist">Ta bort från spellista</string>
+    <string name="remove_from_queue">Ta bort från kö</string>
+    <string name="search_online">Sök online</string>
+    <string name="search_listen_history">Hoppa tillbaka in</string>
+    <string name="action_sync">Synkronisera</string>
+    <string name="advanced">Avancerat</string>
+    <string name="tempo_and_pitch">Tempo och tonhöjd</string>
+
+    <!-- Sort menu -->
+    <string name="sort_by_create_date">Datum tillagt</string>
+    <string name="sort_by_name">Namn</string>
+    <string name="sort_by_artist">Artist</string>
+    <string name="sort_by_year">År</string>
+    <string name="sort_by_song_count">Antal låtar</string>
+    <string name="sort_by_length">Längd</string>
+    <string name="sort_by_play_time">Speltid</string>
+    <string name="sort_by_custom">Anpassad ordning</string>
+
+    <!-- Dialog -->
+    <string name="media_id">Media‑ID</string>
+    <string name="mime_type">MIME‑typ</string>
+    <string name="codecs">Codecs</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="sample_rate">Samplingsfrekvens</string>
+    <string name="loudness">Ljudstyrka</string>
+    <string name="volume">Volym</string>
+    <string name="file_size">Filstorlek</string>
+    <string name="unknown">Okänd</string>
+    <string name="copied">Kopierat till urklipp</string>
+
+    <string name="edit_lyrics">Redigera låttext</string>
+    <string name="search_lyrics">Sök låttext</string>
+    <string name="lyrics_swipe_to_change_song">Svep för att byta låt</string>
+    <string name="lyrics_swipe_to_change_song_desc">Svep vänster eller höger i artist‑ och låtnamnssektionen i helskärmsläge för att byta låt</string>
+    <string name="lyrics_thumbnail_play_pause">Visa spela/pausa på miniatyr</string>
+    <string name="lyrics_thumbnail_play_pause_desc">Visa en spela/pausa‑knapp på låtens miniatyr i helskärmsläge</string>
+
+    <string name="edit_song">Redigera låt</string>
+    <string name="song_title">Låttitel</string>
+    <string name="song_artists">Låtens artister</string>
+    <string name="error_song_title_empty">Låttitel får inte vara tom.</string>
+    <string name="error_song_artist_empty">Artist får inte vara tom.</string>
+    <string name="save">Spara</string>
+
+    <string name="choose_playlist">Välj spellista</string>
+    <string name="edit_playlist">Redigera spellista</string>
+    <string name="create_playlist">Skapa spellista</string>
+    <string name="playlist_name">Spellistans namn</string>
+    <string name="error_playlist_name_empty">Spellistans namn får inte vara tomt.</string>
+
+    <string name="edit_artist">Redigera artist</string>
+    <string name="artist_name">Artistnamn</string>
+    <string name="error_artist_name_empty">Artistnamn får inte vara tomt.</string>
+
+    <string name="duplicates">Dubbletter</string>
+    <string name="skip_duplicates">Hoppa över dubbletter</string>
+    <string name="add_anyway">Lägg till ändå</string>
+    <string name="duplicates_description_single">Låten finns redan i din spellista</string>
+    <string name="duplicates_description_multiple">%d låtar finns redan i din spellista</string>
+
+    <!-- Noun -->
+    <plurals name="n_song">
+        <item quantity="one">%d låt</item>
+        <item quantity="other">%d låtar</item>
+    </plurals>
+    <plurals name="n_artist">
+        <item quantity="one">%d artist</item>
+        <item quantity="other">%d artister</item>
+    </plurals>
+    <plurals name="n_album">
+        <item quantity="one">%d album</item>
+        <item quantity="other">%d album</item>
+    </plurals>
+    <plurals name="n_playlist">
+        <item quantity="one">%d spellista</item>
+        <item quantity="other">%d spellistor</item>
+    </plurals>
+    <plurals name="n_week">
+        <item quantity="one">%d vecka</item>
+        <item quantity="other">%d veckor</item>
+    </plurals>
+    <plurals name="n_month">
+        <item quantity="one">%d månad</item>
+        <item quantity="other">%d månader</item>
+    </plurals>
+    <plurals name="n_year">
+        <item quantity="one">%d år</item>
+        <item quantity="other">%d år</item>
+    </plurals>
+    <plurals name="n_apk_found">
+        <item quantity="zero">Inga APK‑filer hittades</item>
+        <item quantity="one">%d APK hittad</item>
+        <item quantity="other">%d APK‑filer hittade</item>
+    </plurals>
+
+    <!-- Snackbar -->
+    <string name="playlist_imported">Spellista importerad</string>
+    <string name="removed_song_from_playlist">Tog bort ”%s” från spellistan</string>
+    <string name="playlist_synced">Spellista synkroniserad</string>
+    <string name="undo">Ångra</string>
+
+    <!-- Player -->
+    <string name="lyrics_not_found">Ingen låttext hittades</string>
+    <string name="sleep_timer">Sömntimer</string>
+    <string name="end_of_song">Slut på låt</string>
+    <plurals name="minute">
+        <item quantity="one">1 minut</item>
+        <item quantity="other">%d minuter</item>
+    </plurals>
+    <string name="error_no_stream">Ingen ström tillgänglig</string>
+    <string name="error_no_internet">Ingen internetanslutning</string>
+    <string name="error_timeout">Tidsgräns</string>
+    <string name="error_unknown">Okänt fel</string>
+
+    <!-- Player action -->
+    <string name="action_like">Gilla</string>
+    <string name="action_like_all">Gilla alla</string>
+    <string name="action_remove_like">Ta bort gilla</string>
+    <string name="action_remove_like_all">Ta bort alla gillningar</string>
+    <string name="action_shuffle_on">Blandning på</string>
+    <string name="action_shuffle_off">Blandning av</string>
+    <string name="repeat_mode_off">Upprepning av</string>
+    <string name="repeat_mode_one">Upprepa aktuell låt</string>
+    <string name="repeat_mode_all">Upprepa kö</string>
+
+    <!-- Queue Title -->
+    <string name="queue_all_songs">Alla låtar</string>
+    <string name="queue_searched_songs">Sökta låtar</string>
+
+    <!-- Notification name -->
+    <string name="music_player">Musikspelare</string>
+
+    <!-- Settings -->
+    <string name="settings">Inställningar</string>
+    <string name="appearance">Utseende</string>
+    <string name="theme">Tema</string>
+    <string name="theme_desc">Anpassa appens tema</string>
+    <string name="theme_colors">Tema &amp; färger</string>
+    <string name="theme_mode">Temaläge</string>
+    <string name="color_palette">Färgpalett</string>
+    <string name="use_system_colors">Använd systemfärger</string>
+    <string name="enable_dynamic_theme">Aktivera dynamiskt tema</string>
+    <string name="dark_theme">Mörkt tema</string>
+    <string name="dark_theme_on">På</string>
+    <string name="dark_theme_off">Av</string>
+    <string name="dark_theme_follow_system">Följ system</string>
+    <string name="pure_black">Rent svart</string>
+    <string name="customize_navigation_tabs">Anpassa navigationsflikar</string>
+    <string name="player">Spelare</string>
+    <string name="player_text_alignment">Textjustering i spelare</string>
+    <string name="lyrics_text_position">Låttextens position</string>
+    <string name="sided">Sidställd</string>
+    <string name="left">Vänster</string>
+    <string name="center">Mitten</string>
+    <string name="right">Höger</string>
+    <string name="player_slider_style">Spelarens reglage‑stil</string>
+    <string name="default_">Standard</string>
+    <string name="apple_music">Apple Music</string>
+    <string name="squiggly">Vågig</string>
+    <string name="misc">Övrigt</string>
+    <string name="default_open_tab">Standardflik vid öppning</string>
+    <string name="grid_cell_size">Rutstorlek</string>
+    <string name="small">Liten</string>
+    <string name="big">Stor</string>
+
+    <string name="content">Innehåll</string>
+    <string name="action_logout">Logga ut</string>
+    <string name="action_login">Logga in</string>
+    <string name="login">Logga in</string>
+    <string name="login_confirm">Bekräfta inloggning</string>
+    <string name="login_brand_account_hint">Om du vill använda ett varumärkeskonto, byt till det via kontomenyn ovan och tryck sedan på bocken för att bekräfta.</string>
+    <string name="show_audio_quality_badge">Visa ljudkvalitetsmärke</string>
+    <string name="not_logged_in">Inte inloggad</string>
+    <string name="login_failed">Inloggning misslyckades</string>
+
+    <string name="content_language">Standardinnehållsspråk</string>
+    <string name="content_country">Standardinnehållsland</string>
+    <string name="system_default">Systemstandard</string>
+    <string name="enable_proxy">Aktivera proxy</string>
+    <string name="proxy_type">Proxytyp</string>
+    <string name="proxy_url">Proxy‑URL</string>
+    <string name="restart_to_take_effect">Starta om för att verkställa</string>
+
+    <string name="player_and_audio">Spelare och ljud</string>
+    <string name="audio_quality">Ljudkvalitet</string>
+    <string name="network_ip_version">Nätverkets IP‑version</string>
+    <string name="ip_version_auto">Automatiskt</string>
+    <string name="ip_version_ipv4">Tvinga IPv4</string>
+    <string name="ip_version_ipv6">Tvinga IPv6</string>
+    <string name="audio_quality_auto">Auto</string>
+    <string name="audio_quality_high">Hög</string>
+    <string name="audio_quality_low">Låg</string>
+    <string name="queue">Kö</string>
+    <string name="playing_from">Spelar från</string>
+    <string name="persistent_queue">Bestående kö</string>
+    <string name="persistent_queue_desc">Återställ din senaste kö när appen startar</string>
+    <string name="auto_load_more">Ladda fler låtar automatiskt</string>
+    <string name="auto_load_more_desc">Lägg automatiskt till fler låtar när kön tar slut, om möjligt</string>
+    <string name="skip_silence">Hoppa över tystnad</string>
+    <string name="audio_normalization">Ljudnormalisering</string>
+    <string name="auto_skip_next_on_error">Hoppa automatiskt till nästa låt vid fel</string>
+    <string name="auto_skip_next_on_error_desc">Säkerställ en kontinuerlig lyssningsupplevelse</string>
+    <string name="stop_music_on_task_clear">Stoppa musik när appen rensas</string>
+    <string name="equalizer">Equalizer</string>
+
+    <string name="storage">Lagring</string>
+    <string name="cache">Cache</string>
+    <string name="image_cache">Bildcache</string>
+    <string name="song_cache">Låtcache</string>
+    <string name="max_cache_size">Max cache‑storlek</string>
+    <string name="unlimited">Obegränsad</string>
+    <string name="clear_all_downloads">Rensa alla nedladdningar</string>
+    <string name="max_image_cache_size">Max bildcache‑storlek</string>
+    <string name="clear_image_cache">Rensa bildcache</string>
+    <string name="max_song_cache_size">Max låtcache‑storlek</string>
+    <string name="clear_song_cache">Rensa låtcache</string>
+    <string name="size_used">%s använt</string>
+
+    <string name="clear_downloaded_updates">Rensa nedladdade uppdateringar</string>
+    <string name="clear_downloaded_updates_desc">Ta bort nedladdade APK‑filer</string>
+
+    <string name="privacy">Sekretess</string>
+    <string name="listen_history">Lyssningshistorik</string>
+    <string name="pause_listen_history">Pausa lyssningshistorik</string>
+    <string name="clear_listen_history">Rensa lyssningshistorik</string>
+    <string name="clear_listen_history_confirm">Är du säker på att du vill rensa all lyssningshistorik?</string>
+    <string name="search_history">Sökhistorik</string>
+    <string name="pause_search_history">Pausa sökhistorik</string>
+    <string name="clear_search_history">Rensa sökhistorik</string>
+    <string name="clear_search_history_confirm">Är du säker på att du vill rensa all sökhistorik?</string>
+    <string name="use_login_for_browse">Använd inloggning för att bläddra i innehåll</string>
+    <string name="use_login_for_browse_desc">Detta kan påverka vilket innehåll du ser och t.ex. visa premium‑exklusiva album om du är inloggad med ett Premium‑konto</string>
+    <string name="disable_screenshot">Inaktivera skärmdump</string>
+    <string name="disable_screenshot_desc">När detta är aktiverat blockeras skärmdumpar och appens vy i Senaste appar.</string>
+    <string name="enable_lrclib">Aktivera LrcLib som låttextkälla</string>
+    <string name="enable_kugou">Aktivera KuGou som låttextkälla</string>
+    <string name="hide_explicit">Dölj explicit innehåll</string>
+
+    <string name="backup_restore">Backup och återställning</string>
+    <string name="action_backup">Backup</string>
+    <string name="action_restore">Återställ</string>
+    <string name="imported_playlist">Importerad spellista</string>
+    <string name="backup_create_success">Backup skapad</string>
+    <string name="backup_create_failed">Kunde inte skapa backup</string>
+    <string name="restore_failed">Misslyckades med att återställa backup</string>
+
+    <string name="discord_integration">Discord‑integration</string>
+    <string name="discord_information">vivimusic använder KizzyRPC‑biblioteket för att sätta din Discord‑status. Detta innebär användning av Discord Gateway‑anslutningen, vilket kan anses bryta mot Discords TOS. Det finns dock inga kända fall där användarkonton har stängts av av denna anledning. Använd på egen risk.\n\vivimusic kommer endast att extrahera din token, och allt annat lagras lokalt.</string>
+    <string name="dismiss">Stäng</string>
+    <string name="options">Alternativ</string>
+    <string name="preview">Förhandsvisning</string>
+    <string name="enable_discord_rpc">Aktivera Rich Presence</string>
+
+    <string name="about">Om</string>
+    <string name="app_version">Appversion</string>
+
+    <string name="new_version_available">Ny version tillgänglig</string>
+    <string name="translation_models">Översättningsmodeller</string>
+    <string name="clear_translation_models">Rensa översättningsmodeller</string>
+    <string name="bluetooth_permission_required">Bluetooth‑behörighet krävs för att hitta ljudenheter.</string>
+    <string name="streaming_to">Strömmar till</string>
+    <string name="this_phone">Denna telefon</string>
+    <string name="wired_headphones">Trådbundna hörlurar</string>
+    <string name="hdmi">HDMI</string>
+    <string name="phone_speaker">Telefonhögtalare</string>
+    <string name="audio_quality_title">Ljudkvalitet</string>
+    <string name="battery_content_desc">Batterinivå</string>
+    <string name="done">Klart</string>
+    <string name="audio_devices">Ljudenheter</string>
+    <string name="bluetooth_headphones">Bluetooth‑hörlurar</string>
+    <string name="license">GNU‑licens 3.0</string>
+    <string name="standard_lyrics_blur">Standard suddighet för låttext</string>
+    <string name="listen_together_smart_resync">Smart nätverkssynk</string>
+    <string name="listen_together_smart_resync_desc">Kom automatiskt ikapp värden efter en anslutningsförlust</string>
+
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">Aktivera JioSaavn‑strömning</string>
+    <string name="enable_saavn_streaming_desc">Strömma ljud från JioSaavn istället för YouTube Music (faller tillbaka till YT om ej tillgängligt)</string>
+    <string name="saavn_audio_quality">JioSaavn‑ljudkvalitet</string>
+    <string name="retry_stream">Försök strömma igen</string>
+    <string name="retry_stream_desc_saavn">Hämta igen från JioSaavn i 320 kbps</string>
+    <string name="retry_stream_desc_yt">Hämta igen från YouTube Music</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">Vad tänker du på?</string>
+    <string name="search_prompt_todays_pick">Vad är dagens val?</string>
+    <string name="search_prompt_trending">Sök trendande hits…</string>
+    <string name="search_prompt_vibe">Känner du dig lyckosam? Sök en vibe…</string>
+    <string name="search_prompt_songs_artists">Sök efter låtar, artister, album…</string>
+    <string name="search_prompt_template_song">Sök ”%s”…</string>
+    <string name="search_prompt_template_song_try">Prova att söka ”%s”…</string>
+    <string name="search_prompt_template_artist">Sök artist ”%s”…</string>
+    <string name="enable_settings_popup">Aktivera inställningspopup</string>
+    <string name="enable_settings_popup_desc">Visa snabbinställningar när du trycker på inställningsknappen istället för att öppna inställningar direkt</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Automatisk backup</string>
+    <string name="automatic_backup_desc">Konfigurera automatiska säkerhetskopior av dina inställningar och databaser för att förhindra dataförlust.</string>
+    <string name="enable_automatic_backup">Aktivera automatisk backup</string>
+    <string name="weekly_backup">Veckobackup</string>
+    <string name="weekly_backup_desc">Säkerhetskopiera dina data automatiskt varje vecka i bakgrunden.</string>
+    <string name="backup_before_update">Backup före uppdatering</string>
+    <string name="backup_before_update_desc">Säkerhetskopiera dina data automatiskt innan en appuppdatering laddas ner.</string>
+    <string name="stored_backups">Sparade säkerhetskopior</string>
+    <string name="no_stored_backups">Inga automatiska säkerhetskopior sparade ännu.</string>
+    <string name="backup_type_weekly">Veckobackup</string>
+    <string name="backup_type_before_update">Före uppdatering</string>
+    <string name="delete_backup_confirm">Är du säker på att du vill ta bort denna backup?</string>
+    <string name="restore_backup_confirm">Är du säker på att du vill återställa denna backup? Appen kommer att stängas och startas om för att verkställa ändringarna.</string>
+    <string name="backup_deleted">Backup borttagen</string>
+    <string name="others">Övrigt</string>
+    <string name="last_backed_up">Senast säkerhetskopierad: %s</string>
+    <string name="never_backed_up">Aldrig</string>
+    <string name="autobackup_settings">Inställningar för automatisk backup</string>
+    <string name="new_release_notifications">Aviseringar om nya släpp</string>
+    <string name="new_release_notifications_subtitle">Meddela när bokmärkta artister släpper nya låtar eller album (beta)</string>
+    <string name="new_release_channel_name">Nya släpp</string>
+    <string name="new_release_channel_desc">Aviseringar om nya släpp från dina bokmärkta artister</string>
+    <string name="new_release_notifications_info">På vissa enheter (Samsung, Xiaomi, etc.) kan batterioptimering fördröja eller blockera bakgrundsaviseringar. För att säkerställa snabba aviseringar, ställ in Vivi Music på Obegränsad batterianvändning i enhetens inställningar.</string>
+    <string name="taste_based_release_notifications">Smakbaserade släppaviseringar</string>
+    <string name="taste_based_release_notifications_subtitle">Meddela när artister du ofta lyssnar på släpper nya låtar eller album</string>
+
+    <!-- Library Toggle -->
+    <string name="switch_to_grid_view">Byt till rutnätsvy</string>
+    <string name="switch_to_list_view">Byt till listvy</string>
+
+    <!-- Force Library Sync -->
+    <string name="library_force_sync">Synkronisera bibliotek nu</string>
+    <string name="library_syncing">Synkroniserar bibliotek…</string>
+    <string name="library_sync_done">Bibliotek synkroniserat</string>
+    <string name="library_sync_error">Synkronisering misslyckades — tryck för att försöka igen</string>
+    <string name="listening_summary">Lyssningssammanfattning</string>
+    <string name="setting_listening_summary_desc">Visa dina dagliga lyssningstrender och historisk uppspelningsstatistik.</string>
+
+</resources>
