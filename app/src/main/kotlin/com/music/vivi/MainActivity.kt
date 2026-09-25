@@ -1015,42 +1015,28 @@ class MainActivity : ComponentActivity() {
                                         actions = {
                                             val (enableSettingsPopup) = rememberPreference(EnableSettingsPopupKey, defaultValue = true)
 
-                                            if (!enableSettingsPopup) {
-                                                if (showHistoryButton) {
-                                                    IconButton(onClick = { navController.navigate("history") }) {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.music_history),
-                                                            contentDescription = stringResource(R.string.history)
-                                                        )
-                                                    }
-                                                }
-                                                IconButton(onClick = { navController.navigate("stats") }) {
+                                            if (showHistoryButton) {
+                                                IconButton(onClick = { navController.navigate("history") }) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.stats),
-                                                        contentDescription = stringResource(R.string.stats)
-                                                    )
-                                                }
-                                                if (listenTogetherInTopBar) {
-                                                    IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.group_outlined),
-                                                            contentDescription = stringResource(R.string.together)
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            if (enableSettingsPopup && accountImageUrl != null) {
-                                                IconButton(onClick = { navController.navigate("settings/account") }) {
-                                                    AsyncImage(
-                                                        model = accountImageUrl,
-                                                        contentDescription = stringResource(R.string.account),
-                                                        modifier = Modifier
-                                                            .size(24.dp)
-                                                            .clip(CircleShape)
+                                                        painter = painterResource(R.drawable.music_history),
+                                                        contentDescription = stringResource(R.string.history)
                                                     )
                                                 }
                                             }
-                                            
+                                            IconButton(onClick = { navController.navigate("stats") }) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.stats),
+                                                    contentDescription = stringResource(R.string.stats)
+                                                )
+                                            }
+                                            if (listenTogetherInTopBar) {
+                                                IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.group_outlined),
+                                                        contentDescription = stringResource(R.string.together)
+                                                    )
+                                                }
+                                            }
                                             Box {
                                                 var showSettingsDropdown by remember { mutableStateOf(false) }
                                                 IconButton(onClick = { 
@@ -1061,12 +1047,12 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 }) {
                                                     BadgedBox(badge = {}) {
-                                                        if (!enableSettingsPopup && accountImageUrl != null) {
+                                                        if (accountImageUrl != null) {
                                                             AsyncImage(
                                                                 model = accountImageUrl,
                                                                 contentDescription = stringResource(R.string.account),
                                                                 modifier = Modifier
-                                                                    .size(24.dp)
+                                                                    .size(32.dp)
                                                                     .clip(CircleShape)
                                                             )
                                                         } else {

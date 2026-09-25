@@ -43,6 +43,8 @@ import com.music.vivi.utils.rememberPreference
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import com.music.vivi.utils.listItemShape
+import com.music.vivi.viewmodels.AccountSettingsViewModel
+import com.music.vivi.utils.SyncStatus
 import com.music.vivi.viewmodels.HomeViewModel
 import com.music.vivi.vivimusic.updater.getUpdateAvailableState
 import kotlinx.coroutines.flow.map
@@ -55,6 +57,7 @@ fun SettingsDropdownMenu(
     onNavigate: (String) -> Unit,
     homeViewModel: HomeViewModel,
     gitHubViewModel: GitHubViewModel = hiltViewModel(),
+    accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel(),
 ) {
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
@@ -76,6 +79,9 @@ fun SettingsDropdownMenu(
     val (accountEmail, _) = rememberPreference(AccountEmailKey, "")
     val accountName by homeViewModel.accountName.collectAsState()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
+
+    val syncState by accountSettingsViewModel.syncState.collectAsState()
+    val isSyncing = syncState.overallStatus is SyncStatus.Syncing
     
     val itemContainerColor = if (isSystemInDarkTheme()) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
@@ -178,9 +184,10 @@ fun SettingsDropdownMenu(
         
         Spacer(modifier = Modifier.height(4.dp))
 
-        // --- Section 1: Account & Integrations ---
+        // --- Section 1: Account, Sync & Integrations ---
+        val section1Count = if (isLoggedIn) 3 else 2
         Surface(
-            shape = listItemShape(0, 2, 16.dp),
+            shape = listItemShape(0, section1Count, 16.dp),
             color = itemContainerColor,
             modifier = Modifier
                 .fillMaxWidth()
@@ -228,10 +235,23 @@ fun SettingsDropdownMenu(
                 modifier = Modifier.height(48.dp)
             )
         }
+        
+        if (isLoggedIn) {
+            DropdownMenuIconItem(
+                title = if (isSyncing) stringResource(R.string.library_syncing) else stringResource(R.string.library_force_sync),
+                icon = R.drawable.sync,
+                shape = listItemShape(1, section1Count, 16.dp),
+                containerColor = itemContainerColor,
+                onClick = {
+                    if (!isSyncing) accountSettingsViewModel.forceSyncLibrary()
+                }
+            )
+        }
+        
         DropdownMenuIconItem(
             title = stringResource(R.string.integrations),
             icon = R.drawable.extension,
-            shape = listItemShape(1, 2, 16.dp),
+            shape = listItemShape(section1Count - 1, section1Count, 16.dp),
             containerColor = itemContainerColor,
             onClick = {
                 onDismissRequest()
@@ -239,39 +259,6 @@ fun SettingsDropdownMenu(
             }
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
-
-        // --- Section 2: History, Listen Together, Stats ---
-        DropdownMenuIconItem(
-            title = stringResource(R.string.history),
-            icon = R.drawable.music_history,
-            shape = listItemShape(0, 3, 16.dp),
-            containerColor = itemContainerColor,
-            onClick = {
-                onDismissRequest()
-                onNavigate("history")
-            }
-        )
-        DropdownMenuIconItem(
-            title = stringResource(R.string.listen_together),
-            icon = R.drawable.group_outlined,
-            shape = listItemShape(1, 3, 16.dp),
-            containerColor = itemContainerColor,
-            onClick = {
-                onDismissRequest()
-                onNavigate("listen_together_from_topbar")
-            }
-        )
-        DropdownMenuIconItem(
-            title = stringResource(R.string.stats),
-            icon = R.drawable.stats,
-            shape = listItemShape(2, 3, 16.dp),
-            containerColor = itemContainerColor,
-            onClick = {
-                onDismissRequest()
-                onNavigate("stats")
-            }
-        )
 
         Spacer(modifier = Modifier.height(6.dp))
 
