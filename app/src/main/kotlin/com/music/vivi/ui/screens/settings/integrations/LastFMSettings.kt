@@ -43,6 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -64,6 +66,7 @@ import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.LastFMUseSendLikes
 import com.music.vivi.constants.LastFMUsernameKey
 import com.music.vivi.constants.LastFMAvatarUrlKey
+import com.music.vivi.constants.LastFMScrobbleCountKey
 import com.music.vivi.constants.ScrobbleDelayPercentKey
 import com.music.vivi.constants.ScrobbleDelaySecondsKey
 import com.music.vivi.constants.ScrobbleMinSongDurationKey
@@ -76,8 +79,16 @@ import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import java.text.NumberFormat
+import java.util.Locale
+
+private fun formatScrobbleCount(count: String): String {
+    val number = count.toLongOrNull() ?: return count
+    return NumberFormat.getNumberInstance(Locale.getDefault()).format(number)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,11 +101,24 @@ fun LastFMSettings(
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
     var lastfmAvatarUrl by rememberPreference(LastFMAvatarUrlKey, "")
+    var lastfmScrobbleCount by rememberPreference(LastFMScrobbleCountKey, "")
 
-    val isLoggedIn =
-        remember(lastfmSession) {
-            lastfmSession != ""
+    val isLoggedIn = remember(lastfmSession) { lastfmSession != "" }
+
+    // Continuously refresh scrobble count while the screen is open
+    LaunchedEffect(isLoggedIn, lastfmUsername) {
+        if (!isLoggedIn || lastfmUsername.isEmpty()) return@LaunchedEffect
+        while (true) {
+            withContext(Dispatchers.IO) {
+                LastFM.getUserInfo(lastfmUsername).onSuccess { info ->
+                    lastfmAvatarUrl = info.user.image.find { it.size == "extralarge" }?.url
+                        ?: info.user.image.lastOrNull()?.url ?: lastfmAvatarUrl
+                    lastfmScrobbleCount = info.user.playcount
+                }
+            }
+            delay(30_000L) // refresh every 30 seconds
         }
+    }
 
     val (useNowPlaying, onUseNowPlayingChange) = rememberPreference(
         key = LastFMUseNowPlaying,
@@ -226,6 +250,7 @@ fun LastFMSettings(
                                             val url = info.user.image.find { it.size == "extralarge" }?.url
                                                 ?: info.user.image.lastOrNull()?.url ?: ""
                                             lastfmAvatarUrl = url
+                                            lastfmScrobbleCount = info.user.playcount
                                         }
                                         
                                         // Switch back to main thread to update UI
@@ -337,12 +362,20 @@ fun LastFMSettings(
                             modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
                         )
                     },
+                    description = if (isLoggedIn && lastfmScrobbleCount.isNotEmpty()) ({
+                        Text(
+                            text = "${formatScrobbleCount(lastfmScrobbleCount)} scrobbles",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }) else null,
                     trailingContent = {
                         if (isLoggedIn) {
                             OutlinedButton(onClick = {
                                 lastfmSession = ""
                                 lastfmUsername = ""
                                 lastfmAvatarUrl = ""
+                                lastfmScrobbleCount = ""
                             }) {
                                 Text(stringResource(R.string.action_logout))
                             }

@@ -10,6 +10,7 @@ data class UserInfoResponse(
 @Serializable
 data class UserInfo(
     val name: String,
+    val playcount: String = "0",
     val image: List<LastFmImage> = emptyList()
 )
 
