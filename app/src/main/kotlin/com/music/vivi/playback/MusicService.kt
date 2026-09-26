@@ -112,6 +112,7 @@ import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistoryDuration
+import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -587,6 +588,22 @@ class MusicService :
 
         connectivityManager = getSystemService()!!
         connectivityObserver = NetworkConnectivityObserver(this)
+
+        // Restore LastFM session key from DataStore so scrobbles work on cold start
+        val savedLastFMSession = dataStore.get(LastFMSessionKey, "")
+        if (savedLastFMSession.isNotEmpty()) {
+            LastFM.sessionKey = savedLastFMSession
+        }
+
+        // Reactively keep LastFM.sessionKey in sync with DataStore (handles login/logout from settings)
+        scope.launch {
+            dataStore.data
+                .map { it[LastFMSessionKey] ?: "" }
+                .distinctUntilChanged()
+                .collect { key ->
+                    LastFM.sessionKey = key.ifEmpty { null }
+                }
+        }
 
         val screenStateFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
