@@ -1,4 +1,8 @@
 /**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+/**
  * VIVI-SAAVN (C) 2026
  *
  * PROPRIETARY LICENSE:
