@@ -1140,4 +1140,12 @@
     <string name="sponsorblock_skipped_intro">Skipped intro segment</string>
     <string name="sponsorblock_skipped_outro">Skipped outro segment</string>
     <string name="sponsorblock_skipped_segment">Skipped SponsorBlock segment</string>
+
+    <string name="export_playlist">Export playlist</string>
+    <string name="export_failed">Failed to export playlist</string>
+    <string name="export_success">Playlist exported successfully</string>
+    <string name="export_option_save">Save as document</string>
+    <string name="export_option_share">Share with</string>
+    <string name="export_as_csv">CSV (Spreadsheet format)</string>
+    <string name="export_as_m3u">M3U (Media Player format)</string>
 </resources>

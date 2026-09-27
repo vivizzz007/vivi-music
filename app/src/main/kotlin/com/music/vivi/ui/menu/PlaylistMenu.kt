@@ -63,8 +63,8 @@ import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.db.entities.Playlist
-import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.PlaylistSong
+import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.playback.ExoDownloadService
@@ -81,7 +81,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.music.vivi.db.entities.PlaylistSongMap
 import java.time.LocalDateTime
+import com.music.vivi.utils.PlaylistExporter
+import com.music.vivi.utils.getExportFileUri
+import com.music.vivi.utils.saveToPublicDocuments
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -112,6 +116,8 @@ fun PlaylistMenu(
     var isSyncing by remember { mutableStateOf(false) }
     var syncedCount by remember { mutableIntStateOf(0) }
     var isSyncComplete by remember { mutableStateOf(false) }
+
+    var showExportDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (autoPlaylist == false) {
@@ -584,6 +590,19 @@ fun PlaylistMenu(
                             }
                         )
                     }
+                    // Export playlist
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.export_playlist)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.share),
+                                    contentDescription = null,
+                                )
+                            },
+                            onClick = { showExportDialog = true },
+                        )
+                    )
                     if (autoPlaylist != true && !isGuest) {
                         add(
                             Material3MenuItemData(
@@ -703,6 +722,80 @@ fun PlaylistMenu(
                 }
             )
         }
+    }
+
+    val exportPlaylistStr = stringResource(R.string.export_playlist)
+
+    if (showExportDialog) {
+        ExportDialog(
+            onDismiss = { showExportDialog = false },
+            onShare = { format ->
+                val playlistSongs =
+                    songs.map { s ->
+                        PlaylistSong(
+                            map =
+                                PlaylistSongMap(
+                                    songId = s.id,
+                                    playlistId = playlist.id,
+                                    position = 0,
+                                ),
+                            song = s,
+                        )
+                    }
+                val result =
+                    when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(context, playlist.playlist.name, playlistSongs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(context, playlist.playlist.name, playlistSongs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                result
+                    .onSuccess { file ->
+                        val uri = getExportFileUri(context, file)
+                        val mimeType = if (format == "csv") "text/csv" else "audio/x-mpegurl"
+                        val shareIntent =
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = mimeType
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            }
+                        context.startActivity(Intent.createChooser(shareIntent, exportPlaylistStr))
+                    }.onFailure {
+                        Toast.makeText(context, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                showExportDialog = false
+            },
+            onSave = { format ->
+                val playlistSongs =
+                    songs.map { s ->
+                        PlaylistSong(
+                            map =
+                                PlaylistSongMap(
+                                    songId = s.id,
+                                    playlistId = playlist.id,
+                                    position = 0,
+                                ),
+                            song = s,
+                        )
+                    }
+                val export =
+                    when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(context, playlist.playlist.name, playlistSongs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(context, playlist.playlist.name, playlistSongs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                export
+                    .onSuccess { file ->
+                        val mimeType = if (format == "csv") "text/csv" else "audio/x-mpegurl"
+                        val save = saveToPublicDocuments(context, file, mimeType)
+                        save
+                            .onSuccess { Toast.makeText(context, R.string.export_success, Toast.LENGTH_SHORT).show() }
+                            .onFailure { Toast.makeText(context, R.string.export_failed, Toast.LENGTH_SHORT).show() }
+                    }.onFailure {
+                        Toast.makeText(context, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                showExportDialog = false
+            },
+        )
     }
 
     if (isSyncing) {
