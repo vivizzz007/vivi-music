@@ -46,6 +46,8 @@ import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
 import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalSyncUtils
+import android.widget.Toast
 import com.music.vivi.constants.*
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
@@ -69,6 +71,8 @@ fun AccountSettingsScreen(
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
+    val syncUtils = LocalSyncUtils.current
 
     val (accountNamePref, _) = rememberPreference(AccountNameKey, "")
     val (accountEmail, _) = rememberPreference(AccountEmailKey, "")
@@ -363,6 +367,21 @@ fun AccountSettingsScreen(
                                     )
                                 },
                                 onClick = { onYtmSyncChange(!ytmSync) }
+                            ),
+                            Material3SettingsItem(
+                                icon = painterResource(R.drawable.cached),
+                                title = { Text(stringResource(R.string.restore_library_title)) },
+                                description = { Text(stringResource(R.string.restore_library_desc)) },
+                                onClick = {
+                                    coroutineScope.launch {
+                                        val count = syncUtils.restoreLibrary()
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.restored_n_items, count),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
                             ),
                             if (spotifySession.isNotBlank()) {
                                 Material3SettingsItem(

@@ -69,6 +69,8 @@ data class SpotifySession(
     val accountAvatarUrl: String? = null,
     val refreshToken: String? = null,
     val clientId: String? = null,
+    val clientSecret: String? = null,
+    val userId: String? = null,
 )
 
 @Serializable
@@ -264,7 +266,7 @@ class SpotifyImportViewModel @Inject constructor(
             return session
         }
         if (!session.refreshToken.isNullOrBlank()) {
-            return refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID)
+            return refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID, session.clientSecret)
         }
         if (session.spDc.isNotBlank()) {
             return refreshWithCookies(session.spDc, session.spKey.orEmpty())
@@ -272,9 +274,9 @@ class SpotifyImportViewModel @Inject constructor(
         throw IllegalStateException("No valid credentials for Spotify")
     }
 
-    private suspend fun refreshWithRefreshToken(refreshToken: String, clientId: String): SpotifySession =
+    private suspend fun refreshWithRefreshToken(refreshToken: String, clientId: String, clientSecret: String? = null): SpotifySession =
         withContext(Dispatchers.IO) {
-            val token = SpotifyAuth.refreshAccessToken(clientId, refreshToken).getOrThrow()
+            val token = SpotifyAuth.refreshAccessToken(clientId, refreshToken, clientSecret).getOrThrow()
             Spotify.accessToken = token.access_token
             val profile = Spotify.me().getOrNull()
 
@@ -284,8 +286,10 @@ class SpotifyImportViewModel @Inject constructor(
                 expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
                 refreshToken = token.refresh_token ?: refreshToken,
                 clientId = clientId,
+                clientSecret = clientSecret ?: session?.clientSecret,
                 accountName = profile?.displayName ?: session?.accountName,
-                accountAvatarUrl = profile?.images?.firstOrNull()?.url ?: session?.accountAvatarUrl
+                accountAvatarUrl = profile?.images?.firstOrNull()?.url ?: session?.accountAvatarUrl,
+                userId = profile?.id ?: session?.userId,
             )
             saveSession(newSession)
             _uiState.update {
@@ -303,11 +307,12 @@ class SpotifyImportViewModel @Inject constructor(
         codeVerifier: String,
         clientId: String = SpotifyAuth.DEFAULT_CLIENT_ID,
         redirectUri: String = SpotifyAuth.DEFAULT_REDIRECT_URI,
+        clientSecret: String? = null,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             runCatching {
-                val token = SpotifyAuth.exchangeCode(clientId, redirectUri, code, codeVerifier).getOrThrow()
+                val token = SpotifyAuth.exchangeCode(clientId, redirectUri, code, codeVerifier, clientSecret).getOrThrow()
                 Spotify.accessToken = token.access_token
                 val profile = Spotify.me().getOrNull()
 
@@ -316,8 +321,10 @@ class SpotifyImportViewModel @Inject constructor(
                     expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
                     refreshToken = token.refresh_token,
                     clientId = clientId,
+                    clientSecret = clientSecret,
                     accountName = profile?.displayName,
-                    accountAvatarUrl = profile?.images?.firstOrNull()?.url
+                    accountAvatarUrl = profile?.images?.firstOrNull()?.url,
+                    userId = profile?.id,
                 )
                 saveSession(newSession)
                 _uiState.update {
@@ -347,13 +354,15 @@ class SpotifyImportViewModel @Inject constructor(
             Spotify.accessToken = token.accessToken
             val profile = Spotify.me().getOrNull()
 
-            val newSession = SpotifySession(
+            val existing = getSession()
+            val newSession = (existing ?: SpotifySession()).copy(
                 spDc = spDc,
                 spKey = spKey,
                 accessToken = token.accessToken,
                 expiresAt = token.accessTokenExpirationTimestampMs,
-                accountName = profile?.displayName,
-                accountAvatarUrl = profile?.images?.firstOrNull()?.url
+                accountName = profile?.displayName ?: existing?.accountName,
+                accountAvatarUrl = profile?.images?.firstOrNull()?.url ?: existing?.accountAvatarUrl,
+                userId = profile?.id ?: existing?.userId,
             )
             saveSession(newSession)
             _uiState.update {
@@ -408,7 +417,7 @@ class SpotifyImportViewModel @Inject constructor(
                     }
                     loadSources()
                 } else if (!session.refreshToken.isNullOrBlank()) {
-                    runCatching { refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID) }
+                    runCatching { refreshWithRefreshToken(session.refreshToken, session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID, session.clientSecret) }
                         .onSuccess { loadSources() }
                         .onFailure { error ->
                             if (_uiState.value.playlists.isEmpty()) {
@@ -505,7 +514,14 @@ class SpotifyImportViewModel @Inject constructor(
 
                 val accountName = meResult.displayName.orEmpty()
                 val accountAvatarUrl = meResult.images.firstOrNull()?.url
+                val userId = meResult.id
                 val likedCount = likedSongsResult.total
+
+                getSession()?.let { currentSession ->
+                    if (currentSession.userId != userId && userId.isNotBlank()) {
+                        saveSession(currentSession.copy(userId = userId))
+                    }
+                }
 
                 _uiState.update {
                     it.copy(

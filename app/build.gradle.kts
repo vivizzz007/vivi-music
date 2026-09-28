@@ -21,8 +21,11 @@ android {
     compileSdk = 37
     ndkVersion = "27.0.12077973"
 
+    val isOplus = (project.hasProperty("oplus") && project.property("oplus") == "true") ||
+        (System.getenv("BUILD_OPLUS") == "true")
+
     defaultConfig {
-        applicationId = "com.vivi.vivimusic"
+        applicationId = if (isOplus) "com.spotify.music" else "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 37
         versionCode = 79
@@ -44,6 +47,7 @@ android {
 //add nightly build label support
         val isNightly = project.hasProperty("nightly") && project.property("nightly") == "true"
         buildConfigField("Boolean", "IS_NIGHTLY", isNightly.toString())
+        buildConfigField("Boolean", "IS_OPLUS_AOD", isOplus.toString())
     }
     
 
@@ -148,7 +152,9 @@ android {
             buildConfigField("String", "ARCHITECTURE", "\"release\"")
         }
         debug {
-            applicationIdSuffix = ".debug"
+            if (!isOplus) {
+                applicationIdSuffix = ".debug"
+            }
             isDebuggable = true
             signingConfig = signingConfigs.getByName("debug")
             buildConfigField("String", "ARCHITECTURE", "\"debug\"")

@@ -33,9 +33,12 @@ import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.SpotifySessionKey
+import com.music.vivi.constants.YtmSyncKey
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.extensions.isSyncEnabled
+import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.rememberPreference
+import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -133,20 +136,19 @@ fun CreatePlaylistDialog(
                         Switch(
                             checked = syncedPlaylist,
                             onCheckedChange = {
-                                val isYtmSyncEnabled = context.isSyncEnabled()
                                 if (!isSignedIn && !syncedPlaylist) {
                                     Toast.makeText(
                                         context,
                                         context.getString(R.string.not_logged_in_youtube),
                                         Toast.LENGTH_SHORT
                                     ).show()
-                                } else if (!isYtmSyncEnabled) {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(R.string.sync_disabled),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
                                 } else {
+                                    val isYtmSyncEnabled = context.isSyncEnabled()
+                                    if (!isYtmSyncEnabled && !syncedPlaylist) {
+                                        coroutineScope.launch {
+                                            context.dataStore.edit { it[YtmSyncKey] = true }
+                                        }
+                                    }
                                     syncedPlaylist = !syncedPlaylist
                                 }
                             }

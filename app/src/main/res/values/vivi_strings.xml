@@ -47,6 +47,9 @@
     <string name="sync_completed_success">Synced %1$d songs successfully</string>
     <string name="sync_completed_partial">Synced %1$d of %2$d songs</string>
     <string name="sync_disabled">Sync disabled</string>
+    <string name="restore_library_title">Restore library</string>
+    <string name="restore_library_desc">Recover unbookmarked playlists, albums, and songs from database</string>
+    <string name="restored_n_items">Restored %1$d library items</string>
     <string name="spotify_sync">Spotify sync</string>
     <string name="spotify_sync_desc">Automatically keep imported Spotify playlists up to date</string>
     <string name="push_to_spotify">Push playlists to Spotify</string>
@@ -1045,6 +1048,10 @@
     <string name="spotify_paste_link_invalid">Invalid Spotify playlist URL</string>
     <string name="spotify_sync_channel_name">Spotify Synchronization</string>
     <string name="spotify_sync_channel_desc">Notifications for Spotify playlist import and synchronization</string>
+    <string name="spotify_custom_app_title">Custom Developer Credentials (Optional)</string>
+    <string name="spotify_custom_app_desc">Use your own Spotify Developer Client ID &amp; Secret</string>
+    <string name="spotify_client_id_label">Client ID</string>
+    <string name="spotify_client_secret_label">Client Secret</string>
 
     <string name="app_font">App Font</string>
     <string name="font_selection">Font Selection</string>

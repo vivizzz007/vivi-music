@@ -52,6 +52,8 @@ import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.menu.LoadingScreen
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.constants.SpotifyAutoSyncKey
+import com.music.vivi.constants.SpotifyCustomClientIdKey
+import com.music.vivi.constants.SpotifyCustomClientSecretKey
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.SpotifyImportViewModel
 import kotlinx.coroutines.launch
@@ -74,12 +76,15 @@ fun SpotifyScreen(
     var showPlaylistsSheet by remember { mutableStateOf(false) }
     var showPushSheet by remember { mutableStateOf(false) }
     var showLinkImportDialog by remember { mutableStateOf(false) }
+    var showCustomAppDialog by remember { mutableStateOf(false) }
     var linkImportInput by remember { mutableStateOf("") }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
     val pushProgress by viewModel.pushProgress.collectAsStateWithLifecycle()
     val isImportMinimized by viewModel.isImportMinimized.collectAsStateWithLifecycle()
     val isPushMinimized by viewModel.isPushMinimized.collectAsStateWithLifecycle()
     val (spotifyAutoSync, onSpotifyAutoSyncChange) = rememberPreference(SpotifyAutoSyncKey, true)
+    val (customClientId, onCustomClientIdChange) = rememberPreference(SpotifyCustomClientIdKey, "")
+    val (customClientSecret, onCustomClientSecretChange) = rememberPreference(SpotifyCustomClientSecretKey, "")
 
     val refreshEnabled = state.isAuthenticated && !state.isLoading
     val rotationAngle by if (state.isLoading) {
@@ -418,6 +423,27 @@ fun SpotifyScreen(
                             onSpotifyAutoSyncChange(!spotifyAutoSync)
                         }
                     }
+                ),
+                Material3SettingsItem(
+                    isExpressive = true,
+                    descriptionBelow = true,
+                    title = { Text(stringResource(R.string.spotify_custom_app_title)) },
+                    description = {
+                        Text(
+                            if (customClientId.isNotBlank()) "Configured (${customClientId.take(6)}…)"
+                            else stringResource(R.string.spotify_custom_app_desc)
+                        )
+                    },
+                    icon = painterResource(R.drawable.settings),
+                    trailingContent = {
+                        Icon(
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = { showCustomAppDialog = true }
                 )
             )
         )
@@ -480,11 +506,18 @@ fun SpotifyScreen(
     )
 
     if (showSpotifyLogin) {
+        val effectiveClientId = customClientId.ifBlank { SpotifyAuth.DEFAULT_CLIENT_ID }
         SpotifyLoginSheet(
+            clientId = effectiveClientId,
             onDismiss = { showSpotifyLogin = false },
             onOAuthCodeCaptured = { code, verifier ->
                 showSpotifyLogin = false
-                viewModel.connectWithOAuthCode(code, verifier)
+                viewModel.connectWithOAuthCode(
+                    code = code,
+                    codeVerifier = verifier,
+                    clientId = effectiveClientId,
+                    clientSecret = customClientSecret.ifBlank { null }
+                )
             },
             onCookiesCaptured = { spDc, spKey ->
                 showSpotifyLogin = false
@@ -696,12 +729,56 @@ fun SpotifyScreen(
             }
         )
     }
+
+    if (showCustomAppDialog) {
+        var tempClientId by remember { mutableStateOf(customClientId) }
+        var tempClientSecret by remember { mutableStateOf(customClientSecret) }
+        DefaultDialog(
+            onDismiss = { showCustomAppDialog = false },
+            title = { Text(stringResource(R.string.spotify_custom_app_title)) },
+            buttons = {
+                TextButton(onClick = { showCustomAppDialog = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+                Button(
+                    onClick = {
+                        onCustomClientIdChange(tempClientId.trim())
+                        onCustomClientSecretChange(tempClientSecret.trim())
+                        showCustomAppDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            }
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = tempClientId,
+                    onValueChange = { tempClientId = it },
+                    label = { Text(stringResource(R.string.spotify_client_id_label)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = tempClientSecret,
+                    onValueChange = { tempClientSecret = it },
+                    label = { Text(stringResource(R.string.spotify_client_secret_label)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
 }
 
 @android.annotation.SuppressLint("ClickableViewAccessibility")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SpotifyLoginSheet(
+    clientId: String = SpotifyAuth.DEFAULT_CLIENT_ID,
     onDismiss: () -> Unit,
     onOAuthCodeCaptured: (code: String, verifier: String) -> Unit,
     onCookiesCaptured: (spDc: String, spKey: String) -> Unit,
@@ -711,9 +788,9 @@ private fun SpotifyLoginSheet(
     var captured by remember { mutableStateOf(false) }
 
     val codeVerifier = rememberSaveable { SpotifyAuth.generateCodeVerifier() }
-    val authUrl = remember(codeVerifier) {
+    val authUrl = remember(codeVerifier, clientId) {
         val codeChallenge = SpotifyAuth.generateCodeChallenge(codeVerifier)
-        SpotifyAuth.buildAuthorizeUrl(codeChallenge = codeChallenge)
+        SpotifyAuth.buildAuthorizeUrl(clientId = clientId, codeChallenge = codeChallenge)
     }
 
     DisposableEffect(Unit) {

@@ -359,16 +359,16 @@ class App : Application(), SingletonImageLoader.Factory {
         }.build()
     }
 
-    private fun isInternetConnected(): Boolean {
-        val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
-        val network = cm.activeNetwork ?: return false
-        val caps = cm.getNetworkCapabilities(network) ?: return false
-        return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    }
-
     companion object {
         lateinit var context: Context
             private set
+
+        fun isInternetConnected(): Boolean {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            return caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        }
 
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")
@@ -474,6 +474,16 @@ class ThumbnailDiskCacheInterceptor : Interceptor {
         } else {
             request
         }
+        if (!App.isInternetConnected()) {
+            val offlineBitmap = tryFindDownloadedArtwork(request.data)
+            if (offlineBitmap != null) {
+                return coil3.request.SuccessResult(
+                    image = offlineBitmap.asImage(),
+                    request = request,
+                    dataSource = DataSource.DISK
+                )
+            }
+        }
         val result = chain.withRequest(modifiedRequest).proceed()
         if (result is coil3.request.ErrorResult) {
             val fallbackBitmap = tryFindDownloadedArtwork(request.data)
@@ -502,6 +512,29 @@ private fun tryFindDownloadedArtwork(data: Any?): Bitmap? {
         else null
 
     try {
+        // 1. Check persistent thumbnails in app internal storage (filesDir/thumbnails)
+        val filesDir = App.context.filesDir
+        val thumbDir = filesDir.resolve("thumbnails")
+        if (thumbDir.exists()) {
+            if (videoId != null) {
+                val directFile = thumbDir.resolve("${videoId}.jpg")
+                if (directFile.exists() && directFile.length() > 0L) {
+                    val bitmap = BitmapFactory.decodeFile(directFile.absolutePath)
+                    if (bitmap != null) return bitmap
+                }
+            }
+            val canonicalKey = getCanonicalThumbnailKey(str)
+            if (canonicalKey != null) {
+                val keyClean = canonicalKey.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(64)
+                val keyFile = thumbDir.resolve("${keyClean}.jpg")
+                if (keyFile.exists() && keyFile.length() > 0L) {
+                    val bitmap = BitmapFactory.decodeFile(keyFile.absolutePath)
+                    if (bitmap != null) return bitmap
+                }
+            }
+        }
+
+        // 2. Check public music folder embedded tags
         val musicDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)?.resolve("ViviMusic")
         if (musicDir != null && musicDir.exists()) {
             val files = musicDir.listFiles()

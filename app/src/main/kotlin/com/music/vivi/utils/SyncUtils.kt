@@ -523,14 +523,21 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.likedSongsByNameAsc().first()
 
-                    // Remove likes from songs not in remote
-                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
-                        try {
-                            database.update(song.song.localToggleLike())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to update song: ${song.id}")
+                    // Remove likes from songs not in remote ONLY if remote returned a valid list
+                    // and doesn't wipe more than 50% of existing songs in one sync without safety check
+                    if (remoteSongs.isNotEmpty() && (remoteSongs.size >= localSongs.size / 2 || localSongs.size <= 5)) {
+                        localSongs.filterNot { it.id in remoteIds }.forEach { song ->
+                            try {
+                                database.update(song.song.localToggleLike())
+                                delay(DB_OPERATION_DELAY_MS)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to update song: ${song.id}")
+                            }
                         }
+                    } else if (remoteSongs.isEmpty() && localSongs.isNotEmpty()) {
+                        Timber.w("Sync liked songs: remote returned 0 songs while local has ${localSongs.size} songs! Aborting unlike to prevent data loss.")
+                    } else if (localSongs.isNotEmpty() && remoteSongs.size < localSongs.size / 2) {
+                        Timber.w("Sync liked songs: remote returned ${remoteSongs.size} songs vs local ${localSongs.size} songs! Skipping unlikes to prevent data loss.")
                     }
 
                     // Add/update songs from remote
@@ -727,13 +734,19 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteAlbums.map { it.id }.toSet()
                     val localAlbums = database.albumsLikedByNameAsc().first()
 
-                    localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
-                        try {
-                            database.update(album.album.localToggleLike())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to update album: ${album.id}")
+                    if (remoteAlbums.isNotEmpty() && (remoteAlbums.size >= localAlbums.size / 2 || localAlbums.size <= 3)) {
+                        localAlbums.filterNot { it.id in remoteIds }.forEach { album ->
+                            try {
+                                database.update(album.album.localToggleLike())
+                                delay(DB_OPERATION_DELAY_MS)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to update album: ${album.id}")
+                            }
                         }
+                    } else if (remoteAlbums.isEmpty() && localAlbums.isNotEmpty()) {
+                        Timber.w("Sync albums: remote returned 0 albums while local has ${localAlbums.size} albums! Skipping unbookmark to prevent accidental wipe.")
+                    } else if (localAlbums.isNotEmpty() && remoteAlbums.size < localAlbums.size / 2) {
+                        Timber.w("Sync albums: remote returned ${remoteAlbums.size} albums vs local ${localAlbums.size} albums! Skipping unbookmark to prevent data loss.")
                     }
 
                     remoteAlbums.forEach { album ->
@@ -855,13 +868,19 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remoteArtists.map { it.id }.toSet()
                     val localArtists = database.artistsBookmarkedByNameAsc().first()
 
-                    localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
-                        try {
-                            database.update(artist.artist.localToggleLike())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to update artist: ${artist.id}")
+                    if (remoteArtists.isNotEmpty() && (remoteArtists.size >= localArtists.size / 2 || localArtists.size <= 3)) {
+                        localArtists.filterNot { it.id in remoteIds }.forEach { artist ->
+                            try {
+                                database.update(artist.artist.localToggleLike())
+                                delay(DB_OPERATION_DELAY_MS)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to update artist: ${artist.id}")
+                            }
                         }
+                    } else if (remoteArtists.isEmpty() && localArtists.isNotEmpty()) {
+                        Timber.w("Sync artists: remote returned 0 artists while local has ${localArtists.size} artists! Skipping unbookmark to prevent accidental wipe.")
+                    } else if (localArtists.isNotEmpty() && remoteArtists.size < localArtists.size / 2) {
+                        Timber.w("Sync artists: remote returned ${remoteArtists.size} artists vs local ${localArtists.size} artists! Skipping unbookmark to prevent data loss.")
                     }
 
                     remoteArtists.forEach { artist ->
@@ -947,16 +966,22 @@ class SyncUtils @Inject constructor(
                     val remoteIds = remotePlaylists.map { it.id }.toSet()
 
                     val localPlaylists = database.playlistsByNameAsc().first()
-                    localPlaylists.filterNot { it.playlist.browseId in remoteIds }
-                        .filterNot { it.playlist.browseId == null }
-                        .forEach { playlist ->
-                            try {
-                                database.update(playlist.playlist.localToggleLike())
-                                delay(DB_OPERATION_DELAY_MS)
-                            } catch (e: Exception) {
-                                Timber.e(e, "Failed to update playlist: ${playlist.id}")
+                    if (remotePlaylists.isNotEmpty() && (remotePlaylists.size >= localPlaylists.size / 2 || localPlaylists.size <= 3)) {
+                        localPlaylists.filterNot { it.playlist.browseId in remoteIds }
+                            .filterNot { it.playlist.browseId == null }
+                            .forEach { playlist ->
+                                try {
+                                    database.update(playlist.playlist.localToggleLike())
+                                    delay(DB_OPERATION_DELAY_MS)
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Failed to update playlist: ${playlist.id}")
+                                }
                             }
-                        }
+                    } else if (remotePlaylists.isEmpty() && localPlaylists.isNotEmpty()) {
+                        Timber.w("Sync playlists: remote returned 0 playlists while local has ${localPlaylists.size} playlists! Skipping unbookmark to prevent accidental wipe.")
+                    } else if (localPlaylists.isNotEmpty() && remotePlaylists.size < localPlaylists.size / 2) {
+                        Timber.w("Sync playlists: remote returned ${remotePlaylists.size} playlists vs local ${localPlaylists.size} playlists! Skipping unbookmark to prevent data loss.")
+                    }
 
                     for (playlist in remotePlaylists) {
                         try {
@@ -1133,13 +1158,14 @@ class SyncUtils @Inject constructor(
         return try {
             if (!session.refreshToken.isNullOrBlank()) {
                 val clientId = session.clientId ?: SpotifyAuth.DEFAULT_CLIENT_ID
-                val token = SpotifyAuth.refreshAccessToken(clientId, session.refreshToken).getOrThrow()
+                val token = SpotifyAuth.refreshAccessToken(clientId, session.refreshToken, session.clientSecret).getOrThrow()
                 Spotify.accessToken = token.access_token
                 val updated = session.copy(
                     accessToken = token.access_token,
                     expiresAt = System.currentTimeMillis() + (token.expires_in * 1000L),
                     refreshToken = token.refresh_token ?: session.refreshToken,
                     clientId = clientId,
+                    clientSecret = session.clientSecret,
                 )
                 context.dataStore.edit { prefs ->
                     prefs[SpotifySessionKey] = Json.encodeToString(updated)
@@ -1171,7 +1197,8 @@ class SyncUtils @Inject constructor(
         try {
             val created = Spotify.createPlaylist(
                 name = playlistName,
-                description = "Synced from Vivi Music"
+                description = "Synced from Vivi Music",
+                userId = authSession.userId
             ).getOrThrow()
             val linkedKey = androidx.datastore.preferences.core.stringPreferencesKey("spotify_linked_$playlistId")
             context.dataStore.edit { prefs ->
@@ -1553,7 +1580,8 @@ class SyncUtils @Inject constructor(
                     } else {
                         val created = Spotify.createPlaylist(
                             name = playlistName,
-                            description = "Synced from Vivi Music"
+                            description = "Synced from Vivi Music",
+                            userId = authSession.userId
                         ).getOrThrow()
                         context.dataStore.edit { prefs ->
                             prefs[linkedKey] = created.id
@@ -1678,5 +1706,11 @@ class SyncUtils @Inject constructor(
         withContext(Dispatchers.Main) {
             onComplete?.invoke(succeeded, playlistIds.size)
         }
+    }
+
+    suspend fun restoreLibrary(): Int = withContext(Dispatchers.IO) {
+        val restoredCount = database.restoreOrphanBookmarks()
+        Timber.i("restoreLibrary: Restored $restoredCount orphan bookmarks (playlists, albums, artists, songs)")
+        restoredCount
     }
 }

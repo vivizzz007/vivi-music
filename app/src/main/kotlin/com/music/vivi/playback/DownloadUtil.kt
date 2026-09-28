@@ -116,7 +116,7 @@ constructor(
 
     private val streamHttpClient: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectionPool(okhttp3.ConnectionPool(32, 5, java.util.concurrent.TimeUnit.MINUTES))
+            .connectionPool(okhttp3.ConnectionPool(64, 5, java.util.concurrent.TimeUnit.MINUTES))
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
@@ -321,6 +321,8 @@ constructor(
                 }
 
                 upsert(updatedSong)
+
+                persistOfflineThumbnail(mediaId, updatedSong.thumbnailUrl)
 
                 // Pre-cache standard thumbnail resolutions immediately when download starts
                 updatedSong.thumbnailUrl?.let { url ->
@@ -580,6 +582,31 @@ constructor(
         }
     }
 
+    fun persistOfflineThumbnail(songId: String, thumbnailUrl: String?) {
+        if (thumbnailUrl.isNullOrBlank()) return
+        scope.launch(Dispatchers.IO) {
+            try {
+                val thumbDir = appContext.filesDir.resolve("thumbnails").apply { if (!exists()) mkdirs() }
+                val thumbFile = thumbDir.resolve("${songId}.jpg")
+                if (!thumbFile.exists() || thumbFile.length() == 0L) {
+                    val req = okhttp3.Request.Builder().url(thumbnailUrl).build()
+                    streamHttpClient.newCall(req).execute().use { resp ->
+                        if (resp.isSuccessful) {
+                            resp.body?.byteStream()?.use { input ->
+                                thumbFile.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            }
+                            Timber.tag("DownloadDiagnostics").d("Persisted offline thumbnail for $songId (${thumbFile.length()} bytes)")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.tag("DownloadDiagnostics").w("Failed to persist offline thumbnail for $songId: ${e.message}")
+            }
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     val downloadManager: DownloadManager =
         DownloadManager(
@@ -587,9 +614,9 @@ constructor(
             databaseProvider,
             downloadCache,
             dataSourceFactory,
-            java.util.concurrent.Executors.newFixedThreadPool(6)
+            java.util.concurrent.Executors.newFixedThreadPool(8)
         ).apply {
-            maxParallelDownloads = 4
+            maxParallelDownloads = 6
             addListener(
                 object : DownloadManager.Listener {
                     override fun onDownloadChanged(
@@ -687,6 +714,8 @@ constructor(
                                     } else {
                                         reDownloadRetryCount.remove(songId)
                                         database.updateDownloadedInfo(songId, true, LocalDateTime.now())
+
+                                        persistOfflineThumbnail(songId, song?.thumbnailUrl)
 
                                         song?.thumbnailUrl?.let { url ->
                                             val imageLoader = SingletonImageLoader.get(appContext)

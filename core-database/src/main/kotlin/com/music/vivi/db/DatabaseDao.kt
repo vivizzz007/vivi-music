@@ -1651,6 +1651,27 @@ interface DatabaseDao {
         from: Int,
     ): List<PlaylistSongMap>
 
+    @Query("UPDATE playlist SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND (id IN (SELECT DISTINCT playlistId FROM playlist_song_map) OR isEditable = 1 OR browseId IS NOT NULL)")
+    suspend fun restoreOrphanPlaylists(): Int
+
+    @Query("UPDATE album SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND id IN (SELECT DISTINCT albumId FROM song_album_map)")
+    suspend fun restoreOrphanAlbums(): Int
+
+    @Query("UPDATE artist SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND id IN (SELECT DISTINCT artistId FROM song_artist_map)")
+    suspend fun restoreOrphanArtists(): Int
+
+    @Query("UPDATE song SET liked = 1, inLibrary = datetime('now') WHERE liked = 0 AND (isDownloaded = 1 OR id IN (SELECT DISTINCT songId FROM playlist_song_map))")
+    suspend fun restoreOrphanSongs(): Int
+
+    @Transaction
+    suspend fun restoreOrphanBookmarks(): Int {
+        val p = restoreOrphanPlaylists()
+        val a = restoreOrphanAlbums()
+        val ar = restoreOrphanArtists()
+        val s = restoreOrphanSongs()
+        return p + a + ar + s
+    }
+
     @RawQuery
     fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int
 

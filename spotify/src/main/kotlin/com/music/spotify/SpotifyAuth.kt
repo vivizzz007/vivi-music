@@ -74,6 +74,7 @@ object SpotifyAuth {
         redirectUri: String = DEFAULT_REDIRECT_URI,
         code: String,
         codeVerifier: String,
+        clientSecret: String? = null,
     ): Result<SpotifyTokenResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val url = URL("https://accounts.spotify.com/api/token")
@@ -85,12 +86,18 @@ object SpotifyAuth {
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             connection.setRequestProperty("User-Agent", USER_AGENT)
 
-            val params = "grant_type=authorization_code" +
-                    "&client_id=" + URLEncoder.encode(clientId, "UTF-8") +
-                    "&code=" + URLEncoder.encode(code, "UTF-8") +
-                    "&redirect_uri=" + URLEncoder.encode(redirectUri, "UTF-8") +
-                    "&code_verifier=" + URLEncoder.encode(codeVerifier, "UTF-8")
+            val paramsBuilder = StringBuilder()
+                .append("grant_type=authorization_code")
+                .append("&client_id=").append(URLEncoder.encode(clientId, "UTF-8"))
+                .append("&code=").append(URLEncoder.encode(code, "UTF-8"))
+                .append("&redirect_uri=").append(URLEncoder.encode(redirectUri, "UTF-8"))
+                .append("&code_verifier=").append(URLEncoder.encode(codeVerifier, "UTF-8"))
 
+            if (!clientSecret.isNullOrBlank()) {
+                paramsBuilder.append("&client_secret=").append(URLEncoder.encode(clientSecret, "UTF-8"))
+            }
+
+            val params = paramsBuilder.toString()
             connection.outputStream.use { it.write(params.toByteArray(Charsets.UTF_8)) }
 
             val responseCode = connection.responseCode
@@ -108,6 +115,7 @@ object SpotifyAuth {
     suspend fun refreshAccessToken(
         clientId: String = DEFAULT_CLIENT_ID,
         refreshToken: String,
+        clientSecret: String? = null,
     ): Result<SpotifyTokenResponse> = withContext(Dispatchers.IO) {
         runCatching {
             val url = URL("https://accounts.spotify.com/api/token")
@@ -119,10 +127,16 @@ object SpotifyAuth {
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
             connection.setRequestProperty("User-Agent", USER_AGENT)
 
-            val params = "grant_type=refresh_token" +
-                    "&client_id=" + URLEncoder.encode(clientId, "UTF-8") +
-                    "&refresh_token=" + URLEncoder.encode(refreshToken, "UTF-8")
+            val paramsBuilder = StringBuilder()
+                .append("grant_type=refresh_token")
+                .append("&client_id=").append(URLEncoder.encode(clientId, "UTF-8"))
+                .append("&refresh_token=").append(URLEncoder.encode(refreshToken, "UTF-8"))
 
+            if (!clientSecret.isNullOrBlank()) {
+                paramsBuilder.append("&client_secret=").append(URLEncoder.encode(clientSecret, "UTF-8"))
+            }
+
+            val params = paramsBuilder.toString()
             connection.outputStream.use { it.write(params.toByteArray(Charsets.UTF_8)) }
 
             val responseCode = connection.responseCode

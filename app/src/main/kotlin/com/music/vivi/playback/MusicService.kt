@@ -52,6 +52,7 @@ import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -629,6 +630,8 @@ class MusicService :
                 .setSmallIcon(R.drawable.vivimusicnotification)  //vivimusicnotification
                 .setContentIntent(pending)
                 .setOngoing(true)
+                .setCategory(NotificationCompat.CATEGORY_TRANSPORT)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build()
             startForeground(NOTIFICATION_ID, notification)
         } catch (e: Exception) {
@@ -3319,12 +3322,28 @@ class MusicService :
                     else -> CHUNK_LENGTH
                 }
 
-                // If the entire audio file is 100% cached in downloadCache, we can safely play from cache
+                // If the audio file is cached in downloadCache, play directly from cache
                 // without resolving network stream URL.
-                val isFullyCached = contentLength != null && contentLength > 0L && downloadCache.isCached(mediaId, 0, contentLength)
+                val cachedMetadataLength = ContentMetadata.getContentLength(downloadCache.getContentMetadata(mediaId))
+                val effectiveLength = if (cachedMetadataLength > 0L) cachedMetadataLength else (contentLength ?: -1L)
+                val downloadCachedBytes = downloadCache.getCachedBytes(mediaId, 0, Long.MAX_VALUE)
+                val isFullyCached = (effectiveLength > 0L && downloadCache.isCached(mediaId, 0, effectiveLength))
+                    || (contentLength != null && contentLength > 0L && downloadCache.isCached(mediaId, 0, contentLength))
+                    || (downloadCachedBytes > 150_000L && (effectiveLength <= 0L || downloadCachedBytes >= effectiveLength))
+
                 if (isFullyCached) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                     return@Factory dataSpec
+                }
+
+                // If offline, NEVER fail trying to reach YouTube if ANY cached data exists!
+                if (!isInternetConnected()) {
+                    val playerCachedBytes = playerCache.getCachedBytes(mediaId, 0, Long.MAX_VALUE)
+                    if (downloadCachedBytes > 0L || playerCachedBytes > 0L) {
+                        Timber.tag("MusicService").i("Offline mode: serving cached stream for $mediaId ($downloadCachedBytes dl bytes, $playerCachedBytes player bytes)")
+                        scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
+                        return@Factory dataSpec
+                    }
                 }
 
                 // If partially cached or streaming, resolve URL so seeking or reading beyond cached chunk works seamlessly

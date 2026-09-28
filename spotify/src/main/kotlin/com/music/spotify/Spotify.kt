@@ -265,12 +265,18 @@ object Spotify {
         }
 
         val response = graphqlPost(operationName = "profileAttributes")
-        val profile = response.obj("data")?.obj("me")?.obj("profile")
+        val meObj = response.obj("data")?.obj("me")
+        val profile = meObj?.obj("profile")
             ?: throw SpotifyException(500, "Invalid profileAttributes response")
 
-        val uri = profile.str("uri") ?: ""
+        val uri = profile.str("uri") ?: meObj.str("uri") ?: ""
+        val userId = if (uri.contains(":")) {
+            uri.substringAfterLast(":")
+        } else {
+            profile.str("id") ?: profile.str("username") ?: meObj.str("id") ?: ""
+        }
         SpotifyUser(
-            id = uri.substringAfterLast(":"),
+            id = userId,
             displayName = profile.str("name"),
             images = parseGqlImages(profile.obj("avatar")?.arr("sources")),
         )
@@ -681,10 +687,10 @@ object Spotify {
         }
 
         val endpoints = buildList {
-            add("https://api.spotify.com/v1/me/playlists")
             if (!targetUserId.isNullOrBlank()) {
                 add("https://api.spotify.com/v1/users/$targetUserId/playlists")
             }
+            add("https://api.spotify.com/v1/me/playlists")
         }
 
         val maxRetries = 3
@@ -700,7 +706,7 @@ object Spotify {
                         setBody(
                             TextContent(
                                 payload.toString(),
-                                ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                                ContentType.Application.Json,
                             )
                         )
                     }
@@ -810,7 +816,7 @@ object Spotify {
                     setBody(
                         TextContent(
                             payload.toString(),
-                            ContentType.Application.Json.withParameter("charset", "UTF-8"),
+                            ContentType.Application.Json,
                         )
                     )
                 }
