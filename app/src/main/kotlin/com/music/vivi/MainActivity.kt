@@ -376,9 +376,9 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             runCatching {
-                val restored = database.restoreOrphanBookmarks()
-                if (restored > 0) {
-                    Timber.i("Auto-restored $restored orphan library bookmarks on startup")
+                val cleaned = database.cleanupGhostPlaylists()
+                if (cleaned > 0) {
+                    Timber.i("Cleaned $cleaned ghost/duplicate playlists on startup")
                 }
             }
         }

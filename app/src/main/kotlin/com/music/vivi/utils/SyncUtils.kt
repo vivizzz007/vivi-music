@@ -1209,6 +1209,17 @@ class SyncUtils @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.e(e, "createLinkedSpotifyPlaylist failed")
+            withContext(Dispatchers.Main) {
+                if (e is Spotify.SpotifyException && (e.statusCode == 403 || e.message?.contains("scope", ignoreCase = true) == true)) {
+                    Toast.makeText(
+                        context,
+                        "Spotify write permission missing. Add Developer Client ID & Secret in Settings.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(context, "Could not create playlist on Spotify: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -1659,10 +1670,17 @@ class SyncUtils @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.e(e, "syncLocalPlaylistToSpotify failed")
-            val errorMsg = e.message ?: "Sync to Spotify failed"
+            val errorMsg = when {
+                e is Spotify.SpotifyException && (e.statusCode == 403 || e.message?.contains("scope", ignoreCase = true) == true) ->
+                    "Spotify write access denied (403). Web cookie login only supports importing. To export playlists to Spotify, please add your Spotify Developer Client ID & Secret in Settings."
+                e is Spotify.SpotifyException && e.statusCode == 401 ->
+                    "Spotify session expired. Please reconnect in Settings."
+                else ->
+                    e.message ?: "Sync to Spotify failed"
+            }
             if (!isAutoSync) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                     onComplete?.invoke(false, errorMsg)
                 }
             }

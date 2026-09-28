@@ -106,7 +106,7 @@ jobs:
           find app/build/outputs/apk -type f -name "*.apk" -exec cp {} release_dist/ \;
           # Build OxygenOS 16 AOD Contextual Info edition (com.spotify.music package whitelist)
           ./gradlew assembleUniversalGmsRelease -Poplus=true --no-configuration-cache --console=plain --warning-mode summary -x lint
-          find app/build/outputs/apk/universal/gms/release -type f -name "*.apk" -exec cp {} release_dist/app-universal-gms-release-oxygenos-aod.apk \;
+          find app/build/outputs/apk -type f -name "*gms*.apk" -exec cp {} release_dist/app-universal-gms-release-oxygenos-aod.apk \; || true
 
       - name: Publish Release to GitHub
         env:
@@ -114,7 +114,6 @@ jobs:
         run: |
           VERSION="v${{ steps.prep_release.outputs.full_version }}"
           mkdir -p release_dist
-          find app/build/outputs/apk -type f -name "*.apk" -exec cp -u {} release_dist/ 2>/dev/null || true
           cp release_meta/changelog.json release_dist/
           
           echo "Files prepared for release:"

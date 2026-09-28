@@ -1651,8 +1651,23 @@ interface DatabaseDao {
         from: Int,
     ): List<PlaylistSongMap>
 
-    @Query("UPDATE playlist SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND (id IN (SELECT DISTINCT playlistId FROM playlist_song_map) OR isEditable = 1 OR browseId IS NOT NULL)")
+    @Query("UPDATE playlist SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND id IN (SELECT DISTINCT playlistId FROM playlist_song_map)")
     suspend fun restoreOrphanPlaylists(): Int
+
+    @Query("""
+        UPDATE playlist SET bookmarkedAt = NULL 
+        WHERE bookmarkedAt IS NOT NULL 
+          AND id NOT IN (SELECT DISTINCT playlistId FROM playlist_song_map)
+          AND (
+              name IN (
+                  SELECT name FROM playlist 
+                  WHERE bookmarkedAt IS NOT NULL 
+                  GROUP BY name HAVING COUNT(*) > 1
+              )
+              OR (browseId IS NOT NULL AND (isEditable = 0 OR isEditable IS NULL))
+          )
+    """)
+    suspend fun cleanupGhostPlaylists(): Int
 
     @Query("UPDATE album SET bookmarkedAt = datetime('now') WHERE bookmarkedAt IS NULL AND id IN (SELECT DISTINCT albumId FROM song_album_map)")
     suspend fun restoreOrphanAlbums(): Int
