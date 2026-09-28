@@ -500,15 +500,28 @@ class ThumbnailDiskCacheInterceptor : Interceptor {
 }
 
 private fun tryFindDownloadedArtwork(data: Any?): Bitmap? {
+    if (data is java.io.File && data.exists() && data.length() > 0L) {
+        return BitmapFactory.decodeFile(data.absolutePath)
+    }
     val str = when (data) {
         is String -> data
         is Uri -> data.toString()
         is android.net.Uri -> data.toString()
+        is java.io.File -> data.absolutePath
         else -> data?.toString() ?: return null
+    }
+
+    if (str.startsWith("file://")) {
+        val path = str.removePrefix("file://")
+        val f = java.io.File(path)
+        if (f.exists() && f.length() > 0L) {
+            return BitmapFactory.decodeFile(f.absolutePath)
+        }
     }
 
     val videoId = Regex("/vi(?:_webp)?/([^/?]+)").find(str)?.groupValues?.get(1)
         ?: if (str.startsWith("yt_thumb:")) str.removePrefix("yt_thumb:")
+        else if (str.length in 10..15 && !str.contains("/") && !str.contains(".")) str
         else null
 
     try {

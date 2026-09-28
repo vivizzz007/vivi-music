@@ -437,6 +437,7 @@ fun SongListItem(
             thumbnailContent = {
                 ItemThumbnail(
                     thumbnailUrl = song.song.thumbnailUrl,
+                    songId = song.song.id,
                     albumIndex = albumIndex,
                     isSelected = isSelected,
                     isActive = isActive,
@@ -650,6 +651,7 @@ fun SongGridItem(
         val gridHeight = currentGridThumbnailHeight()
         ItemThumbnail(
             thumbnailUrl = song.song.thumbnailUrl,
+            songId = song.song.id,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -1141,6 +1143,7 @@ fun MediaMetadataListItem(
         thumbnailContent = {
             ItemThumbnail(
                 thumbnailUrl = mediaMetadata.thumbnailUrl,
+                songId = mediaMetadata.id,
                 albumIndex = null,
                 isSelected = isSelected,
                 isActive = isActive,
@@ -1213,6 +1216,7 @@ fun YouTubeListItem(
             thumbnailContent = {
                 ItemThumbnail(
                     thumbnailUrl = item.thumbnail,
+                    songId = (item as? SongItem)?.id,
                     albumIndex = albumIndex,
                     isSelected = isSelected,
                     isActive = isActive,
@@ -1310,6 +1314,7 @@ fun YouTubeGridItem(
 
         ItemThumbnail(
             thumbnailUrl = item.thumbnail,
+            songId = (item as? SongItem)?.id,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
@@ -1454,6 +1459,7 @@ fun RecentSearchGridItem(
         ) {
             ItemThumbnail(
                 thumbnailUrl = event.song.song.thumbnailUrl,
+                songId = event.song.song.id,
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -1502,11 +1508,20 @@ fun ItemThumbnail(
     isPlaying: Boolean,
     shape: Shape,
     modifier: Modifier = Modifier,
+    songId: String? = null,
     albumIndex: Int? = null,
     isSelected: Boolean = false,
     thumbnailRatio: Float = 1f
 ) {
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
+    val context = LocalContext.current
+
+    val localThumbFile = remember(songId) {
+        songId?.let { id ->
+            val file = context.filesDir.resolve("thumbnails").resolve("$id.jpg")
+            if (file.exists() && file.length() > 0L) file else null
+        }
+    }
     
     Box(
         contentAlignment = Alignment.Center,
@@ -1516,13 +1531,21 @@ fun ItemThumbnail(
             .clip(shape)
     ) {
         if (albumIndex == null) {
+            val primaryData: Any? = localThumbFile
+                ?: thumbnailUrl?.resize(544, 544)
+                ?: thumbnailUrl
+                ?: songId?.let { "https://i.ytimg.com/vi/$it/hqdefault.jpg" }
+
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(thumbnailUrl?.resize(544, 544))
+                model = ImageRequest.Builder(context)
+                    .data(primaryData)
                     .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .build(),
+                placeholder = painterResource(R.drawable.queue_music),
+                error = painterResource(R.drawable.queue_music),
+                fallback = painterResource(R.drawable.queue_music),
                 contentDescription = null,
                 contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
                 modifier = Modifier
@@ -1603,6 +1626,8 @@ fun LocalThumbnail(
                 .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
                 .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
                 .build(),
+            placeholder = painterResource(R.drawable.queue_music),
+            error = painterResource(R.drawable.queue_music),
             contentDescription = null,
             contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
             modifier = Modifier.fillMaxSize()

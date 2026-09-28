@@ -53,6 +53,7 @@ import java.io.FileOutputStream
 import java.net.InetAddress
 import java.net.Inet4Address
 import java.net.Inet6Address
+import com.music.vivi.getCanonicalThumbnailKey
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.SongEntity
@@ -583,22 +584,44 @@ constructor(
     }
 
     fun persistOfflineThumbnail(songId: String, thumbnailUrl: String?) {
-        if (thumbnailUrl.isNullOrBlank()) return
         scope.launch(Dispatchers.IO) {
             try {
                 val thumbDir = appContext.filesDir.resolve("thumbnails").apply { if (!exists()) mkdirs() }
                 val thumbFile = thumbDir.resolve("${songId}.jpg")
+                val canonicalKey = getCanonicalThumbnailKey(thumbnailUrl)
+                val keyFile = canonicalKey?.let {
+                    val clean = it.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(64)
+                    thumbDir.resolve("${clean}.jpg")
+                }
+
                 if (!thumbFile.exists() || thumbFile.length() == 0L) {
-                    val req = okhttp3.Request.Builder().url(thumbnailUrl).build()
-                    streamHttpClient.newCall(req).execute().use { resp ->
-                        if (resp.isSuccessful) {
-                            resp.body?.byteStream()?.use { input ->
-                                thumbFile.outputStream().use { output ->
-                                    input.copyTo(output)
+                    val candidateUrls = listOfNotNull(
+                        thumbnailUrl,
+                        "https://i.ytimg.com/vi/$songId/hqdefault.jpg",
+                        "https://i.ytimg.com/vi/$songId/mqdefault.jpg"
+                    )
+                    for (url in candidateUrls) {
+                        try {
+                            val req = okhttp3.Request.Builder().url(url).build()
+                            streamHttpClient.newCall(req).execute().use { resp ->
+                                if (resp.isSuccessful) {
+                                    resp.body?.byteStream()?.use { input ->
+                                        thumbFile.outputStream().use { output ->
+                                            input.copyTo(output)
+                                        }
+                                    }
                                 }
                             }
-                            Timber.tag("DownloadDiagnostics").d("Persisted offline thumbnail for $songId (${thumbFile.length()} bytes)")
-                        }
+                            if (thumbFile.exists() && thumbFile.length() > 0L) {
+                                Timber.tag("DownloadDiagnostics").d("Persisted offline thumbnail for $songId (${thumbFile.length()} bytes)")
+                                break
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
+                if (keyFile != null && thumbFile.exists() && thumbFile.length() > 0L) {
+                    if (!keyFile.exists() || keyFile.length() == 0L) {
+                        runCatching { thumbFile.copyTo(keyFile, overwrite = true) }
                     }
                 }
             } catch (e: Exception) {
@@ -798,7 +821,7 @@ constructor(
                     else -> downloadCache.keys.firstOrNull { it.contains(d.request.id) } ?: d.request.id
                 }
                 val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
-                if (cachedBytes < 300_000L && d.bytesDownloaded < 300_000L) {
+                if (cachedBytes < 20_000L && d.bytesDownloaded < 20_000L) {
                     Timber.tag("DownloadUtil").w("Purging fake/empty completed download: ${d.request.id} (cached: $cachedBytes, bytesDownloaded: ${d.bytesDownloaded})")
                     DownloadService.sendRemoveDownload(appContext, ExoDownloadService::class.java, d.request.id, false)
                     scope.launch(Dispatchers.IO) {
@@ -821,6 +844,7 @@ constructor(
             val savedFailed = appContext.dataStore.data.firstOrNull()?.get(PermanentlyFailedDownloadSongIdsKey) ?: emptySet()
             permanentlyFailedSongIds.addAll(savedFailed)
             repairIncompleteDownloads()
+            syncOfflineThumbnailsForDownloadedSongs()
         }
     }
 
@@ -840,23 +864,31 @@ constructor(
                         continue
                     }
 
-                    val format = songWithData.format ?: database.format(songId).firstOrNull()
+                    // If Media3 confirms this download completed with audio data, do NOT redownload!
+                    if (download != null && download.state == Download.STATE_COMPLETED) {
+                        if (download.bytesDownloaded >= 20_000L) {
+                            continue
+                        }
+                    }
+
                     val cacheKey = when {
                         downloadCache.keys.contains(songId) -> songId
                         downloadCache.keys.contains(songId.toUri().toString()) -> songId.toUri().toString()
                         else -> downloadCache.keys.firstOrNull { it.contains(songId) } ?: songId
                     }
                     val cachedBytes = downloadCache.getCachedBytes(cacheKey, 0, 100_000_000L)
-                    val expectedLength = format?.contentLength ?: 0L
+                    val effectiveBytes = if (cachedBytes > 0L) cachedBytes else (download?.bytesDownloaded ?: 0L)
 
-                    val isTruncated = (cachedBytes in 1L..1_150_000L && (song.duration > 30 || (format?.bitrate ?: 0) > 0)) ||
-                            (expectedLength > 1_500_000L && cachedBytes < (expectedLength * 0.9).toLong()) ||
-                            (cachedBytes < 300_000L && song.duration > 25) ||
-                            cachedBytes == 0L ||
-                            song.duration <= 0
+                    // If download completed or cache has valid audio data (> 20KB)
+                    if (download?.state == Download.STATE_COMPLETED && effectiveBytes >= 20_000L) {
+                        continue
+                    }
 
-                    if (isTruncated) {
-                        Timber.tag("DownloadUtil").w("Repairing corrupt/truncated song: \"${song.title}\" ($songId) - cached=$cachedBytes bytes, expected=$expectedLength, duration=${song.duration}")
+                    // Only consider genuinely corrupt/empty stubs:
+                    // 0 or < 20KB bytes and not marked completed
+                    val isCorruptedStub = effectiveBytes < 20_000L && (download == null || download.state != Download.STATE_COMPLETED)
+                    if (isCorruptedStub) {
+                        Timber.tag("DownloadUtil").w("Repairing corrupt/stub song: \"${song.title}\" ($songId) - effectiveBytes=$effectiveBytes")
                         permanentlyFailedSongIds.remove(songId)
                         appContext.dataStore.edit { prefs ->
                             val current = prefs[PermanentlyFailedDownloadSongIdsKey] ?: emptySet()
@@ -869,6 +901,42 @@ constructor(
                 }
             } catch (e: Exception) {
                 Timber.tag("DownloadUtil").e(e, "Error repairing incomplete downloads")
+            }
+        }
+    }
+
+    fun syncOfflineThumbnailsForDownloadedSongs() {
+        scope.launch(Dispatchers.IO) {
+            try {
+                val downloadedSongs = database.downloadedSongsByNameAsc().firstOrNull() ?: emptyList()
+                if (downloadedSongs.isEmpty()) return@launch
+                val thumbDir = appContext.filesDir.resolve("thumbnails").apply { if (!exists()) mkdirs() }
+
+                for (songWithData in downloadedSongs) {
+                    val song = songWithData.song
+                    val songId = song.id
+                    val thumbFile = thumbDir.resolve("${songId}.jpg")
+                    val canonicalKey = getCanonicalThumbnailKey(song.thumbnailUrl)
+                    val keyFile = canonicalKey?.let {
+                        val clean = it.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(64)
+                        thumbDir.resolve("${clean}.jpg")
+                    }
+
+                    val hasThumb = (thumbFile.exists() && thumbFile.length() > 0L) ||
+                            (keyFile != null && keyFile.exists() && keyFile.length() > 0L)
+
+                    if (!hasThumb) {
+                        persistOfflineThumbnail(songId, song.thumbnailUrl)
+                    } else {
+                        if (thumbFile.exists() && thumbFile.length() > 0L && keyFile != null && (!keyFile.exists() || keyFile.length() == 0L)) {
+                            runCatching { thumbFile.copyTo(keyFile, overwrite = true) }
+                        } else if ((!thumbFile.exists() || thumbFile.length() == 0L) && keyFile != null && keyFile.exists() && keyFile.length() > 0L) {
+                            runCatching { keyFile.copyTo(thumbFile, overwrite = true) }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.tag("DownloadDiagnostics").w(e, "Error syncing offline thumbnails")
             }
         }
     }

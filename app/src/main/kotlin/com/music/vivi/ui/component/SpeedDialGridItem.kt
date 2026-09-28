@@ -47,6 +47,7 @@ fun SpeedDialGridItem(
         // Thumbnail
         ItemThumbnail(
             thumbnailUrl = item.thumbnail?.resize(200, 200),
+            songId = (item as? SongItem)?.id,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
