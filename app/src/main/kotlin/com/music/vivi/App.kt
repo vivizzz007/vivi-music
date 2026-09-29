@@ -32,7 +32,6 @@ import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
-import com.music.vivi.utils.ViviPrefCache
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
@@ -66,9 +65,6 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         context = this
-
-        // Start preferences cache immediately
-        ViviPrefCache.start(this)
 
         // Install crash handler first
         CrashHandler.install(this)

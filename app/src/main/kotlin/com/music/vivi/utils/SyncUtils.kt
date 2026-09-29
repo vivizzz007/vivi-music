@@ -78,6 +78,11 @@ sealed class SyncStatus {
     data object Completed : SyncStatus()
 }
 
+internal fun hasCompleteLikedSongsResponse(
+    fetchedCount: Int,
+    advertisedCount: Int?,
+) = advertisedCount == null || fetchedCount >= advertisedCount
+
 data class SyncState(
     val overallStatus: SyncStatus = SyncStatus.Idle,
     val likedSongs: SyncStatus = SyncStatus.Idle,
@@ -482,14 +487,22 @@ class SyncUtils @Inject constructor(
                     val remoteSongs = page.songs
                     val remoteIds = remoteSongs.map { it.id }.toSet()
                     val localSongs = database.likedSongsByNameAsc().first()
+                    
+                    val advertisedCount = page.playlist.songCountText?.filter { it.isDigit() }?.toIntOrNull()
+                    val hasCompleteResponse = hasCompleteLikedSongsResponse(remoteSongs.size, advertisedCount)
+                    if (!hasCompleteResponse) {
+                        Timber.w("Liked-song response was incomplete (${remoteSongs.size}/$advertisedCount); preserving unmatched local likes")
+                    }
 
-                    // Remove likes from songs not in remote
-                    localSongs.filterNot { it.id in remoteIds }.forEach { song ->
-                        try {
-                            database.update(song.song.localToggleLike())
-                            delay(DB_OPERATION_DELAY_MS)
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to update song: ${song.id}")
+                    // Remove likes from songs not in remote only if we fetched everything
+                    if (hasCompleteResponse) {
+                        localSongs.filterNot { it.id in remoteIds }.forEach { song ->
+                            try {
+                                database.update(song.song.localToggleLike())
+                                delay(DB_OPERATION_DELAY_MS)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to update song: ${song.id}")
+                            }
                         }
                     }
 
