@@ -41,8 +41,6 @@ import androidx.core.net.toUri
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
@@ -54,7 +52,6 @@ import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.Material3MenuGroup
@@ -175,12 +172,7 @@ fun SelectionSongMenu(
                     onClick = {
                         showRemoveDownloadDialog = false
                         songSelection.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false,
-                            )
+                            downloadUtil.cancelOrRemove(song.song.id)
                         }
                     },
                 ) {
@@ -444,18 +436,7 @@ fun SelectionSongMenu(
                                     },
                                     onClick = {
                                         songSelection.forEach { song ->
-                                            val downloadRequest =
-                                                DownloadRequest
-                                                    .Builder(song.id, song.id.toUri())
-                                                    .setCustomCacheKey(song.id)
-                                                    .setData(song.song.title.toByteArray())
-                                                    .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
+                                            downloadUtil.download(song.toMediaMetadata())
                                         }
                                     }
                                 )
@@ -618,12 +599,7 @@ fun SelectionMediaMetadataMenu(
                     onClick = {
                         showRemoveDownloadDialog = false
                         songSelection.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.id,
-                                false,
-                            )
+                            downloadUtil.cancelOrRemove(song.id)
                         }
                     },
                 ) {
@@ -837,18 +813,7 @@ fun SelectionMediaMetadataMenu(
                                     },
                                     onClick = {
                                         songSelection.forEach { song ->
-                                            val downloadRequest =
-                                                DownloadRequest
-                                                    .Builder(song.id, song.id.toUri())
-                                                    .setCustomCacheKey(song.id)
-                                                    .setData(song.title.toByteArray())
-                                                    .build()
-                                            DownloadService.sendAddDownload(
-                                                context,
-                                                ExoDownloadService::class.java,
-                                                downloadRequest,
-                                                false,
-                                            )
+                                            downloadUtil.download(song)
                                         }
                                     }
                                 )

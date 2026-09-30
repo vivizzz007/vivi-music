@@ -108,6 +108,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.playback.download.SongDownload
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CropAlbumArtKey
@@ -484,7 +485,7 @@ fun ExpressiveSongRow(
     isPlaying: Boolean = false,
     isSelected: Boolean = false,
     showDownloadIcon: Boolean = true,
-    downloadState: Download? = null,
+    downloadState: SongDownload? = null,
     shape: Shape = RectangleShape,
     trailingContent: @Composable RowScope.() -> Unit = {},
     modifier: Modifier = Modifier
@@ -499,7 +500,7 @@ fun ExpressiveSongRow(
 
     val animatedProgress by animateFloatAsState(
         targetValue = if (downloadState?.state == Download.STATE_DOWNLOADING || downloadState?.state == Download.STATE_QUEUED) {
-            (maxOf(0f, downloadState.percentDownloaded) / 100f).coerceIn(0f, 1f)
+            (maxOf(0f, downloadState.progress) / 100f).coerceIn(0f, 1f)
         } else 0f,
         animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>(),
         label = "DownloadProgress"

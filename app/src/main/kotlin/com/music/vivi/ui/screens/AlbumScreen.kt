@@ -56,8 +56,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.core.net.toUri
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -116,7 +114,6 @@ import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.AlbumCanvasEnabledKey
 import com.music.vivi.db.entities.Album
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.constants.UseExpressiveAlbumDesignKey
 import com.music.vivi.ui.component.AlbumGradient

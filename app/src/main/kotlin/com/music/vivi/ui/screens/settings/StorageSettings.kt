@@ -5,6 +5,9 @@
 
 package com.music.vivi.ui.screens.settings
 
+import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -21,6 +25,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -39,6 +45,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.navigation.NavController
 import coil3.SingletonImageLoader
 import coil3.annotation.DelicateCoilApi
@@ -48,15 +56,25 @@ import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.constants.DownloadCookieSource
+import com.music.vivi.constants.DownloadCookieSourceKey
+import com.music.vivi.constants.DownloadDirectoryUriKey
+import com.music.vivi.constants.ImportedCookieFileNameKey
+import com.music.vivi.constants.ImportedCookieStringKey
+import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.UseCookieForDownloadsKey
 import com.music.vivi.extensions.tryOrNull
+import com.music.innertube.utils.parseCookieString
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.formatFileSize
+import com.music.vivi.utils.NetscapeCookieParser
+import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -90,6 +108,76 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
+
+    val (downloadDirectoryUri, onDownloadDirectoryUriChange) = rememberPreference(
+        key = DownloadDirectoryUriKey,
+        defaultValue = ""
+    )
+    var downloadDirectoryName by remember(downloadDirectoryUri) {
+        mutableStateOf<String?>(null)
+    }
+    LaunchedEffect(downloadDirectoryUri) {
+        downloadDirectoryName = if (downloadDirectoryUri.isBlank()) {
+            null
+        } else {
+            tryOrNull {
+                DocumentFile.fromTreeUri(context, downloadDirectoryUri.toUri())?.name
+            }
+        }
+    }
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            context.contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+            )
+            onDownloadDirectoryUriChange(uri.toString())
+        }
+    }
+
+    val (useCookieForDownloads, onUseCookieForDownloadsChange) = rememberPreference(
+        key = UseCookieForDownloadsKey,
+        defaultValue = false
+    )
+    val (downloadCookieSource, onDownloadCookieSourceChange) = rememberEnumPreference(
+        key = DownloadCookieSourceKey,
+        defaultValue = DownloadCookieSource.ACCOUNT
+    )
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) { "SAPISID" in parseCookieString(innerTubeCookie) }
+    val (importedCookieFileName, onImportedCookieFileNameChange) = rememberPreference(
+        key = ImportedCookieFileNameKey,
+        defaultValue = ""
+    )
+    val (_, onImportedCookieStringChange) = rememberPreference(
+        key = ImportedCookieStringKey,
+        defaultValue = ""
+    )
+    val cookieFilePickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            coroutineScope.launch(Dispatchers.IO) {
+                val content = tryOrNull {
+                    context.contentResolver.openInputStream(uri)?.use { it.reader().readText() }
+                }
+                val cookie = content?.let { NetscapeCookieParser.parse(it) }
+                if (!cookie.isNullOrBlank()) {
+                    onImportedCookieStringChange(cookie)
+                    onImportedCookieFileNameChange(
+                        tryOrNull {
+                            DocumentFile.fromSingleUri(context, uri)?.name
+                        } ?: "cookies.txt"
+                    )
+                    onDownloadCookieSourceChange(DownloadCookieSource.IMPORTED_FILE)
+                } else {
+                    Timber.tag("StorageSettings").w("Failed to parse imported cookie file")
+                }
+            }
+        }
+    }
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -441,6 +529,111 @@ fun StorageSettings(
                 )
             )
         )
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.download_folder),
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.storage),
+                        title = { Text(stringResource(R.string.download_folder)) },
+                        description = {
+                            Text(
+                                text = downloadDirectoryName
+                                    ?: stringResource(R.string.internal_storage_default)
+                            )
+                        },
+                        trailingContent = {
+                            Text(text = stringResource(R.string.choose_folder))
+                        },
+                        onClick = { folderPickerLauncher.launch(null) }
+                    )
+                )
+                if (downloadDirectoryUri.isNotBlank()) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.clear_all),
+                            title = { Text(stringResource(R.string.reset_to_default)) },
+                            onClick = { onDownloadDirectoryUriChange("") }
+                        )
+                    )
+                }
+            }
+        )
+
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.authenticated_downloads),
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.cached),
+                        title = { Text(stringResource(R.string.use_cookie_for_downloads)) },
+                        description = { Text(stringResource(R.string.use_cookie_for_downloads_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = useCookieForDownloads,
+                                onCheckedChange = onUseCookieForDownloadsChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (useCookieForDownloads) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize),
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onUseCookieForDownloadsChange(!useCookieForDownloads) }
+                    )
+                )
+                if (useCookieForDownloads) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.check),
+                            title = { Text(stringResource(R.string.cookie_source_account)) },
+                            description = {
+                                if (!isLoggedIn) {
+                                    Text(stringResource(R.string.cookie_source_account_not_logged_in))
+                                }
+                            },
+                            trailingContent = {
+                                androidx.compose.material3.RadioButton(
+                                    selected = downloadCookieSource == DownloadCookieSource.ACCOUNT,
+                                    enabled = isLoggedIn,
+                                    onClick = { onDownloadCookieSourceChange(DownloadCookieSource.ACCOUNT) }
+                                )
+                            },
+                            onClick = {
+                                if (isLoggedIn) onDownloadCookieSourceChange(DownloadCookieSource.ACCOUNT)
+                            }
+                        )
+                    )
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.download),
+                            title = { Text(stringResource(R.string.cookie_source_import_file)) },
+                            description = {
+                                Text(
+                                    text = if (importedCookieFileName.isNotBlank()) {
+                                        stringResource(R.string.cookie_file_imported, importedCookieFileName)
+                                    } else {
+                                        stringResource(R.string.cookie_source_import_file_desc)
+                                    }
+                                )
+                            },
+                            trailingContent = {
+                                androidx.compose.material3.RadioButton(
+                                    selected = downloadCookieSource == DownloadCookieSource.IMPORTED_FILE,
+                                    onClick = { cookieFilePickerLauncher.launch(arrayOf("text/plain")) }
+                                )
+                            },
+                            onClick = { cookieFilePickerLauncher.launch(arrayOf("text/plain")) }
+                        )
+                    )
+                }
+            }
+        )
+
         Spacer(Modifier.padding(bottom = 30.dp))
     }
 

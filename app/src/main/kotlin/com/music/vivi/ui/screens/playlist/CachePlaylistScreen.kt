@@ -76,12 +76,11 @@ import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.LocalPlayerConnection
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.R
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.SongSortDescendingKey
@@ -89,7 +88,6 @@ import com.music.vivi.constants.SongSortType
 import com.music.vivi.constants.SongSortTypeKey
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.DraggableScrollbar
 import com.music.vivi.ui.component.EmptyPlaceholder
@@ -465,6 +463,7 @@ private fun CachePlaylistHeader(
     modifier: Modifier = Modifier
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+    val downloadUtil = com.music.vivi.LocalDownloadUtil.current
     val cacheLength = remember(songs) { songs.fastSumBy { it.song.duration ?: 0 } }
 
     Column(
@@ -614,17 +613,7 @@ private fun CachePlaylistHeader(
                             },
                             onDownload = {
                                 songs.forEach { song ->
-                                    val downloadRequest = DownloadRequest
-                                        .Builder(song.id, song.id.toUri())
-                                        .setCustomCacheKey(song.id)
-                                        .setData(song.title.toByteArray())
-                                        .build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false,
-                                    )
+                                    downloadUtil.download(song.toMediaMetadata())
                                 }
                             },
                             onDismiss = { menuState.dismiss() }

@@ -244,6 +244,9 @@ class MusicService :
     lateinit var database: MusicDatabase
 
     @Inject
+    lateinit var songDownloadManager: com.music.vivi.playback.download.SongDownloadManager
+
+    @Inject
     lateinit var lyricsHelper: LyricsHelper
 
     @Inject
@@ -2105,19 +2108,7 @@ class MusicService :
 
                     // Check if auto-download on like is enabled and the song is now liked
                     if (dataStore.get(AutoDownloadOnLikeKey, false) && song.liked) {
-                        // Trigger download for the liked song
-                        val downloadRequest =
-                            androidx.media3.exoplayer.offline.DownloadRequest
-                                .Builder(song.id, song.id.toUri())
-                                .setCustomCacheKey(song.id)
-                                .setData(song.title.toByteArray())
-                                .build()
-                        androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
-                            this@MusicService,
-                            ExoDownloadService::class.java,
-                            downloadRequest,
-                            false
-                        )
+                        songDownloadManager.download(it.toMediaMetadata())
                     }
                 }
                 currentMediaMetadata.value = player.currentMetadata
@@ -3262,6 +3253,22 @@ class MusicService :
             val shouldBypassCache = bypassCacheForQualityChange.contains(mediaId)
 
             if (!shouldBypassCache) {
+                val localSong = runBlocking(Dispatchers.IO) { database.song(mediaId).first()?.song }
+                val localFileUri = localSong?.localFileUri
+                if (localFileUri != null) {
+                    val fileExists = com.music.vivi.playback.download.LocalDownloadFile.exists(
+                        this@MusicService, localFileUri.toUri()
+                    )
+                    if (fileExists) {
+                        return@Factory dataSpec.withUri(localFileUri.toUri())
+                    } else {
+                        Timber.tag("MusicService").w("Downloaded file for $mediaId is gone, falling back")
+                        scope.launch(Dispatchers.IO) {
+                            database.query { update(localSong.copy(isDownloaded = false, localFileUri = null)) }
+                        }
+                    }
+                }
+
                 val contentLength = runBlocking(Dispatchers.IO) {
                     database.song(mediaId).first()?.format?.contentLength
                 }
