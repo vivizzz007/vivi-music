@@ -248,12 +248,12 @@
   <p><i>Connect · Collaborate · Contribute</i></p>
   <br>
 
-  <table border="0" cellpadding="0" cellspacing="0" width="90%">
+  <table border="0" cellpadding="16" cellspacing="0" width="90%">
 
     <!-- Telegram Spotlight -->
     <tr>
-      <td colspan="2" align="center" style="padding:16px;">
-        <h3>✈️ &nbsp;Join the VIVI Community on Telegram</h3>
+      <td colspan="2" align="center">
+        <h3>✈️ Join the VIVI Community on Telegram</h3>
         <p>Chat with fellow music lovers, get instant support, suggest features,<br>and be the first to hear about every new release.</p>
         <a href="https://t.me/+Nen-QpiY0tk1OTE9">
           <img src="https://img.shields.io/badge/Open%20Telegram%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
@@ -261,19 +261,17 @@
       </td>
     </tr>
 
-    <tr><td colspan="2" align="center"><br>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br><br></td></tr>
-
     <!-- Row 1: Bug Report | Discussions -->
     <tr valign="top">
-      <td align="center" width="50%" style="padding:12px;">
-        <h3>🐛 &nbsp;Found a Bug?</h3>
+      <td align="center" width="50%">
+        <h3>🐛 Found a Bug?</h3>
         <p>Help us squash issues and make VIVI better<br>for everyone by filing a GitHub issue.</p>
         <a href="https://github.com/vivizzz007/vivi-music/issues">
           <img src="https://img.shields.io/badge/Report%20a%20Bug-EA4335?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug">
         </a>
       </td>
-      <td align="center" width="50%" style="padding:12px;">
-        <h3>💡 &nbsp;Got an Idea?</h3>
+      <td align="center" width="50%">
+        <h3>💡 Got an Idea?</h3>
         <p>Share feature requests, ask questions,<br>and spark great conversations.</p>
         <a href="https://github.com/vivizzz007/vivi-music/discussions">
           <img src="https://img.shields.io/badge/Start%20a%20Discussion-6e40c9?style=for-the-badge&logo=github&logoColor=white" alt="Discussions">
@@ -283,15 +281,15 @@
 
     <!-- Row 2: Releases | Ko-fi -->
     <tr valign="top">
-      <td align="center" width="50%" style="padding:12px;">
-        <h3>🚀 &nbsp;Latest Release</h3>
+      <td align="center" width="50%">
+        <h3>🚀 Latest Release</h3>
         <p>Always stay on the cutting edge —<br>grab the newest VIVI APK right here.</p>
         <a href="https://github.com/vivizzz007/vivi-music/releases">
           <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download%20Latest&style=for-the-badge&color=4CAF50" alt="Latest Release">
         </a>
       </td>
-      <td align="center" width="50%" style="padding:12px;">
-        <h3>☕ &nbsp;Support VIVI</h3>
+      <td align="center" width="50%">
+        <h3>☕ Support VIVI</h3>
         <p>Love what we're building? A coffee goes a long<br>way in keeping VIVI ad-free and active.</p>
         <a href="https://ko-fi.com/vividhpashokan">
           <img src="https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
