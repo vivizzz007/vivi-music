@@ -245,45 +245,39 @@
 <div align="center">
 
   <h2>🌐 Community &amp; Support</h2>
-  <p>Join the VIVI Music community — share feedback, report bugs, suggest features, and stay ahead of every release.</p>
+  <p><i>Connect · Collaborate · Contribute</i></p>
+  <p>Got feedback? Found a bug? Or just want to vibe with fellow music lovers?<br>VIVI's community is the place to be.</p>
+
   <br>
 
-  <table border="0" cellpadding="12" cellspacing="0" width="92%">
-    <tr valign="top">
-      <td align="center" width="33%">
-        <h4>💬 Chat &amp; Community</h4>
-        <a href="https://t.me/+Nen-QpiY0tk1OTE9">
-          <img src="https://img.shields.io/badge/Telegram-Join%20Now-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
-        </a>
-        <br><br>
-        <sub>Chat with fellow music lovers,<br>share tips &amp; get instant support.</sub>
-      </td>
-      <td align="center" width="33%">
-        <h4>🐛 Issues &amp; Feedback</h4>
-        <a href="https://github.com/vivizzz007/vivi-music/issues">
-          <img src="https://img.shields.io/badge/GitHub-Report%20a%20Bug-EA4335?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug">
-        </a>
-        <br><br>
-        <a href="https://github.com/vivizzz007/vivi-music/discussions">
-          <img src="https://img.shields.io/badge/GitHub-Discussions-6e40c9?style=for-the-badge&logo=github&logoColor=white" alt="Discussions">
-        </a>
-        <br><br>
-        <sub>Found a bug? Have a feature idea?<br>We'd love to hear from you.</sub>
-      </td>
-      <td align="center" width="33%">
-        <h4>🚀 Stay Updated</h4>
-        <a href="https://github.com/vivizzz007/vivi-music/releases">
-          <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Latest%20Release&style=for-the-badge&color=4CAF50" alt="Latest Release">
-        </a>
-        <br><br>
-        <a href="https://ko-fi.com/vividhpashokan">
-          <img src="https://img.shields.io/badge/Support-Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Support on Ko-fi">
-        </a>
-        <br><br>
-        <sub>Download the latest APK &amp;<br>support active development.</sub>
-      </td>
-    </tr>
-  </table>
+  <!-- Primary CTA -->
+  <a href="https://t.me/+Nen-QpiY0tk1OTE9">
+    <img src="https://img.shields.io/badge/✈%20Join%20VIVI%20on%20Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram" height="42">
+  </a>
+
+  <br><br>
+
+  <p>──────────────────────────────────</p>
+
+  <!-- Action Row -->
+  <a href="https://github.com/vivizzz007/vivi-music/issues">
+    <img src="https://img.shields.io/badge/🐞%20Report%20a%20Bug-EA4335?style=for-the-badge" alt="Report Bug">
+  </a>
+  &nbsp;
+  <a href="https://github.com/vivizzz007/vivi-music/discussions">
+    <img src="https://img.shields.io/badge/💬%20Discussions-6e40c9?style=for-the-badge" alt="Discussions">
+  </a>
+  &nbsp;
+  <a href="https://github.com/vivizzz007/vivi-music/releases">
+    <img src="https://img.shields.io/badge/🚀%20Releases-4CAF50?style=for-the-badge" alt="Releases">
+  </a>
+  &nbsp;
+  <a href="https://ko-fi.com/vividhpashokan">
+    <img src="https://img.shields.io/badge/☕%20Support%20on%20Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
+  </a>
+
+  <br><br>
+  <sub>🐛 <b>Bug?</b> File an issue &nbsp;|&nbsp; 💡 <b>Idea?</b> Start a discussion &nbsp;|&nbsp; ❤️ <b>Love VIVI?</b> Support on Ko-fi</sub>
 
 </div>
 
