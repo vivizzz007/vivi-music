@@ -248,55 +248,57 @@
   <p><i>Connect · Collaborate · Contribute</i></p>
   <br>
 
-  <table border="0" cellpadding="16" cellspacing="0" width="90%">
-
-    <!-- Telegram Spotlight -->
+  <table border="0" cellpadding="14" cellspacing="0" width="88%">
     <tr>
-      <td colspan="2" align="center">
-        <h3>✈️ Join the VIVI Community on Telegram</h3>
-        <p>Chat with fellow music lovers, get instant support, suggest features,<br>and be the first to hear about every new release.</p>
+      <th align="left">Channel</th>
+      <th align="left">About</th>
+      <th align="center">Action</th>
+    </tr>
+    <tr>
+      <td><b>✈️ Telegram</b></td>
+      <td>Chat with fellow music lovers, get support &amp; stay updated</td>
+      <td align="center">
         <a href="https://t.me/+Nen-QpiY0tk1OTE9">
-          <img src="https://img.shields.io/badge/Open%20Telegram%20Community-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram">
+          <img src="https://img.shields.io/badge/Join%20Now-2CA5E0?style=flat-square&logo=telegram&logoColor=white" alt="Telegram">
         </a>
       </td>
     </tr>
-
-    <!-- Row 1: Bug Report | Discussions -->
-    <tr valign="top">
-      <td align="center" width="50%">
-        <h3>🐛 Found a Bug?</h3>
-        <p>Help us squash issues and make VIVI better<br>for everyone by filing a GitHub issue.</p>
+    <tr>
+      <td><b>🐛 Bug Reports</b></td>
+      <td>Found something broken? Help us fix it by opening a GitHub issue</td>
+      <td align="center">
         <a href="https://github.com/vivizzz007/vivi-music/issues">
-          <img src="https://img.shields.io/badge/Report%20a%20Bug-EA4335?style=for-the-badge&logo=github&logoColor=white" alt="Report Bug">
+          <img src="https://img.shields.io/badge/Report-EA4335?style=flat-square&logo=github&logoColor=white" alt="Report Bug">
         </a>
       </td>
-      <td align="center" width="50%">
-        <h3>💡 Got an Idea?</h3>
-        <p>Share feature requests, ask questions,<br>and spark great conversations.</p>
+    </tr>
+    <tr>
+      <td><b>💡 Discussions</b></td>
+      <td>Share ideas, request features &amp; spark community conversations</td>
+      <td align="center">
         <a href="https://github.com/vivizzz007/vivi-music/discussions">
-          <img src="https://img.shields.io/badge/Start%20a%20Discussion-6e40c9?style=for-the-badge&logo=github&logoColor=white" alt="Discussions">
+          <img src="https://img.shields.io/badge/Discuss-6e40c9?style=flat-square&logo=github&logoColor=white" alt="Discussions">
         </a>
       </td>
     </tr>
-
-    <!-- Row 2: Releases | Ko-fi -->
-    <tr valign="top">
-      <td align="center" width="50%">
-        <h3>🚀 Latest Release</h3>
-        <p>Always stay on the cutting edge —<br>grab the newest VIVI APK right here.</p>
+    <tr>
+      <td><b>🚀 Releases</b></td>
+      <td>Always stay on the cutting edge — grab the latest VIVI APK</td>
+      <td align="center">
         <a href="https://github.com/vivizzz007/vivi-music/releases">
-          <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?label=Download%20Latest&style=for-the-badge&color=4CAF50" alt="Latest Release">
-        </a>
-      </td>
-      <td align="center" width="50%">
-        <h3>☕ Support VIVI</h3>
-        <p>Love what we're building? A coffee goes a long<br>way in keeping VIVI ad-free and active.</p>
-        <a href="https://ko-fi.com/vividhpashokan">
-          <img src="https://img.shields.io/badge/Support%20on%20Ko--fi-F16061?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
+          <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?style=flat-square&color=4CAF50&label=Download" alt="Releases">
         </a>
       </td>
     </tr>
-
+    <tr>
+      <td><b>☕ Ko-fi</b></td>
+      <td>Love VIVI? A coffee keeps it ad-free, active &amp; growing</td>
+      <td align="center">
+        <a href="https://ko-fi.com/vividhpashokan">
+          <img src="https://img.shields.io/badge/Support-F16061?style=flat-square&logo=ko-fi&logoColor=white" alt="Ko-fi">
+        </a>
+      </td>
+    </tr>
   </table>
 
 </div>
