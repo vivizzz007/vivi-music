@@ -281,24 +281,7 @@
         </a>
       </td>
     </tr>
-    <tr>
-      <td><b>🚀 Releases</b></td>
-      <td>Always stay on the cutting edge — grab the latest VIVI APK</td>
-      <td align="center">
-        <a href="https://github.com/vivizzz007/vivi-music/releases">
-          <img src="https://img.shields.io/github/v/release/vivizzz007/vivi-music?style=flat-square&color=4CAF50&label=Download" alt="Releases">
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td><b>☕ Ko-fi</b></td>
-      <td>Love VIVI? A coffee keeps it ad-free, active &amp; growing</td>
-      <td align="center">
-        <a href="https://ko-fi.com/vividhpashokan">
-          <img src="https://img.shields.io/badge/Support-F16061?style=flat-square&logo=ko-fi&logoColor=white" alt="Ko-fi">
-        </a>
-      </td>
-    </tr>
+
   </table>
 
 </div>
