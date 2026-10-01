@@ -277,7 +277,7 @@
       <td width="40%" align="left">
         <b>💡 Special Thanks</b>
         <ul>
-          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – Creator of <a href="https://github.com/mostafaalagamy/Metrolist">Metrolist</a>, the project that inspired VIVI Music. Huge thanks for the foundation and open-source contributions! 🌟</li>
           <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – Huge congratulations and thanks for inventing the new playback method! 🎉</li>
         </ul>
       </td>
