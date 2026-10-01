@@ -297,4 +297,11 @@
     <string name="new_version_available">Nová verzia je dostupná</string>
     <string name="translation_models">Prekladové modely</string>
     <string name="clear_translation_models">Jasné modely prekladu</string>
+
+    <string name="create_playlist_or_spotify_hint">Názov zoznamu skladieb alebo odkaz na zoznam skladieb Spotify</string>
+    <string name="spotify_importing_playlist">Importuje sa zo Spotify…</string>
+    <string name="spotify_import_result">Počet importovaných skladieb: %1$d. %2$d sa nepodarilo nájsť.</string>
+    <string name="spotify_import_failed">Tento zoznam skladieb Spotify sa nepodarilo importovať.</string>
+    <string name="spotify_import_timeout">Import trval príliš dlho. Skontrolujte sieť a skúste to znova.</string>
+    <string name="music">Hudba</string>
 </resources>

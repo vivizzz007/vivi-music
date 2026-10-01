@@ -267,4 +267,11 @@
     <string name="new_version_available">發現新版本</string>
     <string name="translation_models">翻譯模型</string>
     <string name="clear_translation_models">清除翻譯模型</string>
+
+    <string name="create_playlist_or_spotify_hint">播放清單名稱或 Spotify 播放清單鏈接</string>
+    <string name="spotify_importing_playlist">從 Spotify 導入...</string>
+    <string name="spotify_import_result">已匯入 %1$d 首曲目。 %2$d 無法匹配。</string>
+    <string name="spotify_import_failed">無法匯入此 Spotify 播放清單。</string>
+    <string name="spotify_import_timeout">導入時間太長。檢查您的網路並重試。</string>
+    <string name="music">音樂</string>
 </resources>

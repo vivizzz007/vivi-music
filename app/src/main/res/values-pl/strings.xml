@@ -297,4 +297,11 @@
     <string name="use_login_for_browse">Zaloguj się, aby przeglądać treści</string>
     <string name="use_login_for_browse_desc">Może mieć wpływ na to, jakie treści widzisz i np. pokazuje albumy tylko premium, jeśli jesteś zalogowany na konto Premium</string>
     <string name="action_login">Zaloguj</string>
+
+    <string name="create_playlist_or_spotify_hint">Nazwa playlisty lub link do playlisty Spotify</string>
+    <string name="spotify_importing_playlist">Importowanie ze Spotify…</string>
+    <string name="spotify_import_result">Zaimportowano %1$d utworów. Nie można dopasować %2$d.</string>
+    <string name="spotify_import_failed">Nie można zaimportować tej listy odtwarzania Spotify.</string>
+    <string name="spotify_import_timeout">Import trwał zbyt długo. Sprawdź swoją sieć i spróbuj ponownie.</string>
+    <string name="music">Muzyka</string>
 </resources>

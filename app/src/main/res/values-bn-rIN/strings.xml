@@ -201,4 +201,12 @@
     <string name="restore_failed">ব্যাকআপ থেকে পুনরুদ্ধার করতে অক্ষম</string>
     <string name="about">সম্পর্কিত</string>
     <string name="app_version">অ্যাপ সংস্করণ</string>
+
+    <string name="create_playlist_or_spotify_hint">প্লেলিস্ট নাম বা Spotify প্লেলিস্ট লিঙ্ক</string>
+    <string name="spotify_importing_playlist">Spotify থেকে আমদানি করা হচ্ছে...</string>
+    <string name="spotify_import_result">%1$dটি ট্র্যাক আমদানি করা হয়েছে৷ %2$d মেলেনি।</string>
+    <string name="spotify_import_failed">এই Spotify প্লেলিস্টটি আমদানি করা যায়নি।</string>
+    <string name="spotify_import_timeout">আমদানিতে অনেক সময় লেগেছে। আপনার নেটওয়ার্ক পরীক্ষা করুন এবং আবার চেষ্টা করুন.</string>
+    <string name="music">সঙ্গীত</string>
+
 </resources>

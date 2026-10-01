@@ -288,4 +288,12 @@
     <string name="new_version_available">גירסה חדשה זמינה</string>
     <string name="translation_models">מודלים של תרגום</string>
     <string name="clear_translation_models">ניקוי מודלי תרגום</string>
+
+    <string name="create_playlist_or_spotify_hint">שם רשימת השמעה או קישור לרשימת ההשמעה של Spotify</string>
+    <string name="spotify_importing_playlist">מייבא מ-Spotify...</string>
+    <string name="spotify_import_result">יובאו %1$d רצועות. לא ניתן היה להתאים את %2$d.</string>
+    <string name="spotify_import_failed">לא ניתן לייבא את רשימת ההשמעה הזו של Spotify.</string>
+    <string name="spotify_import_timeout">הייבוא ​​ארך יותר מדי זמן. בדוק את הרשת שלך ונסה שוב.</string>
+    <string name="music">מוּסִיקָה</string>
+
 </resources>

@@ -41,4 +41,11 @@
     <string name="filter_albums">Albumi</string>
     <string name="filter_artists">Izvajalci</string>
     <string name="filter_playlists">Seznami predvajanja</string>
+
+    <string name="create_playlist_or_spotify_hint">Ime seznama predvajanja ali povezava do seznama predvajanja Spotify</string>
+    <string name="spotify_importing_playlist">Uvažanje iz Spotifyja …</string>
+    <string name="spotify_import_result">Uvoženih skladb: %1$d. %2$d ni bilo mogoče najti.</string>
+    <string name="spotify_import_failed">Tega seznama predvajanja Spotify ni bilo mogoče uvoziti.</string>
+    <string name="spotify_import_timeout">Uvoz je trajal predolgo. Preverite omrežje in poskusite znova.</string>
+    <string name="music">Glasba</string>
 </resources>

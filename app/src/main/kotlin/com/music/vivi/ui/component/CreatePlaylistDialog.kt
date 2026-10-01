@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -33,12 +32,19 @@ import com.music.vivi.R
 import com.music.vivi.constants.InnerTubeCookieKey
 import com.music.vivi.db.entities.PlaylistEntity
 import com.music.vivi.extensions.isSyncEnabled
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import com.music.vivi.utils.SpotifyPlaylistImportHelper
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import java.time.LocalDateTime
 import java.util.logging.Logger
+
+private const val SPOTIFY_IMPORT_TIMEOUT_MS = 300_000L
 
 @Composable
 fun CreatePlaylistDialog(
@@ -48,7 +54,7 @@ fun CreatePlaylistDialog(
     onPlaylistCreated: ((String) -> Unit)? = null,
 ) {
     val database = LocalDatabase.current
-    val coroutineScope = rememberCoroutineScope()
+    val lifecycleOwner = LocalLifecycleOwner.current
     var syncedPlaylist by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -59,31 +65,90 @@ fun CreatePlaylistDialog(
         icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
         title = { Text(text = stringResource(R.string.create_playlist)) },
         initialTextFieldValue = TextFieldValue(initialTextFieldValue ?: ""),
+        placeholder = { Text(stringResource(R.string.create_playlist_or_spotify_hint)) },
+        singleLine = false,
+        maxLines = 4,
         onDismiss = onDismiss,
-        onDone = { playlistName ->
-            coroutineScope.launch(Dispatchers.IO) {
+        onDone = { rawInput ->
+            val trimmed = rawInput.trim()
+            if (SpotifyPlaylistImportHelper.isSpotifyPlaylistInput(trimmed)) {
+                lifecycleOwner.lifecycleScope.launch {
+                    if (syncedPlaylist && !isSignedIn) {
+                        Logger.getLogger("CreatePlaylistDialog").warning("Not signed in")
+                        return@launch
+                    }
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.spotify_importing_playlist),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    val syncToYouTube = syncedPlaylist && isSignedIn
+                    val result = try {
+                        withTimeout(SPOTIFY_IMPORT_TIMEOUT_MS) {
+                            withContext(Dispatchers.IO) {
+                                SpotifyPlaylistImportHelper.importFromSpotifyUrl(
+                                    rawInput = trimmed,
+                                    database = database,
+                                    syncToYouTube = syncToYouTube,
+                                )
+                            }
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        Result.failure(
+                            IllegalStateException(
+                                context.getString(R.string.spotify_import_timeout),
+                            ),
+                        )
+                    } catch (e: Exception) {
+                        Result.failure(e)
+                    }
+                    result.fold(
+                        onSuccess = { importResult ->
+                            Toast.makeText(
+                                context,
+                                context.getString(
+                                    R.string.spotify_import_result,
+                                    importResult.savedCount,
+                                    importResult.skippedCount,
+                                ),
+                                Toast.LENGTH_LONG,
+                            ).show()
+                            onPlaylistCreated?.invoke(importResult.playlistId)
+                        },
+                        onFailure = { e ->
+                            Toast.makeText(
+                                context,
+                                e.message?.takeIf { it.isNotBlank() }
+                                    ?: context.getString(R.string.spotify_import_failed),
+                                Toast.LENGTH_LONG,
+                            ).show()
+                        },
+                    )
+                }
+            } else {
+            lifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
                 val browseId = if (syncedPlaylist && isSignedIn) {
-                    YouTube.createPlaylist(playlistName)
+                    YouTube.createPlaylist(trimmed)
                 } else if (syncedPlaylist) {
                     Logger.getLogger("CreatePlaylistDialog").warning("Not signed in")
                     return@launch
                 } else null
 
                 val playlistEntity = PlaylistEntity(
-                    name = playlistName,
+                    name = trimmed,
                     browseId = browseId,
                     bookmarkedAt = LocalDateTime.now(),
                     isEditable = true,
                 )
-                
+
                 database.query {
                     insert(playlistEntity)
                 }
 
-//                onPlaylistCreated?.invoke(playlistEntity.id)
                 withContext(Dispatchers.Main) {
                     onPlaylistCreated?.invoke(playlistEntity.id)
                 }
+            }
             }
         },
         extraContent = {

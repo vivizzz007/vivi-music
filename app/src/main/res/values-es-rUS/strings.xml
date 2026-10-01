@@ -288,4 +288,12 @@
     <string name="clear_translation_models">Modelos de traducción claros</string>
     <string name="action_like_all">Me gustan todas</string>
     <string name="squiggly">Ondulado</string>
+
+    <string name="create_playlist_or_spotify_hint">Nombre de la lista de reproducción o enlace de la lista de reproducción de Spotify</string>
+    <string name="spotify_importing_playlist">Importando desde Spotify…</string>
+    <string name="spotify_import_result">%1$d pistas importadas. %2$d no pudo coincidir.</string>
+    <string name="spotify_import_failed">No se pudo importar esta lista de reproducción de Spotify.</string>
+    <string name="spotify_import_timeout">La importación tomó demasiado tiempo. Verifique su red e inténtelo nuevamente.</string>
+    <string name="music">Música</string>
+
 </resources>
