@@ -185,7 +185,7 @@ inline fun ListItem(
             .background(color = containerColor)
     ) {
         Box(
-            modifier = Modifier.padding(start = 12.dp, top = 6.dp, end = 6.dp, bottom = 6.dp),
+            modifier = Modifier.fillMaxHeight().padding(start = 12.dp, top = 12.dp, end = 6.dp, bottom = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             thumbnailContent()
