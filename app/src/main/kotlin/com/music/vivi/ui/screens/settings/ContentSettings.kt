@@ -58,6 +58,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
@@ -136,6 +138,10 @@ fun ContentSettings(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    val localNetworkPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {}
 
     val (dataSaver, _) = rememberPreference(DataSaverKey, defaultValue = false)
     fun toggleDataSaver(enable: Boolean) {
@@ -966,7 +972,12 @@ fun ContentSettings(
                         trailingContent = {
                             Switch(
                                 checked = proxyEnabled,
-                                onCheckedChange = onProxyEnabledChange,
+                                onCheckedChange = { checked ->
+                                    onProxyEnabledChange(checked)
+                                    if (checked && Build.VERSION.SDK_INT >= 36) {
+                                        localNetworkPermissionLauncher.launch("android.permission.ACCESS_LOCAL_NETWORK")
+                                    }
+                                },
                                 thumbContent = {
                                     Icon(
                                         painter = painterResource(
@@ -978,7 +989,13 @@ fun ContentSettings(
                                 }
                             )
                         },
-                        onClick = { onProxyEnabledChange(!proxyEnabled) }
+                        onClick = {
+                            val checked = !proxyEnabled
+                            onProxyEnabledChange(checked)
+                            if (checked && Build.VERSION.SDK_INT >= 36) {
+                                localNetworkPermissionLauncher.launch("android.permission.ACCESS_LOCAL_NETWORK")
+                            }
+                        }
                     )
                 )
                 if (proxyEnabled) {
