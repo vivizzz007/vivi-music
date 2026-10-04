@@ -85,18 +85,21 @@ private data class PlaylistImportData(
 )
 
 @HiltViewModel
-class SpotifyImportViewModel @Inject constructor(
+class SpotifyViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: MusicDatabase,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SpotifyImportUiState(isLoading = true))
+    private val _uiState = MutableStateFlow(SpotifyImportUiState(isLoading = false))
     val uiState: StateFlow<SpotifyImportUiState> = _uiState.asStateFlow()
 
     private val _importProgress = MutableStateFlow<SpotifyImportProgress?>(null)
     val importProgress: StateFlow<SpotifyImportProgress?> = _importProgress.asStateFlow()
 
     private var importJob: Job? = null
+
+    /** True once playlists have been successfully fetched at least once this ViewModel lifetime. */
+    private var sourcesLoaded = false
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -165,6 +168,21 @@ class SpotifyImportViewModel @Inject constructor(
                     _uiState.update { it.copy(isAuthenticated = false, isLoading = false) }
                     return@launch
                 }
+
+                // If we already loaded data in this ViewModel instance, just restore auth state
+                // without hitting the network again — the user is re-entering the screen.
+                if (sourcesLoaded) {
+                    _uiState.update {
+                        it.copy(
+                            isAuthenticated = true,
+                            accountName = session.accountName.orEmpty(),
+                            accountAvatarUrl = session.accountAvatarUrl,
+                            isLoading = false
+                        )
+                    }
+                    return@launch
+                }
+
                 if (session.accessToken != null && session.expiresAt > System.currentTimeMillis() + 60_000L) {
                     Spotify.accessToken = session.accessToken
                     _uiState.update {
@@ -239,6 +257,7 @@ class SpotifyImportViewModel @Inject constructor(
                     if (offset >= page.total) break
                 }
 
+                sourcesLoaded = true
                 _uiState.update {
                     it.copy(
                         playlists = playlistsList,
@@ -266,6 +285,7 @@ class SpotifyImportViewModel @Inject constructor(
                 prefs.remove(SpotifySessionKey)
             }
             Spotify.accessToken = null
+            sourcesLoaded = false
             _uiState.update {
                 SpotifyImportUiState(
                     isAuthenticated = false,
@@ -444,7 +464,9 @@ class SpotifyImportViewModel @Inject constructor(
                                     }
 
                                     if (best != null) {
-                                        resultMedia = best.toMediaMetadata()
+                                        resultMedia = best.toMediaMetadata().copy(
+                                            inLibrary = LocalDateTime.now()
+                                        )
                                     }
                                 } catch (e: Exception) {
                                     reportException(e)
@@ -490,6 +512,7 @@ class SpotifyImportViewModel @Inject constructor(
 
                         matchedMedia.forEach { metadata ->
                             insert(metadata)
+                            inLibrary(metadata.id, metadata.inLibrary)
                         }
 
                         clearPlaylist(importData.localPlaylistId)

@@ -5,10 +5,24 @@
 package com.music.vivi.ui.screens.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -22,22 +36,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.spotify.SpotifyMapper
 import com.music.spotify.models.SpotifyPlaylist
+import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.AnimatedActionButton
+import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.detachedItemShape
 import com.music.vivi.ui.component.endItemShape
 import com.music.vivi.ui.component.leadingItemShape
 import com.music.vivi.ui.component.middleItemShape
-import com.music.vivi.viewmodels.SpotifyImportViewModel
+import androidx.compose.ui.graphics.Color
+import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.viewmodels.SpotifyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SpotifyPlaylistBottomSheet(
-    onDismiss: () -> Unit,
-    viewModel: SpotifyImportViewModel,
+fun SpotifyPlaylistScreen(
+    navController: NavController,
+    viewModel: SpotifyViewModel,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -72,112 +91,70 @@ fun SpotifyPlaylistBottomSheet(
         }
     }
 
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f)
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                )
+                .fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 100.dp) // Room for floating import button
         ) {
-            // Header Row (Title and Select All checkbox)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(R.string.playlists),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+            item {
+                Spacer(
+                    Modifier.windowInsetsPadding(
+                        LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)
+                    )
                 )
 
-                val isAllSelected = filteredDisplayItems.isNotEmpty() && filteredDisplayItems.all { item ->
-                    val id = if (item is String) item else (item as SpotifyPlaylist).id
-                    id in selectedIds
-                }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.spotify_select_all),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Checkbox(
-                        checked = isAllSelected,
-                        onCheckedChange = { checked ->
-                            filteredDisplayItems.forEach { item ->
-                                val id = if (item is String) item else (item as SpotifyPlaylist).id
-                                if (checked) {
-                                    if (id !in selectedIds) selectedIds.add(id)
-                                } else {
-                                    selectedIds.remove(id)
-                                }
+
+                // Search Text Field
+                TextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text(stringResource(R.string.search)) },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.search),
+                            contentDescription = null
+                        )
+                    },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            androidx.compose.material3.IconButton(onClick = { searchQuery = "" }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null
+                                )
                             }
                         }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .height(52.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent
                     )
-                }
+                )
+
+
             }
 
-            // Search Text Field
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text(stringResource(R.string.search)) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(R.drawable.search),
-                        contentDescription = null
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(
-                                painter = painterResource(R.drawable.close),
-                                contentDescription = null
-                            )
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(50),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                )
-            )
-
-            // Top Divider
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            )
-
             // Playlist list
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentPadding = PaddingValues(horizontal = 24.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-            ) {
-                itemsIndexed(filteredDisplayItems, key = { _, item ->
+            itemsIndexed(
+                items = filteredDisplayItems,
+                key = { _, item ->
                     if (item is String) item else (item as SpotifyPlaylist).id
-                }) { index, item ->
+                }
+            ) { index, item ->
+                // Apply horizontal padding around each item
+                Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 1.dp)) {
                     val shape = when {
                         filteredDisplayItems.size == 1 -> detachedItemShape()
                         index == 0 -> leadingItemShape()
@@ -214,32 +191,74 @@ fun SpotifyPlaylistBottomSheet(
                     }
                 }
             }
-
-            // Bottom Divider
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant,
-                thickness = 1.dp,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Bottom OK Button Row
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                AnimatedActionButton(
-                    text = stringResource(R.string.import_action),
-                    onClick = {
-                        viewModel.startImport(selectedIds.toList())
-                        onDismiss()
-                    },
-                    modifier = Modifier.widthIn(min = 120.dp),
-                    enabled = selectedIds.isNotEmpty() && !state.isLoading
-                )
-            }
         }
+
+        // Bottom floating button area
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .windowInsetsPadding(
+                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                )
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            contentAlignment = Alignment.CenterEnd
+        ) {
+            AnimatedActionButton(
+                text = stringResource(R.string.import_action),
+                onClick = {
+                    viewModel.startImport(selectedIds.toList())
+                    navController.navigateUp()
+                },
+                modifier = Modifier.widthIn(min = 120.dp),
+                enabled = selectedIds.isNotEmpty() && !state.isLoading
+            )
+        }
+
+        // Transparent TopAppBar purely for back navigation and title
+        TopAppBar(
+            title = {
+                Text(
+                    text = stringResource(R.string.playlists),
+                    fontWeight = FontWeight.Bold,
+                )
+            },
+            navigationIcon = {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain,
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+                val isAllSelected = filteredDisplayItems.isNotEmpty() && filteredDisplayItems.all { item ->
+                    val id = if (item is String) item else (item as SpotifyPlaylist).id
+                    id in selectedIds
+                }
+                Checkbox(
+                    checked = isAllSelected,
+                    onCheckedChange = { checked ->
+                        filteredDisplayItems.forEach { item ->
+                            val id = if (item is String) item else (item as SpotifyPlaylist).id
+                            if (checked) {
+                                if (id !in selectedIds) selectedIds.add(id)
+                            } else {
+                                selectedIds.remove(id)
+                            }
+                        }
+                    },
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+                scrolledContainerColor = Color.Transparent
+            )
+        )
     }
 }
 
@@ -274,7 +293,7 @@ private fun SpotifySourceRow(
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(MaterialTheme.shapes.medium)
+                    .clip(RoundedCornerShape(6.dp))
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center,
             ) {

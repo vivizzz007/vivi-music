@@ -4,10 +4,6 @@
  */
 package com.music.vivi.ui.screens.settings
 
-import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -39,43 +35,36 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.music.spotify.SpotifyAuth
 import com.music.spotify.SpotifyMapper
 import com.music.spotify.models.SpotifyPlaylist
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.menu.LoadingScreen
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.viewmodels.SpotifyImportViewModel
+import com.music.vivi.viewmodels.SpotifyViewModel
 import kotlinx.coroutines.launch
 
-private const val SPOTIFY_USER_AGENT =
-    "Mozilla/5.0 (Linux; Android 14; SM-S921U; Build/UP1A.231005.007) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SpotifyScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    viewModel: SpotifyImportViewModel = hiltViewModel(),
+    viewModel: SpotifyViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var showSpotifyLogin by remember { mutableStateOf(false) }
-    var showPlaylistsSheet by remember { mutableStateOf(false) }
     val importProgress by viewModel.importProgress.collectAsStateWithLifecycle()
 
     val refreshEnabled = state.isAuthenticated && !state.isLoading
@@ -108,17 +97,10 @@ fun SpotifyScreen(
             )
         )
 
-        Text(
-            text = stringResource(R.string.spotify),
-            style = MaterialTheme.typography.displaySmall.copy(
-                fontWeight = FontWeight.SemiBold
-            ),
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 16.dp)
-        )
+
 
         // Connection Card/Group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.spotify_account),
             items = listOf(
                 if (state.isAuthenticated) {
@@ -165,7 +147,7 @@ fun SpotifyScreen(
                         title = { Text(stringResource(R.string.spotify_connect)) },
                         description = { Text(stringResource(R.string.spotify_not_connected)) },
                         icon = painterResource(R.drawable.spotify),
-                        onClick = { showSpotifyLogin = true }
+                        onClick = { navController.navigate("settings/integrations/spotify/login") }
                     )
                 }
             )
@@ -174,54 +156,48 @@ fun SpotifyScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         val totalPlaylists = state.playlists.size + if (state.likedSongsCount > 0) 1 else 0
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.playlists),
             items = listOf(
                 Material3SettingsItem(
                     isExpressive = true,
                     title = { Text(stringResource(R.string.spotify_select_sources)) },
-                    description = {
-                        Text(
-                            if (state.isAuthenticated) {
-                                if (totalPlaylists > 0) stringResource(R.string.spotify_available_count, totalPlaylists)
-                                else stringResource(R.string.spotify_no_sources)
-                            } else {
-                                stringResource(R.string.spotify_not_connected)
+                    trailingContent = {
+                        if (state.isAuthenticated && totalPlaylists > 0) {
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ) {
+                                Text(
+                                    text = totalPlaylists.toString(),
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
                             }
-                        )
+                        }
                     },
                     icon = painterResource(R.drawable.bookmark_star_library),
                     enabled = state.isAuthenticated && totalPlaylists > 0 && !state.isLoading,
-                    onClick = { showPlaylistsSheet = true }
+                    onClick = { navController.navigate("settings/integrations/spotify/playlists") }
                 ),
                 Material3SettingsItem(
                     isExpressive = true,
                     title = { Text(stringResource(R.string.spotify_refresh)) },
                     leadingContent = {
-                        Box(
+                        Icon(
+                            painter = painterResource(R.drawable.sync),
+                            contentDescription = null,
+                            tint = if (!refreshEnabled) {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            } else {
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+                            },
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null,
-                                tint = if (!refreshEnabled) {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                } else {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
-                                },
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .graphicsLayer {
-                                        rotationZ = rotationAngle
-                                    }
-                            )
-                        }
+                                .size(24.dp)
+                                .graphicsLayer {
+                                    rotationZ = rotationAngle
+                                }
+                        )
                     },
                     enabled = refreshEnabled,
                     onClick = { viewModel.loadSources() }
@@ -269,16 +245,6 @@ fun SpotifyScreen(
             scrolledContainerColor = Color.Transparent
         )
     )
-
-    if (showSpotifyLogin) {
-        SpotifyLoginSheet(
-            onDismiss = { showSpotifyLogin = false },
-            onCookiesCaptured = { spDc, spKey ->
-                showSpotifyLogin = false
-                viewModel.connectWithCookies(spDc, spKey)
-            }
-        )
-    }
 
     importProgress?.let { progress ->
         val isFinished = progress.isFinished || progress.percent >= 1f
@@ -345,6 +311,7 @@ fun SpotifyScreen(
             }
         }
     }
+
     state.errorMessage?.let { error ->
         DefaultDialog(
             onDismiss = { viewModel.dismissError() },
@@ -359,142 +326,6 @@ fun SpotifyScreen(
                 text = error,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-
-    if (showPlaylistsSheet) {
-        SpotifyPlaylistBottomSheet(
-            onDismiss = { showPlaylistsSheet = false },
-            viewModel = viewModel
-        )
-    }
-}
-
-@android.annotation.SuppressLint("ClickableViewAccessibility")
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SpotifyLoginSheet(
-    onDismiss: () -> Unit,
-    onCookiesCaptured: (spDc: String, spKey: String) -> Unit,
-) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var webView by remember { mutableStateOf<WebView?>(null) }
-    var captured by remember { mutableStateOf(false) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            webView?.stopLoading()
-            webView?.loadUrl("about:blank")
-            webView?.destroy()
-            webView = null
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.9f)
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.spotify_login_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = stringResource(R.string.spotify_waiting_for_login),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clip(MaterialTheme.shapes.large),
-                factory = { context ->
-                    WebView(context).apply {
-                        layoutParams = android.view.ViewGroup.LayoutParams(
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        val cookieManager = CookieManager.getInstance()
-                        cookieManager.setAcceptCookie(true)
-                        cookieManager.setAcceptThirdPartyCookies(this, true)
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-                        settings.setSupportZoom(true)
-                        settings.builtInZoomControls = true
-                        settings.displayZoomControls = false
-                        settings.userAgentString = SPOTIFY_USER_AGENT
-
-                        setOnTouchListener { v, event ->
-                            when (event.action) {
-                                android.view.MotionEvent.ACTION_DOWN,
-                                android.view.MotionEvent.ACTION_MOVE -> {
-                                    v.parent.requestDisallowInterceptTouchEvent(true)
-                                }
-                                android.view.MotionEvent.ACTION_UP,
-                                android.view.MotionEvent.ACTION_CANCEL -> {
-                                    v.parent.requestDisallowInterceptTouchEvent(false)
-                                }
-                            }
-                            false
-                        }
-
-                        webViewClient = object : WebViewClient() {
-                            private fun captureCookies(url: String?): Boolean {
-                                if (captured) return true
-                                cookieManager.flush()
-                                val cookiesStr = cookieManager.getCookie("https://open.spotify.com") ?: ""
-                                val cookies = cookiesStr.split(";").associate {
-                                    val parts = it.split("=")
-                                    val key = parts.firstOrNull()?.trim().orEmpty()
-                                    val valStr = parts.drop(1).joinToString("=").trim()
-                                    key to valStr
-                                }
-                                val spDc = cookies["sp_dc"].orEmpty()
-                                if (spDc.isBlank()) return false
-                                captured = true
-                                onCookiesCaptured(spDc, cookies["sp_key"].orEmpty())
-                                return true
-                            }
-
-                            override fun shouldOverrideUrlLoading(
-                                view: WebView,
-                                request: WebResourceRequest,
-                            ): Boolean = captureCookies(request.url?.toString())
-
-                            override fun onPageStarted(
-                                view: WebView,
-                                url: String?,
-                                favicon: android.graphics.Bitmap?,
-                            ) {
-                                captureCookies(url)
-                            }
-
-                            override fun onPageFinished(view: WebView, url: String?) {
-                                captureCookies(url)
-                            }
-                        }
-                        webChromeClient = android.webkit.WebChromeClient()
-                        webView = this
-                        cookieManager.removeAllCookies(null)
-                        cookieManager.flush()
-                        loadUrl(SpotifyAuth.LOGIN_URL)
-                    }
-                },
-                update = { view ->
-                    webView = view
-                },
             )
         }
     }

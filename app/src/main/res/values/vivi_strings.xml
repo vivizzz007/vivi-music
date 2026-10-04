@@ -1006,7 +1006,7 @@
     <string name="spotify_connected_as">Connected as %s</string>
     <string name="spotify_account">Spotify Account</string>
     <string name="spotify_loading_library">Loading Spotify playlists…</string>
-    <string name="spotify_select_sources">Select playlists to import</string>
+    <string name="spotify_select_sources">Import Playlists</string>
     <string name="spotify_no_sources">No playlists found</string>
     <string name="spotify_available_count">%d playlists available</string>
     <string name="spotify_import_selected">Import Selected</string>
