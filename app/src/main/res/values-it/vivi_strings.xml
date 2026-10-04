@@ -127,7 +127,6 @@
     <string name="max_selection_limit">Limite massimo di selezione</string>
     <string name="share_selected">Condividi selezionati</string>
     <string name="customize_colors">Personalizza i colori</string>
-    <string name="more_options">Altre opzioni</string>
     <string name="text_color">Colore del testo</string>
     <string name="secondary_text_color">Colore secondario del testo</string>
     <string name="background_color">Colore dello sfondo</string>
@@ -209,7 +208,6 @@
     <string name="discord_use_details_description">Mostra il titolo della canzone prominente al posto dei nomi degli artisti</string>
     <string name="updater">Aggiornamenti</string>
     <string name="check_for_updates">Controlla automaticamente se ci sono aggiornamenti</string>
-    <string name="update_notifications">Attiva le notifiche sugli aggiornamenti</string>
     <string name="update_available_title">Un aggiornamento è disponibile</string>
     <string name="update_channel_name">Aggiornamenti dell\'app</string>
     <string name="update_channel_desc">Notifiche sulle nuove versioni</string>
