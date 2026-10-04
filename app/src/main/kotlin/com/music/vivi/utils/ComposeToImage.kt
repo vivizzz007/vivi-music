@@ -54,7 +54,8 @@ object ComposeToImage {
         backgroundStyle: LyricsBackgroundStyle = LyricsBackgroundStyle.SOLID,
         textColor: Int? = null,
         secondaryTextColor: Int? = null,
-        lyricsAlignment: Layout.Alignment = Layout.Alignment.ALIGN_CENTER
+        lyricsAlignment: Layout.Alignment = Layout.Alignment.ALIGN_CENTER,
+        typeface: Typeface? = null
     ): Bitmap = withContext(Dispatchers.Default) {
         // Use fixed high resolution as requested (2160x2160)
         // This ensures consistent high-quality output regardless of the device screen
@@ -198,17 +199,20 @@ object ComposeToImage {
         val textStartX = padding + coverArtSize + (16f * scale)
         val textMaxWidth = imageWidth - textStartX - padding
         
+        val resolvedBoldTypeface = typeface?.let { Typeface.create(it, Typeface.BOLD) } ?: Typeface.DEFAULT_BOLD
+        val resolvedNormalTypeface = typeface ?: Typeface.DEFAULT
+
         val titlePaint = TextPaint().apply {
             color = mainTextColor
             textSize = 20f * scale
-            typeface = Typeface.DEFAULT_BOLD
+            this.typeface = resolvedBoldTypeface
             isAntiAlias = true
         }
         
         val artistPaint = TextPaint().apply {
             color = secondaryTxtColor
             textSize = 16f * scale
-            typeface = Typeface.DEFAULT
+            this.typeface = resolvedNormalTypeface
             isAntiAlias = true
         }
 
@@ -279,7 +283,7 @@ object ComposeToImage {
         val appNamePaint = TextPaint().apply {
             color = secondaryTxtColor
             textSize = 14f * scale
-            typeface = Typeface.DEFAULT_BOLD
+            this.typeface = resolvedBoldTypeface
             isAntiAlias = true
         }
         
@@ -297,7 +301,7 @@ object ComposeToImage {
 
         val lyricsPaint = TextPaint().apply {
             color = mainTextColor
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            this.typeface = resolvedBoldTypeface
             isAntiAlias = true
             letterSpacing = 0.005f
         }

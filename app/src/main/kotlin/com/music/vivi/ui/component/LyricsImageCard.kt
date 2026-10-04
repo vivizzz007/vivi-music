@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -328,6 +329,7 @@ fun LyricsImageCard(
                         Text(
                             text = mediaMetadata.title,
                             color = mainTextColor,
+                            fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
@@ -337,6 +339,7 @@ fun LyricsImageCard(
                         Text(
                             text = mediaMetadata.artists.joinToString { it.name },
                             color = secondaryColor,
+                            fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                             fontSize = 16.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -358,6 +361,7 @@ fun LyricsImageCard(
                     val availableWidth = maxWidth
                     val availableHeight = maxHeight
                     val textStyle = TextStyle(
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                         color = mainTextColor,
                         fontWeight = FontWeight.Bold,
                         textAlign = textAlign,
@@ -421,6 +425,7 @@ fun LyricsImageCard(
                     Text(
                         text = context.getString(R.string.app_name),
                         color = secondaryColor,
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold
                     )
