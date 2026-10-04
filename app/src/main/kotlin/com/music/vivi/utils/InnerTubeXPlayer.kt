@@ -113,6 +113,17 @@ object InnerTubeXPlayer {
         if (applicationContext == null) applicationContext = context.applicationContext
     }
 
+    /**
+     * Sets (or clears, when null) the cookie used by this isolated stream-extraction session.
+     * This is independent from the app's account cookie (`YouTube.cookie`, used for browsing/
+     * library/history) — it exists so playback/downloads can optionally authenticate as well,
+     * e.g. to unlock higher-quality or restricted streams.
+     */
+    fun updateCookie(cookie: String?) {
+        innerTubeX.cookie = cookie
+        Timber.tag(TAG).d("Download/playback cookie updated, authenticated=${innerTubeX.hasSapCookieAuth()}")
+    }
+
     suspend fun prewarm() {
         bundle().extractor.prewarm()
         tokenProvider.prewarm()

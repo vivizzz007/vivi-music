@@ -610,6 +610,20 @@ val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 
+// Download destination folder (SAF tree URI, empty = internal default)
+val DownloadDirectoryUriKey = stringPreferencesKey("downloadDirectoryUri")
+
+// Authenticated downloads
+val UseCookieForDownloadsKey = booleanPreferencesKey("useCookieForDownloads")
+val DownloadCookieSourceKey = stringPreferencesKey("downloadCookieSource")
+val ImportedCookieStringKey = stringPreferencesKey("importedCookieString")
+val ImportedCookieFileNameKey = stringPreferencesKey("importedCookieFileName")
+
+enum class DownloadCookieSource {
+    ACCOUNT,
+    IMPORTED_FILE,
+}
+
 val LanguageCodeToName =
     mapOf(
         "af" to "Afrikaans",

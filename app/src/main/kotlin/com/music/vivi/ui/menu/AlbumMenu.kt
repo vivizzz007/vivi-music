@@ -62,13 +62,12 @@ import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.Download.STATE_STOPPED
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.music.innertube.YouTube
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
+import com.music.vivi.models.toMediaMetadata
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -80,7 +79,6 @@ import com.music.vivi.db.entities.Album
 import com.music.vivi.db.entities.SpeedDialItem
 import com.music.vivi.db.entities.Song
 import com.music.vivi.extensions.toMediaItem
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.playback.queues.ListQueue
 import com.music.vivi.ui.component.AlbumListItem
 import com.music.vivi.ui.component.ListDialog
@@ -486,12 +484,7 @@ fun AlbumMenu(
                                 },
                                 onClick = {
                                     songs.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
+                                        downloadUtil.cancelOrRemove(song.id)
                                     }
                                     onDismiss() // <-- added
                                 }
@@ -508,12 +501,7 @@ fun AlbumMenu(
                                 },
                                 onClick = {
                                     songs.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.id,
-                                            false,
-                                        )
+                                        downloadUtil.cancelOrRemove(song.id)
                                     }
                                     onDismiss() // <-- added
                                 }
@@ -531,18 +519,7 @@ fun AlbumMenu(
                                 },
                                 onClick = {
                                     songs.forEach { song ->
-                                        val downloadRequest =
-                                            DownloadRequest
-                                                .Builder(song.id, song.id.toUri())
-                                                .setCustomCacheKey(song.id)
-                                                .setData(song.song.title.toByteArray())
-                                                .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false,
-                                        )
+                                        downloadUtil.download(song.toMediaMetadata())
                                     }
                                     onDismiss() // <-- added
                                 }

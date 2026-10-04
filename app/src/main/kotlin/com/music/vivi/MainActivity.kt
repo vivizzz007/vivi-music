@@ -183,7 +183,7 @@ import com.music.vivi.db.MusicDatabase
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.models.toMediaMetadata
-import com.music.vivi.playback.DownloadUtil
+import com.music.vivi.playback.download.SongDownloadManager
 import com.music.vivi.playback.MusicService
 import com.music.vivi.playback.MusicService.MusicBinder
 import com.music.vivi.playback.PlayerConnection
@@ -249,7 +249,7 @@ class MainActivity : ComponentActivity() {
     lateinit var database: MusicDatabase
 
     @Inject
-    lateinit var downloadUtil: DownloadUtil
+    lateinit var songDownloadManager: SongDownloadManager
 
     @Inject
     lateinit var syncUtils: SyncUtils
@@ -380,7 +380,7 @@ class MainActivity : ComponentActivity() {
             vivimusicApp(
                 playerConnection = playerConnection,
                 database = database,
-                downloadUtil = downloadUtil,
+                songDownloadManager = songDownloadManager,
                 syncUtils = syncUtils,
             )
         }
@@ -392,7 +392,7 @@ class MainActivity : ComponentActivity() {
     private fun vivimusicApp(
         playerConnection: PlayerConnection?,
         database: MusicDatabase,
-        downloadUtil: DownloadUtil,
+        songDownloadManager: SongDownloadManager,
         syncUtils: SyncUtils,
     ) {
         val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
@@ -965,7 +965,7 @@ class MainActivity : ComponentActivity() {
                     LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
                     LocalPlayerConnection provides playerConnection,
                     LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
-                    LocalDownloadUtil provides downloadUtil,
+                    LocalDownloadUtil provides songDownloadManager,
                     LocalShimmerTheme provides ShimmerTheme,
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
@@ -1521,7 +1521,7 @@ class MainActivity : ComponentActivity() {
 val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database provided") }
 val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error("No PlayerConnection provided") }
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
-val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
+val LocalDownloadUtil = staticCompositionLocalOf<SongDownloadManager> { error("No SongDownloadManager provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 val LocalListenTogetherManager = staticCompositionLocalOf<com.music.vivi.listentogether.ListenTogetherManager?> { null }
 val LocalIsPlayerExpanded = compositionLocalOf { false }

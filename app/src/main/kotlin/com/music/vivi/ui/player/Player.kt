@@ -145,8 +145,6 @@ import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
@@ -186,7 +184,6 @@ import com.music.vivi.extensions.togglePlayPause
 import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
-import com.music.vivi.playback.ExoDownloadService
 import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import com.music.vivi.vivimusic.isBuds
 import com.music.vivi.vivimusic.isSpeaker
@@ -742,7 +739,8 @@ fun BottomSheetPlayer(
         }
     }
 
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata?.id ?: "")
+    val downloadUtil = LocalDownloadUtil.current
+    val download by downloadUtil.getDownload(mediaMetadata?.id ?: "")
         .collectAsState(initial = null)
 
     val sleepTimerEnabled =
@@ -1590,29 +1588,13 @@ fun BottomSheetPlayer(
                                         mediaMetadata?.let { meta ->
                                             when (download?.state) {
                                                 Download.STATE_COMPLETED, Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
-                                                    DownloadService.sendRemoveDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        meta.id,
-                                                        false,
-                                                    )
+                                                    downloadUtil.cancelOrRemove(meta.id)
                                                 }
                                                 else -> {
                                                     database.transaction {
                                                         insert(meta)
                                                     }
-                                                    val downloadRequest =
-                                                        DownloadRequest
-                                                            .Builder(meta.id, meta.id.toUri())
-                                                            .setCustomCacheKey(meta.id)
-                                                            .setData(meta.title.toByteArray())
-                                                            .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false,
-                                                    )
+                                                    downloadUtil.download(meta)
                                                 }
                                             }
                                         }

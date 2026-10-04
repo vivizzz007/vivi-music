@@ -41,6 +41,7 @@ protobufPlugin = "0.9.6"
 smoothCorner = "v1.0.0"
 lottie = "6.7.1"
 work = "2.10.0"
+documentfile = "1.1.0"
 coreSplashscreen = "1.2.0"
 haze = "1.7.2"
 innertubex = "v0.7.0"
@@ -137,6 +138,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 smoothCorner = { module = "com.github.racra:smooth-corner-rect-android-compose", version.ref = "smoothCorner" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+documentfile = { module = "androidx.documentfile:documentfile", version.ref = "documentfile" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
 expressivelab = { module = "com.github.mohdamaan1:JustForPixel-ExpressiveLab", version.ref = "expressivelab" }
