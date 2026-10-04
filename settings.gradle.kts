@@ -26,14 +26,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "vivimusic"
 include(":app")
-include(":canvas")
+// Previous canvas included below
 include(":innertube")
 include(":kizzy")
 include(":lastfm")
 include(":shazamkit")
 include(":artistvideo")
-include(":applecanvas")
-include(":vivimusiccanvas")
+include(":Motionartwork")
 include(":jiosaavn")
 include(":spotify")
 include(":lyricsProvider")

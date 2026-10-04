@@ -40,7 +40,7 @@ import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
-import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.MotionartworkSelection
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.AutoBackupSettings
@@ -375,8 +375,8 @@ fun NavGraphBuilder.navigationBuilder(
         ThemeScreen(navController)
     }
 
-    composable("settings/player/canvas") {
-        CanvasSelection(navController, scrollBehavior)
+    composable("settings/player/motionartwork") {
+        MotionartworkSelection(navController, scrollBehavior)
     }
 
     composable("settings/appearance/font") {

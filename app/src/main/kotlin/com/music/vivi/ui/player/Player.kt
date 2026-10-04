@@ -236,17 +236,17 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
-import com.music.vivi.applecanvas.AppleMusicCanvasProvider
-import com.music.vivi.canvas.CanvasArtwork
-import com.music.vivi.canvas.TidalCanvasProvider
-import com.music.vivi.constants.CanvasSource
-import com.music.vivi.constants.CanvasSourceKey
+import com.music.vivi.Motionartwork.apple.AppleMusicMotionartworkProvider
+import com.music.vivi.Motionartwork.Motionartwork
+import com.music.vivi.Motionartwork.tidal.TidalMotionartworkProvider
+import com.music.vivi.Motionartwork.vivimusic.ViviMusicMotionartworkProvider
+import com.music.vivi.constants.MotionartworkSource
+import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
-import com.music.vivi.ui.player.CanvasArtworkPlaybackCache
+import com.music.vivi.ui.player.MotionartworkPlaybackCache
 import com.music.vivi.utils.isWifiConnected
-import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -290,7 +290,7 @@ fun BottomSheetPlayer(
     }
 
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
-    val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
+    val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
@@ -557,10 +557,10 @@ fun BottomSheetPlayer(
     )
 
     val albumTitle = mediaMetadata?.album?.title
-    var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
+    var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<Motionartwork?>(null) }
     var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, canvasSource) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource) {
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
             canvasArtwork = null
             return@LaunchedEffect
@@ -571,8 +571,9 @@ fun BottomSheetPlayer(
         }
         val item = mediaMetadata ?: return@LaunchedEffect
         
+        val cacheKey = "${item.id}:${motionartworkSource.name}"
         // Use cached artwork if available
-        CanvasArtworkPlaybackCache.get("${item.id}:${canvasSource.name}")?.let { cached ->
+        MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
             canvasArtwork = cached
             return@LaunchedEffect
         }
@@ -590,31 +591,31 @@ fun BottomSheetPlayer(
             val a = requestedArtist
 
             android.util.Log.d("CanvasDebug", "=== Canvas Fetch START ===")
-            android.util.Log.d("CanvasDebug", "Source     : $canvasSource")
+            android.util.Log.d("CanvasDebug", "Source     : $motionartworkSource")
             android.util.Log.d("CanvasDebug", "Storefront : $storefront")
             android.util.Log.d("CanvasDebug", "Title      : '$requestedTitle'")
             android.util.Log.d("CanvasDebug", "Artist     : '$requestedArtist'")
             android.util.Log.d("CanvasDebug", "Album      : '$requestedAlbum' (blank=${requestedAlbum.isBlank()})")
 
-            val fetched = when (canvasSource) {
-                CanvasSource.AUTO -> {
-                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
-                        ?: TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
-                        ?: ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, requestedAlbum) }
+            val fetched = when (motionartworkSource) {
+                MotionartworkSource.AUTO -> {
+                    AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                        ?: TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                        ?: ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
                 }
-                CanvasSource.APPLE_MUSIC -> {
-                    AppleMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                MotionartworkSource.APPLE_MUSIC -> {
+                    AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
-                CanvasSource.VIVIMUSIC -> {
-                    ViviMusicCanvasProvider.getBySongArtist(s, a, requestedAlbum)
+                MotionartworkSource.VIVIMUSIC -> {
+                    ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
-                CanvasSource.TIDAL -> {
-                    TidalCanvasProvider.getBySongArtist(s, a, requestedAlbum)
+                MotionartworkSource.TIDAL -> {
+                    TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
                         ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                 }
             }
@@ -630,7 +631,7 @@ fun BottomSheetPlayer(
             val validated = fetched?.let { artwork ->
                 // For AUTO mode validation is already done per-provider inside takeIf.
                 // For single-source modes this block acts as the safety net.
-                val passes = validateCanvasMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
+                val passes = validateMotionartworkMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
 
                 android.util.Log.d("CanvasDebug", "Validation:")
                 android.util.Log.d("CanvasDebug", "  artistMatches  : ${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}  ('${artwork.artist?.trim()}' vs '${requestedArtist.trim()}')")
@@ -647,7 +648,7 @@ fun BottomSheetPlayer(
             withContext(Dispatchers.Main) {
                 canvasArtwork = validated
                 if (validated != null) {
-                    CanvasArtworkPlaybackCache.put("${item.id}:${canvasSource.name}", validated)
+                    MotionartworkPlaybackCache.put(cacheKey, validated)
                 }
                 canvasFetchInFlight = false
             }

@@ -134,7 +134,7 @@ import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.fadingEdge
-import com.music.vivi.ui.player.CanvasArtworkPlayer
+import com.music.vivi.ui.player.MotionartworkPlayer
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AlbumViewModel
@@ -304,7 +304,7 @@ fun AlbumScreen(
                             )
 
                             if (albumCanvasEnabled && canvasArtwork != null) {
-                                CanvasArtworkPlayer(
+                                MotionartworkPlayer(
                                     primaryUrl = canvasArtwork.animated,
                                     fallbackUrl = canvasArtwork.videoUrl,
                                     isPlaying = true,

@@ -572,7 +572,7 @@ val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
-val CanvasSourceKey = stringPreferencesKey("canvasSource")
+val MotionartworkSourceKey = stringPreferencesKey("canvasSource")
 val CanvasLoadOnlyWifiKey = booleanPreferencesKey("canvasLoadOnlyWifi")
 
 // Data Saver
@@ -584,7 +584,7 @@ val DataSaverBackupArtistBgVideoKey = booleanPreferencesKey("dataSaverBackupArti
 val DataSaverBackupAlbumCanvasKey   = booleanPreferencesKey("dataSaverBackupAlbumCanvas")
 
 
-enum class CanvasSource {
+enum class MotionartworkSource {
     AUTO,
     APPLE_MUSIC,
     VIVIMUSIC,

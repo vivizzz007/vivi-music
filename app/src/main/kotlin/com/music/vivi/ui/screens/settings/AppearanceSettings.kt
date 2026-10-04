@@ -58,8 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
-import com.music.vivi.constants.CanvasSource
-import com.music.vivi.constants.CanvasSourceKey
+
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.ChipSortTypeKey
 import com.music.vivi.constants.CropAlbumArtKey

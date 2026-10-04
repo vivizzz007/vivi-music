@@ -49,8 +49,8 @@ import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.CrossfadeCurve
 import com.music.vivi.constants.CrossfadeCurveKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.constants.CanvasSourceKey
-import com.music.vivi.constants.CanvasSource
+import com.music.vivi.constants.MotionartworkSourceKey
+import com.music.vivi.constants.MotionartworkSource
 import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeGaplessKey
@@ -221,8 +221,8 @@ fun PlayerSettings(
         defaultValue = true
     )
     val (canvasSource) = rememberEnumPreference(
-        CanvasSourceKey,
-        defaultValue = CanvasSource.AUTO
+        MotionartworkSourceKey,
+        defaultValue = MotionartworkSource.AUTO
     )
 
     var showAudioQualityDialog by remember {
@@ -364,15 +364,15 @@ fun PlayerSettings(
                             stringResource(R.string.disable)
                         } else {
                             when (canvasSource) {
-                                CanvasSource.AUTO -> stringResource(R.string.canvas_source_auto)
-                                CanvasSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
-                                CanvasSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
-                                CanvasSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
+                                MotionartworkSource.AUTO -> stringResource(R.string.canvas_source_auto)
+                                MotionartworkSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
+                                MotionartworkSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
+                                MotionartworkSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
                             }
                         }
                         Text(summary)
                     },
-                    onClick = { navController.navigate("settings/player/canvas") }
+                    onClick = { navController.navigate("settings/player/motionartwork") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),

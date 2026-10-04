@@ -447,7 +447,7 @@ fun PlayerV2(
                                         // Fix 4: Always render canvas (don't gate on transition state).
                                         // The previous guard caused a visible pop/snap when the
                                         // transition completed and the canvas suddenly appeared.
-                                        PlayerV2Canvas(
+                                        PlayerV2Motionartowek(
                                             mediaMetadata = mediaMetadata,
                                             isPlaying = isPlaying,
                                             modifier = Modifier.fillMaxSize()
