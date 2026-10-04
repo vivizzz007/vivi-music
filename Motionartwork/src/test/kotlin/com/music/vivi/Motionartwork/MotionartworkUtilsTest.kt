@@ -2,13 +2,13 @@
  * vivimusic Project (C) 2026
  * Licensed under GPL-3.0 | See git history for contributors
  */
-package com.music.vivi.canvas
+package com.music.vivi.Motionartwork
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class CanvasUtilsTest {
+class MotionartworkUtilsTest {
 
     @Test
     fun testNormalizeForComparison() {
