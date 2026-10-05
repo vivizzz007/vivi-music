@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -229,6 +230,7 @@ fun MetroLyricsLine(
     }
 
     val lyricStyle = TextStyle(
+        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
         fontSize = if (entry.isBackground) (lyricsTextSize * 0.7f).sp else lyricsTextSize.sp,
         fontWeight = FontWeight.Bold,
         fontStyle = if (entry.isBackground) FontStyle.Italic else FontStyle.Normal,
@@ -303,6 +305,7 @@ fun MetroLyricsLine(
                 Text(
                     text = subText,
                     fontSize = 18.sp,
+                    fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     color = baseLineColor.copy(alpha = 0.6f),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.SemiBold,
@@ -317,6 +320,7 @@ fun MetroLyricsLine(
                     Text(
                         text = translated,
                         fontSize = 16.sp,
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                         color = expressiveAccent.copy(alpha = 0.8f),
                         textAlign = agentTextAlign,
                         fontWeight = FontWeight.Medium,
@@ -357,6 +361,18 @@ private fun WordLevelCanvasLyrics(
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    val resolvedTypeface = remember(lyricStyle.fontFamily, fontFamilyResolver) {
+        try {
+            fontFamilyResolver.resolve(
+                fontFamily = lyricStyle.fontFamily,
+                fontWeight = FontWeight.Bold,
+                fontStyle = FontStyle.Normal
+            ).value as? android.graphics.Typeface
+        } catch (_: Exception) {
+            null
+        }
+    }
     val glowPaint = remember {
         android.graphics.Paint().apply {
             isAntiAlias = true
@@ -835,7 +851,7 @@ private fun WordLevelCanvasLyrics(
                                     glowPaint.maskFilter = BlurMaskFilter(baseGlowRadius, BlurMaskFilter.Blur.NORMAL)
                                     glowPaint.color = expressiveAccent.copy(alpha = glowAlpha).toArgb()
                                     glowPaint.textSize = lyricStyle.fontSize.toPx()
-                                    glowPaint.typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+                                    glowPaint.typeface = resolvedTypeface ?: android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
                                     canvas.nativeCanvas.drawText(letterLayouts[i].layoutInput.text.text, 0f, letterLayouts[i].firstBaseline, glowPaint)
                                 }
                             }

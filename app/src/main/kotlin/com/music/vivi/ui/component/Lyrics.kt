@@ -105,6 +105,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFontFamilyResolver
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -270,6 +271,18 @@ fun Lyrics(
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
     val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
     val lyricsStandardBlur by rememberPreference(LyricsStandardBlurKey, false)
+    val fontFamilyResolver = LocalFontFamilyResolver.current
+    val activeFontFamily = MaterialTheme.typography.bodyLarge.fontFamily
+    val activeTypeface = remember(activeFontFamily, fontFamilyResolver) {
+        try {
+            fontFamilyResolver.resolve(
+                fontFamily = activeFontFamily,
+                fontWeight = FontWeight.Bold
+            ).value as? android.graphics.Typeface
+        } catch (_: Exception) {
+            null
+        }
+    }
     
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
     val deeplApiKey by rememberPreference(DeeplApiKey, "")
@@ -1063,6 +1076,7 @@ fun Lyrics(
                 Text(
                     text = stringResource(R.string.lyrics_not_found),
                     fontSize = 20.sp,
+                    fontFamily = activeFontFamily,
                     color = MaterialTheme.colorScheme.secondary,
                     textAlign = TextAlign.Center,
                     fontWeight = FontWeight.Bold,
@@ -1864,6 +1878,7 @@ fun Lyrics(
                             Text(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 textAlign = alignment,
                                 lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
@@ -1921,6 +1936,7 @@ fun Lyrics(
                             Text(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 textAlign = alignment,
                                 lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
@@ -1968,6 +1984,7 @@ fun Lyrics(
                             Text(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 textAlign = alignment,
                                 lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp
                             )
@@ -2021,7 +2038,7 @@ fun Lyrics(
                                     if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
-                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
+                            Text(text = styledText, fontSize = lyricsTextSize.sp, fontFamily = activeFontFamily, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing).sp)
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.KARAOKE) {
                             val styledText = buildAnnotatedString {
                                 item.words?.forEachIndexed { wordIndex, word ->
@@ -2088,7 +2105,7 @@ fun Lyrics(
                                     if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
-                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
+                            Text(text = styledText, fontSize = lyricsTextSize.sp, fontFamily = activeFontFamily, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
                         } else if (hasWordTimings && lyricsAnimationStyle == LyricsAnimationStyle.APPLE) {
                             val styledText = buildAnnotatedString {
                                 item.words?.forEachIndexed { wordIndex, word ->
@@ -2142,7 +2159,7 @@ fun Lyrics(
                                     if (wordIndex < (item.words.size ?: 0) - 1) append(" ")
                                 }
                             }
-                            Text(text = styledText, fontSize = lyricsTextSize.sp, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
+                            Text(text = styledText, fontSize = lyricsTextSize.sp, fontFamily = activeFontFamily, textAlign = alignment, lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp)
                         } else if (lyricsAnimationStyle == LyricsAnimationStyle.APPLE_V2) {
                             val nextEntryTime = lines.getOrNull(index + 1)?.time
                             val duration = remember(item.time, nextEntryTime) {
@@ -2218,6 +2235,7 @@ fun Lyrics(
                                             Text(
                                                 text = char.toString(),
                                                 fontSize = lyricsTextSize.sp,
+                                                fontFamily = activeFontFamily,
                                                 color = expressiveAccent.copy(alpha = if (!isActiveLine) 1f else if (charProgress >= 1f) 1f else 0.3f + (0.7f * charProgress)),
                                                 fontWeight = FontWeight.Bold,
                                                 letterSpacing = (-0.5).sp
@@ -2227,6 +2245,7 @@ fun Lyrics(
                                             Text(
                                                 text = " ",
                                                 fontSize = lyricsTextSize.sp,
+                                                fontFamily = activeFontFamily,
                                                 letterSpacing = (-0.5).sp
                                             )
                                         }
@@ -2240,6 +2259,7 @@ fun Lyrics(
                                         Text(
                                             text = translated,
                                             fontSize = (lyricsTextSize * 0.7f).sp,
+                                            fontFamily = activeFontFamily,
                                             color = expressiveAccent.copy(alpha = if (isActiveLine) 0.8f else 0.3f),
                                             textAlign = agentTextAlign,
                                             fontWeight = FontWeight.Medium,
@@ -2337,6 +2357,7 @@ fun Lyrics(
                             Text(
                                 text = styledText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.ExtraBold,
                                 lineHeight = (lyricsTextSize * lyricsLineSpacing.coerceAtMost(1.3f)).sp,
@@ -2351,6 +2372,7 @@ fun Lyrics(
                             Text(
                                 text = mainText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 color = expressiveAccent,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.ExtraBold,
@@ -2361,6 +2383,7 @@ fun Lyrics(
                             Text(
                                 text = mainText,
                                 fontSize = lyricsTextSize.sp,
+                                fontFamily = activeFontFamily,
                                 color = lineColor,
                                 textAlign = alignment,
                                 fontWeight = FontWeight.Bold,
@@ -2385,6 +2408,7 @@ fun Lyrics(
                                 Text(
                                     text = text,
                                     fontSize = 18.sp,
+                                    fontFamily = activeFontFamily,
                                     color = expressiveAccent.copy(alpha = 0.6f),
                                     textAlign = when (lyricsTextPosition) {
                                         LyricsPosition.LEFT -> TextAlign.Left
@@ -2406,6 +2430,7 @@ fun Lyrics(
                                 Text(
                                     text = translated,
                                     fontSize = (lyricsTextSize * 0.7f).sp,
+                                    fontFamily = activeFontFamily,
                                     color = expressiveAccent.copy(alpha = 0.8f),
                                     textAlign = when (lyricsTextPosition) {
                                         LyricsPosition.LEFT -> TextAlign.Left
@@ -2655,6 +2680,7 @@ fun Lyrics(
         }
 
         val textStyleForMeasurement = TextStyle(
+            fontFamily = activeFontFamily,
             color = previewTextColor,
             fontWeight = FontWeight.Bold,
             textAlign = lyricsTextAlign
@@ -2838,7 +2864,8 @@ fun Lyrics(
                                             LyricsPosition.LEFT -> Layout.Alignment.ALIGN_NORMAL
                                             LyricsPosition.CENTER -> Layout.Alignment.ALIGN_CENTER
                                             LyricsPosition.RIGHT -> Layout.Alignment.ALIGN_OPPOSITE
-                                        }
+                                        },
+                                        typeface = activeTypeface
                                     )
                                     val timestamp = System.currentTimeMillis()
                                     val filename = "lyrics_$timestamp"

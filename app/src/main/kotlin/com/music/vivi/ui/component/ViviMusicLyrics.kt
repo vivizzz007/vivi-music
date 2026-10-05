@@ -307,7 +307,9 @@ fun ViviMusicLyricsLine(
                     Text(
                         text = wordText,
                         fontSize = textSize.sp,
+                        fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                         style = TextStyle(
+                            fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                             brush = wordBrush,
                             fontWeight = finalFontWeight,
                             lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
@@ -327,9 +329,11 @@ fun ViviMusicLyricsLine(
                         Text(
                             text = " ",
                             fontSize = textSize.sp,
+                            fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                             color = textColor.copy(alpha = spaceAlpha),
                             lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                             style = TextStyle(
+                                fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                                 shadow = if (wordLocalProgress >= 1f) {
                                     androidx.compose.ui.graphics.Shadow(
                                         color = textColor.copy(alpha = 0.3f),
@@ -361,8 +365,10 @@ fun ViviMusicLyricsLine(
             Text(
                 text = entry.text,
                 fontSize = textSize.sp,
+                fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                 color = textColor.copy(alpha = sentenceAlpha),
                 style = TextStyle(
+                    fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     fontWeight = finalFontWeight,
                     lineHeight = (textSize * lineSpacing.coerceAtMost(1.3f)).sp,
                     textAlign = agentTextAlign,
@@ -386,6 +392,7 @@ fun ViviMusicLyricsLine(
                 Text(
                     text = romanized,
                     fontSize = (textSize * 0.65f).sp,
+                    fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     color = textColor.copy(alpha = 0.6f),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.SemiBold,
@@ -402,6 +409,7 @@ fun ViviMusicLyricsLine(
                 Text(
                     text = translated,
                     fontSize = (textSize * 0.7f).sp,
+                    fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                     color = textColor.copy(alpha = 0.8f),
                     textAlign = agentTextAlign,
                     fontWeight = FontWeight.Medium,
