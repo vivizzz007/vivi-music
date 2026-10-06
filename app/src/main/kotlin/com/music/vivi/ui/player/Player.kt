@@ -154,7 +154,11 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -565,9 +569,20 @@ fun BottomSheetPlayer(
     var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<Motionartwork?>(null) }
     var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
     var spotifyCanvasUrl by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<String?>(null) }
+    
+    val isNetworkConnected by (LocalPlayerConnection.current?.service?.connectivityObserver?.networkStatus ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState(initial = false)
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected) {
         val item = mediaMetadata ?: return@LaunchedEffect
+        
+        val prefs = context.getSharedPreferences("spotify_canvas_url_map", android.content.Context.MODE_PRIVATE)
+        val cachedUrl = prefs.getString(item.id, null)
+        if (cachedUrl != null) {
+            spotifyCanvasUrl = cachedUrl
+            timber.log.Timber.d("SpotifyCanvas: Loaded url from local SharedPreferences cache for offline bypass - ID: ${item.id}")
+            return@LaunchedEffect
+        }
+
         if (spotifyCanvasEnabled && Spotify.accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
             timber.log.Timber.d("SpotifyCanvas: Triggering Canvas fetch for track: ${item.title}")
             withContext(Dispatchers.IO) {
@@ -580,8 +595,12 @@ fun BottomSheetPlayer(
                 if (trackId != null) {
                     val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, Spotify.accessToken!!)
                     timber.log.Timber.d("SpotifyCanvas: Canvas URL extraction result: $canvasRes")
+                    val fetchedUrl = canvasRes.getOrNull()
+                    if (fetchedUrl != null) {
+                        prefs.edit().putString(item.id, fetchedUrl).apply()
+                    }
                     withContext(Dispatchers.Main) {
-                        spotifyCanvasUrl = canvasRes.getOrNull()
+                        spotifyCanvasUrl = fetchedUrl
                     }
                 }
             }
@@ -2971,8 +2990,23 @@ private fun BackgroundVideoView(
         }
     }
 
+    val spotifyCanvasCache = LocalPlayerConnection.current?.service?.spotifyCanvasCache
+
     val exoPlayer = remember {
+        val defaultDataSourceFactory = DefaultDataSource.Factory(context)
+        val mediaSourceFactory = if (spotifyCanvasCache != null) {
+            val cacheDataSourceFactory = CacheDataSource.Factory()
+                .setCache(spotifyCanvasCache)
+                .setUpstreamDataSourceFactory(defaultDataSourceFactory)
+                .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
+            DefaultMediaSourceFactory(context)
+                .setDataSourceFactory(cacheDataSourceFactory)
+        } else {
+            DefaultMediaSourceFactory(context)
+        }
+
         ExoPlayer.Builder(context)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setTrackSelector(trackSelector)
             .setLoadControl(
                 DefaultLoadControl.Builder()

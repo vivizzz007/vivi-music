@@ -13,6 +13,7 @@ import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.room.Room
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.MaxSpotifyCanvasCacheSizeKey
 import com.music.vivi.db.InternalDatabase
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.listentogether.ListenTogetherClient
@@ -95,6 +96,24 @@ object AppModule {
             context.filesDir.resolve("download"),
             NoOpCacheEvictor(),
             databaseProvider
+        )
+    }
+
+    @Singleton
+    @Provides
+    @SpotifyCanvasCache
+    fun provideSpotifyCanvasCache(
+        @ApplicationContext context: Context,
+        databaseProvider: DatabaseProvider,
+    ): SimpleCache {
+        val cacheSize = context.dataStore[MaxSpotifyCanvasCacheSizeKey] ?: 1024
+        return SimpleCache(
+            context.filesDir.resolve("spotifycanvas"),
+            when (cacheSize) {
+                -1 -> NoOpCacheEvictor()
+                else -> LeastRecentlyUsedCacheEvictor(cacheSize * 1024 * 1024L)
+            },
+            databaseProvider,
         )
     }
 
