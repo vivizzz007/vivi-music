@@ -83,7 +83,11 @@ import coil3.compose.AsyncImage
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
-import com.music.vivi.vivimusic.updater.extractUrls
+import com.music.vivi.vivimusic.updater.ChangelogSection
+import com.music.vivi.vivimusic.updater.SDUIBlock
+import com.music.vivi.vivimusic.updater.RenderSDUIBlock
+import com.music.vivi.vivimusic.updater.parseSDUIBlock
+import com.music.vivi.vivimusic.updater.parseMarkdownAndUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -127,18 +131,72 @@ fun ChangelogScreen(
         else LinearOutSlowInEasing.transform(pullToRefreshState.distanceFraction).coerceIn(0f, 1f)
     }
 
+    fun parseChangelogJson(changelogData: JSONObject): CachedChangelogData {
+        val desc = changelogData.optString("description", null)
+        val imageUrl = changelogData.optString("image", null)
+        val warning = changelogData.optString("warning", null)
+        val changelogArray = changelogData.optJSONArray("changelog")
+        
+        val sections = mutableListOf<ChangelogSection>()
+        if (changelogArray != null) {
+            for (i in 0 until changelogArray.length()) {
+                val sectionObj = changelogArray.optJSONObject(i)
+                if (sectionObj != null) {
+                    val title = sectionObj.optString("title", "")
+                    val secDesc = sectionObj.optString("description").takeIf { it.isNotBlank() }
+                    val itemsArray = sectionObj.optJSONArray("items")
+                    val items = mutableListOf<String>()
+                    if (itemsArray != null) {
+                        for (j in 0 until itemsArray.length()) {
+                            items.add(itemsArray.getString(j))
+                        }
+                    }
+                    val blocksArray = sectionObj.optJSONArray("blocks")
+                    var blocksList: List<SDUIBlock>? = null
+                    if (blocksArray != null) {
+                        val sduiList = mutableListOf<SDUIBlock>()
+                        for (j in 0 until blocksArray.length()) {
+                            sduiList.add(parseSDUIBlock(blocksArray.getJSONObject(j)))
+                        }
+                        blocksList = sduiList
+                    }
+                    if (title.isNotBlank() || items.isNotEmpty() || !secDesc.isNullOrBlank() || !blocksList.isNullOrEmpty()) {
+                        sections.add(ChangelogSection(title, items, secDesc, blocksList))
+                    }
+                } else {
+                    val item = changelogArray.optString(i, "")
+                    if (item.isNotBlank()) {
+                        if (sections.isEmpty() || sections[0].title.isNotBlank()) {
+                            sections.add(0, ChangelogSection("", mutableListOf()))
+                        }
+                        val updatedList = sections[0].items.toMutableList()
+                        updatedList.add(item)
+                        sections[0] = sections[0].copy(items = updatedList)
+                    }
+                }
+            }
+        }
+        return CachedChangelogData(sections, imageUrl?.takeIf { it.isNotBlank() }, desc?.takeIf { it.isNotBlank() }, warning?.takeIf { it.isNotBlank() })
+    }
+
     fun fetchChangelog(tag: String) {
         isLoading = true
         hasError = false
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val cachedData = loadChangelogFromCache(context, tag)
-                if (cachedData != null) {
+                var cachedText: String? = null
+                try {
+                    val cacheFile = File(context.filesDir, "changelog_cache_$tag.json")
+                    if (cacheFile.exists()) cachedText = cacheFile.readText()
+                } catch (e: Exception) { }
+
+                if (cachedText != null) {
+                    val parsed = parseChangelogJson(JSONObject(cachedText))
                     withContext(Dispatchers.Main) {
-                        changelogSections = cachedData.sections
-                        updateImage = cachedData.image
-                        updateDescription = cachedData.description
-                        updateWarning = cachedData.warning
+                        changelogSections = parsed.sections
+                        updateImage = parsed.image
+                        updateDescription = parsed.description
+                        updateWarning = parsed.warning
                         isLoading = false
                         showingCached = true
                     }
@@ -150,48 +208,17 @@ fun ChangelogScreen(
                     
                     if (connection.responseCode == 200) {
                         val changelogJson = connection.inputStream.bufferedReader().use { it.readText() }
-                        val changelogData = JSONObject(changelogJson)
+                        try {
+                            val cacheFile = File(context.filesDir, "changelog_cache_$tag.json")
+                            cacheFile.writeText(changelogJson)
+                        } catch (e: Exception) { }
                         
-                        val desc = changelogData.optString("description", null)
-                        val imageUrl = changelogData.optString("image", null)
-                        val warning = changelogData.optString("warning", null)
-                        val changelogArray = changelogData.optJSONArray("changelog")
-                        
-                        val sections = mutableListOf<ChangelogSection>()
-                        if (changelogArray != null) {
-                            for (i in 0 until changelogArray.length()) {
-                                val sectionObj = changelogArray.optJSONObject(i)
-                                if (sectionObj != null) {
-                                    val title = sectionObj.optString("title", "")
-                                    val itemsArray = sectionObj.optJSONArray("items")
-                                    val items = mutableListOf<String>()
-                                    if (itemsArray != null) {
-                                        for (j in 0 until itemsArray.length()) {
-                                            items.add(itemsArray.getString(j))
-                                        }
-                                    }
-                                    if (title.isNotBlank() || items.isNotEmpty()) {
-                                        sections.add(ChangelogSection(title, items))
-                                    }
-                                } else {
-                                    // Fallback: This is the old format (Array of Strings)
-                                    val item = changelogArray.optString(i, "")
-                                    if (item.isNotBlank()) {
-                                        if (sections.isEmpty() || sections[0].title.isNotBlank()) {
-                                            sections.add(0, ChangelogSection("", mutableListOf()))
-                                        }
-                                        (sections[0].items as MutableList<String>).add(item)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        saveChangelogToCache(context, tag, sections, imageUrl, desc, warning)
+                        val parsed = parseChangelogJson(JSONObject(changelogJson))
                         withContext(Dispatchers.Main) {
-                            changelogSections = sections
-                            updateImage = imageUrl.takeIf { !it.isNullOrBlank() }
-                            updateDescription = desc.takeIf { !it.isNullOrBlank() }
-                            updateWarning = warning.takeIf { !it.isNullOrBlank() }
+                            changelogSections = parsed.sections
+                            updateImage = parsed.image
+                            updateDescription = parsed.description
+                            updateWarning = parsed.warning
                             isLoading = false
                             hasError = false
                             showingCached = false
@@ -420,15 +447,24 @@ fun ChangelogScreen(
                                             Spacer(Modifier.height(16.dp))
                                         }
                                         
+                                        if (!section.description.isNullOrBlank()) {
+                                            val primaryColor = MaterialTheme.colorScheme.primary
+                                            val annotatedText = section.description.trim().parseMarkdownAndUrls(primaryColor)
+                                            ClickableText(
+                                                text = annotatedText,
+                                                onClick = { offset ->
+                                                    annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                        ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                    }
+                                                },
+                                                style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                                            )
+                                        }
+
                                         section.items.forEach { item ->
-                                            val urls = item.extractUrls()
-                                            val annotatedText = buildAnnotatedString {
-                                                append(item.trim())
-                                                urls.forEach { (range, url) ->
-                                                    addStringAnnotation("URL", url, range.first, range.last + 1)
-                                                    addStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, textDecoration = TextDecoration.Underline), range.first, range.last + 1)
-                                                }
-                                            }
+                                            val primaryColor = MaterialTheme.colorScheme.primary
+                                            val annotatedText = item.trim().parseMarkdownAndUrls(primaryColor)
                                             Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                                 Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
                                                 ClickableText(
@@ -441,6 +477,18 @@ fun ChangelogScreen(
                                                     style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
                                                 )
                                             }
+                                        }
+                                        
+                                        section.blocks?.filter { b ->
+                                            when (b.type) {
+                                                "image", "video" -> !b.url.isNullOrBlank()
+                                                "row", "column" -> !b.children.isNullOrEmpty()
+                                                else -> true
+                                            }
+                                        }?.forEach { block ->
+                                            Spacer(modifier = Modifier.height(12.dp))
+                                            RenderSDUIBlock(block = block)
+                                            Spacer(modifier = Modifier.height(4.dp))
                                         }
                                     }
                                 }
@@ -477,7 +525,6 @@ fun ChangelogScreen(
     }
 }
 
-data class ChangelogSection(val title: String, val items: List<String>)
 data class ReleaseMetadata(val tagName: String, val name: String, val date: String, val imageUrl: String?)
 data class CachedChangelogData(val sections: List<ChangelogSection>, val image: String?, val description: String?, val warning: String?)
 
@@ -487,56 +534,4 @@ private fun cleanupOldChangelogCache(context: Context, currentVersionTag: String
             if (file.name != "changelog_cache_$currentVersionTag.json") file.delete()
         }
     } catch (e: Exception) { Log.e("ChangelogCache", "Error cleaning up cache", e) }
-}
-
-private fun saveChangelogToCache(context: Context, versionTag: String, sections: List<ChangelogSection>, image: String?, description: String?, warning: String?) {
-    try {
-        val cacheData = JSONObject().apply {
-            val sectionsArray = JSONArray()
-            sections.forEach { section ->
-                val sectionObj = JSONObject().apply {
-                    put("title", section.title)
-                    val itemsArray = JSONArray()
-                    section.items.forEach { itemsArray.put(it) }
-                    put("items", itemsArray)
-                }
-                sectionsArray.put(sectionObj)
-            }
-            put("sections", sectionsArray)
-            put("image", image ?: "")
-            put("description", description ?: "")
-            put("warning", warning ?: "")
-        }
-        context.openFileOutput("changelog_cache_$versionTag.json", Context.MODE_PRIVATE).use { it.write(cacheData.toString().toByteArray()) }
-    } catch (e: Exception) { Log.e("ChangelogCache", "Error saving cache", e) }
-}
-
-private fun loadChangelogFromCache(context: Context, versionTag: String): CachedChangelogData? {
-    return try {
-        val cacheFile = File(context.filesDir, "changelog_cache_$versionTag.json")
-        if (!cacheFile.exists()) return null
-        val cacheData = JSONObject(context.openFileInput("changelog_cache_$versionTag.json").use { it.bufferedReader().readText() })
-        
-        val sectionsArray = cacheData.optJSONArray("sections")
-        val sections = mutableListOf<ChangelogSection>()
-        if (sectionsArray != null) {
-            for (i in 0 until sectionsArray.length()) {
-                val sectionObj = sectionsArray.getJSONObject(i)
-                val title = sectionObj.getString("title")
-                val itemsArray = sectionObj.getJSONArray("items")
-                val items = mutableListOf<String>()
-                for (j in 0 until itemsArray.length()) {
-                    items.add(itemsArray.getString(j))
-                }
-                sections.add(ChangelogSection(title, items))
-            }
-        }
-        
-        CachedChangelogData(
-            sections = sections,
-            image = cacheData.optString("image", null).takeIf { !it.isNullOrBlank() },
-            description = cacheData.optString("description", null).takeIf { !it.isNullOrBlank() },
-            warning = cacheData.optString("warning", null).takeIf { !it.isNullOrBlank() }
-        )
-    } catch (e: Exception) { null }
 }
