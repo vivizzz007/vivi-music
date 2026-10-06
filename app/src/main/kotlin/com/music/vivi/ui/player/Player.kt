@@ -2697,7 +2697,7 @@ fun BottomSheetPlayer(
                                     showLyrics = showLyrics,
                                     positionProvider = { effectivePosition }
                                 )
-                            } else if (spotifyCanvasUrl == null) {
+                            } else if (spotifyCanvasUrl == null && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.animateContentSize(),
@@ -2759,7 +2759,7 @@ fun BottomSheetPlayer(
                                     showLyrics = showLyrics,
                                     positionProvider = { effectivePosition }
                                 )
-                            } else if (spotifyCanvasUrl == null) {
+                            } else if (spotifyCanvasUrl == null && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
