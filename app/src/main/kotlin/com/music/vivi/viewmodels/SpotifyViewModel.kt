@@ -390,7 +390,7 @@ class SpotifyViewModel @Inject constructor(
                     val totalSongs = importData.songs.size
                     if (totalSongs == 0) {
                         database.withTransaction {
-                            val existing = playlist(importData.localPlaylistId).first()
+                            val existing = getPlaylist(importData.localPlaylistId)
                             val now = LocalDateTime.now()
                             val entity = existing?.playlist?.copy(
                                 name = importData.title,
@@ -430,13 +430,33 @@ class SpotifyViewModel @Inject constructor(
                         )
                     }
 
+                    database.withTransaction {
+                        val existing = getPlaylist(importData.localPlaylistId)
+                        val now = LocalDateTime.now()
+                        val entity = existing?.playlist?.copy(
+                            name = importData.title,
+                            bookmarkedAt = existing.playlist.bookmarkedAt ?: now,
+                            lastUpdateTime = now,
+                            thumbnailUrl = importData.thumbnailUrl,
+                            isEditable = true,
+                        ) ?: PlaylistEntity(
+                            id = importData.localPlaylistId,
+                            name = importData.title,
+                            bookmarkedAt = now,
+                            lastUpdateTime = now,
+                            thumbnailUrl = importData.thumbnailUrl,
+                            isEditable = true,
+                        )
+                        if (existing == null) insert(entity) else update(entity)
+                        clearPlaylist(importData.localPlaylistId)
+                    }
+
                     val completedCount = AtomicInteger(0)
                     val semaphore = Semaphore(4)
 
-                    val matchedMedia = importData.songs.mapIndexed { _, song ->
+                    importData.songs.mapIndexed { index, song ->
                         async {
                             semaphore.withPermit {
-                                var resultMedia: MediaMetadata? = null
                                 try {
                                     val artist = song.artists.firstOrNull()?.name.orEmpty()
                                     val songTitle = song.title
@@ -464,9 +484,21 @@ class SpotifyViewModel @Inject constructor(
                                     }
 
                                     if (best != null) {
-                                        resultMedia = best.toMediaMetadata().copy(
+                                        val resultMedia = best.toMediaMetadata().copy(
                                             inLibrary = LocalDateTime.now()
                                         )
+                                        database.withTransaction {
+                                            insert(resultMedia)
+                                            inLibrary(resultMedia.id, resultMedia.inLibrary)
+                                            insert(
+                                                PlaylistSongMap(
+                                                    playlistId = importData.localPlaylistId,
+                                                    songId = resultMedia.id,
+                                                    position = index,
+                                                    setVideoId = resultMedia.setVideoId,
+                                                )
+                                            )
+                                        }
                                     }
                                 } catch (e: Exception) {
                                     reportException(e)
@@ -481,52 +513,15 @@ class SpotifyViewModel @Inject constructor(
                                         )
                                     }
                                 }
-                                resultMedia
                             }
                         }
-                    }.awaitAll().filterNotNull()
-
+                    }.awaitAll()
+                    
                     database.withTransaction {
-                        val existing = playlist(importData.localPlaylistId).first()
-                        val now = LocalDateTime.now()
-                        val entity = existing?.playlist?.copy(
-                            name = importData.title,
-                            bookmarkedAt = existing.playlist.bookmarkedAt ?: now,
-                            lastUpdateTime = now,
-                            thumbnailUrl = importData.thumbnailUrl,
-                            isEditable = true,
-                        ) ?: PlaylistEntity(
-                            id = importData.localPlaylistId,
-                            name = importData.title,
-                            bookmarkedAt = now,
-                            lastUpdateTime = now,
-                            thumbnailUrl = importData.thumbnailUrl,
-                            isEditable = true,
-                        )
-
-                        if (existing == null) {
-                            insert(entity)
-                        } else {
-                            update(entity)
+                        val existing = getPlaylist(importData.localPlaylistId)
+                        if (existing != null) {
+                            update(existing.playlist.copy(lastUpdateTime = LocalDateTime.now()))
                         }
-
-                        matchedMedia.forEach { metadata ->
-                            insert(metadata)
-                            inLibrary(metadata.id, metadata.inLibrary)
-                        }
-
-                        clearPlaylist(importData.localPlaylistId)
-                        matchedMedia.forEachIndexed { index, metadata ->
-                            insert(
-                                PlaylistSongMap(
-                                    playlistId = importData.localPlaylistId,
-                                    songId = metadata.id,
-                                    position = index,
-                                    setVideoId = metadata.setVideoId,
-                                )
-                            )
-                        }
-                        update(entity.copy(lastUpdateTime = now))
                     }
                 }
                 _importProgress.update { old ->

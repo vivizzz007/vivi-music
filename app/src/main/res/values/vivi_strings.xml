@@ -123,6 +123,8 @@
     <string name="canvas_source_vivimusic_desc">Uses the ViviMusic curated motion artwork library exclusively. Only shows a motion artwork if one has been added for the playing song</string>
     <string name="canvas_source_tidal">Tidal</string>
     <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a motion artwork if Tidal has one for the playing song</string>
+    <string name="enable_spotify_canvas">Enable Spotify Canvas</string>
+    <string name="enable_spotify_canvas_desc">Show full screen looping videos for supported Spotify tracks (Requires Spotify login)</string>
     <string name="show_album_canvas">Show Album Motion Artwork</string>
     <string name="show_album_canvas_desc">Display animated motion artwork in album</string>
     <string name="canvas_load_only_wifi">Load only on Wi-Fi</string>

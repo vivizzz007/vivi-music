@@ -98,7 +98,7 @@ fun SpotifyPlaylistScreen(
                     LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
                 )
                 .fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 100.dp) // Room for floating import button
+            contentPadding = PaddingValues(bottom = 24.dp) // Room for player
         ) {
             item {
                 Spacer(
@@ -193,27 +193,7 @@ fun SpotifyPlaylistScreen(
             }
         }
 
-        // Bottom floating button area
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                )
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            contentAlignment = Alignment.CenterEnd
-        ) {
-            AnimatedActionButton(
-                text = stringResource(R.string.import_action),
-                onClick = {
-                    viewModel.startImport(selectedIds.toList())
-                    navController.navigateUp()
-                },
-                modifier = Modifier.widthIn(min = 120.dp),
-                enabled = selectedIds.isNotEmpty() && !state.isLoading
-            )
-        }
+
 
         // Transparent TopAppBar purely for back navigation and title
         TopAppBar(
@@ -235,6 +215,20 @@ fun SpotifyPlaylistScreen(
                 }
             },
             actions = {
+                if (selectedIds.isNotEmpty() && !state.isLoading) {
+                    IconButton(
+                        onClick = {
+                            viewModel.startImport(selectedIds.toList())
+                            navController.navigateUp()
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.download),
+                            contentDescription = stringResource(R.string.import_action)
+                        )
+                    }
+                }
+
                 val isAllSelected = filteredDisplayItems.isNotEmpty() && filteredDisplayItems.all { item ->
                     val id = if (item is String) item else (item as SpotifyPlaylist).id
                     id in selectedIds

@@ -12,6 +12,9 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import org.json.JSONObject
+import com.music.spotify.Spotify
+import com.music.spotify.SpotifyAuth
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -46,6 +49,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import okhttp3.Credentials
 import timber.log.Timber
 import java.net.Authenticator
@@ -162,6 +166,43 @@ class App : Application(), SingletonImageLoader.Factory {
                                 settings[VisitorDataKey] = newVisitorData
                             }
                         }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[SpotifySessionKey] }
+                .distinctUntilChanged()
+                .collect { sessionJson ->
+                    if (!sessionJson.isNullOrBlank()) {
+                        try {
+                            val json = JSONObject(sessionJson)
+                            val token = json.optString("accessToken", "")
+                            val expiresAt = json.optLong("expiresAt", 0L)
+                            val spDc = json.optString("spDc", "")
+                            val spKey = json.optString("spKey", "")
+                            
+                            if (token.isNotEmpty() && expiresAt > System.currentTimeMillis() + 60_000L) {
+                                Spotify.accessToken = token
+                            } else if (spDc.isNotEmpty()) {
+                                // Token expired on cold boot; silently refresh it in background
+                                val result = SpotifyAuth.fetchAccessToken(spDc, spKey).getOrNull()
+                                if (result != null) {
+                                    Spotify.accessToken = result.accessToken
+                                    // Save back to avoid re-fetching on next boot
+                                    val newSession = json.apply {
+                                        put("accessToken", result.accessToken)
+                                        put("expiresAt", result.accessTokenExpirationTimestampMs)
+                                    }
+                                    dataStore.edit { settings ->
+                                        settings[SpotifySessionKey] = newSession.toString()
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            reportException(e)
+                        }
+                    }
                 }
         }
 

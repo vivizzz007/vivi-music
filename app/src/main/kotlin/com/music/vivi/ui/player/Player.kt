@@ -243,6 +243,9 @@ import com.music.vivi.Motionartwork.vivimusic.ViviMusicMotionartworkProvider
 import com.music.vivi.constants.MotionartworkSource
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.constants.SpotifyCanvasEnabledKey
+import com.music.spotify.Spotify
+import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.MotionartworkPlaybackCache
@@ -292,6 +295,8 @@ fun BottomSheetPlayer(
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
     val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
+    val spotifyCanvasEnabled by rememberPreference(SpotifyCanvasEnabledKey, false)
+    val usePlayerV2 by rememberPreference(UsePlayerV2Key, false)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
@@ -559,8 +564,31 @@ fun BottomSheetPlayer(
     val albumTitle = mediaMetadata?.album?.title
     var canvasArtwork by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<Motionartwork?>(null) }
     var canvasFetchInFlight by remember(mediaMetadata?.id, albumTitle) { mutableStateOf(false) }
+    var spotifyCanvasUrl by remember(mediaMetadata?.id, albumTitle) { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken) {
+        val item = mediaMetadata ?: return@LaunchedEffect
+        if (spotifyCanvasEnabled && Spotify.accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
+            timber.log.Timber.d("SpotifyCanvas: Triggering Canvas fetch for track: ${item.title}")
+            withContext(Dispatchers.IO) {
+                // Try REST API first as it's more reliable
+                val trackId = Spotify.searchTrackRest("${item.title} ${item.artists.joinToString { it.name }}") 
+                    ?: Spotify.searchTrack("${item.title} ${item.artists.joinToString { it.name }}")?.id
+
+                timber.log.Timber.d("SpotifyCanvas: Resolved Track ID from search: $trackId")
+
+                if (trackId != null) {
+                    val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, Spotify.accessToken!!)
+                    timber.log.Timber.d("SpotifyCanvas: Canvas URL extraction result: $canvasRes")
+                    withContext(Dispatchers.Main) {
+                        spotifyCanvasUrl = canvasRes.getOrNull()
+                    }
+                }
+            }
+        } else {
+            timber.log.Timber.d("SpotifyCanvas: Conditions not met to fetch. canvasEnabled=$spotifyCanvasEnabled, tokenReady=${Spotify.accessToken != null}, itemReady=${item != null}")
+        }
+
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
             canvasArtwork = null
             return@LaunchedEffect
@@ -569,12 +597,12 @@ fun BottomSheetPlayer(
             canvasArtwork = null
             return@LaunchedEffect
         }
-        val item = mediaMetadata ?: return@LaunchedEffect
         
         val cacheKey = "${item.id}:${motionartworkSource.name}"
         // Use cached artwork if available
         MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
             canvasArtwork = cached
+            spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
             return@LaunchedEffect
         }
 
@@ -649,6 +677,7 @@ fun BottomSheetPlayer(
                 canvasArtwork = validated
                 if (validated != null) {
                     MotionartworkPlaybackCache.put(cacheKey, validated)
+                    spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
                 }
                 canvasFetchInFlight = false
             }
@@ -850,7 +879,35 @@ fun BottomSheetPlayer(
                     .fillMaxSize()
                     .background(bottomSheetBackgroundColor)
             ) {
-                when (playerBackground) {
+                if (spotifyCanvasUrl != null && !usePlayerV2) {
+                    val overlayAlpha by animateFloatAsState(
+                        targetValue = if (showInlineLyrics) 0.85f else 0.4f,
+                        label = "canvasDimmer"
+                    )
+                    androidx.compose.animation.AnimatedContent(
+                        targetState = spotifyCanvasUrl,
+                        transitionSpec = { fadeIn(tween(800)) togetherWith fadeOut(tween(800)) },
+                        label = "spotifyCanvasBackground"
+                    ) { url ->
+                        if (url != null) {
+                            Box(modifier = Modifier.fillMaxSize().alpha(backgroundAlpha)) {
+                                if (backgroundAlpha > 0.01f) {
+                                    BackgroundVideoView(
+                                        videoUrl = url,
+                                        isPlaying = isPlaying,
+                                        resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = overlayAlpha))
+                                )
+                            }
+                        }
+                    }
+                } else when (playerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -1324,7 +1381,6 @@ fun BottomSheetPlayer(
             )
         },
     ) {
-        val usePlayerV2 by rememberPreference(UsePlayerV2Key, false)
         if (usePlayerV2) {
              PlayerV2(state, navController, modifier)
         } else {
@@ -1344,10 +1400,10 @@ fun BottomSheetPlayer(
                     .padding(horizontal = PlayerHorizontalPadding),
             ) {
                 AnimatedContent(
-                    targetState = showInlineLyrics,
+                    targetState = showInlineLyrics || spotifyCanvasUrl != null,
                     label = "ThumbnailAnimation"
-                ) { showLyrics ->
-                    if (showLyrics) {
+                ) { showSmallThumbnail ->
+                    if (showSmallThumbnail) {
                         Row {
                             if (hidePlayerThumbnail) {
                                 Box(
@@ -2622,7 +2678,7 @@ fun BottomSheetPlayer(
                                     showLyrics = showLyrics,
                                     positionProvider = { effectivePosition }
                                 )
-                            } else {
+                            } else if (spotifyCanvasUrl == null) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.animateContentSize(),
@@ -2684,7 +2740,7 @@ fun BottomSheetPlayer(
                                     showLyrics = showLyrics,
                                     positionProvider = { effectivePosition }
                                 )
-                            } else {
+                            } else if (spotifyCanvasUrl == null) {
                                 Thumbnail(
                                     sliderPositionProvider = sliderPositionProvider,
                                     modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),

@@ -10,6 +10,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -371,4 +372,52 @@ object Spotify {
             offset = offset,
         )
     }
+
+    suspend fun searchTrack(query: String): SpotifyTrack? = runCatching {
+        val vars = buildJsonObject {
+            put("searchTerm", query)
+            put("offset", 0)
+            put("limit", 5)
+            put("numberOfTopResults", 5)
+            put("includeAudiobooks", true)
+            put("includePreReleases", false)
+        }
+
+        val response = graphqlPost(operationName = "searchTracks", variables = vars)
+        println("SpotifyCanvas GraphQL Response: $response")
+        val data = response.obj("data")?.obj("searchV2") ?: return@runCatching null
+        val tracks = data.obj("tracksV2")?.arr("items") ?: return@runCatching null
+
+        for (trackElem in tracks) {
+            val itemWrapper = trackElem.jsonObject.obj("itemV2") ?: trackElem.jsonObject.obj("item")
+            val itemData = itemWrapper?.obj("data") ?: continue
+            val typeName = itemData.str("__typename")
+            if (typeName == "Track" || typeName == "TrackResponseWrapper") {
+                return@runCatching parseGqlTrack(itemData)
+            }
+        }
+        null
+    }.onFailure {
+        println("SpotifyCanvas GraphQL Error: ${it.message}")
+        it.printStackTrace()
+    }.getOrNull()
+    
+    suspend fun searchTrackRest(query: String): String? = runCatching {
+        val token = accessToken ?: return@runCatching null
+        val encodedQuery = java.net.URLEncoder.encode(query, "UTF-8")
+        val response = gqlClient.get("https://api.spotify.com/v1/search?q=$encodedQuery&type=track&limit=1") {
+            header("Authorization", "Bearer $token")
+        }
+        if (response.status.value in 200..299) {
+            val body = response.bodyAsText()
+            val js = json.parseToJsonElement(body).jsonObject
+            val track = js.obj("tracks")?.arr("items")?.firstOrNull()?.jsonObject
+            val trackId = track?.str("id")
+            println("SpotifyCanvas: searchTrackRest success. Track ID: $trackId")
+            return@runCatching trackId
+        } else {
+            println("SpotifyCanvas: searchTrackRest failed with HTTP status ${response.status.value}")
+        }
+        null
+    }.getOrNull()
 }

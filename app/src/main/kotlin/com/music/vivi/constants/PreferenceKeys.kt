@@ -574,6 +574,7 @@ val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
 val MotionartworkSourceKey = stringPreferencesKey("canvasSource")
 val CanvasLoadOnlyWifiKey = booleanPreferencesKey("canvasLoadOnlyWifi")
+val SpotifyCanvasEnabledKey = booleanPreferencesKey("spotifyCanvasEnabled")
 
 // Data Saver
 val DataSaverKey = booleanPreferencesKey("dataSaver")
