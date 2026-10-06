@@ -22,6 +22,7 @@ object LyricsProviderRegistry {
         "Kugou"           to KuGouLyricsProvider,
         "Unison"          to UnisonLyricsProvider,
         "BiniLyrics"      to BiniLyricsProvider,
+        "Spotify"         to SpotifyLyricsProvider,
         "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
         "YouTubeMusic"    to YouTubeLyricsProvider,
     )
@@ -47,6 +48,7 @@ object LyricsProviderRegistry {
         "Kugou",
         "Unison",
         "BiniLyrics",
+        "Spotify",
         "YouTubeSubtitle",
         "YouTubeMusic",
     )
@@ -63,6 +65,7 @@ object LyricsProviderRegistry {
         PreferredLyricsProvider.YOULYPLUS     -> "YouLyPlus"
         PreferredLyricsProvider.PAXSENIX      -> "Paxsenix"
         PreferredLyricsProvider.UNISON        -> "Unison"
+        PreferredLyricsProvider.SPOTIFY       -> "Spotify"
     }
 
     /** Returns the human-readable display name for a registry provider key. */
@@ -75,6 +78,7 @@ object LyricsProviderRegistry {
         "Kugou"           -> "KuGou"
         "Unison"          -> "Unison"
         "BiniLyrics"      -> "Bini Lyrics"
+        "Spotify"         -> "Spotify"
         "YouTubeSubtitle" -> "YouTube Subtitle"
         "YouTubeMusic"    -> "YouTube Music"
         else              -> name

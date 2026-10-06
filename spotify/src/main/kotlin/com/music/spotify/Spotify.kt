@@ -420,4 +420,35 @@ object Spotify {
         }
         null
     }.getOrNull()
+
+    suspend fun getColorLyrics(trackId: String): String? = runCatching {
+        val token = accessToken ?: return@runCatching null
+        val response = gqlClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId?format=json&vocalRemoval=false") {
+            header("Authorization", "Bearer $token")
+        }
+        if (response.status.value in 200..299) {
+            val body = response.bodyAsText()
+            val js = json.parseToJsonElement(body).jsonObject
+            val lyricsData = js.obj("lyrics") ?: return@runCatching null
+            val lines = lyricsData.arr("lines") ?: return@runCatching null
+
+            val stringBuilder = StringBuilder()
+            for (line in lines) {
+                val lineObj = line.jsonObject
+                val words = lineObj.str("words") ?: continue
+                val startTimeMsStr = lineObj.str("startTimeMs") ?: continue
+                val timeMs = startTimeMsStr.toLongOrNull() ?: continue
+
+                val totalSeconds = timeMs / 1000
+                val minutes = totalSeconds / 60
+                val seconds = totalSeconds % 60
+                val centiseconds = (timeMs % 1000) / 10
+
+                val timeStr = String.format("[%02d:%02d.%02d]", minutes, seconds, centiseconds)
+                stringBuilder.appendLine("$timeStr $words")
+            }
+            return@runCatching stringBuilder.toString().trim()
+        }
+        null
+    }.getOrNull()
 }

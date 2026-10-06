@@ -103,6 +103,7 @@ val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
 val EnableMusixmatchKey = booleanPreferencesKey("enableMusixmatch")
+val EnableSpotifyLyricsKey = booleanPreferencesKey("enableSpotifyLyrics")
 
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
@@ -492,6 +493,7 @@ enum class PreferredLyricsProvider {
     YOULYPLUS,
     PAXSENIX,
     UNISON,
+    SPOTIFY
 }
 
 enum class PlayerButtonsStyle {
