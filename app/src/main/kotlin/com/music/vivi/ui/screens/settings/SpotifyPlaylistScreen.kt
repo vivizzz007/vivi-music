@@ -248,10 +248,7 @@ fun SpotifyPlaylistScreen(
                     modifier = Modifier.padding(end = 4.dp)
                 )
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = Color.Transparent,
-                scrolledContainerColor = Color.Transparent
-            )
+
         )
     }
 }
