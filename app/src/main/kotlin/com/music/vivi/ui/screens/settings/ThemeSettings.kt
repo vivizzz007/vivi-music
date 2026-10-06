@@ -16,16 +16,20 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,14 +47,19 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
@@ -58,10 +67,12 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
+import com.music.vivi.ui.component.ExpressiveSettingGroup
+import com.music.vivi.ui.component.Material3SettingsItem
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -86,6 +97,7 @@ import com.music.vivi.ui.theme.DefaultThemeColor
 import com.music.vivi.ui.theme.vivimusicTheme
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import androidx.compose.material3.Scaffold
 
 data class ThemePalette(
     val nameRes: Int,
@@ -118,7 +130,7 @@ val PaletteColors = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ThemeScreen(
+fun ThemeSettings(
     navController: NavController,
 ) {
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
@@ -151,39 +163,43 @@ fun ThemeScreen(
         onDynamicThemeChange(isDynamicColor)
     }
 
-    if (isLandscape) {
-        LandscapeThemeLayout(
-            innerPadding = PaddingValues(0.dp),
-            darkMode = darkMode,
-            onDarkModeChange = onDarkModeChange,
-            pureBlack = pureBlack,
-            onPureBlackChange = onPureBlackChange,
-            selectedThemeColor = selectedThemeColor,
-            onSelectedThemeColorChange = handleColorSelection
-        )
-    } else {
-        PortraitThemeLayout(
-            innerPadding = PaddingValues(0.dp),
-            darkMode = darkMode,
-            onDarkModeChange = onDarkModeChange,
-            pureBlack = pureBlack,
-            onPureBlackChange = onPureBlackChange,
-            selectedThemeColor = selectedThemeColor,
-            onSelectedThemeColorChange = handleColorSelection
-        )
-    }
-
-    TopAppBar(
-        title = { Text(stringResource(R.string.theme_colors)) },
-        navigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_back),
-                    contentDescription = stringResource(R.string.cd_back)
-                )
-            }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.theme_colors)) },
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_back),
+                            contentDescription = stringResource(R.string.cd_back)
+                        )
+                    }
+                }
+            )
         }
-    )
+    ) { innerPadding ->
+        if (isLandscape) {
+            LandscapeThemeLayout(
+                innerPadding = innerPadding,
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange,
+                pureBlack = pureBlack,
+                onPureBlackChange = onPureBlackChange,
+                selectedThemeColor = selectedThemeColor,
+                onSelectedThemeColorChange = handleColorSelection
+            )
+        } else {
+            PortraitThemeLayout(
+                innerPadding = innerPadding,
+                darkMode = darkMode,
+                onDarkModeChange = onDarkModeChange,
+                pureBlack = pureBlack,
+                onPureBlackChange = onPureBlackChange,
+                selectedThemeColor = selectedThemeColor,
+                onSelectedThemeColorChange = handleColorSelection
+            )
+        }
+    }
 }
 
 @Composable
@@ -203,7 +219,7 @@ fun PortraitThemeLayout(
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(220.dp))
+        Spacer(modifier = Modifier.height(50.dp))
 
         ThemePreviewCard(
             modifier = Modifier
@@ -215,7 +231,7 @@ fun PortraitThemeLayout(
             themeColor = selectedThemeColor
         )
 
-        Spacer(modifier = Modifier.height(160.dp))
+        Spacer(modifier = Modifier.height(50.dp))
 
         ThemeControls(
             darkMode = darkMode,
@@ -284,6 +300,7 @@ fun LandscapeThemeLayout(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeControls(
     darkMode: DarkMode,
@@ -293,113 +310,142 @@ fun ThemeControls(
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit
 ) {
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val isUsingCustomColor = selectedThemeColor != DefaultThemeColor
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                text = stringResource(R.string.theme_mode),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // System mode (AUTO)
-                ModeCircle(
-                    darkMode = darkMode,
-                    pureBlack = pureBlack,
-                    targetMode = DarkMode.AUTO,
-                    targetPureBlack = pureBlack,
-                    onClick = {
-                        onDarkModeChange(DarkMode.AUTO)
-                    },
-                    showIcon = true
-                )
+        ExpressiveSettingGroup(
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.routine_theme),
+                        title = { Text(stringResource(R.string.theme_mode)) },
+                        descriptionBelow = true,
+                        description = {
+                            val themeOptions = listOf(
+                                DarkMode.AUTO to stringResource(R.string.cd_system_mode),
+                                DarkMode.OFF to stringResource(R.string.cd_light_mode),
+                                DarkMode.ON to stringResource(R.string.cd_dark_mode)
+                            )
                 
-                // Vertical divider to separate System from manual modes
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .height(32.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant)
-                )
-                
-                // Manual modes (Light, Dark, Pure Black)
-                ModeCircle(
-                    darkMode = darkMode,
-                    pureBlack = pureBlack,
-                    targetMode = DarkMode.OFF,
-                    targetPureBlack = false,
-                    onClick = {
-                        onDarkModeChange(DarkMode.OFF)
-                        onPureBlackChange(false)
-                    },
-                    showIcon = false
-                )
-                
-                ModeCircle(
-                    darkMode = darkMode,
-                    pureBlack = pureBlack,
-                    targetMode = DarkMode.ON,
-                    targetPureBlack = false,
-                    onClick = {
-                        onDarkModeChange(DarkMode.ON)
-                        onPureBlackChange(false)
-                    },
-                    showIcon = false
-                )
-                
-                ModeCircle(
-                    darkMode = darkMode,
-                    pureBlack = pureBlack,
-                    targetMode = DarkMode.ON,
-                    targetPureBlack = true,
-                    onClick = {
-                        onDarkModeChange(DarkMode.ON)
-                        onPureBlackChange(true)
-                    },
-                    showIcon = false
-                )
-            }
-        }
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                text = stringResource(R.string.color_palette),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
-                contentPadding = PaddingValues(horizontal = 4.dp)
-            ) {
-                items(PaletteColors) { palette ->
-                    val isDynamicPalette = palette.seedColor == Color.Transparent
-                    val isSelected = if (isDynamicPalette) {
-                        selectedThemeColor == DefaultThemeColor
-                    } else {
-                        selectedThemeColor == palette.seedColor
-                    }
-                    
-                    PaletteItem(
-                        palette = palette,
-                        isSelected = isSelected,
-                        onClick = { 
-                            val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
-                            onSelectedThemeColorChange(colorToSave) 
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp, bottom = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                            ) {
+                                themeOptions.forEachIndexed { index, (value, label) ->
+                                    ToggleButton(
+                                        checked = darkMode == value,
+                                        onCheckedChange = { onDarkModeChange(value) },
+                                        modifier = Modifier.weight(1f),
+                                        shapes = when (index) {
+                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                            themeOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                        }
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+                            }
                         }
+                    )
+                )
+
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.palette),
+                        title = { Text(stringResource(R.string.color_palette)) },
+                        descriptionBelow = true,
+                        description = {
+                            LazyRow(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 4.dp)
+                                    .height(72.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                                contentPadding = PaddingValues(horizontal = 4.dp)
+                            ) {
+                                items(PaletteColors) { palette ->
+                                    val isDynamicPalette = palette.seedColor == Color.Transparent
+                                    val isSelected = if (isDynamicPalette) {
+                                        selectedThemeColor == DefaultThemeColor
+                                    } else {
+                                        selectedThemeColor == palette.seedColor
+                                    }
+                                    
+                                    PaletteItem(
+                                        palette = palette,
+                                        isSelected = isSelected,
+                                        onClick = { 
+                                            val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
+                                            onSelectedThemeColorChange(colorToSave) 
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    )
+                )
+
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.contrast),
+                        title = { Text(stringResource(R.string.cd_pure_black_mode)) },
+                        trailingContent = {
+                            Switch(
+                                checked = pureBlack,
+                                onCheckedChange = onPureBlackChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (pureBlack) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onPureBlackChange(!pureBlack) }
+                    )
+                )
+
+                if (!isUsingCustomColor) {
+                    add(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.dynamic),
+                            title = { Text(stringResource(R.string.enable_dynamic_theme)) },
+                            trailingContent = {
+                                Switch(
+                                    checked = dynamicTheme,
+                                    onCheckedChange = onDynamicThemeChange,
+                                    thumbContent = {
+                                        Icon(
+                                            painter = painterResource(
+                                                id = if (dynamicTheme) R.drawable.check else R.drawable.close
+                                            ),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(SwitchDefaults.IconSize)
+                                        )
+                                    }
+                                )
+                            },
+                            onClick = { onDynamicThemeChange(!dynamicTheme) }
+                        )
                     )
                 }
             }
-        }
+        )
     }
 }
 

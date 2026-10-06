@@ -15,67 +15,6 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalTextApi::class)
-val GoogleSansFontFamily = FontFamily(
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Bold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
-)
-
-@OptIn(ExperimentalTextApi::class)
-val SansFlexFontFamily = FontFamily(
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.plus_jakarta_sans,
-        weight = FontWeight.Bold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
-)
 
 @OptIn(ExperimentalTextApi::class)
 val OutfitFontFamily = FontFamily(

@@ -61,7 +61,7 @@ import com.music.vivi.ui.screens.settings.AccountSettingsScreen
 import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
-import com.music.vivi.ui.screens.settings.ThemeScreen
+import com.music.vivi.ui.screens.settings.ThemeSettings
 import com.music.vivi.ui.screens.settings.AiSettings
 import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
@@ -372,7 +372,7 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/appearance/theme") {
-        ThemeScreen(navController)
+        ThemeSettings(navController)
     }
 
     composable("settings/player/motionartwork") {

@@ -809,9 +809,9 @@
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Back</string>
     <string name="cd_pure_black_mode">Pure Black mode</string>
-    <string name="cd_light_mode">Light mode</string>
-    <string name="cd_dark_mode">Dark mode</string>
-    <string name="cd_system_mode">System mode</string>
+    <string name="cd_light_mode">Light</string>
+    <string name="cd_dark_mode">Dark</string>
+    <string name="cd_system_mode">System</string>
     <string name="cd_palette_item">%1$s palette</string>
     <string name="play_all">Play all</string>
     <string name="enable_high_refresh_rate">Enable high refresh rate</string>

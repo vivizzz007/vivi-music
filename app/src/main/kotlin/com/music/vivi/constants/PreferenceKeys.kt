@@ -33,8 +33,6 @@ val CustomFontPathKey = stringPreferencesKey("custom_font_path")
 
 enum class AppFont(val value: String) {
     SYSTEM("system"),
-    GOOGLE_SANS("google_sans"),
-    SANS_FLEX("sans_flex"),
     OUTFIT("outfit"),
     PLUS_JAKARTA_SANS("plus_jakarta_sans"),
     CUSTOM("custom");
