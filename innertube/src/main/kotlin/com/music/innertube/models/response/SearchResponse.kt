@@ -17,7 +17,19 @@ data class SearchResponse(
     @Serializable
     data class Contents(
         val tabbedSearchResultsRenderer: Tabs?,
+        val twoColumnSearchResultsRenderer: TwoColumnSearchResultsRenderer?,
+        val sectionListRenderer: com.music.innertube.models.SectionListRenderer?
     )
+
+    @Serializable
+    data class TwoColumnSearchResultsRenderer(
+        val primaryContents: PrimaryContents?
+    ) {
+        @Serializable
+        data class PrimaryContents(
+            val sectionListRenderer: com.music.innertube.models.SectionListRenderer?
+        )
+    }
 
     @Serializable
     data class ContinuationContents(
