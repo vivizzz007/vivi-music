@@ -432,7 +432,7 @@
     <string name="password">Password</string>
 
     <!-- Last.fm -->
-    <string name="lastfm_integration">Last.fm Integration</string>
+    <string name="lastfm_integration">Last.fm</string>
     <string name="enable_scrobbling">Enable scrobbling</string>
     <string name="lastfm_now_playing">Send Now Playing</string>
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
@@ -849,7 +849,7 @@
     <string name="csv_preview_failed">Failed to preview CSV file</string>
 
     <!-- Discord Integration Redesign -->
-    <string name="discord_integration_settings">Discord Integration</string>
+    <string name="discord_integration_settings">Discord</string>
     <string name="discord_status">Status</string>
     <string name="discord_status_online">Online</string>
     <string name="discord_status_idle">Idle</string>

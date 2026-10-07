@@ -348,7 +348,7 @@ fun LastFMSettings(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.music_note),
+                                    painter = painterResource(R.drawable.lastfm),
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
