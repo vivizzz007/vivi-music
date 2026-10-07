@@ -254,6 +254,7 @@ import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.player.MotionartworkPlaybackCache
 import com.music.vivi.utils.isWifiConnected
+import com.music.vivi.utils.SpotifySessionManager
 import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -583,7 +584,8 @@ fun BottomSheetPlayer(
             return@LaunchedEffect
         }
 
-        if (spotifyCanvasEnabled && Spotify.accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
+        val accessToken = SpotifySessionManager.getValidAccessToken(context)
+        if (spotifyCanvasEnabled && accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
             timber.log.Timber.d("SpotifyCanvas: Triggering Canvas fetch for track: ${item.title}")
             withContext(Dispatchers.IO) {
                 // Try REST API first as it's more reliable
@@ -593,7 +595,7 @@ fun BottomSheetPlayer(
                 timber.log.Timber.d("SpotifyCanvas: Resolved Track ID from search: $trackId")
 
                 if (trackId != null) {
-                    val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, Spotify.accessToken!!)
+                    val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, accessToken)
                     timber.log.Timber.d("SpotifyCanvas: Canvas URL extraction result: $canvasRes")
                     val fetchedUrl = canvasRes.getOrNull()
                     if (fetchedUrl != null) {

@@ -49,15 +49,7 @@ import java.time.LocalDateTime
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
-@Serializable
-data class SpotifySession(
-    val spDc: String,
-    val spKey: String? = null,
-    val accessToken: String? = null,
-    val expiresAt: Long = 0,
-    val accountName: String? = null,
-    val accountAvatarUrl: String? = null,
-)
+import com.music.vivi.models.SpotifySession
 
 data class SpotifyImportUiState(
     val isAuthenticated: Boolean = false,

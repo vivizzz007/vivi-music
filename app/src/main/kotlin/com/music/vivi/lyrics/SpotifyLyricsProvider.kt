@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.lyrics
 
 import android.content.Context
@@ -5,6 +9,7 @@ import com.music.spotify.Spotify
 import com.music.vivi.constants.EnableSpotifyLyricsKey
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
+import com.music.vivi.utils.SpotifySessionManager
 
 object SpotifyLyricsProvider : LyricsProvider {
     override val name = "Spotify"
@@ -20,6 +25,9 @@ object SpotifyLyricsProvider : LyricsProvider {
         duration: Int,
         album: String?,
     ): Result<String> = runCatching {
+        SpotifySessionManager.getValidAccessToken()
+            ?: throw IllegalStateException("Spotify account not connected or token expired")
+
         // We first need a trackId. 
         // Spotify search will look for the exact match
         val query = "$title $artist"
