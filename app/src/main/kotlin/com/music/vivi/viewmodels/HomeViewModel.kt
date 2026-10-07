@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -741,23 +742,24 @@ class HomeViewModel @Inject constructor(
             launch(Dispatchers.IO) { getCommunityPlaylists() }
             launch(Dispatchers.IO) { loadSimilarRecommendations() }
             launch(Dispatchers.IO) {
-                YouTube.home().onSuccess { page ->
-                    val cnrSection = page.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }
-                    if (cnrSection != null) {
-                        val filteredItems = cnrSection.items
+                YouTube.home().onSuccess { initialPage ->
+                    val initialCnrSection = initialPage.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }
+                    if (initialCnrSection != null) {
+                        val filteredItems = initialCnrSection.items
                             .filterExplicit(hideExplicit)
                             .filterYoutubeShorts(hideYoutubeShorts)
                         if (filteredItems.isNotEmpty()) {
-                            coversAndRemixes.value = cnrSection.copy(items = filteredItems)
+                            coversAndRemixes.value = initialCnrSection.copy(items = filteredItems)
                         }
                     } else {
                         // Force fetch backend if not returned in initial home page natively
                         launch(Dispatchers.IO) { loadFallbackCoversAndRemixes() }
                     }
 
-                    homePage.value = page.copy(
-                        sections = page.sections.mapNotNull { section ->
-                            if (section == cnrSection) return@mapNotNull null
+                    // Set initial home structure so UI resolves instantly
+                    homePage.value = initialPage.copy(
+                        sections = initialPage.sections.mapNotNull { section ->
+                            if (section == initialCnrSection) return@mapNotNull null
                             val filteredItems = section.items
                                 .filterExplicit(hideExplicit)
                                 .filterVideoSongs(hideVideoSongs)
@@ -765,6 +767,37 @@ class HomeViewModel @Inject constructor(
                             if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
                         }
                     )
+                    
+                    // Asynchronously fetch continuations if "Quick picks" is missing 
+                    // This way it won't block the rest of the home sections from rendering!
+                    launch(Dispatchers.IO) {
+                        var hasQuickPicks = initialPage.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                        var currentContinuation = initialPage.continuation
+                        var fetchCount = 0
+                        
+                        while (!hasQuickPicks && currentContinuation != null && fetchCount < 2) {
+                            val nextSectionsResponse = YouTube.home(currentContinuation).getOrNull() ?: break
+                            
+                            val nextCnrSection = nextSectionsResponse.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }
+                            if (nextCnrSection != null && coversAndRemixes.value == null) {
+                                val filteredItems = nextCnrSection.items.filterExplicit(hideExplicit).filterYoutubeShorts(hideYoutubeShorts)
+                                if (filteredItems.isNotEmpty()) coversAndRemixes.value = nextCnrSection.copy(items = filteredItems)
+                            }
+
+                            homePage.value = nextSectionsResponse.copy(
+                                chips = homePage.value?.chips,
+                                sections = (homePage.value?.sections.orEmpty() + nextSectionsResponse.sections).mapNotNull { section ->
+                                    if (section == nextCnrSection) return@mapNotNull null
+                                    val filteredItems = section.items.filterExplicit(hideExplicit).filterVideoSongs(hideVideoSongs).filterYoutubeShorts(hideYoutubeShorts)
+                                    if (filteredItems.isEmpty()) null else section.copy(items = filteredItems)
+                                }
+                            )
+                            
+                            hasQuickPicks = nextSectionsResponse.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                            currentContinuation = nextSectionsResponse.continuation
+                            fetchCount++
+                        }
+                    }
                 }.onFailure { reportException(it) }
             }
             launch(Dispatchers.IO) {
@@ -920,11 +953,12 @@ class HomeViewModel @Inject constructor(
 
     init {
 
-        // Load home data immediately — do NOT wait for the cookie read.
-        // Phase 2 already guards loadAccountPlaylists() with `if (YouTube.cookie != null)`,
-        // so logged-in features still work correctly after the cookie is set.
         viewModelScope.launch(Dispatchers.IO) {
-            android.util.Log.d("QP_TIMING", "init: ViewModel created — launching load() immediately")
+            android.util.Log.d("QP_TIMING", "init: ViewModel created — waiting for cookie")
+            val cookie = context.dataStore.data.map { it[InnerTubeCookieKey] }.firstOrNull()
+            if (!cookie.isNullOrEmpty()) {
+                YouTube.cookie = cookie
+            }
             val tInit = System.currentTimeMillis()
             load()
             android.util.Log.d("QP_TIMING", "init: load() fully completed in ${System.currentTimeMillis() - tInit}ms")

@@ -21,6 +21,7 @@ import java.net.Inet4Address
 import kotlin.io.encoding.ExperimentalEncodingApi
 import io.ktor.client.*
 import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
@@ -418,6 +419,15 @@ class InnerTube {
     }
 
     suspend fun getSwJsData() = withRetry { httpClient.get("https://music.youtube.com/sw.js_data") }
+
+    suspend fun getWebPage(url: String): String = withRetry {
+        httpClient.get(url) {
+            header(HttpHeaders.UserAgent, YouTubeClient.WEB_REMIX.userAgent)
+            header(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+            header(HttpHeaders.AcceptLanguage, "en-US,en;q=0.5")
+            cookie?.let { header(HttpHeaders.Cookie, it) }
+        }.bodyAsText()
+    }
 
     suspend fun accountMenu(client: YouTubeClient) = withRetry {
         httpClient.post("account/account_menu") {

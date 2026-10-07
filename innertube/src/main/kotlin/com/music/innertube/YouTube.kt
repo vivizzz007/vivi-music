@@ -764,7 +764,100 @@ object YouTube {
             return@runCatching homeContinuation(continuation).getOrThrow()
         }
 
-        val response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_home", params = params).body<BrowseResponse>()
+        val useHtmlScraping = params == null
+        val response = if (useHtmlScraping) {
+            try {
+                android.util.Log.d("QP_DEBUG", "home: Starting HTML scraping")
+                val html = innerTube.getWebPage("https://music.youtube.com/")
+                android.util.Log.d("QP_DEBUG", "home: HTML fetched successfully, length: ${html.length}")
+                
+                var parsedJson: String? = null
+                
+                var rawData: String? = null
+                
+                val searchPattern = "'\\/browse'"
+                var index = 0
+                while(true) {
+                    index = html.indexOf(searchPattern, index)
+                    if (index == -1) break
+                    
+                    val nextData = html.indexOf("data: '", index)
+                    if (nextData == -1) break
+                    
+                    val checkArea = html.substring(index, nextData)
+                    if (checkArea.contains("FEmusic_home") || checkArea.contains("584D657375635F686F6D65")) { // hex encoded FEmusic_home is \x46\x45\x6D\x75\x73\x69\x63\x5F\x68\x6F\x6D\x65 but usually it's plain text in JSON.parse
+                        val jsonStart = nextData + 7
+                        val jsonEnd = html.indexOf("'", jsonStart)
+                        if (jsonEnd != -1) {
+                            rawData = html.substring(jsonStart, jsonEnd)
+                            break
+                        }
+                    }
+                    index = nextData
+                }
+
+                if (rawData != null) {
+                    android.util.Log.d("QP_DEBUG", "home: FEmusic_home match found, rawData length: ${rawData.length}")
+                    
+                    val builder = java.lang.StringBuilder(rawData.length)
+                    var i = 0
+                    while (i < rawData.length) {
+                        if (rawData[i] == '\\' && i + 3 < rawData.length && rawData[i + 1] == 'x') {
+                            try {
+                                val hexChar = rawData.substring(i + 2, i + 4).toInt(16).toChar()
+                                builder.append(hexChar)
+                                i += 4
+                                continue
+                            } catch (e: Exception) {
+                                builder.append(rawData[i])
+                                i++
+                                continue
+                            }
+                        } else {
+                            builder.append(rawData[i])
+                            i++
+                        }
+                    }
+                    parsedJson = builder.toString().replace("\\\\", "\\")
+                    android.util.Log.d("QP_DEBUG", "home: Decoded hex strings (fast), parsedJson length: ${parsedJson.length}")
+                } else {
+                    android.util.Log.d("QP_DEBUG", "home: Regex match FAILED. Fallback to var ytInitialData")
+                    val searchPattern = "var ytInitialData = "
+                    var startIndex = html.indexOf(searchPattern)
+                    if (startIndex == -1) startIndex = html.indexOf("window[\"ytInitialData\"] = ")
+                    android.util.Log.d("QP_DEBUG", "home: Fallback startIndex: $startIndex")
+                    
+                    if (startIndex != -1) {
+                        val jsonStart = html.indexOf("{", startIndex)
+                        val jsonEndPattern = "};</script>"
+                        val jsonEnd = html.indexOf(jsonEndPattern, jsonStart)
+                        if (jsonStart != -1 && jsonEnd != -1) {
+                            parsedJson = html.substring(jsonStart, jsonEnd + 1)
+                            android.util.Log.d("QP_DEBUG", "home: Legacy fallback parsed snippet, length: ${parsedJson.length}")
+                        } else {
+                            android.util.Log.d("QP_DEBUG", "home: Legacy fallback failed to find closing brace/script")
+                        }
+                    }
+                }
+
+                if (parsedJson != null) {
+                    android.util.Log.d("QP_DEBUG", "home: Proceeding to decode lenientJson for BrowseResponse")
+                    val lenientJson = Json { ignoreUnknownKeys = true; explicitNulls = false; encodeDefaults = true }
+                    lenientJson.decodeFromString<BrowseResponse>(parsedJson)
+                } else {
+                    android.util.Log.d("QP_DEBUG", "home: parsedJson is null! Falling back to InnerTube API browse(...)")
+                    innerTube.browse(WEB_REMIX, browseId = "FEmusic_home", params = params).body<BrowseResponse>()
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("QP_DEBUG", "home: Exception during HTML scraping: ${e.message}", e)
+                e.printStackTrace()
+                innerTube.browse(WEB_REMIX, browseId = "FEmusic_home", params = params).body<BrowseResponse>()
+            }
+        } else {
+            android.util.Log.d("QP_DEBUG", "home: useHtmlScraping is false. Using InnerTube API browse(...)")
+            innerTube.browse(WEB_REMIX, browseId = "FEmusic_home", params = params).body<BrowseResponse>()
+        }
+
         val continuation = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.continuations?.getContinuation()
         val sectionListRender = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
