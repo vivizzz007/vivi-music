@@ -33,7 +33,8 @@ data class SearchResponse(
 
     @Serializable
     data class ContinuationContents(
-        val musicShelfContinuation: MusicShelfContinuation,
+        val musicShelfContinuation: MusicShelfContinuation?,
+        val sectionListContinuation: SectionListContinuation?
     ) {
         @Serializable
         data class MusicShelfContinuation(
@@ -45,5 +46,11 @@ data class SearchResponse(
                 val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer,
             )
         }
+
+        @Serializable
+        data class SectionListContinuation(
+            val contents: List<com.music.innertube.models.SectionListRenderer.Content> = emptyList(),
+            val continuations: List<Continuation>?,
+        )
     }
 }

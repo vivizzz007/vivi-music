@@ -272,13 +272,26 @@ object YouTube {
 
     suspend fun searchContinuation(continuation: String): Result<SearchResult> = runCatching {
         val response = innerTube.search(WEB_REMIX, continuation = continuation).body<SearchResponse>()
-        val items = response.continuationContents?.musicShelfContinuation?.contents
-            ?.mapNotNull {
+        val musicShelfContinuation = response.continuationContents?.musicShelfContinuation
+        val sectionListContinuation = response.continuationContents?.sectionListContinuation
+            
+        val items = if (musicShelfContinuation != null) {
+            musicShelfContinuation.contents.mapNotNull {
                 SearchPage.toYTItem(it.musicResponsiveListItemRenderer)
-            } ?: emptyList()
+            }
+        } else if (sectionListContinuation != null) {
+            sectionListContinuation.contents.mapNotNull { content ->
+                content.itemSectionRenderer?.contents?.firstOrNull()?.musicResponsiveListItemRenderer?.let { renderer ->
+                    SearchPage.toYTItem(renderer)
+                }
+            }
+        } else emptyList()
+            
         SearchResult(
             items = items,
-            continuation = if (items.isEmpty()) null else response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
+            continuation = if (items.isEmpty()) null else {
+                musicShelfContinuation?.continuations?.getContinuation() ?: sectionListContinuation?.continuations?.getContinuation()
+            }
         )
     }
 
