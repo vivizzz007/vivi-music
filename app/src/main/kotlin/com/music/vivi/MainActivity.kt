@@ -1359,7 +1359,8 @@ class MainActivity : ComponentActivity() {
                                         navController = navController,
                                         scrollBehavior = topAppBarScrollBehavior,
                                         activity = this@MainActivity,
-                                        snackbarHostState = snackbarHostState
+                                        snackbarHostState = snackbarHostState,
+                                        homeViewModel = homeViewModel
                                     )
                                 }
                             }

@@ -5,10 +5,12 @@
 
 package com.music.vivi.ui.screens.search.suggestions
 
+import android.content.Context
 import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import java.io.File
 import java.lang.Exception
 import java.util.concurrent.TimeUnit
 
@@ -39,11 +41,38 @@ object AppleMusicScraper {
         }
     }
 
-    fun fetchTopSongs(countryCode: String = "us"): List<SuggestionTrack> {
+    private fun fetchWithCache(
+        context: Context,
+        url: String,
+        cacheName: String,
+        cacheMaxAgeMs: Long = 6 * 60 * 60 * 1000
+    ): String? {
+        val cacheFile = File(context.cacheDir, cacheName)
+        if (cacheFile.exists()) {
+            val lastModified = cacheFile.lastModified()
+            if (System.currentTimeMillis() - lastModified < cacheMaxAgeMs) {
+                return cacheFile.readText()
+            }
+        }
+        
+        val response = executeGet(url)
+        return if (response != null) {
+            try { cacheFile.writeText(response) } catch (e: Exception) {}
+            response
+        } else {
+            if (cacheFile.exists()) {
+                try { cacheFile.readText() } catch (e: Exception) { null }
+            } else {
+                null
+            }
+        }
+    }
+
+    fun fetchTopSongs(context: Context, countryCode: String = "us"): List<SuggestionTrack> {
         val tracks = mutableListOf<SuggestionTrack>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/100/songs.json"
-            val response = executeGet(url) ?: return tracks
+            val response = fetchWithCache(context, url, "apple_songs_$countryCode.json") ?: return tracks
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")
@@ -65,11 +94,11 @@ object AppleMusicScraper {
         return tracks
     }
 
-    fun fetchTopAlbums(countryCode: String = "us"): List<SuggestionAlbum> {
+    fun fetchTopAlbums(context: Context, countryCode: String = "us"): List<SuggestionAlbum> {
         val albums = mutableListOf<SuggestionAlbum>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/20/albums.json"
-            val response = executeGet(url) ?: return albums
+            val response = fetchWithCache(context, url, "apple_albums_$countryCode.json") ?: return albums
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")
@@ -91,11 +120,11 @@ object AppleMusicScraper {
         return albums
     }
 
-    fun fetchTopVideos(countryCode: String = "us"): List<SuggestionTrack> {
+    fun fetchTopVideos(context: Context, countryCode: String = "us"): List<SuggestionTrack> {
         val videos = mutableListOf<SuggestionTrack>()
         try {
             val url = "https://rss.applemarketingtools.com/api/v2/$countryCode/music/most-played/20/music-videos.json"
-            val response = executeGet(url) ?: return videos
+            val response = fetchWithCache(context, url, "apple_videos_$countryCode.json") ?: return videos
             
             val json = JSONObject(response)
             val results = json.getJSONObject("feed").getJSONArray("results")

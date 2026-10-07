@@ -118,14 +118,7 @@ fun SuggestionsTabContent(
         ) {
         if (isLoading && !isManualLoading && suggestionTracks == null && suggestionArtists == null && suggestionAlbums == null && suggestionVideos == null) {
             item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(300.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularWavyProgressIndicator()
-                }
+                SkeletonSuggestions()
             }
         }
 
@@ -663,5 +656,45 @@ fun YouTubeLatestAlbumsSection(
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun SkeletonSuggestions() {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Spacer(modifier = Modifier.height(32.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+                .padding(16.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.suggestions),
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.Transparent,
+                modifier = Modifier.background(
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    RoundedCornerShape(4.dp)
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(2.dp))
+        
+        com.music.vivi.ui.component.shimmer.ShimmerHost(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            for (i in 0 until 5) {
+                com.music.vivi.ui.component.shimmer.ListItemPlaceHolder(
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
     }
 }

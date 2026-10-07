@@ -2742,6 +2742,20 @@ class MusicService :
                 (error.cause as? PlaybackException)?.errorCode == PlaybackException.ERROR_CODE_AUDIO_TRACK_INIT_FAILED
     }
 
+    /**
+     * Returns true if the root cause is a StreamResolveException — meaning InnerTubeX
+     * exhausted every client and cannot provide a playable stream URL.
+     * Retrying via the normal IO-error path is pointless in this case.
+     */
+    private fun isStreamResolveFailure(error: PlaybackException): Boolean {
+        var cause: Throwable? = error.cause
+        while (cause != null) {
+            if (cause.javaClass.name.contains("StreamResolveException")) return true
+            cause = cause.cause
+        }
+        return false
+    }
+
     override fun onPlayerError(error: PlaybackException) {
         super.onPlayerError(error)
 
@@ -2770,6 +2784,17 @@ class MusicService :
 
         // Handle specific error types with strict strategies
         when {
+            isStreamResolveFailure(error) -> {
+                // All InnerTubeX clients were exhausted — no stream is available.
+                // Retrying would just repeat the same full client sweep with the same result.
+                Timber.tag(TAG).e(
+                    "Stream resolution failed for $mediaId — all clients exhausted. " +
+                    "Stopping immediately (skipping retry loop)."
+                )
+                if (mediaId != null) markSongAsFailed(mediaId)
+                handleFinalFailure()
+                return
+            }
             isAudioRendererError(error) -> {
                 Timber.tag(TAG).d("AudioTrack error detected (${error.errorCode}), performing safe recovery")
                 handleAudioRendererError(mediaId)

@@ -21,6 +21,15 @@
     </a>
   </p>
 
+  <p align="center">
+    <a href="https://trendshift.io/repositories/17110?utm_source=repository-badge&utm_medium=badge&utm_campaign=badge-repository-17110" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/17110" alt="vivizzz007%2Fvivi-music | Trendshift" width="250" height="55"/></a>
+  </p>
+  <p align="center">
+    <a href="https://trendshift.io/repositories/17110?utm_source=trendshift-badge&utm_medium=badge&utm_campaign=badge-trendshift-17110" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/17110/daily?language=Kotlin" alt="vivizzz007%2Fvivi-music | Trendshift" width="250" height="55"/></a>
+    &nbsp;&nbsp;
+    <a href="https://trendshift.io/repositories/17110?utm_source=trendshift-badge&utm_medium=badge&utm_campaign=badge-trendshift-17110" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/17110/weekly?language=Kotlin" alt="vivizzz007%2Fvivi-music | Trendshift" width="250" height="55"/></a>
+  </p>
+
 </div>
 
 <hr>
@@ -268,7 +277,7 @@
       <td width="40%" align="left">
         <b>💡 Special Thanks</b>
         <ul>
-          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – For their inspiration and contributions to the open source community.</li>
+          <li><strong><a href="https://github.com/mostafaalagamy">Mostafa Alagamy</a></strong> – Creator of <a href="https://github.com/mostafaalagamy/Metrolist">Metrolist</a>, the project that inspired VIVI Music. Huge thanks for the foundation and open-source contributions! 🌟</li>
           <li><strong><a href="https://github.com/ZemerTeam/zemer-cipher">@Zemer</a></strong> – Huge congratulations and thanks for inventing the new playback method! 🎉</li>
         </ul>
       </td>

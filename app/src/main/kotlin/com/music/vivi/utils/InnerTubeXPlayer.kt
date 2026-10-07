@@ -21,8 +21,18 @@ import com.metrolist.innertubex.extraction.TokenProviderCapabilities
 import com.metrolist.innertubex.extraction.YtConfigParserImpl
 import com.metrolist.innertubex.extraction.generateClientPlaybackNonce
 import com.metrolist.innertubex.extraction.strategy.PoTokenProviderKind
+import com.music.innertube.models.IpVersion
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.utils.potoken.PoTokenGenerator
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.SocketAddress
+import java.net.URI
+import java.io.IOException
+import okhttp3.Dns
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -55,6 +65,31 @@ object InnerTubeXPlayer {
 
     // Isolated Streaming HttpClient & InnerTube instance
     private val httpClient = HttpClient(OkHttp) {
+        engine {
+            config {
+                dns(object : Dns {
+                    override fun lookup(hostname: String): List<InetAddress> {
+                        val addresses = Dns.SYSTEM.lookup(hostname)
+                        return when (com.music.innertube.YouTube.ipVersion) {
+                            IpVersion.IPV4 -> addresses.filterIsInstance<Inet4Address>().ifEmpty { addresses }
+                            IpVersion.IPV6 -> addresses.filterIsInstance<Inet6Address>().ifEmpty { addresses }
+                            IpVersion.AUTO -> addresses
+                        }
+                    }
+                })
+                proxySelector(object : ProxySelector() {
+                    override fun select(uri: URI?): List<Proxy> = listOfNotNull(com.music.innertube.YouTube.proxy ?: Proxy.NO_PROXY)
+                    override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) { }
+                })
+                proxyAuthenticator { _, response ->
+                    com.music.innertube.YouTube.proxyAuth?.let { auth ->
+                        response.request.newBuilder()
+                            .header("Proxy-Authorization", auth)
+                            .build()
+                    } ?: response.request
+                }
+            }
+        }
         expectSuccess = false
         install(ContentNegotiation) {
             json(
@@ -92,6 +127,15 @@ object InnerTubeXPlayer {
         allowBoundedRange: Boolean = true,
     ): Result<PlaybackData> =
         try {
+            // 🔥 Inject NewPipe's YouTube auth & network context before extraction
+            val youtube = com.music.innertube.YouTube
+            innerTubeX.cookie = youtube.cookie
+            innerTubeX.visitorData = youtube.visitorData
+            innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(
+                gl = youtube.locale.gl,
+                hl = youtube.locale.hl
+            )
+
             val hints =
                 contentHints.copy(
                     isUploaded =

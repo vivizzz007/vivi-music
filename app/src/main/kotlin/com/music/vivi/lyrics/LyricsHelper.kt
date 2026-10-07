@@ -140,7 +140,7 @@ constructor(
                     var bestIndex = Int.MAX_VALUE
 
                     try {
-                        kotlinx.coroutines.withTimeout(3000) {
+                        kotlinx.coroutines.withTimeout(15000) {
                             for ((index, providerName, lyrics) in channel) {
                                 if (!prioritizeSync) {
                                     if (index < bestIndex) {
@@ -150,7 +150,13 @@ constructor(
                                         if (index == 0) break
                                     }
                                 } else {
-                                    val syncType = LyricsUtils.getSyncType(lyrics)
+                                    val syncType = try {
+                                        LyricsUtils.getSyncType(lyrics)
+                                    } catch (e: Exception) {
+                                        reportException(e)
+                                        LyricsUtils.SyncType.NONE
+                                    }
+                                    
                                     if (syncType == LyricsUtils.SyncType.WORD) {
                                         if (bestSyncType != LyricsUtils.SyncType.WORD || index < bestIndex) {
                                             bestLyrics = lyrics

@@ -255,26 +255,26 @@ object Musixmatch {
             val trackId = bestTrack.trackId
             val trackLength = bestTrack.trackLength ?: duration
 
-            // 2. Fetch lyrics using 3-tier priority chain
-            // Tier 1: RichSync (Word-level timing)
-            val richsyncResult = getRichSyncLyrics(trackId, token, secret)
-            if (richsyncResult.isSuccess) {
-                return@runWithTokenRetry richsyncResult.getOrThrow()
-            }
+            // 2. Fetch tiers concurrently but yield in strict priority order (Synced first)
+            return@runWithTokenRetry kotlinx.coroutines.coroutineScope {
+                val richSyncJob = if (bestTrack.hasRichSync == 1 || bestTrack.hasRichSync == null) {
+                    async { getRichSyncLyrics(trackId, token, secret) }
+                } else null
 
-            // Tier 2: Subtitle (Line-level synced timing)
-            val subtitleResult = getSubtitleLyrics(trackId, token, secret)
-            if (subtitleResult.isSuccess) {
-                return@runWithTokenRetry subtitleResult.getOrThrow()
-            }
+                val subtitleJob = if (bestTrack.hasSubtitles == 1 || bestTrack.hasSubtitles == null) {
+                    async { getSubtitleLyrics(trackId, token, secret) }
+                } else null
 
-            // Tier 3: Plain Lyrics (Unsynced lyrics)
-            val plainLyricsResult = getPlainLyrics(trackId, token, secret)
-            if (plainLyricsResult.isSuccess) {
-                return@runWithTokenRetry plainLyricsResult.getOrThrow()
-            }
+                val lyricsJob = if (bestTrack.hasLyrics == 1 || bestTrack.hasLyrics == null) {
+                    async { getPlainLyrics(trackId, token, secret) }
+                } else null
 
-            throw IllegalStateException("No lyrics found for trackId $trackId")
+                richSyncJob?.await()?.getOrNull()?.let { return@coroutineScope it }
+                subtitleJob?.await()?.getOrNull()?.let { return@coroutineScope it }
+                lyricsJob?.await()?.getOrNull()?.let { return@coroutineScope it }
+
+                throw IllegalStateException("No lyrics found for trackId $trackId")
+            }
         }
     }
 
@@ -336,24 +336,21 @@ object Musixmatch {
 
                 // Fetch tiers concurrently but yield in strict priority order (Synced first)
                 kotlinx.coroutines.coroutineScope {
-                    val richsyncDeferred = async { getRichSyncLyrics(trackId, token, secret) }
-                    val subtitleDeferred = async { getSubtitleLyrics(trackId, token, secret) }
-                    val plainDeferred = async { getPlainLyrics(trackId, token, secret) }
+                    val richSyncJob = if (bestTrack.hasRichSync == 1 || bestTrack.hasRichSync == null) {
+                        async { getRichSyncLyrics(trackId, token, secret) }
+                    } else null
 
-                    val richsyncResult = richsyncDeferred.await()
-                    if (richsyncResult.isSuccess) {
-                        callback(richsyncResult.getOrThrow())
-                    }
+                    val subtitleJob = if (bestTrack.hasSubtitles == 1 || bestTrack.hasSubtitles == null) {
+                        async { getSubtitleLyrics(trackId, token, secret) }
+                    } else null
 
-                    val subtitleResult = subtitleDeferred.await()
-                    if (subtitleResult.isSuccess) {
-                        callback(subtitleResult.getOrThrow())
-                    }
+                    val plainJob = if (bestTrack.hasLyrics == 1 || bestTrack.hasLyrics == null) {
+                        async { getPlainLyrics(trackId, token, secret) }
+                    } else null
 
-                    val plainResult = plainDeferred.await()
-                    if (plainResult.isSuccess) {
-                        callback(plainResult.getOrThrow())
-                    }
+                    richSyncJob?.await()?.onSuccess { callback(it) }
+                    subtitleJob?.await()?.onSuccess { callback(it) }
+                    plainJob?.await()?.onSuccess { callback(it) }
                 }
             }
         }.onFailure {
