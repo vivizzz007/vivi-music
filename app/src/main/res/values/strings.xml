@@ -362,6 +362,8 @@
     <string name="disable_screenshot">Disable screenshot</string>
     <string name="disable_screenshot_desc">When this option is on, screenshots and the app\'s view in Recents are disabled.</string>
     <string name="enable_lrclib">Enable LrcLib lyrics provider</string>
+    <string name="enable_lrcred">Enable lrc.red lyrics provider</string>
+    <string name="enable_lrcred_desc">Search and Apple Music TTML timings from lrc.red</string>
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
     <string name="hide_explicit">Hide explicit content</string>
 

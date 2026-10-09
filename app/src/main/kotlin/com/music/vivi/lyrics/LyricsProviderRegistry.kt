@@ -23,6 +23,7 @@ object LyricsProviderRegistry {
         "Unison"          to UnisonLyricsProvider,
         "BiniLyrics"      to BiniLyricsProvider,
         "Spotify"         to SpotifyLyricsProvider,
+        "LrcRed"          to LrcRedLyricsProvider,
         "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
         "YouTubeMusic"    to YouTubeLyricsProvider,
     )
@@ -49,6 +50,7 @@ object LyricsProviderRegistry {
         "Unison",
         "BiniLyrics",
         "Spotify",
+        "LrcRed",
         "YouTubeSubtitle",
         "YouTubeMusic",
     )
@@ -79,6 +81,7 @@ object LyricsProviderRegistry {
         "Unison"          -> "Unison"
         "BiniLyrics"      -> "Bini Lyrics"
         "Spotify"         -> "Spotify"
+        "LrcRed"          -> "lrc.red"
         "YouTubeSubtitle" -> "YouTube Subtitle"
         "YouTubeMusic"    -> "YouTube Music"
         else              -> name

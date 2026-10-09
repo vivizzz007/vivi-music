@@ -73,6 +73,7 @@ import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableMusixmatchKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.EnableLrcRedKey
 import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.EnablePaxsenixKey
 import com.music.vivi.constants.EnableUnisonKey
@@ -193,6 +194,7 @@ fun ContentSettings(
     val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "password")
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (enableLrcRed, onEnableLrcRedChange) = rememberPreference(key = EnableLrcRedKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
@@ -414,9 +416,10 @@ fun ContentSettings(
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "Kugou", "Unison", "BiniLyrics", "Spotify")
+        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify")
         val enabledProviders = setOfNotNull(
             "LrcLib".takeIf { enableLrclib },
+            "LrcRed".takeIf { enableLrcRed },
             "Kugou".takeIf { enableKugou },
             "BetterLyrics".takeIf { enableBetterLyrics },
             "Musixmatch".takeIf { enableMusixmatch },
@@ -1040,6 +1043,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableLrclibChange(!enableLrclib) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_lrcred)) },
+                    description = { Text(stringResource(R.string.enable_lrcred_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableLrcRed,
+                            onCheckedChange = onEnableLrcRedChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableLrcRed) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableLrcRedChange(!enableLrcRed) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
