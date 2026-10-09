@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -788,7 +789,7 @@ fun PlayerV2(
                         val isTrackActive = isTrackDragged || isTrackPressed
                         
                         val trackHeight by animateDpAsState(
-                            targetValue = if (isTrackActive) 12.dp else 6.dp,
+                            targetValue = if (isTrackActive) 14.dp else 8.dp,
                             animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
                             label = "trackScale"
                         )
@@ -832,9 +833,7 @@ fun PlayerV2(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp), // Align with internal slider padding
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(makeTimeString(currentPos), color = adaptiveSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
