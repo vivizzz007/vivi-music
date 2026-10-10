@@ -5,6 +5,10 @@ on:
 #    - cron: '0 0 * * *' # Midnight UTC
   workflow_dispatch: # Allows you to manually trigger it for testing
 
+env:
+  # Run JavaScript-based actions on Node 24 (Node 20 is deprecated on GitHub runners)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     name: Build and Send APK

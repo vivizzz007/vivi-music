@@ -12,6 +12,10 @@ on:
   pull_request:
     branches: [ '**' ]
 
+env:
+  # Run JavaScript-based actions on Node 24 (Node 20 is deprecated on GitHub runners)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build_debug:
     name: Build Universal GMS Debug
