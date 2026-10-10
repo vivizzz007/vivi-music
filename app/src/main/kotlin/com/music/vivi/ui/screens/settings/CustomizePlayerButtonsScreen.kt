@@ -47,6 +47,7 @@ fun getPlayerButtonIcon(button: PlayerActionButton): Int {
         PlayerActionButton.DOWNLOAD -> R.drawable.download
         PlayerActionButton.EQUALIZER -> R.drawable.graphic_eq
         PlayerActionButton.AUDIO_DEVICE -> R.drawable.speaker_apple
+        PlayerActionButton.VIDEO -> R.drawable.music_video
         PlayerActionButton.MORE_OPTIONS -> R.drawable.more_vert
     }
 }

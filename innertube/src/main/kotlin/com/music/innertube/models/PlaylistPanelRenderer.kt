@@ -16,6 +16,7 @@ data class PlaylistPanelRenderer(
     @Serializable
     data class Content(
         val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer?,
+        val playlistPanelVideoWrapperRenderer: PlaylistPanelVideoWrapperRenderer? = null,
         val automixPreviewVideoRenderer: AutomixPreviewVideoRenderer?,
     )
 }

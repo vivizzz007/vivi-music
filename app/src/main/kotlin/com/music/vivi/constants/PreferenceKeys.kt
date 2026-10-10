@@ -428,6 +428,7 @@ enum class PlayerActionButton(val displayName: String) {
     DOWNLOAD("Download"),
     EQUALIZER("Equalizer"),
     AUDIO_DEVICE("Audio Output"),
+    VIDEO("Music Video"),
     MORE_OPTIONS("More Options");
 
     companion object {
@@ -435,6 +436,7 @@ enum class PlayerActionButton(val displayName: String) {
             QUEUE,
             AUDIO_DEVICE,
             SLEEP_TIMER,
+            VIDEO,
             LYRICS
         )
 
@@ -467,7 +469,11 @@ val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
 val CustomPlayerButtonsKey = stringPreferencesKey("custom_player_buttons")
+// One-time flag: the music video button has been added to an already customised button list.
+val PlayerVideoButtonMigratedKey = booleanPreferencesKey("player_video_button_migrated")
 val SaveDownloadsToPublicFolderKey = booleanPreferencesKey("save_downloads_to_public_folder")
+// Tree uri (from the system folder picker) that exported songs are written to; empty = Music/ViviMusic.
+val ExportFolderUriKey = stringPreferencesKey("export_folder_uri")
 val DisabledHomeSectionsKey = androidx.datastore.preferences.core.stringSetPreferencesKey("disabled_home_sections")
 val PinSpeedDialToTopKey = booleanPreferencesKey("pin_speed_dial_to_top")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")

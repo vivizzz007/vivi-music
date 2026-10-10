@@ -15,7 +15,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import com.music.vivi.ui.component.PlaylistSpinWheelDialog
+import com.music.vivi.ui.component.SpinWheelItem
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -987,6 +994,7 @@ fun LocalPlaylistHeader(
     val result = remember { mutableStateOf<Uri?>(null) }
     var pendingCropDestUri by remember { mutableStateOf<Uri?>(null) }
     var showEditNoteDialog by remember { mutableStateOf(false) }
+    var showSpinWheel by remember { mutableStateOf(false) }
 
     val cropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { res ->
         if (res.resultCode == android.app.Activity.RESULT_OK) {
@@ -1125,14 +1133,58 @@ fun LocalPlaylistHeader(
                 )
             }
         }
-        // Playlist Thumbnail(s) - Large centered with shadow
+        if (showSpinWheel && songs.isNotEmpty()) {
+            val wheelItems = remember(songs) {
+                songs.map { playlistSong ->
+                    SpinWheelItem(
+                        id = playlistSong.song.id,
+                        title = playlistSong.song.song.title,
+                        artist = playlistSong.song.artists.joinToString { it.name },
+                        thumbnailUrl = playlistSong.song.song.thumbnailUrl,
+                    )
+                }
+            }
+            PlaylistSpinWheelDialog(
+                playlistName = playlist.playlist.name,
+                items = wheelItems,
+                onSongLanded = { index ->
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.playlist.name,
+                            items = songs.map { it.song.toMediaItem() },
+                            startIndex = index,
+                            playlistId = playlist.id,
+                        )
+                    )
+                },
+                onDismiss = { showSpinWheel = false },
+            )
+        }
+
+        // Playlist Thumbnail(s) - Large centered with shadow. Tapping it opens the spin wheel.
+        val coverInteraction = remember { MutableInteractionSource() }
+        val coverPressed by coverInteraction.collectIsPressedAsState()
+        val coverScale by animateFloatAsState(
+            targetValue = if (coverPressed) 0.97f else 1f,
+            label = "playlistCoverScale",
+        )
         Box(
             modifier = Modifier
                 .padding(horizontal = 48.dp)
                 .padding(bottom = 24.dp)
                 .fillMaxWidth()
                 .aspectRatio(1f)
+                .graphicsLayer {
+                    scaleX = coverScale
+                    scaleY = coverScale
+                }
                 .clip(RoundedCornerShape(8.dp))
+                .clickable(
+                    enabled = songs.isNotEmpty(),
+                    interactionSource = coverInteraction,
+                    indication = null,
+                    onClick = { showSpinWheel = true },
+                )
         ) {
             when (playlist.thumbnails.size) {
                 0 -> Surface(

@@ -300,6 +300,7 @@ fun OnlineSearchScreen(
                         SearchFilterOption.SONGS to stringResource(R.string.filter_songs),
                         SearchFilterOption.ARTISTS to stringResource(R.string.filter_artists),
                         SearchFilterOption.ALBUMS to stringResource(R.string.filter_albums),
+                        SearchFilterOption.PLAYLISTS to stringResource(R.string.filter_playlists),
                         SearchFilterOption.BY_LYRICS to stringResource(R.string.filter_by_lyrics),
                     ),
                     currentValue = viewState.selectedFilter,
@@ -315,6 +316,7 @@ fun OnlineSearchScreen(
                     text = when (viewState.selectedFilter) {
                         SearchFilterOption.ARTISTS -> stringResource(R.string.filter_artists)
                         SearchFilterOption.ALBUMS -> stringResource(R.string.filter_albums)
+                        SearchFilterOption.PLAYLISTS -> stringResource(R.string.filter_playlists)
                         else -> stringResource(if (viewState.isFromLink) R.string.parsed_from_link else R.string.top_result)
                     },
                     style = MaterialTheme.typography.titleMedium,
@@ -554,7 +556,74 @@ fun OnlineSearchScreen(
             )
         }
 
-        if ((viewState.items.isNotEmpty() || viewState.songs.isNotEmpty()) && viewState.suggestions.isNotEmpty()) {
+        if (viewState.playlists.isNotEmpty()) {
+            item(key = "playlists_header") {
+                Text(
+                    text = stringResource(R.string.filter_playlists),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp).animateItem()
+                )
+            }
+            item(key = "playlists_header_spacer") {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+        }
+
+        itemsIndexed(viewState.playlists, key = { _, it -> "playlist_${it.id}" }) { index, item ->
+            YouTubeListItem(
+                item = item,
+                isActive = false,
+                isPlaying = false,
+                shape = listItemShape(index, viewState.playlists.size),
+                trailingContent = {
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                YouTubePlaylistMenu(
+                                    playlist = item,
+                                    coroutineScope = scope,
+                                    onDismiss = {
+                                        menuState.dismiss()
+                                        onDismiss()
+                                    }
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
+                    }
+                },
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {
+                            navController.navigate("online_playlist/${item.id}")
+                            onDismiss()
+                        },
+                        onLongClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            menuState.show {
+                                YouTubePlaylistMenu(
+                                    playlist = item,
+                                    coroutineScope = scope,
+                                    onDismiss = {
+                                        menuState.dismiss()
+                                        onDismiss()
+                                    }
+                                )
+                            }
+                        }
+                    )
+                    .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface)
+                    .animateItem()
+            )
+        }
+
+        if ((viewState.items.isNotEmpty() || viewState.songs.isNotEmpty() || viewState.playlists.isNotEmpty()) && viewState.suggestions.isNotEmpty()) {
             item(key = "items_suggestions_spacer") {
                 Spacer(modifier = Modifier.height(16.dp).animateItem())
             }

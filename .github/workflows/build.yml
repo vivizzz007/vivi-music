@@ -1,16 +1,13 @@
 name: CI & Debug Build
 
 on:
+  # Manual only: debug builds are no longer produced on every push / pull request.
+  # Releases (signed, GMS + FOSS) are built by auto-pipeline.yml when something lands on main.
   workflow_dispatch:
-  push:
-    branches: [ '**' ]
-    paths-ignore:
-      - 'README.md'
-      - 'fastlane/**'
-      - 'assets/**'
-      - '.github/**/*.md'
-  pull_request:
-    branches: [ '**' ]
+
+env:
+  # Run JavaScript-based actions on Node 24 (Node 20 is deprecated on GitHub runners)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build_debug:

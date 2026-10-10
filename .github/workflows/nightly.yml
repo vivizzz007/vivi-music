@@ -5,6 +5,10 @@ on:
 #    - cron: '0 0 * * *' # Midnight UTC
   workflow_dispatch: # Allows manual triggering
 
+env:
+  # Run JavaScript-based actions on Node 24 (Node 20 is deprecated on GitHub runners)
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build_nightly:
     name: Build Universal GMS Release

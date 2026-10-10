@@ -16,6 +16,7 @@ import android.media.MediaScannerConnection
 import android.net.ConnectivityManager
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.net.Uri
 import androidx.core.content.getSystemService
@@ -41,6 +42,7 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadPlaylistsKey
 import com.music.vivi.constants.IpVersionKey
 import com.music.vivi.constants.PermanentlyFailedDownloadSongIdsKey
+import com.music.vivi.constants.ExportFolderUriKey
 import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
 import androidx.datastore.preferences.core.edit
 import com.music.innertube.models.IpVersion
@@ -66,7 +68,11 @@ import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Runnable
@@ -111,7 +117,18 @@ constructor(
     // Keep a reference to context so we can read DataStore prefs for JioSaavn support
     private val appContext: Context = context
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // Nothing that goes wrong in a background download / export job may take the whole app down (an uncaught exception
+    // here would otherwise end up on the crash screen), so failures are only logged.
+    private val scope = CoroutineScope(
+        SupervisorJob() + Dispatchers.IO +
+            CoroutineExceptionHandler { _, throwable ->
+                Timber.tag("DownloadUtil").e(throwable, "Unhandled error in a background download job")
+            }
+    )
+
+    // Exporting reads a whole song into memory to embed tags, so only one export may run at a time. Exporting a
+    // complete playlist used to start every song at once, which could run the app out of memory.
+    private val exportMutex = Mutex()
 
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
@@ -995,6 +1012,7 @@ constructor(
 
     fun exportSongToPublicStorage(songId: String) {
         scope.launch(Dispatchers.IO) {
+          exportMutex.withLock {
             try {
                 val songWithData = database.song(songId).firstOrNull() ?: return@launch
                 val song = songWithData.song
@@ -1095,6 +1113,16 @@ constructor(
                     album = albumName
                 )
 
+                // A folder picked in Storage settings (SD card, USB drive, any folder) takes priority over Music/ViviMusic.
+                val customFolder = appContext.dataStore[ExportFolderUriKey]?.takeIf { it.isNotBlank() }
+                if (customFolder != null) {
+                    if (writeToCustomFolder(customFolder, fileName, mimeType, finalAudio)) {
+                        Timber.tag("DownloadUtil").d("Exported $fileName to the chosen export folder")
+                        return@withLock
+                    }
+                    Timber.tag("DownloadUtil").w("Chosen export folder is not writable, falling back to Music/ViviMusic")
+                }
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val resolver = appContext.contentResolver
                     val relativePath = "${Environment.DIRECTORY_MUSIC}/ViviMusic"
@@ -1166,9 +1194,62 @@ constructor(
                     MediaScannerConnection.scanFile(appContext, arrayOf(targetFile.absolutePath), arrayOf(mimeType), null)
                     Timber.tag("DownloadUtil").d("Exported $fileName to public storage: ${targetFile.absolutePath}")
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.tag("DownloadUtil").e(e, "Failed to export song $songId to public storage")
+            } catch (e: OutOfMemoryError) {
+                Timber.tag("DownloadUtil").e(e, "Out of memory while exporting song $songId")
             }
+          }
+        }
+    }
+
+    /**
+     * Writes [data] as [fileName] into the folder the user picked with the system folder picker. Works for any
+     * storage the picker can reach, including SD cards. Returns false when the folder is gone or not writable.
+     */
+    private fun writeToCustomFolder(treeUriString: String, fileName: String, mimeType: String, data: ByteArray): Boolean {
+        return try {
+            val resolver = appContext.contentResolver
+            val treeUri = treeUriString.toUri()
+            val treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri)
+            val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocumentId)
+
+            // Replace an earlier export of the same song instead of piling up "name (1)" copies.
+            val children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocumentId)
+            resolver.query(
+                children,
+                arrayOf(
+                    DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                    DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                ),
+                null,
+                null,
+                null,
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    if (cursor.getString(1) == fileName) {
+                        runCatching {
+                            DocumentsContract.deleteDocument(
+                                resolver,
+                                DocumentsContract.buildDocumentUriUsingTree(treeUri, cursor.getString(0)),
+                            )
+                        }
+                    }
+                }
+            }
+
+            val target = DocumentsContract.createDocument(resolver, parent, mimeType, fileName) ?: return false
+            val out = resolver.openOutputStream(target, "wt") ?: return false
+            out.use {
+                it.write(data)
+                it.flush()
+            }
+            true
+        } catch (e: Exception) {
+            Timber.tag("DownloadUtil").e(e, "Failed to write $fileName to the chosen export folder")
+            false
         }
     }
 

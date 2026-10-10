@@ -14,6 +14,7 @@ import com.music.innertube.models.MusicCarouselShelfRenderer
 import com.music.innertube.models.MusicShelfRenderer
 import com.music.innertube.models.SectionListRenderer
 import com.music.innertube.models.PlaylistItem
+import com.music.innertube.models.PlaylistPanelVideoRenderer
 import com.music.innertube.models.SearchSuggestions
 import com.music.innertube.models.Run
 import com.music.innertube.models.SongItem
@@ -1382,6 +1383,46 @@ object YouTube {
             continuation = playlistPanelRenderer.continuations?.getContinuation(),
             endpoint = endpoint
         )
+    }
+
+    /** The music-video version of a track, as YouTube Music's Song / Video switch exposes it. */
+    data class MusicVideoInfo(
+        val videoId: String,
+        val musicVideoType: String?,
+    )
+
+    /**
+     * Finds the music video that belongs to [videoId].
+     *
+     * - If [videoId] already is a video (official music video / user upload) it is returned as is.
+     * - If it is an audio-only track, the video counterpart announced by the `next` endpoint is returned.
+     * - `null` when the track has no video.
+     */
+    suspend fun musicVideoFor(videoId: String): Result<MusicVideoInfo?> = runCatching {
+        val response = innerTube.next(WEB_REMIX, videoId, null, null, null, null, null).body<NextResponse>()
+        val contents = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer
+            ?.watchNextTabbedResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.musicQueueRenderer
+            ?.content?.playlistPanelRenderer?.contents.orEmpty()
+
+        fun PlaylistPanelVideoRenderer.type() = navigationEndpoint.musicVideoType
+        fun String?.isVideoType() = this != null && this != MUSIC_VIDEO_TYPE_ATV
+
+        for (content in contents) {
+            val plain = content.playlistPanelVideoRenderer
+            if (plain != null) {
+                if (plain.videoId == videoId) {
+                    return@runCatching if (plain.type().isVideoType()) MusicVideoInfo(videoId, plain.type()) else null
+                }
+                continue
+            }
+            val wrapper = content.playlistPanelVideoWrapperRenderer ?: continue
+            val renderers = listOfNotNull(wrapper.primaryRenderer?.playlistPanelVideoRenderer) +
+                wrapper.counterpart.orEmpty().mapNotNull { it.counterpartRenderer?.playlistPanelVideoRenderer }
+            if (renderers.none { it.videoId == videoId }) continue
+            val video = renderers.firstOrNull { it.videoId != null && it.type().isVideoType() }
+            return@runCatching video?.videoId?.let { MusicVideoInfo(it, video.type()) }
+        }
+        null
     }
 
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> = runCatching {

@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.hardware.display.DisplayManager
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -20,6 +21,7 @@ import android.os.VibratorManager
 import android.provider.MediaStore
 import android.provider.Settings
 import android.text.TextUtils
+import android.view.Display
 import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import com.music.vivi.constants.PlusButtonOpenViviKey
@@ -51,41 +53,73 @@ class ViviAccessibilityService : AccessibilityService() {
     // Volume long-press detection
     private var volumeLongPressRunnable: Runnable? = null
     private var isVolumeLongPressTriggered = false
-    private var activeVolumeKeyCode = KeyEvent.KEYCODE_UNKNOWN
 
-    // Power button double-press detection
+    // The volume key whose press we swallowed on the way down. Its release has to be handled by us as well,
+    // even if the screen / player state changed in between (e.g. the player is buffering after the skip).
+    private var swallowedVolumeKey = KeyEvent.KEYCODE_UNKNOWN
+
+    // Power button double-press detection.
+    // The power key itself is usually not delivered to accessibility services, so the screen turning off and on again is
+    // watched through two independent signals (display state and screen broadcasts) plus the raw key as a bonus.
+    // Each signal keeps its own timestamps so that one press is never counted twice; a shared debounce makes sure the
+    // camera is only launched once however many of them noticed the double press.
     private var lastPowerPressTime = 0L
-    private var lastScreenStateChangeTime = 0L
+    private var lastBroadcastToggleTime = 0L
+    private var lastDisplayToggleTime = 0L
+    private var lastKnownDisplayOn: Boolean? = null
+    private var lastCameraLaunchTime = 0L
     private var lastScreenTouchTime = 0L
 
     // Plus button double-press detection
     private var lastPlusPressTime = 0L
 
+    private val displayManager by lazy { getSystemService(Context.DISPLAY_SERVICE) as DisplayManager }
+
+    private val displayListener = object : DisplayManager.DisplayListener {
+        override fun onDisplayAdded(displayId: Int) = Unit
+        override fun onDisplayRemoved(displayId: Int) = Unit
+        override fun onDisplayChanged(displayId: Int) {
+            if (!powerButtonCameraEnabled) return
+            val isOn = displayManager.displays.any { it.state == Display.STATE_ON }
+            // Rotation, refresh rate changes etc. also end up here; only an on <-> off change is a power toggle.
+            if (lastKnownDisplayOn == isOn) return
+            lastKnownDisplayOn = isOn
+            onScreenToggled(SystemClock.uptimeMillis(), lastDisplayToggleTime)?.let { lastDisplayToggleTime = it }
+        }
+    }
+
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val now = SystemClock.uptimeMillis()
             val action = intent.action
             if (action == Intent.ACTION_SCREEN_OFF || action == Intent.ACTION_SCREEN_ON) {
                 if (!powerButtonCameraEnabled) return
-
-                // Check if screen was recently touched (e.g. double tap to wake/sleep on screen)
-                val isFromTouch = (now - lastScreenTouchTime) < 300L
-                if (isFromTouch) {
-                    Timber.tag(TAG).d("Screen state changed via touchscreen; ignoring power button trigger")
-                    lastScreenStateChangeTime = 0L
-                    return
-                }
-
-                val timeDiff = now - lastScreenStateChangeTime
-                val maxInterval = (powerButtonIntervalMs + 350L).coerceAtLeast(600L)
-                if (timeDiff in 50L..maxInterval) {
-                    Timber.tag(TAG).d("Power button double-press detected via screen toggle ($timeDiff ms)! Launching camera.")
-                    lastScreenStateChangeTime = 0L
-                    launchCamera()
-                } else {
-                    lastScreenStateChangeTime = now
-                }
+                onScreenToggled(SystemClock.uptimeMillis(), lastBroadcastToggleTime)?.let { lastBroadcastToggleTime = it }
             }
+        }
+    }
+
+    /**
+     * Called for every screen on/off transition reported by one signal.
+     *
+     * @param previousToggle when this same signal reported the previous transition
+     * @return the timestamp to remember for the next call (0 after a successful double press), or null to keep the old one
+     */
+    private fun onScreenToggled(now: Long, previousToggle: Long): Long? {
+        // A transition right after a touch is a double-tap-to-wake / sleep gesture, not a power button press.
+        // It is simply ignored; earlier presses are kept so a real double press is not lost.
+        if (now - lastScreenTouchTime < TOUCH_GUARD_MS) {
+            Timber.tag(TAG).d("Screen state changed via touchscreen; ignoring")
+            return null
+        }
+
+        val timeDiff = now - previousToggle
+        val maxInterval = (powerButtonIntervalMs + 350L).coerceAtLeast(600L)
+        return if (previousToggle != 0L && timeDiff in 50L..maxInterval) {
+            Timber.tag(TAG).d("Power button double-press detected via screen toggle ($timeDiff ms)! Launching camera.")
+            launchCamera()
+            0L
+        } else {
+            now
         }
     }
 
@@ -96,11 +130,16 @@ class ViviAccessibilityService : AccessibilityService() {
 
         val info = serviceInfo ?: AccessibilityServiceInfo()
         info.apply {
-            eventTypes = AccessibilityEvent.TYPES_ALL_MASK
+            // Only touch events are needed (to tell a double-tap-to-wake from a power button press). Receiving every
+            // accessibility event of every app used to keep this service's main thread busy, which delayed the key
+            // handling below and made the shortcuts flaky: the system gives up on a key event after ~500 ms.
+            eventTypes = AccessibilityEvent.TYPE_VIEW_CLICKED or
+                    AccessibilityEvent.TYPE_VIEW_LONG_CLICKED or
+                    AccessibilityEvent.TYPE_TOUCH_INTERACTION_START or
+                    AccessibilityEvent.TYPE_GESTURE_DETECTION_START
             feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
-            flags = flags or
-                    AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS or
-                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            flags = (flags or AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS) and
+                    AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS.inv()
         }
         serviceInfo = info
 
@@ -110,6 +149,8 @@ class ViviAccessibilityService : AccessibilityService() {
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenReceiver, filter)
+        lastKnownDisplayOn = displayManager.displays.any { it.state == Display.STATE_ON }
+        displayManager.registerDisplayListener(displayListener, handler)
 
         // Observe DataStore preferences
         serviceScope.launch {
@@ -205,62 +246,73 @@ class ViviAccessibilityService : AccessibilityService() {
         }
 
         // Screen-off volume long-press skip track
-        if (screenOffVolumeSkipEnabled &&
-            (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN)
-        ) {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
-            val isScreenOff = powerManager?.isInteractive == false
-            val isMusicPlaying = MusicService.isPlaying()
-
-            if (isScreenOff && isMusicPlaying) {
-                when (event.action) {
-                    KeyEvent.ACTION_DOWN -> {
-                        if (event.repeatCount == 0) {
-                            activeVolumeKeyCode = keyCode
-                            isVolumeLongPressTriggered = false
-                            volumeLongPressRunnable?.let { handler.removeCallbacks(it) }
-
-                            val runnable = Runnable {
-                                isVolumeLongPressTriggered = true
-                                vibrateVolumeSkip()
-                                if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                                    Timber.tag(TAG).d("Volume UP long-pressed with screen off: skipping to next track")
-                                    MusicService.skipNext()
-                                } else {
-                                    Timber.tag(TAG).d("Volume DOWN long-pressed with screen off: skipping to previous track")
-                                    MusicService.skipPrevious()
-                                }
-                            }
-                            volumeLongPressRunnable = runnable
-                            handler.postDelayed(runnable, LONG_PRESS_TIMEOUT_MS)
-                            return true // Consume to prevent volume change during initial press
-                        } else {
-                            // Repeating key down while holding
-                            return true
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            when (event.action) {
+                KeyEvent.ACTION_DOWN -> {
+                    if (event.repeatCount > 0 && swallowedVolumeKey == keyCode) {
+                        // Key repeat while holding. If the timer was late (busy main thread), the hold time on the
+                        // event itself is just as good a clock.
+                        if (!isVolumeLongPressTriggered &&
+                            event.eventTime - event.downTime >= LONG_PRESS_TIMEOUT_MS
+                        ) {
+                            triggerVolumeLongPress(keyCode)
                         }
+                        return true
                     }
 
-                    KeyEvent.ACTION_UP -> {
-                        volumeLongPressRunnable?.let {
-                            handler.removeCallbacks(it)
-                            volumeLongPressRunnable = null
-                        }
+                    if (screenOffVolumeSkipEnabled && isScreenOff() && MusicService.isPlaybackActive()) {
+                        swallowedVolumeKey = keyCode
+                        isVolumeLongPressTriggered = false
+                        cancelVolumeLongPress()
+                        val runnable = Runnable { triggerVolumeLongPress(keyCode) }
+                        volumeLongPressRunnable = runnable
+                        handler.postDelayed(runnable, LONG_PRESS_TIMEOUT_MS)
+                        return true // Consume to prevent volume change during initial press
+                    }
+                }
 
-                        if (isVolumeLongPressTriggered) {
-                            // Long-press was executed, consume release event so volume does NOT change
-                            isVolumeLongPressTriggered = false
-                            return true
-                        } else {
-                            // Short click released before threshold: adjust volume by 1 step normally
+                KeyEvent.ACTION_UP -> {
+                    if (swallowedVolumeKey == keyCode) {
+                        swallowedVolumeKey = KeyEvent.KEYCODE_UNKNOWN
+                        cancelVolumeLongPress()
+                        val longPressHandled = isVolumeLongPressTriggered
+                        isVolumeLongPressTriggered = false
+                        if (!longPressHandled) {
+                            // Short click released before the threshold: adjust volume by 1 step normally
                             adjustVolumeOneStep(keyCode)
-                            return true
                         }
+                        // Always consume the release of a press we swallowed, so the system never sees a lone "up".
+                        return true
                     }
                 }
             }
         }
 
         return super.onKeyEvent(event)
+    }
+
+    private fun isScreenOff(): Boolean {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager
+        return powerManager?.isInteractive == false
+    }
+
+    private fun cancelVolumeLongPress() {
+        volumeLongPressRunnable?.let { handler.removeCallbacks(it) }
+        volumeLongPressRunnable = null
+    }
+
+    private fun triggerVolumeLongPress(keyCode: Int) {
+        if (isVolumeLongPressTriggered) return
+        isVolumeLongPressTriggered = true
+        volumeLongPressRunnable = null
+        vibrateVolumeSkip()
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            Timber.tag(TAG).d("Volume UP long-pressed with screen off: skipping to next track")
+            MusicService.skipNext()
+        } else {
+            Timber.tag(TAG).d("Volume DOWN long-pressed with screen off: skipping to previous track")
+            MusicService.skipPrevious()
+        }
     }
 
     private fun adjustVolumeOneStep(keyCode: Int) {
@@ -326,6 +378,10 @@ class ViviAccessibilityService : AccessibilityService() {
     }
 
     private fun launchCamera() {
+        // The same double press can be noticed by several signals; launch only once.
+        val now = SystemClock.uptimeMillis()
+        if (lastCameraLaunchTime != 0L && now - lastCameraLaunchTime < CAMERA_LAUNCH_DEBOUNCE_MS) return
+        lastCameraLaunchTime = now
         try {
             vibrateCameraTrigger()
 
@@ -428,7 +484,12 @@ class ViviAccessibilityService : AccessibilityService() {
         } catch (e: Exception) {
             // Ignore
         }
-        volumeLongPressRunnable?.let { handler.removeCallbacks(it) }
+        try {
+            displayManager.unregisterDisplayListener(displayListener)
+        } catch (e: Exception) {
+            // Ignore
+        }
+        cancelVolumeLongPress()
         serviceScope.cancel()
         super.onDestroy()
     }
@@ -436,6 +497,8 @@ class ViviAccessibilityService : AccessibilityService() {
     companion object {
         private const val TAG = "ViviAccessibility"
         private const val LONG_PRESS_TIMEOUT_MS = 500L
+        private const val TOUCH_GUARD_MS = 300L
+        private const val CAMERA_LAUNCH_DEBOUNCE_MS = 2000L
 
         @Volatile
         var isServiceRunning = false

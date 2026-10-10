@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.ArtistItem
+import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
@@ -27,6 +28,8 @@ import com.music.vivi.utils.get
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
@@ -37,10 +40,13 @@ import com.music.vivi.db.entities.EventWithSong
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+private const val DEFAULT_VIEW_PLAYLIST_COUNT = 4
+
 enum class SearchFilterOption {
     SONGS,
     ARTISTS,
     ALBUMS,
+    PLAYLISTS,
     BY_LYRICS
 }
 
@@ -107,12 +113,18 @@ constructor(
                                     }
                                 } else emptyList()
 
-                                val directSongSearch = if (parsedUrl == null && trimmedQuery.isNotEmpty()) {
-                                    YouTube.search(trimmedQuery, YouTube.SearchFilter.FILTER_SONG).getOrNull()
-                                        ?.items
-                                        ?.filterIsInstance<SongItem>()
-                                        .orEmpty()
-                                } else emptyList()
+                                val (directSongSearch, playlistResults) = if (parsedUrl == null && trimmedQuery.isNotEmpty()) {
+                                    coroutineScope {
+                                        val songsDeferred = async {
+                                            YouTube.search(trimmedQuery, YouTube.SearchFilter.FILTER_SONG).getOrNull()
+                                                ?.items
+                                                ?.filterIsInstance<SongItem>()
+                                                .orEmpty()
+                                        }
+                                        val playlistsDeferred = async { searchPlaylists(trimmedQuery) }
+                                        songsDeferred.await() to playlistsDeferred.await()
+                                    }
+                                } else emptyList<SongItem>() to emptyList<PlaylistItem>()
 
                                 val lyricsMatchedIds = localLyricsSongs.map { it.id }.toSet()
 
@@ -149,6 +161,9 @@ constructor(
                                                 }.orEmpty(),
                                             items = finalTopItems,
                                             songs = finalSongs,
+                                            playlists = playlistResults
+                                                .filter { playlist -> finalTopItems.none { it.id == playlist.id } }
+                                                .take(DEFAULT_VIEW_PLAYLIST_COUNT),
                                             isFromLink = parsedUrl != null,
                                             isSearchSubmitted = submitted,
                                             selectedFilter = filter,
@@ -198,6 +213,28 @@ constructor(
                                             history = history,
                                             suggestions = emptyList(),
                                             items = albums,
+                                            songs = emptyList(),
+                                            isFromLink = false,
+                                            isSearchSubmitted = submitted,
+                                            selectedFilter = filter,
+                                            lyricsMatchedSongIds = emptySet(),
+                                        )
+                                    }
+                            }
+
+                            SearchFilterOption.PLAYLISTS -> {
+                                val playlists = if (trimmedQuery.isNotEmpty()) {
+                                    searchPlaylists(trimmedQuery)
+                                } else emptyList()
+
+                                database
+                                    .searchHistory(query)
+                                    .map { it.take(3) }
+                                    .map { history ->
+                                        SearchSuggestionViewState(
+                                            history = history,
+                                            suggestions = emptyList(),
+                                            items = playlists,
                                             songs = emptyList(),
                                             isFromLink = false,
                                             isSearchSubmitted = submitted,
@@ -279,6 +316,22 @@ constructor(
         }
     }
 
+    /**
+     * Playlist results as YouTube Music shows them: the featured (YouTube Music) playlists first,
+     * followed by the community ones.
+     */
+    private suspend fun searchPlaylists(query: String): List<PlaylistItem> = coroutineScope {
+        val featured = async {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST).getOrNull()
+                ?.items?.filterIsInstance<PlaylistItem>().orEmpty()
+        }
+        val community = async {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST).getOrNull()
+                ?.items?.filterIsInstance<PlaylistItem>().orEmpty()
+        }
+        (featured.await() + community.await()).distinctBy { it.id }
+    }
+
     private suspend fun fetchParsedUrlItem(parsedUrl: YouTubeUrlParser.ParsedUrl): YTItem? {
         println("[LINK_PARSE_DEBUG] Fetching metadata for: $parsedUrl")
         return try {
@@ -306,6 +359,7 @@ data class SearchSuggestionViewState(
     val suggestions: List<String> = emptyList(),
     val items: List<YTItem> = emptyList(),
     val songs: List<SongItem> = emptyList(),
+    val playlists: List<PlaylistItem> = emptyList(),
     val recentEvents: List<EventWithSong> = emptyList(),
     val isFromLink: Boolean = false,
     val isSearchSubmitted: Boolean = false,
