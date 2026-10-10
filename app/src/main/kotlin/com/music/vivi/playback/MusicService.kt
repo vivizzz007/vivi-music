@@ -4015,6 +4015,22 @@ class MusicService :
             }
         }
 
+        /**
+         * True while the user *wants* music to play: unlike [isPlaying] this stays true while the player is
+         * buffering (for example right after a track change), so hardware button shortcuts keep working then.
+         */
+        fun isPlaybackActive(): Boolean {
+            return try {
+                val p = instance?.player
+                p != null &&
+                    p.playWhenReady &&
+                    p.playbackState != androidx.media3.common.Player.STATE_IDLE &&
+                    p.playbackState != androidx.media3.common.Player.STATE_ENDED
+            } catch (e: Exception) {
+                false
+            }
+        }
+
         fun skipNext() {
             try {
                 instance?.player?.seekToNext()

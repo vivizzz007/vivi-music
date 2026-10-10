@@ -65,6 +65,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.ExportFolderUriKey
 import com.music.vivi.constants.SaveDownloadsToPublicFolderKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
@@ -111,6 +112,27 @@ fun StorageSettings(
         defaultValue = false
     )
     val downloadUtil = LocalDownloadUtil.current
+
+    val (exportFolderUri, onExportFolderUriChange) = rememberPreference(
+        key = ExportFolderUriKey,
+        defaultValue = ""
+    )
+    val exportFolderLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                        android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            }
+            onExportFolderUriChange(uri.toString())
+            Toast.makeText(context, context.getString(R.string.export_folder_set), Toast.LENGTH_SHORT).show()
+        }
+    }
+    val exportFolderLabel = remember(exportFolderUri) { describeExportFolder(exportFolderUri) }
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -477,7 +499,7 @@ fun StorageSettings(
         )
         ExpressiveSettingGroup(
             title = stringResource(R.string.storage),
-            items = listOf(
+            items = listOfNotNull(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.storage),
                     title = { Text(stringResource(R.string.downloaded_songs)) },
@@ -508,6 +530,29 @@ fun StorageSettings(
                         onSaveDownloadsToPublicChange(!saveDownloadsToPublic)
                     }
                 ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.storage),
+                    title = { Text(stringResource(R.string.export_folder_title)) },
+                    description = {
+                        Text(exportFolderLabel ?: stringResource(R.string.export_folder_default))
+                    },
+                    onClick = {
+                        // Opens the system folder picker; it can reach an SD card as well as internal storage.
+                        runCatching { exportFolderLauncher.launch(null) }
+                            .onFailure {
+                                Toast.makeText(context, context.getString(R.string.export_folder_picker_failed), Toast.LENGTH_LONG).show()
+                            }
+                    }
+                ),
+                if (exportFolderUri.isNotBlank()) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.clear_all),
+                        title = { Text(stringResource(R.string.export_folder_reset)) },
+                        onClick = { onExportFolderUriChange("") }
+                    )
+                } else {
+                    null
+                },
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.download),
                     title = { Text(stringResource(R.string.export_downloads_to_device)) },
@@ -680,4 +725,19 @@ fun StorageSettings(
             }
         }
     )
+}
+
+/**
+ * Human readable name of a folder picked with the system folder picker, e.g. "SD card / Music" or
+ * "Internal storage / Download/Vivi". Null when no folder is chosen.
+ */
+private fun describeExportFolder(treeUriString: String): String? {
+    if (treeUriString.isBlank()) return null
+    val documentId = runCatching {
+        android.provider.DocumentsContract.getTreeDocumentId(android.net.Uri.parse(treeUriString))
+    }.getOrNull() ?: return treeUriString
+    val volume = documentId.substringBefore(':', "")
+    val path = documentId.substringAfter(':', "").ifBlank { "/" }
+    val volumeName = if (volume.equals("primary", ignoreCase = true)) "Internal storage" else "SD card / USB ($volume)"
+    return "$volumeName / $path"
 }

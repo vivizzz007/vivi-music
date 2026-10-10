@@ -117,7 +117,11 @@ import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.CustomPlayerButtonsKey
+import com.music.vivi.constants.PlayerVideoButtonMigratedKey
+import com.music.vivi.utils.dataStore
+import androidx.datastore.preferences.core.edit
 import com.music.vivi.constants.PlayerActionButton
+import com.music.vivi.utils.MusicVideoRepository
 import com.music.vivi.constants.ListItemHeight
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.QueueEditLockKey
@@ -336,7 +340,56 @@ fun Queue(
             val downloadUtil = LocalDownloadUtil.current
             val downloadItem by (mediaMetadata?.id?.let { downloadUtil.getDownload(it) } ?: kotlinx.coroutines.flow.flowOf(null)).collectAsState(initial = null)
             val (customPlayerButtonsPref) = rememberPreference(CustomPlayerButtonsKey, defaultValue = "")
-            val activeButtons = remember(customPlayerButtonsPref) { PlayerActionButton.parseList(customPlayerButtonsPref) }
+            val allButtons = remember(customPlayerButtonsPref) { PlayerActionButton.parseList(customPlayerButtonsPref) }
+
+            // People who customised their button row before the music video button existed would never see it, so it
+            // is added to their list once. They can still remove it again in the button customisation screen.
+            LaunchedEffect(Unit) {
+                context.dataStore.edit { prefs ->
+                    if (prefs[PlayerVideoButtonMigratedKey] == true) return@edit
+                    prefs[PlayerVideoButtonMigratedKey] = true
+                    val saved = prefs[CustomPlayerButtonsKey]
+                    if (saved.isNullOrBlank()) return@edit
+                    val list = PlayerActionButton.parseList(saved)
+                    if (list.isEmpty() || PlayerActionButton.VIDEO in list) return@edit
+                    val updated = if (list.size >= 3) {
+                        list.toMutableList().apply { add(size - 1, PlayerActionButton.VIDEO) }
+                    } else {
+                        list + PlayerActionButton.VIDEO
+                    }
+                    prefs[CustomPlayerButtonsKey] = PlayerActionButton.serialize(updated)
+                }
+            }
+
+            // The music video button only shows up for songs that actually have a video.
+            val currentMetadata = mediaMetadata
+            val musicVideoId by produceState<String?>(
+                initialValue = currentMetadata?.let { MusicVideoRepository.cachedVideoId(it) },
+                key1 = currentMetadata?.id,
+                key2 = PlayerActionButton.VIDEO in allButtons,
+            ) {
+                val metadata = currentMetadata
+                value = when {
+                    metadata == null -> null
+                    PlayerActionButton.VIDEO !in allButtons -> null
+                    else -> MusicVideoRepository.findVideoId(metadata)
+                }
+            }
+            val activeButtons = remember(allButtons, musicVideoId) {
+                allButtons.filter { it != PlayerActionButton.VIDEO || musicVideoId != null }
+            }
+
+            var showMusicVideo by rememberSaveable { mutableStateOf(false) }
+            var resumeAudioAfterVideo by rememberSaveable { mutableStateOf(false) }
+            var videoStartPositionMs by rememberSaveable { mutableLongStateOf(0L) }
+            fun openMusicVideo() {
+                if (musicVideoId == null) return
+                val player = playerConnection.player
+                resumeAudioAfterVideo = player.playWhenReady
+                videoStartPositionMs = player.currentPosition
+                player.pause()
+                showMusicVideo = true
+            }
             val shuffleModeEnabledInside by playerConnection.shuffleModeEnabled.collectAsState()
             val isLiked = currentSong?.song?.liked == true
             val isSongDownloaded = currentSong?.song?.isDownloaded == true || downloadItem?.state == Download.STATE_COMPLETED
@@ -367,6 +420,7 @@ fun Queue(
                     PlayerActionButton.DOWNLOAD -> isSongDownloaded
                     PlayerActionButton.EQUALIZER -> false
                     PlayerActionButton.AUDIO_DEVICE -> showAudioDeviceBottomSheet
+                    PlayerActionButton.VIDEO -> showMusicVideo
                     PlayerActionButton.MORE_OPTIONS -> false
                 }
 
@@ -385,6 +439,7 @@ fun Queue(
                     PlayerActionButton.DOWNLOAD -> if (isActive) R.drawable.offline else R.drawable.download
                     PlayerActionButton.EQUALIZER -> R.drawable.graphic_eq
                     PlayerActionButton.AUDIO_DEVICE -> if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple
+                    PlayerActionButton.VIDEO -> R.drawable.music_video
                     PlayerActionButton.MORE_OPTIONS -> R.drawable.more_vert
                 }
 
@@ -434,6 +489,7 @@ fun Queue(
                         }
                         PlayerActionButton.EQUALIZER -> navController.navigate("settings/equalizer")
                         PlayerActionButton.AUDIO_DEVICE -> showAudioDeviceBottomSheet = true
+                        PlayerActionButton.VIDEO -> openMusicVideo()
                         PlayerActionButton.MORE_OPTIONS -> {
                             menuState.show {
                                 PlayerMenu(
@@ -506,6 +562,7 @@ fun Queue(
                     PlayerActionButton.DOWNLOAD -> isSongDownloaded
                     PlayerActionButton.EQUALIZER -> false
                     PlayerActionButton.AUDIO_DEVICE -> showAudioDeviceBottomSheet
+                    PlayerActionButton.VIDEO -> showMusicVideo
                     PlayerActionButton.MORE_OPTIONS -> false
                 }
 
@@ -524,6 +581,7 @@ fun Queue(
                     PlayerActionButton.DOWNLOAD -> if (isActive) R.drawable.offline else R.drawable.download
                     PlayerActionButton.EQUALIZER -> R.drawable.graphic_eq
                     PlayerActionButton.AUDIO_DEVICE -> if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple
+                    PlayerActionButton.VIDEO -> R.drawable.music_video
                     PlayerActionButton.MORE_OPTIONS -> R.drawable.more_vert
                 }
 
@@ -573,6 +631,7 @@ fun Queue(
                         }
                         PlayerActionButton.EQUALIZER -> navController.navigate("settings/equalizer")
                         PlayerActionButton.AUDIO_DEVICE -> showAudioDeviceBottomSheet = true
+                        PlayerActionButton.VIDEO -> openMusicVideo()
                         PlayerActionButton.MORE_OPTIONS -> {
                             menuState.show {
                                 PlayerMenu(
@@ -693,6 +752,27 @@ fun Queue(
             }
             if (showAudioDeviceBottomSheet) {
                 AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
+            }
+
+            val videoId = musicVideoId
+            val metadataForVideo = mediaMetadata
+            if (showMusicVideo && videoId != null && metadataForVideo != null) {
+                MusicVideoPlayerDialog(
+                    videoId = videoId,
+                    title = metadataForVideo.title,
+                    artist = metadataForVideo.artists.joinToString { it.name },
+                    startPositionMs = videoStartPositionMs,
+                    onClose = { positionMs, _ ->
+                        showMusicVideo = false
+                        val player = playerConnection.player
+                        // Carry on with the song at the point where the video was stopped.
+                        if (positionMs > 0L) player.seekTo(positionMs)
+                        if (resumeAudioAfterVideo) player.play()
+                    },
+                )
+            } else if (showMusicVideo) {
+                // The song changed (or the video disappeared) while the dialog was supposed to be open.
+                LaunchedEffect(Unit) { showMusicVideo = false }
             }
 
             if (showSleepTimerDialog) {

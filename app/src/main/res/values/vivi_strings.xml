@@ -1199,4 +1199,30 @@
     <string name="playlist_description">Description (optional)</string>
     <string name="current_provider_label">Current: %1$s</string>
     <string name="removed_from_playlist">Removed from %1$s</string>
+    <string name="spin_wheel_spin">Spin</string>
+    <string name="spin_wheel_hint">Swipe the wheel or press Spin</string>
+    <string name="spin_wheel_spinning">Spinning…</string>
+    <string name="spin_wheel_now_playing">Now playing</string>
+    <plurals name="duplicate_groups_found">
+        <item quantity="one">Found %1$d group of possible duplicates. Compare the copies and tick the ones you want to remove.</item>
+        <item quantity="other">Found %1$d groups of possible duplicates. Compare the copies and tick the ones you want to remove.</item>
+    </plurals>
+    <plurals name="duplicate_copies">
+        <item quantity="one">%1$d copy</item>
+        <item quantity="other">%1$d copies</item>
+    </plurals>
+    <string name="duplicates_select_all_but_first">Keep first only</string>
+    <string name="duplicates_clear_selection">Clear</string>
+    <string name="duplicates_different_length_warning">Different lengths — these may be different songs, so nothing is ticked.</string>
+    <string name="duplicates_position">#%1$d in playlist</string>
+    <string name="duplicates_remove">Remove</string>
+    <string name="duplicates_keep">Keep</string>
+    <string name="music_video_unavailable">This music video cannot be played right now.</string>
+    <string name="music_video_open_in_youtube">Open in YouTube Music</string>
+    <string name="music_video_rotate">Rotate screen</string>
+    <string name="export_folder_title">Export folder</string>
+    <string name="export_folder_default">Music/ViviMusic on the phone (tap to choose an SD card or another folder)</string>
+    <string name="export_folder_reset">Use the default export folder</string>
+    <string name="export_folder_set">Songs will now be exported to this folder</string>
+    <string name="export_folder_picker_failed">No file manager was found to pick a folder</string>
 </resources>

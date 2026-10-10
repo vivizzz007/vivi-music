@@ -587,6 +587,7 @@ private fun OnlinePlaylistHeader(
     val hasExplicitContent = remember(songs) {
         songs.any { it.explicit }
     }
+    var showSpinWheel by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -614,11 +615,45 @@ private fun OnlinePlaylistHeader(
         ) {
             Spacer(Modifier.height(20.dp)) // Space for top app bar
 
-            // Artwork - Large and centered
+            // Artwork - Large and centered. Tapping it opens the spin wheel.
+            if (showSpinWheel && songs.isNotEmpty()) {
+                val wheelItems = remember(songs) {
+                    songs.map { song ->
+                        com.music.vivi.ui.component.SpinWheelItem(
+                            id = song.id,
+                            title = song.title,
+                            artist = song.artists.joinToString { it.name },
+                            thumbnailUrl = song.thumbnail,
+                        )
+                    }
+                }
+                com.music.vivi.ui.component.PlaylistSpinWheelDialog(
+                    playlistName = playlist.title,
+                    items = wheelItems,
+                    onSongLanded = { index ->
+                        playerConnection.playQueue(
+                            YouTubePlaylistQueue(
+                                playlistId = playlist.id,
+                                playlistTitle = playlist.title,
+                                initialSongs = songs,
+                                initialContinuation = continuation,
+                                startIndex = index,
+                            )
+                        )
+                    },
+                    onDismiss = { showSpinWheel = false },
+                )
+            }
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(
+                        enabled = songs.isNotEmpty(),
+                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                        indication = null,
+                    ) { showSpinWheel = true }
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current).data(playlist.thumbnail)
