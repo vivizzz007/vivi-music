@@ -406,6 +406,13 @@ class MusicService :
     private var isAudioEffectSessionOpened = false
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
+    // A LoudnessEnhancer is bound to ONE audio session, and every ExoPlayer has its own.
+    // Crossfade swaps `player` for a different ExoPlayer, so the enhancer has to follow it:
+    // remember which session the current one was created for, and keep the outgoing
+    // player's enhancer alive (as `fadingLoudnessEnhancer`) until its fade-out is done.
+    private var loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+    private var fadingLoudnessEnhancer: LoudnessEnhancer? = null
+
     private var discordRpc: DiscordRPC? = null
     private var lastPlaybackSpeed = 1.0f
     private var discordUpdateJob: kotlinx.coroutines.Job? = null
@@ -2130,29 +2137,45 @@ class MusicService :
     }
 
     private fun setupLoudnessEnhancer() {
-        val audioSessionId = player.audioSessionId
+        // Work against a fixed player/enhancer pair: a crossfade can swap `player`
+        // while the coroutine below is still reading the DB.
+        val targetPlayer = player
+        val audioSessionId = targetPlayer.audioSessionId
 
         if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
             Timber.tag(TAG).w("setupLoudnessEnhancer: invalid audioSessionId ($audioSessionId), cannot create effect yet")
             return
         }
 
+        // The enhancer is tied to the session it was created for. If the primary player
+        // changed (crossfade swap), the old effect points at a dead/foreign session and
+        // silently does nothing for the new player, so drop it and build a new one.
+        if (loudnessEnhancer != null && loudnessEnhancerSessionId != audioSessionId) {
+            Timber.tag(TAG).d(
+                "LoudnessEnhancer session changed ($loudnessEnhancerSessionId -> $audioSessionId), recreating"
+            )
+            releaseLoudnessEnhancer()
+        }
+
         // Create or recreate enhancer if needed
         if (loudnessEnhancer == null) {
             try {
                 loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                loudnessEnhancerSessionId = audioSessionId
                 Timber.tag(TAG).d("LoudnessEnhancer created for sessionId=$audioSessionId")
             } catch (e: Exception) {
                 reportException(e)
                 loudnessEnhancer = null
+                loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
                 return
             }
         }
+        val enhancer = loudnessEnhancer ?: return
 
         scope.launch {
             try {
                 val currentMediaId = withContext(Dispatchers.Main) {
-                    player.currentMediaItem?.mediaId
+                    targetPlayer.currentMediaItem?.mediaId
                 }
 
                 val normalizeAudio = withContext(Dispatchers.IO) {
@@ -2171,6 +2194,11 @@ class MusicService :
                     val loudness = format?.loudnessDb ?: format?.perceptualLoudnessDb
 
                     withContext(Dispatchers.Main) {
+                        // A crossfade swap happened while we were reading the DB: this
+                        // result belongs to a player/enhancer that is no longer current
+                        // (the swap already scheduled its own setup), so don't apply it.
+                        if (player !== targetPlayer || loudnessEnhancer !== enhancer) return@withContext
+
                         if (loudness != null) {
                             val loudnessDb = loudness.toFloat()
                             val targetGain = (-loudnessDb * 100).toInt()
@@ -2179,8 +2207,8 @@ class MusicService :
                             Timber.tag(TAG).d("Calculated raw normalization gain: $targetGain mB (from loudness: $loudnessDb)")
 
                             try {
-                                loudnessEnhancer?.setTargetGain(clampedGain)
-                                loudnessEnhancer?.enabled = true
+                                enhancer.setTargetGain(clampedGain)
+                                enhancer.enabled = true
                                 Timber.tag(TAG).i("LoudnessEnhancer gain applied: $clampedGain mB")
                             } catch (e: Exception) {
                                 Timber.tag(TAG).e(e, "Failed to apply loudness enhancement")
@@ -2188,19 +2216,20 @@ class MusicService :
                                 releaseLoudnessEnhancer()
                             }
                         } else {
-                            loudnessEnhancer?.enabled = false
+                            enhancer.enabled = false
                             Timber.tag(TAG).w("Normalization enabled but no loudness data available - no normalization applied")
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        loudnessEnhancer?.enabled = false
+                        if (player !== targetPlayer || loudnessEnhancer !== enhancer) return@withContext
+                        enhancer.enabled = false
                         Timber.tag(TAG).d("setupLoudnessEnhancer: normalization disabled or mediaId unavailable")
                     }
                 }
             } catch (e: Exception) {
                 reportException(e)
-                releaseLoudnessEnhancer()
+                if (loudnessEnhancer === enhancer) releaseLoudnessEnhancer()
             }
         }
     }
@@ -2214,6 +2243,19 @@ class MusicService :
             Timber.tag(TAG).e(e, "Error releasing LoudnessEnhancer: ${e.message}")
         } finally {
             loudnessEnhancer = null
+            loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        }
+    }
+
+    /** Releases the enhancer that was kept alive for the outgoing player during a crossfade. */
+    private fun releaseFadingLoudnessEnhancer() {
+        try {
+            fadingLoudnessEnhancer?.release()
+        } catch (e: Exception) {
+            reportException(e)
+            Timber.tag(TAG).e(e, "Error releasing fading LoudnessEnhancer: ${e.message}")
+        } finally {
+            fadingLoudnessEnhancer = null
         }
     }
 
@@ -2294,18 +2336,42 @@ class MusicService :
         }
 
         // Auto load more songs from queue
+        maybeLoadMore(reason)
+
+        // Pre-resolve the next track's stream URL so the transition feels instant
+        prefetchNextTrack()
+
+        // Save state when media item changes
+        if (dataStore.get(PersistentQueueKey, true)) {
+            saveQueueToDisk()
+        }
+    }
+
+    /**
+     * Appends the next page of the current queue when playback is close to its end.
+     *
+     * Called from [onMediaItemTransition] and from [performCrossfadeSwap]: a crossfade hands
+     * playback to a player that was already seeked to its target before this service attached
+     * itself as listener, so that player never reports a transition here and, without the
+     * explicit call, auto-load-more would silently stop working while crossfade is on.
+     */
+    private fun maybeLoadMore(reason: Int) {
+        val queueAtScheduleTime = currentQueue
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage() &&
+            queueAtScheduleTime.hasNextPage() &&
             !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
         ) {
             scope.launch(SilentHandler) {
                 val mediaItems = withContext(Dispatchers.IO) {
-                    currentQueue.nextPage()
+                    queueAtScheduleTime.nextPage()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
+                // The user may have started a different queue while this page was in flight;
+                // appending the old queue's songs onto the new one would mix both.
+                if (currentQueue !== queueAtScheduleTime) return@launch
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
                     if (player.shuffleModeEnabled) {
@@ -2314,14 +2380,6 @@ class MusicService :
                     }
                 }
             }
-        }
-
-        // Pre-resolve the next track's stream URL so the transition feels instant
-        prefetchNextTrack()
-
-        // Save state when media item changes
-        if (dataStore.get(PersistentQueueKey, true)) {
-            saveQueueToDisk()
         }
     }
 
@@ -3552,7 +3610,35 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        releaseFadingLoudnessEnhancer()
         mediaSession.release()
+        // If the service goes away mid-crossfade, the outgoing (and any not-yet-swapped
+        // incoming) player is not `player`, so it would keep playing as an orphan and the
+        // fade coroutine would wait forever on the released primary. Tear all of it down.
+        crossfadeTriggerJob?.cancel()
+        crossfadeTriggerJob = null
+        crossfadeJob?.cancel()
+        crossfadeJob = null
+        fadingPlayer?.let {
+            try {
+                it.stop()
+                it.release()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error releasing fading player")
+            }
+            playerSilenceProcessors.remove(it)
+        }
+        fadingPlayer = null
+        secondaryPlayer?.let {
+            try {
+                it.release()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error releasing secondary player")
+            }
+            playerSilenceProcessors.remove(it)
+        }
+        secondaryPlayer = null
+        isCrossfading = false
         player.removeListener(this)
         player.removeListener(sleepTimer)
         playerSilenceProcessors.remove(player)
@@ -4080,6 +4166,16 @@ class MusicService :
         _playerFlow.value = player
         secondaryPlayer = null
 
+        // Audio normalization follows the audio session, and the incoming player has a
+        // different one. Keep the outgoing player's enhancer alive so it stays normalized
+        // while it fades out, and create a fresh one for the new primary player so the
+        // incoming track is normalized from the first sample (and stays so afterwards).
+        releaseFadingLoudnessEnhancer()
+        fadingLoudnessEnhancer = loudnessEnhancer
+        loudnessEnhancer = null
+        loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        setupLoudnessEnhancer()
+
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
@@ -4109,6 +4205,14 @@ class MusicService :
         } catch (e: Exception) {
             timber.log.Timber.e(e, "Failed to swap player in MediaSession")
         }
+
+        // The new primary was seeked to its target before we attached as listener, so
+        // onMediaItemTransition() is never called for it. Do the parts of that callback that
+        // keep the queue healthy: keep the "previous index" in sync, load more songs near the
+        // end of the queue, and pre-resolve the next stream URL.
+        previousMediaItemIndex = player.currentMediaItemIndex
+        maybeLoadMore(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
+        prefetchNextTrack()
 
         crossfadeJob = scope.launch {
             val duration = crossfadeDuration.toLong()
@@ -4148,6 +4252,7 @@ class MusicService :
         fadingPlayer?.clearMediaItems()
         fadingPlayer?.release()
         fadingPlayer = null
+        releaseFadingLoudnessEnhancer()
         isCrossfading = false
         sleepTimer.notifySongTransition()
     }

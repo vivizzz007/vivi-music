@@ -417,8 +417,8 @@ fun PlayerV2(
                                         .clip(RoundedCornerShape(12.dp))
                                         .SwipeGesture(
                                             enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
-                                            onSwipeLeft = { if (canSkipNext) playerConnection.player.seekToNext() },
-                                            onSwipeRight = { if (canSkipPrevious) playerConnection.player.seekToPrevious() }
+                                            onSwipeLeft = { if (canSkipNext) playerConnection.seekToNext() },
+                                            onSwipeRight = { if (canSkipPrevious) playerConnection.seekToPrevious() }
                                         )
                                 ) {
                                     if (hidePlayerThumbnail) {
@@ -849,7 +849,7 @@ fun PlayerV2(
                                 onClick = {
                                     if (!isListenTogetherGuest) {
                                         if (isCasting) castHandler?.skipToPrevious()
-                                        else if (canSkipPrevious) playerConnection.player.seekToPrevious()
+                                        else if (canSkipPrevious) playerConnection.seekToPrevious()
                                     }
                                 },
                                 enabled = !isListenTogetherGuest && canSkipPrevious,
@@ -893,7 +893,7 @@ fun PlayerV2(
                                 onClick = {
                                     if (!isListenTogetherGuest) {
                                         if (isCasting) castHandler?.skipToNext()
-                                        else if (canSkipNext) playerConnection.player.seekToNext()
+                                        else if (canSkipNext) playerConnection.seekToNext()
                                     }
                                 },
                                 enabled = !isListenTogetherGuest && canSkipNext,
