@@ -736,7 +736,10 @@ fun PlayerV2(
                                         LyricsV2(
                                             mediaMetadata = mediaMetadata,
                                             showLyrics = true,
-                                            positionProvider = { sliderPosition ?: position }
+                                            positionProvider = { sliderPosition ?: position },
+                                            onControlsVisibilityChange = { isVisible ->
+                                                controlsVisible = isVisible
+                                            }
                                         )
                                     } else {
                                         QueueV2(

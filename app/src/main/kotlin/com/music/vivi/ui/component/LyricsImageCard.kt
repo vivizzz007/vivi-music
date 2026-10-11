@@ -17,10 +17,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +62,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
-import coil3.ImageLoader
+import coil3.SingletonImageLoader
 import coil3.request.allowHardware
 import coil3.toBitmap
 import kotlinx.coroutines.Dispatchers
@@ -158,19 +161,20 @@ enum class LyricsBackgroundStyle {
 fun LyricsImageCard(
     lyricText: String,
     mediaMetadata: MediaMetadata,
+    modifier: Modifier = Modifier,
     darkBackground: Boolean = true,
     backgroundColor: Color? = null,
     backgroundStyle: LyricsBackgroundStyle = LyricsBackgroundStyle.SOLID,
     textColor: Color? = null,
     secondaryTextColor: Color? = null,
-    textAlign: TextAlign = TextAlign.Center
+    textAlign: TextAlign = TextAlign.Start
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
 
-    val cardCornerRadius = 20.dp
-    val padding = 28.dp
-    val coverArtSize = 64.dp
+    val cardCornerRadius = 18.dp
+    val padding = 18.dp
+    val coverArtSize = 44.dp
 
     val defaultBgColor = if (darkBackground) Color(0xFF121212) else Color(0xFFF5F5F5)
     val backgroundSolidColor = backgroundColor ?: defaultBgColor
@@ -192,7 +196,7 @@ fun LyricsImageCard(
         LaunchedEffect(mediaMetadata.thumbnailUrl) {
             withContext(Dispatchers.IO) {
                 try {
-                    val loader = ImageLoader(context)
+                    val loader = SingletonImageLoader.get(context)
                     val req = ImageRequest.Builder(context).data(mediaMetadata.thumbnailUrl).allowHardware(false).build()
                     val result = loader.execute(req)
                     val bmp = result.image?.toBitmap()
@@ -216,29 +220,44 @@ fun LyricsImageCard(
     }
 
     Box(
-        modifier = Modifier
-            .background(Color.Black) // Base background
-            .fillMaxSize(),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(cardCornerRadius)),
         contentAlignment = Alignment.Center
     ) {
-        // Background Layer
+        // Background Layer: matches content height
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.matchParentSize()
         ) {
             when (backgroundStyle) {
                 LyricsBackgroundStyle.SOLID -> {
                     Box(modifier = Modifier.fillMaxSize().background(backgroundSolidColor))
                 }
                 LyricsBackgroundStyle.BLUR -> {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(50.dp) // High blur for background
-                            .background(Color.Black.copy(alpha = 0.3f)) // Overlay to ensure text readability
-                    )
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .blur(50.dp)
+                        )
+                        // Protective dark scrim on top of blur: prevents white/bright album art from washing out text
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        colors = listOf(
+                                            Color.Black.copy(alpha = 0.58f),
+                                            Color.Black.copy(alpha = 0.48f),
+                                            Color.Black.copy(alpha = 0.62f)
+                                        )
+                                    )
+                                )
+                        )
+                    }
                 }
                 LyricsBackgroundStyle.GRADIENT -> {
                     Box(
@@ -249,180 +268,96 @@ fun LyricsImageCard(
                 }
             }
         }
-    
+
+        // Inner Border
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(cardCornerRadius))
-                // For the card itself, we can make it slightly transparent or match the background style
-                // but usually the card IS the background cut out.
-                // Here we simulate the card being transparent so the background shows through,
-                // OR we redraw the background inside the card if we want the "card on background" look.
-                // Based on previous code, the card had its own background.
-                // Let's apply the same background logic to the card box.
+                .matchParentSize()
+                .border(1.dp, mainTextColor.copy(alpha = 0.12f), RoundedCornerShape(cardCornerRadius))
+        )
+
+        // Content Column: height wraps content dynamically based on lyrics!
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(padding)
         ) {
-             when (backgroundStyle) {
-                LyricsBackgroundStyle.SOLID -> {
-                    Box(modifier = Modifier.fillMaxSize().background(backgroundSolidColor))
-                }
-                LyricsBackgroundStyle.BLUR -> {
-                    // For blur, we want the card to be a window to the blurred background?
-                    // Or have its own blurred background?
-                    // Typically "Share Lyrics" looks like a card on a background.
-                    // If we want the card to be seamless with the full image background, we can just use transparent.
-                    // But to ensure it looks like the generated image:
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(50.dp)
-                            .background(Color.Black.copy(alpha = 0.3f))
-                    )
-                }
-                LyricsBackgroundStyle.GRADIENT -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(gradientBrush ?: androidx.compose.ui.graphics.Brush.linearGradient(listOf(backgroundSolidColor, backgroundSolidColor)))
-                    )
-                }
+            // Top Section: App name & badge on Top Right
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = context.getString(R.string.app_name),
+                    color = Color.White,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.05.em
+                )
+                Spacer(modifier = Modifier.width(7.dp))
+                Image(
+                    painter = painterResource(id = R.drawable.icon),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                )
             }
-            
-            // Border
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(1.dp, mainTextColor.copy(alpha = 0.09f), RoundedCornerShape(cardCornerRadius))
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            // Middle Section: Lyrics text (natural height, expands as lines increase!)
+            Text(
+                text = lyricText,
+                color = mainTextColor,
+                fontSize = 18.sp,
+                lineHeight = 26.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = textAlign,
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                verticalArrangement = Arrangement.SpaceBetween
+            Spacer(modifier = Modifier.height(22.dp))
+
+            // Bottom Section: Song details & cover art on Bottom Left
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // Header: Cover + Title/Artist aligned left
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(1.dp, mainTextColor.copy(alpha = 0.16f), RoundedCornerShape(8.dp))
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start,
+                    modifier = Modifier.weight(1f)
                 ) {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(coverArtSize)
-                            .clip(RoundedCornerShape(3.dp))
-                            .border(1.dp, mainTextColor.copy(alpha = 0.16f), RoundedCornerShape(3.dp))
-                    )
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.Start,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = mediaMetadata.title,
-                            color = mainTextColor,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(bottom = 2.dp)
-                        )
-                        Text(
-                            text = mediaMetadata.artists.joinToString { it.name },
-                            color = secondaryColor,
-                            fontSize = 16.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                // Lyrics text (centered)
-                BoxWithConstraints(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    contentAlignment = when (textAlign) {
-                        TextAlign.Left, TextAlign.Start -> Alignment.CenterStart
-                        TextAlign.Right, TextAlign.End -> Alignment.CenterEnd
-                        else -> Alignment.Center
-                    }
-                ) {
-                    val availableWidth = maxWidth
-                    val availableHeight = maxHeight
-                    val textStyle = TextStyle(
+                    Text(
+                        text = mediaMetadata.title,
                         color = mainTextColor,
+                        fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        textAlign = textAlign,
-                        letterSpacing = 0.005.em,
-                    )
-
-                    val textMeasurer = rememberTextMeasurer()
-                    val initialSize = when {
-                        lyricText.length < 50 -> 24.sp
-                        lyricText.length < 100 -> 20.sp
-                        lyricText.length < 200 -> 17.sp
-                        lyricText.length < 300 -> 15.sp
-                        else -> 13.sp
-                    }
-
-                    val dynamicFontSize = rememberAdjustedFontSize(
-                        text = lyricText,
-                        maxWidth = availableWidth - 8.dp,
-                        maxHeight = availableHeight - 8.dp,
-                        density = density,
-                        initialFontSize = initialSize,
-                        minFontSize = 18.sp,
-                        style = textStyle,
-                        textMeasurer = textMeasurer
-                    )
-
-                    Text(
-                        text = lyricText,
-                        style = textStyle.copy(
-                            fontSize = dynamicFontSize,
-                            lineHeight = dynamicFontSize.value.sp * 1.2f
-                        ),
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        textAlign = textAlign,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.padding(bottom = 2.dp)
                     )
-                }
-                // Footer
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(22.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(secondaryColor),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.vivimusicnotification),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(16.dp),
-                            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(backgroundSolidColor) // Try to use a contrasting color, fallback to solid bg color
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
                     Text(
-                        text = context.getString(R.string.app_name),
+                        text = mediaMetadata.artists.joinToString { it.name },
                         color = secondaryColor,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
