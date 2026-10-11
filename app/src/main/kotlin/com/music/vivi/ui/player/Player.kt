@@ -576,38 +576,41 @@ fun BottomSheetPlayer(
     LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected) {
         val item = mediaMetadata ?: return@LaunchedEffect
         
-        val prefs = context.getSharedPreferences("spotify_canvas_url_map", android.content.Context.MODE_PRIVATE)
-        val cachedUrl = prefs.getString(item.id, null)
-        if (cachedUrl != null) {
-            spotifyCanvasUrl = cachedUrl
-            timber.log.Timber.d("SpotifyCanvas: Loaded url from local SharedPreferences cache for offline bypass - ID: ${item.id}")
-            return@LaunchedEffect
-        }
+        if (!spotifyCanvasEnabled) {
+            spotifyCanvasUrl = null
+        } else {
+            val prefs = context.getSharedPreferences("spotify_canvas_url_map", android.content.Context.MODE_PRIVATE)
+            val cachedUrl = prefs.getString(item.id, null)
+            if (cachedUrl != null) {
+                spotifyCanvasUrl = cachedUrl
+                timber.log.Timber.d("SpotifyCanvas: Loaded url from local SharedPreferences cache for offline bypass - ID: ${item.id}")
+            } else {
+                val accessToken = SpotifySessionManager.getValidAccessToken(context)
+                if (accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
+                    timber.log.Timber.d("SpotifyCanvas: Triggering Canvas fetch for track: ${item.title}")
+                    withContext(Dispatchers.IO) {
+                        // Try REST API first as it's more reliable
+                        val trackId = Spotify.searchTrackRest("${item.title} ${item.artists.joinToString { it.name }}") 
+                            ?: Spotify.searchTrack("${item.title} ${item.artists.joinToString { it.name }}")?.id
 
-        val accessToken = SpotifySessionManager.getValidAccessToken(context)
-        if (spotifyCanvasEnabled && accessToken != null && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
-            timber.log.Timber.d("SpotifyCanvas: Triggering Canvas fetch for track: ${item.title}")
-            withContext(Dispatchers.IO) {
-                // Try REST API first as it's more reliable
-                val trackId = Spotify.searchTrackRest("${item.title} ${item.artists.joinToString { it.name }}") 
-                    ?: Spotify.searchTrack("${item.title} ${item.artists.joinToString { it.name }}")?.id
+                        timber.log.Timber.d("SpotifyCanvas: Resolved Track ID from search: $trackId")
 
-                timber.log.Timber.d("SpotifyCanvas: Resolved Track ID from search: $trackId")
-
-                if (trackId != null) {
-                    val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, accessToken)
-                    timber.log.Timber.d("SpotifyCanvas: Canvas URL extraction result: $canvasRes")
-                    val fetchedUrl = canvasRes.getOrNull()
-                    if (fetchedUrl != null) {
-                        prefs.edit().putString(item.id, fetchedUrl).apply()
+                        if (trackId != null) {
+                            val canvasRes = SpotifyCanvasProvider.getCanvasUrl(trackId, accessToken)
+                            timber.log.Timber.d("SpotifyCanvas: Canvas URL extraction result: $canvasRes")
+                            val fetchedUrl = canvasRes.getOrNull()
+                            if (fetchedUrl != null) {
+                                prefs.edit().putString(item.id, fetchedUrl).apply()
+                            }
+                            withContext(Dispatchers.Main) {
+                                spotifyCanvasUrl = fetchedUrl
+                            }
+                        }
                     }
-                    withContext(Dispatchers.Main) {
-                        spotifyCanvasUrl = fetchedUrl
-                    }
+                } else {
+                    timber.log.Timber.d("SpotifyCanvas: Conditions not met to fetch. canvasEnabled=$spotifyCanvasEnabled, tokenReady=${Spotify.accessToken != null}, itemReady=${item != null}")
                 }
             }
-        } else {
-            timber.log.Timber.d("SpotifyCanvas: Conditions not met to fetch. canvasEnabled=$spotifyCanvasEnabled, tokenReady=${Spotify.accessToken != null}, itemReady=${item != null}")
         }
 
         if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC || !enableCanvas) {
