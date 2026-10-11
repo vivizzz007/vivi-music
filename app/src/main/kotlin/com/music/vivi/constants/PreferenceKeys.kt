@@ -134,6 +134,7 @@ enum class AudioQuality {
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
+val AudioTrackPlaybackParamsKey = booleanPreferencesKey("audioTrackPlaybackParams")
 
 // JioSaavn streaming
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")

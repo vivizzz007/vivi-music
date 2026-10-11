@@ -41,6 +41,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
+import com.music.vivi.constants.AudioTrackPlaybackParamsKey
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.EnableSaavnStreamingKey
@@ -139,6 +140,11 @@ fun PlayerSettings(
     val (audioOffload, onAudioOffloadChange) = rememberPreference(
         key = AudioOffload,
         defaultValue = false
+    )
+
+    val (audioTrackPlaybackParams, onAudioTrackPlaybackParamsChange) = rememberPreference(
+        key = AudioTrackPlaybackParamsKey,
+        defaultValue = true
     )
 
     val (enableGoogleCast, onEnableGoogleCastChange) = rememberPreference(
@@ -629,6 +635,27 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.graphic_eq),
+                    title = { Text(stringResource(R.string.audio_track_playback_params)) },
+                    description = { Text(stringResource(R.string.audio_track_playback_params_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = audioTrackPlaybackParams,
+                            onCheckedChange = onAudioTrackPlaybackParamsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (audioTrackPlaybackParams) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAudioTrackPlaybackParamsChange(!audioTrackPlaybackParams) }
                 ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {

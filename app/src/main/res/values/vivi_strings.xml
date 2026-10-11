@@ -419,6 +419,9 @@
     <string name="audio_offload">Enable offload</string>
     <string name="audio_offload_description">Use the offload audio path for audio playback. Disabling this may increase power usage but can be useful if you experience issues with audio playback or post processing</string>
     <string name="audio_offload_disabled_by_crossfade">Disabled because Crossfade is active</string>
+    <string name="audio_track_playback_params">Use hardware audio processing</string>
+    <string name="audio_track_playback_params_description">Use Android\'s AudioTrack for speed/pitch changes instead of software processing. More reliable for extreme pitch values</string>
+
 
     <!-- Google Cast -->
     <string name="google_cast">Google Cast</string>
