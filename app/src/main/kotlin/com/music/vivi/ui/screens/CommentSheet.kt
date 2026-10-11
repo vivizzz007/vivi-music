@@ -57,6 +57,7 @@ import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.adaptive.layout.AnimatedPane
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffold
 import androidx.compose.material3.adaptive.layout.ListDetailPaneScaffoldRole
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.adaptive.navigation.rememberListDetailPaneScaffoldNavigator
 import androidx.compose.material3.adaptive.navigation.BackNavigationBehavior
 import androidx.compose.foundation.clickable
@@ -77,7 +78,14 @@ fun CommentSheet(
     var isLoading by remember { mutableStateOf(true) }
     var isError by remember { mutableStateOf(false) }
 
-    val navigator = rememberListDetailPaneScaffoldNavigator<CommentThreadRenderer>()
+    var selectedThread by remember { mutableStateOf<CommentThreadRenderer?>(null) }
+    val navigator = rememberListDetailPaneScaffoldNavigator<String>()
+
+    BackHandler(enabled = navigator.canNavigateBack()) {
+        scope.launch {
+            navigator.navigateBack(BackNavigationBehavior.PopUntilScaffoldValueChange)
+        }
+    }
 
     LaunchedEffect(videoId) {
         YouTube.comments(videoId).onSuccess { (initialComments, token) ->
@@ -181,13 +189,20 @@ fun CommentSheet(
                                         key = { item -> item.comment?.commentRenderer?.commentId ?: "comment-${item.hashCode()}" }
                                     ) { thread ->
                                         val renderer = thread.comment?.commentRenderer ?: return@items
+                                        val hasReplies = (renderer.replyCount ?: 0) > 0
                                         CommentItem(
                                             renderer = renderer,
-                                            onShowReplies = {
-                                                scope.launch {
-                                                    navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, thread)
+                                            onShowReplies = if (hasReplies) {
+                                                {
+                                                    selectedThread = thread
+                                                    scope.launch {
+                                                        navigator.navigateTo(
+                                                            ListDetailPaneScaffoldRole.Detail,
+                                                            renderer.commentId ?: thread.hashCode().toString()
+                                                        )
+                                                    }
                                                 }
-                                            }
+                                            } else null
                                         )
                                     }
 
@@ -212,10 +227,15 @@ fun CommentSheet(
                         },
                         detailPane = {
                             AnimatedPane {
-                                val selectedThread = navigator.currentDestination?.contentKey
-                                if (selectedThread != null) {
+                                val selectedCommentId = navigator.currentDestination?.contentKey
+                                val threadToDisplay = selectedThread?.takeIf {
+                                    (it.comment?.commentRenderer?.commentId ?: it.hashCode().toString()) == selectedCommentId
+                                } ?: comments.firstOrNull {
+                                    (it.comment?.commentRenderer?.commentId ?: it.hashCode().toString()) == selectedCommentId
+                                }
+                                if (threadToDisplay != null) {
                                     CommentDetailPane(
-                                        thread = selectedThread,
+                                        thread = threadToDisplay,
                                         onBack = {
                                             scope.launch {
                                                 navigator.navigateBack(BackNavigationBehavior.PopUntilScaffoldValueChange)
