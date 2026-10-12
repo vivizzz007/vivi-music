@@ -9,6 +9,13 @@ import com.music.vivi.constants.DataSaverKey
 import timber.log.Timber
 
 /**
+ * Global flag indicating whether Data Saver is active.
+ * Updated reactively from DataStore in [App.kt].
+ */
+@Volatile
+var isDataSaverEnabled: Boolean = false
+
+/**
  * Resizes a Google CDN or YouTube thumbnail URL to the requested dimensions.
  * Uses domain-independent and parameter-based matching to maximize quality
  * and ensure fetching logic does not break if YouTube changes hostnames or paths.
@@ -24,8 +31,6 @@ fun String.resize(
 
     // Detect YouTube video thumbnails (containing i.ytimg.com, img.youtube.com, or path segment /vi/)
     val isYtimg = this.contains("ytimg") || this.contains("youtube.com") || this.contains("/vi/")
-
-    val isDataSaverEnabled = false
 
     return when {
         isGoogleCdn -> resizeGoogleCdn(width, height, isDataSaverEnabled)

@@ -40,6 +40,7 @@ import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.reportException
+import com.music.vivi.ui.utils.isDataSaverEnabled
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -142,6 +143,7 @@ class App : Application(), SingletonImageLoader.Factory {
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
         YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
+        isDataSaverEnabled = settings[DataSaverKey] ?: false
 
         val channel = NotificationChannel(
             "updates",
@@ -298,6 +300,15 @@ class App : Application(), SingletonImageLoader.Factory {
                     } else {
                         NewReleaseCheckWorker.cancel(this@App)
                     }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[DataSaverKey] ?: false }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    isDataSaverEnabled = enabled
                 }
         }
     }
