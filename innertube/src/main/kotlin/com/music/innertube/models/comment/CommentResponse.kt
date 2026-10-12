@@ -4,6 +4,7 @@
  */
 package com.music.innertube.models.comment
 
+import com.music.innertube.models.Runs
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,10 +27,56 @@ data class CommentResponse(
         )
         @Serializable
         data class ContinuationItem(
+            val commentsHeaderRenderer: CommentsHeaderRenderer? = null,
             val commentThreadRenderer: CommentThreadRenderer? = null,
             val continuationItemRenderer: ContinuationItemRenderer? = null,
             val commentRenderer: CommentRenderer? = null,
+            val commentViewModel: CommentThreadRenderer.CommentViewModelWrapper.CommentViewModel? = null,
         )
+    }
+
+    @Serializable
+    data class CommentsHeaderRenderer(
+        val countText: Runs? = null,
+        val sortMenu: SortMenu? = null,
+    ) {
+        @Serializable
+        data class SortMenu(
+            val sortFilterSubMenuRenderer: SortFilterSubMenuRenderer? = null,
+        ) {
+            @Serializable
+            data class SortFilterSubMenuRenderer(
+                val subMenuItems: List<SubMenuItem>? = null,
+            ) {
+                @Serializable
+                data class SubMenuItem(
+                    val title: String? = null,
+                    val selected: Boolean? = null,
+                    val continuation: Continuation? = null,
+                    val serviceEndpoint: ServiceEndpoint? = null,
+                ) {
+                    @Serializable
+                    data class Continuation(
+                        val reloadContinuationItemsCommand: ReloadContinuationItemsCommand? = null,
+                    ) {
+                        @Serializable
+                        data class ReloadContinuationItemsCommand(
+                            val token: String? = null,
+                        )
+                    }
+
+                    @Serializable
+                    data class ServiceEndpoint(
+                        val continuationCommand: ContinuationCommand? = null,
+                    ) {
+                        @Serializable
+                        data class ContinuationCommand(
+                            val token: String? = null,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     @Serializable
@@ -75,6 +122,8 @@ data class CommentResponse(
                         data class Author(
                             val displayName: String? = null,
                             val avatarThumbnailUrl: String? = null,
+                            val channelId: String? = null,
+                            val isCurrentUser: Boolean? = null,
                         )
                     }
 

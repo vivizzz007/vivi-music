@@ -8,13 +8,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Button(
-    val buttonRenderer: ButtonRenderer,
+    val buttonRenderer: ButtonRenderer = ButtonRenderer(),
 ) {
     @Serializable
     data class ButtonRenderer(
-        val text: Runs,
-        val navigationEndpoint: NavigationEndpoint?,
-        val command: NavigationEndpoint?,
-        val icon: Icon?,
+        val text: Runs? = null,
+        val navigationEndpoint: NavigationEndpoint? = null,
+        val command: NavigationEndpoint? = null,
+        val icon: Icon? = null,
     )
 }

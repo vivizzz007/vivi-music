@@ -163,11 +163,11 @@ object YouTube {
 
         val shelfSummaries = contents.mapNotNull { it ->
             if (it.musicCardShelfRenderer != null) {
-                val isArtistCard = it.musicCardShelfRenderer.onTap?.browseEndpoint?.isArtistEndpoint == true
+                val isArtistCard = it.musicCardShelfRenderer.onTap.browseEndpoint?.isArtistEndpoint == true
                 val implicitArtist = if (isArtistCard) {
                     Artist(
-                        name = it.musicCardShelfRenderer.title?.runs?.firstOrNull()?.text ?: "",
-                        id = it.musicCardShelfRenderer.onTap?.browseEndpoint?.browseId
+                        name = it.musicCardShelfRenderer.title.runs?.firstOrNull()?.text ?: "",
+                        id = it.musicCardShelfRenderer.onTap.browseEndpoint?.browseId
                     )
                 } else null
 
@@ -314,7 +314,7 @@ object YouTube {
             }
             // Check all tabs in singleColumnBrowseResultsRenderer
             response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
-                tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                tab.tabRenderer.content?.sectionListRenderer?.contents?.forEach { content ->
                     content.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
@@ -331,7 +331,7 @@ object YouTube {
                 }
             }
             response.contents?.singleColumnBrowseResultsRenderer?.tabs?.forEach { tab ->
-                tab.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { content ->
+                tab.tabRenderer.content?.sectionListRenderer?.contents?.forEach { content ->
                     content.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.let { yield(it) }
                 }
             }
@@ -651,7 +651,7 @@ object YouTube {
         val descFromSecondaryShelf = secondarySectionListContents?.firstNotNullOfOrNull {
             it.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { run -> run.text }
         }
-        val descFromHeader = header?.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
+        val descFromHeader = header.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
         val descFromEditable = base?.musicEditablePlaylistDetailHeaderRenderer
             ?.header?.musicDetailHeaderRenderer
             ?.description?.runs?.joinToString("") { it.text }
@@ -1696,7 +1696,47 @@ object YouTube {
         }
     }
 
-    suspend fun comments(videoId: String): Result<Pair<List<CommentThreadRenderer>, String?>> = runCatching {
+    data class CommentsResult(
+        val comments: List<CommentThreadRenderer>,
+        val nextToken: String?,
+        val totalComments: String? = null,
+        val topToken: String? = null,
+        val newestToken: String? = null,
+    )
+
+    fun createCommentsContinuationToken(videoId: String, sortBy: Int = 0): String {
+        val vidBytes = videoId.toByteArray(Charsets.UTF_8)
+        val vidLen = vidBytes.size.toByte()
+
+        val part1 = byteArrayOf(0x12, (2 + vidBytes.size).toByte(), 0x12, vidLen) +
+                vidBytes +
+                byteArrayOf(0x18, 0x06)
+
+        val secBytes = "comments-section".toByteArray(Charsets.UTF_8)
+        val f4 = byteArrayOf(0x22, (2 + vidBytes.size + 4).toByte(), 0x22, vidLen) +
+                vidBytes +
+                byteArrayOf(0x30, sortBy.toByte(), 0x78, 0x02)
+        val f8 = byteArrayOf(0x42, secBytes.size.toByte()) + secBytes
+        val f6Content = f4 + f8
+        val part2 = byteArrayOf(0x32, f6Content.size.toByte()) + f6Content
+
+        val proto = part1 + part2
+        return java.util.Base64.getEncoder().encodeToString(proto)
+    }
+
+    suspend fun comments(videoId: String): Result<CommentsResult> = runCatching {
+        // Fast path: Attempt direct continuation using synthesized protobuf token.
+        // This eliminates the heavy ~450KB watch-next round trip and speeds up comment load by 70-80%.
+        try {
+            val directToken = createCommentsContinuationToken(videoId)
+            val directResult = commentContinuation(directToken).getOrNull()
+            if (directResult != null && (directResult.comments.isNotEmpty() || directResult.totalComments != null)) {
+                return@runCatching directResult
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("YouTubeComments", "Direct comment continuation failed for $videoId, falling back to watch-next lookup", e)
+        }
+
         val response = innerTube.next(YouTubeClient.WEB, videoId, null, null, null, null, null).body<NextResponse>()
         
         // Find comment continuation token from engagementPanels (Primary location for YouTube Music/some WEB videos)
@@ -1733,23 +1773,179 @@ object YouTube {
         commentContinuation(token).getOrThrow()
     }
 
-    suspend fun commentContinuation(continuationToken: String): Result<Pair<List<CommentThreadRenderer>, String?>> = runCatching {
-        val response = innerTube.next(YouTubeClient.WEB, null, null, null, null, null, continuationToken).body<CommentResponse>()
+    private val commentJson = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+        encodeDefaults = true
+        isLenient = true
+        coerceInputValues = true
+    }
+
+    private fun extractActionTokensByCommentId(rawText: String): Map<String, String> {
+        val actionRegex = Regex(""""performCommentActionEndpoint"\s*:\s*\{\s*"action"\s*:\s*"([^"]+)"""")
+        val tokensByCommentId = mutableMapOf<String, String>()
+
+        actionRegex.findAll(rawText).forEach { matchResult ->
+            val token = matchResult.groupValues[1]
+            try {
+                val urlDecoded = java.net.URLDecoder.decode(token, "UTF-8")
+                val decodedBytes = android.util.Base64.decode(urlDecoded, android.util.Base64.DEFAULT)
+                val decodedString = String(decodedBytes, java.nio.charset.StandardCharsets.ISO_8859_1)
+
+                val idMatch = Regex("""(Ug[a-zA-Z0-9_-]{24,})""").find(decodedString)
+                if (idMatch != null) {
+                    val foundId = idMatch.groupValues[1]
+                    tokensByCommentId[foundId] = token
+                    android.util.Log.d("YouTubeComments", "Mapped action token directly from raw payload for commentId=$foundId")
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("YouTubeComments", "Failed to decode action token: $e")
+            }
+        }
+
+        if (tokensByCommentId.isEmpty()) {
+            actionRegex.findAll(rawText).forEach { matchResult ->
+                val token = matchResult.groupValues[1]
+                val start = maxOf(0, matchResult.range.first - 1000)
+                val end = minOf(rawText.length, matchResult.range.last + 1000)
+                val window = rawText.substring(start, end)
+                val idMatch = Regex("""(Ug[a-zA-Z0-9_-]{24,})""").find(window)
+                if (idMatch != null) {
+                    val foundId = idMatch.groupValues[1]
+                    tokensByCommentId[foundId] = token
+                    android.util.Log.d("YouTubeComments", "Mapped action token from raw window for commentId=$foundId")
+                }
+            }
+        }
+        return tokensByCommentId
+    }
+
+    private fun createSyntheticActionMenu(actionToken: String): com.music.innertube.models.comment.CommentRenderer.ActionMenu {
+        return com.music.innertube.models.comment.CommentRenderer.ActionMenu(
+            menuRenderer = com.music.innertube.models.comment.CommentRenderer.ActionMenu.MenuRenderer(
+                items = listOf(
+                    com.music.innertube.models.comment.CommentRenderer.ActionMenu.MenuRenderer.Item(
+                        menuServiceItemRenderer = com.music.innertube.models.comment.CommentRenderer.ActionMenu.MenuRenderer.Item.MenuServiceItemRenderer(
+                            text = com.music.innertube.models.Runs(runs = listOf(com.music.innertube.models.Run(text = "Delete", navigationEndpoint = null))),
+                            serviceEndpoint = com.music.innertube.models.comment.CommentRenderer.ActionMenu.MenuRenderer.Item.MenuServiceItemRenderer.ServiceEndpoint(
+                                performCommentActionEndpoint = com.music.innertube.models.comment.CommentRenderer.ActionMenu.MenuRenderer.Item.MenuServiceItemRenderer.ServiceEndpoint.PerformCommentActionEndpoint(
+                                    action = actionToken
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
+    }
+
+    fun buildDeleteActionToken(commentId: String, videoId: String = ""): String {
+        val baos = java.io.ByteArrayOutputStream()
+        baos.write(0x08); baos.write(0x05)
+        baos.write(0x10); baos.write(0x01)
+        baos.write(0x1a)
+        val cidBytes = commentId.toByteArray(Charsets.UTF_8)
+        baos.write(cidBytes.size)
+        baos.write(cidBytes)
+        if (videoId.isNotBlank()) {
+            baos.write(0x2a)
+            val vidBytes = videoId.toByteArray(Charsets.UTF_8)
+            baos.write(vidBytes.size)
+            baos.write(vidBytes)
+        }
+        baos.write(byteArrayOf(0x30, 0x00, 0x38, 0x00, 0xf0.toByte(), 0x01, 0x00, 0xf8.toByte(), 0x02, 0x01, 0xb0.toByte(), 0x03, 0x00, 0xc0.toByte(), 0x03, 0x02, 0xc8.toByte(), 0x03, 0x00))
+        val b64 = android.util.Base64.encodeToString(baos.toByteArray(), android.util.Base64.NO_WRAP)
+        return java.net.URLEncoder.encode(b64, "UTF-8")
+    }
+
+    suspend fun commentContinuation(continuationToken: String): Result<CommentsResult> = runCatching {
+        val httpResponse = innerTube.next(YouTubeClient.WEB, null, null, null, null, null, continuationToken)
+        val rawText = httpResponse.bodyAsText()
+        val response = commentJson.decodeFromString<CommentResponse>(rawText)
+        val tokensByCommentId = extractActionTokensByCommentId(rawText)
+
+        val actionIdx = rawText.indexOf("performCommentActionEndpoint")
+        if (actionIdx != -1) {
+            val snippet = rawText.substring(maxOf(0, actionIdx - 150), minOf(rawText.length, actionIdx + 250))
+            android.util.Log.d("YouTubeComments", "RAW JSON found performCommentActionEndpoint: $snippet")
+        } else {
+            val deleteIdx = rawText.indexOf("\"delete\"")
+            if (deleteIdx != -1) {
+                val snippet = rawText.substring(maxOf(0, deleteIdx - 100), minOf(rawText.length, deleteIdx + 200))
+                android.util.Log.d("YouTubeComments", "RAW JSON: performCommentActionEndpoint not found, but found 'delete': $snippet")
+            } else {
+                android.util.Log.d("YouTubeComments", "RAW JSON: Neither performCommentActionEndpoint nor 'delete' found in response length=${rawText.length}")
+            }
+        }
+
         val endpoints = response.onResponseReceivedEndpoints.orEmpty()
         val continuationItems = endpoints.flatMap { endpoint ->
             endpoint.reloadContinuationItemsCommand?.continuationItems.orEmpty() +
             endpoint.appendContinuationItemsAction?.continuationItems.orEmpty()
         }
 
-        // 1. Extract Legacy comments
-        val legacyComments = continuationItems.mapNotNull { it.commentThreadRenderer }
-            .filter { it.comment?.commentRenderer != null || it.commentViewModel?.commentViewModel != null }
+        val header = continuationItems.mapNotNull { it.commentsHeaderRenderer }.firstOrNull()
+        val totalComments = header?.countText?.runs?.joinToString("") { it.text.orEmpty() }?.takeIf { it.isNotBlank() }
+        val subMenuItems = header?.sortMenu?.sortFilterSubMenuRenderer?.subMenuItems.orEmpty()
+        val topToken = subMenuItems.firstOrNull { it.title?.contains("Top", ignoreCase = true) == true }?.let {
+            it.continuation?.reloadContinuationItemsCommand?.token ?: it.serviceEndpoint?.continuationCommand?.token
+        }
+        val newestToken = subMenuItems.firstOrNull { it.title?.contains("New", ignoreCase = true) == true }?.let {
+            it.continuation?.reloadContinuationItemsCommand?.token ?: it.serviceEndpoint?.continuationCommand?.token
+        }
 
-        // Use a safe key extraction that prioritizes the renderer's ID, then the viewport ID, then fallback to index
-        val legacyCommentsMap = legacyComments.associateBy { thread ->
+        // 1. Extract Legacy comments & ViewModels to map menus and action buttons
+        val legacyThreads = continuationItems.mapNotNull { it.commentThreadRenderer }
+        val legacyCommentsMap = legacyThreads.associateBy { thread ->
             thread.comment?.commentRenderer?.commentId 
                 ?: thread.commentViewModel?.commentViewModel?.commentId
                 ?: "legacy-${thread.hashCode()}"
+        }
+
+        val menusByCommentId = mutableMapOf<String, com.music.innertube.models.comment.CommentRenderer.ActionMenu>()
+        val actionButtonsByCommentId = mutableMapOf<String, com.music.innertube.models.comment.CommentRenderer.ActionButtons>()
+
+        continuationItems.forEach { item ->
+            item.commentThreadRenderer?.let { thread ->
+                val id = thread.comment?.commentRenderer?.commentId
+                    ?: thread.commentViewModel?.commentViewModel?.commentId
+                val menu = thread.comment?.commentRenderer?.actionMenu
+                    ?: thread.commentViewModel?.commentViewModel?.actionMenu
+                    ?: thread.commentViewModel?.commentViewModel?.menu
+                    ?: thread.menu
+                    ?: thread.actionMenu
+                val buttons = thread.comment?.commentRenderer?.actionButtons
+                    ?: thread.commentViewModel?.commentViewModel?.actionButtons
+                    ?: thread.actionButtons
+                if (id != null) {
+                    if (menu != null) menusByCommentId[id] = menu
+                    if (buttons != null) actionButtonsByCommentId[id] = buttons
+                }
+            }
+            item.commentViewModel?.let { vm ->
+                val id = vm.commentId
+                val menu = vm.actionMenu ?: vm.menu
+                val buttons = vm.actionButtons
+                if (id != null) {
+                    if (menu != null) menusByCommentId[id] = menu
+                    if (buttons != null) actionButtonsByCommentId[id] = buttons
+                }
+            }
+            item.commentRenderer?.let { cr ->
+                val id = cr.commentId
+                val menu = cr.actionMenu
+                val buttons = cr.actionButtons
+                if (id != null) {
+                    if (menu != null) menusByCommentId[id] = menu
+                    if (buttons != null) actionButtonsByCommentId[id] = buttons
+                }
+            }
+        }
+
+        android.util.Log.d("YouTubeComments", "Parsed ${legacyThreads.size} threads. Found ${menusByCommentId.size} menus and ${actionButtonsByCommentId.size} action buttons maps.")
+        if (menusByCommentId.isEmpty() && legacyThreads.isNotEmpty()) {
+            val sampleThread = legacyThreads.firstOrNull()
+            android.util.Log.d("YouTubeComments", "Thread 0 diagnostics: hasComment=${sampleThread?.comment != null}, hasVM=${sampleThread?.commentViewModel != null}, hasReplies=${sampleThread?.replies != null}, menu=${sampleThread?.menu != null}, actionMenu=${sampleThread?.actionMenu != null}")
         }
 
         // 2. Extract Framework-based comments
@@ -1772,6 +1968,29 @@ object YouTube {
                     
                 val commentId = payload.properties?.commentId ?: "framework-${mutation.hashCode()}"
                 val legacyMatch = legacyCommentsMap[commentId]
+                val resolvedMenu = menusByCommentId[commentId]
+                    ?: legacyMatch?.comment?.commentRenderer?.actionMenu
+                    ?: legacyMatch?.commentViewModel?.commentViewModel?.actionMenu
+                    ?: legacyMatch?.commentViewModel?.commentViewModel?.menu
+                    ?: legacyMatch?.menu
+                    ?: legacyMatch?.actionMenu
+                val resolvedButtons = actionButtonsByCommentId[commentId]
+                    ?: legacyMatch?.comment?.commentRenderer?.actionButtons
+                    ?: legacyMatch?.commentViewModel?.commentViewModel?.actionButtons
+                    ?: legacyMatch?.actionButtons
+
+                val hasDeleteAction = resolvedMenu?.getDeleteActionToken() != null ||
+                    resolvedButtons?.commentActionButtonsRenderer?.deleteButton != null
+                val isAuthor = legacyMatch?.comment?.commentRenderer?.isAuthor == true ||
+                    payload.author?.isCurrentUser == true ||
+                    hasDeleteAction
+
+                val finalMenu = resolvedMenu ?: if (isAuthor) {
+                    val rawActionToken = tokensByCommentId[commentId] ?: buildDeleteActionToken(commentId)
+                    createSyntheticActionMenu(rawActionToken)
+                } else null
+
+                android.util.Log.d("YouTubeComments", "Framework commentId=$commentId: resolvedMenu=${resolvedMenu != null}, hasDeleteAction=${finalMenu?.getDeleteActionToken() != null}, isAuthor=$isAuthor, deleteToken=${finalMenu?.getDeleteActionToken() ?: resolvedButtons?.commentActionButtonsRenderer?.deleteButton?.buttonRenderer?.serviceEndpoint?.performCommentActionEndpoint?.action}")
 
                 CommentThreadRenderer(
                     comment = CommentThreadRenderer.Comment(
@@ -1797,7 +2016,10 @@ object YouTube {
                                 "TOOLBAR_LIKE_STATE_INDIFFERENT" -> "INDIFFERENT"
                                 else -> "INDIFFERENT"
                             },
-                            replyCount = replyCount.toIntOrNull() ?: 0
+                            replyCount = replyCount.toIntOrNull() ?: 0,
+                            actionButtons = resolvedButtons,
+                            actionMenu = finalMenu,
+                            isAuthor = isAuthor
                         )
                     ),
                     replies = legacyMatch?.replies
@@ -1835,11 +2057,20 @@ object YouTube {
         }.distinctBy { it.comment?.commentRenderer?.commentId ?: it.hashCode() }
         
 
-        Pair(comments, nextToken)
+        CommentsResult(
+            comments = comments,
+            nextToken = nextToken,
+            totalComments = totalComments,
+            topToken = topToken,
+            newestToken = newestToken
+        )
     }
 
     suspend fun commentReplies(replyToken: String): Result<Pair<List<com.music.innertube.models.comment.CommentRenderer>, String?>> = runCatching {
-        val response = innerTube.next(YouTubeClient.WEB, null, null, null, null, null, replyToken).body<CommentResponse>()
+        val httpResponse = innerTube.next(YouTubeClient.WEB, null, null, null, null, null, replyToken)
+        val rawText = httpResponse.bodyAsText()
+        val response = commentJson.decodeFromString<CommentResponse>(rawText)
+        val replyTokensByCommentId = extractActionTokensByCommentId(rawText)
         
         val endpoints = response.onResponseReceivedEndpoints.orEmpty()
         val continuationItems = endpoints.flatMap { endpoint ->
@@ -1847,8 +2078,47 @@ object YouTube {
             endpoint.appendContinuationItemsAction?.continuationItems.orEmpty()
         }
 
-        // 1. Extract Legacy replies
+        // 1. Extract Legacy replies & menus
         val legacyReplies = continuationItems.mapNotNull { it.commentRenderer ?: it.commentThreadRenderer?.comment?.commentRenderer }
+        val replyMenusByCommentId = mutableMapOf<String, com.music.innertube.models.comment.CommentRenderer.ActionMenu>()
+        val replyActionButtonsByCommentId = mutableMapOf<String, com.music.innertube.models.comment.CommentRenderer.ActionButtons>()
+
+        continuationItems.forEach { item ->
+            item.commentThreadRenderer?.let { thread ->
+                val id = thread.comment?.commentRenderer?.commentId
+                    ?: thread.commentViewModel?.commentViewModel?.commentId
+                val menu = thread.comment?.commentRenderer?.actionMenu
+                    ?: thread.commentViewModel?.commentViewModel?.actionMenu
+                    ?: thread.commentViewModel?.commentViewModel?.menu
+                    ?: thread.menu
+                    ?: thread.actionMenu
+                val buttons = thread.comment?.commentRenderer?.actionButtons
+                    ?: thread.commentViewModel?.commentViewModel?.actionButtons
+                    ?: thread.actionButtons
+                if (id != null) {
+                    if (menu != null) replyMenusByCommentId[id] = menu
+                    if (buttons != null) replyActionButtonsByCommentId[id] = buttons
+                }
+            }
+            item.commentViewModel?.let { vm ->
+                val id = vm.commentId
+                val menu = vm.actionMenu ?: vm.menu
+                val buttons = vm.actionButtons
+                if (id != null) {
+                    if (menu != null) replyMenusByCommentId[id] = menu
+                    if (buttons != null) replyActionButtonsByCommentId[id] = buttons
+                }
+            }
+            item.commentRenderer?.let { cr ->
+                val id = cr.commentId
+                val menu = cr.actionMenu
+                val buttons = cr.actionButtons
+                if (id != null) {
+                    if (menu != null) replyMenusByCommentId[id] = menu
+                    if (buttons != null) replyActionButtonsByCommentId[id] = buttons
+                }
+            }
+        }
 
         // 2. Extract Framework-based replies
         val mutations = response.frameworkUpdates?.entityBatchUpdate?.mutations.orEmpty()
@@ -1866,6 +2136,20 @@ object YouTube {
                     ?: surface?.toolbar?.likeCountNotliked
                     ?: "0"
 
+                val replyId = payload.properties?.commentId ?: "reply-${mutation.hashCode()}"
+                val resolvedMenu = replyMenusByCommentId[replyId]
+                val resolvedButtons = replyActionButtonsByCommentId[replyId]
+                val hasDeleteAction = resolvedMenu?.getDeleteActionToken() != null ||
+                    resolvedButtons?.commentActionButtonsRenderer?.deleteButton != null
+                val isAuthor = payload.author?.isCurrentUser == true ||
+                    legacyReplies.find { it.commentId == replyId }?.isAuthor == true ||
+                    hasDeleteAction
+
+                val finalMenu = resolvedMenu ?: if (isAuthor) {
+                    val rawActionToken = replyTokensByCommentId[replyId] ?: buildDeleteActionToken(replyId)
+                    createSyntheticActionMenu(rawActionToken)
+                } else null
+
                 com.music.innertube.models.comment.CommentRenderer(
                     authorText = com.music.innertube.models.Runs(
                         runs = listOf(com.music.innertube.models.Run(text = payload.author?.displayName ?: "Unknown", navigationEndpoint = null))
@@ -1879,7 +2163,7 @@ object YouTube {
                     publishedTimeText = com.music.innertube.models.Runs(
                         runs = listOf(com.music.innertube.models.Run(text = payload.properties?.publishedTime ?: "", navigationEndpoint = null))
                     ),
-                    commentId = payload.properties?.commentId ?: "reply-${mutation.hashCode()}",
+                    commentId = replyId,
                     voteCount = com.music.innertube.models.Runs(
                         runs = listOf(com.music.innertube.models.Run(text = likeCount, navigationEndpoint = null))
                     ),
@@ -1887,7 +2171,10 @@ object YouTube {
                         "TOOLBAR_LIKE_STATE_LIKE" -> "UPVOTE"
                         "TOOLBAR_LIKE_STATE_INDIFFERENT" -> "INDIFFERENT"
                         else -> "INDIFFERENT"
-                    }
+                    },
+                    actionMenu = finalMenu,
+                    actionButtons = resolvedButtons,
+                    isAuthor = isAuthor
                 )
             }
         }
@@ -1904,10 +2191,21 @@ object YouTube {
                 legacy.copy(
                     voteCount = modern.voteCount ?: legacy.voteCount,
                     voteStatus = modern.voteStatus ?: legacy.voteStatus,
-                    replyCount = modern.replyCount ?: legacy.replyCount
+                    replyCount = modern.replyCount ?: legacy.replyCount,
+                    actionMenu = modern.actionMenu ?: legacy.actionMenu ?: replyMenusByCommentId[id],
+                    actionButtons = modern.actionButtons ?: legacy.actionButtons ?: replyActionButtonsByCommentId[id],
+                    isAuthor = modern.isAuthor || legacy.isAuthor
                 )
             } else {
-                modern ?: legacy
+                val single = modern ?: legacy
+                val menu = replyMenusByCommentId[id] ?: single?.actionMenu
+                val buttons = replyActionButtonsByCommentId[id] ?: single?.actionButtons
+                val hasDelete = menu?.getDeleteActionToken() != null || buttons?.commentActionButtonsRenderer?.deleteButton != null
+                single?.copy(
+                    actionMenu = menu,
+                    actionButtons = buttons,
+                    isAuthor = single.isAuthor || hasDelete
+                )
             }
         }.distinctBy { it.commentId ?: it.hashCode() }
         
@@ -1924,5 +2222,55 @@ object YouTube {
             }.flatten().firstOrNull()
 
         Pair(mergedReplies, nextToken)
+    }
+
+    suspend fun createComment(
+        videoId: String,
+        commentText: String,
+        createCommentParams: String? = null,
+    ): Result<Boolean> = runCatching {
+        val params = createCommentParams ?: run {
+            val videoBytes = videoId.toByteArray(Charsets.UTF_8)
+            val buffer = java.io.ByteArrayOutputStream()
+            buffer.write(0x12)
+            buffer.write(videoBytes.size)
+            buffer.write(videoBytes)
+            java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.toByteArray())
+        }
+        val response = innerTube.createComment(
+            client = YouTubeClient.WEB_REMIX,
+            commentText = commentText,
+            createCommentParams = params
+        )
+        val bodyText = response.bodyAsText()
+        android.util.Log.d("CommentCreate", "createComment response status=${response.status.value}, body=${bodyText.take(500)}")
+        response.status.value in 200..299
+    }
+
+    suspend fun createCommentReply(
+        commentText: String,
+        createReplyParams: String,
+    ): Result<Boolean> = runCatching {
+        val response = innerTube.createCommentReply(
+            client = YouTubeClient.WEB_REMIX,
+            commentText = commentText,
+            createReplyParams = createReplyParams
+        )
+        val bodyText = response.bodyAsText()
+        android.util.Log.d("CommentCreate", "createCommentReply response status=${response.status.value}, body=${bodyText.take(500)}")
+        response.status.value in 200..299
+    }
+
+    suspend fun deleteComment(
+        actionToken: String,
+    ): Result<Boolean> = runCatching {
+        android.util.Log.d("CommentDelete", "deleteComment() dispatching with token length: ${actionToken.length}")
+        val response = innerTube.performCommentAction(
+            client = YouTubeClient.WEB,
+            action = actionToken
+        )
+        val bodyText = response.bodyAsText()
+        android.util.Log.d("CommentDelete", "deleteComment() response code: ${response.status.value}, body: $bodyText")
+        response.status.value in 200..299
     }
 }

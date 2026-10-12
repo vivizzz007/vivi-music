@@ -982,6 +982,7 @@
     <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
     <string name="comments">Chat</string>
+    <string name="comments_header">Comments</string>
     <string name="no_comments">No comments found</string>
     <string name="type_message">Type a message…</string>
     <string name="send">Send</string>
@@ -1157,4 +1158,13 @@
     <string name="export_option_share">Share with</string>
     <string name="export_as_csv">CSV (Spreadsheet format)</string>
     <string name="export_as_m3u">M3U (Media Player format)</string>
+    <string name="add_a_comment">Add a comment…</string>
+    <string name="reply_to_comment">Reply to @%s…</string>
+    <string name="delete_comment">Delete comment</string>
+    <string name="delete_comment_confirm">Are you sure you want to delete this comment? This action cannot be undone.</string>
+    <string name="sign_in_to_comment">Sign in to add a comment</string>
+    <string name="reply">Reply</string>
+    <string name="top_comments">Top</string>
+    <string name="newest_comments">Newest</string>
+    <string name="replies">Replies</string>
 </resources>

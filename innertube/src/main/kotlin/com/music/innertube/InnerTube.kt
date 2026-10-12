@@ -734,6 +734,56 @@ class InnerTube {
         }
     }
 
+    suspend fun createComment(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createCommentParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createCommentParams = createCommentParams
+                )
+            )
+        }
+    }
+
+    suspend fun createCommentReply(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createReplyParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment_reply") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentReplyBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createReplyParams = createReplyParams
+                )
+            )
+        }
+    }
+
+    suspend fun performCommentAction(
+        client: YouTubeClient = YouTubeClient.WEB,
+        action: String,
+    ) = withRetry {
+        android.util.Log.d("InnerTube", "performCommentAction dispatching: client=${client.clientName}, action length=${action.length}")
+        httpClient.post("comment/perform_comment_action") {
+            ytClient(client, setLogin = true)
+            setBody(
+                PerformCommentActionBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    actions = listOf(action)
+                )
+            )
+        }
+    }
+
     private suspend fun returnYouTubeDislike(videoId: String) = withRetry {
         httpClient.get("https://returnyoutubedislikeapi.com/Votes?videoId=$videoId") {
             contentType(ContentType.Application.Json)
