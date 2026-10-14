@@ -146,6 +146,13 @@ constructor(
         return if (handledWithCrossfade) {
             SessionResult.RESULT_INFO_SKIPPED
         } else {
+            if (playerCommand == Player.COMMAND_SEEK_TO_NEXT ||
+                playerCommand == Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM ||
+                playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS ||
+                playerCommand == Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
+            ) {
+                service.cancelCrossfadeIfActive()
+            }
             super.onPlayerCommandRequest(session, controller, playerCommand)
         }
     }

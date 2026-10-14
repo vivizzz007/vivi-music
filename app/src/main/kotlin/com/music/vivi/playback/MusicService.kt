@@ -1502,8 +1502,11 @@ class MusicService :
         radioChips.value = emptyList()
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
-        if (!canAttemptQueueCrossfade && !persistShuffleAcrossQueues) {
-            player.shuffleModeEnabled = false
+        if (!canAttemptQueueCrossfade) {
+            cancelCrossfadeIfActive()
+            if (!persistShuffleAcrossQueues) {
+                player.shuffleModeEnabled = false
+            }
         }
         // Reset original queue size when starting a new queue
         originalQueueSize = 0
@@ -3583,12 +3586,14 @@ class MusicService :
             }
             MusicWidgetReceiver.ACTION_NEXT -> {
                 if (!manualSkipToNextWithCrossfade()) {
+                    cancelCrossfadeIfActive()
                     player.seekToNext()
                 }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_PREVIOUS -> {
                 if (!manualSkipToPreviousWithCrossfade()) {
+                    cancelCrossfadeIfActive()
                     player.seekToPrevious()
                 }
                 updateWidgetUI(player.isPlaying)
@@ -3711,6 +3716,7 @@ class MusicService :
     private fun scheduleCrossfade() {
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
+        if (isCrossfading) return
         if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
         if (crossfadeGapless && isNextItemGapless()) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
@@ -4150,6 +4156,14 @@ class MusicService :
         fadingPlayer = null
         isCrossfading = false
         sleepTimer.notifySongTransition()
+    }
+
+    fun cancelCrossfadeIfActive() {
+        if (!isCrossfading) return
+        crossfadeJob?.cancel()
+        crossfadeJob = null
+        cleanupCrossfade()
+        try { player.volume = 1f } catch (_: Exception) {}
     }
 
     companion object {
