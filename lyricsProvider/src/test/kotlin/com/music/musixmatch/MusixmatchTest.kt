@@ -12,6 +12,7 @@ package com.music.musixmatch
 import com.music.musixmatch.models.RichSyncEntry
 import com.music.musixmatch.models.WordEntry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MusixmatchTest {
@@ -28,6 +29,7 @@ class MusixmatchTest {
                     WordEntry("is", 0.436),
                     WordEntry(" ", 0.559),
                     WordEntry("the", 0.627),
+                    WordEntry(" ", 0.9),
                     WordEntry("end", 1.287)
                 ),
                 x = "This is the end"
@@ -59,6 +61,68 @@ class MusixmatchTest {
         // Should preserve space for each word separated by comma or ampersand
         val expected = "taylor swift ed sheeran someone else"
         assertEquals(expected, cleaned)
+    }
+
+    @Test
+    fun testConvertRichSyncToLrcMultipleEntries() {
+        val entries = listOf(
+            RichSyncEntry(
+                ts = 0.0,
+                te = 2.0,
+                l = listOf(
+                    WordEntry("Hello", 0.0),
+                    WordEntry(" ", 0.3),
+                    WordEntry("world", 0.5)
+                ),
+                x = "Hello world"
+            ),
+            RichSyncEntry(
+                ts = 3.0,
+                te = 5.0,
+                l = listOf(
+                    WordEntry("Good", 0.0),
+                    WordEntry(" ", 0.2),
+                    WordEntry("bye", 0.4)
+                ),
+                x = "Good bye"
+            )
+        )
+
+        val lrc = Musixmatch.convertRichSyncToLrc(entries)
+        val lines = lrc.trimEnd().split("\n")
+        assertEquals(2, lines.size)
+        assertTrue(lines[0].startsWith("[00:00.000]"))
+        assertTrue(lines[1].startsWith("[00:03.000]"))
+    }
+
+    @Test
+    fun testConvertRichSyncSkipsEmptyLines() {
+        val entries = listOf(
+            RichSyncEntry(
+                ts = 1.0,
+                te = 2.0,
+                l = listOf(WordEntry(" ", 0.0)),
+                x = "   "
+            ),
+            RichSyncEntry(
+                ts = 3.0,
+                te = 4.0,
+                l = listOf(WordEntry("word", 0.0)),
+                x = "word"
+            )
+        )
+
+        val lrc = Musixmatch.convertRichSyncToLrc(entries)
+        val lines = lrc.trimEnd().split("\n")
+        assertEquals(1, lines.size)
+        assertTrue(lines[0].contains("word"))
+    }
+
+    @Test
+    fun testCleanTextRemovesFeatAndBrackets() {
+        val input = "Song Title (feat. Artist) [Live Version]"
+        val cleaned = Musixmatch.cleanText(input)
+        assertEquals("song title", cleaned)
     }
 
     @Test
