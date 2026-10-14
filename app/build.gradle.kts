@@ -61,6 +61,7 @@ android {
         // GMS variant - with Google Cast support (requires Google Play Services)
         create("gms") {
             dimension = "variant"
+//            isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
         }
         
@@ -284,11 +285,9 @@ dependencies {
     implementation(project(":innertube"))
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
-    implementation(project(":canvas"))
+    implementation(project(":Motionartwork"))
     implementation(project(":shazamkit"))
     implementation(project(":artistvideo"))
-    implementation(project(":applecanvas"))
-    implementation(project(":vivimusiccanvas"))
     implementation(project(":jiosaavn"))
     implementation(project(":spotify"))
     implementation(project(":lyricsProvider"))

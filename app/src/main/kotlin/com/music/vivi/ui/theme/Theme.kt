@@ -53,8 +53,6 @@ fun vivimusicTheme(
     val brandFont = remember(selectedFontValue, customFontPath) {
         when (AppFont.fromValue(selectedFontValue)) {
             AppFont.SYSTEM -> FontFamily.Default
-            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
-            AppFont.SANS_FLEX -> SansFlexFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
             AppFont.CUSTOM -> {

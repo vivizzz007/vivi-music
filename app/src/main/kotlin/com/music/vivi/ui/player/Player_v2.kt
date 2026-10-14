@@ -1,13 +1,20 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.ui.player
 
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
+import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,9 +38,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import androidx.media3.common.C
@@ -71,37 +81,24 @@ import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
+import com.music.vivi.LocalListenTogetherManager
+import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
 
 enum class PlayerInternalState { COVER, LYRICS, QUEUE }
 
-@OptIn(androidx.compose.animation.ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PlayerV2(
     state: BottomSheetState,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
 
-    // starting landscape not support
-    DisposableEffect(Unit) {
-        val activity = (context as? android.app.Activity) ?: run {
-            var ctx = context
-            while (ctx is android.content.ContextWrapper) {
-                if (ctx is android.app.Activity) break
-                ctx = ctx.baseContext
-            }
-            ctx as? android.app.Activity
-        }
-        val originalOrientation = activity?.requestedOrientation ?: android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-        activity?.requestedOrientation = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        onDispose {
-            activity?.requestedOrientation = originalOrientation
-        }
-    }
-    // ended landscape not support
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
@@ -111,9 +108,9 @@ fun PlayerV2(
     val bottomSheetPageState = LocalBottomSheetPageState.current
     var playerState by remember { mutableStateOf(PlayerInternalState.COVER) }
     
-    val listenTogetherManager = com.music.vivi.LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = com.music.vivi.listentogether.RoomRole.NONE)
-    val isListenTogetherGuest = listenTogetherRoleState?.value == com.music.vivi.listentogether.RoomRole.GUEST
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -131,7 +128,7 @@ fun PlayerV2(
     val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
     var lastManualSeekTime by remember { mutableLongStateOf(0L) }
     
-    androidx.activity.compose.BackHandler(enabled = playerState != PlayerInternalState.COVER) {
+    BackHandler(enabled = playerState != PlayerInternalState.COVER) {
         playerState = PlayerInternalState.COVER
     }
     
@@ -349,12 +346,19 @@ fun PlayerV2(
                 }
             }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = WindowInsets.systemBars.asPaddingValues().calculateTopPadding())
-                .padding(bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
-        ) {
+        if (isLandscape) {
+            PlayerV2Landscape(
+                state = state,
+                navController = navController,
+                modifier = modifier
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = WindowInsets.systemBars.asPaddingValues().calculateTopPadding())
+                    .padding(bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding())
+            ) {
             // Minimal drag handle header
             Row(
                 modifier = Modifier
@@ -443,7 +447,7 @@ fun PlayerV2(
                                         // Fix 4: Always render canvas (don't gate on transition state).
                                         // The previous guard caused a visible pop/snap when the
                                         // transition completed and the canvas suddenly appeared.
-                                        PlayerV2Canvas(
+                                        PlayerV2Motionartowek(
                                             mediaMetadata = mediaMetadata,
                                             isPlaying = isPlaying,
                                             modifier = Modifier.fillMaxSize()
@@ -731,7 +735,10 @@ fun PlayerV2(
                                         LyricsV2(
                                             mediaMetadata = mediaMetadata,
                                             showLyrics = true,
-                                            positionProvider = { sliderPosition ?: position }
+                                            positionProvider = { sliderPosition ?: position },
+                                            onControlsVisibilityChange = { isVisible ->
+                                                controlsVisible = isVisible
+                                            }
                                         )
                                     } else {
                                         QueueV2(
@@ -784,7 +791,7 @@ fun PlayerV2(
                         val isTrackActive = isTrackDragged || isTrackPressed
                         
                         val trackHeight by animateDpAsState(
-                            targetValue = if (isTrackActive) 12.dp else 6.dp,
+                            targetValue = if (isTrackActive) 14.dp else 8.dp,
                             animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
                             label = "trackScale"
                         )
@@ -828,9 +835,7 @@ fun PlayerV2(
                             modifier = Modifier.fillMaxWidth()
                         )
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 4.dp), // Align with internal slider padding
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(makeTimeString(currentPos), color = adaptiveSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
@@ -1040,6 +1045,7 @@ fun PlayerV2(
                 }
             }
         }
+    }
         
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })

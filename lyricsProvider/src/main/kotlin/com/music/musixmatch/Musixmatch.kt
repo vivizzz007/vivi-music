@@ -1,4 +1,8 @@
 /**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+/**
  * VIVI-LYRICS (C) 2026
  *
  * PROPRIETARY LICENSE:
@@ -38,6 +42,7 @@ import kotlin.math.abs
 object Musixmatch {
     private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     private const val BASE_URL = "https://apic.musixmatch.com/ws/1.1/"
+    private const val APP_ID = "android-player-v1.0"
 
     private val secretCache = AtomicReference<String?>(null)
     private val tokenCache = AtomicReference<String?>(null)
@@ -68,7 +73,7 @@ object Musixmatch {
         if (cached != null) return cached
 
         val secret = try {
-            val searchPage = client.get("https://www.musixmatch.com/search") {
+            val searchPage = client.get("https://www.musixmatch.com/explore") {
                 header("User-Agent", USER_AGENT)
                 header("Cookie", "mxm_bab=AB")
                 header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
@@ -105,7 +110,7 @@ object Musixmatch {
             String(decodedBytes, StandardCharsets.UTF_8)
         } catch (e: Exception) {
             logDebug("Failed to fetch secret dynamically, falling back to static secret: ${e.message}")
-            "b3dc8788299f5806a70a6a20a0cb0ffc"
+            "e9966b7e2aff48cb090d7c1bebd9d7a2"
         }
         
         secretCache.set(secret)
@@ -135,7 +140,7 @@ object Musixmatch {
         val cached = tokenCache.get()
         if (cached != null) return cached
 
-        val tokenUrl = "${BASE_URL}token.get?app_id=mobile-app-v1.0&guid=$processGuid&format=json"
+        val tokenUrl = "${BASE_URL}token.get?app_id=$APP_ID&guid=$processGuid&format=json"
         val signedUrl = sign(tokenUrl, secret)
         
         val response = client.get(signedUrl) {
@@ -205,7 +210,7 @@ object Musixmatch {
             // 1. Search for the track using separate track/artist params for accurate version matching
             val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.name())
             val encodedArtist = URLEncoder.encode(artist, StandardCharsets.UTF_8.name())
-            val searchUrl = "${BASE_URL}track.search?app_id=mobile-app-v1.0&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
+            val searchUrl = "${BASE_URL}track.search?app_id=$APP_ID&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
             val signedSearch = sign(searchUrl, secret)
 
             val searchResponse = client.get(signedSearch) {
@@ -292,7 +297,7 @@ object Musixmatch {
 
                 val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.name())
                 val encodedArtist = URLEncoder.encode(artist, StandardCharsets.UTF_8.name())
-                val searchUrl = "${BASE_URL}track.search?app_id=mobile-app-v1.0&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
+                val searchUrl = "${BASE_URL}track.search?app_id=$APP_ID&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
                 val signedSearch = sign(searchUrl, secret)
 
                 val searchResponse = client.get(signedSearch) {
@@ -359,7 +364,7 @@ object Musixmatch {
     }
 
     private suspend fun getRichSyncLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
-        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=mobile-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
+        val richsyncUrl = "${BASE_URL}track.richsync.get?app_id=$APP_ID&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(richsyncUrl, secret)
         
         val response = client.get(signedUrl) {
@@ -388,7 +393,7 @@ object Musixmatch {
     }
 
     private suspend fun getSubtitleLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
-        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=mobile-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
+        val subtitleUrl = "${BASE_URL}track.subtitle.get?app_id=$APP_ID&format=json&track_id=$trackId&subtitle_format=lrc&usertoken=$token"
         val signedUrl = sign(subtitleUrl, secret)
 
         val response = client.get(signedUrl) {
@@ -417,7 +422,7 @@ object Musixmatch {
     }
 
     private suspend fun getPlainLyrics(trackId: Long, token: String, secret: String): Result<String> = runCatching {
-        val lyricsUrl = "${BASE_URL}track.lyrics.get?app_id=mobile-app-v1.0&format=json&track_id=$trackId&usertoken=$token"
+        val lyricsUrl = "${BASE_URL}track.lyrics.get?app_id=$APP_ID&format=json&track_id=$trackId&usertoken=$token"
         val signedUrl = sign(lyricsUrl, secret)
 
         val response = client.get(signedUrl) {

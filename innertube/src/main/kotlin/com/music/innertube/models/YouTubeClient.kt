@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.models
 
 import kotlinx.serialization.Serializable
@@ -49,6 +53,8 @@ data class YouTubeClient(
         const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
         const val USER_AGENT_MOBILE_WEB = "Mozilla/5.0 (Android 14; Mobile; rv:140.0) Gecko/140.0 Firefox/140.0"
 
+        const val ORIGIN_YOUTUBE = "https://www.youtube.com"
+        const val REFERER_YOUTUBE = "$ORIGIN_YOUTUBE/"
         const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
         const val API_URL_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/youtubei/v1/"
@@ -58,6 +64,7 @@ data class YouTubeClient(
             clientVersion = "2.20260213.00.00",
             clientId = "1",
             userAgent = USER_AGENT_WEB,
+            loginSupported = true,
         )
 
         val WEB_REMIX = YouTubeClient(

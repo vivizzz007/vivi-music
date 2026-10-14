@@ -107,12 +107,12 @@ import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.ui.component.CastButton
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
-import com.music.vivi.constants.CanvasSource
-import com.music.vivi.constants.CanvasSourceKey
+import com.music.vivi.constants.MotionartworkSource
+import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
-import com.music.vivi.canvas.TidalCanvasProvider
-import com.music.vivi.canvas.CanvasArtwork
-import com.music.vivi.canvas.normalizeForComparison
+import com.music.vivi.Motionartwork.tidal.TidalMotionartworkProvider
+import com.music.vivi.Motionartwork.Motionartwork
+import com.music.vivi.Motionartwork.normalizeForComparison
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberPreference
@@ -120,8 +120,8 @@ import com.music.vivi.utils.isWifiConnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
-import com.music.vivi.applecanvas.AppleMusicCanvasProvider
-import com.music.vivi.vivimusiccanvas.ViviMusicCanvasProvider
+import com.music.vivi.Motionartwork.apple.AppleMusicMotionartworkProvider
+import com.music.vivi.Motionartwork.vivimusic.ViviMusicMotionartworkProvider
 import timber.log.Timber
 import java.util.Locale
 
@@ -232,19 +232,19 @@ private fun getTextColor(playerBackground: PlayerBackgroundStyle): Color {
 }
 
 
-object CanvasArtworkPlaybackCache {
+object MotionartworkPlaybackCache {
     private const val defaultMaxSize = 256
-    private val map = LinkedHashMap<String, CanvasArtwork>(defaultMaxSize, 0.75f, true)
+    private val map = LinkedHashMap<String, Motionartwork>(defaultMaxSize, 0.75f, true)
     @Volatile private var maxSize = defaultMaxSize
 
     @Synchronized
-    fun get(mediaId: String): CanvasArtwork? {
+    fun get(mediaId: String): Motionartwork? {
         if (maxSize <= 0) return null
         return map[mediaId]
     }
 
     @Synchronized
-    fun put(mediaId: String, artwork: CanvasArtwork) {
+    fun put(mediaId: String, artwork: Motionartwork) {
         val limit = maxSize
         if (limit <= 0) return
         if (mediaId.isBlank()) return
@@ -758,18 +758,18 @@ private fun ThumbnailItem(
                 }
 
                 if (canvasThumbnailAnimation && item.mediaId == currentMediaId && !rotatingThumbnail && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC && (!canvasLoadOnlyWifi || isWifiConnected(context))) {
-                val (canvasSource) = rememberEnumPreference(CanvasSourceKey, defaultValue = CanvasSource.AUTO)
+                val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
                 val albumTitle = item.mediaMetadata.albumTitle?.toString()
-                var canvasArtwork by remember(item.mediaId, albumTitle) { mutableStateOf<CanvasArtwork?>(null) }
+                var canvasArtwork by remember(item.mediaId, albumTitle) { mutableStateOf<Motionartwork?>(null) }
                 var canvasFetchInFlight by remember(item.mediaId, albumTitle) { mutableStateOf(false) }
                 val storefront = remember {
                     val country = Locale.getDefault().country
                     if (country.length == 2) country.lowercase(Locale.ROOT) else "us"
                 }
 
-                LaunchedEffect(item.mediaId, albumTitle, canvasSource) {
-                    val cacheKey = "${item.mediaId}:${canvasSource.name}"
-                    CanvasArtworkPlaybackCache.get(cacheKey)?.let { cached ->
+                LaunchedEffect(item.mediaId, albumTitle, motionartworkSource) {
+                    val cacheKey = "${item.mediaId}:${motionartworkSource.name}"
+                    MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
                         canvasArtwork = cached
                         return@LaunchedEffect
                     }
@@ -794,31 +794,31 @@ private fun ThumbnailItem(
                             songTitleRaw to artistNameRaw
                         ).filter { (s, a) -> s.isNotBlank() && a.isNotBlank() }
 
-                        when (canvasSource) {
-                            CanvasSource.AUTO -> {
+                        when (motionartworkSource) {
+                            MotionartworkSource.AUTO -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
                                     val album = albumName ?: ""
-                                    AppleMusicCanvasProvider.getBySongArtist(
+                                    AppleMusicMotionartworkProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
                                         album = albumName,
                                         storefront = storefront
-                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, album) }
-                                        ?: TidalCanvasProvider.getBySongArtist(
+                                    )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, album) }
+                                        ?: TidalMotionartworkProvider.getBySongArtist(
                                             song = s,
                                             artist = a,
                                             album = albumName
-                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, album) }
-                                        ?: ViviMusicCanvasProvider.getBySongArtist(
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, album) }
+                                        ?: ViviMusicMotionartworkProvider.getBySongArtist(
                                             song = s,
                                             artist = a,
                                             album = album
-                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateCanvasMatch(it, s, a, album) }
+                                        )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, album) }
                                 }
                             }
-                            CanvasSource.APPLE_MUSIC -> {
+                            MotionartworkSource.APPLE_MUSIC -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
-                                    AppleMusicCanvasProvider.getBySongArtist(
+                                    AppleMusicMotionartworkProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
                                         album = albumName,
@@ -826,18 +826,18 @@ private fun ThumbnailItem(
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                 }
                             }
-                            CanvasSource.VIVIMUSIC -> {
+                            MotionartworkSource.VIVIMUSIC -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
-                                    ViviMusicCanvasProvider.getBySongArtist(
+                                    ViviMusicMotionartworkProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
                                         album = albumName ?: ""
                                     )?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
                                 }
                             }
-                            CanvasSource.TIDAL -> {
+                            MotionartworkSource.TIDAL -> {
                                 searchTasks.firstNotNullOfOrNull { (s, a) ->
-                                    TidalCanvasProvider.getBySongArtist(
+                                    TidalMotionartworkProvider.getBySongArtist(
                                         song = s,
                                         artist = a,
                                         album = albumName
@@ -856,7 +856,7 @@ private fun ThumbnailItem(
                     // For single-source modes this block acts as the safety net.
                     val requestedAlbum = item.mediaMetadata.albumTitle?.toString() ?: ""
                     val validated = fetched?.let { artwork ->
-                        val passes = validateCanvasMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
+                        val passes = validateMotionartworkMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
                         println("CanvasValidation: artistMatches=${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}, songMatches=${artwork.name.orEmpty().trim().equals(requestedTitle.trim(), ignoreCase = true)}, albumMatches=${artwork.albumName.orEmpty().trim().equals(requestedAlbum.trim(), ignoreCase = true)}")
                         println("  Requested: Title='$requestedTitle', Album='$requestedAlbum', Artists='$requestedArtist'")
                         println("  Returned: Title='${artwork.name}', Album='${artwork.albumName}', Artists='${artwork.artist}'")
@@ -871,13 +871,13 @@ private fun ThumbnailItem(
                     
                     canvasArtwork = validated
                     if (validated != null) {
-                        CanvasArtworkPlaybackCache.put("${item.mediaId}:${canvasSource.name}", validated)
+                        MotionartworkPlaybackCache.put("${item.mediaId}:${motionartworkSource.name}", validated)
                     }
                     canvasFetchInFlight = false
                 }
 
                 canvasArtwork?.let { artwork ->
-                    CanvasArtworkPlayer(
+                    MotionartworkPlayer(
                         primaryUrl = artwork.animated,
                         fallbackUrl = artwork.videoUrl,
                         isPlaying = isPlaying,
@@ -978,8 +978,8 @@ private fun SeekEffectOverlay(
  * For artists, all listed artists must match (set-based comparison to handle different separators like commas or ampersands).
  * Returns true only if ALL three pass. Any one failing returns false.
  */
-internal fun validateCanvasMatch(
-    artwork: com.music.vivi.canvas.CanvasArtwork,
+internal fun validateMotionartworkMatch(
+    artwork: com.music.vivi.Motionartwork.Motionartwork,
     requestedTitle: String,
     requestedArtist: String,
     requestedAlbum: String

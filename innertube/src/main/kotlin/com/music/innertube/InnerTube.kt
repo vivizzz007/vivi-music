@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube
 
 import com.music.innertube.models.Context
@@ -17,6 +21,7 @@ import java.net.Inet4Address
 import kotlin.io.encoding.ExperimentalEncodingApi
 import io.ktor.client.*
 import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
@@ -415,6 +420,15 @@ class InnerTube {
 
     suspend fun getSwJsData() = withRetry { httpClient.get("https://music.youtube.com/sw.js_data") }
 
+    suspend fun getWebPage(url: String): String = withRetry {
+        httpClient.get(url) {
+            header(HttpHeaders.UserAgent, YouTubeClient.WEB_REMIX.userAgent)
+            header(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+            header(HttpHeaders.AcceptLanguage, "en-US,en;q=0.5")
+            cookie?.let { header(HttpHeaders.Cookie, it) }
+        }.bodyAsText()
+    }
+
     suspend fun accountMenu(client: YouTubeClient) = withRetry {
         httpClient.post("account/account_menu") {
             ytClient(client, setLogin = true)
@@ -715,6 +729,56 @@ class InnerTube {
                 PlaylistDeleteBody(
                     context = client.toContext(locale, visitorData, dataSyncId),
                     playlistId = playlistId
+                )
+            )
+        }
+    }
+
+    suspend fun createComment(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createCommentParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createCommentParams = createCommentParams
+                )
+            )
+        }
+    }
+
+    suspend fun createCommentReply(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createReplyParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment_reply") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentReplyBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createReplyParams = createReplyParams
+                )
+            )
+        }
+    }
+
+    suspend fun performCommentAction(
+        client: YouTubeClient = YouTubeClient.WEB,
+        action: String,
+    ) = withRetry {
+        android.util.Log.d("InnerTube", "performCommentAction dispatching: client=${client.clientName}, action length=${action.length}")
+        httpClient.post("comment/perform_comment_action") {
+            ytClient(client, setLogin = true)
+            setBody(
+                PerformCommentActionBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    actions = listOf(action)
                 )
             )
         }

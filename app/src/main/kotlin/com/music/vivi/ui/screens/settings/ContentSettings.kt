@@ -58,6 +58,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
@@ -71,10 +73,13 @@ import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableMusixmatchKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
+import com.music.vivi.constants.EnableLrcRedKey
 import com.music.vivi.constants.EnableYouLyPlusKey
 import com.music.vivi.constants.EnablePaxsenixKey
 import com.music.vivi.constants.EnableUnisonKey
 import com.music.vivi.constants.EnableBiniLyricsKey
+import com.music.vivi.constants.EnableSpotifyLyricsKey
+import com.music.vivi.constants.SpotifySessionKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HideYoutubeShortsKey
@@ -137,6 +142,10 @@ fun ContentSettings(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val localNetworkPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {}
+
     val (dataSaver, _) = rememberPreference(DataSaverKey, defaultValue = false)
     fun toggleDataSaver(enable: Boolean) {
         scope.launch {
@@ -166,8 +175,8 @@ fun ContentSettings(
     // Used only before Android 13
     val (appLanguage, onAppLanguageChange) = rememberPreference(key = AppLanguageKey, defaultValue = SYSTEM_DEFAULT)
 
-    val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
-    val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
+    val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = SYSTEM_DEFAULT)
+    val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = SYSTEM_DEFAULT)
     val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
@@ -185,12 +194,16 @@ fun ContentSettings(
     val (proxyPassword, onProxyPasswordChange) = rememberPreference(key = ProxyPasswordKey, defaultValue = "password")
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (enableLrcRed, onEnableLrcRedChange) = rememberPreference(key = EnableLrcRedKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
     val (enableBiniLyrics, onEnableBiniLyricsChange) = rememberPreference(key = EnableBiniLyricsKey, defaultValue = true)
+    val (enableSpotifyLyrics, onEnableSpotifyLyricsChange) = rememberPreference(key = EnableSpotifyLyricsKey, defaultValue = false)
+    val (spotifySessionJson, _) = rememberPreference(key = SpotifySessionKey, defaultValue = "")
+    val isSpotifySignedIn = spotifySessionJson.isNotBlank()
     val (lyricsProviderOrder, onLyricsProviderOrderChange) = rememberPreference(
         key = LyricsProviderOrderKey,
         defaultValue = "",
@@ -351,7 +364,8 @@ fun ContentSettings(
             current = contentLanguage,
             values = (listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList()),
             valueText = {
-                LanguageCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
+                if (it == SYSTEM_DEFAULT) stringResource(R.string.system_default)
+                else LanguageCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
             }
         )
     }
@@ -371,7 +385,8 @@ fun ContentSettings(
             current = contentCountry,
             values = (listOf(SYSTEM_DEFAULT) + CountryCodeToName.keys.toList()),
             valueText = {
-                CountryCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
+                if (it == SYSTEM_DEFAULT) stringResource(R.string.system_default)
+                else CountryCodeToName.getOrElse(it) { stringResource(R.string.system_default) }
             }
         )
     }
@@ -401,9 +416,10 @@ fun ContentSettings(
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "Kugou", "Unison", "BiniLyrics")
+        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify")
         val enabledProviders = setOfNotNull(
             "LrcLib".takeIf { enableLrclib },
+            "LrcRed".takeIf { enableLrcRed },
             "Kugou".takeIf { enableKugou },
             "BetterLyrics".takeIf { enableBetterLyrics },
             "Musixmatch".takeIf { enableMusixmatch },
@@ -411,6 +427,7 @@ fun ContentSettings(
             "Paxsenix".takeIf { enablePaxsenix },
             "Unison".takeIf { enableUnison },
             "BiniLyrics".takeIf { enableBiniLyrics },
+            "Spotify".takeIf { enableSpotifyLyrics },
         )
 
         // Build a normalized order: saved order first (only known providers), then any missing ones
@@ -656,7 +673,8 @@ fun ContentSettings(
                     title = { Text(stringResource(R.string.content_language)) },
                     trailingContent = {
                         Text(
-                            LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
+                            if (contentLanguage == SYSTEM_DEFAULT) stringResource(R.string.system_default)
+                            else LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
                         )
                     },
                     onClick = { showContentLanguageDialog = true }
@@ -666,7 +684,8 @@ fun ContentSettings(
                     title = { Text(stringResource(R.string.content_country)) },
                     trailingContent = {
                         Text(
-                            CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
+                            if (contentCountry == SYSTEM_DEFAULT) stringResource(R.string.system_default)
+                            else CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
                         )
                     },
                     onClick = { showContentCountryDialog = true }
@@ -962,7 +981,12 @@ fun ContentSettings(
                         trailingContent = {
                             Switch(
                                 checked = proxyEnabled,
-                                onCheckedChange = onProxyEnabledChange,
+                                onCheckedChange = { checked ->
+                                    onProxyEnabledChange(checked)
+                                    if (checked && Build.VERSION.SDK_INT >= 36) {
+                                        localNetworkPermissionLauncher.launch("android.permission.ACCESS_LOCAL_NETWORK")
+                                    }
+                                },
                                 thumbContent = {
                                     Icon(
                                         painter = painterResource(
@@ -974,7 +998,13 @@ fun ContentSettings(
                                 }
                             )
                         },
-                        onClick = { onProxyEnabledChange(!proxyEnabled) }
+                        onClick = {
+                            val checked = !proxyEnabled
+                            onProxyEnabledChange(checked)
+                            if (checked && Build.VERSION.SDK_INT >= 36) {
+                                localNetworkPermissionLauncher.launch("android.permission.ACCESS_LOCAL_NETWORK")
+                            }
+                        }
                     )
                 )
                 if (proxyEnabled) {
@@ -1013,6 +1043,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableLrclibChange(!enableLrclib) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_lrcred)) },
+                    description = { Text(stringResource(R.string.enable_lrcred_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableLrcRed,
+                            onCheckedChange = onEnableLrcRedChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableLrcRed) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableLrcRedChange(!enableLrcRed) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
@@ -1075,6 +1126,29 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableMusixmatchChange(!enableMusixmatch) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.spotify),
+                    title = { Text("Spotify Lyrics") },
+                    description = { Text("Requires Spotify account login (via sp_dc cookie)") },
+                    enabled = isSpotifySignedIn,
+                    trailingContent = {
+                        Switch(
+                            checked = enableSpotifyLyrics && isSpotifySignedIn,
+                            onCheckedChange = onEnableSpotifyLyricsChange,
+                            enabled = isSpotifySignedIn,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableSpotifyLyrics) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableSpotifyLyricsChange(!enableSpotifyLyrics) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),

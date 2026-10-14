@@ -11,16 +11,39 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
+import android.widget.Toast
+import android.net.Uri
+import kotlinx.coroutines.launch
+import com.music.vivi.utils.PlaylistExporter
+import com.music.vivi.utils.getExportFileUri
+import com.music.vivi.utils.saveToPublicDocuments
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.R
 import com.music.vivi.db.entities.Playlist
 import com.music.vivi.db.entities.PlaylistSong
+import com.music.vivi.db.entities.PlaylistSongMap
+import com.music.vivi.db.entities.Song
+import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.Material3MenuGroup
 import com.music.vivi.ui.component.Material3MenuItemData
 
@@ -42,6 +65,9 @@ fun LocalPlaylistMenu(
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
+    val coroutineScope = rememberCoroutineScope()
+    val localContext = LocalContext.current
+    val (showExportDialog, setShowExportDialog) = remember { mutableStateOf(false) }
 
     val downloadMenuItem = when (downloadState) {
         Download.STATE_COMPLETED -> Material3MenuItemData(
@@ -177,6 +203,20 @@ fun LocalPlaylistMenu(
             )
         )
 
+        // Export menu group
+        add(
+            Material3MenuItemData(
+                title = { Text(stringResource(R.string.export_playlist)) },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.share),
+                        contentDescription = null
+                    )
+                },
+                onClick = { setShowExportDialog(true) }
+            )
+        )
+
         add(
             Material3MenuItemData(
                 title = { Text(stringResource(R.string.delete)) },
@@ -196,6 +236,58 @@ fun LocalPlaylistMenu(
     }
 
     Material3MenuGroup(expressive = true, items = menuItems)
+
+    if (showExportDialog) {
+        ExportDialog(
+            onDismiss = { setShowExportDialog(false) },
+            onShare = { format ->
+                coroutineScope.launch {
+                    val result = when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlist.playlist.name, songs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(localContext, playlist.playlist.name, songs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                    result.onSuccess { file ->
+                        val uri = getExportFileUri(localContext, file)
+                        val mimeType = when (format) {
+                            "csv" -> "text/csv"
+                            "m3u" -> "audio/x-mpegurl"
+                            else -> "*/*"
+                        }
+                        shareExportFile(localContext, uri, mimeType)
+                    }.onFailure {
+                        Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                onDismiss()
+            },
+            onSave = { format ->
+                coroutineScope.launch {
+                    val exportResult = when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlist.playlist.name, songs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(localContext, playlist.playlist.name, songs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                    exportResult.onSuccess { file ->
+                        val mimeType = when (format) {
+                            "csv" -> "text/csv"
+                            "m3u" -> "audio/x-mpegurl"
+                            else -> "application/octet-stream"
+                        }
+                        val saveResult = saveToPublicDocuments(localContext, file, mimeType)
+                        saveResult.onSuccess {
+                            Toast.makeText(localContext, R.string.export_success, Toast.LENGTH_SHORT).show()
+                        }.onFailure {
+                            Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }.onFailure {
+                        Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                onDismiss()
+            }
+        )
+    }
 }
 
 /**
@@ -206,10 +298,16 @@ fun AutoPlaylistMenu(
     downloadState: Int,
     onQueue: () -> Unit,
     onDownload: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    songs: List<Song> = emptyList(),
+    playlistName: String = "Playlist"
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
+    val coroutineScope = rememberCoroutineScope()
+    val localContext = LocalContext.current
+
+    val (showExportDialog, setShowExportDialog) = remember { mutableStateOf(false) }
 
     val downloadMenuItem = when (downloadState) {
         Download.STATE_COMPLETED -> Material3MenuItemData(
@@ -275,9 +373,84 @@ fun AutoPlaylistMenu(
                     }
                 )
             } else null,
+            if (songs.isNotEmpty()) {
+                Material3MenuItemData(
+                    title = { Text(stringResource(R.string.export_playlist)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = null
+                        )
+                    },
+                    onClick = { setShowExportDialog(true) }
+                )
+            } else null,
             downloadMenuItem
         )
     )
+
+    if (showExportDialog) {
+        val playlistSongs = songs.map { song ->
+            PlaylistSong(
+                map = PlaylistSongMap(
+                    songId = song.id,
+                    playlistId = "auto_playlist",
+                    position = 0
+                ),
+                song = song
+            )
+        }
+
+        ExportDialog(
+            onDismiss = { setShowExportDialog(false) },
+            onShare = { format ->
+                coroutineScope.launch {
+                    val result = when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlistName, playlistSongs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(localContext, playlistName, playlistSongs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                    result.onSuccess { file ->
+                        val uri = getExportFileUri(localContext, file)
+                        val mimeType = when (format) {
+                            "csv" -> "text/csv"
+                            "m3u" -> "audio/x-mpegurl"
+                            else -> "*/*"
+                        }
+                        shareExportFile(localContext, uri, mimeType)
+                    }.onFailure {
+                        Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                onDismiss()
+            },
+            onSave = { format ->
+                coroutineScope.launch {
+                    val exportResult = when (format) {
+                        "csv" -> PlaylistExporter.exportPlaylistAsCSV(localContext, playlistName, playlistSongs)
+                        "m3u" -> PlaylistExporter.exportPlaylistAsM3U(localContext, playlistName, playlistSongs)
+                        else -> Result.failure(IllegalArgumentException("Unknown format"))
+                    }
+                    exportResult.onSuccess { file ->
+                        val mimeType = when (format) {
+                            "csv" -> "text/csv"
+                            "m3u" -> "audio/x-mpegurl"
+                            else -> "application/octet-stream"
+                        }
+                        val saveResult = saveToPublicDocuments(localContext, file, mimeType)
+                        saveResult.onSuccess {
+                            Toast.makeText(localContext, R.string.export_success, Toast.LENGTH_SHORT).show()
+                        }.onFailure {
+                            Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    }.onFailure {
+                        Toast.makeText(localContext, R.string.export_failed, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                onDismiss()
+            }
+        )
+    }
 }
 
 /**
@@ -442,4 +615,72 @@ fun CachePlaylistMenu(
             downloadMenuItem
         )
     )
+}
+
+private fun shareExportFile(
+    context: Context,
+    uri: Uri,
+    mimeType: String
+) {
+    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+        type = mimeType
+        putExtra(Intent.EXTRA_STREAM, uri)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.export_playlist)))
+}
+
+@Composable
+fun ExportDialog(
+    onDismiss: () -> Unit,
+    initialFormat: String = "csv",
+    onShare: (format: String) -> Unit,
+    onSave: (format: String) -> Unit
+) {
+    val (selected, setSelected) = remember { mutableStateOf(initialFormat) }
+
+    DefaultDialog(
+        onDismiss = onDismiss,
+        title = { Text(stringResource(R.string.export_playlist)) },
+        buttons = {
+            TextButton(onClick = onDismiss) {
+                Text(text = stringResource(android.R.string.cancel))
+            }
+            TextButton(onClick = { onSave(selected) }) {
+                Text(text = stringResource(R.string.export_option_save))
+            }
+            TextButton(onClick = { onShare(selected) }) {
+                Text(text = stringResource(R.string.export_option_share))
+            }
+        },
+        horizontalAlignment = Alignment.Start
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { setSelected("csv") }
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+            ) {
+                RadioButton(selected = selected == "csv", onClick = null)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(text = stringResource(R.string.export_as_csv))
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { setSelected("m3u") }
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
+            ) {
+                RadioButton(selected = selected == "m3u", onClick = null)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(text = stringResource(R.string.export_as_m3u))
+                }
+            }
+        }
+    }
 }

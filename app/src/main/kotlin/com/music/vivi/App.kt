@@ -12,6 +12,9 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import org.json.JSONObject
+import com.music.spotify.Spotify
+import com.music.spotify.SpotifyAuth
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
@@ -32,12 +35,12 @@ import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
-import com.music.vivi.utils.ViviPrefCache
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.cipher.CipherDeobfuscator
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.reportException
+import com.music.vivi.ui.utils.isDataSaverEnabled
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +50,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
 import okhttp3.Credentials
 import timber.log.Timber
 import java.net.Authenticator
@@ -66,9 +70,6 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         context = this
-
-        // Start preferences cache immediately
-        ViviPrefCache.start(this)
 
         // Install crash handler first
         CrashHandler.install(this)
@@ -94,10 +95,10 @@ class App : Application(), SingletonImageLoader.Factory {
         val languageTag = locale.language
 
         YouTube.locale = YouTubeLocale(
-            gl = settings[ContentCountryKey]?.takeIf { it != SYSTEM_DEFAULT }
+            gl = settings[ContentCountryKey]?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
                 ?: locale.country.takeIf { it in CountryCodeToName }
                 ?: "US",
-            hl = settings[ContentLanguageKey]?.takeIf { it != SYSTEM_DEFAULT }
+            hl = settings[ContentLanguageKey]?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
                 ?: locale.language.takeIf { it in LanguageCodeToName }
                 ?: languageTag.takeIf { it in LanguageCodeToName }
                 ?: "en"
@@ -142,6 +143,7 @@ class App : Application(), SingletonImageLoader.Factory {
 
         YouTube.useLoginForBrowse = settings[UseLoginForBrowse] ?: true
         YouTube.ipVersion = settings[IpVersionKey]?.toEnum(defaultValue = IpVersion.IPV4) ?: IpVersion.IPV4
+        isDataSaverEnabled = settings[DataSaverKey] ?: false
 
         val channel = NotificationChannel(
             "updates",
@@ -166,6 +168,43 @@ class App : Application(), SingletonImageLoader.Factory {
                                 settings[VisitorDataKey] = newVisitorData
                             }
                         }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[SpotifySessionKey] }
+                .distinctUntilChanged()
+                .collect { sessionJson ->
+                    if (!sessionJson.isNullOrBlank()) {
+                        try {
+                            val json = JSONObject(sessionJson)
+                            val token = json.optString("accessToken", "")
+                            val expiresAt = json.optLong("expiresAt", 0L)
+                            val spDc = json.optString("spDc", "")
+                            val spKey = json.optString("spKey", "")
+                            
+                            if (token.isNotEmpty() && expiresAt > System.currentTimeMillis() + 60_000L) {
+                                Spotify.accessToken = token
+                            } else if (spDc.isNotEmpty()) {
+                                // Token expired on cold boot; silently refresh it in background
+                                val result = SpotifyAuth.fetchAccessToken(spDc, spKey).getOrNull()
+                                if (result != null) {
+                                    Spotify.accessToken = result.accessToken
+                                    // Save back to avoid re-fetching on next boot
+                                    val newSession = json.apply {
+                                        put("accessToken", result.accessToken)
+                                        put("expiresAt", result.accessTokenExpirationTimestampMs)
+                                    }
+                                    dataStore.edit { settings ->
+                                        settings[SpotifySessionKey] = newSession.toString()
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            reportException(e)
+                        }
+                    }
                 }
         }
 
@@ -217,11 +256,11 @@ class App : Application(), SingletonImageLoader.Factory {
                         ?: systemLocale
 
                     YouTube.locale = YouTubeLocale(
-                        gl = contentCountry?.takeIf { it != SYSTEM_DEFAULT }
+                        gl = contentCountry?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
                             ?: effectiveAppLocale.country.takeIf { it in CountryCodeToName }
                             ?: systemLocale.country.takeIf { it in CountryCodeToName }
                             ?: "US",
-                        hl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT }
+                        hl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
                             ?: effectiveAppLocale.toLanguageTag().takeIf { it in LanguageCodeToName }
                             ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
                             ?: "en"
@@ -261,6 +300,15 @@ class App : Application(), SingletonImageLoader.Factory {
                     } else {
                         NewReleaseCheckWorker.cancel(this@App)
                     }
+                }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[DataSaverKey] ?: false }
+                .distinctUntilChanged()
+                .collect { enabled ->
+                    isDataSaverEnabled = enabled
                 }
         }
     }

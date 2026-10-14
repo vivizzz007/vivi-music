@@ -50,8 +50,7 @@ import com.music.vivi.constants.SelectedFontKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
-import com.music.vivi.ui.theme.GoogleSansFontFamily
-import com.music.vivi.ui.theme.SansFlexFontFamily
+
 import com.music.vivi.ui.theme.OutfitFontFamily
 import com.music.vivi.ui.theme.PlusJakartaSansFontFamily
 import com.music.vivi.ui.utils.backToMain
@@ -81,8 +80,25 @@ fun FontSelectionScreen(
             coroutineScope.launch {
                 withContext(Dispatchers.IO) {
                     try {
+                        var originalName = "custom_font.ttf"
+                        context.contentResolver.query(it, null, null, null, null)?.use { cursor ->
+                            if (cursor.moveToFirst()) {
+                                val displayNameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                                if (displayNameIndex != -1) {
+                                    originalName = cursor.getString(displayNameIndex)
+                                }
+                            }
+                        }
+
+                        if (customFontPath.isNotEmpty()) {
+                            val oldFile = File(customFontPath)
+                            if (oldFile.exists() && oldFile.name != originalName) {
+                                oldFile.delete()
+                            }
+                        }
+
                         val inputStream = context.contentResolver.openInputStream(it)
-                        val file = File(context.filesDir, "custom_font.ttf")
+                        val file = File(context.filesDir, originalName)
                         val outputStream = FileOutputStream(file)
                         inputStream?.copyTo(outputStream)
                         inputStream?.close()
@@ -101,8 +117,7 @@ fun FontSelectionScreen(
     val activeFontFamily = remember(selectedFont, customFontPath) {
         when (AppFont.fromValue(selectedFont)) {
             AppFont.SYSTEM -> FontFamily.Default
-            AppFont.GOOGLE_SANS -> GoogleSansFontFamily
-            AppFont.SANS_FLEX -> SansFlexFontFamily
+
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
             AppFont.CUSTOM -> {
@@ -172,149 +187,142 @@ fun FontSelectionScreen(
         // Options settings group
         ExpressiveSettingGroup(
             title = stringResource(R.string.font_selection),
-            items = listOf(
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.SYSTEM.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_system),
-                            fontFamily = FontFamily.Default
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_system_desc),
-                            fontFamily = FontFamily.Default
-                        )
-                    },
-                    onClick = { onSelectedFontChange(AppFont.SYSTEM.value) }
-                ),
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.GOOGLE_SANS.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_google_sans),
-                            fontFamily = GoogleSansFontFamily
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_google_sans_desc),
-                            fontFamily = GoogleSansFontFamily
-                        )
-                    },
-                    onClick = { onSelectedFontChange(AppFont.GOOGLE_SANS.value) }
-                ),
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.SANS_FLEX.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_sans_flex),
-                            fontFamily = SansFlexFontFamily
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_sans_flex_desc),
-                            fontFamily = SansFlexFontFamily
-                        )
-                    },
-                    onClick = { onSelectedFontChange(AppFont.SANS_FLEX.value) }
-                ),
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.OUTFIT.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_outfit),
-                            fontFamily = OutfitFontFamily
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_outfit_desc),
-                            fontFamily = OutfitFontFamily
-                        )
-                    },
-                    onClick = { onSelectedFontChange(AppFont.OUTFIT.value) }
-                ),
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.PLUS_JAKARTA_SANS.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_plus_jakarta_sans),
-                            fontFamily = PlusJakartaSansFontFamily
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_plus_jakarta_sans_desc),
-                            fontFamily = PlusJakartaSansFontFamily
-                        )
-                    },
-                    onClick = { onSelectedFontChange(AppFont.PLUS_JAKARTA_SANS.value) }
-                ),
-                Material3SettingsItem(
-                    leadingContent = {
-                        AnimatedRadioButton(
-                            selected = selectedFont == AppFont.CUSTOM.value,
-                            onClick = null
-                        )
-                    },
-                    title = {
-                        Text(
-                            text = stringResource(R.string.font_custom),
-                            fontFamily = FontFamily.Default
-                        )
-                    },
-                    description = {
-                        Text(
-                            text = stringResource(R.string.font_custom_desc),
-                            fontFamily = FontFamily.Default
-                        )
-                    },
-                    trailingContent = {
-                        TextButton(onClick = { fontPickerLauncher.launch("*/*") }) {
-                            Text(stringResource(R.string.import_custom_font))
-                        }
-                    },
-                    onClick = {
-                        if (selectedFont != AppFont.CUSTOM.value) {
-                            if (customFontPath.isNotEmpty() && File(customFontPath).exists()) {
-                                onSelectedFontChange(AppFont.CUSTOM.value)
-                            } else {
-                                fontPickerLauncher.launch("*/*")
-                            }
-                        } else {
-                            fontPickerLauncher.launch("*/*")
-                        }
-                    }
+            items = buildList {
+                add(
+                    Material3SettingsItem(
+                        leadingContent = {
+                            AnimatedRadioButton(
+                                selected = selectedFont == AppFont.SYSTEM.value,
+                                onClick = null
+                            )
+                        },
+                        title = {
+                            Text(
+                                text = stringResource(R.string.font_system),
+                                fontFamily = FontFamily.Default
+                            )
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.font_system_desc),
+                                fontFamily = FontFamily.Default
+                            )
+                        },
+                        onClick = { onSelectedFontChange(AppFont.SYSTEM.value) }
+                    )
                 )
-            )
+
+                add(
+                    Material3SettingsItem(
+                        leadingContent = {
+                            AnimatedRadioButton(
+                                selected = selectedFont == AppFont.OUTFIT.value,
+                                onClick = null
+                            )
+                        },
+                        title = {
+                            Text(
+                                text = stringResource(R.string.font_outfit),
+                                fontFamily = OutfitFontFamily
+                            )
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.font_outfit_desc),
+                                fontFamily = OutfitFontFamily
+                            )
+                        },
+                        onClick = { onSelectedFontChange(AppFont.OUTFIT.value) }
+                    )
+                )
+                
+                add(
+                    Material3SettingsItem(
+                        leadingContent = {
+                            AnimatedRadioButton(
+                                selected = selectedFont == AppFont.PLUS_JAKARTA_SANS.value,
+                                onClick = null
+                            )
+                        },
+                        title = {
+                            Text(
+                                text = stringResource(R.string.font_plus_jakarta_sans),
+                                fontFamily = PlusJakartaSansFontFamily
+                            )
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.font_plus_jakarta_sans_desc),
+                                fontFamily = PlusJakartaSansFontFamily
+                            )
+                        },
+                        onClick = { onSelectedFontChange(AppFont.PLUS_JAKARTA_SANS.value) }
+                    )
+                )
+
+                val customFontLoaded = customFontPath.isNotEmpty() && File(customFontPath).exists()
+                if (customFontLoaded) {
+                    add(
+                        Material3SettingsItem(
+                            leadingContent = {
+                                AnimatedRadioButton(
+                                    selected = selectedFont == AppFont.CUSTOM.value,
+                                    onClick = null
+                                )
+                            },
+                            title = {
+                                Text(
+                                    text = stringResource(R.string.font_custom),
+                                    fontFamily = activeFontFamily.takeIf { selectedFont == AppFont.CUSTOM.value } ?: FontFamily.Default
+                                )
+                            },
+                            description = {
+                                Text(
+                                    text = File(customFontPath).name,
+                                    fontFamily = FontFamily.Default
+                                )
+                            },
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        File(customFontPath).delete()
+                                        onCustomFontPathChange("")
+                                        if (selectedFont == AppFont.CUSTOM.value) {
+                                            onSelectedFontChange(AppFont.SYSTEM.value)
+                                        }
+                                    },
+                                    onLongClick = {}
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.delete),
+                                        contentDescription = "Delete Custom Font"
+                                    )
+                                }
+                            },
+                            onClick = { onSelectedFontChange(AppFont.CUSTOM.value) }
+                        )
+                    )
+                }
+                
+                add(
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.add),
+                        title = {
+                            Text(
+                                text = stringResource(R.string.import_custom_font),
+                                fontFamily = FontFamily.Default
+                            )
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.font_custom_desc),
+                                fontFamily = FontFamily.Default
+                            )
+                        },
+                        onClick = { fontPickerLauncher.launch("*/*") }
+                    )
+                )
+            }
         )
         Spacer(modifier = Modifier.height(36.dp))
     }

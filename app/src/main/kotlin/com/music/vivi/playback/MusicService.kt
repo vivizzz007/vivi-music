@@ -53,13 +53,19 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.common.Format
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.extractor.ExtractorsFactory
@@ -78,10 +84,12 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.pages.RadioChip
 import com.music.lastfm.LastFM
+import com.music.lastfm.models.PendingFavorite
 import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
+import com.music.vivi.constants.AudioTrackPlaybackParamsKey
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
@@ -111,6 +119,7 @@ import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistoryDuration
+import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -159,6 +168,7 @@ import com.music.vivi.db.entities.RelatedSongMap
 import com.music.vivi.db.entities.Song
 import com.music.vivi.di.DownloadCache
 import com.music.vivi.di.PlayerCache
+import com.music.vivi.di.SpotifyCanvasCache
 import com.music.vivi.eq.EqualizerService
 import com.music.vivi.eq.audio.CustomEqualizerAudioProcessor
 import com.music.vivi.eq.data.EQProfileRepository
@@ -189,6 +199,8 @@ import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.FavoriteCache
+import com.music.vivi.utils.ScrobbleCache
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.YTPlayerUtils
@@ -381,6 +393,10 @@ class MusicService :
     @DownloadCache
     lateinit var downloadCache: SimpleCache
 
+    @Inject
+    @SpotifyCanvasCache
+    lateinit var spotifyCanvasCache: SimpleCache
+
     lateinit var player: ExoPlayer
         private set
     private var secondaryPlayer: ExoPlayer? = null
@@ -399,6 +415,7 @@ class MusicService :
     val playerFlow = _playerFlow.asStateFlow()
 
     private val playerSilenceProcessors = HashMap<Player, SilenceDetectorAudioProcessor>()
+    private val playerEqualizerProcessors = HashMap<Player, CustomEqualizerAudioProcessor>()
 
 
     private val instantSilenceSkipEnabled = MutableStateFlow(false)
@@ -585,6 +602,22 @@ class MusicService :
         connectivityManager = getSystemService()!!
         connectivityObserver = NetworkConnectivityObserver(this)
 
+        // Restore LastFM session key from DataStore so scrobbles work on cold start
+        val savedLastFMSession = dataStore.get(LastFMSessionKey, "")
+        if (savedLastFMSession.isNotEmpty()) {
+            LastFM.sessionKey = savedLastFMSession
+        }
+
+        // Reactively keep LastFM.sessionKey in sync with DataStore (handles login/logout from settings)
+        scope.launch {
+            dataStore.data
+                .map { it[LastFMSessionKey] ?: "" }
+                .distinctUntilChanged()
+                .collect { key ->
+                    LastFM.sessionKey = key.ifEmpty { null }
+                }
+        }
+
         val screenStateFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -632,6 +665,34 @@ class MusicService :
                     if (mediaId != null) {
                         database.song(mediaId).first()?.let { song ->
                             updateDiscordRPC(song)
+                        }
+                    }
+                }
+                
+                // Sync pending scrobbles if logged in
+                if (isConnected && LastFM.sessionKey != null) {
+                    launch(Dispatchers.IO) {
+                        val cached = ScrobbleCache.read(this@MusicService)
+                        if (cached.isNotEmpty()) {
+                            val result = LastFM.scrobble(cached)
+                            if (result.isSuccess) {
+                                ScrobbleCache.clear(this@MusicService)
+                            }
+                        }
+                        
+                        // Sync pending favorites
+                        val pendingFavorites = FavoriteCache.read(this@MusicService)
+                        if (pendingFavorites.isNotEmpty()) {
+                            val successes = mutableListOf<PendingFavorite>()
+                            for (fav in pendingFavorites) {
+                                val result = LastFM.setLoveStatus(fav.artist, fav.track, fav.isFavorite)
+                                if (result.isSuccess) {
+                                    successes.add(fav)
+                                }
+                            }
+                            if (successes.isNotEmpty()) {
+                                FavoriteCache.remove(this@MusicService, successes)
+                            }
                         }
                     }
                 }
@@ -893,6 +954,59 @@ class MusicService :
              secondaryPlayer?.setOffloadEnabled(useOffload)
         }
 
+        var isFirstAudioTrackParamsEmit = true
+        dataStore.data
+            .map { it[AudioTrackPlaybackParamsKey] ?: true }
+            .distinctUntilChanged()
+            .collectLatest(scope) { useAudioTrackParams ->
+                if (isFirstAudioTrackParamsEmit) {
+                    isFirstAudioTrackParamsEmit = false
+                    return@collectLatest
+                }
+
+                Timber.tag("MusicService").i("AudioTrackPlaybackParams changed to: $useAudioTrackParams")
+
+                val currentIndex = player.currentMediaItemIndex
+                val currentPosition = player.currentPosition
+                val playWhenReady = player.playWhenReady
+                val repeatMode = player.repeatMode
+                val shuffleModeEnabled = player.shuffleModeEnabled
+                val playbackParameters = player.playbackParameters
+                val volume = player.volume
+                val mediaItems = List(player.mediaItemCount) { index ->
+                    player.getMediaItemAt(index)
+                }
+
+                player.removeListener(this)
+                sleepTimer.let { player.removeListener(it) }
+                releaseExoPlayer(player)
+
+                val newPlayer = createExoPlayer()
+                newPlayer.addListener(this@MusicService)
+                sleepTimer.let { newPlayer.addListener(it) }
+
+                sleepTimer.player = newPlayer
+
+                try {
+                    mediaSession.player = newPlayer
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Failed to swap player in MediaSession")
+                }
+
+                newPlayer.setMediaItems(mediaItems, currentIndex, currentPosition)
+                newPlayer.repeatMode = repeatMode
+                newPlayer.shuffleModeEnabled = shuffleModeEnabled
+                newPlayer.playbackParameters = playbackParameters
+                newPlayer.volume = volume
+                newPlayer.playWhenReady = playWhenReady
+                newPlayer.prepare()
+
+                player = newPlayer
+                _playerFlow.value = newPlayer
+
+                Timber.tag("MusicService").i("Player recreated with AudioTrackPlaybackParams: $useAudioTrackParams")
+            }
+
         dataStore.data
             .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
             .debounce(300)
@@ -947,7 +1061,8 @@ class MusicService :
                     val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
                     val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                     scrobbleManager = ScrobbleManager(
-                        scope,
+                        context = this@MusicService,
+                        scope = scope,
                         minSongDuration = minSongDuration,
                         scrobbleDelayPercent = delayPercent,
                         scrobbleDelaySeconds = delaySeconds
@@ -1128,9 +1243,13 @@ class MusicService :
             silenceProcessor.instantModeEnabled = skipSilence && instantSkip
         }
 
+        val useAudioTrackParams = runBlocking {
+            dataStore.get(AudioTrackPlaybackParamsKey, true)
+        }
+
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, useAudioTrackParams))
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .setAudioAttributes(
@@ -1146,6 +1265,7 @@ class MusicService :
             .build()
 
         playerSilenceProcessors[player] = silenceProcessor
+        playerEqualizerProcessors[player] = eqProcessor
 
         player.apply {
                 runBlocking {
@@ -1546,7 +1666,10 @@ class MusicService :
                     }
                 }
             }
-            if (initialStatus.items.isEmpty()) return@launch
+            if (initialStatus.items.isEmpty()) {
+                Timber.tag(TAG).w("playQueue: getInitialStatus() returned 0 items — queue will be empty. Check YouTube.locale or network.")
+                return@launch
+            }
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
 
@@ -3381,9 +3504,54 @@ class MusicService :
 
     private fun createRenderersFactory(
         eqProcessor: CustomEqualizerAudioProcessor,
-        silenceProcessor: SilenceDetectorAudioProcessor
+        silenceProcessor: SilenceDetectorAudioProcessor,
+        useAudioTrackPlaybackParams: Boolean,
     ) =
         object : DefaultRenderersFactory(this) {
+            override fun buildAudioRenderers(
+                context: Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                audioSink: AudioSink,
+                eventHandler: Handler,
+                eventListener: AudioRendererEventListener,
+                out: ArrayList<Renderer>,
+            ) {
+                super.buildAudioRenderers(
+                    context,
+                    extensionRendererMode,
+                    mediaCodecSelector,
+                    enableDecoderFallback,
+                    audioSink,
+                    eventHandler,
+                    eventListener,
+                    out,
+                )
+                val coreRendererIndex = out.indexOfFirst { it is MediaCodecAudioRenderer }
+                if (coreRendererIndex == -1) return
+                out[coreRendererIndex] =
+                    object : MediaCodecAudioRenderer(
+                        context,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        eventHandler,
+                        eventListener,
+                        audioSink,
+                    ) {
+                        override fun getCodecOperatingRateV23(
+                            targetPlaybackSpeed: Float,
+                            format: Format,
+                            streamFormats: Array<Format>,
+                        ): Float =
+                            super.getCodecOperatingRateV23(
+                                if (targetPlaybackSpeed in 0.95f..1.05f) 1f else targetPlaybackSpeed,
+                                format,
+                                streamFormats,
+                            )
+                    }
+            }
+
             override fun buildAudioSink(
                 context: Context,
                 enableFloatOutput: Boolean,
@@ -3391,7 +3559,7 @@ class MusicService :
             ) = DefaultAudioSink
                 .Builder(this@MusicService)
                 .setEnableFloatOutput(enableFloatOutput)
-                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                .setEnableAudioTrackPlaybackParams(useAudioTrackPlaybackParams)
                 .setAudioProcessorChain(
                     DefaultAudioSink.DefaultAudioProcessorChain(
                         // 2. Inject processor into audio pipeline
@@ -3404,6 +3572,7 @@ class MusicService :
                     ),
                 ).build()
         }
+
 
     override fun onPlaybackStatsReady(
         eventTime: AnalyticsListener.EventTime,
@@ -3555,14 +3724,17 @@ class MusicService :
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)
-        playerSilenceProcessors.remove(player)
-        // Note: equalizerService audio processors are cleared in equalizerService.release() if needed,
-        // or we can't easily reference the specific processor created in createExoPlayer here without storing it.
-        // But since we are destroying the service, it's fine.
-        player.release()
+        releaseExoPlayer(player)
         discordUpdateJob?.cancel()
         super.onDestroy()
     }
+
+    private fun releaseExoPlayer(player: ExoPlayer) {
+        playerSilenceProcessors.remove(player)
+        playerEqualizerProcessors.remove(player)?.let(equalizerService::removeAudioProcessor)
+        player.release()
+    }
+
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
@@ -4146,7 +4318,7 @@ class MusicService :
     private fun cleanupCrossfade() {
         fadingPlayer?.stop()
         fadingPlayer?.clearMediaItems()
-        fadingPlayer?.release()
+        fadingPlayer?.let { releaseExoPlayer(it) }
         fadingPlayer = null
         isCrossfading = false
         sleepTimer.notifySongTransition()
