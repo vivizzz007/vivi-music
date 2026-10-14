@@ -502,6 +502,7 @@ fun CommentSheet(
                                     if (threadToDisplay != null) {
                                         CommentDetailPane(
                                             thread = threadToDisplay,
+                                            videoId = videoId,
                                             onBack = {
                                                 scope.launch {
                                                     navigator.navigateBack(BackNavigationBehavior.PopUntilScaffoldValueChange)
@@ -1005,6 +1006,7 @@ fun CommentItem(
 @Composable
 fun CommentDetailPane(
     thread: CommentThreadRenderer,
+    videoId: String = "",
     onBack: () -> Unit = {},
     userName: String = "",
     userChannelHandle: String = "",
@@ -1030,11 +1032,14 @@ fun CommentDetailPane(
         keyboardController?.hide()
     }
 
-    val replyParams = remember(mainComment) {
+    val replyParams = remember(mainComment, videoId) {
         mainComment.actionButtons?.commentActionButtonsRenderer?.replyButton
             ?.buttonRenderer?.serviceEndpoint?.createCommentReplyEndpoint?.createReplyParams
             ?: mainComment.actionButtons?.commentActionButtonsRenderer?.replyButton
                 ?.buttonRenderer?.command?.createCommentReplyEndpoint?.createReplyParams
+            ?: mainComment.commentId?.takeIf { videoId.isNotBlank() }?.let { cid ->
+                YouTube.buildReplyParams(videoId, cid)
+            }
     }
 
     LaunchedEffect(thread) {
@@ -1042,13 +1047,20 @@ fun CommentDetailPane(
     }
 
     val onSendReply: () -> Unit = {
-        if (replyText.isNotBlank() && !isSubmittingReply && replyParams != null) {
+        val cid = mainComment.commentId.orEmpty()
+        val effectiveParams = replyParams ?: if (videoId.isNotBlank() && cid.isNotBlank()) {
+            YouTube.buildReplyParams(videoId, cid)
+        } else null
+
+        if (replyText.isNotBlank() && !isSubmittingReply && (effectiveParams != null || (videoId.isNotBlank() && cid.isNotBlank()))) {
             val textToPost = replyText.trim()
             replyText = ""
             focusManager.clearFocus()
             commentViewModel.postReply(
                 text = textToPost,
-                createReplyParams = replyParams,
+                createReplyParams = effectiveParams,
+                videoId = videoId,
+                commentId = cid,
                 authorName = userName,
                 authorAvatar = avatarUrl,
                 channelHandle = userChannelHandle,

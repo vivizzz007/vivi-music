@@ -1858,6 +1858,21 @@ object YouTube {
         return java.net.URLEncoder.encode(b64, "UTF-8")
     }
 
+    fun buildReplyParams(videoId: String, commentId: String): String {
+        val vidBytes = videoId.toByteArray(Charsets.UTF_8)
+        val cidBytes = commentId.toByteArray(Charsets.UTF_8)
+        val buffer = java.io.ByteArrayOutputStream()
+        // Field 2 (tag 0x12): videoId
+        buffer.write(0x12)
+        buffer.write(vidBytes.size)
+        buffer.write(vidBytes)
+        // Field 4 (tag 0x22): commentId
+        buffer.write(0x22)
+        buffer.write(cidBytes.size)
+        buffer.write(cidBytes)
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(buffer.toByteArray())
+    }
+
     suspend fun commentContinuation(continuationToken: String): Result<CommentsResult> = runCatching {
         val httpResponse = innerTube.next(YouTubeClient.WEB, null, null, null, null, null, continuationToken)
         val rawText = httpResponse.bodyAsText()
@@ -2249,12 +2264,20 @@ object YouTube {
 
     suspend fun createCommentReply(
         commentText: String,
-        createReplyParams: String,
+        createReplyParams: String? = null,
+        videoId: String? = null,
+        commentId: String? = null,
     ): Result<Boolean> = runCatching {
+        val params = createReplyParams ?: run {
+            require(!videoId.isNullOrBlank() && !commentId.isNullOrBlank()) {
+                "Either createReplyParams or both videoId and commentId must be provided"
+            }
+            buildReplyParams(videoId, commentId)
+        }
         val response = innerTube.createCommentReply(
             client = YouTubeClient.WEB_REMIX,
             commentText = commentText,
-            createReplyParams = createReplyParams
+            createReplyParams = params
         )
         val bodyText = response.bodyAsText()
         android.util.Log.d("CommentCreate", "createCommentReply response status=${response.status.value}, body=${bodyText.take(500)}")

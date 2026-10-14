@@ -278,7 +278,9 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
      */
     fun postReply(
         text: String,
-        createReplyParams: String,
+        createReplyParams: String? = null,
+        videoId: String = currentVideoId.orEmpty(),
+        commentId: String = "",
         authorName: String,
         authorAvatar: String?,
         channelHandle: String?,
@@ -305,7 +307,12 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
         _replies.value = _replies.value + optimisticReply
 
         viewModelScope.launch {
-            YouTube.createCommentReply(text, createReplyParams)
+            YouTube.createCommentReply(
+                commentText = text,
+                createReplyParams = createReplyParams,
+                videoId = videoId,
+                commentId = commentId
+            )
                 .onSuccess {
                     _isSubmitting.value = false
                     onSuccess()
