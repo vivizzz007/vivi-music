@@ -199,10 +199,16 @@ fun AppleMiniPlayer(
                                     (kotlin.math.abs(currentOffset) > autoSwipeThreshold)
 
                                 if (shouldChangeSong) {
+                                    // Same crossfade-aware path as Thumbnail/MiniPlayer; falls back to an
+                                    // instant skip when crossfade-on-manual-skip is off or can't start.
                                     if (currentOffset > 0 && canSkipPreviousLocal) {
-                                        playerConnection.player.seekToPreviousMediaItem()
+                                        if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                                            playerConnection.player.seekToPreviousMediaItem()
+                                        }
                                     } else if (currentOffset <= 0 && canSkipNextLocal) {
-                                        playerConnection.player.seekToNext()
+                                        if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                                            playerConnection.player.seekToNext()
+                                        }
                                     }
                                 }
                                 coroutineScope.launch {
