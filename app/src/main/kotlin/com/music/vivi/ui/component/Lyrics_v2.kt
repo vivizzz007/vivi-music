@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.ui.component
 
 import android.annotation.SuppressLint
@@ -8,6 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.runtime.*
@@ -37,6 +43,7 @@ import com.music.vivi.ui.screens.settings.LyricsPosition
 import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.fadeIn
@@ -51,13 +58,31 @@ import androidx.compose.ui.zIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import android.content.Intent
+import android.text.Layout
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import com.music.vivi.utils.ComposeToImage
+import com.music.vivi.ui.component.LyricsImageCard
+import com.music.vivi.ui.component.LyricsBackgroundStyle
 
 sealed class LyricsListItemV2 {
     data class Line(val index: Int, val entry: LyricsEntry) : LyricsListItemV2()
     data class Indicator(val index: Int, val gapMs: Long, val gapStartMs: Long, val gapEndMs: Long) : LyricsListItemV2()
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun LyricsV2(
@@ -65,11 +90,57 @@ fun LyricsV2(
     showLyrics: Boolean,
     positionProvider: () -> Long,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp)
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    onControlsVisibilityChange: (Boolean) -> Unit = {}
 ) {
     if (!showLyrics) return
 
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    var isSelectionModeActive by remember { mutableStateOf(false) }
+    val selectedIndices = remember { mutableStateListOf<Int>() }
+    var showShareSheet by remember { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
+
+    val toggleSelection: (Int) -> Unit = { index ->
+        if (selectedIndices.contains(index)) {
+            selectedIndices.remove(index)
+            if (selectedIndices.isEmpty()) {
+                isSelectionModeActive = false
+                onControlsVisibilityChange(true)
+            }
+        } else {
+            selectedIndices.add(index)
+        }
+    }
+
+    val startSelection: (Int) -> Unit = { index ->
+        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        if (!isSelectionModeActive) {
+            isSelectionModeActive = true
+            selectedIndices.clear()
+            selectedIndices.add(index)
+            onControlsVisibilityChange(false)
+        } else {
+            toggleSelection(index)
+        }
+    }
+
+    val exitSelection: () -> Unit = {
+        isSelectionModeActive = false
+        selectedIndices.clear()
+        onControlsVisibilityChange(true)
+    }
+
+    BackHandler(enabled = isSelectionModeActive) {
+        exitSelection()
+    }
+
+    LaunchedEffect(mediaMetadata?.id) {
+        if (isSelectionModeActive) {
+            exitSelection()
+        }
+    }
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
     
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -323,41 +394,92 @@ fun LyricsV2(
 
                 val isLyricsProviderShown = currentLyrics?.provider != null && currentLyrics?.provider != "Unknown"
 
-                // If plain text (not synced), just render a static list
+                // If plain text (not synced), render selectable list
                 if (lines.isNotEmpty() && lines.all { it.time == 0L }) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            top = 32.dp,
-                            bottom = 120.dp,
-                            start = 24.dp,
-                            end = 24.dp
-                        )
-                    ) {
-                        if (isLyricsProviderShown) {
-                            item {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                top = 32.dp,
+                                bottom = if (isSelectionModeActive) 140.dp else 120.dp,
+                                start = 24.dp,
+                                end = 24.dp
+                            )
+                        ) {
+                            if (isLyricsProviderShown) {
+                                item {
+                                    Text(
+                                        text = "Lyrics from ${currentLyrics?.provider}",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = adaptivePrimary.copy(alpha = 0.6f),
+                                        fontWeight = FontWeight.Medium,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(bottom = 12.dp)
+                                    )
+                                }
+                            }
+                            items(lines.size) { index ->
+                                val isSelected = selectedIndices.contains(index)
                                 Text(
-                                    text = "Lyrics from ${currentLyrics?.provider}",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = adaptivePrimary.copy(alpha = 0.6f),
-                                    fontWeight = FontWeight.Medium,
-                                    textAlign = TextAlign.Center,
+                                    text = lines[index].text,
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary else adaptivePrimary,
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(bottom = 12.dp)
+                                        .padding(vertical = 4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (isSelectionModeActive) {
+                                                    toggleSelection(index)
+                                                }
+                                            },
+                                            onLongClick = {
+                                                startSelection(index)
+                                            }
+                                        )
+                                        .background(
+                                            if (isSelected && isSelectionModeActive)
+                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                            else Color.Transparent
+                                        )
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Start
                                 )
                             }
                         }
-                        items(lines.size) { index ->
-                            Text(
-                                text = lines[index].text,
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = adaptivePrimary,
-                                modifier = Modifier.padding(vertical = 12.dp),
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Start
-                            )
-                        }
+
+                        LyricsSelectionFloatingBox(
+                            visible = isSelectionModeActive,
+                            selectedCount = selectedIndices.size,
+                            onCancel = exitSelection,
+                            onShare = {
+                                if (selectedIndices.isNotEmpty()) {
+                                    showShareSheet = true
+                                }
+                            },
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 24.dp)
+                                .zIndex(10f)
+                        )
+                    }
+
+                    if (showShareSheet && mediaMetadata != null) {
+                        val selectedLyricsText = selectedIndices.sorted()
+                            .mapNotNull { lines.getOrNull(it)?.text }
+                            .joinToString("\n")
+
+                        LyricsShareBottomSheet(
+                            mediaMetadata = mediaMetadata,
+                            lyrics = selectedLyricsText,
+                            onDismissRequest = {
+                                showShareSheet = false
+                            }
+                        )
                     }
                     return
                 }
@@ -591,14 +713,18 @@ fun LyricsV2(
                                         showRomanized = showRomanized,
                                         showTranslated = hasActiveTranslations,
                                         onClick = {
-                                            if (!isGuest) {
+                                            if (isSelectionModeActive) {
+                                                toggleSelection(index)
+                                            } else if (!isGuest) {
                                                 playerConnection.player.seekTo(line.time - lyricsOffset)
                                             }
                                         },
-                                        onLongClick = {},
-                                        isSelected = false,
-                                        isSelectionModeActive = false,
-                                        isAutoScrollActive = isAutoScrollEnabled || isGuest,
+                                        onLongClick = {
+                                            startSelection(index)
+                                        },
+                                        isSelected = selectedIndices.contains(index),
+                                        isSelectionModeActive = isSelectionModeActive,
+                                        isAutoScrollActive = (isAutoScrollEnabled || isGuest) && !isSelectionModeActive,
                                         expressiveAccent = adaptivePrimary,
                                         bgVisible = true,
                                         modifier = Modifier
@@ -735,7 +861,7 @@ fun LyricsV2(
                         modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
                     ) {
                         AnimatedVisibility(
-                            visible = !isAutoScrollEnabled,
+                            visible = !isAutoScrollEnabled && !isSelectionModeActive,
                             enter = slideInVertically { it } + fadeIn(),
                             exit = slideOutVertically { it } + fadeOut()
                         ) {
@@ -764,6 +890,311 @@ fun LyricsV2(
                                 Text(text = stringResource(R.string.auto_scroll))
                             }
                         }
+                    }
+
+                    LyricsSelectionFloatingBox(
+                        visible = isSelectionModeActive,
+                        selectedCount = selectedIndices.size,
+                        onCancel = exitSelection,
+                        onShare = {
+                            if (selectedIndices.isNotEmpty()) {
+                                showShareSheet = true
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 24.dp)
+                            .zIndex(10f)
+                    )
+                }
+            }
+        }
+    }
+
+    if (showShareSheet && mediaMetadata != null) {
+        val rawLyrics = currentLyrics?.lyrics
+        val lines = remember(rawLyrics) {
+            rawLyrics?.let { LyricsUtils.parseLyrics(it) } ?: emptyList()
+        }
+        val selectedLyricsText = selectedIndices.sorted()
+            .mapNotNull { lines.getOrNull(it)?.text }
+            .joinToString("\n")
+
+        LyricsShareBottomSheet(
+            mediaMetadata = mediaMetadata,
+            lyrics = selectedLyricsText,
+            onDismissRequest = {
+                showShareSheet = false
+                exitSelection()
+            }
+        )
+    }
+}
+
+@Composable
+private fun LyricsSelectionFloatingBox(
+    visible: Boolean,
+    selectedCount: Int,
+    onCancel: () -> Unit,
+    onShare: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(tween(350, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(350)),
+        exit = slideOutVertically(tween(250, easing = FastOutSlowInEasing)) { it } + fadeOut(tween(250)),
+        modifier = modifier
+    ) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.95f),
+            tonalElevation = 8.dp,
+            shadowElevation = 10.dp,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            modifier = Modifier.wrapContentSize()
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                TextButton(
+                    onClick = onCancel,
+                    shape = RoundedCornerShape(16.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.close),
+                        contentDescription = "Cancel",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Cancel",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .height(24.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f))
+                )
+
+                Button(
+                    onClick = onShare,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.share),
+                        contentDescription = "Share",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Share ($selectedCount)",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LyricsShareBottomSheet(
+    mediaMetadata: MediaMetadata,
+    lyrics: String,
+    onDismissRequest: () -> Unit
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isGeneratingImage by remember { mutableStateOf(false) }
+
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 6.dp,
+        dragHandle = {
+            BottomSheetDefaults.DragHandle()
+        }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 32.dp, start = 20.dp, end = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(R.string.share_lyrics),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
+            // Blur Card Preview (Dynamic Height: expands as more lyrics lines are selected)
+            LyricsImageCard(
+                lyricText = lyrics,
+                mediaMetadata = mediaMetadata,
+                backgroundStyle = LyricsBackgroundStyle.BLUR,
+                backgroundColor = Color.Transparent,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Save button
+                FilledTonalButton(
+                    onClick = {
+                        if (isGeneratingImage) return@FilledTonalButton
+                        isGeneratingImage = true
+                        coroutineScope.launch(Dispatchers.IO) {
+                            try {
+                                val image = ComposeToImage.createLyricsImage(
+                                    context = context,
+                                    mediaMetadata = mediaMetadata,
+                                    lyrics = lyrics,
+                                    backgroundStyle = LyricsBackgroundStyle.BLUR,
+                                    backgroundColor = android.graphics.Color.TRANSPARENT,
+                                    textColor = android.graphics.Color.WHITE,
+                                    secondaryTextColor = android.graphics.Color.WHITE,
+                                    lyricsAlignment = Layout.Alignment.ALIGN_NORMAL
+                                )
+                                val timestamp = System.currentTimeMillis()
+                                val filename = "lyrics_$timestamp"
+                                ComposeToImage.saveBitmapAsFile(context, image, filename)
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        context,
+                                        "Image saved to Pictures/vivimusic",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.failed_to_create_image, e.message),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } finally {
+                                isGeneratingImage = false
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                    enabled = !isGeneratingImage
+                ) {
+                    if (isGeneratingImage) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            strokeWidth = 2.5.dp
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.download),
+                            contentDescription = stringResource(R.string.save),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.save),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                // Share button
+                Button(
+                    onClick = {
+                        if (isGeneratingImage) return@Button
+                        isGeneratingImage = true
+                        coroutineScope.launch(Dispatchers.IO) {
+                            try {
+                                val image = ComposeToImage.createLyricsImage(
+                                    context = context,
+                                    mediaMetadata = mediaMetadata,
+                                    lyrics = lyrics,
+                                    backgroundStyle = LyricsBackgroundStyle.BLUR,
+                                    backgroundColor = android.graphics.Color.TRANSPARENT,
+                                    textColor = android.graphics.Color.WHITE,
+                                    secondaryTextColor = android.graphics.Color.WHITE,
+                                    lyricsAlignment = Layout.Alignment.ALIGN_NORMAL
+                                )
+                                val timestamp = System.currentTimeMillis()
+                                val filename = "lyrics_$timestamp"
+                                val uri = ComposeToImage.saveBitmapAsFile(context, image, filename)
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "image/png"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                }
+                                context.startActivity(
+                                    Intent.createChooser(
+                                        shareIntent,
+                                        context.getString(R.string.share_lyrics)
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(
+                                        context,
+                                        context.getString(R.string.failed_to_create_image, e.message),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            } finally {
+                                isGeneratingImage = false
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(52.dp),
+                    enabled = !isGeneratingImage
+                ) {
+                    if (isGeneratingImage) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.5.dp
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(id = R.drawable.share),
+                            contentDescription = stringResource(R.string.share),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.share),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

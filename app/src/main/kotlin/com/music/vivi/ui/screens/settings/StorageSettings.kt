@@ -50,6 +50,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.MaxImageCacheSizeKey
 import com.music.vivi.constants.MaxSongCacheSizeKey
+import com.music.vivi.constants.MaxSpotifyCanvasCacheSizeKey
 import com.music.vivi.extensions.tryOrNull
 import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.IconButton
@@ -90,6 +91,12 @@ fun StorageSettings(
         key = MaxSongCacheSizeKey,
         defaultValue = 1024
     )
+    val (maxSpotifyCanvasCacheSize, onMaxSpotifyCanvasCacheSizeChange) = rememberPreference(
+        key = MaxSpotifyCanvasCacheSizeKey,
+        defaultValue = 512
+    )
+    
+    val spotifyCanvasCache = LocalPlayerConnection.current?.service?.spotifyCanvasCache
 
     var clearDownloads by remember { mutableStateOf(false) }
     var clearCacheDialog by remember { mutableStateOf(false) }
@@ -144,6 +151,15 @@ fun StorageSettings(
             }
         }
     }
+    LaunchedEffect(maxSpotifyCanvasCacheSize) {
+        if (maxSpotifyCanvasCacheSize == 0 && spotifyCanvasCache != null) {
+            coroutineScope.launch(Dispatchers.IO) {
+                spotifyCanvasCache.keys.forEach { key ->
+                    spotifyCanvasCache.removeResource(key)
+                }
+            }
+        }
+    }
 
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
@@ -157,10 +173,15 @@ fun StorageSettings(
             playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
         }
     }
+    var spotifyCanvasCacheSize by remember {
+        mutableLongStateOf(tryOrNull { spotifyCanvasCache?.cacheSpace } ?: 0L)
+    }
+
     LaunchedEffect(downloadCache) {
         while (isActive) {
             delay(500)
             downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
+            spotifyCanvasCacheSize = tryOrNull { spotifyCanvasCache?.cacheSpace } ?: 0
         }
     }
 
@@ -182,6 +203,8 @@ fun StorageSettings(
             }
         )
     }
+    var clearSpotifyCanvasCacheDialog by remember { mutableStateOf(false) }
+
     if (clearCacheDialog) {
         ActionPromptDialog(
             title = stringResource(R.string.clear_song_cache),
@@ -197,6 +220,28 @@ fun StorageSettings(
             onCancel = { clearCacheDialog = false },
             content = {
                 Text(text = stringResource(R.string.clear_song_cache_dialog))
+            }
+        )
+    }
+    if (clearSpotifyCanvasCacheDialog) {
+        ActionPromptDialog(
+            title = stringResource(R.string.clear_spotify_canvas_cache),
+            onDismiss = { clearSpotifyCanvasCacheDialog = false },
+            onConfirm = {
+                coroutineScope.launch(Dispatchers.IO) {
+                    spotifyCanvasCache?.keys?.forEach { key ->
+                        spotifyCanvasCache.removeResource(key)
+                    }
+                    context.getSharedPreferences("spotify_canvas_url_map", android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .clear()
+                        .apply()
+                }
+                clearSpotifyCanvasCacheDialog = false
+            },
+            onCancel = { clearSpotifyCanvasCacheDialog = false },
+            content = {
+                Text(text = stringResource(R.string.clear_spotify_canvas_cache_dialog))
             }
         )
     }
@@ -376,6 +421,56 @@ fun StorageSettings(
                     onClick = {
                         clearCacheDialog = true
                     }
+                )
+            )
+        )
+        ExpressiveSettingGroup(
+            title = stringResource(R.string.spotify_canvas_cache),
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.cached),
+                    title = { Text(stringResource(R.string.max_spotify_canvas_cache_size)) },
+                    description = {
+                        val canvasCacheValues = remember { listOf(0, 128, 256, 512, 1024, 2048, -1) }
+                        Column {
+                            Text(
+                                text = when (maxSpotifyCanvasCacheSize) {
+                                    0 -> stringResource(R.string.disable)
+                                    -1 -> stringResource(R.string.unlimited)
+                                    else -> formatFileSize(maxSpotifyCanvasCacheSize * 1024 * 1024L)
+                                }
+                            )
+                            Slider(
+                                value = canvasCacheValues.indexOf(maxSpotifyCanvasCacheSize).toFloat(),
+                                onValueChange = {
+                                    val newValue = canvasCacheValues[it.roundToInt()]
+                                    onMaxSpotifyCanvasCacheSizeChange(newValue)
+                                },
+                                steps = canvasCacheValues.size - 2,
+                                valueRange = 0f..(canvasCacheValues.size - 1).toFloat()
+                            )
+                            val canvasCacheProgress = (spotifyCanvasCacheSize.toFloat() / (maxSpotifyCanvasCacheSize * 1024 * 1024L)).coerceIn(0f, 1f)
+                            LinearProgressIndicator(
+                                progress = { canvasCacheProgress },
+                                modifier = Modifier.fillMaxWidth(),
+                                strokeCap = StrokeCap.Round
+                            )
+                            Spacer(modifier = Modifier.padding(2.dp))
+                            Text(
+                                text = if (maxSpotifyCanvasCacheSize == -1) {
+                                    formatFileSize(spotifyCanvasCacheSize)
+                                } else {
+                                    "${formatFileSize(spotifyCanvasCacheSize)} / ${formatFileSize(maxSpotifyCanvasCacheSize * 1024 * 1024L)}"
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                             )
+                        }
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.clear_all),
+                    title = { Text(stringResource(R.string.clear_spotify_canvas_cache)) },
+                    onClick = { clearSpotifyCanvasCacheDialog = true }
                 )
             )
         )

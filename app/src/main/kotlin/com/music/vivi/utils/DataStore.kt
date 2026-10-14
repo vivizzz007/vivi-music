@@ -11,6 +11,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -28,17 +29,13 @@ import kotlin.properties.ReadOnlyProperty
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    if (ViviPrefCache.isInitialized()) {
-        ViviPrefCache.get(key)
-    } else {
-        runBlocking(Dispatchers.IO) {
-            try {
-                kotlinx.coroutines.withTimeoutOrNull(1500) {
-                    data.first()[key]
-                }
-            } catch (e: Exception) {
-                null
+    runBlocking(Dispatchers.IO) {
+        try {
+            kotlinx.coroutines.withTimeoutOrNull(1500) {
+                data.first()[key]
             }
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -46,28 +43,24 @@ fun <T> DataStore<Preferences>.get(
     key: Preferences.Key<T>,
     defaultValue: T,
 ): T =
-    if (ViviPrefCache.isInitialized()) {
-        ViviPrefCache.get(key) ?: defaultValue
-    } else {
-        runBlocking(Dispatchers.IO) {
-            try {
-                kotlinx.coroutines.withTimeoutOrNull(1500) {
-                    data.first()[key]
-                } ?: defaultValue
-            } catch (e: Exception) {
-                defaultValue
-            }
+    runBlocking(Dispatchers.IO) {
+        try {
+            kotlinx.coroutines.withTimeoutOrNull(1500) {
+                data.first()[key]
+            } ?: defaultValue
+        } catch (e: Exception) {
+            defaultValue
         }
     }
 
 suspend fun <T> DataStore<Preferences>.getAsync(key: Preferences.Key<T>): T? =
-    ViviPrefCache.get(key) ?: data.first()[key]
+    data.first()[key]
 
 suspend fun <T> DataStore<Preferences>.getAsync(
     key: Preferences.Key<T>,
     defaultValue: T,
 ): T =
-    ViviPrefCache.get(key) ?: data.first()[key] ?: defaultValue
+    data.first()[key] ?: defaultValue
 
 fun <T> preference(
     context: Context,
@@ -94,7 +87,7 @@ fun <T> rememberPreference(
             context.dataStore.data
                 .map { it[key] ?: defaultValue }
                 .distinctUntilChanged()
-        }.collectAsState(context.dataStore[key] ?: defaultValue)
+        }.collectAsStateWithLifecycle(defaultValue)
 
     return remember {
         object : MutableState<T> {
@@ -123,13 +116,12 @@ inline fun <reified T : Enum<T>> rememberEnumPreference(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val initialValue = context.dataStore[key].toEnum(defaultValue = defaultValue)
     val state =
         remember {
             context.dataStore.data
                 .map { it[key].toEnum(defaultValue = defaultValue) }
                 .distinctUntilChanged()
-        }.collectAsState(initialValue)
+        }.collectAsStateWithLifecycle(defaultValue)
 
     return remember {
         object : MutableState<T> {

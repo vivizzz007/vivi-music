@@ -1746,8 +1746,10 @@ fun HomeScreen(
                                 val sectionSongs = sectionData.items.filterIsInstance<SongItem>()
                                 val hasPlayableSongs = sectionSongs.isNotEmpty()
                                 // Check if this section contains ONLY songs (like Quick picks, Trending songs)
+                                // We purposely exclude "Listen together" so it renders as standard rectangular cards in a single row
                                 val isSongsOnlySection = sectionData.items.isNotEmpty() &&
-                                        sectionData.items.all { it is SongItem }
+                                        sectionData.items.all { it is SongItem } &&
+                                        !sectionData.title.equals("Listen together", ignoreCase = true)
 
                                 item(key = "home_section_title_${section.index}") {
                                     NavigationTitle(
@@ -1863,8 +1865,59 @@ fun HomeScreen(
                                             }
                                         }
                                     }
+                                } else if (sectionData.title.equals("Listen together", ignoreCase = true)) {
+                                    // Render single row of wide video-style thumbnail items (16:9)
+                                    item(key = "home_section_list_${section.index}") {
+                                        LazyRow(
+                                            contentPadding = WindowInsets.systemBars
+                                                .only(WindowInsetsSides.Horizontal)
+                                                .asPaddingValues(),
+                                            modifier = Modifier.animateItem()
+                                        ) {
+                                            items(sectionData.items) { item ->
+                                                if (item is SongItem) {
+                                                    YouTubeGridItem(
+                                                        item = item,
+                                                        isActive = item.id in listOf(mediaMetadata?.album?.id, mediaMetadata?.id),
+                                                        isPlaying = isPlaying,
+                                                        coroutineScope = scope,
+                                                        thumbnailRatio = 16f / 9f,
+                                                        modifier = Modifier
+                                                            .width(240.dp) // wide enough for the 16:9 aspect ratio
+                                                            .combinedClickable(
+                                                                onClick = {
+                                                                    if (item.id == mediaMetadata?.id) {
+                                                                        playerConnection.togglePlayPause()
+                                                                    } else {
+                                                                        playerConnection.playQueue(
+                                                                            YouTubeQueue(
+                                                                                item.endpoint ?: WatchEndpoint(videoId = item.id), 
+                                                                                item.toMediaMetadata()
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                },
+                                                                onLongClick = {
+                                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                                    menuState.show {
+                                                                        YouTubeSongMenu(
+                                                                            song = item,
+                                                                            navController = navController,
+                                                                            onDismiss = menuState::dismiss
+                                                                        )
+                                                                    }
+                                                                }
+                                                            )
+                                                    )
+                                                } else {
+                                                    // Fallback for non-song items
+                                                    ytGridItem(item)
+                                                }
+                                            }
+                                        }
+                                    }
                                 } else {
-                                    // Render mixed content as horizontal grid items (albums, playlists, artists, etc.)
+                                    // Render mixed content as horizontal square grid items (albums, playlists, artists, etc.)
                                     item(key = "home_section_list_${section.index}") {
                                         LazyRow(
                                             contentPadding = WindowInsets.systemBars

@@ -33,8 +33,6 @@ val CustomFontPathKey = stringPreferencesKey("custom_font_path")
 
 enum class AppFont(val value: String) {
     SYSTEM("system"),
-    GOOGLE_SANS("google_sans"),
-    SANS_FLEX("sans_flex"),
     OUTFIT("outfit"),
     PLUS_JAKARTA_SANS("plus_jakarta_sans"),
     CUSTOM("custom");
@@ -101,8 +99,10 @@ val ContentCountryKey = stringPreferencesKey("contentCountry")
 val SuggestionRegionKey = stringPreferencesKey("suggestionRegion")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrclib")
+val EnableLrcRedKey = booleanPreferencesKey("enableLrcRed")
 val EnableBetterLyricsKey = booleanPreferencesKey("enableBetterLyrics")
 val EnableMusixmatchKey = booleanPreferencesKey("enableMusixmatch")
+val EnableSpotifyLyricsKey = booleanPreferencesKey("enableSpotifyLyrics")
 
 val EnableYouLyPlusKey = booleanPreferencesKey("enableYouLyPlus")
 val EnablePaxsenixKey = booleanPreferencesKey("enablePaxsenix")
@@ -134,6 +134,7 @@ enum class AudioQuality {
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
+val AudioTrackPlaybackParamsKey = booleanPreferencesKey("audioTrackPlaybackParams")
 
 // JioSaavn streaming
 val EnableSaavnStreamingKey = booleanPreferencesKey("enableSaavnStreaming")
@@ -233,6 +234,7 @@ enum class CrossfadeCurve {
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
+val MaxSpotifyCanvasCacheSizeKey = intPreferencesKey("maxSpotifyCanvasCacheSize")
 
 val AlwaysShowSkipNextKey = booleanPreferencesKey("alwaysShowSkipNext")
 val DisableScreenTimeoutKey = booleanPreferencesKey("disableScreenTimeout")
@@ -279,6 +281,8 @@ val ListenTogetherSessionTimestampKey = longPreferencesKey("listenTogetherSessio
 
 val LastFMSessionKey = stringPreferencesKey("lastfmSession")
 val LastFMUsernameKey = stringPreferencesKey("lastfmUsername")
+val LastFMAvatarUrlKey = stringPreferencesKey("lastfmAvatarUrl")
+val LastFMScrobbleCountKey = stringPreferencesKey("lastfmScrobbleCount")
 val SpotifySessionKey = stringPreferencesKey("spotifySession")
 val EnableLastFMScrobblingKey = booleanPreferencesKey("lastfmScrobblingEnable")
 val LastFMUseNowPlaying = booleanPreferencesKey("lastfmUseNowPlaying")
@@ -489,6 +493,7 @@ enum class PreferredLyricsProvider {
     YOULYPLUS,
     PAXSENIX,
     UNISON,
+    SPOTIFY
 }
 
 enum class PlayerButtonsStyle {
@@ -570,8 +575,9 @@ val SearchSourceKey = stringPreferencesKey("searchSource")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val RotatingThumbnailKey = booleanPreferencesKey("rotatingThumbnail")
 val CanvasThumbnailAnimationKey = booleanPreferencesKey("canvasThumbnailAnimation")
-val CanvasSourceKey = stringPreferencesKey("canvasSource")
+val MotionartworkSourceKey = stringPreferencesKey("canvasSource")
 val CanvasLoadOnlyWifiKey = booleanPreferencesKey("canvasLoadOnlyWifi")
+val SpotifyCanvasEnabledKey = booleanPreferencesKey("spotifyCanvasEnabled")
 
 // Data Saver
 val DataSaverKey = booleanPreferencesKey("dataSaver")
@@ -582,7 +588,7 @@ val DataSaverBackupArtistBgVideoKey = booleanPreferencesKey("dataSaverBackupArti
 val DataSaverBackupAlbumCanvasKey   = booleanPreferencesKey("dataSaverBackupAlbumCanvas")
 
 
-enum class CanvasSource {
+enum class MotionartworkSource {
     AUTO,
     APPLE_MUSIC,
     VIVIMUSIC,

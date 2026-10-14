@@ -6,8 +6,14 @@
 package com.music.vivi.ui.utils
 
 import com.music.vivi.constants.DataSaverKey
-import com.music.vivi.utils.ViviPrefCache
 import timber.log.Timber
+
+/**
+ * Global flag indicating whether Data Saver is active.
+ * Updated reactively from DataStore in [App.kt].
+ */
+@Volatile
+var isDataSaverEnabled: Boolean = false
 
 /**
  * Resizes a Google CDN or YouTube thumbnail URL to the requested dimensions.
@@ -25,8 +31,6 @@ fun String.resize(
 
     // Detect YouTube video thumbnails (containing i.ytimg.com, img.youtube.com, or path segment /vi/)
     val isYtimg = this.contains("ytimg") || this.contains("youtube.com") || this.contains("/vi/")
-
-    val isDataSaverEnabled = ViviPrefCache.get(DataSaverKey) == true
 
     return when {
         isGoogleCdn -> resizeGoogleCdn(width, height, isDataSaverEnabled)

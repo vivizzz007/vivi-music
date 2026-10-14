@@ -40,12 +40,13 @@ import com.music.vivi.ui.screens.search.OnlineSearchResult
 import com.music.vivi.ui.screens.search.SearchScreen
 import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
-import com.music.vivi.ui.screens.settings.CanvasSelection
+import com.music.vivi.ui.screens.settings.MotionartworkSelection
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.AutoBackupSettings
-import com.music.vivi.ui.screens.settings.SpotifyScreen
-import com.music.vivi.viewmodels.SpotifyImportViewModel
+import com.music.vivi.ui.screens.settings.SpotifyLoginScreen
+import com.music.vivi.ui.screens.settings.SpotifyPlaylistScreen
+import com.music.vivi.viewmodels.SpotifyViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
@@ -60,7 +61,7 @@ import com.music.vivi.ui.screens.settings.AccountSettingsScreen
 import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
-import com.music.vivi.ui.screens.settings.ThemeScreen
+import com.music.vivi.ui.screens.settings.ThemeSettings
 import com.music.vivi.ui.screens.settings.AiSettings
 import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
@@ -77,6 +78,7 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.changelog.ChangelogScreen
 import com.music.vivi.vivimusic.commitscreen.CommitScreen
 import com.music.vivi.ui.screens.equalizer.axion.AxionEqScreen
+import com.music.vivi.ui.screens.settings.SpotifyScreen
 import com.music.vivi.viewmodels.HomeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -370,11 +372,11 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/appearance/theme") {
-        ThemeScreen(navController)
+        ThemeSettings(navController)
     }
 
-    composable("settings/player/canvas") {
-        CanvasSelection(navController, scrollBehavior)
+    composable("settings/player/motionartwork") {
+        MotionartworkSelection(navController, scrollBehavior)
     }
 
     composable("settings/appearance/font") {
@@ -426,10 +428,10 @@ fun NavGraphBuilder.navigationBuilder(
     }
 
     composable("settings/spotify") {
-        SpotifyScreen(navController, scrollBehavior)
+        val rootEntry = remember(it) { navController.getBackStackEntry(navController.graph.id) }
+        val viewModel: SpotifyViewModel = hiltViewModel(rootEntry)
+        SpotifyScreen(navController, scrollBehavior, viewModel)
     }
-
-
 
     composable("settings/integrations") {
         IntegrationScreen(navController, scrollBehavior)
@@ -441,6 +443,29 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/integrations/lastfm") {
         LastFMSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/integrations/spotify") {
+        val rootEntry = remember(it) { navController.getBackStackEntry(navController.graph.id) }
+        val viewModel: SpotifyViewModel = hiltViewModel(rootEntry)
+        SpotifyScreen(navController, scrollBehavior, viewModel)
+    }
+
+    composable("settings/integrations/spotify/login") {
+        val rootEntry = remember(it) { navController.getBackStackEntry(navController.graph.id) }
+        val viewModel: SpotifyViewModel = hiltViewModel(rootEntry)
+        SpotifyLoginScreen(
+            navController = navController,
+            onCookiesCaptured = { spDc, spKey ->
+                viewModel.connectWithCookies(spDc, spKey)
+            }
+        )
+    }
+
+    composable("settings/integrations/spotify/playlists") {
+        val rootEntry = remember(it) { navController.getBackStackEntry(navController.graph.id) }
+        val viewModel: SpotifyViewModel = hiltViewModel(rootEntry)
+        SpotifyPlaylistScreen(navController, viewModel)
     }
 
     composable(route = "settings/integrations/listen_together") {

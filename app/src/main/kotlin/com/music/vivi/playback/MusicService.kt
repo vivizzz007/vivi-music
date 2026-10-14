@@ -53,14 +53,20 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.common.Format
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
 import androidx.media3.exoplayer.analytics.PlaybackStats
 import androidx.media3.exoplayer.analytics.PlaybackStatsListener
+import androidx.media3.exoplayer.audio.AudioRendererEventListener
+import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
+import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
+import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.media3.extractor.ExtractorsFactory
@@ -79,10 +85,12 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.pages.RadioChip
 import com.music.lastfm.LastFM
+import com.music.lastfm.models.PendingFavorite
 import com.music.vivi.MainActivity
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
+import com.music.vivi.constants.AudioTrackPlaybackParamsKey
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
@@ -112,6 +120,7 @@ import com.music.vivi.constants.EnableLastFMScrobblingKey
 import com.music.vivi.constants.HideExplicitKey
 import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistoryDuration
+import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -160,6 +169,7 @@ import com.music.vivi.db.entities.RelatedSongMap
 import com.music.vivi.db.entities.Song
 import com.music.vivi.di.DownloadCache
 import com.music.vivi.di.PlayerCache
+import com.music.vivi.di.SpotifyCanvasCache
 import com.music.vivi.eq.EqualizerService
 import com.music.vivi.eq.audio.CustomEqualizerAudioProcessor
 import com.music.vivi.eq.data.EQProfileRepository
@@ -190,6 +200,8 @@ import com.music.vivi.utils.CoilBitmapLoader
 import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.FavoriteCache
+import com.music.vivi.utils.ScrobbleCache
 import com.music.vivi.utils.ScrobbleManager
 import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.YTPlayerUtils
@@ -382,6 +394,10 @@ class MusicService :
     @DownloadCache
     lateinit var downloadCache: SimpleCache
 
+    @Inject
+    @SpotifyCanvasCache
+    lateinit var spotifyCanvasCache: SimpleCache
+
     lateinit var player: ExoPlayer
         private set
     private var secondaryPlayer: ExoPlayer? = null
@@ -400,12 +416,20 @@ class MusicService :
     val playerFlow = _playerFlow.asStateFlow()
 
     private val playerSilenceProcessors = HashMap<Player, SilenceDetectorAudioProcessor>()
+    private val playerEqualizerProcessors = HashMap<Player, CustomEqualizerAudioProcessor>()
 
 
     private val instantSilenceSkipEnabled = MutableStateFlow(false)
 
     private var isAudioEffectSessionOpened = false
     private var loudnessEnhancer: LoudnessEnhancer? = null
+
+    // A LoudnessEnhancer is bound to ONE audio session, and every ExoPlayer has its own.
+    // Crossfade swaps `player` for a different ExoPlayer, so the enhancer has to follow it:
+    // remember which session the current one was created for, and keep the outgoing
+    // player's enhancer alive (as `fadingLoudnessEnhancer`) until its fade-out is done.
+    private var loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+    private var fadingLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var discordRpc: DiscordRPC? = null
     private var lastPlaybackSpeed = 1.0f
@@ -586,6 +610,22 @@ class MusicService :
         connectivityManager = getSystemService()!!
         connectivityObserver = NetworkConnectivityObserver(this)
 
+        // Restore LastFM session key from DataStore so scrobbles work on cold start
+        val savedLastFMSession = dataStore.get(LastFMSessionKey, "")
+        if (savedLastFMSession.isNotEmpty()) {
+            LastFM.sessionKey = savedLastFMSession
+        }
+
+        // Reactively keep LastFM.sessionKey in sync with DataStore (handles login/logout from settings)
+        scope.launch {
+            dataStore.data
+                .map { it[LastFMSessionKey] ?: "" }
+                .distinctUntilChanged()
+                .collect { key ->
+                    LastFM.sessionKey = key.ifEmpty { null }
+                }
+        }
+
         val screenStateFilter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -633,6 +673,34 @@ class MusicService :
                     if (mediaId != null) {
                         database.song(mediaId).first()?.let { song ->
                             updateDiscordRPC(song)
+                        }
+                    }
+                }
+                
+                // Sync pending scrobbles if logged in
+                if (isConnected && LastFM.sessionKey != null) {
+                    launch(Dispatchers.IO) {
+                        val cached = ScrobbleCache.read(this@MusicService)
+                        if (cached.isNotEmpty()) {
+                            val result = LastFM.scrobble(cached)
+                            if (result.isSuccess) {
+                                ScrobbleCache.clear(this@MusicService)
+                            }
+                        }
+                        
+                        // Sync pending favorites
+                        val pendingFavorites = FavoriteCache.read(this@MusicService)
+                        if (pendingFavorites.isNotEmpty()) {
+                            val successes = mutableListOf<PendingFavorite>()
+                            for (fav in pendingFavorites) {
+                                val result = LastFM.setLoveStatus(fav.artist, fav.track, fav.isFavorite)
+                                if (result.isSuccess) {
+                                    successes.add(fav)
+                                }
+                            }
+                            if (successes.isNotEmpty()) {
+                                FavoriteCache.remove(this@MusicService, successes)
+                            }
                         }
                     }
                 }
@@ -894,6 +962,59 @@ class MusicService :
              secondaryPlayer?.setOffloadEnabled(useOffload)
         }
 
+        var isFirstAudioTrackParamsEmit = true
+        dataStore.data
+            .map { it[AudioTrackPlaybackParamsKey] ?: true }
+            .distinctUntilChanged()
+            .collectLatest(scope) { useAudioTrackParams ->
+                if (isFirstAudioTrackParamsEmit) {
+                    isFirstAudioTrackParamsEmit = false
+                    return@collectLatest
+                }
+
+                Timber.tag("MusicService").i("AudioTrackPlaybackParams changed to: $useAudioTrackParams")
+
+                val currentIndex = player.currentMediaItemIndex
+                val currentPosition = player.currentPosition
+                val playWhenReady = player.playWhenReady
+                val repeatMode = player.repeatMode
+                val shuffleModeEnabled = player.shuffleModeEnabled
+                val playbackParameters = player.playbackParameters
+                val volume = player.volume
+                val mediaItems = List(player.mediaItemCount) { index ->
+                    player.getMediaItemAt(index)
+                }
+
+                player.removeListener(this)
+                sleepTimer.let { player.removeListener(it) }
+                releaseExoPlayer(player)
+
+                val newPlayer = createExoPlayer()
+                newPlayer.addListener(this@MusicService)
+                sleepTimer.let { newPlayer.addListener(it) }
+
+                sleepTimer.player = newPlayer
+
+                try {
+                    mediaSession.player = newPlayer
+                } catch (e: Exception) {
+                    Timber.tag(TAG).e(e, "Failed to swap player in MediaSession")
+                }
+
+                newPlayer.setMediaItems(mediaItems, currentIndex, currentPosition)
+                newPlayer.repeatMode = repeatMode
+                newPlayer.shuffleModeEnabled = shuffleModeEnabled
+                newPlayer.playbackParameters = playbackParameters
+                newPlayer.volume = volume
+                newPlayer.playWhenReady = playWhenReady
+                newPlayer.prepare()
+
+                player = newPlayer
+                _playerFlow.value = newPlayer
+
+                Timber.tag("MusicService").i("Player recreated with AudioTrackPlaybackParams: $useAudioTrackParams")
+            }
+
         dataStore.data
             .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
             .debounce(300)
@@ -948,7 +1069,8 @@ class MusicService :
                     val minSongDuration = dataStore.get(ScrobbleMinSongDurationKey, LastFM.DEFAULT_SCROBBLE_MIN_SONG_DURATION)
                     val delaySeconds = dataStore.get(ScrobbleDelaySecondsKey, LastFM.DEFAULT_SCROBBLE_DELAY_SECONDS)
                     scrobbleManager = ScrobbleManager(
-                        scope,
+                        context = this@MusicService,
+                        scope = scope,
                         minSongDuration = minSongDuration,
                         scrobbleDelayPercent = delayPercent,
                         scrobbleDelaySeconds = delaySeconds
@@ -1129,9 +1251,13 @@ class MusicService :
             silenceProcessor.instantModeEnabled = skipSilence && instantSkip
         }
 
+        val useAudioTrackParams = runBlocking {
+            dataStore.get(AudioTrackPlaybackParamsKey, true)
+        }
+
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, useAudioTrackParams))
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .setAudioAttributes(
@@ -1158,6 +1284,7 @@ class MusicService :
             .build()
 
         playerSilenceProcessors[player] = silenceProcessor
+        playerEqualizerProcessors[player] = eqProcessor
 
         player.apply {
                 runBlocking {
@@ -1561,7 +1688,10 @@ class MusicService :
                     }
                 }
             }
-            if (initialStatus.items.isEmpty()) return@launch
+            if (initialStatus.items.isEmpty()) {
+                Timber.tag(TAG).w("playQueue: getInitialStatus() returned 0 items — queue will be empty. Check YouTube.locale or network.")
+                return@launch
+            }
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
 
@@ -2145,29 +2275,45 @@ class MusicService :
     }
 
     private fun setupLoudnessEnhancer() {
-        val audioSessionId = player.audioSessionId
+        // Work against a fixed player/enhancer pair: a crossfade can swap `player`
+        // while the coroutine below is still reading the DB.
+        val targetPlayer = player
+        val audioSessionId = targetPlayer.audioSessionId
 
         if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
             Timber.tag(TAG).w("setupLoudnessEnhancer: invalid audioSessionId ($audioSessionId), cannot create effect yet")
             return
         }
 
+        // The enhancer is tied to the session it was created for. If the primary player
+        // changed (crossfade swap), the old effect points at a dead/foreign session and
+        // silently does nothing for the new player, so drop it and build a new one.
+        if (loudnessEnhancer != null && loudnessEnhancerSessionId != audioSessionId) {
+            Timber.tag(TAG).d(
+                "LoudnessEnhancer session changed ($loudnessEnhancerSessionId -> $audioSessionId), recreating"
+            )
+            releaseLoudnessEnhancer()
+        }
+
         // Create or recreate enhancer if needed
         if (loudnessEnhancer == null) {
             try {
                 loudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                loudnessEnhancerSessionId = audioSessionId
                 Timber.tag(TAG).d("LoudnessEnhancer created for sessionId=$audioSessionId")
             } catch (e: Exception) {
                 reportException(e)
                 loudnessEnhancer = null
+                loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
                 return
             }
         }
+        val enhancer = loudnessEnhancer ?: return
 
         scope.launch {
             try {
                 val currentMediaId = withContext(Dispatchers.Main) {
-                    player.currentMediaItem?.mediaId
+                    targetPlayer.currentMediaItem?.mediaId
                 }
 
                 val normalizeAudio = withContext(Dispatchers.IO) {
@@ -2186,6 +2332,11 @@ class MusicService :
                     val loudness = format?.loudnessDb ?: format?.perceptualLoudnessDb
 
                     withContext(Dispatchers.Main) {
+                        // A crossfade swap happened while we were reading the DB: this
+                        // result belongs to a player/enhancer that is no longer current
+                        // (the swap already scheduled its own setup), so don't apply it.
+                        if (player !== targetPlayer || loudnessEnhancer !== enhancer) return@withContext
+
                         if (loudness != null) {
                             val loudnessDb = loudness.toFloat()
                             val targetGain = (-loudnessDb * 100).toInt()
@@ -2194,8 +2345,8 @@ class MusicService :
                             Timber.tag(TAG).d("Calculated raw normalization gain: $targetGain mB (from loudness: $loudnessDb)")
 
                             try {
-                                loudnessEnhancer?.setTargetGain(clampedGain)
-                                loudnessEnhancer?.enabled = true
+                                enhancer.setTargetGain(clampedGain)
+                                enhancer.enabled = true
                                 Timber.tag(TAG).i("LoudnessEnhancer gain applied: $clampedGain mB")
                             } catch (e: Exception) {
                                 Timber.tag(TAG).e(e, "Failed to apply loudness enhancement")
@@ -2203,19 +2354,20 @@ class MusicService :
                                 releaseLoudnessEnhancer()
                             }
                         } else {
-                            loudnessEnhancer?.enabled = false
+                            enhancer.enabled = false
                             Timber.tag(TAG).w("Normalization enabled but no loudness data available - no normalization applied")
                         }
                     }
                 } else {
                     withContext(Dispatchers.Main) {
-                        loudnessEnhancer?.enabled = false
+                        if (player !== targetPlayer || loudnessEnhancer !== enhancer) return@withContext
+                        enhancer.enabled = false
                         Timber.tag(TAG).d("setupLoudnessEnhancer: normalization disabled or mediaId unavailable")
                     }
                 }
             } catch (e: Exception) {
                 reportException(e)
-                releaseLoudnessEnhancer()
+                if (loudnessEnhancer === enhancer) releaseLoudnessEnhancer()
             }
         }
     }
@@ -2229,6 +2381,19 @@ class MusicService :
             Timber.tag(TAG).e(e, "Error releasing LoudnessEnhancer: ${e.message}")
         } finally {
             loudnessEnhancer = null
+            loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        }
+    }
+
+    /** Releases the enhancer that was kept alive for the outgoing player during a crossfade. */
+    private fun releaseFadingLoudnessEnhancer() {
+        try {
+            fadingLoudnessEnhancer?.release()
+        } catch (e: Exception) {
+            reportException(e)
+            Timber.tag(TAG).e(e, "Error releasing fading LoudnessEnhancer: ${e.message}")
+        } finally {
+            fadingLoudnessEnhancer = null
         }
     }
 
@@ -2309,18 +2474,42 @@ class MusicService :
         }
 
         // Auto load more songs from queue
+        maybeLoadMore(reason)
+
+        // Pre-resolve the next track's stream URL so the transition feels instant
+        prefetchNextTrack()
+
+        // Save state when media item changes
+        if (dataStore.get(PersistentQueueKey, true)) {
+            saveQueueToDisk()
+        }
+    }
+
+    /**
+     * Appends the next page of the current queue when playback is close to its end.
+     *
+     * Called from [onMediaItemTransition] and from [performCrossfadeSwap]: a crossfade hands
+     * playback to a player that was already seeked to its target before this service attached
+     * itself as listener, so that player never reports a transition here and, without the
+     * explicit call, auto-load-more would silently stop working while crossfade is on.
+     */
+    private fun maybeLoadMore(reason: Int) {
+        val queueAtScheduleTime = currentQueue
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage() &&
+            queueAtScheduleTime.hasNextPage() &&
             !(dataStore.get(DisableLoadMoreWhenRepeatAllKey, false) && player.repeatMode == REPEAT_MODE_ALL)
         ) {
             scope.launch(SilentHandler) {
                 val mediaItems = withContext(Dispatchers.IO) {
-                    currentQueue.nextPage()
+                    queueAtScheduleTime.nextPage()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
+                // The user may have started a different queue while this page was in flight;
+                // appending the old queue's songs onto the new one would mix both.
+                if (currentQueue !== queueAtScheduleTime) return@launch
                 if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
                     player.addMediaItems(mediaItems)
                     if (player.shuffleModeEnabled) {
@@ -2329,14 +2518,6 @@ class MusicService :
                     }
                 }
             }
-        }
-
-        // Pre-resolve the next track's stream URL so the transition feels instant
-        prefetchNextTrack()
-
-        // Save state when media item changes
-        if (dataStore.get(PersistentQueueKey, true)) {
-            saveQueueToDisk()
         }
     }
 
@@ -3400,9 +3581,54 @@ class MusicService :
 
     private fun createRenderersFactory(
         eqProcessor: CustomEqualizerAudioProcessor,
-        silenceProcessor: SilenceDetectorAudioProcessor
+        silenceProcessor: SilenceDetectorAudioProcessor,
+        useAudioTrackPlaybackParams: Boolean,
     ) =
         object : DefaultRenderersFactory(this) {
+            override fun buildAudioRenderers(
+                context: Context,
+                extensionRendererMode: Int,
+                mediaCodecSelector: MediaCodecSelector,
+                enableDecoderFallback: Boolean,
+                audioSink: AudioSink,
+                eventHandler: Handler,
+                eventListener: AudioRendererEventListener,
+                out: ArrayList<Renderer>,
+            ) {
+                super.buildAudioRenderers(
+                    context,
+                    extensionRendererMode,
+                    mediaCodecSelector,
+                    enableDecoderFallback,
+                    audioSink,
+                    eventHandler,
+                    eventListener,
+                    out,
+                )
+                val coreRendererIndex = out.indexOfFirst { it is MediaCodecAudioRenderer }
+                if (coreRendererIndex == -1) return
+                out[coreRendererIndex] =
+                    object : MediaCodecAudioRenderer(
+                        context,
+                        mediaCodecSelector,
+                        enableDecoderFallback,
+                        eventHandler,
+                        eventListener,
+                        audioSink,
+                    ) {
+                        override fun getCodecOperatingRateV23(
+                            targetPlaybackSpeed: Float,
+                            format: Format,
+                            streamFormats: Array<Format>,
+                        ): Float =
+                            super.getCodecOperatingRateV23(
+                                if (targetPlaybackSpeed in 0.95f..1.05f) 1f else targetPlaybackSpeed,
+                                format,
+                                streamFormats,
+                            )
+                    }
+            }
+
             override fun buildAudioSink(
                 context: Context,
                 enableFloatOutput: Boolean,
@@ -3410,7 +3636,7 @@ class MusicService :
             ) = DefaultAudioSink
                 .Builder(this@MusicService)
                 .setEnableFloatOutput(enableFloatOutput)
-                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                .setEnableAudioTrackPlaybackParams(useAudioTrackPlaybackParams)
                 .setAudioProcessorChain(
                     DefaultAudioSink.DefaultAudioProcessorChain(
                         // 2. Inject processor into audio pipeline
@@ -3423,6 +3649,7 @@ class MusicService :
                     ),
                 ).build()
         }
+
 
     override fun onPlaybackStatsReady(
         eventTime: AnalyticsListener.EventTime,
@@ -3571,17 +3798,48 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        releaseFadingLoudnessEnhancer()
         mediaSession.release()
+        // If the service goes away mid-crossfade, the outgoing (and any not-yet-swapped
+        // incoming) player is not `player`, so it would keep playing as an orphan and the
+        // fade coroutine would wait forever on the released primary. Tear all of it down.
+        crossfadeTriggerJob?.cancel()
+        crossfadeTriggerJob = null
+        crossfadeJob?.cancel()
+        crossfadeJob = null
+        fadingPlayer?.let {
+            try {
+                it.stop()
+                it.release()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error releasing fading player")
+            }
+            playerSilenceProcessors.remove(it)
+        }
+        fadingPlayer = null
+        secondaryPlayer?.let {
+            try {
+                it.release()
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error releasing secondary player")
+            }
+            playerSilenceProcessors.remove(it)
+        }
+        secondaryPlayer = null
+        isCrossfading = false
         player.removeListener(this)
         player.removeListener(sleepTimer)
-        playerSilenceProcessors.remove(player)
-        // Note: equalizerService audio processors are cleared in equalizerService.release() if needed,
-        // or we can't easily reference the specific processor created in createExoPlayer here without storing it.
-        // But since we are destroying the service, it's fine.
-        player.release()
+        releaseExoPlayer(player)
         discordUpdateJob?.cancel()
         super.onDestroy()
     }
+
+    private fun releaseExoPlayer(player: ExoPlayer) {
+        playerSilenceProcessors.remove(player)
+        playerEqualizerProcessors.remove(player)?.let(equalizerService::removeAudioProcessor)
+        player.release()
+    }
+
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
@@ -4102,6 +4360,16 @@ class MusicService :
         _playerFlow.value = player
         secondaryPlayer = null
 
+        // Audio normalization follows the audio session, and the incoming player has a
+        // different one. Keep the outgoing player's enhancer alive so it stays normalized
+        // while it fades out, and create a fresh one for the new primary player so the
+        // incoming track is normalized from the first sample (and stays so afterwards).
+        releaseFadingLoudnessEnhancer()
+        fadingLoudnessEnhancer = loudnessEnhancer
+        loudnessEnhancer = null
+        loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        setupLoudnessEnhancer()
+
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
@@ -4131,6 +4399,14 @@ class MusicService :
         } catch (e: Exception) {
             timber.log.Timber.e(e, "Failed to swap player in MediaSession")
         }
+
+        // The new primary was seeked to its target before we attached as listener, so
+        // onMediaItemTransition() is never called for it. Do the parts of that callback that
+        // keep the queue healthy: keep the "previous index" in sync, load more songs near the
+        // end of the queue, and pre-resolve the next stream URL.
+        previousMediaItemIndex = player.currentMediaItemIndex
+        maybeLoadMore(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
+        prefetchNextTrack()
 
         crossfadeJob = scope.launch {
             val duration = crossfadeDuration.toLong()
@@ -4168,8 +4444,9 @@ class MusicService :
     private fun cleanupCrossfade() {
         fadingPlayer?.stop()
         fadingPlayer?.clearMediaItems()
-        fadingPlayer?.release()
+        fadingPlayer?.let { releaseExoPlayer(it) }
         fadingPlayer = null
+        releaseFadingLoudnessEnhancer()
         isCrossfading = false
         sleepTimer.notifySongTransition()
     }

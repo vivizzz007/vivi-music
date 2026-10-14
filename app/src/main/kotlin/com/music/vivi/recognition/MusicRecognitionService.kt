@@ -1,4 +1,8 @@
 /**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+/**
  * Music Recognition Feature
  * 
  * This feature is based on the original MusicRecognizer project by Aleksey Saenko.

@@ -51,10 +51,17 @@ fun IntegrationScreen(
                     }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.music_note),
+                    icon = painterResource(R.drawable.lastfm),
                     title = { Text(stringResource(R.string.lastfm_integration)) },
                     onClick = {
                         navController.navigate("settings/integrations/lastfm")
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.spotify),
+                    title = { Text(stringResource(R.string.spotify)) },
+                    onClick = {
+                        navController.navigate("settings/integrations/spotify")
                     }
                 )
             )
