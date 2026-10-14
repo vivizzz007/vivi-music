@@ -72,6 +72,7 @@ import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.VolumeSlider
 import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.ui.screens.CommentSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -122,6 +123,14 @@ fun OldPlayerMenu(
     var showListenTogetherDialog by rememberSaveable { mutableStateOf(false) }
     var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
     var showPitchTempoDialog by rememberSaveable { mutableStateOf(false) }
+    var showCommentSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (showCommentSheet) {
+        CommentSheet(
+            videoId = mediaMetadata.id,
+            onDismiss = { showCommentSheet = false }
+        )
+    }
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
@@ -398,6 +407,23 @@ fun OldPlayerMenu(
                             onClick = {
                                 playerConnection.toggleLike()
                                 onDismiss()
+                            }
+                        )
+                    )
+
+                    // Comments
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(stringResource(R.string.comments_header)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.chat_msg),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                showCommentSheet = true
                             }
                         )
                     )
