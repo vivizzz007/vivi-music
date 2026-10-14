@@ -53,6 +53,7 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.analytics.AnalyticsListener
@@ -1143,6 +1144,17 @@ class MusicService :
             .setSeekBackIncrementMs(5000)
             .setSeekForwardIncrementMs(5000)
             .setDeviceVolumeControlEnabled(true)
+            // Generous buffer so short connectivity drops are ridden out from
+            // buffered audio instead of ending in an underrun glitch.
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        /* minBufferMs = */ 60_000,
+                        /* maxBufferMs = */ 120_000,
+                        /* bufferForPlaybackMs = */ 2_500,
+                        /* bufferForPlaybackAfterRebufferMs = */ 5_000,
+                    ).build(),
+            )
             .build()
 
         playerSilenceProcessors[player] = silenceProcessor
@@ -3192,12 +3204,16 @@ class MusicService :
     private suspend fun performInstantSilenceSkip() {
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: return
         if (duration <= INSTANT_SILENCE_SKIP_STEP_MS) return
+        // Never seek-hop unless the player is actually rendering audio. During a
+        // network stall (BUFFERING) seeks reset the renderer and splice partial
+        // buffers, which is heard as a glitch.
+        if (player.playbackState != Player.STATE_READY) return
 
         isSilenceSkipping = true
         try {
             var hops = 0
             val silenceProcessor = playerSilenceProcessors[player] ?: return
-            while (coroutineContext.isActive && instantSilenceSkipEnabled.value && silenceProcessor.isCurrentlySilent()) {
+            while (coroutineContext.isActive && instantSilenceSkipEnabled.value && silenceProcessor.isCurrentlySilent() && player.playbackState == Player.STATE_READY) {
                 val current = player.currentPosition
                 val target = (current + INSTANT_SILENCE_SKIP_STEP_MS).coerceAtMost(duration - 500)
 
