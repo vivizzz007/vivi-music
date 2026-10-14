@@ -52,16 +52,16 @@ android {
     flavorDimensions += listOf("abi", "variant")
     productFlavors {
         // FOSS variant (default) - F-Droid compatible, no Google Play Services
-//        create("foss") {
-//            dimension = "variant"
-//            isDefault = true
-//            buildConfigField("Boolean", "CAST_AVAILABLE", "false")
-//        }
+        create("foss") {
+            dimension = "variant"
+            isDefault = true
+            buildConfigField("Boolean", "CAST_AVAILABLE", "false")
+        }
 
         // GMS variant - with Google Cast support (requires Google Play Services)
         create("gms") {
             dimension = "variant"
-            isDefault = true
+//            isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
         }
         
