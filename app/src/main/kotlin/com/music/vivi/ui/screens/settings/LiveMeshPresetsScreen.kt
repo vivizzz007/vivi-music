@@ -14,7 +14,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,7 +54,7 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.LiveMeshPreview
+import com.music.vivi.ui.component.LiveMeshBackground
 import com.music.vivi.ui.component.LiveMeshSectionHeader
 import com.music.vivi.ui.component.LiveMeshSurface
 import com.music.vivi.ui.utils.LiveMeshConfig
@@ -193,13 +196,24 @@ private fun LivePresetCard(
         highlighted = isActive,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            LiveMeshPreview(
-                config = config,
+            val artwork = painterResource(R.drawable.weeknd)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .clip(PresetPreviewShape)
-            )
+            ) {
+                LiveMeshBackground(config = config) { layerModifier, alignment, colorFilter ->
+                    Image(
+                        painter = artwork,
+                        contentDescription = null,
+                        modifier = layerModifier,
+                        contentScale = ContentScale.Crop,
+                        colorFilter = colorFilter,
+                        alignment = alignment,
+                    )
+                }
+            }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),

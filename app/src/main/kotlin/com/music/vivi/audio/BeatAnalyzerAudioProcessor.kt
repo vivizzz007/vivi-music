@@ -12,8 +12,23 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 // Analyses audio without changing it: every buffer is copied through untouched while its loudness feeds AudioPulse.
+internal interface BeatPulseSink {
+    fun publish(pulse: Float, energy: Float)
+    fun reset()
+}
+
+internal object AudioPulseSink : BeatPulseSink {
+    override fun publish(pulse: Float, energy: Float) = AudioPulse.publishBeat(pulse, energy)
+    override fun reset() = AudioPulse.reset()
+}
+
 @UnstableApi
-class BeatAnalyzerAudioProcessor : AudioProcessor {
+class BeatAnalyzerAudioProcessor internal constructor(
+    private val sink: BeatPulseSink,
+) : AudioProcessor {
+
+    constructor() : this(AudioPulseSink)
+
 
     private var sampleRate = 0
     private var bytesPerFrame = 0
@@ -49,7 +64,7 @@ class BeatAnalyzerAudioProcessor : AudioProcessor {
             streamTimeMs += frames * 1000L / sampleRate
         }
         val pulse = detector.onBlock(rms, streamTimeMs)
-        AudioPulse.publishBeat(pulse, rms)
+        sink.publish(pulse, rms)
 
         if (outputBuffer === EMPTY_BUFFER || outputBuffer.capacity() < size) {
             outputBuffer = ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder())
@@ -74,7 +89,7 @@ class BeatAnalyzerAudioProcessor : AudioProcessor {
         inputEnded = false
         streamTimeMs = 0L
         detector.reset()
-        AudioPulse.reset()
+        sink.reset()
     }
 
     override fun reset() {

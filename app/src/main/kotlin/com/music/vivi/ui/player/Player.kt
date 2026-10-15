@@ -103,7 +103,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -112,7 +111,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -212,13 +210,10 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
-import com.music.vivi.ui.utils.liveMeshPeriodMillis
-import com.music.vivi.ui.utils.reactiveZoom
-import com.music.vivi.audio.AudioPulse
+import com.music.vivi.ui.component.LiveMeshBackground
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.rememberLiveMeshStore
-import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
 import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
@@ -1266,38 +1261,6 @@ fun BottomSheetPlayer(
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
                         val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
-                        val spin = if (liveMesh.reverseDirection) -1f else 1f
-                        val infiniteTransition = rememberInfiniteTransition(label = "liveMeshRotation")
-
-                        val anchorRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = -360f * spin,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(liveMeshPeriodMillis(80000, liveMesh.speed), easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "anchorRotation"
-                        )
-                        
-                        val fastRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f * spin,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(liveMeshPeriodMillis(40000, liveMesh.speed), easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "fastRotation"
-                        )
-                        
-                        val slowRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f * spin,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "slowRotation"
-                        )
 
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -1307,105 +1270,21 @@ fun BottomSheetPlayer(
                             label = "liveMeshBackground"
                         ) { thumbnailUrl ->
                             if (thumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .alpha(backgroundAlpha)
-                                        .graphicsLayer {
-                                            // Scale up to avoid showing edges during rotation
-                                            val zoom = reactiveZoom(
-                                                baseZoom = liveMesh.zoom,
-                                                beat = AudioPulse.beat(),
-                                                lyric = AudioPulse.lyric(),
-                                                beatReactivity = liveMesh.beatReactivity,
-                                                lyricReactivity = liveMesh.lyricReactivity,
-                                            )
-                                            scaleX = zoom
-                                            scaleY = zoom
-                                        }
-                                ) {
-                                    val matrix = remember(liveMesh.saturation) {
-                                        val m = ColorMatrix()
-                                        m.setToSaturation(liveMesh.saturation) // Reduced to avoid neon look
-                                        m
-                                    }
-                                    val colorFilter = ColorFilter.colorMatrix(matrix)
-
-                                    LowResolutionLayer(factor = liveMesh.renderScale) {
-                                    // Layer 1: The Anchor (Full Image, Counter-Clockwise)
+                                LiveMeshBackground(
+                                    config = liveMesh,
+                                    alpha = backgroundAlpha,
+                                ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
+                                            .size(liveMesh.textureSize, liveMesh.textureSize)
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         colorFilter = colorFilter,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(100.dp * liveMesh.blurStrength / liveMesh.renderScale)
-                                            .graphicsLayer { rotationZ = anchorRotation }
-                                    )
-
-                                    // Layer 2: Fast Rotating Crop (Top-Left)
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        colorFilter = colorFilter,
-                                        alignment = Alignment.TopStart,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(120.dp * liveMesh.blurStrength / liveMesh.renderScale)
-                                            .graphicsLayer { 
-                                                rotationZ = fastRotation
-                                                alpha = liveMesh.layer2Alpha
-                                            }
-                                    )
-
-                                    // Layer 3: Slow Rotating Crop (Bottom-Right)
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        colorFilter = colorFilter,
-                                        alignment = Alignment.BottomEnd,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(120.dp * liveMesh.blurStrength / liveMesh.renderScale)
-                                            .graphicsLayer { 
-                                                rotationZ = slowRotation
-                                                alpha = liveMesh.layer3Alpha
-                                            }
-                                    )
-                                    }
-
-                                    // Global dark tint to prevent neon look + vertical gradient for depth
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = liveMesh.darkTint))
-                                    )
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    listOf(
-                                                        Color.Transparent,
-                                                        Color.Black.copy(alpha = liveMesh.bottomShade)
-                                                    )
-                                                )
-                                            )
+                                        alignment = alignment,
+                                        modifier = layerModifier,
                                     )
                                 }
                             }

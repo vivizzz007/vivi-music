@@ -11,7 +11,6 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,28 +19,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.music.vivi.R
 import com.music.vivi.audio.AudioPulse
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.reactiveZoom
 
+// Single renderer for the animated Live Mesh background. The caller supplies how one artwork layer is drawn
+// (network image in the player, bundled drawable in previews); everything else — rotation, blur, tint, beat zoom — lives here.
 @Composable
-internal fun LiveMeshPreview(
+internal fun LiveMeshBackground(
     config: LiveMeshConfig,
     modifier: Modifier = Modifier,
+    alpha: Float = 1f,
+    artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
-    val transition = rememberInfiniteTransition(label = "liveMeshPreview")
+    val transition = rememberInfiniteTransition(label = "liveMeshBackground")
     val spin = if (config.reverseDirection) -1f else 1f
 
     val anchorRotation by transition.animateFloat(
@@ -51,7 +52,7 @@ internal fun LiveMeshPreview(
             animation = tween(liveMeshPeriodMillis(80000, config.speed), easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "anchorPreview"
+        label = "anchorRotation"
     )
     val fastRotation by transition.animateFloat(
         initialValue = 0f,
@@ -60,7 +61,7 @@ internal fun LiveMeshPreview(
             animation = tween(liveMeshPeriodMillis(40000, config.speed), easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "fastPreview"
+        label = "fastRotation"
     )
     val slowRotation by transition.animateFloat(
         initialValue = 0f,
@@ -69,18 +70,19 @@ internal fun LiveMeshPreview(
             animation = tween(liveMeshPeriodMillis(60000, config.speed), easing = LinearEasing),
             repeatMode = RepeatMode.Restart
         ),
-        label = "slowPreview"
+        label = "slowRotation"
     )
 
     val colorFilter = remember(config.saturation) {
         ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(config.saturation) })
     }
-    val artwork = painterResource(R.drawable.weeknd)
-    val blurPreview = { radiusDp: Float -> radiusDp * config.blurStrength / config.renderScale }
 
     Box(
         modifier = modifier
+            .fillMaxSize()
+            .alpha(alpha)
             .graphicsLayer {
+                // Scale up so the rotating layers never reveal their edges; beats and lyric lines push it further.
                 val zoom = reactiveZoom(
                     baseZoom = config.zoom,
                     beat = AudioPulse.beat(),
@@ -93,45 +95,38 @@ internal fun LiveMeshPreview(
             }
     ) {
         LowResolutionLayer(factor = config.renderScale) {
-            Image(
-                painter = artwork,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                colorFilter = colorFilter,
-                modifier = Modifier
+            artwork(
+                Modifier
                     .fillMaxSize()
-                    .blur(blurPreview(100f).dp)
-                    .graphicsLayer { rotationZ = anchorRotation }
+                    .blur(100.dp * config.blurStrength / config.renderScale)
+                    .graphicsLayer { rotationZ = anchorRotation },
+                Alignment.Center,
+                colorFilter,
             )
-            Image(
-                painter = artwork,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                colorFilter = colorFilter,
-                alignment = Alignment.TopStart,
-                modifier = Modifier
+            artwork(
+                Modifier
                     .fillMaxSize()
-                    .blur(blurPreview(120f).dp)
+                    .blur(120.dp * config.blurStrength / config.renderScale)
                     .graphicsLayer {
                         rotationZ = fastRotation
-                        alpha = config.layer2Alpha
-                    }
+                        this.alpha = config.layer2Alpha
+                    },
+                Alignment.TopStart,
+                colorFilter,
             )
-            Image(
-                painter = artwork,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                colorFilter = colorFilter,
-                alignment = Alignment.BottomEnd,
-                modifier = Modifier
+            artwork(
+                Modifier
                     .fillMaxSize()
-                    .blur(blurPreview(120f).dp)
+                    .blur(120.dp * config.blurStrength / config.renderScale)
                     .graphicsLayer {
                         rotationZ = slowRotation
-                        alpha = config.layer3Alpha
-                    }
+                        this.alpha = config.layer3Alpha
+                    },
+                Alignment.BottomEnd,
+                colorFilter,
             )
         }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()

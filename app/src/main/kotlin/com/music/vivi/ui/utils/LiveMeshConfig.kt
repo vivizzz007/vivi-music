@@ -115,20 +115,24 @@ internal fun reactiveZoom(
 internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
     (baseMillis / speed.coerceAtLeast(LiveMeshConfig.SPEED_MIN)).roundToInt()
 
-internal class LiveMeshKeys(prefix: String) {
-    val blurStrength: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshBlurStrength")
-    val saturation: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshSaturation")
-    val speed: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshSpeed")
-    val darkTint: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshDarkTint")
-    val renderScale: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshRenderScale")
-    val layer2Alpha: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshLayer2Alpha")
-    val layer3Alpha: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshLayer3Alpha")
-    val zoom: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshZoom")
-    val reverseDirection: Preferences.Key<Boolean> = booleanPreferencesKey("${prefix}liveMeshReverseDirection")
-    val bottomShade: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshBottomShade")
-    val textureSize: Preferences.Key<Int> = intPreferencesKey("${prefix}liveMeshTextureSize")
-    val beatReactivity: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshBeatReactivity")
-    val lyricReactivity: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshLyricReactivity")
+// Player keys keep the original camelCase names; other scopes prepend their prefix to the "LiveMesh" part.
+internal class LiveMeshKeys(private val prefix: String) {
+    private fun name(suffix: String): String =
+        if (prefix.isEmpty()) "liveMesh$suffix" else "${prefix}LiveMesh$suffix"
+
+    val blurStrength: Preferences.Key<Float> = floatPreferencesKey(name("BlurStrength"))
+    val saturation: Preferences.Key<Float> = floatPreferencesKey(name("Saturation"))
+    val speed: Preferences.Key<Float> = floatPreferencesKey(name("Speed"))
+    val darkTint: Preferences.Key<Float> = floatPreferencesKey(name("DarkTint"))
+    val renderScale: Preferences.Key<Float> = floatPreferencesKey(name("RenderScale"))
+    val layer2Alpha: Preferences.Key<Float> = floatPreferencesKey(name("Layer2Alpha"))
+    val layer3Alpha: Preferences.Key<Float> = floatPreferencesKey(name("Layer3Alpha"))
+    val zoom: Preferences.Key<Float> = floatPreferencesKey(name("Zoom"))
+    val reverseDirection: Preferences.Key<Boolean> = booleanPreferencesKey(name("ReverseDirection"))
+    val bottomShade: Preferences.Key<Float> = floatPreferencesKey(name("BottomShade"))
+    val textureSize: Preferences.Key<Int> = intPreferencesKey(name("TextureSize"))
+    val beatReactivity: Preferences.Key<Float> = floatPreferencesKey(name("BeatReactivity"))
+    val lyricReactivity: Preferences.Key<Float> = floatPreferencesKey(name("LyricReactivity"))
 }
 
 internal val PlayerLiveMeshKeys = LiveMeshKeys(prefix = "")
