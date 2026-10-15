@@ -11,8 +11,16 @@ import android.provider.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import coil3.request.ImageRequest
@@ -66,6 +74,27 @@ internal fun rememberReduceBackgroundEffects(): Boolean {
         Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
     }
     return shouldReduceBackgroundEffects(mode, isLowRamDevice, animatorScale)
+}
+
+internal const val LOW_RES_FACTOR = 4f
+
+// Blur cost scales with the layer's pixel count, so the blurred content is rasterized at 1/LOW_RES_FACTOR size and
+// upscaled by the compositor. Callers must divide blur radii by LOW_RES_FACTOR to keep the same on-screen softness.
+@Composable
+internal fun LowResolutionLayer(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .requiredSize(maxWidth / LOW_RES_FACTOR, maxHeight / LOW_RES_FACTOR)
+                .graphicsLayer {
+                    scaleX = LOW_RES_FACTOR
+                    scaleY = LOW_RES_FACTOR
+                    transformOrigin = TransformOrigin(0f, 0f)
+                    compositingStrategy = CompositingStrategy.Offscreen
+                },
+            content = content
+        )
+    }
 }
 
 @Composable

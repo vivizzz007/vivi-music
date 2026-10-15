@@ -212,6 +212,8 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.utils.LOW_RES_FACTOR
+import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
 import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
@@ -1315,6 +1317,7 @@ fun BottomSheetPlayer(
                                     }
                                     val colorFilter = ColorFilter.colorMatrix(matrix)
 
+                                    LowResolutionLayer {
                                     // Layer 1: The Anchor (Full Image, Counter-Clockwise)
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
@@ -1327,7 +1330,7 @@ fun BottomSheetPlayer(
                                         colorFilter = colorFilter,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(100.dp)
+                                            .blur(100.dp / LOW_RES_FACTOR)
                                             .graphicsLayer { rotationZ = anchorRotation }
                                     )
 
@@ -1344,7 +1347,7 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.TopStart,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp)
+                                            .blur(120.dp / LOW_RES_FACTOR)
                                             .graphicsLayer { 
                                                 rotationZ = fastRotation
                                                 alpha = 0.6f
@@ -1364,13 +1367,14 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.BottomEnd,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp)
+                                            .blur(120.dp / LOW_RES_FACTOR)
                                             .graphicsLayer { 
                                                 rotationZ = slowRotation
                                                 alpha = 0.5f
                                             }
                                     )
-                                    
+                                    }
+
                                     // Global dark tint to prevent neon look + vertical gradient for depth
                                     Box(
                                         modifier = Modifier

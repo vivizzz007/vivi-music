@@ -127,6 +127,8 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.LOW_RES_FACTOR
+import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
 import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
@@ -1178,6 +1180,7 @@ internal fun MiniPlayerBackgroundLayer(
                     }
             ) {
                 val matrix = remember { ColorMatrix().apply { setToSaturation(1.6f) } }
+                LowResolutionLayer {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
@@ -1189,9 +1192,10 @@ internal fun MiniPlayerBackgroundLayer(
                     colorFilter = ColorFilter.colorMatrix(matrix),
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(40.dp)
+                        .blur(40.dp / LOW_RES_FACTOR)
                         .graphicsLayer { rotationZ = rotation.value }
                 )
+                }
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
             }
         }
