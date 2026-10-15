@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneOffset
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 
@@ -41,30 +41,38 @@ class ListeningSummaryViewModel @Inject constructor(
 
     val weekOffset = MutableStateFlow(0)
 
+    private fun dayStartMs(date: LocalDate, zone: ZoneId = ZoneId.systemDefault()): Long =
+        date.atStartOfDay(zone).toInstant().toEpochMilli()
+
     private fun weekStartMs(offset: Int): Long {
         val monday = LocalDate.now()
             .minusWeeks(offset.toLong())
             .with(DayOfWeek.MONDAY)
-        return monday.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
+        return dayStartMs(monday)
     }
 
-    private val dayMs = 24L * 60 * 60 * 1000
+    private fun dayRangeMs(date: LocalDate): Pair<Long, Long> {
+        val from = dayStartMs(date)
+        val to = dayStartMs(date.plusDays(1))
+        return from to to
+    }
 
     /** Today's total play time in ms */
     val todayPlayTimeMs: Flow<Long> = run {
-        val todayStart = LocalDate.now().atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli()
-        val todayEnd = todayStart + dayMs
+        val (todayStart, todayEnd) = dayRangeMs(LocalDate.now())
         database.getPlayTimeForDay(todayStart, todayEnd)
     }
 
     /** Per-day breakdown for the selected week (Mon–Sun), updates when weekOffset changes */
     val weekDailyData = weekOffset.flatMapLatest { offset ->
-        val weekStart = weekStartMs(offset)
+        val monday = LocalDate.now()
+            .minusWeeks(offset.toLong())
+            .with(DayOfWeek.MONDAY)
         val dayNames = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
         val dayFlows: List<Flow<DayUsageData>> = (0 until 7).map { dayIndex ->
-            val from = weekStart + dayIndex * dayMs
-            val to = from + dayMs
+            val date = monday.plusDays(dayIndex.toLong())
+            val (from, to) = dayRangeMs(date)
             val name = dayNames[dayIndex]
             combine(
                 database.getPlayTimeForDay(from, to),
@@ -90,7 +98,7 @@ class ListeningSummaryViewModel @Inject constructor(
     fun goToNextWeek() { if (weekOffset.value > 0) weekOffset.value-- }
     fun isCurrentWeek(): Boolean = weekOffset.value == 0
     fun setWeekFromEpoch(epochMilli: Long) {
-        val selectedDate = Instant.ofEpochMilli(epochMilli).atZone(ZoneOffset.UTC).toLocalDate()
+        val selectedDate = Instant.ofEpochMilli(epochMilli).atZone(ZoneId.systemDefault()).toLocalDate()
         val currentMonday = LocalDate.now().with(DayOfWeek.MONDAY)
         val selectedMonday = selectedDate.with(DayOfWeek.MONDAY)
         val weeksDiff = ChronoUnit.WEEKS.between(selectedMonday, currentMonday).toInt()
