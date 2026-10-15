@@ -38,6 +38,28 @@ internal fun LiveMeshSettingsDialog(
     onConfirm: (LiveMeshConfig) -> Unit,
 ) {
     var draft by remember(initial) { mutableStateOf(initial) }
+    var showResetConfirm by remember { mutableStateOf(false) }
+
+    if (showResetConfirm) {
+        AlertDialog(
+            onDismissRequest = { showResetConfirm = false },
+            title = { Text(stringResource(R.string.live_mesh_reset_title)) },
+            text = { Text(stringResource(R.string.live_mesh_reset_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    draft = LiveMeshConfig.Default
+                    showResetConfirm = false
+                }) {
+                    Text(stringResource(R.string.reset))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetConfirm = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -151,7 +173,7 @@ internal fun LiveMeshSettingsDialog(
         },
         dismissButton = {
             Row {
-                TextButton(onClick = { draft = LiveMeshConfig.Default }) {
+                TextButton(onClick = { showResetConfirm = true }) {
                     Text(stringResource(R.string.reset))
                 }
                 TextButton(onClick = onDismiss) {
