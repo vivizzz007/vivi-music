@@ -591,18 +591,38 @@ fun UpdateScreen(navController: NavHostController) {
                                                     )
                                                 }
                                                 section.items.filter { it.isNotBlank() }.forEach { item ->
-                                                    val primaryColor = MaterialTheme.colorScheme.primary
-                                                    val annotatedText = "• ${item.trim()}".parseMarkdownAndUrls(primaryColor)
-                                                    ClickableText(
-                                                        text = annotatedText,
-                                                        onClick = { offset ->
-                                                            annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
-                                                                ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
-                                                            }
-                                                        },
-                                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
-                                                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-                                                    )
+                                                    val trimmed = item.trim()
+                                                    val headingMatch = Regex("""^(#{1,6})\s+(.+)$""").matchEntire(trimmed)
+                                                    if (headingMatch != null) {
+                                                        val level = headingMatch.groupValues[1].length
+                                                        val headingText = headingMatch.groupValues[2]
+                                                        val headingStyle = when (level) {
+                                                            1 -> MaterialTheme.typography.titleLarge
+                                                            2 -> MaterialTheme.typography.titleMedium
+                                                            else -> MaterialTheme.typography.titleSmall
+                                                        }
+                                                        Spacer(Modifier.height(12.dp))
+                                                        Text(
+                                                            text = headingText,
+                                                            style = headingStyle,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = MaterialTheme.colorScheme.primary,
+                                                            modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
+                                                        )
+                                                    } else {
+                                                        val primaryColor = MaterialTheme.colorScheme.primary
+                                                        val annotatedText = "• $trimmed".parseMarkdownAndUrls(primaryColor)
+                                                        ClickableText(
+                                                            text = annotatedText,
+                                                            onClick = { offset ->
+                                                                annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                                    ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                                }
+                                                            },
+                                                            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
+                                                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                                                        )
+                                                    }
                                                 }
                                                 // Dynamic SDUI blocks rendered beautifully
                                                 section.blocks?.filter { b ->
@@ -954,7 +974,15 @@ fun String.extractUrls(): List<Pair<IntRange, String>> {
 
 // Helper to dynamically parse robust HTML payloads and raw URLs flawlessly into Compose UI strings
 fun String.parseMarkdownAndUrls(primaryColor: Color): AnnotatedString {
-    val cleanHtml = this.replace("\n", "<br>") // ensure plain newlines break correctly too just in case
+    val mdToHtml = this
+        .replace(Regex("""\[([^\]]+)]\(([^)]+)\)"""), "<a href=\"$2\">$1</a>")
+        .replace(Regex("""\*\*(.+?)\*\*"""), "<b>$1</b>")
+        .replace(Regex("""__(.+?)__"""), "<b>$1</b>")
+        .replace(Regex("""\*(.+?)\*"""), "<i>$1</i>")
+        .replace(Regex("""_(.+?)_"""), "<i>$1</i>")
+        .replace(Regex("""~~(.+?)~~"""), "<s>$1</s>")
+        .replace(Regex("""`(.+?)`"""), "<tt>$1</tt>")
+    val cleanHtml = mdToHtml.replace("\n", "<br>")
     val spanned = HtmlCompat.fromHtml(cleanHtml, HtmlCompat.FROM_HTML_MODE_COMPACT)
     
     return buildAnnotatedString {

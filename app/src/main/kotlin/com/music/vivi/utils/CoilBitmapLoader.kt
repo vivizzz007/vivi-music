@@ -8,8 +8,11 @@ package com.music.vivi.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
 import android.net.Uri
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import androidx.media3.common.util.BitmapLoader
 import coil3.imageLoader
 import coil3.request.CachePolicy
@@ -19,6 +22,8 @@ import coil3.request.SuccessResult
 import coil3.request.allowHardware
 import coil3.toBitmap
 import com.google.common.util.concurrent.ListenableFuture
+import com.music.vivi.R
+import com.music.vivi.ui.utils.resize
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.guava.future
@@ -57,10 +62,34 @@ class CoilBitmapLoader(
             }
         }
 
+    private fun placeholderBitmap(): Bitmap {
+        return try {
+            val drawable = AppCompatResources.getDrawable(context, R.drawable.music_note)
+                ?: return createFallbackBitmap()
+            val size = (256 * context.resources.displayMetrics.density).toInt().coerceAtLeast(1)
+            val bitmap = createBitmap(size, size)
+            drawable.setBounds(0, 0, size, size)
+            drawable.draw(Canvas(bitmap))
+            bitmap
+        } catch (e: Exception) {
+            Timber.tag("CoilBitmapLoader").w(e, "Failed to render placeholder artwork")
+            createFallbackBitmap()
+        }
+    }
+
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
         scope.future(Dispatchers.IO) {
+            // Normalize to the canonical size variant so this request hits the same
+            // disk-cache entry the UI precaches (Thumbnail.kt, DownloadUtil).
+            // MediaItem artwork URIs are stored in arbitrary sizes, which caused
+            // cache misses (and an empty shade icon) when offline.
+            val normalized = try {
+                uri.toString().resize(1200, 1200).toUri()
+            } catch (e: Exception) {
+                uri
+            }
             val request = ImageRequest.Builder(context)
-                .data(uri)
+                .data(normalized)
                 .allowHardware(false)
                 .memoryCachePolicy(CachePolicy.ENABLED)
                 .diskCachePolicy(CachePolicy.ENABLED)
@@ -70,7 +99,8 @@ class CoilBitmapLoader(
 
             when (result) {
                 is ErrorResult -> {
-                    createFallbackBitmap()
+                    Timber.tag("CoilBitmapLoader").w(result.throwable, "Failed to load $normalized")
+                    placeholderBitmap()
                 }
                 is SuccessResult -> {
                     try {

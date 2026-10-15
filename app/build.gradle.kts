@@ -314,5 +314,7 @@ dependencies {
     implementation(libs.haze)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
+
+    testImplementation(libs.junit)
 }
 

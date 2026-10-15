@@ -429,7 +429,18 @@ fun ChangelogScreen(
 
                                 updateDescription?.let { desc ->
                                     Spacer(Modifier.height(16.dp))
-                                    Text(desc, style = MaterialTheme.typography.bodyLarge)
+                                    val primaryColor = MaterialTheme.colorScheme.primary
+                                    val annotatedDesc = desc.trim().parseMarkdownAndUrls(primaryColor)
+                                    ClickableText(
+                                        text = annotatedDesc,
+                                        onClick = { offset ->
+                                            annotatedDesc.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                            }
+                                        },
+                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
                                 }
 
                                 if (changelogSections.isNotEmpty()) {
@@ -463,19 +474,40 @@ fun ChangelogScreen(
                                         }
 
                                         section.items.forEach { item ->
-                                            val primaryColor = MaterialTheme.colorScheme.primary
-                                            val annotatedText = item.trim().parseMarkdownAndUrls(primaryColor)
-                                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                                Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
-                                                ClickableText(
-                                                    text = annotatedText,
-                                                    onClick = { offset ->
-                                                        annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
-                                                            ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
-                                                        }
-                                                    },
-                                                    style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                                            val trimmed = item.trim()
+                                            val headingMatch = Regex("""^(#{1,6})\s+(.+)$""").matchEntire(trimmed)
+                                            if (headingMatch != null) {
+                                                val level = headingMatch.groupValues[1].length
+                                                val headingText = headingMatch.groupValues[2]
+                                                val headingStyle = when (level) {
+                                                    1 -> MaterialTheme.typography.titleLarge
+                                                    2 -> MaterialTheme.typography.titleMedium
+                                                    else -> MaterialTheme.typography.titleSmall
+                                                }
+                                                Spacer(Modifier.height(12.dp))
+                                                Text(
+                                                    text = headingText,
+                                                    style = headingStyle,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.fillMaxWidth()
                                                 )
+                                                Spacer(Modifier.height(4.dp))
+                                            } else {
+                                                val primaryColor = MaterialTheme.colorScheme.primary
+                                                val annotatedText = trimmed.parseMarkdownAndUrls(primaryColor)
+                                                Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                    Box(modifier = Modifier.padding(top = 8.dp).size(6.dp).background(MaterialTheme.colorScheme.primary, CircleShape))
+                                                    ClickableText(
+                                                        text = annotatedText,
+                                                        onClick = { offset ->
+                                                            annotatedText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                                ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                            }
+                                                        },
+                                                        style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                                                    )
+                                                }
                                             }
                                         }
                                         
@@ -498,7 +530,16 @@ fun ChangelogScreen(
                                     Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.2f), shape = RoundedCornerShape(12.dp)) {
                                         Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                             Icon(painterResource(R.drawable.error), null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(20.dp))
-                                            Text(warning, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+                                            val annotatedWarning = warning.trim().parseMarkdownAndUrls(MaterialTheme.colorScheme.error)
+                                            ClickableText(
+                                                text = annotatedWarning,
+                                                onClick = { offset ->
+                                                    annotatedWarning.getStringAnnotations("URL", offset, offset).firstOrNull()?.let {
+                                                        ContextCompat.startActivity(context, Intent(Intent.ACTION_VIEW, Uri.parse(it.item)), null)
+                                                    }
+                                                },
+                                                style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onErrorContainer)
+                                            )
                                         }
                                     }
                                 }
