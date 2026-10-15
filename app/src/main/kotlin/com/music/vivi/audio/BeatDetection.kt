@@ -11,10 +11,10 @@ import java.nio.ByteOrder
 import kotlin.math.exp
 import kotlin.math.sqrt
 
-internal const val BEAT_PULSE_DECAY_MS = 450f
-internal const val BEAT_ATTACK_MS = 140f
+internal const val BEAT_PULSE_DECAY_MS = 500f
+internal const val BEAT_ATTACK_MS = 220f
 internal const val BEAT_MIN_INTERVAL_MS = 260L
-internal const val BEAT_PEAK = 0.6f
+internal const val BEAT_PEAK = 0.8f
 private const val BEAT_RETRIGGER_MARGIN = 0.05f
 
 // A beat swells in over BEAT_ATTACK_MS with a smoothstep curve (no sudden jump), then decays exponentially.
@@ -26,8 +26,8 @@ internal fun beatBump(elapsedMs: Long, peak: Float): Float {
     }
     return (peak * exp(-(elapsedMs - BEAT_ATTACK_MS) / BEAT_PULSE_DECAY_MS)).coerceIn(0f, peak)
 }
-internal const val BEAT_THRESHOLD_RATIO = 1.4f
-internal const val BEAT_MIN_RMS = 0.05f
+internal const val BEAT_THRESHOLD_RATIO = 1.25f
+internal const val BEAT_MIN_RMS = 0.02f
 
 internal fun decayedPulse(pulse: Float, elapsedMs: Long, decayMs: Float = BEAT_PULSE_DECAY_MS): Float {
     if (pulse <= 0f || elapsedMs <= 0L) return pulse.coerceIn(0f, 1f)

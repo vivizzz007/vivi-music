@@ -43,8 +43,8 @@ import kotlin.math.sin
 private const val SHIMMER_MAX_DEG_PER_SECOND = 240f
 private const val SHIMMER_ALPHA_AMPLITUDE = 0.35f
 private const val BEAT_LAYER_BOOST = 0.18f
-private const val BEAT_TINT_RELIEF = 0.35f
-private const val CENTER_GLOW_BEAT = 0.22f
+private const val BEAT_TINT_RELIEF = 0.6f
+private const val CENTER_GLOW_BEAT = 0.35f
 private const val CENTER_GLOW_LYRIC = 0.1f
 
 // Single renderer for the animated Live Mesh background. The caller supplies how one artwork layer is drawn
