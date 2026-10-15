@@ -54,6 +54,7 @@ import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.common.Format
+import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.Renderer
@@ -1269,6 +1270,17 @@ class MusicService :
             .setSeekBackIncrementMs(5000)
             .setSeekForwardIncrementMs(5000)
             .setDeviceVolumeControlEnabled(true)
+            // Generous buffer so short connectivity drops are ridden out from
+            // buffered audio instead of ending in an underrun glitch.
+            .setLoadControl(
+                DefaultLoadControl.Builder()
+                    .setBufferDurationsMs(
+                        /* minBufferMs = */ 60_000,
+                        /* maxBufferMs = */ 120_000,
+                        /* bufferForPlaybackMs = */ 2_500,
+                        /* bufferForPlaybackAfterRebufferMs = */ 5_000,
+                    ).build(),
+            )
             .build()
 
         playerSilenceProcessors[player] = silenceProcessor
@@ -1629,8 +1641,11 @@ class MusicService :
         radioChips.value = emptyList()
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
-        if (!canAttemptQueueCrossfade && !persistShuffleAcrossQueues) {
-            player.shuffleModeEnabled = false
+        if (!canAttemptQueueCrossfade) {
+            cancelCrossfadeIfActive()
+            if (!persistShuffleAcrossQueues) {
+                player.shuffleModeEnabled = false
+            }
         }
         // Reset original queue size when starting a new queue
         originalQueueSize = 0
@@ -3370,12 +3385,16 @@ class MusicService :
     private suspend fun performInstantSilenceSkip() {
         val duration = player.duration.takeIf { it != C.TIME_UNSET && it > 0 } ?: return
         if (duration <= INSTANT_SILENCE_SKIP_STEP_MS) return
+        // Never seek-hop unless the player is actually rendering audio. During a
+        // network stall (BUFFERING) seeks reset the renderer and splice partial
+        // buffers, which is heard as a glitch.
+        if (player.playbackState != Player.STATE_READY) return
 
         isSilenceSkipping = true
         try {
             var hops = 0
             val silenceProcessor = playerSilenceProcessors[player] ?: return
-            while (coroutineContext.isActive && instantSilenceSkipEnabled.value && silenceProcessor.isCurrentlySilent()) {
+            while (coroutineContext.isActive && instantSilenceSkipEnabled.value && silenceProcessor.isCurrentlySilent() && player.playbackState == Player.STATE_READY) {
                 val current = player.currentPosition
                 val target = (current + INSTANT_SILENCE_SKIP_STEP_MS).coerceAtMost(duration - 500)
 
@@ -3841,12 +3860,14 @@ class MusicService :
             }
             MusicWidgetReceiver.ACTION_NEXT -> {
                 if (!manualSkipToNextWithCrossfade()) {
+                    cancelCrossfadeIfActive()
                     player.seekToNext()
                 }
                 updateWidgetUI(player.isPlaying)
             }
             MusicWidgetReceiver.ACTION_PREVIOUS -> {
                 if (!manualSkipToPreviousWithCrossfade()) {
+                    cancelCrossfadeIfActive()
                     player.seekToPrevious()
                 }
                 updateWidgetUI(player.isPlaying)
@@ -3969,6 +3990,7 @@ class MusicService :
     private fun scheduleCrossfade() {
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
+        if (isCrossfading) return
         if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
         if (crossfadeGapless && isNextItemGapless()) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
@@ -4427,6 +4449,14 @@ class MusicService :
         releaseFadingLoudnessEnhancer()
         isCrossfading = false
         sleepTimer.notifySongTransition()
+    }
+
+    fun cancelCrossfadeIfActive() {
+        if (!isCrossfading) return
+        crossfadeJob?.cancel()
+        crossfadeJob = null
+        cleanupCrossfade()
+        try { player.volume = 1f } catch (_: Exception) {}
     }
 
     companion object {

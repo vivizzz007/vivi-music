@@ -1920,13 +1920,18 @@ fun BottomSheetPlayer(
                         onValueChangeFinished = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
+                                    // Ignore seeks while duration is unknown (track still
+                                    // loading): the seek would be lost and the optimistic
+                                    // position update would show a wrong slider position.
+                                    if (duration != C.TIME_UNSET && duration > 0) {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
                                     }
-                                    position = it
                                 }
                                 sliderPosition = null
                             }
@@ -1951,13 +1956,15 @@ fun BottomSheetPlayer(
                             },
                             onValueChangeFinished = {
                                 sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
+                                    if (duration != C.TIME_UNSET && duration > 0) {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
                                     }
-                                    position = it
                                 }
                                 sliderPosition = null
                             },
@@ -1978,13 +1985,15 @@ fun BottomSheetPlayer(
                             },
                             onValueChangeFinished = {
                                 sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
+                                    if (duration != C.TIME_UNSET && duration > 0) {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
                                     }
-                                    position = it
                                 }
                                 sliderPosition = null
                             },
@@ -2025,13 +2034,15 @@ fun BottomSheetPlayer(
                         onValueChangeFinished = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
+                                    if (duration != C.TIME_UNSET && duration > 0) {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
                                     }
-                                    position = it
                                 }
                                 sliderPosition = null
                             }
@@ -2065,13 +2076,15 @@ fun BottomSheetPlayer(
                         onValueChangeFinished = {
                             if (!isListenTogetherGuest) {
                                 sliderPosition?.let {
-                                    if (isCasting) {
-                                        castHandler?.seekTo(it)
-                                        lastManualSeekTime = System.currentTimeMillis()
-                                    } else {
-                                        playerConnection.player.seekTo(it)
+                                    if (duration != C.TIME_UNSET && duration > 0) {
+                                        if (isCasting) {
+                                            castHandler?.seekTo(it)
+                                            lastManualSeekTime = System.currentTimeMillis()
+                                        } else {
+                                            playerConnection.player.seekTo(it)
+                                        }
+                                        position = it
                                     }
-                                    position = it
                                 }
                                 sliderPosition = null
                             }
@@ -2700,7 +2713,7 @@ fun BottomSheetPlayer(
                                 InlineLyricsView(
                                     mediaMetadata = mediaMetadata,
                                     showLyrics = showLyrics,
-                                    positionProvider = { effectivePosition }
+                                    positionProvider = { sliderPosition ?: effectivePosition }
                                 )
                             } else if (spotifyCanvasUrl == null && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(
@@ -2762,7 +2775,7 @@ fun BottomSheetPlayer(
                                 InlineLyricsView(
                                     mediaMetadata = mediaMetadata,
                                     showLyrics = showLyrics,
-                                    positionProvider = { effectivePosition }
+                                    positionProvider = { sliderPosition ?: effectivePosition }
                                 )
                             } else if (spotifyCanvasUrl == null && playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
                                 Thumbnail(

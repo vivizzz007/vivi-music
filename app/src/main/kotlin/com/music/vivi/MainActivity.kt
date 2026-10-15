@@ -884,8 +884,15 @@ class MainActivity : ComponentActivity() {
                             mediaItem: MediaItem?,
                             reason: Int,
                         ) {
-                            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED &&
-                                mediaItem != null &&
+                            if (mediaItem != null && playerBottomSheetState.isDismissed) {
+                                playerBottomSheetState.collapseSoft()
+                            }
+                        }
+
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            if (playbackState == Player.STATE_READY &&
+                                player.playWhenReady &&
+                                player.currentMediaItem != null &&
                                 playerBottomSheetState.isDismissed
                             ) {
                                 playerBottomSheetState.collapseSoft()

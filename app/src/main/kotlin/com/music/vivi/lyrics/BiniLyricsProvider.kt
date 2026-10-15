@@ -108,13 +108,14 @@ object BiniLyricsProvider : LyricsProvider {
     // Parsing Logic
     // ──────────────────────────────────────────────────────────────────────
 
-    private val pRegex = """<p\s+begin="([\w:.]+)"[^>]*>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    private val spanRegex = """<span\s+begin="([\w:.]+)"[^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val pRegex = """<p\s+[^>]*?begin=["']([\w:.]+)["'][^>]*>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val spanRegex = """<span\s+[^>]*?begin=["']([\w:.]+)["'][^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
 
     /**
-     * Parse Apple Music TTML format and convert to standard LRC or RichSync LRC
+     * Parse Apple Music TTML format and convert to standard LRC or RichSync LRC.
+     * Visible for testing.
      */
-    private fun ttmlToLrc(ttml: String): String {
+    internal fun ttmlToLrc(ttml: String): String {
         val lrcBuilder = java.lang.StringBuilder()
 
         for (pMatch in pRegex.findAll(ttml)) {
