@@ -284,13 +284,17 @@ fun PlayerV2Landscape(
     )
 
     val onSeek: (Long) -> Unit = { pos ->
-        if (isCasting) {
-            castHandler?.seekTo(pos)
-            lastManualSeekTime = System.currentTimeMillis()
+        if (duration == C.TIME_UNSET || duration <= 0) {
+            sliderPosition = null
         } else {
-            playerConnection.player.seekTo(pos)
+            if (isCasting) {
+                castHandler?.seekTo(pos)
+                lastManualSeekTime = System.currentTimeMillis()
+            } else {
+                playerConnection.player.seekTo(pos)
+            }
+            position = pos
         }
-        position = pos
     }
 
     val onVolumeChange: (Float) -> Unit = { newValue ->
