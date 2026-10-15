@@ -910,7 +910,7 @@ fun RichPresence(
                     onClick = {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            "https://github.com/vivimusicGroup/vivimusic".toUri()
+                            "https://github.com/vivizzz007/vivi-music".toUri()
                         )
                         context.startActivity(intent)
                     },
