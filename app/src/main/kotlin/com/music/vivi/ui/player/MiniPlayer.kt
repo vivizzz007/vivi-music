@@ -127,6 +127,10 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.backgroundBlur
+import com.music.vivi.ui.utils.backgroundSize
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
+import com.music.vivi.ui.utils.rememberReducedBackgroundStyle
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -1000,9 +1004,10 @@ internal fun MiniPlayerColorExtractor(
 ) {
     val context = LocalContext.current
     val fallbackColor = MaterialTheme.colorScheme.surfaceContainer.toArgb()
+    val effectiveMiniPlayerBackground = rememberReducedBackgroundStyle(miniPlayerBackground)
 
-    LaunchedEffect(mediaMetadata?.id, miniPlayerBackground) {
-        if (miniPlayerBackground == PlayerBackgroundStyle.GRADIENT || miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+    LaunchedEffect(mediaMetadata?.id, effectiveMiniPlayerBackground) {
+        if (effectiveMiniPlayerBackground == PlayerBackgroundStyle.GRADIENT || effectiveMiniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
             val currentMetadata = mediaMetadata
             if (currentMetadata?.thumbnailUrl != null) {
                 withContext(Dispatchers.IO) {
@@ -1022,7 +1027,7 @@ internal fun MiniPlayerColorExtractor(
                                     .resizeBitmapArea(100 * 100)
                                     .generate()
                             }
-                            val extractedColors = if (miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                            val extractedColors = if (effectiveMiniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
                                 listOfNotNull(
                                     palette.getVibrantColor(fallbackColor).let { Color(it) },
                                     palette.getLightVibrantColor(fallbackColor).let { Color(it) },
@@ -1055,21 +1060,23 @@ internal fun MiniPlayerBackgroundLayer(
     gradientColors: List<Color>
 ) {
     val context = LocalContext.current
-    
-    when (style) {
+    val effectiveStyle = rememberReducedBackgroundStyle(style)
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+
+    when (effectiveStyle) {
         PlayerBackgroundStyle.BLUR -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (reduceBackgroundEffects || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
+                        .backgroundSize(reduceBackgroundEffects, 128)
                         .allowHardware(false)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(30.dp)
+                        .backgroundBlur(30.dp, reduceBackgroundEffects)
                 )
                 Box(
                     modifier = Modifier

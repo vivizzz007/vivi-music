@@ -81,6 +81,8 @@ import com.music.vivi.constants.LyricsAnimationStyleKey
 import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.BackgroundEffectsMode
+import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
@@ -263,6 +265,11 @@ fun AppearanceSettings(
             MiniPlayerBackgroundStyleKey,
             defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
+
+    val (backgroundEffectsMode, onBackgroundEffectsModeChange) = rememberEnumPreference(
+        BackgroundEffectsModeKey,
+        defaultValue = BackgroundEffectsMode.AUTO,
+    )
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -477,6 +484,10 @@ fun AppearanceSettings(
     }
 
     var showMiniPlayerBackgroundDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showBackgroundEffectsDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -744,6 +755,26 @@ fun AppearanceSettings(
 
     var showDefaultOpenTabDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showBackgroundEffectsDialog) {
+        EnumDialog(
+            onDismiss = { showBackgroundEffectsDialog = false },
+            onSelect = {
+                onBackgroundEffectsModeChange(it)
+                showBackgroundEffectsDialog = false
+            },
+            title = stringResource(R.string.background_effects),
+            current = backgroundEffectsMode,
+            values = BackgroundEffectsMode.values().toList(),
+            valueText = {
+                when (it) {
+                    BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                    BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                    BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                }
+            }
+        )
     }
 
     if (showDefaultOpenTabDialog) {
@@ -1312,6 +1343,20 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { showPlayerBackgroundDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.background_effects)) },
+                    trailingContent = {
+                        Text(
+                            when (backgroundEffectsMode) {
+                                BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                                BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                                BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                            }
+                        )
+                    },
+                    onClick = { showBackgroundEffectsDialog = true }
                 ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(

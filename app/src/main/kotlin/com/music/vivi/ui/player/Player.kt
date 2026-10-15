@@ -212,6 +212,10 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.utils.backgroundBlur
+import com.music.vivi.ui.utils.backgroundSize
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
+import com.music.vivi.ui.utils.rememberReducedBackgroundStyle
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
@@ -286,6 +290,8 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
+    val effectivePlayerBackground = rememberReducedBackgroundStyle(playerBackground)
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
@@ -489,8 +495,8 @@ fun BottomSheetPlayer(
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground) {
-        if (playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+    LaunchedEffect(mediaMetadata?.id, effectivePlayerBackground) {
+        if (effectivePlayerBackground == PlayerBackgroundStyle.GRADIENT || effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
             val currentMetadata = mediaMetadata
             if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
                 val cachedColors = gradientColorsCache[currentMetadata.id]
@@ -516,7 +522,7 @@ fun BottomSheetPlayer(
                                     .resizeBitmapArea(100 * 100)
                                     .generate()
                             }
-                            val extractedColors = if (playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                            val extractedColors = if (effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
                                 listOfNotNull(
                                     palette.getVibrantColor(fallbackColor).let { Color(it) },
                                     palette.getLightVibrantColor(fallbackColor).let { Color(it) },
@@ -931,7 +937,7 @@ fun BottomSheetPlayer(
                             }
                         }
                     }
-                } else when (playerBackground) {
+                } else when (effectivePlayerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -949,14 +955,14 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(100, 100) // Lower resolution for better performance
+                                            .backgroundSize(reduceBackgroundEffects, 100) // Lower resolution for better performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
+                                            .backgroundBlur(120.dp, reduceBackgroundEffects) // hardware-efficient native Compose blur on small image
                                     )
 
                                     Box(
@@ -1174,14 +1180,14 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .backgroundSize(reduceBackgroundEffects, 128) // Downsample significantly for performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(150.dp)
+                                            .backgroundBlur(150.dp, reduceBackgroundEffects)
                                     )
 
                                     // Layer 2: Clear Artwork (Limited to top 60% of screen)

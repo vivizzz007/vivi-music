@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -21,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -30,10 +32,13 @@ fun WrappedBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val reduceAnimations = rememberReduceBackgroundEffects()
     val infiniteTransition = rememberInfiniteTransition(label = "WrappedBackground")
+    val staticPhase = remember { mutableFloatStateOf(0f) }
+    val staticScale = remember { mutableFloatStateOf(1f) }
 
     // Animations for the glow blobs
-    val blob1Offset by infiniteTransition.animateFloat(
+    val blob1Offset by if (reduceAnimations) staticPhase else infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * PI.toFloat(),
         animationSpec = infiniteRepeatable(
@@ -43,7 +48,7 @@ fun WrappedBackground(
         label = "blob1"
     )
 
-    val blob2Offset by infiniteTransition.animateFloat(
+    val blob2Offset by if (reduceAnimations) staticPhase else infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * PI.toFloat(),
         animationSpec = infiniteRepeatable(
@@ -53,7 +58,7 @@ fun WrappedBackground(
         label = "blob2"
     )
 
-    val scale by infiniteTransition.animateFloat(
+    val scale by if (reduceAnimations) staticScale else infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.2f,
         animationSpec = infiniteRepeatable(

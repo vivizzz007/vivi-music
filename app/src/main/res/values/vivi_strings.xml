@@ -181,6 +181,10 @@
     <string name="album_settings">Album Settings</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
+    <string name="background_effects">Background effects</string>
+    <string name="background_effects_auto">Auto (lighter on weak devices)</string>
+    <string name="background_effects_full">Full</string>
+    <string name="background_effects_reduced">Reduced</string>
     <string name="player_buttons_style">Player button colors</string>
     <string name="default_style">Default</string>
     <string name="primary_color_style">Primary color</string>

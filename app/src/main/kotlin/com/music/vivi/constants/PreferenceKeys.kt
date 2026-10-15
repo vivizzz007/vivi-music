@@ -511,12 +511,19 @@ enum class PlayerBackgroundStyle {
     LIVE_MESH,
 }
 
+enum class BackgroundEffectsMode {
+    AUTO,
+    FULL,
+    REDUCED,
+}
+
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val MiniPlayerBackgroundStyleKey = stringPreferencesKey("miniPlayerBackgroundStyle")
+val BackgroundEffectsModeKey = stringPreferencesKey("backgroundEffectsMode")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val SwipeLyricsKey = booleanPreferencesKey("swipeLyrics")
 val EnableLyricsThumbnailPlayPauseKey = booleanPreferencesKey("enableLyricsThumbnailPlayPause")

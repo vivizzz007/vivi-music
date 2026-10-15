@@ -125,6 +125,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.music.vivi.constants.IsFirstRunKey
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -1104,7 +1105,8 @@ fun BlobClusterLoading(modifier: Modifier = Modifier) {
 
 @Composable
 fun RotatingShapeContainer(modifier: Modifier = Modifier, rotate: Boolean = true) {
-    val rotation = if (rotate) {
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+    val rotation = if (rotate && !reduceBackgroundEffects) {
         val infiniteTransition = rememberInfiniteTransition(label = "shapeRotation")
         infiniteTransition.animateFloat(
             initialValue = 0f,
