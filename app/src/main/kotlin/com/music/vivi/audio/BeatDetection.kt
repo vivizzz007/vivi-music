@@ -11,8 +11,21 @@ import java.nio.ByteOrder
 import kotlin.math.exp
 import kotlin.math.sqrt
 
-internal const val BEAT_PULSE_DECAY_MS = 250f
-internal const val BEAT_MIN_INTERVAL_MS = 180L
+internal const val BEAT_PULSE_DECAY_MS = 450f
+internal const val BEAT_ATTACK_MS = 140f
+internal const val BEAT_MIN_INTERVAL_MS = 260L
+internal const val BEAT_PEAK = 0.6f
+private const val BEAT_RETRIGGER_MARGIN = 0.05f
+
+// A beat swells in over BEAT_ATTACK_MS with a smoothstep curve (no sudden jump), then decays exponentially.
+internal fun beatBump(elapsedMs: Long, peak: Float): Float {
+    if (peak <= 0f || elapsedMs < 0L) return 0f
+    if (elapsedMs < BEAT_ATTACK_MS) {
+        val x = elapsedMs / BEAT_ATTACK_MS
+        return peak * x * x * (3f - 2f * x)
+    }
+    return (peak * exp(-(elapsedMs - BEAT_ATTACK_MS) / BEAT_PULSE_DECAY_MS)).coerceIn(0f, peak)
+}
 internal const val BEAT_THRESHOLD_RATIO = 1.4f
 internal const val BEAT_MIN_RMS = 0.05f
 
@@ -55,7 +68,7 @@ internal class BeatDetector(
         val isBeat = rms > BEAT_MIN_RMS && rms > average * thresholdRatio && beatAllowed
         if (isBeat) {
             lastBeatMs = timeMs
-            pulse = 1f
+            pulse = maxOf(pulse, BEAT_PEAK)
         }
         return pulse
     }
@@ -91,28 +104,66 @@ object AudioPulse {
         fun reset() = set(0f)
     }
 
-    private val beatChannel = Channel()
     private val lyricChannel = Channel()
+
+    @Volatile private var beatStartMs = 0L
+    @Volatile private var beatPeak = 0f
 
     @Volatile var energy = 0f
         private set
 
+    // The detector reports a decaying level every block; a sharp rise over the current bump means a new beat.
     fun publishBeat(pulse: Float, energy: Float) {
-        beatChannel.set(pulse)
+        val now = SystemClock.elapsedRealtime()
+        if (pulse > beat() + BEAT_RETRIGGER_MARGIN) {
+            beatStartMs = now
+            beatPeak = pulse
+        }
         this.energy = energy
     }
 
-    fun triggerLyricLine(strength: Float = LYRIC_LINE_STRENGTH) = lyricChannel.trigger(strength)
+    @Volatile private var lastLyricAtMs = 0L
+    @Volatile private var lyricIntervalMs = 0f
 
-    fun beat(): Float = beatChannel.current()
+    fun triggerLyricLine(strength: Float = LYRIC_LINE_STRENGTH) {
+        val now = SystemClock.elapsedRealtime()
+        if (lastLyricAtMs != 0L) {
+            val interval = (now - lastLyricAtMs).toFloat()
+            lyricIntervalMs = if (lyricIntervalMs == 0f) interval else lyricIntervalMs + (interval - lyricIntervalMs) * 0.3f
+        }
+        lastLyricAtMs = now
+        lyricChannel.trigger(strength)
+    }
+
+    fun beat(): Float {
+        val peak = beatPeak
+        if (peak <= 0f) return 0f
+        return beatBump(SystemClock.elapsedRealtime() - beatStartMs, peak)
+    }
 
     fun lyric(): Float = lyricChannel.current()
 
+    // 0 for slow or stale lyrics, 1 for lines changing faster than LYRIC_FAST_INTERVAL_MS.
+    fun lyricTempo(): Float {
+        val last = lastLyricAtMs
+        if (last == 0L || SystemClock.elapsedRealtime() - last > LYRIC_TEMPO_TIMEOUT_MS) return 0f
+        return lyricTempoFromInterval(lyricIntervalMs)
+    }
+
     fun reset() {
-        beatChannel.reset()
+        beatPeak = 0f
+        beatStartMs = 0L
         lyricChannel.reset()
         energy = 0f
+        lastLyricAtMs = 0L
+        lyricIntervalMs = 0f
     }
 }
 
 const val LYRIC_LINE_STRENGTH = 0.6f
+internal const val LYRIC_FAST_INTERVAL_MS = 1000f
+internal const val LYRIC_SLOW_INTERVAL_MS = 5000f
+internal const val LYRIC_TEMPO_TIMEOUT_MS = 8000L
+
+internal fun lyricTempoFromInterval(intervalMs: Float): Float =
+    ((LYRIC_SLOW_INTERVAL_MS - intervalMs) / (LYRIC_SLOW_INTERVAL_MS - LYRIC_FAST_INTERVAL_MS)).coerceIn(0f, 1f)

@@ -60,7 +60,7 @@ class BeatDetectionTest {
 
         val pulse = detector.onBlock(rms = 0.5f, timeMs = 400L)
 
-        assertEquals(1f, pulse, 0f)
+        assertEquals(BEAT_PEAK, pulse, 0f)
     }
 
     @Test
@@ -89,6 +89,55 @@ class BeatDetectionTest {
         val pulse = detector.onBlock(rms = BEAT_MIN_RMS / 2, timeMs = 0L)
 
         assertEquals(0f, pulse, 0f)
+    }
+
+    @Test
+    fun beatBumpStartsAtZero() {
+        assertEquals(0f, beatBump(0L, peak = BEAT_PEAK), 0f)
+    }
+
+    @Test
+    fun beatBumpReachesPeakAtEndOfAttack() {
+        assertEquals(BEAT_PEAK, beatBump(BEAT_ATTACK_MS.toLong(), peak = BEAT_PEAK), 1e-4f)
+    }
+
+    @Test
+    fun beatBumpRisesMonotonicallyDuringAttack() {
+        val samples = (0..BEAT_ATTACK_MS.toInt() step 10).map { beatBump(it.toLong(), peak = BEAT_PEAK) }
+
+        assertTrue(samples.zipWithNext().all { (a, b) -> b >= a })
+    }
+
+    @Test
+    fun beatBumpDecaysAfterAttack() {
+        val atPeak = beatBump(BEAT_ATTACK_MS.toLong(), peak = BEAT_PEAK)
+        val later = beatBump((BEAT_ATTACK_MS + BEAT_PULSE_DECAY_MS).toLong(), peak = BEAT_PEAK)
+
+        assertEquals(atPeak * exp(-1f), later, 1e-3f)
+    }
+
+    @Test
+    fun beatBumpIsZeroWithoutPeakOrNegativeTime() {
+        assertEquals(0f, beatBump(100L, peak = 0f), 0f)
+        assertEquals(0f, beatBump(-5L, peak = BEAT_PEAK), 0f)
+    }
+
+    @Test
+    fun lyricTempoIsFullWhenLinesChangeFasterThanFastInterval() {
+        assertEquals(1f, lyricTempoFromInterval(500f), 0f)
+        assertEquals(1f, lyricTempoFromInterval(LYRIC_FAST_INTERVAL_MS), 0f)
+    }
+
+    @Test
+    fun lyricTempoIsZeroWhenLinesAreSlowerThanSlowInterval() {
+        assertEquals(0f, lyricTempoFromInterval(LYRIC_SLOW_INTERVAL_MS), 0f)
+        assertEquals(0f, lyricTempoFromInterval(9000f), 0f)
+    }
+
+    @Test
+    fun lyricTempoScalesLinearlyBetweenFastAndSlowIntervals() {
+        val midpoint = (LYRIC_FAST_INTERVAL_MS + LYRIC_SLOW_INTERVAL_MS) / 2
+        assertEquals(0.5f, lyricTempoFromInterval(midpoint), 1e-6f)
     }
 
     @Test

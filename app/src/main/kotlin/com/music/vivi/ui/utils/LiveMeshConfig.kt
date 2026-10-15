@@ -97,7 +97,7 @@ internal fun LiveMeshConfig.clamped(): LiveMeshConfig = LiveMeshConfig(
     lyricReactivity = lyricReactivity.coerceIn(LiveMeshConfig.REACTIVITY_MIN, LiveMeshConfig.REACTIVITY_MAX),
 )
 
-internal const val BEAT_ZOOM_BOOST = 0.08f
+internal const val BEAT_ZOOM_BOOST = 0.06f
 internal const val LYRIC_ZOOM_BOOST = 0.04f
 
 // Beats and lyric lines briefly push the layers outward; the reactivity sliders decide how far they move.
