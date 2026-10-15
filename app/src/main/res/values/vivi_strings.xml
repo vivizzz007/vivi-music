@@ -224,6 +224,12 @@
     <string name="live_mesh_lyric_reactivity">Lyric reaction</string>
     <string name="live_mesh_lyric_reactivity_desc">How strongly the background pulses when a new lyric line appears.</string>
     <string name="live_mesh_reset_title">Reset Live Mesh settings?</string>
+    <string name="live_mesh_auto_tempo">Auto tempo</string>
+    <string name="live_mesh_auto_tempo_desc">Spin the layers in time with the song\'s estimated tempo.</string>
+    <string name="live_mesh_adaptive_quality">Adaptive quality</string>
+    <string name="live_mesh_adaptive_quality_desc">Lowers rendering detail automatically when frames slow down, and restores it when they recover.</string>
+    <string name="live_mesh_tap_flash">Double-tap flash</string>
+    <string name="live_mesh_tap_flash_desc">Double-tap the background for a soft flash in the center.</string>
     <string name="live_mesh_reset_message">All Live Mesh values will return to their defaults. This cannot be undone.</string>
     <string name="live_mesh_settings_desc">Animated background behind the player. Tune how it looks and how much GPU it uses.</string>
     <string name="live_mesh_settings_mini_desc">Separate tuning for the mini player background.</string>

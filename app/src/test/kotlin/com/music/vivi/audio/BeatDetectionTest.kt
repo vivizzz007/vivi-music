@@ -92,6 +92,40 @@ class BeatDetectionTest {
     }
 
     @Test
+    fun steadyHalfSecondBeatsEstimateOneTwentyBpm() {
+        val beats = (0..10).map { it * 500L }
+
+        assertEquals(120f, estimateBpm(beats)!!, 1e-3f)
+    }
+
+    @Test
+    fun doubleTimeReadingIsFoldedIntoComfortableRange() {
+        val beats = (0..10).map { it * 250L }
+
+        assertEquals(120f, estimateBpm(beats)!!, 1e-3f)
+    }
+
+    @Test
+    fun slowBeatsAreFoldedUpIntoComfortableRange() {
+        val beats = (0..10).map { it * 1000L }
+
+        assertEquals(120f, estimateBpm(beats)!!, 1e-3f)
+    }
+
+    @Test
+    fun tooFewPlausibleIntervalsGiveNoEstimate() {
+        assertEquals(null, estimateBpm(listOf(0L, 500L)))
+        assertEquals(null, estimateBpm(emptyList()))
+    }
+
+    @Test
+    fun implausiblyShortIntervalsAreIgnoredForEstimate() {
+        val beats = (0..10).map { it * 100L }
+
+        assertEquals(null, estimateBpm(beats))
+    }
+
+    @Test
     fun beatBumpStartsAtZero() {
         assertEquals(0f, beatBump(0L, peak = BEAT_PEAK), 0f)
     }

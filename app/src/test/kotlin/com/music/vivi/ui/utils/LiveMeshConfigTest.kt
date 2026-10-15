@@ -179,6 +179,47 @@ class LiveMeshConfigTest {
     }
 
     @Test
+    fun autoTempoIsNeutralWithoutEstimate() {
+        assertEquals(1f, autoTempoFactor(null), 0f)
+    }
+
+    @Test
+    fun autoTempoIsNeutralAtOneTwentyBpm() {
+        assertEquals(1f, autoTempoFactor(120f), 1e-6f)
+    }
+
+    @Test
+    fun autoTempoIsLimitedToHalfAndDoubleSpeed() {
+        assertEquals(2f, autoTempoFactor(240f), 0f)
+        assertEquals(0.5f, autoTempoFactor(30f), 0f)
+    }
+
+    @Test
+    fun adaptiveScaleGrowsWhenFramesRunSlow() {
+        assertEquals(3f, nextAdaptiveScale(current = 2f, avgFrameMs = 30f, base = 2f), 1e-6f)
+    }
+
+    @Test
+    fun adaptiveScaleNeverExceedsMaximum() {
+        assertEquals(LiveMeshConfig.RENDER_SCALE_MAX, nextAdaptiveScale(current = 7f, avgFrameMs = 40f, base = 4f), 0f)
+    }
+
+    @Test
+    fun adaptiveScaleEasesBackWhenFramesRecover() {
+        assertEquals(2f, nextAdaptiveScale(current = 3f, avgFrameMs = 12f, base = 2f), 1e-6f)
+    }
+
+    @Test
+    fun adaptiveScaleNeverDropsBelowBase() {
+        assertEquals(4f, nextAdaptiveScale(current = 4f, avgFrameMs = 5f, base = 4f), 0f)
+    }
+
+    @Test
+    fun adaptiveScaleHoldsBetweenThresholds() {
+        assertEquals(3f, nextAdaptiveScale(current = 3f, avgFrameMs = 20f, base = 2f), 0f)
+    }
+
+    @Test
     fun periodIsRoundedToWholeMilliseconds() {
         assertEquals(13333, liveMeshPeriodMillis(40000, speed = 3f))
     }

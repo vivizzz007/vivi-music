@@ -112,15 +112,24 @@ object AudioPulse {
     @Volatile var energy = 0f
         private set
 
+    private val beatTimesMs = ArrayDeque<Long>()
+
     // The detector reports a decaying level every block; a sharp rise over the current bump means a new beat.
+    @Synchronized
     fun publishBeat(pulse: Float, energy: Float) {
         val now = SystemClock.elapsedRealtime()
         if (pulse > beat() + BEAT_RETRIGGER_MARGIN) {
             beatStartMs = now
             beatPeak = pulse
+            beatTimesMs.addLast(now)
+            if (beatTimesMs.size > BPM_HISTORY_SIZE) beatTimesMs.removeFirst()
         }
         this.energy = energy
     }
+
+    // Estimated tempo from recent beats, or null until enough steady beats were heard.
+    @Synchronized
+    fun bpm(): Float? = estimateBpm(beatTimesMs.toList())
 
     @Volatile private var lastLyricAtMs = 0L
     @Volatile private var lyricIntervalMs = 0f
@@ -150,7 +159,9 @@ object AudioPulse {
         return lyricTempoFromInterval(lyricIntervalMs)
     }
 
+    @Synchronized
     fun reset() {
+        beatTimesMs.clear()
         beatPeak = 0f
         beatStartMs = 0L
         lyricChannel.reset()
@@ -164,6 +175,25 @@ const val LYRIC_LINE_STRENGTH = 0.6f
 internal const val LYRIC_FAST_INTERVAL_MS = 1000f
 internal const val LYRIC_SLOW_INTERVAL_MS = 5000f
 internal const val LYRIC_TEMPO_TIMEOUT_MS = 8000L
+
+private const val BPM_HISTORY_SIZE = 9
+private const val BPM_MIN_INTERVAL_MS = 250L
+private const val BPM_MAX_INTERVAL_MS = 1500L
+private const val BPM_FOLD_MIN = 70f
+private const val BPM_FOLD_MAX = 180f
+
+// Median of plausible beat intervals, folded into a comfortable range so half- and double-time readings agree.
+internal fun estimateBpm(beatTimesMs: List<Long>): Float? {
+    val intervals = beatTimesMs.zipWithNext { a, b -> b - a }
+        .filter { it in BPM_MIN_INTERVAL_MS..BPM_MAX_INTERVAL_MS }
+        .sorted()
+    if (intervals.size < 3) return null
+    val median = intervals[intervals.size / 2]
+    var bpm = 60_000f / median
+    while (bpm < BPM_FOLD_MIN) bpm *= 2f
+    while (bpm > BPM_FOLD_MAX) bpm /= 2f
+    return bpm
+}
 
 internal fun lyricTempoFromInterval(intervalMs: Float): Float =
     ((LYRIC_SLOW_INTERVAL_MS - intervalMs) / (LYRIC_SLOW_INTERVAL_MS - LYRIC_FAST_INTERVAL_MS)).coerceIn(0f, 1f)

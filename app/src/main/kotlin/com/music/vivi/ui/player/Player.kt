@@ -1273,6 +1273,7 @@ fun BottomSheetPlayer(
                                 LiveMeshBackground(
                                     config = liveMesh,
                                     alpha = backgroundAlpha,
+                                    adaptiveQuality = true,
                                 ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)

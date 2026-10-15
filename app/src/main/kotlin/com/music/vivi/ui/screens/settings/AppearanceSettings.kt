@@ -82,7 +82,10 @@ import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.BackgroundEffectsMode
+import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
+import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.constants.LiveMeshSeparateMiniKey
+import com.music.vivi.constants.LiveMeshTapFlashKey
 import com.music.vivi.ui.component.LiveMeshSettingsDialog
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.MiniLiveMeshKeys
@@ -281,6 +284,18 @@ fun AppearanceSettings(
     val (liveMeshSeparateMini, onLiveMeshSeparateMiniChange) = rememberPreference(
         LiveMeshSeparateMiniKey,
         defaultValue = false,
+    )
+    val (liveMeshAutoTempo, onLiveMeshAutoTempoChange) = rememberPreference(
+        LiveMeshAutoTempoKey,
+        defaultValue = false,
+    )
+    val (liveMeshAdaptiveQuality, onLiveMeshAdaptiveQualityChange) = rememberPreference(
+        LiveMeshAdaptiveQualityKey,
+        defaultValue = true,
+    )
+    val (liveMeshTapFlash, onLiveMeshTapFlashChange) = rememberPreference(
+        LiveMeshTapFlashKey,
+        defaultValue = true,
     )
     val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
     val miniLiveMesh = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
@@ -1427,6 +1442,42 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_auto_tempo)) },
+                    description = { Text(stringResource(R.string.live_mesh_auto_tempo_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshAutoTempo,
+                            onCheckedChange = onLiveMeshAutoTempoChange
+                        )
+                    },
+                    onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.live_mesh_adaptive_quality)) },
+                    description = { Text(stringResource(R.string.live_mesh_adaptive_quality_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshAdaptiveQuality,
+                            onCheckedChange = onLiveMeshAdaptiveQualityChange
+                        )
+                    },
+                    onClick = { onLiveMeshAdaptiveQualityChange(!liveMeshAdaptiveQuality) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.live_mesh_tap_flash)) },
+                    description = { Text(stringResource(R.string.live_mesh_tap_flash_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshTapFlash,
+                            onCheckedChange = onLiveMeshTapFlashChange
+                        )
+                    },
+                    onClick = { onLiveMeshTapFlashChange(!liveMeshTapFlash) }
                 ),
                 if (liveMeshSeparateMini) {
                     Material3SettingsItem(

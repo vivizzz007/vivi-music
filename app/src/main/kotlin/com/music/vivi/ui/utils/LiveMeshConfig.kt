@@ -111,6 +111,21 @@ internal fun reactiveZoom(
     beat.coerceIn(0f, 1f) * BEAT_ZOOM_BOOST * beatReactivity +
     lyric.coerceIn(0f, 1f) * LYRIC_ZOOM_BOOST * lyricReactivity
 
+// Layers turn faster on fast songs; 120 BPM is neutral, and the factor is limited so it never feels frantic.
+internal fun autoTempoFactor(bpm: Float?): Float =
+    if (bpm == null) 1f else (bpm / 120f).coerceIn(0.5f, 2f)
+
+private const val ADAPTIVE_SLOW_FRAME_MS = 24f
+private const val ADAPTIVE_FAST_FRAME_MS = 17f
+private const val ADAPTIVE_STEP = 1.5f
+
+// Raises the render-down factor (cheaper frames) when frames run slow and eases back when they recover.
+internal fun nextAdaptiveScale(current: Float, avgFrameMs: Float, base: Float): Float = when {
+    avgFrameMs > ADAPTIVE_SLOW_FRAME_MS -> (current * ADAPTIVE_STEP).coerceIn(base, LiveMeshConfig.RENDER_SCALE_MAX)
+    avgFrameMs < ADAPTIVE_FAST_FRAME_MS && current > base -> (current / ADAPTIVE_STEP).coerceAtLeast(base)
+    else -> current.coerceIn(base, LiveMeshConfig.RENDER_SCALE_MAX)
+}
+
 // Higher speed shortens the rotation period so the mesh turns faster without changing its shape.
 internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
     (baseMillis / speed.coerceAtLeast(LiveMeshConfig.SPEED_MIN)).roundToInt()
