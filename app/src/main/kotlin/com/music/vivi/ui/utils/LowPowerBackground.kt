@@ -76,19 +76,21 @@ internal fun rememberReduceBackgroundEffects(): Boolean {
     return shouldReduceBackgroundEffects(mode, isLowRamDevice, animatorScale)
 }
 
-internal const val LOW_RES_FACTOR = 4f
-
-// Blur cost scales with the layer's pixel count, so the blurred content is rasterized at 1/LOW_RES_FACTOR size and
-// upscaled by the compositor. Callers must divide blur radii by LOW_RES_FACTOR to keep the same on-screen softness.
+// Blur cost scales with the layer's pixel count, so the blurred content is rasterized at 1/factor size and
+// upscaled by the compositor. Callers must divide blur radii by factor to keep the same on-screen softness.
 @Composable
-internal fun LowResolutionLayer(modifier: Modifier = Modifier, content: @Composable BoxScope.() -> Unit) {
+internal fun LowResolutionLayer(
+    factor: Float,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
-                .requiredSize(maxWidth / LOW_RES_FACTOR, maxHeight / LOW_RES_FACTOR)
+                .requiredSize(maxWidth / factor, maxHeight / factor)
                 .graphicsLayer {
-                    scaleX = LOW_RES_FACTOR
-                    scaleY = LOW_RES_FACTOR
+                    scaleX = factor
+                    scaleY = factor
                     transformOrigin = TransformOrigin(0f, 0f)
                     compositingStrategy = CompositingStrategy.Offscreen
                 },

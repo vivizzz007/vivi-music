@@ -127,9 +127,8 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
-import com.music.vivi.ui.utils.LOW_RES_FACTOR
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
-import com.music.vivi.ui.utils.rememberLiveMeshConfig
+import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1162,11 +1161,12 @@ internal fun MiniPlayerBackgroundLayer(
             }
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
-            val liveMesh = rememberLiveMeshConfig()
+            val liveMesh = rememberMiniLiveMeshStore().config
+            val spin = if (liveMesh.reverseDirection) -1f else 1f
             val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
             val rotation = infiniteTransition.animateFloat(
                 initialValue = 0f,
-                targetValue = 360f,
+                targetValue = 360f * spin,
                 animationSpec = infiniteRepeatable(
                     animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
@@ -1178,16 +1178,16 @@ internal fun MiniPlayerBackgroundLayer(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        scaleX = 1.5f
-                        scaleY = 1.5f
+                        scaleX = liveMesh.zoom
+                        scaleY = liveMesh.zoom
                     }
             ) {
                 val matrix = remember(liveMesh.saturation) { ColorMatrix().apply { setToSaturation(liveMesh.saturation) } }
-                LowResolutionLayer {
+                LowResolutionLayer(factor = liveMesh.renderScale) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
+                        .size(liveMesh.textureSize, liveMesh.textureSize)
                         .allowHardware(false)
                         .build(),
                     contentDescription = null,
@@ -1195,7 +1195,7 @@ internal fun MiniPlayerBackgroundLayer(
                     colorFilter = ColorFilter.colorMatrix(matrix),
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(40.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
+                        .blur(40.dp * liveMesh.blurStrength / liveMesh.renderScale)
                         .graphicsLayer { rotationZ = rotation.value }
                 )
                 }

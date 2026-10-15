@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.ui.Modifier
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,14 +22,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.music.vivi.R
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.clamped
+import kotlin.math.roundToInt
 
 @Composable
 internal fun LiveMeshSettingsDialog(
+    title: String,
     initial: LiveMeshConfig,
     onDismiss: () -> Unit,
     onConfirm: (LiveMeshConfig) -> Unit,
@@ -36,32 +41,106 @@ internal fun LiveMeshSettingsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.live_mesh_settings)) },
+        title = { Text(title) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                LiveMeshSectionTitle(stringResource(R.string.live_mesh_section_look))
                 LiveMeshSlider(
                     label = stringResource(R.string.live_mesh_blur),
+                    description = stringResource(R.string.live_mesh_blur_desc),
                     value = draft.blurStrength,
                     range = LiveMeshConfig.BLUR_STRENGTH_MIN..LiveMeshConfig.BLUR_STRENGTH_MAX,
                     onValueChange = { draft = draft.copy(blurStrength = it) }
                 )
                 LiveMeshSlider(
                     label = stringResource(R.string.live_mesh_saturation),
+                    description = stringResource(R.string.live_mesh_saturation_desc),
                     value = draft.saturation,
                     range = LiveMeshConfig.SATURATION_MIN..LiveMeshConfig.SATURATION_MAX,
                     onValueChange = { draft = draft.copy(saturation = it) }
                 )
                 LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_dark_tint),
+                    description = stringResource(R.string.live_mesh_dark_tint_desc),
+                    value = draft.darkTint,
+                    range = LiveMeshConfig.DARK_TINT_MIN..LiveMeshConfig.DARK_TINT_MAX,
+                    onValueChange = { draft = draft.copy(darkTint = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_bottom_shade),
+                    description = stringResource(R.string.live_mesh_bottom_shade_desc),
+                    value = draft.bottomShade,
+                    range = LiveMeshConfig.BOTTOM_SHADE_MIN..LiveMeshConfig.BOTTOM_SHADE_MAX,
+                    onValueChange = { draft = draft.copy(bottomShade = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_layer2_alpha),
+                    description = stringResource(R.string.live_mesh_layer2_alpha_desc),
+                    value = draft.layer2Alpha,
+                    range = LiveMeshConfig.LAYER_ALPHA_MIN..LiveMeshConfig.LAYER_ALPHA_MAX,
+                    onValueChange = { draft = draft.copy(layer2Alpha = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_layer3_alpha),
+                    description = stringResource(R.string.live_mesh_layer3_alpha_desc),
+                    value = draft.layer3Alpha,
+                    range = LiveMeshConfig.LAYER_ALPHA_MIN..LiveMeshConfig.LAYER_ALPHA_MAX,
+                    onValueChange = { draft = draft.copy(layer3Alpha = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_zoom),
+                    description = stringResource(R.string.live_mesh_zoom_desc),
+                    value = draft.zoom,
+                    range = LiveMeshConfig.ZOOM_MIN..LiveMeshConfig.ZOOM_MAX,
+                    onValueChange = { draft = draft.copy(zoom = it) }
+                )
+
+                LiveMeshSectionTitle(stringResource(R.string.live_mesh_section_motion))
+                LiveMeshSlider(
                     label = stringResource(R.string.live_mesh_speed),
+                    description = stringResource(R.string.live_mesh_speed_desc),
                     value = draft.speed,
                     range = LiveMeshConfig.SPEED_MIN..LiveMeshConfig.SPEED_MAX,
                     onValueChange = { draft = draft.copy(speed = it) }
                 )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.live_mesh_reverse),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.live_mesh_reverse_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = draft.reverseDirection,
+                        onCheckedChange = { draft = draft.copy(reverseDirection = it) }
+                    )
+                }
+
+                LiveMeshSectionTitle(stringResource(R.string.live_mesh_section_quality))
                 LiveMeshSlider(
-                    label = stringResource(R.string.live_mesh_dark_tint),
-                    value = draft.darkTint,
-                    range = LiveMeshConfig.DARK_TINT_MIN..LiveMeshConfig.DARK_TINT_MAX,
-                    onValueChange = { draft = draft.copy(darkTint = it) }
+                    label = stringResource(R.string.live_mesh_render_scale),
+                    description = stringResource(R.string.live_mesh_render_scale_desc),
+                    value = draft.renderScale,
+                    range = LiveMeshConfig.RENDER_SCALE_MIN..LiveMeshConfig.RENDER_SCALE_MAX,
+                    onValueChange = { draft = draft.copy(renderScale = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_texture_size),
+                    description = stringResource(R.string.live_mesh_texture_size_desc),
+                    value = draft.textureSize.toFloat(),
+                    range = LiveMeshConfig.TEXTURE_SIZE_MIN.toFloat()..LiveMeshConfig.TEXTURE_SIZE_MAX.toFloat(),
+                    onValueChange = { draft = draft.copy(textureSize = it.roundToInt()) }
                 )
             }
         },
@@ -84,8 +163,18 @@ internal fun LiveMeshSettingsDialog(
 }
 
 @Composable
+private fun LiveMeshSectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary
+    )
+}
+
+@Composable
 private fun LiveMeshSlider(
     label: String,
+    description: String,
     value: Float,
     range: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
@@ -102,6 +191,11 @@ private fun LiveMeshSlider(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Slider(value = value, onValueChange = onValueChange, valueRange = range)
     }
 }

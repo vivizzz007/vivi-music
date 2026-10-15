@@ -212,9 +212,10 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
-import com.music.vivi.ui.utils.LOW_RES_FACTOR
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
-import com.music.vivi.ui.utils.rememberLiveMeshConfig
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberLiveMeshStore
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1262,12 +1263,13 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
-                        val liveMesh = rememberLiveMeshConfig()
+                        val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
+                        val spin = if (liveMesh.reverseDirection) -1f else 1f
                         val infiniteTransition = rememberInfiniteTransition(label = "liveMeshRotation")
 
                         val anchorRotation by infiniteTransition.animateFloat(
                             initialValue = 0f,
-                            targetValue = -360f,
+                            targetValue = -360f * spin,
                             animationSpec = infiniteRepeatable(
                                 animation = tween(liveMeshPeriodMillis(80000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
@@ -1277,7 +1279,7 @@ fun BottomSheetPlayer(
                         
                         val fastRotation by infiniteTransition.animateFloat(
                             initialValue = 0f,
-                            targetValue = 360f,
+                            targetValue = 360f * spin,
                             animationSpec = infiniteRepeatable(
                                 animation = tween(liveMeshPeriodMillis(40000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
@@ -1287,7 +1289,7 @@ fun BottomSheetPlayer(
                         
                         val slowRotation by infiniteTransition.animateFloat(
                             initialValue = 0f,
-                            targetValue = 360f,
+                            targetValue = 360f * spin,
                             animationSpec = infiniteRepeatable(
                                 animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
@@ -1309,8 +1311,8 @@ fun BottomSheetPlayer(
                                         .alpha(backgroundAlpha)
                                         .graphicsLayer {
                                             // Scale up to avoid showing edges during rotation
-                                            scaleX = 1.7f
-                                            scaleY = 1.7f
+                                            scaleX = liveMesh.zoom
+                                            scaleY = liveMesh.zoom
                                         }
                                 ) {
                                     val matrix = remember(liveMesh.saturation) {
@@ -1320,12 +1322,12 @@ fun BottomSheetPlayer(
                                     }
                                     val colorFilter = ColorFilter.colorMatrix(matrix)
 
-                                    LowResolutionLayer {
+                                    LowResolutionLayer(factor = liveMesh.renderScale) {
                                     // Layer 1: The Anchor (Full Image, Counter-Clockwise)
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
@@ -1333,7 +1335,7 @@ fun BottomSheetPlayer(
                                         colorFilter = colorFilter,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(100.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
+                                            .blur(100.dp * liveMesh.blurStrength / liveMesh.renderScale)
                                             .graphicsLayer { rotationZ = anchorRotation }
                                     )
 
@@ -1341,7 +1343,7 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
@@ -1350,10 +1352,10 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.TopStart,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
+                                            .blur(120.dp * liveMesh.blurStrength / liveMesh.renderScale)
                                             .graphicsLayer { 
                                                 rotationZ = fastRotation
-                                                alpha = 0.6f
+                                                alpha = liveMesh.layer2Alpha
                                             }
                                     )
 
@@ -1361,7 +1363,7 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .size(liveMesh.textureSize, liveMesh.textureSize) // Downsample significantly for performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
@@ -1370,10 +1372,10 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.BottomEnd,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
+                                            .blur(120.dp * liveMesh.blurStrength / liveMesh.renderScale)
                                             .graphicsLayer { 
                                                 rotationZ = slowRotation
-                                                alpha = 0.5f
+                                                alpha = liveMesh.layer3Alpha
                                             }
                                     )
                                     }
@@ -1391,7 +1393,7 @@ fun BottomSheetPlayer(
                                                 Brush.verticalGradient(
                                                     listOf(
                                                         Color.Transparent,
-                                                        Color.Black.copy(alpha = 0.25f)
+                                                        Color.Black.copy(alpha = liveMesh.bottomShade)
                                                     )
                                                 )
                                             )

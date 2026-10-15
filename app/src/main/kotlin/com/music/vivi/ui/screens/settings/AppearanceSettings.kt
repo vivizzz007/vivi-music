@@ -82,12 +82,12 @@ import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.BackgroundEffectsMode
-import com.music.vivi.constants.LiveMeshBlurStrengthKey
-import com.music.vivi.constants.LiveMeshDarkTintKey
-import com.music.vivi.constants.LiveMeshSaturationKey
-import com.music.vivi.constants.LiveMeshSpeedKey
+import com.music.vivi.constants.LiveMeshSeparateMiniKey
 import com.music.vivi.ui.component.LiveMeshSettingsDialog
 import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.MiniLiveMeshKeys
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberLiveMeshStore
 import com.music.vivi.ui.utils.clamped
 import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -278,23 +278,12 @@ fun AppearanceSettings(
         defaultValue = BackgroundEffectsMode.AUTO,
     )
 
-    val (liveMeshBlur, onLiveMeshBlurChange) = rememberPreference(
-        LiveMeshBlurStrengthKey,
-        defaultValue = LiveMeshConfig.Default.blurStrength,
+    val (liveMeshSeparateMini, onLiveMeshSeparateMiniChange) = rememberPreference(
+        LiveMeshSeparateMiniKey,
+        defaultValue = false,
     )
-    val (liveMeshSaturation, onLiveMeshSaturationChange) = rememberPreference(
-        LiveMeshSaturationKey,
-        defaultValue = LiveMeshConfig.Default.saturation,
-    )
-    val (liveMeshSpeed, onLiveMeshSpeedChange) = rememberPreference(
-        LiveMeshSpeedKey,
-        defaultValue = LiveMeshConfig.Default.speed,
-    )
-    val (liveMeshDarkTint, onLiveMeshDarkTintChange) = rememberPreference(
-        LiveMeshDarkTintKey,
-        defaultValue = LiveMeshConfig.Default.darkTint,
-    )
-    val liveMeshConfig = LiveMeshConfig(liveMeshBlur, liveMeshSaturation, liveMeshSpeed, liveMeshDarkTint).clamped()
+    val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+    val miniLiveMesh = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -516,7 +505,11 @@ fun AppearanceSettings(
         mutableStateOf(false)
     }
 
-    var showLiveMeshDialog by rememberSaveable {
+    var showPlayerLiveMeshDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMiniLiveMeshDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -786,16 +779,26 @@ fun AppearanceSettings(
         mutableStateOf(false)
     }
 
-    if (showLiveMeshDialog) {
+    if (showPlayerLiveMeshDialog) {
         LiveMeshSettingsDialog(
-            initial = liveMeshConfig,
-            onDismiss = { showLiveMeshDialog = false },
+            title = stringResource(R.string.live_mesh_settings),
+            initial = playerLiveMesh.config,
+            onDismiss = { showPlayerLiveMeshDialog = false },
             onConfirm = { config ->
-                onLiveMeshBlurChange(config.blurStrength)
-                onLiveMeshSaturationChange(config.saturation)
-                onLiveMeshSpeedChange(config.speed)
-                onLiveMeshDarkTintChange(config.darkTint)
-                showLiveMeshDialog = false
+                playerLiveMesh.save(config)
+                showPlayerLiveMeshDialog = false
+            }
+        )
+    }
+
+    if (showMiniLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            title = stringResource(R.string.live_mesh_settings_mini),
+            initial = miniLiveMesh.config,
+            onDismiss = { showMiniLiveMeshDialog = false },
+            onConfirm = { config ->
+                miniLiveMesh.save(config)
+                showMiniLiveMeshDialog = false
             }
         )
     }
@@ -1404,8 +1407,29 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.live_mesh_settings)) },
-                    onClick = { showLiveMeshDialog = true }
+                    description = { Text(stringResource(R.string.live_mesh_settings_desc)) },
+                    onClick = { showPlayerLiveMeshDialog = true }
                 ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.live_mesh_separate_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_separate_mini_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshSeparateMini,
+                            onCheckedChange = onLiveMeshSeparateMiniChange
+                        )
+                    },
+                    onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) }
+                ),
+                if (liveMeshSeparateMini) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.gradient),
+                        title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
+                        description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
+                        onClick = { showMiniLiveMeshDialog = true }
+                    )
+                } else null,
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),

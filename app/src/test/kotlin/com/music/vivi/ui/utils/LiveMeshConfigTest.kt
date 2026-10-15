@@ -4,46 +4,116 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class LiveMeshConfigTest {
+    private fun config(
+        blur: Float = 1f,
+        saturation: Float = 1.8f,
+        speed: Float = 1f,
+        darkTint: Float = 0.2f,
+        renderScale: Float = 4f,
+        layer2Alpha: Float = 0.6f,
+        layer3Alpha: Float = 0.5f,
+        zoom: Float = 1.7f,
+        reverse: Boolean = false,
+        bottomShade: Float = 0.25f,
+        textureSize: Int = 128,
+    ) = LiveMeshConfig(
+        blurStrength = blur,
+        saturation = saturation,
+        speed = speed,
+        darkTint = darkTint,
+        renderScale = renderScale,
+        layer2Alpha = layer2Alpha,
+        layer3Alpha = layer3Alpha,
+        zoom = zoom,
+        reverseDirection = reverse,
+        bottomShade = bottomShade,
+        textureSize = textureSize,
+    )
+
     @Test
     fun defaultConfigMatchesOriginalPlayerAppearance() {
-        val default = LiveMeshConfig.Default
+        assertEquals(config(), LiveMeshConfig.Default)
+    }
 
-        assertEquals(1f, default.blurStrength, 0f)
-        assertEquals(1.8f, default.saturation, 0f)
-        assertEquals(1f, default.speed, 0f)
-        assertEquals(0.2f, default.darkTint, 0f)
+    @Test
+    fun miniDefaultKeepsOriginalMiniAppearance() {
+        val mini = LiveMeshConfig.MiniDefault
+
+        assertEquals(1.6f, mini.saturation, 0f)
+        assertEquals(0.3f, mini.darkTint, 0f)
+        assertEquals(1.5f, mini.zoom, 0f)
     }
 
     @Test
     fun defaultConfigIsAlreadyWithinBounds() {
         assertEquals(LiveMeshConfig.Default, LiveMeshConfig.Default.clamped())
+        assertEquals(LiveMeshConfig.MiniDefault, LiveMeshConfig.MiniDefault.clamped())
     }
 
     @Test
     fun valuesBelowMinimumAreRaisedToMinimum() {
-        val clamped = LiveMeshConfig(blurStrength = 0f, saturation = 0f, speed = 0f, darkTint = -1f).clamped()
+        val clamped = config(
+            blur = 0f,
+            saturation = 0f,
+            speed = 0f,
+            darkTint = -1f,
+            renderScale = 0f,
+            layer2Alpha = -1f,
+            layer3Alpha = -1f,
+            zoom = 0f,
+            bottomShade = -1f,
+            textureSize = 0,
+        ).clamped()
 
         assertEquals(LiveMeshConfig.BLUR_STRENGTH_MIN, clamped.blurStrength, 0f)
         assertEquals(LiveMeshConfig.SATURATION_MIN, clamped.saturation, 0f)
         assertEquals(LiveMeshConfig.SPEED_MIN, clamped.speed, 0f)
         assertEquals(LiveMeshConfig.DARK_TINT_MIN, clamped.darkTint, 0f)
+        assertEquals(LiveMeshConfig.RENDER_SCALE_MIN, clamped.renderScale, 0f)
+        assertEquals(LiveMeshConfig.LAYER_ALPHA_MIN, clamped.layer2Alpha, 0f)
+        assertEquals(LiveMeshConfig.LAYER_ALPHA_MIN, clamped.layer3Alpha, 0f)
+        assertEquals(LiveMeshConfig.ZOOM_MIN, clamped.zoom, 0f)
+        assertEquals(LiveMeshConfig.BOTTOM_SHADE_MIN, clamped.bottomShade, 0f)
+        assertEquals(LiveMeshConfig.TEXTURE_SIZE_MIN, clamped.textureSize)
     }
 
     @Test
     fun valuesAboveMaximumAreLoweredToMaximum() {
-        val clamped = LiveMeshConfig(blurStrength = 10f, saturation = 10f, speed = 10f, darkTint = 1f).clamped()
+        val clamped = config(
+            blur = 10f,
+            saturation = 10f,
+            speed = 10f,
+            darkTint = 1f,
+            renderScale = 100f,
+            layer2Alpha = 2f,
+            layer3Alpha = 2f,
+            zoom = 5f,
+            bottomShade = 2f,
+            textureSize = 4096,
+        ).clamped()
 
         assertEquals(LiveMeshConfig.BLUR_STRENGTH_MAX, clamped.blurStrength, 0f)
         assertEquals(LiveMeshConfig.SATURATION_MAX, clamped.saturation, 0f)
         assertEquals(LiveMeshConfig.SPEED_MAX, clamped.speed, 0f)
         assertEquals(LiveMeshConfig.DARK_TINT_MAX, clamped.darkTint, 0f)
+        assertEquals(LiveMeshConfig.RENDER_SCALE_MAX, clamped.renderScale, 0f)
+        assertEquals(LiveMeshConfig.LAYER_ALPHA_MAX, clamped.layer2Alpha, 0f)
+        assertEquals(LiveMeshConfig.LAYER_ALPHA_MAX, clamped.layer3Alpha, 0f)
+        assertEquals(LiveMeshConfig.ZOOM_MAX, clamped.zoom, 0f)
+        assertEquals(LiveMeshConfig.BOTTOM_SHADE_MAX, clamped.bottomShade, 0f)
+        assertEquals(LiveMeshConfig.TEXTURE_SIZE_MAX, clamped.textureSize)
     }
 
     @Test
     fun valuesInsideBoundsAreKept() {
-        val config = LiveMeshConfig(blurStrength = 1.5f, saturation = 2f, speed = 0.5f, darkTint = 0.4f)
+        val config = config(blur = 1.5f, saturation = 2f, speed = 0.5f, darkTint = 0.4f, renderScale = 2f, zoom = 1.2f)
 
         assertEquals(config, config.clamped())
+    }
+
+    @Test
+    fun reverseFlagIsNotAffectedByClamping() {
+        assertEquals(true, config(reverse = true).clamped().reverseDirection)
     }
 
     @Test
@@ -69,5 +139,17 @@ class LiveMeshConfigTest {
     @Test
     fun periodIsRoundedToWholeMilliseconds() {
         assertEquals(13333, liveMeshPeriodMillis(40000, speed = 3f))
+    }
+
+    @Test
+    fun playerKeysKeepOriginalPreferenceNames() {
+        assertEquals("liveMeshBlurStrength", PlayerLiveMeshKeys.blurStrength.name)
+        assertEquals("liveMeshDarkTint", PlayerLiveMeshKeys.darkTint.name)
+    }
+
+    @Test
+    fun miniKeysAreSeparateFromPlayerKeys() {
+        assertEquals("miniLiveMeshBlurStrength", MiniLiveMeshKeys.blurStrength.name)
+        assertEquals("miniLiveMeshReverseDirection", MiniLiveMeshKeys.reverseDirection.name)
     }
 }
