@@ -181,6 +181,11 @@
     <string name="album_settings">Album Settings</string>
     <string name="new_mini_player_design">New mini player design</string>
     <string name="player_background_blur">Blur</string>
+    <string name="live_mesh_settings">Live Mesh settings</string>
+    <string name="live_mesh_blur">Blur strength</string>
+    <string name="live_mesh_saturation">Saturation</string>
+    <string name="live_mesh_speed">Rotation speed</string>
+    <string name="live_mesh_dark_tint">Darkness</string>
     <string name="background_effects">Background effects</string>
     <string name="background_effects_auto">Auto (lighter on weak devices)</string>
     <string name="background_effects_full">Full</string>

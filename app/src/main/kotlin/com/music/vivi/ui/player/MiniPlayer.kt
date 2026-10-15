@@ -128,6 +128,8 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.ui.utils.LOW_RES_FACTOR
+import com.music.vivi.ui.utils.liveMeshPeriodMillis
+import com.music.vivi.ui.utils.rememberLiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1160,12 +1162,13 @@ internal fun MiniPlayerBackgroundLayer(
             }
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
+            val liveMesh = rememberLiveMeshConfig()
             val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
             val rotation = infiniteTransition.animateFloat(
                 initialValue = 0f,
                 targetValue = 360f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(60000, easing = LinearEasing),
+                    animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
                     repeatMode = RepeatMode.Restart
                 ),
                 label = "rotation"
@@ -1179,7 +1182,7 @@ internal fun MiniPlayerBackgroundLayer(
                         scaleY = 1.5f
                     }
             ) {
-                val matrix = remember { ColorMatrix().apply { setToSaturation(1.6f) } }
+                val matrix = remember(liveMesh.saturation) { ColorMatrix().apply { setToSaturation(liveMesh.saturation) } }
                 LowResolutionLayer {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
@@ -1192,11 +1195,11 @@ internal fun MiniPlayerBackgroundLayer(
                     colorFilter = ColorFilter.colorMatrix(matrix),
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(40.dp / LOW_RES_FACTOR)
+                        .blur(40.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
                         .graphicsLayer { rotationZ = rotation.value }
                 )
                 }
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = liveMesh.darkTint)))
             }
         }
         else -> {}

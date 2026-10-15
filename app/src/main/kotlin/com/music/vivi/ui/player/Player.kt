@@ -213,6 +213,8 @@ import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.LOW_RES_FACTOR
+import com.music.vivi.ui.utils.liveMeshPeriodMillis
+import com.music.vivi.ui.utils.rememberLiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1260,13 +1262,14 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
+                        val liveMesh = rememberLiveMeshConfig()
                         val infiniteTransition = rememberInfiniteTransition(label = "liveMeshRotation")
-                        
+
                         val anchorRotation by infiniteTransition.animateFloat(
                             initialValue = 0f,
                             targetValue = -360f,
                             animationSpec = infiniteRepeatable(
-                                animation = tween(80000, easing = LinearEasing),
+                                animation = tween(liveMeshPeriodMillis(80000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
                             ),
                             label = "anchorRotation"
@@ -1276,7 +1279,7 @@ fun BottomSheetPlayer(
                             initialValue = 0f,
                             targetValue = 360f,
                             animationSpec = infiniteRepeatable(
-                                animation = tween(40000, easing = LinearEasing),
+                                animation = tween(liveMeshPeriodMillis(40000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
                             ),
                             label = "fastRotation"
@@ -1286,7 +1289,7 @@ fun BottomSheetPlayer(
                             initialValue = 0f,
                             targetValue = 360f,
                             animationSpec = infiniteRepeatable(
-                                animation = tween(60000, easing = LinearEasing),
+                                animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
                                 repeatMode = RepeatMode.Restart
                             ),
                             label = "slowRotation"
@@ -1310,9 +1313,9 @@ fun BottomSheetPlayer(
                                             scaleY = 1.7f
                                         }
                                 ) {
-                                    val matrix = remember { 
+                                    val matrix = remember(liveMesh.saturation) {
                                         val m = ColorMatrix()
-                                        m.setToSaturation(1.8f) // Reduced to avoid neon look
+                                        m.setToSaturation(liveMesh.saturation) // Reduced to avoid neon look
                                         m
                                     }
                                     val colorFilter = ColorFilter.colorMatrix(matrix)
@@ -1330,7 +1333,7 @@ fun BottomSheetPlayer(
                                         colorFilter = colorFilter,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(100.dp / LOW_RES_FACTOR)
+                                            .blur(100.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
                                             .graphicsLayer { rotationZ = anchorRotation }
                                     )
 
@@ -1347,7 +1350,7 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.TopStart,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp / LOW_RES_FACTOR)
+                                            .blur(120.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
                                             .graphicsLayer { 
                                                 rotationZ = fastRotation
                                                 alpha = 0.6f
@@ -1367,7 +1370,7 @@ fun BottomSheetPlayer(
                                         alignment = Alignment.BottomEnd,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp / LOW_RES_FACTOR)
+                                            .blur(120.dp * liveMesh.blurStrength / LOW_RES_FACTOR)
                                             .graphicsLayer { 
                                                 rotationZ = slowRotation
                                                 alpha = 0.5f
@@ -1379,7 +1382,7 @@ fun BottomSheetPlayer(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.2f))
+                                            .background(Color.Black.copy(alpha = liveMesh.darkTint))
                                     )
                                     Box(
                                         modifier = Modifier

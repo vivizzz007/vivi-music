@@ -82,6 +82,13 @@ import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.BackgroundEffectsMode
+import com.music.vivi.constants.LiveMeshBlurStrengthKey
+import com.music.vivi.constants.LiveMeshDarkTintKey
+import com.music.vivi.constants.LiveMeshSaturationKey
+import com.music.vivi.constants.LiveMeshSpeedKey
+import com.music.vivi.ui.component.LiveMeshSettingsDialog
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.clamped
 import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
@@ -270,6 +277,24 @@ fun AppearanceSettings(
         BackgroundEffectsModeKey,
         defaultValue = BackgroundEffectsMode.AUTO,
     )
+
+    val (liveMeshBlur, onLiveMeshBlurChange) = rememberPreference(
+        LiveMeshBlurStrengthKey,
+        defaultValue = LiveMeshConfig.Default.blurStrength,
+    )
+    val (liveMeshSaturation, onLiveMeshSaturationChange) = rememberPreference(
+        LiveMeshSaturationKey,
+        defaultValue = LiveMeshConfig.Default.saturation,
+    )
+    val (liveMeshSpeed, onLiveMeshSpeedChange) = rememberPreference(
+        LiveMeshSpeedKey,
+        defaultValue = LiveMeshConfig.Default.speed,
+    )
+    val (liveMeshDarkTint, onLiveMeshDarkTintChange) = rememberPreference(
+        LiveMeshDarkTintKey,
+        defaultValue = LiveMeshConfig.Default.darkTint,
+    )
+    val liveMeshConfig = LiveMeshConfig(liveMeshBlur, liveMeshSaturation, liveMeshSpeed, liveMeshDarkTint).clamped()
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -488,6 +513,10 @@ fun AppearanceSettings(
     }
 
     var showBackgroundEffectsDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showLiveMeshDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -755,6 +784,20 @@ fun AppearanceSettings(
 
     var showDefaultOpenTabDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            initial = liveMeshConfig,
+            onDismiss = { showLiveMeshDialog = false },
+            onConfirm = { config ->
+                onLiveMeshBlurChange(config.blurStrength)
+                onLiveMeshSaturationChange(config.saturation)
+                onLiveMeshSpeedChange(config.speed)
+                onLiveMeshDarkTintChange(config.darkTint)
+                showLiveMeshDialog = false
+            }
+        )
     }
 
     if (showBackgroundEffectsDialog) {
@@ -1357,6 +1400,11 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { showBackgroundEffectsDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings)) },
+                    onClick = { showLiveMeshDialog = true }
                 ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
