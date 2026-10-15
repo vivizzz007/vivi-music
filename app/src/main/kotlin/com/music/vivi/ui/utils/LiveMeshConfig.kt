@@ -32,6 +32,8 @@ internal data class LiveMeshConfig(
     val reverseDirection: Boolean,
     val bottomShade: Float,
     val textureSize: Int,
+    val beatReactivity: Float,
+    val lyricReactivity: Float,
 ) {
     companion object {
         const val BLUR_STRENGTH_MIN = 0.5f
@@ -52,6 +54,8 @@ internal data class LiveMeshConfig(
         const val BOTTOM_SHADE_MAX = 1f
         const val TEXTURE_SIZE_MIN = 64
         const val TEXTURE_SIZE_MAX = 256
+        const val REACTIVITY_MIN = 0f
+        const val REACTIVITY_MAX = 1f
 
         val Default = LiveMeshConfig(
             blurStrength = 1f,
@@ -65,6 +69,8 @@ internal data class LiveMeshConfig(
             reverseDirection = false,
             bottomShade = 0.25f,
             textureSize = 128,
+            beatReactivity = 0.5f,
+            lyricReactivity = 0.5f,
         )
 
         val MiniDefault = Default.copy(
@@ -87,7 +93,23 @@ internal fun LiveMeshConfig.clamped(): LiveMeshConfig = LiveMeshConfig(
     reverseDirection = reverseDirection,
     bottomShade = bottomShade.coerceIn(LiveMeshConfig.BOTTOM_SHADE_MIN, LiveMeshConfig.BOTTOM_SHADE_MAX),
     textureSize = textureSize.coerceIn(LiveMeshConfig.TEXTURE_SIZE_MIN, LiveMeshConfig.TEXTURE_SIZE_MAX),
+    beatReactivity = beatReactivity.coerceIn(LiveMeshConfig.REACTIVITY_MIN, LiveMeshConfig.REACTIVITY_MAX),
+    lyricReactivity = lyricReactivity.coerceIn(LiveMeshConfig.REACTIVITY_MIN, LiveMeshConfig.REACTIVITY_MAX),
 )
+
+internal const val BEAT_ZOOM_BOOST = 0.08f
+internal const val LYRIC_ZOOM_BOOST = 0.04f
+
+// Beats and lyric lines briefly push the layers outward; the reactivity sliders decide how far they move.
+internal fun reactiveZoom(
+    baseZoom: Float,
+    beat: Float,
+    lyric: Float,
+    beatReactivity: Float,
+    lyricReactivity: Float,
+): Float = baseZoom +
+    beat.coerceIn(0f, 1f) * BEAT_ZOOM_BOOST * beatReactivity +
+    lyric.coerceIn(0f, 1f) * LYRIC_ZOOM_BOOST * lyricReactivity
 
 // Higher speed shortens the rotation period so the mesh turns faster without changing its shape.
 internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
@@ -105,6 +127,8 @@ internal class LiveMeshKeys(prefix: String) {
     val reverseDirection: Preferences.Key<Boolean> = booleanPreferencesKey("${prefix}liveMeshReverseDirection")
     val bottomShade: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshBottomShade")
     val textureSize: Preferences.Key<Int> = intPreferencesKey("${prefix}liveMeshTextureSize")
+    val beatReactivity: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshBeatReactivity")
+    val lyricReactivity: Preferences.Key<Float> = floatPreferencesKey("${prefix}liveMeshLyricReactivity")
 }
 
 internal val PlayerLiveMeshKeys = LiveMeshKeys(prefix = "")
@@ -136,6 +160,8 @@ internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig)
     val reverseDirection by rememberPreference(keys.reverseDirection, defaultValue = defaults.reverseDirection)
     val bottomShade by rememberPreference(keys.bottomShade, defaultValue = defaults.bottomShade)
     val textureSize by rememberPreference(keys.textureSize, defaultValue = defaults.textureSize)
+    val beatReactivity by rememberPreference(keys.beatReactivity, defaultValue = defaults.beatReactivity)
+    val lyricReactivity by rememberPreference(keys.lyricReactivity, defaultValue = defaults.lyricReactivity)
 
     val config = LiveMeshConfig(
         blurStrength = blurStrength,
@@ -149,6 +175,8 @@ internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig)
         reverseDirection = reverseDirection,
         bottomShade = bottomShade,
         textureSize = textureSize,
+        beatReactivity = beatReactivity,
+        lyricReactivity = lyricReactivity,
     ).clamped()
 
     val context = LocalContext.current
@@ -168,6 +196,8 @@ internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig)
                 prefs[keys.reverseDirection] = clampedValue.reverseDirection
                 prefs[keys.bottomShade] = clampedValue.bottomShade
                 prefs[keys.textureSize] = clampedValue.textureSize
+                prefs[keys.beatReactivity] = clampedValue.beatReactivity
+                prefs[keys.lyricReactivity] = clampedValue.lyricReactivity
             }
         }
     }

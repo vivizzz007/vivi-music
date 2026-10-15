@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -164,6 +165,22 @@ internal fun LiveMeshSettingsDialog(
                     range = LiveMeshConfig.TEXTURE_SIZE_MIN.toFloat()..LiveMeshConfig.TEXTURE_SIZE_MAX.toFloat(),
                     onValueChange = { draft = draft.copy(textureSize = it.roundToInt()) }
                 )
+
+                LiveMeshSectionTitle(stringResource(R.string.live_mesh_section_reactivity))
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_beat_reactivity),
+                    description = stringResource(R.string.live_mesh_beat_reactivity_desc),
+                    value = draft.beatReactivity,
+                    range = LiveMeshConfig.REACTIVITY_MIN..LiveMeshConfig.REACTIVITY_MAX,
+                    onValueChange = { draft = draft.copy(beatReactivity = it) }
+                )
+                LiveMeshSlider(
+                    label = stringResource(R.string.live_mesh_lyric_reactivity),
+                    description = stringResource(R.string.live_mesh_lyric_reactivity_desc),
+                    value = draft.lyricReactivity,
+                    range = LiveMeshConfig.REACTIVITY_MIN..LiveMeshConfig.REACTIVITY_MAX,
+                    onValueChange = { draft = draft.copy(lyricReactivity = it) }
+                )
             }
         },
         confirmButton = {
@@ -188,8 +205,9 @@ internal fun LiveMeshSettingsDialog(
 private fun LiveMeshSectionTitle(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 4.dp)
     )
 }
 

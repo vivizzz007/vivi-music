@@ -17,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.runtime.*
+import com.music.vivi.audio.AudioPulse
+import com.music.vivi.audio.LYRIC_LINE_STRENGTH
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
@@ -518,6 +520,10 @@ fun LyricsV2(
                 // Scroll anchor: single line index used to keep the list auto-scrolling
                 val currentLineIndex by remember(lines, lyricsOffset) {
                     derivedStateOf { LyricsUtils.findCurrentLineIndex(lines, currentPosition + lyricsOffset) }
+                }
+
+                LaunchedEffect(currentLineIndex) {
+                    if (currentLineIndex != -1) AudioPulse.triggerLyricLine(LYRIC_LINE_STRENGTH)
                 }
 
                 // Active set: all lines currently being sung (handles v1 + bg sharing same timestamp)

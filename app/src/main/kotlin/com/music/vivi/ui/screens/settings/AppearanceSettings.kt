@@ -1405,6 +1405,12 @@ fun AppearanceSettings(
                     onClick = { showBackgroundEffectsDialog = true }
                 ),
                 Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.live_mesh_presets)) },
+                    description = { Text(stringResource(R.string.live_mesh_presets_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_presets") }
+                ),
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.live_mesh_settings)) },
                     description = { Text(stringResource(R.string.live_mesh_settings_desc)) },

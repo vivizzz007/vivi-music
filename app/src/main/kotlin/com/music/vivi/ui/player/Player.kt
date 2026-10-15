@@ -213,6 +213,8 @@ import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
+import com.music.vivi.ui.utils.reactiveZoom
+import com.music.vivi.audio.AudioPulse
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.rememberLiveMeshStore
@@ -1311,8 +1313,15 @@ fun BottomSheetPlayer(
                                         .alpha(backgroundAlpha)
                                         .graphicsLayer {
                                             // Scale up to avoid showing edges during rotation
-                                            scaleX = liveMesh.zoom
-                                            scaleY = liveMesh.zoom
+                                            val zoom = reactiveZoom(
+                                                baseZoom = liveMesh.zoom,
+                                                beat = AudioPulse.beat(),
+                                                lyric = AudioPulse.lyric(),
+                                                beatReactivity = liveMesh.beatReactivity,
+                                                lyricReactivity = liveMesh.lyricReactivity,
+                                            )
+                                            scaleX = zoom
+                                            scaleY = zoom
                                         }
                                 ) {
                                     val matrix = remember(liveMesh.saturation) {

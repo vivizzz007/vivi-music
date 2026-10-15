@@ -129,6 +129,8 @@ import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
+import com.music.vivi.ui.utils.reactiveZoom
+import com.music.vivi.audio.AudioPulse
 import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1178,8 +1180,15 @@ internal fun MiniPlayerBackgroundLayer(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        scaleX = liveMesh.zoom
-                        scaleY = liveMesh.zoom
+                        val zoom = reactiveZoom(
+                            baseZoom = liveMesh.zoom,
+                            beat = AudioPulse.beat(),
+                            lyric = AudioPulse.lyric(),
+                            beatReactivity = liveMesh.beatReactivity,
+                            lyricReactivity = liveMesh.lyricReactivity,
+                        )
+                        scaleX = zoom
+                        scaleY = zoom
                     }
             ) {
                 val matrix = remember(liveMesh.saturation) { ColorMatrix().apply { setToSaturation(liveMesh.saturation) } }

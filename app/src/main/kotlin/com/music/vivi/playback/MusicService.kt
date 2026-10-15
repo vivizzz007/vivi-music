@@ -171,6 +171,7 @@ import com.music.vivi.di.DownloadCache
 import com.music.vivi.di.PlayerCache
 import com.music.vivi.di.SpotifyCanvasCache
 import com.music.vivi.eq.EqualizerService
+import com.music.vivi.audio.BeatAnalyzerAudioProcessor
 import com.music.vivi.eq.audio.CustomEqualizerAudioProcessor
 import com.music.vivi.eq.data.EQProfileRepository
 import com.music.vivi.extensions.SilentHandler
@@ -1243,6 +1244,7 @@ class MusicService :
         equalizerService.addAudioProcessor(eqProcessor)
 
         val silenceProcessor = SilenceDetectorAudioProcessor { handleLongSilenceDetected() }
+        val beatProcessor = BeatAnalyzerAudioProcessor()
 
         // Set initial state
         runBlocking {
@@ -1257,7 +1259,7 @@ class MusicService :
 
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
-            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, useAudioTrackParams))
+            .setRenderersFactory(createRenderersFactory(eqProcessor, silenceProcessor, beatProcessor, useAudioTrackParams))
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .setAudioAttributes(
@@ -3582,6 +3584,7 @@ class MusicService :
     private fun createRenderersFactory(
         eqProcessor: CustomEqualizerAudioProcessor,
         silenceProcessor: SilenceDetectorAudioProcessor,
+        beatProcessor: BeatAnalyzerAudioProcessor,
         useAudioTrackPlaybackParams: Boolean,
     ) =
         object : DefaultRenderersFactory(this) {
@@ -3643,6 +3646,7 @@ class MusicService :
                         arrayOf(
                             eqProcessor,
                             silenceProcessor,
+                            beatProcessor,
                         ),
                         SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
                         SonicAudioProcessor(),

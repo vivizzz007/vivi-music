@@ -16,6 +16,8 @@ class LiveMeshConfigTest {
         reverse: Boolean = false,
         bottomShade: Float = 0.25f,
         textureSize: Int = 128,
+        beat: Float = 0.5f,
+        lyric: Float = 0.5f,
     ) = LiveMeshConfig(
         blurStrength = blur,
         saturation = saturation,
@@ -28,6 +30,8 @@ class LiveMeshConfigTest {
         reverseDirection = reverse,
         bottomShade = bottomShade,
         textureSize = textureSize,
+        beatReactivity = beat,
+        lyricReactivity = lyric,
     )
 
     @Test
@@ -134,6 +138,44 @@ class LiveMeshConfigTest {
     @Test
     fun zeroSpeedIsTreatedAsSlowestInsteadOfDividingByZero() {
         assertEquals(240000, liveMeshPeriodMillis(60000, speed = 0f))
+    }
+
+    @Test
+    fun reactivityValuesAreClampedToUnitRange() {
+        val clamped = config(beat = -1f, lyric = 3f).clamped()
+
+        assertEquals(LiveMeshConfig.REACTIVITY_MIN, clamped.beatReactivity, 0f)
+        assertEquals(LiveMeshConfig.REACTIVITY_MAX, clamped.lyricReactivity, 0f)
+    }
+
+    @Test
+    fun reactiveZoomStaysAtBaseWhenThereIsNoPulse() {
+        assertEquals(1.7f, reactiveZoom(1.7f, beat = 0f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 1f), 0f)
+    }
+
+    @Test
+    fun reactiveZoomGrowsWithBeatAndRespectsReactivity() {
+        assertEquals(1.7f + BEAT_ZOOM_BOOST, reactiveZoom(1.7f, beat = 1f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 0f), 1e-6f)
+        assertEquals(1.7f, reactiveZoom(1.7f, beat = 1f, lyric = 0f, beatReactivity = 0f, lyricReactivity = 0f), 1e-6f)
+    }
+
+    @Test
+    fun reactiveZoomIgnoresOutOfRangePulses() {
+        assertEquals(1.7f + BEAT_ZOOM_BOOST, reactiveZoom(1.7f, beat = 5f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 0f), 1e-6f)
+        assertEquals(1.7f, reactiveZoom(1.7f, beat = -5f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 0f), 1e-6f)
+    }
+
+    @Test
+    fun presetsAreAllWithinBoundsAndUniquelyNamed() {
+        LiveMeshPresets.forEach { preset ->
+            assertEquals(preset.config.clamped(), preset.config)
+        }
+        assertEquals(LiveMeshPresets.size, LiveMeshPresets.map { it.nameRes }.distinct().size)
+    }
+
+    @Test
+    fun firstPresetIsTheOriginalDefault() {
+        assertEquals(LiveMeshConfig.Default, LiveMeshPresets.first().config)
     }
 
     @Test
