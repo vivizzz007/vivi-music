@@ -99,6 +99,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -1195,6 +1196,7 @@ class MainActivity : ComponentActivity() {
                                             // Use graphicsLayer instead of offset to avoid recomposition
                                             // graphicsLayer runs during draw phase, not composition phase
                                             .graphicsLayer {
+                                                compositingStrategy = CompositingStrategy.Offscreen
                                                 val navBarHeightPx = navigationBarHeight.toPx()
                                                 val totalHeightPx = navBarTotalHeight.toPx()
 
