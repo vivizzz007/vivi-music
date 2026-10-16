@@ -368,6 +368,17 @@
     <string name="new_version_available">最新版あり</string>
     <string name="translation_models">翻訳モデル</string>
     <string name="clear_translation_models">翻訳モデルを消去</string>
+    <string name="use_login_for_browse_desc">例えば、Premiumのアカウントでログインした時に、Premium限定のアルバムが表示されるようになります</string>
+    <string name="use_login_for_browse">表示されるコンテンツをアカウントと結び付ける</string>
+    <string name="action_login">ログイン</string>
+
+    <string name="create_playlist_or_spotify_hint">プレイリスト名または Spotify プレイリストのリンク</string>
+    <string name="spotify_importing_playlist">Spotify からインポート中…</string>
+    <string name="spotify_import_result">%1$d トラックをインポートしました。 %2$d は一致しませんでした。</string>
+    <string name="spotify_import_failed">この Spotify プレイリストをインポートできませんでした。</string>
+    <string name="spotify_import_timeout">インポートに時間がかかりすぎました。ネットワークを確認して、もう一度試してください。</string>
+    <string name="music">音楽</string>
+
     <string name="bluetooth_permission_required">オーディオ機器を検出するにはBluetoothの権限が必要です。</string>
     <string name="streaming_to">ストリーミング先</string>
     <string name="this_phone">この端末</string>

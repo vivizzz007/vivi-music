@@ -2,4 +2,12 @@
 <resources>
     <string name="forgotten_favorites">Forgotten favourites</string>
     <string name="center">Centre</string>
+
+    <string name="create_playlist_or_spotify_hint">Playlist name or Spotify playlist link</string>
+    <string name="spotify_importing_playlist">Importing from Spotify…</string>
+    <string name="spotify_import_result">Imported %1$d tracks. %2$d could not be matched.</string>
+    <string name="spotify_import_failed">Could not import this Spotify playlist.</string>
+    <string name="spotify_import_timeout">Import took too long. Check your network and try again.</string>
+    <string name="music">Music</string>
+
 </resources>

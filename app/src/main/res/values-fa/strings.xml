@@ -237,4 +237,12 @@
     <string name="remove_from_queue">حذف از صف</string>
     <string name="tempo_and_pitch">تمپو و زیر و بمی صدا</string>
     <string name="duplicates">تکراری ها</string>
+
+    <string name="create_playlist_or_spotify_hint">نام لیست پخش یا پیوند لیست پخش Spotify</string>
+    <string name="spotify_importing_playlist">در حال وارد کردن از Spotify…</string>
+    <string name="spotify_import_result">%1$d آهنگ وارد شد. %2$d مطابقت ندارد.</string>
+    <string name="spotify_import_failed">نمی‌توان این لیست پخش Spotify را وارد کرد.</string>
+    <string name="spotify_import_timeout">واردات خیلی طول کشید. شبکه خود را بررسی کنید و دوباره امتحان کنید.</string>
+    <string name="music">موسیقی</string>
+
 </resources>

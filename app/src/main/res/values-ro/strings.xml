@@ -288,4 +288,11 @@
     <string name="refetch">Reîncarcă</string>
     <string name="sided">Într-o parte</string>
     <string name="remove_download_playlist_confirm">Sigur vrei să ștergi toate cele %s (de) melodii din playlist din Melodii descărcate?</string>
+
+    <string name="create_playlist_or_spotify_hint">Numele listei de redare sau linkul listei de redare Spotify</string>
+    <string name="spotify_importing_playlist">Se importă de pe Spotify...</string>
+    <string name="spotify_import_result">Au importat %1$d melodii. %2$d nu a putut fi asociat.</string>
+    <string name="spotify_import_failed">Nu s-a putut importa această listă de redare Spotify.</string>
+    <string name="spotify_import_timeout">Importul a durat prea mult. Verificați-vă rețeaua și încercați din nou.</string>
+    <string name="music">Muzică</string>
 </resources>

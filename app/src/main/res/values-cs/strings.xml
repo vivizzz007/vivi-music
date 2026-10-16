@@ -288,4 +288,12 @@
     <string name="use_login_for_browse">Použít účet pro procházení obsahu</string>
     <string name="use_login_for_browse_desc">Může ovlivnit obsah, který se vám zobrazí – při přihlášení například mohou být zobrazena například alba, která jsou dostupná pouze s Premium účtem</string>
     <string name="action_login">Přihlásit se</string>
+
+    <string name="create_playlist_or_spotify_hint">Název seznamu skladeb nebo odkaz na seznam skladeb Spotify</string>
+    <string name="spotify_importing_playlist">Import ze Spotify…</string>
+    <string name="spotify_import_result">Počet importovaných skladeb: %1$d. %2$d se nepodařilo najít.</string>
+    <string name="spotify_import_failed">Tento seznam skladeb Spotify nelze importovat.</string>
+    <string name="spotify_import_timeout">Import trval příliš dlouho. Zkontrolujte síť a zkuste to znovu.</string>
+    <string name="music">Hudba</string>
+
 </resources>

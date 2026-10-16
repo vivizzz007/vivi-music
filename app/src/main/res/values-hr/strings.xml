@@ -288,4 +288,11 @@
     <string name="use_login_for_browse">Koristi prijavu za pregledavanje sadržaja</string>
     <string name="use_login_for_browse_desc">Ovo može utjecati na sadržaj koji vidiš i, na primjer, prikazuje samo premium albume ako si prijavljen/a s Premium računom</string>
     <string name="action_login">Prijavi se</string>
+
+    <string name="create_playlist_or_spotify_hint">Naziv popisa za reprodukciju ili poveznica na Spotify popis za reprodukciju</string>
+    <string name="spotify_importing_playlist">Uvoz sa Spotifyja…</string>
+    <string name="spotify_import_result">Uvezeno je %1$d zapisa. Nije moguće pronaći %2$d.</string>
+    <string name="spotify_import_failed">Nije moguće uvesti ovaj Spotify popis za reprodukciju.</string>
+    <string name="spotify_import_timeout">Uvoz je trajao predugo. Provjerite svoju mrežu i pokušajte ponovno.</string>
+    <string name="music">Glazba</string>
 </resources>

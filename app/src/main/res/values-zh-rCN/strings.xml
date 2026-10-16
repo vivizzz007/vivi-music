@@ -270,4 +270,11 @@
     <string name="use_login_for_browse_desc">这可能会影响您看到的内容，例如，如果您使用会员账号登录，则会显示仅会员专辑</string>
     <string name="use_login_for_browse">登录账号浏览内容</string>
     <string name="action_login">登录</string>
+
+    <string name="create_playlist_or_spotify_hint">播放列表名称或 Spotify 播放列表链接</string>
+    <string name="spotify_importing_playlist">从 Spotify 导入...</string>
+    <string name="spotify_import_result">已导入 %1$d 首曲目。 %2$d 无法匹配。</string>
+    <string name="spotify_import_failed">无法导入此 Spotify 播放列表。</string>
+    <string name="spotify_import_timeout">导入时间太长。检查您的网络并重试。</string>
+    <string name="music">音乐</string>
 </resources>

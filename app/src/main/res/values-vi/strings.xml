@@ -270,4 +270,11 @@
     <string name="use_login_for_browse">Đăng nhập để xem nội dung</string>
     <string name="use_login_for_browse_desc">Điều này có thể ảnh hưởng đến nội dung bạn nhìn thấy, ví dụ như hiện những album dành riêng cho premium nếu bạn đăng nhập với tài khoản Premium</string>
     <string name="action_login">Đăng nhập</string>
+
+    <string name="create_playlist_or_spotify_hint">Tên danh sách phát hoặc liên kết danh sách phát Spotify</string>
+    <string name="spotify_importing_playlist">Đang nhập từ Spotify…</string>
+    <string name="spotify_import_result">Đã nhập %1$d bản nhạc. Không thể khớp %2$d.</string>
+    <string name="spotify_import_failed">Không thể nhập danh sách phát Spotify này.</string>
+    <string name="spotify_import_timeout">Quá trình nhập mất quá nhiều thời gian. Hãy kiểm tra mạng của bạn và thử lại.</string>
+    <string name="music">Âm nhạc</string>
 </resources>

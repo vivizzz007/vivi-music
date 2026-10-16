@@ -297,4 +297,11 @@
     <string name="use_login_for_browse">Авторизуйтесь для просмотра контента</string>
     <string name="use_login_for_browse_desc">Это влияет на отображение контента и, в частности, открывает доступ к премиум-альбомам при входе с премиум-учётной записью</string>
     <string name="action_login">Войти</string>
+
+    <string name="create_playlist_or_spotify_hint">Название плейлиста или ссылка на плейлист Spotify</string>
+    <string name="spotify_importing_playlist">Импорт из Spotify…</string>
+    <string name="spotify_import_result">Импортировано %1$d треков. %2$d не может быть сопоставлен.</string>
+    <string name="spotify_import_failed">Не удалось импортировать этот плейлист Spotify.</string>
+    <string name="spotify_import_timeout">Импорт занял слишком много времени. Проверьте свою сеть и повторите попытку.</string>
+    <string name="music">Музыка</string>
 </resources>
