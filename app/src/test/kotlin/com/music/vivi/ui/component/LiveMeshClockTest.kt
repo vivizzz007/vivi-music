@@ -1,6 +1,9 @@
 package com.music.vivi.ui.component
 
 import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.SHAKE_DECAY_MS
+import com.music.vivi.ui.utils.SHAKE_GLOW_PEAK
+import com.music.vivi.ui.utils.SHAKE_SPIN_PEAK
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -131,65 +134,82 @@ class LiveMeshClockTest {
     }
 
     @Test
-    fun tapGlowIsZeroWithoutATap() {
+    fun shakeGlowIsZeroWithoutAShake() {
         val clock = LiveMeshClock()
 
         clock.advance(1f, neutral, 1f, 0f, nowMs = 5_000L)
 
-        assertEquals(0f, clock.tapGlow, 0f)
+        assertEquals(0f, clock.shakeGlow, 0f)
     }
 
     @Test
-    fun tapGlowPeaksAfterItsAttack() {
+    fun shakeGlowPeaksRightAfterTheShake() {
         val clock = LiveMeshClock()
-        clock.tapStartMs = 1_000L
-
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 1_220L)
-
-        assertEquals(TAP_FLASH_PEAK_FOR_TEST, clock.tapGlow, 1e-6f)
-    }
-
-    @Test
-    fun tapGlowStartsFromZeroAtTheTapMoment() {
-        val clock = LiveMeshClock()
-        clock.tapStartMs = 1_000L
+        clock.triggerShake(1_000L)
 
         clock.advance(0f, neutral, 1f, 0f, nowMs = 1_000L)
 
-        assertEquals(0f, clock.tapGlow, 0f)
+        assertEquals(SHAKE_GLOW_PEAK, clock.shakeGlow, 1e-6f)
     }
 
     @Test
-    fun tapGlowFadesAfterThePeak() {
-        val clock = LiveMeshClock()
-        clock.tapStartMs = 1_000L
+    fun shakeSpinsLayersFasterThanCalmFrames() {
+        val calm = LiveMeshClock()
+        val shaken = LiveMeshClock()
+        shaken.triggerShake(0L)
 
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 1_220L + 500L)
+        calm.advance(1f, neutral, 1f, 0f, nowMs = 0L)
+        shaken.advance(1f, neutral, 1f, 0f, nowMs = 0L)
 
-        assertEquals(TAP_FLASH_PEAK_FOR_TEST * Math.exp(-1.0).toFloat(), clock.tapGlow, 1e-4f)
+        assertEquals(anchorPerSecond * (1f + SHAKE_SPIN_PEAK), shaken.anchor, 1e-3f)
+        assertEquals(fastPerSecond * (1f + SHAKE_SPIN_PEAK), shaken.fast, 1e-3f)
+        assertEquals(anchorPerSecond, calm.anchor, 1e-3f)
     }
 
     @Test
-    fun tapGlowIgnoresTimesBeforeTheTap() {
+    fun shakeSpinFadesBackToNormalSpeed() {
         val clock = LiveMeshClock()
-        clock.tapStartMs = 1_000L
+        clock.triggerShake(0L)
+        clock.advance(0f, neutral, 1f, 0f, nowMs = 0L)
+
+        // Far enough after the shake that the burst has effectively decayed.
+        clock.advance(1f, neutral, 1f, 0f, nowMs = 60_000L)
+
+        assertEquals(anchorPerSecond, clock.anchor, 1e-2f)
+        assertEquals(0f, clock.shakeGlow, 1e-6f)
+    }
+
+    @Test
+    fun shakeGlowFadesAfterThePeak() {
+        val clock = LiveMeshClock()
+        clock.triggerShake(1_000L)
+
+        clock.advance(0f, neutral, 1f, 0f, nowMs = 1_000L + SHAKE_DECAY_MS.toLong())
+
+        assertEquals(SHAKE_GLOW_PEAK * Math.exp(-1.0).toFloat(), clock.shakeGlow, 1e-4f)
+    }
+
+    @Test
+    fun shakeIgnoresTimesBeforeTheShake() {
+        val clock = LiveMeshClock()
+        clock.triggerShake(1_000L)
 
         clock.advance(0f, neutral, 1f, 0f, nowMs = 900L)
 
-        assertEquals(0f, clock.tapGlow, 0f)
+        assertEquals(0f, clock.shakeGlow, 0f)
     }
 
     @Test
-    fun repeatedTapRestartsTheFlash() {
+    fun repeatedShakeRestartsTheBurst() {
         val clock = LiveMeshClock()
-        clock.tapStartMs = 1_000L
+        clock.triggerShake(1_000L)
         clock.advance(0f, neutral, 1f, 0f, nowMs = 2_000L)
-        assertTrue(clock.tapGlow < TAP_FLASH_PEAK_FOR_TEST)
+        assertTrue(clock.shakeGlow < SHAKE_GLOW_PEAK)
 
-        clock.tapStartMs = 2_000L
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 2_220L)
+        clock.triggerShake(2_000L)
+        clock.advance(0f, neutral, 1f, 0f, nowMs = 2_000L)
 
-        assertEquals(TAP_FLASH_PEAK_FOR_TEST, clock.tapGlow, 1e-6f)
+        assertEquals(SHAKE_GLOW_PEAK, clock.shakeGlow, 1e-6f)
     }
 
     @Test
@@ -203,7 +223,4 @@ class LiveMeshClockTest {
         assertEquals(slowPerSecond, clock.slow, 1e-3f)
     }
 
-    private companion object {
-        const val TAP_FLASH_PEAK_FOR_TEST = 0.5f
-    }
 }

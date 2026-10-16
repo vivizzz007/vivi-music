@@ -226,8 +226,8 @@
     <string name="live_mesh_auto_tempo_desc">Spin the layers in time with the song\'s estimated tempo.</string>
     <string name="live_mesh_adaptive_quality">Adaptive quality</string>
     <string name="live_mesh_adaptive_quality_desc">Lowers rendering detail automatically when frames slow down, and restores it when they recover.</string>
-    <string name="live_mesh_tap_flash">Tap flash</string>
-    <string name="live_mesh_tap_flash_desc">Tap an empty part of the background for a soft flash in the center. Buttons and songs work as usual.</string>
+    <string name="live_mesh_shake">Shake effect</string>
+    <string name="live_mesh_shake_desc">Shake the phone while the player is open for a short burst of spin and light in the background.</string>
     <string name="live_mesh_reset_message">All Live Mesh values will return to their defaults. This cannot be undone.</string>
     <string name="live_mesh_settings_desc">Animated background behind the player. Tune how it looks and how much GPU it uses.</string>
     <string name="live_mesh_settings_mini_desc">Separate tuning for the mini player background.</string>

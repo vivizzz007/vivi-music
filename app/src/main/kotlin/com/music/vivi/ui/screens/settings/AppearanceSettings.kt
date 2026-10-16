@@ -85,7 +85,7 @@ import com.music.vivi.constants.BackgroundEffectsMode
 import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.constants.LiveMeshSeparateMiniKey
-import com.music.vivi.constants.LiveMeshTapFlashKey
+import com.music.vivi.constants.LiveMeshShakeKey
 import com.music.vivi.ui.component.LiveMeshSettingsDialog
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.MiniLiveMeshKeys
@@ -294,8 +294,8 @@ fun AppearanceSettings(
         LiveMeshAdaptiveQualityKey,
         defaultValue = true,
     )
-    val (liveMeshTapFlash, onLiveMeshTapFlashChange) = rememberPreference(
-        LiveMeshTapFlashKey,
+    val (liveMeshShake, onLiveMeshShakeChange) = rememberPreference(
+        LiveMeshShakeKey,
         defaultValue = true,
     )
     val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
@@ -1475,16 +1475,16 @@ fun AppearanceSettings(
                     visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.palette),
-                    title = { Text(stringResource(R.string.live_mesh_tap_flash)) },
-                    description = { Text(stringResource(R.string.live_mesh_tap_flash_desc)) },
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_shake)) },
+                    description = { Text(stringResource(R.string.live_mesh_shake_desc)) },
                     trailingContent = {
                         Switch(
-                            checked = liveMeshTapFlash,
-                            onCheckedChange = onLiveMeshTapFlashChange
+                            checked = liveMeshShake,
+                            onCheckedChange = onLiveMeshShakeChange
                         )
                     },
-                    onClick = { onLiveMeshTapFlashChange(!liveMeshTapFlash) },
+                    onClick = { onLiveMeshShakeChange(!liveMeshShake) },
                     visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(

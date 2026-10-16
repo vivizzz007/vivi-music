@@ -1163,7 +1163,7 @@ internal fun MiniPlayerBackgroundLayer(
             LiveMeshBackground(
                 config = liveMesh,
                 adaptiveQuality = false,
-                interactive = false,
+                expanded = false,
                 lowResolution = false,
                 clock = liveMeshClock,
             ) { layerModifier, alignment, colorFilter ->

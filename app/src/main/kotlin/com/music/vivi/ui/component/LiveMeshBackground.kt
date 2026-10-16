@@ -5,14 +5,17 @@
 
 package com.music.vivi.ui.component
 
+import android.content.Context
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -31,22 +34,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.music.vivi.audio.AudioPulse
-import com.music.vivi.audio.beatBump
 import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
-import com.music.vivi.constants.LiveMeshTapFlashKey
+import com.music.vivi.constants.LiveMeshShakeKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
+import com.music.vivi.ui.utils.ShakeDetector
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.nextAdaptiveScale
 import com.music.vivi.ui.utils.reactiveZoom
+import com.music.vivi.ui.utils.shakeGlowLevel
+import com.music.vivi.ui.utils.shakeSpinMultiplier
 import com.music.vivi.utils.rememberPreference
 import kotlin.math.sin
 
@@ -57,36 +60,42 @@ private const val BEAT_LAYER_BOOST = 0.18f
 private const val BEAT_TINT_RELIEF = 0.6f
 private const val CENTER_GLOW_BEAT = 0.35f
 private const val CENTER_GLOW_LYRIC = 0.1f
-private const val TAP_FLASH_PEAK = 0.5f
-internal const val TAP_MAX_DURATION_MS = 400L
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
-// Angles, shimmer and the tap flash live in snapshot state so layers repaint themselves every frame.
+// Angles, shimmer and the shake glow live in snapshot state so layers repaint themselves every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
 internal class LiveMeshClock {
     var anchor by mutableFloatStateOf(0f)
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
-    var tapGlow by mutableFloatStateOf(0f)
-    var tapStartMs = 0L
+    var shakeGlow by mutableFloatStateOf(0f)
+    private var shakeStartMs: Long? = null
     private var tempo = 1f
+
+    fun triggerShake(nowMs: Long) {
+        shakeStartMs = nowMs
+    }
 
     fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
         tempo += (targetTempo - tempo) * (dtSeconds * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
         val direction = if (config.reverseDirection) -1f else 1f
 
-        anchor = advanceAngle(anchor, -direction, tempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
-        fast = advanceAngle(fast, direction, tempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
-        slow = advanceAngle(slow, direction, tempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
+        val start = shakeStartMs
+        val elapsed = if (start == null) Long.MAX_VALUE else nowMs - start
+        val spinTempo = tempo * (if (start == null) 1f else shakeSpinMultiplier(elapsed))
+
+        anchor = advanceAngle(anchor, -direction, spinTempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
+        fast = advanceAngle(fast, direction, spinTempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
+        slow = advanceAngle(slow, direction, spinTempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
 
         if (lyricTempo > 0f) {
             shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * lyricTempo * config.lyricReactivity)
         }
 
-        // Updated every frame so the glow repaints for the whole flash, not just at the tap.
-        tapGlow = if (tapStartMs > 0L) beatBump(nowMs - tapStartMs, TAP_FLASH_PEAK) else 0f
+        // Updated every frame so the glow repaints for the whole burst, not just at the shake.
+        shakeGlow = if (start == null) 0f else shakeGlowLevel(elapsed)
     }
 }
 
@@ -123,14 +132,39 @@ internal fun LiveMeshBackground(
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
-    interactive: Boolean = false,
+    expanded: Boolean = false,
     lowResolution: Boolean = true,
     clock: LiveMeshClock = rememberLiveMeshClock(config),
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
     val adaptiveSetting by rememberPreference(LiveMeshAdaptiveQualityKey, defaultValue = true)
-    val tapFlashSetting by rememberPreference(LiveMeshTapFlashKey, defaultValue = true)
+    val shakeSetting by rememberPreference(LiveMeshShakeKey, defaultValue = true)
     val adaptiveEnabled = adaptiveQuality && adaptiveSetting
+    val shakeActive = expanded && shakeSetting
+    val context = LocalContext.current
+
+    // Only the expanded player listens, so collapsed bars and previews never react to the phone moving.
+    DisposableEffect(shakeActive) {
+        val sensorManager = if (shakeActive) context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager else null
+        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        if (sensorManager == null || accelerometer == null) {
+            onDispose {}
+        } else {
+            val detector = ShakeDetector()
+            val listener = object : SensorEventListener {
+                override fun onSensorChanged(event: SensorEvent) {
+                    val now = AudioPulse.nowMs()
+                    if (detector.onSample(event.values[0], event.values[1], event.values[2], now)) {
+                        clock.triggerShake(now)
+                    }
+                }
+
+                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+            }
+            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_GAME)
+            onDispose { sensorManager.unregisterListener(listener) }
+        }
+    }
 
     val spin = if (config.reverseDirection) -1f else 1f
     val baseScale = config.renderScale
@@ -171,30 +205,9 @@ internal fun LiveMeshBackground(
         ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(config.saturation) })
     }
 
-    // Only a visible, expanded background may take touches; a tap-consuming layer under the collapsed sheet blocks the screen.
-    val touchSlop = LocalViewConfiguration.current.touchSlop
-    // Watches presses without consuming them, so a double-tap seek on the artwork cannot swallow the flash.
-    val tapModifier = if (interactive && tapFlashSetting) {
-        Modifier.pointerInput(touchSlop) {
-            awaitEachGesture {
-                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                val isTap = up != null && isTapGesture(
-                    distancePx = (up.position - down.position).getDistance(),
-                    durationMs = up.uptimeMillis - down.uptimeMillis,
-                    touchSlopPx = touchSlop,
-                )
-                if (isTap) clock.tapStartMs = AudioPulse.nowMs()
-            }
-        }
-    } else {
-        Modifier
-    }
-
     Box(
         modifier = modifier
             .fillMaxSize()
-            .then(tapModifier)
             .alpha(alpha)
             .graphicsLayer {
                 // Scale up so the rotating layers never reveal their edges; beats and lyric lines push it further.
@@ -272,12 +285,12 @@ internal fun LiveMeshBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val tap = clock.tapGlow
+                    val shake = clock.shakeGlow
                     val tempoBreath = AudioPulse.lyricTempo() * config.lyricReactivity *
                         SHIMMER_GLOW_AMPLITUDE * sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
                     val glow = AudioPulse.beat().coerceIn(0f, 1f) * config.beatReactivity * CENTER_GLOW_BEAT +
                         AudioPulse.lyricPulse().coerceIn(0f, 1f) * config.lyricReactivity * CENTER_GLOW_LYRIC +
-                        tap + tempoBreath
+                        shake + tempoBreath
                     this.alpha = glow.coerceIn(0f, 1f)
                 }
                 .drawWithCache {
@@ -294,10 +307,6 @@ internal fun LiveMeshBackground(
 }
 
 private fun wrap(degrees: Float): Float = degrees % 360f
-
-// A press that barely moves and lifts quickly is a tap; drags and long holds belong to the sheet or the content.
-internal fun isTapGesture(distancePx: Float, durationMs: Long, touchSlopPx: Float): Boolean =
-    distancePx < touchSlopPx && durationMs < TAP_MAX_DURATION_MS
 
 // Layer opacity breathes with lyric tempo and flares on beats, so motion is visible across the screen.
 private fun layerAlpha(base: Float, shimmerDeg: Float, lyricReactivity: Float, beatReactivity: Float): Float {

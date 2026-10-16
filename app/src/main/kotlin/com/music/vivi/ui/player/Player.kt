@@ -1276,7 +1276,7 @@ fun BottomSheetPlayer(
                                     config = liveMesh,
                                     alpha = backgroundAlpha,
                                     adaptiveQuality = true,
-                                    interactive = backgroundAlpha > 0.5f,
+                                    expanded = backgroundAlpha > 0.5f,
                                     clock = liveMeshClock,
                                 ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(
