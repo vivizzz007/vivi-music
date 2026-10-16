@@ -158,6 +158,22 @@ internal class LiveMeshStore(
     val save: (LiveMeshConfig) -> Unit,
 )
 
+internal fun Preferences.toLiveMeshConfig(keys: LiveMeshKeys, defaults: LiveMeshConfig): LiveMeshConfig = LiveMeshConfig(
+    blurStrength = this[keys.blurStrength] ?: defaults.blurStrength,
+    saturation = this[keys.saturation] ?: defaults.saturation,
+    speed = this[keys.speed] ?: defaults.speed,
+    darkTint = this[keys.darkTint] ?: defaults.darkTint,
+    renderScale = this[keys.renderScale] ?: defaults.renderScale,
+    layer2Alpha = this[keys.layer2Alpha] ?: defaults.layer2Alpha,
+    layer3Alpha = this[keys.layer3Alpha] ?: defaults.layer3Alpha,
+    zoom = this[keys.zoom] ?: defaults.zoom,
+    reverseDirection = this[keys.reverseDirection] ?: defaults.reverseDirection,
+    bottomShade = this[keys.bottomShade] ?: defaults.bottomShade,
+    textureSize = this[keys.textureSize] ?: defaults.textureSize,
+    beatReactivity = this[keys.beatReactivity] ?: defaults.beatReactivity,
+    lyricReactivity = this[keys.lyricReactivity] ?: defaults.lyricReactivity,
+).clamped()
+
 @Composable
 internal fun rememberMiniLiveMeshStore(): LiveMeshStore {
     val separate by rememberPreference(LiveMeshSeparateMiniKey, defaultValue = false)

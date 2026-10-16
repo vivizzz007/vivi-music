@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -46,6 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -62,18 +64,26 @@ import com.music.vivi.ui.utils.LiveMeshPresets
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.toLiveMeshConfig
+import com.music.vivi.utils.dataStore
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 
 private val PresetPreviewShape = RoundedCornerShape(24.dp)
 
 @Composable
 fun LiveMeshPresetsScreen(navController: NavController) {
-    val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
-    val activeIndex = LiveMeshPresets.indexOfFirst { it.config == playerLiveMesh.config }
-    val activeLabel = if (activeIndex >= 0) {
-        stringResource(R.string.live_mesh_current_preset, stringResource(LiveMeshPresets[activeIndex].nameRes))
-    } else {
-        stringResource(R.string.live_mesh_current_custom)
+    val context = LocalContext.current
+    // Read straight from DataStore so the active preset is known before the first frame; the default would flash "Original".
+    val savedConfig by produceState<LiveMeshConfig?>(initialValue = null, context) {
+        context.dataStore.data
+            .map { it.toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default) }
+            .distinctUntilChanged()
+            .collect { value = it }
     }
+    val isLoaded = savedConfig != null
+    val activeIndex = savedConfig?.let { config -> LiveMeshPresets.indexOfFirst { it.config == config } } ?: -1
+    val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
     var pendingIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val pendingPreset = pendingIndex?.let { LiveMeshPresets.getOrNull(it) }
 
@@ -84,7 +94,7 @@ fun LiveMeshPresetsScreen(navController: NavController) {
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Spacer(Modifier.height(50.dp))
+        Spacer(Modifier.height(8.dp))
 
         Text(
             text = stringResource(R.string.live_mesh_presets_desc),
@@ -92,19 +102,6 @@ fun LiveMeshPresetsScreen(navController: NavController) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
-
-        AnimatedContent(
-            targetState = activeLabel,
-            transitionSpec = { fadeIn(spring()) togetherWith fadeOut(spring()) },
-            label = "livePresetActiveLabel",
-            modifier = Modifier.padding(horizontal = 16.dp),
-        ) { label ->
-            Text(
-                text = label,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
 
         LiveMeshSectionHeader(stringResource(R.string.live_mesh_presets))
 
@@ -114,6 +111,7 @@ fun LiveMeshPresetsScreen(navController: NavController) {
                 description = stringResource(preset.descriptionRes),
                 config = preset.config,
                 isActive = index == activeIndex,
+                isLoaded = isLoaded,
                 onApply = { pendingIndex = index },
             )
         }
@@ -173,17 +171,21 @@ private fun LivePresetCard(
     description: String,
     config: LiveMeshConfig,
     isActive: Boolean,
+    isLoaded: Boolean,
     onApply: () -> Unit,
 ) {
     // Small spring "pop" when a preset becomes active, so applying one feels acknowledged.
     val pop = remember { Animatable(1f) }
     var wasActive by remember { mutableStateOf(isActive) }
-    LaunchedEffect(isActive) {
-        if (isActive && !wasActive) {
+    var wasLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(isActive, isLoaded) {
+        // The first load also flips isActive; skipping it keeps the card from popping every time the screen opens.
+        if (isActive && !wasActive && wasLoaded) {
             pop.snapTo(0.96f)
             pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
         }
         wasActive = isActive
+        wasLoaded = isLoaded
     }
 
     LiveMeshSurface(
@@ -233,7 +235,7 @@ private fun LivePresetCard(
                     )
                 }
 
-                AnimatedContent(
+                if (isLoaded) AnimatedContent(
                     targetState = isActive,
                     transitionSpec = {
                         (fadeIn(spring()) + scaleIn(initialScale = 0.9f)) togetherWith

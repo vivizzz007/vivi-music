@@ -1,5 +1,6 @@
 package com.music.vivi.ui.utils
 
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -234,5 +235,42 @@ class LiveMeshConfigTest {
     fun miniKeysAreSeparateFromPlayerKeys() {
         assertEquals("miniLiveMeshBlurStrength", MiniLiveMeshKeys.blurStrength.name)
         assertEquals("miniLiveMeshReverseDirection", MiniLiveMeshKeys.reverseDirection.name)
+    }
+
+    @Test
+    fun emptyPreferencesFallBackToDefaults() {
+        val config = mutablePreferencesOf().toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+
+        assertEquals(LiveMeshConfig.Default, config)
+    }
+
+    @Test
+    fun storedPreferenceOverridesDefaultAndOthersStayAtDefault() {
+        val prefs = mutablePreferencesOf(PlayerLiveMeshKeys.reverseDirection to true)
+
+        val config = prefs.toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+
+        assertEquals(true, config.reverseDirection)
+        assertEquals(LiveMeshConfig.Default.copy(reverseDirection = true), config)
+    }
+
+    @Test
+    fun storedOutOfRangeValuesAreClampedOnRead() {
+        val prefs = mutablePreferencesOf(
+            PlayerLiveMeshKeys.zoom to 9f,
+            PlayerLiveMeshKeys.textureSize to 4096,
+        )
+
+        val config = prefs.toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+
+        assertEquals(LiveMeshConfig.ZOOM_MAX, config.zoom, 0f)
+        assertEquals(LiveMeshConfig.TEXTURE_SIZE_MAX, config.textureSize)
+    }
+
+    @Test
+    fun miniPreferencesAreReadWithMiniDefaults() {
+        val config = mutablePreferencesOf().toLiveMeshConfig(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
+
+        assertEquals(LiveMeshConfig.MiniDefault, config)
     }
 }

@@ -202,8 +202,6 @@
     <string name="live_mesh_presets_desc">Ready-made looks with live previews. Applying one replaces your current Live Mesh settings.</string>
     <string name="live_mesh_apply">Apply</string>
     <string name="live_mesh_preset_active">Active</string>
-    <string name="live_mesh_current_preset">Current preset: %1$s</string>
-    <string name="live_mesh_current_custom">Current settings: custom</string>
     <string name="live_mesh_apply_title">Replace current settings?</string>
     <string name="live_mesh_apply_message">Your current Live Mesh settings will be overwritten by the %1$s preset. This can\'t be undone.</string>
     <string name="live_mesh_preset_original">Original</string>
