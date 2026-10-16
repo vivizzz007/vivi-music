@@ -189,9 +189,36 @@ internal fun rememberMiniLiveMeshStore(): LiveMeshStore {
 internal fun <T> selectLiveMeshStore(separate: Boolean, playerStore: T, miniStore: T): T =
     if (separate) miniStore else playerStore
 
-// Live Mesh options only matter while some surface renders Live Mesh, so they are hidden otherwise.
-internal fun shouldShowLiveMeshSettings(playerStyle: PlayerBackgroundStyle, miniStyle: PlayerBackgroundStyle): Boolean =
-    playerStyle == PlayerBackgroundStyle.LIVE_MESH || miniStyle == PlayerBackgroundStyle.LIVE_MESH
+internal data class LiveMeshRowVisibility(
+    val presets: Boolean,
+    val playerSettings: Boolean,
+    val separateMini: Boolean,
+    val miniSettings: Boolean,
+    val autoTempo: Boolean,
+    val adaptiveQuality: Boolean,
+    val shake: Boolean,
+)
+
+// Each row follows the surface it configures: player-only rows hide while the player uses another style, and vice versa.
+// Shared rows (auto tempo, separate switch) stay while either surface uses Live Mesh, since both read them.
+internal fun liveMeshRowVisibility(
+    playerStyle: PlayerBackgroundStyle,
+    miniStyle: PlayerBackgroundStyle,
+    separateMini: Boolean,
+): LiveMeshRowVisibility {
+    val playerLive = playerStyle == PlayerBackgroundStyle.LIVE_MESH
+    val miniLive = miniStyle == PlayerBackgroundStyle.LIVE_MESH
+    val anyLive = playerLive || miniLive
+    return LiveMeshRowVisibility(
+        presets = playerLive,
+        playerSettings = playerLive,
+        separateMini = anyLive,
+        miniSettings = miniLive && separateMini,
+        autoTempo = anyLive,
+        adaptiveQuality = playerLive,
+        shake = playerLive,
+    )
+}
 
 @Composable
 internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig): LiveMeshStore {

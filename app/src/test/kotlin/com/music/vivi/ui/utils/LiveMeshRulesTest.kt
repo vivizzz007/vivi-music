@@ -46,27 +46,63 @@ class LiveMeshRulesTest {
         assertEquals("mini", selectLiveMeshStore(separate = true, playerStore = "player", miniStore = "mini"))
     }
 
+    private val live = PlayerBackgroundStyle.LIVE_MESH
+    private val other = PlayerBackgroundStyle.GRADIENT
+
     @Test
-    fun liveMeshSettingsShowWhenThePlayerUsesLiveMesh() {
-        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.GRADIENT))
+    fun playerOnlyLiveMeshShowsPlayerRowsAndHidesMiniRows() {
+        val rows = liveMeshRowVisibility(live, other, separateMini = true)
+
+        assertTrue(rows.presets)
+        assertTrue(rows.playerSettings)
+        assertTrue(rows.adaptiveQuality)
+        assertTrue(rows.shake)
+        assertFalse(rows.miniSettings)
     }
 
     @Test
-    fun liveMeshSettingsShowWhenOnlyTheMiniPlayerUsesLiveMesh() {
-        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.LIVE_MESH))
+    fun miniOnlyLiveMeshHidesPlayerRowsAndShowsMiniRows() {
+        val rows = liveMeshRowVisibility(other, live, separateMini = true)
+
+        assertFalse(rows.presets)
+        assertFalse(rows.playerSettings)
+        assertFalse(rows.adaptiveQuality)
+        assertFalse(rows.shake)
+        assertTrue(rows.miniSettings)
     }
 
     @Test
-    fun liveMeshSettingsShowWhenBothUseLiveMesh() {
-        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.LIVE_MESH))
+    fun sharedRowsStayWhileEitherSurfaceUsesLiveMesh() {
+        listOf(liveMeshRowVisibility(live, other, false), liveMeshRowVisibility(other, live, false)).forEach { rows ->
+            assertTrue(rows.separateMini)
+            assertTrue(rows.autoTempo)
+        }
     }
 
     @Test
-    fun liveMeshSettingsHideForEveryOtherStyleCombination() {
-        val others = PlayerBackgroundStyle.values().filter { it != PlayerBackgroundStyle.LIVE_MESH }
+    fun miniSettingsNeedSeparateSettingsOn() {
+        assertFalse(liveMeshRowVisibility(live, live, separateMini = false).miniSettings)
+        assertTrue(liveMeshRowVisibility(live, live, separateMini = true).miniSettings)
+    }
+
+    @Test
+    fun bothSurfacesOnLiveMeshShowEveryRow() {
+        val rows = liveMeshRowVisibility(live, live, separateMini = true)
+
+        assertTrue(rows.presets && rows.playerSettings && rows.separateMini && rows.miniSettings)
+        assertTrue(rows.autoTempo && rows.adaptiveQuality && rows.shake)
+    }
+
+    @Test
+    fun noSurfaceOnLiveMeshHidesEveryRowEvenWithSeparateSettingsOn() {
+        val others = PlayerBackgroundStyle.values().filter { it != live }
         others.forEach { player ->
             others.forEach { mini ->
-                assertFalse("$player / $mini", shouldShowLiveMeshSettings(player, mini))
+                val rows = liveMeshRowVisibility(player, mini, separateMini = true)
+                assertFalse("$player / $mini", rows.presets || rows.playerSettings || rows.adaptiveQuality || rows.shake)
+                assertFalse("$player / $mini", rows.miniSettings)
+                assertFalse("$player / $mini", rows.separateMini)
+                assertFalse("$player / $mini", rows.autoTempo)
             }
         }
     }
