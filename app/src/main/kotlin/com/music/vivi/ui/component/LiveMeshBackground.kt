@@ -7,7 +7,9 @@ package com.music.vivi.ui.component
 
 import android.os.SystemClock
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -30,7 +32,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.unit.dp
 import com.music.vivi.audio.AudioPulse
 import com.music.vivi.audio.beatBump
@@ -54,6 +58,7 @@ private const val BEAT_TINT_RELIEF = 0.6f
 private const val CENTER_GLOW_BEAT = 0.35f
 private const val CENTER_GLOW_LYRIC = 0.1f
 private const val TAP_FLASH_PEAK = 0.5f
+private const val TAP_MAX_DURATION_MS = 400L
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
@@ -162,9 +167,18 @@ internal fun LiveMeshBackground(
     }
 
     // Only a visible, expanded background may take touches; a tap-consuming layer under the collapsed sheet blocks the screen.
+    val touchSlop = LocalViewConfiguration.current.touchSlop
+    // Watches presses without consuming them, so a double-tap seek on the artwork cannot swallow the flash.
     val tapModifier = if (interactive && tapFlashSetting) {
-        Modifier.pointerInput(Unit) {
-            detectTapGestures(onTap = { tapStartMs.longValue = SystemClock.elapsedRealtime() })
+        Modifier.pointerInput(touchSlop) {
+            awaitEachGesture {
+                val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
+                val isTap = up != null &&
+                    (up.position - down.position).getDistance() < touchSlop &&
+                    up.uptimeMillis - down.uptimeMillis < TAP_MAX_DURATION_MS
+                if (isTap) tapStartMs.longValue = SystemClock.elapsedRealtime()
+            }
         }
     } else {
         Modifier
@@ -180,7 +194,7 @@ internal fun LiveMeshBackground(
                 val zoom = reactiveZoom(
                     baseZoom = config.zoom,
                     beat = AudioPulse.beat(),
-                    lyric = AudioPulse.lyric(),
+                    lyric = AudioPulse.lyricPulse(),
                     beatReactivity = config.beatReactivity,
                     lyricReactivity = config.lyricReactivity,
                 )
@@ -250,7 +264,7 @@ internal fun LiveMeshBackground(
                     val tempoBreath = AudioPulse.lyricTempo() * config.lyricReactivity *
                         SHIMMER_GLOW_AMPLITUDE * sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
                     val glow = AudioPulse.beat().coerceIn(0f, 1f) * config.beatReactivity * CENTER_GLOW_BEAT +
-                        AudioPulse.lyric().coerceIn(0f, 1f) * config.lyricReactivity * CENTER_GLOW_LYRIC +
+                        AudioPulse.lyricPulse().coerceIn(0f, 1f) * config.lyricReactivity * CENTER_GLOW_LYRIC +
                         tap + tempoBreath
                     this.alpha = glow.coerceIn(0f, 1f)
                 }

@@ -184,4 +184,45 @@ class BeatDetectionTest {
 
         assertEquals(0f, pulse, 0f)
     }
+
+    @Test
+    fun lyricRhythmIsSilentWithoutTempo() {
+        assertEquals(0f, lyricRhythmPulse(sinceLineMs = 300L, intervalMs = 1000f, tempo = 0f), 0f)
+    }
+
+    @Test
+    fun lyricRhythmIsSilentWithoutMeasuredInterval() {
+        assertEquals(0f, lyricRhythmPulse(sinceLineMs = 300L, intervalMs = 0f, tempo = 1f), 0f)
+    }
+
+    @Test
+    fun lyricRhythmIsSilentBeforeAnyLineWasSeen() {
+        assertEquals(0f, lyricRhythmPulse(sinceLineMs = -1L, intervalMs = 1000f, tempo = 1f), 0f)
+    }
+
+    @Test
+    fun lyricRhythmPeaksOnceEveryLineInterval() {
+        val peakAfterFirstLine = lyricRhythmPulse(sinceLineMs = 220L, intervalMs = 1000f, tempo = 1f)
+        val peakAfterSecondLine = lyricRhythmPulse(sinceLineMs = 1220L, intervalMs = 1000f, tempo = 1f)
+
+        assertEquals(LYRIC_RHYTHM_PEAK, peakAfterFirstLine, 1e-6f)
+        assertEquals(peakAfterFirstLine, peakAfterSecondLine, 1e-6f)
+    }
+
+    @Test
+    fun lyricRhythmIsLowestRightAfterALineChange() {
+        val atLineChange = lyricRhythmPulse(sinceLineMs = 0L, intervalMs = 1000f, tempo = 1f)
+        val midInterval = lyricRhythmPulse(sinceLineMs = 500L, intervalMs = 1000f, tempo = 1f)
+
+        assertEquals(0f, atLineChange, 0f)
+        assertEquals(true, midInterval > atLineChange)
+    }
+
+    @Test
+    fun lyricRhythmScalesWithTempo() {
+        val full = lyricRhythmPulse(sinceLineMs = 220L, intervalMs = 1000f, tempo = 1f)
+        val half = lyricRhythmPulse(sinceLineMs = 220L, intervalMs = 1000f, tempo = 0.5f)
+
+        assertEquals(full * 0.5f, half, 1e-6f)
+    }
 }

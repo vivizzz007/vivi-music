@@ -152,6 +152,15 @@ object AudioPulse {
 
     fun lyric(): Float = lyricChannel.current()
 
+    // Keeps pulsing at the measured line interval between line changes, so the background follows the song's rhythm.
+    fun lyricRhythm(): Float {
+        val last = lastLyricAtMs
+        if (last == 0L) return 0f
+        return lyricRhythmPulse(SystemClock.elapsedRealtime() - last, lyricIntervalMs, lyricTempo())
+    }
+
+    fun lyricPulse(): Float = maxOf(lyric(), lyricRhythm())
+
     // 0 for slow or stale lyrics, 1 for lines changing faster than LYRIC_FAST_INTERVAL_MS.
     fun lyricTempo(): Float {
         val last = lastLyricAtMs
@@ -197,3 +206,12 @@ internal fun estimateBpm(beatTimesMs: List<Long>): Float? {
 
 internal fun lyricTempoFromInterval(intervalMs: Float): Float =
     ((LYRIC_SLOW_INTERVAL_MS - intervalMs) / (LYRIC_SLOW_INTERVAL_MS - LYRIC_FAST_INTERVAL_MS)).coerceIn(0f, 1f)
+
+internal const val LYRIC_RHYTHM_PEAK = 0.35f
+
+// Repeats a soft bump every measured line interval, so the background keeps moving between line changes.
+internal fun lyricRhythmPulse(sinceLineMs: Long, intervalMs: Float, tempo: Float): Float {
+    if (tempo <= 0f || intervalMs <= 0f || sinceLineMs < 0L) return 0f
+    val periodMs = intervalMs.toLong().coerceAtLeast(1L)
+    return beatBump(sinceLineMs % periodMs, LYRIC_RHYTHM_PEAK) * tempo.coerceIn(0f, 1f)
+}
