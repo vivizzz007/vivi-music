@@ -1479,14 +1479,13 @@ fun AppearanceSettings(
                     },
                     onClick = { onLiveMeshTapFlashChange(!liveMeshTapFlash) }
                 ),
-                if (liveMeshSeparateMini) {
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.gradient),
-                        title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
-                        description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
-                        onClick = { showMiniLiveMeshDialog = true }
-                    )
-                } else null,
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
+                    onClick = { showMiniLiveMeshDialog = true },
+                    visible = liveMeshSeparateMini,
+                ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
