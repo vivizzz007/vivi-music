@@ -131,7 +131,6 @@ import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
 import com.music.vivi.ui.utils.reactiveZoom
 import com.music.vivi.audio.AudioPulse
-import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
 import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
@@ -1192,7 +1191,6 @@ internal fun MiniPlayerBackgroundLayer(
                     }
             ) {
                 val matrix = remember(liveMesh.saturation) { ColorMatrix().apply { setToSaturation(liveMesh.saturation) } }
-                LowResolutionLayer(factor = liveMesh.renderScale) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
@@ -1204,10 +1202,9 @@ internal fun MiniPlayerBackgroundLayer(
                     colorFilter = ColorFilter.colorMatrix(matrix),
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(40.dp * liveMesh.blurStrength / liveMesh.renderScale)
+                        .blur(40.dp * liveMesh.blurStrength)
                         .graphicsLayer { rotationZ = rotation.value }
                 )
-                }
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = liveMesh.darkTint)))
             }
         }
