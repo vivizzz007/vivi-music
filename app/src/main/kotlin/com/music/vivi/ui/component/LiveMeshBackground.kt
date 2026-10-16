@@ -74,6 +74,7 @@ internal fun LiveMeshBackground(
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
+    interactive: Boolean = false,
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
     val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
@@ -151,9 +152,10 @@ internal fun LiveMeshBackground(
         ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(config.saturation) })
     }
 
-    val tapModifier = if (tapFlashSetting) {
+    // Only a visible, expanded background may take touches; a tap-consuming layer under the collapsed sheet blocks the screen.
+    val tapModifier = if (interactive && tapFlashSetting) {
         Modifier.pointerInput(Unit) {
-            detectTapGestures(onDoubleTap = { tapStartMs.longValue = SystemClock.elapsedRealtime() })
+            detectTapGestures(onTap = { tapStartMs.longValue = SystemClock.elapsedRealtime() })
         }
     } else {
         Modifier
