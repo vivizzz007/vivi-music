@@ -1,7 +1,9 @@
 package com.music.vivi.ui.utils
 
 import androidx.datastore.preferences.core.mutablePreferencesOf
+import com.music.vivi.constants.PlayerBackgroundStyle
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -41,6 +43,31 @@ class LiveMeshRulesTest {
     @Test
     fun miniStoreIsUsedWhenSettingsAreSeparate() {
         assertEquals("mini", selectLiveMeshStore(separate = true, playerStore = "player", miniStore = "mini"))
+    }
+
+    @Test
+    fun liveMeshSettingsShowWhenThePlayerUsesLiveMesh() {
+        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.GRADIENT))
+    }
+
+    @Test
+    fun liveMeshSettingsShowWhenOnlyTheMiniPlayerUsesLiveMesh() {
+        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.LIVE_MESH))
+    }
+
+    @Test
+    fun liveMeshSettingsShowWhenBothUseLiveMesh() {
+        assertTrue(shouldShowLiveMeshSettings(PlayerBackgroundStyle.LIVE_MESH, PlayerBackgroundStyle.LIVE_MESH))
+    }
+
+    @Test
+    fun liveMeshSettingsHideForEveryOtherStyleCombination() {
+        val others = PlayerBackgroundStyle.values().filter { it != PlayerBackgroundStyle.LIVE_MESH }
+        others.forEach { player ->
+            others.forEach { mini ->
+                assertFalse("$player / $mini", shouldShowLiveMeshSettings(player, mini))
+            }
+        }
     }
 
     @Test

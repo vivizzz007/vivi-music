@@ -91,6 +91,7 @@ import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.MiniLiveMeshKeys
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.shouldShowLiveMeshSettings
 import com.music.vivi.ui.utils.clamped
 import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -299,6 +300,7 @@ fun AppearanceSettings(
     )
     val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
     val miniLiveMesh = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
+    val showLiveMeshSettings = shouldShowLiveMeshSettings(playerBackground, miniPlayerBackground)
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -1423,13 +1425,15 @@ fun AppearanceSettings(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.live_mesh_presets)) },
                     description = { Text(stringResource(R.string.live_mesh_presets_desc)) },
-                    onClick = { navController.navigate("settings/appearance/live_mesh_presets") }
+                    onClick = { navController.navigate("settings/appearance/live_mesh_presets") },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.live_mesh_settings)) },
                     description = { Text(stringResource(R.string.live_mesh_settings_desc)) },
-                    onClick = { showPlayerLiveMeshDialog = true }
+                    onClick = { showPlayerLiveMeshDialog = true },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.tune),
@@ -1441,7 +1445,8 @@ fun AppearanceSettings(
                             onCheckedChange = onLiveMeshSeparateMiniChange
                         )
                     },
-                    onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) }
+                    onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.speed),
@@ -1453,7 +1458,8 @@ fun AppearanceSettings(
                             onCheckedChange = onLiveMeshAutoTempoChange
                         )
                     },
-                    onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) }
+                    onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.tune),
@@ -1465,7 +1471,8 @@ fun AppearanceSettings(
                             onCheckedChange = onLiveMeshAdaptiveQualityChange
                         )
                     },
-                    onClick = { onLiveMeshAdaptiveQualityChange(!liveMeshAdaptiveQuality) }
+                    onClick = { onLiveMeshAdaptiveQualityChange(!liveMeshAdaptiveQuality) },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
@@ -1477,14 +1484,15 @@ fun AppearanceSettings(
                             onCheckedChange = onLiveMeshTapFlashChange
                         )
                     },
-                    onClick = { onLiveMeshTapFlashChange(!liveMeshTapFlash) }
+                    onClick = { onLiveMeshTapFlashChange(!liveMeshTapFlash) },
+                    visible = showLiveMeshSettings,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
                     description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
                     onClick = { showMiniLiveMeshDialog = true },
-                    visible = liveMeshSeparateMini,
+                    visible = showLiveMeshSettings && liveMeshSeparateMini,
                 ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(

@@ -15,6 +15,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import com.music.vivi.constants.LiveMeshSeparateMiniKey
+import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -187,6 +188,10 @@ internal fun rememberMiniLiveMeshStore(): LiveMeshStore {
 
 internal fun <T> selectLiveMeshStore(separate: Boolean, playerStore: T, miniStore: T): T =
     if (separate) miniStore else playerStore
+
+// Live Mesh options only matter while some surface renders Live Mesh, so they are hidden otherwise.
+internal fun shouldShowLiveMeshSettings(playerStyle: PlayerBackgroundStyle, miniStyle: PlayerBackgroundStyle): Boolean =
+    playerStyle == PlayerBackgroundStyle.LIVE_MESH || miniStyle == PlayerBackgroundStyle.LIVE_MESH
 
 @Composable
 internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig): LiveMeshStore {
