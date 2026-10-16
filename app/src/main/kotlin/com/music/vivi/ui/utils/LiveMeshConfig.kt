@@ -182,8 +182,11 @@ internal fun rememberMiniLiveMeshStore(): LiveMeshStore {
     val separate by rememberPreference(LiveMeshSeparateMiniKey, defaultValue = false)
     val playerStore = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
     val miniStore = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
-    return if (separate) miniStore else playerStore
+    return selectLiveMeshStore(separate, playerStore, miniStore)
 }
+
+internal fun <T> selectLiveMeshStore(separate: Boolean, playerStore: T, miniStore: T): T =
+    if (separate) miniStore else playerStore
 
 @Composable
 internal fun rememberLiveMeshStore(keys: LiveMeshKeys, defaults: LiveMeshConfig): LiveMeshStore {

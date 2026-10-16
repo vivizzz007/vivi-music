@@ -265,6 +265,30 @@ class LiveMeshConfigTest {
     }
 
     @Test
+    fun activePresetIsUnknownBeforeSettingsLoad() {
+        assertEquals(-1, activePresetIndex(null))
+    }
+
+    @Test
+    fun savedDefaultsMarkTheOriginalPresetActive() {
+        assertEquals(0, activePresetIndex(LiveMeshConfig.Default))
+    }
+
+    @Test
+    fun eachPresetConfigMapsBackToItsOwnIndex() {
+        LiveMeshPresets.forEachIndexed { index, preset ->
+            assertEquals(index, activePresetIndex(preset.config))
+        }
+    }
+
+    @Test
+    fun customSettingsMatchNoPreset() {
+        val custom = LiveMeshConfig.Default.copy(zoom = 1.9f)
+
+        assertEquals(-1, activePresetIndex(custom))
+    }
+
+    @Test
     fun emptyPreferencesFallBackToDefaults() {
         val config = mutablePreferencesOf().toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default)
 

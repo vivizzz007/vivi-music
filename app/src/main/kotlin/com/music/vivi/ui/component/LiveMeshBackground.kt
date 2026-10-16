@@ -5,7 +5,6 @@
 
 package com.music.vivi.ui.component
 
-import android.os.SystemClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -59,7 +58,7 @@ private const val BEAT_TINT_RELIEF = 0.6f
 private const val CENTER_GLOW_BEAT = 0.35f
 private const val CENTER_GLOW_LYRIC = 0.1f
 private const val TAP_FLASH_PEAK = 0.5f
-private const val TAP_MAX_DURATION_MS = 400L
+internal const val TAP_MAX_DURATION_MS = 400L
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
@@ -74,7 +73,7 @@ internal class LiveMeshClock {
     var tapStartMs = 0L
     private var tempo = 1f
 
-    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float) {
+    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
         tempo += (targetTempo - tempo) * (dtSeconds * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
         val direction = if (config.reverseDirection) -1f else 1f
 
@@ -82,17 +81,12 @@ internal class LiveMeshClock {
         fast = advanceAngle(fast, direction, tempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
         slow = advanceAngle(slow, direction, tempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
 
-        val tempoReaction = AudioPulse.lyricTempo()
-        if (tempoReaction > 0f) {
-            shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * tempoReaction * config.lyricReactivity)
+        if (lyricTempo > 0f) {
+            shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * lyricTempo * config.lyricReactivity)
         }
 
         // Updated every frame so the glow repaints for the whole flash, not just at the tap.
-        tapGlow = if (tapStartMs > 0L) {
-            beatBump(SystemClock.elapsedRealtime() - tapStartMs, TAP_FLASH_PEAK)
-        } else {
-            0f
-        }
+        tapGlow = if (tapStartMs > 0L) beatBump(nowMs - tapStartMs, TAP_FLASH_PEAK) else 0f
     }
 }
 
@@ -111,7 +105,7 @@ internal fun rememberLiveMeshClock(config: LiveMeshConfig): LiveMeshClock {
                 if (lastFrameNanos != 0L) {
                     val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
                     val targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f
-                    clock.advance(dt, latestConfig, targetTempo)
+                    clock.advance(dt, latestConfig, targetTempo, AudioPulse.lyricTempo(), AudioPulse.nowMs())
                 }
                 lastFrameNanos = now
             }
@@ -185,10 +179,12 @@ internal fun LiveMeshBackground(
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
                 val up = waitForUpOrCancellation(pass = PointerEventPass.Initial)
-                val isTap = up != null &&
-                    (up.position - down.position).getDistance() < touchSlop &&
-                    up.uptimeMillis - down.uptimeMillis < TAP_MAX_DURATION_MS
-                if (isTap) clock.tapStartMs = SystemClock.elapsedRealtime()
+                val isTap = up != null && isTapGesture(
+                    distancePx = (up.position - down.position).getDistance(),
+                    durationMs = up.uptimeMillis - down.uptimeMillis,
+                    touchSlopPx = touchSlop,
+                )
+                if (isTap) clock.tapStartMs = AudioPulse.nowMs()
             }
         }
     } else {
@@ -298,6 +294,10 @@ internal fun LiveMeshBackground(
 }
 
 private fun wrap(degrees: Float): Float = degrees % 360f
+
+// A press that barely moves and lifts quickly is a tap; drags and long holds belong to the sheet or the content.
+internal fun isTapGesture(distancePx: Float, durationMs: Long, touchSlopPx: Float): Boolean =
+    distancePx < touchSlopPx && durationMs < TAP_MAX_DURATION_MS
 
 // Layer opacity breathes with lyric tempo and flares on beats, so motion is visible across the screen.
 private fun layerAlpha(base: Float, shimmerDeg: Float, lyricReactivity: Float, beatReactivity: Float): Float {

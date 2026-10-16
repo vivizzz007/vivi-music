@@ -197,6 +197,7 @@ import com.music.vivi.ui.component.BottomSheetPage
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.rememberBottomSheetState
+import com.music.vivi.ui.component.shouldRevealPlayerForTrack
 import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
@@ -887,7 +888,7 @@ class MainActivity : ComponentActivity() {
                             mediaItem: MediaItem?,
                             reason: Int,
                         ) {
-                            if (mediaItem != null && playerBottomSheetState.isDismissed) {
+                            if (shouldRevealPlayerForTrack(mediaItem != null, playerBottomSheetState.isDismissed)) {
                                 playerBottomSheetState.collapseSoft()
                             }
                         }
@@ -913,7 +914,7 @@ class MainActivity : ComponentActivity() {
                 // Reveals the mini player on every new track, so a missed Player.Listener callback cannot leave it hidden
                 LaunchedEffect(playerConnection) {
                     playerConnection?.mediaMetadata?.drop(1)?.collect { metadata ->
-                        if (metadata != null && currentPlayerBottomSheetState.isDismissed) {
+                        if (shouldRevealPlayerForTrack(metadata != null, currentPlayerBottomSheetState.isDismissed)) {
                             currentPlayerBottomSheetState.collapseSoft()
                         }
                     }

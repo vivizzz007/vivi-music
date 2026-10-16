@@ -89,3 +89,11 @@ internal val LiveMeshPresets: List<LiveMeshPreset> = listOf(
         ),
     ),
 )
+
+// The first load also flips isActive; skipping it keeps the card from popping every time the screen opens.
+internal fun shouldPopOnActivation(wasActive: Boolean, isActive: Boolean, wasLoaded: Boolean): Boolean =
+    isActive && !wasActive && wasLoaded
+
+// -1 when nothing is loaded yet or the saved settings match no preset (custom).
+internal fun activePresetIndex(config: LiveMeshConfig?): Int =
+    if (config == null) -1 else LiveMeshPresets.indexOfFirst { it.config == config }

@@ -84,22 +84,25 @@ internal class BeatDetector(
 // Shared between writers (audio thread for beats, UI for lyric lines) and the UI draw loop. Reads decay each pulse
 // by wall-clock time so the background settles smoothly after playback stops without another audio callback.
 object AudioPulse {
+    // Injectable so the decay and tempo timing can be tested without the Android runtime.
+    internal var nowMs: () -> Long = { SystemClock.elapsedRealtime() }
+
     private class Channel {
         @Volatile private var rawPulse = 0f
         @Volatile private var updatedAtMs = 0L
 
         fun set(pulse: Float) {
             rawPulse = pulse
-            updatedAtMs = SystemClock.elapsedRealtime()
+            updatedAtMs = AudioPulse.nowMs()
         }
 
         fun trigger(strength: Float) {
-            val now = SystemClock.elapsedRealtime()
+            val now = AudioPulse.nowMs()
             val current = decayedPulse(rawPulse, now - updatedAtMs)
             set(maxOf(current, strength.coerceIn(0f, 1f)))
         }
 
-        fun current(): Float = decayedPulse(rawPulse, SystemClock.elapsedRealtime() - updatedAtMs)
+        fun current(): Float = decayedPulse(rawPulse, AudioPulse.nowMs() - updatedAtMs)
 
         fun reset() = set(0f)
     }
@@ -117,7 +120,7 @@ object AudioPulse {
     // The detector reports a decaying level every block; a sharp rise over the current bump means a new beat.
     @Synchronized
     fun publishBeat(pulse: Float, energy: Float) {
-        val now = SystemClock.elapsedRealtime()
+        val now = AudioPulse.nowMs()
         if (pulse > beat() + BEAT_RETRIGGER_MARGIN) {
             beatStartMs = now
             beatPeak = pulse
@@ -135,7 +138,7 @@ object AudioPulse {
     @Volatile private var lyricIntervalMs = 0f
 
     fun triggerLyricLine(strength: Float = LYRIC_LINE_STRENGTH) {
-        val now = SystemClock.elapsedRealtime()
+        val now = AudioPulse.nowMs()
         if (lastLyricAtMs != 0L) {
             val interval = (now - lastLyricAtMs).toFloat()
             lyricIntervalMs = if (lyricIntervalMs == 0f) interval else lyricIntervalMs + (interval - lyricIntervalMs) * 0.3f
@@ -147,7 +150,7 @@ object AudioPulse {
     fun beat(): Float {
         val peak = beatPeak
         if (peak <= 0f) return 0f
-        return beatBump(SystemClock.elapsedRealtime() - beatStartMs, peak)
+        return beatBump(AudioPulse.nowMs() - beatStartMs, peak)
     }
 
     fun lyric(): Float = lyricChannel.current()
@@ -156,7 +159,7 @@ object AudioPulse {
     fun lyricRhythm(): Float {
         val last = lastLyricAtMs
         if (last == 0L) return 0f
-        return lyricRhythmPulse(SystemClock.elapsedRealtime() - last, lyricIntervalMs, lyricTempo())
+        return lyricRhythmPulse(AudioPulse.nowMs() - last, lyricIntervalMs, lyricTempo())
     }
 
     fun lyricPulse(): Float = maxOf(lyric(), lyricRhythm())
@@ -164,7 +167,7 @@ object AudioPulse {
     // 0 for slow or stale lyrics, 1 for lines changing faster than LYRIC_FAST_INTERVAL_MS.
     fun lyricTempo(): Float {
         val last = lastLyricAtMs
-        if (last == 0L || SystemClock.elapsedRealtime() - last > LYRIC_TEMPO_TIMEOUT_MS) return 0f
+        if (last == 0L || lyricIntervalMs == 0f || AudioPulse.nowMs() - last > LYRIC_TEMPO_TIMEOUT_MS) return 0f
         return lyricTempoFromInterval(lyricIntervalMs)
     }
 

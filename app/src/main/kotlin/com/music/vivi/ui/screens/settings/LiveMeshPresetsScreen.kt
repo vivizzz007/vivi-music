@@ -61,6 +61,8 @@ import com.music.vivi.ui.component.LiveMeshSectionHeader
 import com.music.vivi.ui.component.LiveMeshSurface
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LiveMeshPresets
+import com.music.vivi.ui.utils.activePresetIndex
+import com.music.vivi.ui.utils.shouldPopOnActivation
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.rememberLiveMeshStore
@@ -82,7 +84,7 @@ fun LiveMeshPresetsScreen(navController: NavController) {
             .collect { value = it }
     }
     val isLoaded = savedConfig != null
-    val activeIndex = savedConfig?.let { config -> LiveMeshPresets.indexOfFirst { it.config == config } } ?: -1
+    val activeIndex = activePresetIndex(savedConfig)
     val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
     var pendingIndex by rememberSaveable { mutableStateOf<Int?>(null) }
     val pendingPreset = pendingIndex?.let { LiveMeshPresets.getOrNull(it) }
@@ -179,8 +181,7 @@ private fun LivePresetCard(
     var wasActive by remember { mutableStateOf(isActive) }
     var wasLoaded by remember { mutableStateOf(false) }
     LaunchedEffect(isActive, isLoaded) {
-        // The first load also flips isActive; skipping it keeps the card from popping every time the screen opens.
-        if (isActive && !wasActive && wasLoaded) {
+        if (shouldPopOnActivation(wasActive, isActive, wasLoaded)) {
             pop.snapTo(0.96f)
             pop.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
         }
