@@ -566,6 +566,9 @@ fun LyricsV2(
                     }
                     result
                 }
+                val rowLineIndices = remember(mergedLyricsList) {
+                    mergedLyricsList.map { (it as? LyricsListItemV2.Line)?.index }
+                }
 
                 val providerOffset = if (isLyricsProviderShown) 1 else 0
 
@@ -614,9 +617,7 @@ fun LyricsV2(
                     // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
                     LaunchedEffect(currentLineIndex, isAutoScrollEnabled, mergedLyricsList) {
                         if (currentLineIndex != -1 && isAutoScrollEnabled && !isGuest) {
-                            val actualListIndex = mergedLyricsList.indexOfFirst { 
-                                it is LyricsListItemV2.Line && it.index == currentLineIndex 
-                            }.takeIf { it != -1 } ?: currentLineIndex
+                            val actualListIndex = listRowFor(rowLineIndices, currentLineIndex)
                             val targetIndex = maxOf(0, actualListIndex) + providerOffset
                             try {
                                 val itemInfo =
@@ -709,7 +710,8 @@ fun LyricsV2(
                                     MetroLyricsLine(
                                         entry = line,
                                         nextEntryTime = nextStart,
-                                        effectivePlaybackPosition = currentPosition,
+                                        // Only lines near the active one read the per-frame position, so far lines stay still while scrolling.
+                                        effectivePlaybackPosition = if (followsPlaybackPosition(isActive, distanceFromActive)) currentPosition else 0L,
                                         lyricsOffset = lyricsOffset,
                                         isSynced = true,
                                         isActive = isActive,
@@ -876,12 +878,8 @@ fun LyricsV2(
                                 if (currentLineIndex != -1) {
                                     coroutineScope.launch {
                                         try {
-                                            listState.animateScrollToItem(
-                                                maxOf(
-                                                    0,
-                                                    currentLineIndex - 2 + providerOffset
-                                                )
-                                            )
+                                            val rowIndex = listRowFor(rowLineIndices, currentLineIndex)
+                                            listState.animateScrollToItem(syncScrollIndex(rowIndex, providerOffset))
                                         } catch (e: Exception) {
                                         }
                                     }
