@@ -137,6 +137,33 @@ class LiveMeshConfigTest {
     }
 
     @Test
+    fun advanceAngleTurnsForwardByFrameShareOfPeriod() {
+        assertEquals(9f, advanceAngle(current = 0f, direction = 1f, tempo = 1f, dtSeconds = 1f, periodMs = 40000), 1e-4f)
+    }
+
+    @Test
+    fun advanceAngleTurnsBackwardForNegativeDirection() {
+        assertEquals(-9f, advanceAngle(current = 0f, direction = -1f, tempo = 1f, dtSeconds = 1f, periodMs = 40000), 1e-4f)
+    }
+
+    @Test
+    fun advanceAngleScalesWithTempo() {
+        assertEquals(18f, advanceAngle(current = 0f, direction = 1f, tempo = 2f, dtSeconds = 1f, periodMs = 40000), 1e-4f)
+    }
+
+    @Test
+    fun advanceAngleWrapsAroundFullTurn() {
+        assertEquals(4f, advanceAngle(current = 355f, direction = 1f, tempo = 1f, dtSeconds = 1f, periodMs = 40000), 1e-4f)
+    }
+
+    @Test
+    fun advanceAngleFollowsSpeedThroughShorterPeriod() {
+        val period = liveMeshPeriodMillis(40000, speed = 2f)
+
+        assertEquals(18f, advanceAngle(current = 0f, direction = 1f, tempo = 1f, dtSeconds = 1f, periodMs = period), 1e-4f)
+    }
+
+    @Test
     fun zeroSpeedIsTreatedAsSlowestInsteadOfDividingByZero() {
         assertEquals(240000, liveMeshPeriodMillis(60000, speed = 0f))
     }

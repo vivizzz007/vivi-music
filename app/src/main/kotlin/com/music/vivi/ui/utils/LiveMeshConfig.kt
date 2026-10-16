@@ -130,6 +130,9 @@ internal fun nextAdaptiveScale(current: Float, avgFrameMs: Float, base: Float): 
 internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
     (baseMillis / speed.coerceAtLeast(LiveMeshConfig.SPEED_MIN)).roundToInt()
 
+internal fun advanceAngle(current: Float, direction: Float, tempo: Float, dtSeconds: Float, periodMs: Int): Float =
+    (current + direction * 360f * tempo * dtSeconds * 1000f / periodMs) % 360f
+
 // Player keys keep the original camelCase names; other scopes prepend their prefix to the "LiveMesh" part.
 internal class LiveMeshKeys(private val prefix: String) {
     private fun name(suffix: String): String =

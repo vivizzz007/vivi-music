@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
@@ -43,6 +42,7 @@ import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.constants.LiveMeshTapFlashKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
+import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.nextAdaptiveScale
@@ -62,13 +62,61 @@ private const val TAP_MAX_DURATION_MS = 400L
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
-// Angles and shimmer phase live in snapshot state, so layers that read them repaint every frame by themselves.
-private class LiveMeshClock {
+// Angles, shimmer and the tap flash live in snapshot state so layers repaint themselves every frame.
+// The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
+internal class LiveMeshClock {
     var anchor by mutableFloatStateOf(0f)
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
     var tapGlow by mutableFloatStateOf(0f)
+    var tapStartMs = 0L
+    private var tempo = 1f
+
+    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float) {
+        tempo += (targetTempo - tempo) * (dtSeconds * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
+        val direction = if (config.reverseDirection) -1f else 1f
+
+        anchor = advanceAngle(anchor, -direction, tempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
+        fast = advanceAngle(fast, direction, tempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
+        slow = advanceAngle(slow, direction, tempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
+
+        val tempoReaction = AudioPulse.lyricTempo()
+        if (tempoReaction > 0f) {
+            shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * tempoReaction * config.lyricReactivity)
+        }
+
+        // Updated every frame so the glow repaints for the whole flash, not just at the tap.
+        tapGlow = if (tapStartMs > 0L) {
+            beatBump(SystemClock.elapsedRealtime() - tapStartMs, TAP_FLASH_PEAK)
+        } else {
+            0f
+        }
+    }
+}
+
+// One clock per screen: the caller owns the frame loop, so a crossfading artwork never advances it twice.
+@Composable
+internal fun rememberLiveMeshClock(config: LiveMeshConfig): LiveMeshClock {
+    val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
+    val clock = remember { LiveMeshClock() }
+    val latestConfig by rememberUpdatedState(config)
+    val latestAutoTempo by rememberUpdatedState(autoTempo)
+
+    LaunchedEffect(Unit) {
+        var lastFrameNanos = 0L
+        while (true) {
+            withFrameNanos { now ->
+                if (lastFrameNanos != 0L) {
+                    val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
+                    val targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f
+                    clock.advance(dt, latestConfig, targetTempo)
+                }
+                lastFrameNanos = now
+            }
+        }
+    }
+    return clock
 }
 
 // Single renderer for the Live Mesh background. The caller supplies how one artwork layer is drawn.
@@ -81,9 +129,9 @@ internal fun LiveMeshBackground(
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
     interactive: Boolean = false,
+    clock: LiveMeshClock = rememberLiveMeshClock(config),
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
-    val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
     val adaptiveSetting by rememberPreference(LiveMeshAdaptiveQualityKey, defaultValue = true)
     val tapFlashSetting by rememberPreference(LiveMeshTapFlashKey, defaultValue = true)
     val adaptiveEnabled = adaptiveQuality && adaptiveSetting
@@ -93,12 +141,6 @@ internal fun LiveMeshBackground(
     val adaptiveScale = remember(baseScale) { mutableFloatStateOf(baseScale) }
     val renderScale = if (adaptiveEnabled) adaptiveScale.floatValue else baseScale
 
-    val clock = remember { LiveMeshClock() }
-    val tapStartMs = remember { mutableLongStateOf(0L) }
-    val tempoFactor = remember { floatArrayOf(1f) }
-
-    val latestConfig by rememberUpdatedState(config)
-    val latestAutoTempo by rememberUpdatedState(autoTempo)
     val latestAdaptive by rememberUpdatedState(adaptiveEnabled)
     val latestBaseScale by rememberUpdatedState(baseScale)
 
@@ -109,52 +151,18 @@ internal fun LiveMeshBackground(
         var windowFrames = 0
         while (true) {
             withFrameNanos { now ->
-                if (lastFrameNanos != 0L) {
+                if (lastFrameNanos != 0L && latestAdaptive) {
                     val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
-                    val cfg = latestConfig
-                    val spinDir = if (cfg.reverseDirection) -1f else 1f
-
-                    val targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f
-                    tempoFactor[0] += (targetTempo - tempoFactor[0]) * (dt * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
-                    val tempo = tempoFactor[0]
-
-                    clock.anchor = wrap(
-                        clock.anchor - spinDir * 360f * tempo * dt * 1000f / liveMeshPeriodMillis(80000, cfg.speed)
-                    )
-                    clock.fast = wrap(
-                        clock.fast + spinDir * 360f * tempo * dt * 1000f / liveMeshPeriodMillis(40000, cfg.speed)
-                    )
-                    clock.slow = wrap(
-                        clock.slow + spinDir * 360f * tempo * dt * 1000f / liveMeshPeriodMillis(60000, cfg.speed)
-                    )
-
-                    val tempoReaction = AudioPulse.lyricTempo()
-                    if (tempoReaction > 0f) {
-                        clock.shimmer = wrap(
-                            clock.shimmer + dt * SHIMMER_MAX_DEG_PER_SECOND * tempoReaction * cfg.lyricReactivity
-                        )
-                    }
-
-                    // Updated every frame so the glow repaints for the whole flash, not just at the tap.
-                    val tapStart = tapStartMs.longValue
-                    clock.tapGlow = if (tapStart > 0L) {
-                        beatBump(SystemClock.elapsedRealtime() - tapStart, TAP_FLASH_PEAK)
-                    } else {
-                        0f
-                    }
-
-                    if (latestAdaptive) {
-                        windowSeconds += dt
-                        windowFrameSeconds += dt
-                        windowFrames++
-                        if (windowSeconds >= ADAPTIVE_WINDOW_SECONDS) {
-                            val avgFrameMs = windowFrameSeconds / windowFrames * 1000f
-                            val next = nextAdaptiveScale(adaptiveScale.floatValue, avgFrameMs, latestBaseScale)
-                            if (next != adaptiveScale.floatValue) adaptiveScale.floatValue = next
-                            windowSeconds = 0f
-                            windowFrameSeconds = 0f
-                            windowFrames = 0
-                        }
+                    windowSeconds += dt
+                    windowFrameSeconds += dt
+                    windowFrames++
+                    if (windowSeconds >= ADAPTIVE_WINDOW_SECONDS) {
+                        val avgFrameMs = windowFrameSeconds / windowFrames * 1000f
+                        val next = nextAdaptiveScale(adaptiveScale.floatValue, avgFrameMs, latestBaseScale)
+                        if (next != adaptiveScale.floatValue) adaptiveScale.floatValue = next
+                        windowSeconds = 0f
+                        windowFrameSeconds = 0f
+                        windowFrames = 0
                     }
                 }
                 lastFrameNanos = now
@@ -177,7 +185,7 @@ internal fun LiveMeshBackground(
                 val isTap = up != null &&
                     (up.position - down.position).getDistance() < touchSlop &&
                     up.uptimeMillis - down.uptimeMillis < TAP_MAX_DURATION_MS
-                if (isTap) tapStartMs.longValue = SystemClock.elapsedRealtime()
+                if (isTap) clock.tapStartMs = SystemClock.elapsedRealtime()
             }
         }
     } else {

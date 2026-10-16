@@ -211,6 +211,7 @@ import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.component.LiveMeshBackground
+import com.music.vivi.ui.component.rememberLiveMeshClock
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.rememberLiveMeshStore
@@ -1261,6 +1262,7 @@ fun BottomSheetPlayer(
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
                         val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
+                        val liveMeshClock = rememberLiveMeshClock(liveMesh)
 
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -1275,6 +1277,7 @@ fun BottomSheetPlayer(
                                     alpha = backgroundAlpha,
                                     adaptiveQuality = true,
                                     interactive = backgroundAlpha > 0.5f,
+                                    clock = liveMeshClock,
                                 ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
