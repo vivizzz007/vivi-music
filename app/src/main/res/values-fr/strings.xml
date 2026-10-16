@@ -375,7 +375,7 @@
     <string name="backup_create_failed">Impossible de créer une sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
-    <string name="discord_integration">Intégration Discord</string>
+    <string name="discord_integration">Discord</string>
     <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\Vivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
     <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
