@@ -76,7 +76,7 @@
     <string name="show_artist_description">Afficher la description de l\'artiste</string>
     <string name="show_artist_subscriber_count">Afficher le nombre d\'abonnés</string>
     <string name="show_artist_monthly_listeners">Afficher les auditeurs mensuels</string>
-    <string name="show_artist_video">Afficher la vidéo de l\'artiste sur toile</string>
+    <string name="show_artist_video">Afficher la vidéo d\'animation de l\'artiste</string>
     <string name="show_artist_video_desc">Afficher une vidéo en boucle à côté du nom de l\'artiste sur la page de l\'artiste</string>
 	<string name="show_artist_background_video">Afficher la vidéo de présentation de l\'artiste</string>
     <string name="show_artist_background_video_desc">Afficher une vidéo d\'art en boucle derrière l\'image de l\'artiste</string>
@@ -111,22 +111,28 @@
     <string name="thumbnail_corner_radius_desc">Régler le rayon des coins des miniatures</string>
     <string name="crop_album_art">Recadrer la pochette d\'album</string>
     <string name="crop_album_art_desc">Forcer un format carré en recadrant les miniatures vidéo</string>
-    <string name="vivimusic_canvas">Canvas</string>
-	<string name="use_canvas">Utiliser Canvas</string>
+    <string name="vivimusic_canvas">Illustrations animées</string>
+    <string name="use_canvas">Utiliser des illustrations animées</string>
     <string name="vivimusic_canvas_desc">Remplace la pochette d\'album statique dans le lecteur par une vidéo animée en boucle lorsqu\'une telle vidéo est disponible pour le titre en cours</string>
-    <string name="canvas_source">Code source de Canvas</string>
+    <string name="canvas_source">Source de l\'animation</string>
     <string name="canvas_source_auto">Automatique</string>
     <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Tidal et Vivi Music. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
     <string name="canvas_source_apple_music">Apple Music</string>
-    <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une image que si Apple Music en propose une pour le titre en cours de lecture.</string>
+    <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une illustration animée que si Apple Music en propose une pour le morceau en cours de lecture.</string>
     <string name="canvas_source_vivimusic">Vivi Music</string>
-    <string name="canvas_source_vivimusic_desc">Utilise exclusivement la bibliothèque de toiles sélectionnés par Vivi Music. N\'affiche une image que si elle a été ajoutée pour le titre en cours de lecture.</string>
+    <string name="canvas_source_vivimusic_desc">Utilise exclusivement la bibliothèque d\'illustrations animées sélectionnées par Vivi Music. N\'affiche une illustration animée que si celle-ci a été ajoutée pour le morceau en cours de lecture.</string>
     <string name="canvas_source_tidal">Tidal</string>
-    <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une image que si Tidal en propose une pour le titre en cours de lecture.</string>
-    <string name="show_album_canvas">Afficher la page d\'accueil de l\'album</string>
-    <string name="show_album_canvas_desc">Afficher une toile animée dans l\'album</string>
+    <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une illustration animée que si Tidal en propose une pour le morceau en cours de lecture.</string>
+	<string name="enable_spotify_canvas">Activer Spotify Canvas</string>
+    <string name="enable_spotify_canvas_desc">Afficher en plein écran des vidéos en boucle pour les titres Spotify pris en charge (connexion à Spotify requise)</string>
+	<string name="spotify_canvas_cache">Cache de Spotify Canvas</string>
+    <string name="max_spotify_canvas_cache_size">Taille maximale du cache de Spotify Canvas</string>
+    <string name="clear_spotify_canvas_cache">Vider le cache de Spotify Canvas</string>
+    <string name="clear_spotify_canvas_cache_dialog">Êtes-vous sûr de vouloir supprimer toutes les vidéos Spotify Canvas mises en cache de la mémoire interne ?</string>
+    <string name="show_album_canvas">Afficher l\'illustration animée de l\'album</string>
+    <string name="show_album_canvas_desc">Afficher des illustrations animées dans l\'album</string>
 	<string name="canvas_load_only_wifi">Télécharger uniquement via le Wi-Fi</string>
-    <string name="canvas_load_only_wifi_desc">Ne pas charger les animations du canvas en cas de connexion mobile ou à volume limité</string>
+    <string name="canvas_load_only_wifi_desc">Ne pas charger les animations graphiques lors de l\'utilisation d\'un réseau mobile ou d\'une connexion à volume limité</string>
     <string name="canvas_network">Réseau</string>
     <string name="rotating_thumbnail">Vignette tournante</string>
     <string name="rotating_thumbnail_desc">Activer un effet d\'animation avec rotation des vignettes</string>
@@ -413,7 +419,10 @@
     <string name="audio_offload">Activer le déchargement</string>
     <string name="audio_offload_description">Utilisez le chemin audio déporté pour la lecture audio. La désactivation de cette option peut augmenter la consommation d\'énergie, mais peut s\'avérer utile en cas de problèmes de lecture ou de post-traitement audio.</string>
     <string name="audio_offload_disabled_by_crossfade">Désactivé car le fondu enchaîné est activé</string>
+	<string name="audio_track_playback_params">Utiliser le traitement audio matériel</string>
+    <string name="audio_track_playback_params_description">Utilisez la fonction AudioTrack d\'Android pour modifier la vitesse ou la hauteur tonale, plutôt que de recourir à un traitement logiciel. Cette méthode est plus fiable pour les valeurs de hauteur tonale extrêmes.</string>
 
+	
     <!-- Google Cast -->
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Activer la diffusion audio vers Chromecast et d\'autres appareils compatibles avec Cast</string>
@@ -426,7 +435,7 @@
     <string name="password">Mot de passe</string>
 
     <!-- Last.fm -->
-    <string name="lastfm_integration">Intégration de Last.fm</string>
+    <string name="lastfm_integration">Last.fm</string>
     <string name="enable_scrobbling">Activer le scrobbling</string>
     <string name="lastfm_now_playing">Envoyer « En cours de lecture »</string>
     <string name="last_fm_send_likes">Envoyer des « J\'aime » / « Je n\'aime pas »</string>
@@ -803,9 +812,9 @@ est irréversible.
     <!-- Theme Content Descriptions -->
     <string name="cd_back">Retour</string>
     <string name="cd_pure_black_mode">Mode Noir pur</string>
-    <string name="cd_light_mode">Mode clair</string>
-    <string name="cd_dark_mode">Mode sombre</string>
-    <string name="cd_system_mode">Mode système</string>
+    <string name="cd_light_mode">Clair</string>
+    <string name="cd_dark_mode">Sombre</string>
+    <string name="cd_system_mode">Système</string>
     <string name="cd_palette_item">%1$s palette</string>
     <string name="play_all">Tout lire</string>
     <string name="enable_high_refresh_rate">Activer un taux de rafraîchissement élevé</string>
@@ -843,7 +852,7 @@ est irréversible.
     <string name="csv_preview_failed">Impossible d\'afficher l\'aperçu du fichier CSV</string>
 
     <!-- Discord Integration Redesign -->
-    <string name="discord_integration_settings">Intégration à Discord</string>
+    <string name="discord_integration_settings">Discord</string>
     <string name="discord_status">Statut</string>
     <string name="discord_status_online">En ligne</string>
     <string name="discord_status_idle">Inactif</string>
@@ -973,6 +982,7 @@ est irréversible.
     <string name="view_commit_history">Consulter les modifications récentes sur la branche principale</string>
     <string name="suggestions">Suggestions</string>
     <string name="comments">Chat</string>
+	<string name="comments_header">Commentaires</string>
     <string name="no_comments">Aucun commentaire trouvé</string>
     <string name="type_message">Écrivez un message…</string>
     <string name="send">Envoyer</string>
@@ -1006,7 +1016,7 @@ est irréversible.
     <string name="spotify_connected_as">Connecté en tant que %s</string>
     <string name="spotify_account">Compte Spotify</string>
     <string name="spotify_loading_library">Chargement des playlists Spotify…</string>
-    <string name="spotify_select_sources">Sélectionnez les playlists à importer</string>
+    <string name="spotify_select_sources">Importer des Playlists</string>
     <string name="spotify_no_sources">Aucune playlist trouvée</string>
     <string name="spotify_available_count">%d playlists disponibles</string>
     <string name="spotify_import_selected">Importer la sélection</string>
@@ -1140,4 +1150,22 @@ est irréversible.
     <string name="sponsorblock_skipped_intro">Segment d\'introduction ignoré</string>
     <string name="sponsorblock_skipped_outro">Segment de fin ignoré</string>
     <string name="sponsorblock_skipped_segment">Segment « SponsorBlock » ignoré</string>
+
+	<string name="export_playlist">Exporter la playlist</string>
+    <string name="export_failed">Échec de l\'exportation de la playlist</string>
+    <string name="export_success">Playlist exportée avec succès</string>
+    <string name="export_option_save">Enregistrer en tant que document</string>
+    <string name="export_option_share">Partager avec</string>
+    <string name="export_as_csv">CSV (Format tableur)</string>
+    <string name="export_as_m3u">M3U (Format lecteur multimédia)</string>
+    <string name="add_a_comment">Ajouter un commentaire…</string>
+    <string name="reply_to_comment">Répondre à @%s…</string>
+    <string name="delete_comment">Supprimer le commentaire</string>
+    <string name="delete_comment_confirm">Êtes-vous sûr de vouloir supprimer ce commentaire ? Cette action ne peut pas être annulée.</string>
+    <string name="sign_in_to_comment">Connectez-vous pour ajouter un commentaire</string>
+    <string name="reply">Répondre</string>
+    <string name="top_comments">Principaux</string>
+    <string name="newest_comments">Plus récents</string>
+    <string name="replies">Réponses</string>
+	
 </resources>
