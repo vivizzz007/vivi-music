@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -129,6 +130,7 @@ internal fun LiveMeshBackground(
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
     interactive: Boolean = false,
+    lowResolution: Boolean = true,
     clock: LiveMeshClock = rememberLiveMeshClock(config),
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
@@ -140,6 +142,7 @@ internal fun LiveMeshBackground(
     val baseScale = config.renderScale
     val adaptiveScale = remember(baseScale) { mutableFloatStateOf(baseScale) }
     val renderScale = if (adaptiveEnabled) adaptiveScale.floatValue else baseScale
+    val layerScale = if (lowResolution) renderScale else 1f
 
     val latestAdaptive by rememberUpdatedState(adaptiveEnabled)
     val latestBaseScale by rememberUpdatedState(baseScale)
@@ -210,11 +213,11 @@ internal fun LiveMeshBackground(
                 scaleY = zoom
             }
     ) {
-        LowResolutionLayer(factor = renderScale) {
+        val layers: @Composable BoxScope.() -> Unit = {
             artwork(
                 Modifier
                     .fillMaxSize()
-                    .blur(100.dp * config.blurStrength / renderScale)
+                    .blur(100.dp * config.blurStrength / layerScale)
                     .graphicsLayer { rotationZ = clock.anchor - clock.shimmer * spin },
                 Alignment.Center,
                 colorFilter,
@@ -222,7 +225,7 @@ internal fun LiveMeshBackground(
             artwork(
                 Modifier
                     .fillMaxSize()
-                    .blur(120.dp * config.blurStrength / renderScale)
+                    .blur(120.dp * config.blurStrength / layerScale)
                     .graphicsLayer {
                         rotationZ = clock.fast + clock.shimmer * spin
                         this.alpha = layerAlpha(config.layer2Alpha, clock.shimmer, config.lyricReactivity, config.beatReactivity)
@@ -233,7 +236,7 @@ internal fun LiveMeshBackground(
             artwork(
                 Modifier
                     .fillMaxSize()
-                    .blur(120.dp * config.blurStrength / renderScale)
+                    .blur(120.dp * config.blurStrength / layerScale)
                     .graphicsLayer {
                         rotationZ = clock.slow + clock.shimmer * spin
                         this.alpha = layerAlpha(config.layer3Alpha, clock.shimmer, config.lyricReactivity, config.beatReactivity)
@@ -241,6 +244,11 @@ internal fun LiveMeshBackground(
                 Alignment.BottomEnd,
                 colorFilter,
             )
+        }
+        if (lowResolution) {
+            LowResolutionLayer(factor = renderScale, content = layers)
+        } else {
+            Box(modifier = Modifier.fillMaxSize(), content = layers)
         }
 
         // Beats briefly lift the tint across the whole background, so the reaction is not limited to the zoom.

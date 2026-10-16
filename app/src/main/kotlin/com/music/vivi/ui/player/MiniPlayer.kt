@@ -67,7 +67,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -76,8 +75,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -127,10 +124,9 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
-import com.music.vivi.ui.utils.liveMeshPeriodMillis
+import com.music.vivi.ui.component.LiveMeshBackground
+import com.music.vivi.ui.component.rememberLiveMeshClock
 import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
-import com.music.vivi.ui.utils.reactiveZoom
-import com.music.vivi.audio.AudioPulse
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
 import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
@@ -1163,34 +1159,14 @@ internal fun MiniPlayerBackgroundLayer(
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
             val liveMesh = rememberMiniLiveMeshStore().config
-            val spin = if (liveMesh.reverseDirection) -1f else 1f
-            val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
-            val rotation = infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = 360f * spin,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(liveMeshPeriodMillis(60000, liveMesh.speed), easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "rotation"
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        val zoom = reactiveZoom(
-                            baseZoom = liveMesh.zoom,
-                            beat = AudioPulse.beat(),
-                            lyric = AudioPulse.lyric(),
-                            beatReactivity = liveMesh.beatReactivity,
-                            lyricReactivity = liveMesh.lyricReactivity,
-                        )
-                        scaleX = zoom
-                        scaleY = zoom
-                    }
-            ) {
-                val matrix = remember(liveMesh.saturation) { ColorMatrix().apply { setToSaturation(liveMesh.saturation) } }
+            val liveMeshClock = rememberLiveMeshClock(liveMesh)
+            LiveMeshBackground(
+                config = liveMesh,
+                adaptiveQuality = false,
+                interactive = false,
+                lowResolution = false,
+                clock = liveMeshClock,
+            ) { layerModifier, alignment, colorFilter ->
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
@@ -1199,13 +1175,10 @@ internal fun MiniPlayerBackgroundLayer(
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.colorMatrix(matrix),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(40.dp * liveMesh.blurStrength)
-                        .graphicsLayer { rotationZ = rotation.value }
+                    colorFilter = colorFilter,
+                    alignment = alignment,
+                    modifier = layerModifier,
                 )
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = liveMesh.darkTint)))
             }
         }
         else -> {}
