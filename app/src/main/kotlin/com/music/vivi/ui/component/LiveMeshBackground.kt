@@ -63,6 +63,7 @@ private class LiveMeshClock {
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
+    var tapGlow by mutableFloatStateOf(0f)
 }
 
 // Single renderer for the Live Mesh background. The caller supplies how one artwork layer is drawn.
@@ -127,6 +128,14 @@ internal fun LiveMeshBackground(
                         clock.shimmer = wrap(
                             clock.shimmer + dt * SHIMMER_MAX_DEG_PER_SECOND * tempoReaction * cfg.lyricReactivity
                         )
+                    }
+
+                    // Updated every frame so the glow repaints for the whole flash, not just at the tap.
+                    val tapStart = tapStartMs.longValue
+                    clock.tapGlow = if (tapStart > 0L) {
+                        beatBump(SystemClock.elapsedRealtime() - tapStart, TAP_FLASH_PEAK)
+                    } else {
+                        0f
                     }
 
                     if (latestAdaptive) {
@@ -237,11 +246,7 @@ internal fun LiveMeshBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val tap = if (tapStartMs.longValue > 0L) {
-                        beatBump(SystemClock.elapsedRealtime() - tapStartMs.longValue, TAP_FLASH_PEAK)
-                    } else {
-                        0f
-                    }
+                    val tap = clock.tapGlow
                     val tempoBreath = AudioPulse.lyricTempo() * config.lyricReactivity *
                         SHIMMER_GLOW_AMPLITUDE * sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
                     val glow = AudioPulse.beat().coerceIn(0f, 1f) * config.beatReactivity * CENTER_GLOW_BEAT +
