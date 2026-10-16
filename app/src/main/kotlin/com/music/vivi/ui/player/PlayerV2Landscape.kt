@@ -809,6 +809,7 @@ fun PlayerV2Landscape(
                             LyricsV2(
                                 mediaMetadata = mediaMetadata,
                                 showLyrics = true,
+                                sliderPositionProvider = { sliderPosition },
                                 positionProvider = { sliderPosition ?: position },
                                 modifier = Modifier.fillMaxSize()
                             )

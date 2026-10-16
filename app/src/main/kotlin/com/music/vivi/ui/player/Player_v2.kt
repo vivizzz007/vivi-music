@@ -4,6 +4,7 @@
  */
 package com.music.vivi.ui.player
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Intent
 import android.content.IntentFilter
@@ -12,6 +13,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -54,6 +56,7 @@ import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.EnableGoogleCastKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
+import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -208,6 +211,20 @@ fun PlayerV2(
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
+    val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
+
+    DisposableEffect(playerState, isPlaying, isKeepScreenOn) {
+        val window = (context as? Activity)?.window
+        val shouldKeepScreenOn = (playerState == PlayerInternalState.LYRICS) || (isPlaying && isKeepScreenOn)
+        if (shouldKeepScreenOn) {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+        onDispose {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
 
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
     
@@ -735,6 +752,7 @@ fun PlayerV2(
                                         LyricsV2(
                                             mediaMetadata = mediaMetadata,
                                             showLyrics = true,
+                                            sliderPositionProvider = { sliderPosition },
                                             positionProvider = { sliderPosition ?: position },
                                             onControlsVisibilityChange = { isVisible ->
                                                 controlsVisible = isVisible
