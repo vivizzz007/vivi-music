@@ -87,6 +87,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -226,6 +227,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -903,6 +905,17 @@ class MainActivity : ComponentActivity() {
                     player.addListener(listener)
                     onDispose {
                         player.removeListener(listener)
+                    }
+                }
+
+                val currentPlayerBottomSheetState by rememberUpdatedState(playerBottomSheetState)
+
+                // Reveals the mini player on every new track, so a missed Player.Listener callback cannot leave it hidden
+                LaunchedEffect(playerConnection) {
+                    playerConnection?.mediaMetadata?.drop(1)?.collect { metadata ->
+                        if (metadata != null && currentPlayerBottomSheetState.isDismissed) {
+                            currentPlayerBottomSheetState.collapseSoft()
+                        }
                     }
                 }
 
