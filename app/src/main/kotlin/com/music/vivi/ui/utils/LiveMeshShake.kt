@@ -46,3 +46,6 @@ internal fun shakeBurst(elapsedMs: Long): Float {
 internal fun shakeSpinMultiplier(elapsedMs: Long): Float = 1f + SHAKE_SPIN_PEAK * shakeBurst(elapsedMs)
 
 internal fun shakeGlowLevel(elapsedMs: Long): Float = SHAKE_GLOW_PEAK * shakeBurst(elapsedMs)
+
+// The accelerometer is only read while the player is open and the user has the effect switched on.
+internal fun shouldListenForShake(expanded: Boolean, shakeEnabled: Boolean): Boolean = expanded && shakeEnabled

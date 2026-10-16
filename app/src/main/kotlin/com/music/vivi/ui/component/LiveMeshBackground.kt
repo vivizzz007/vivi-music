@@ -50,6 +50,7 @@ import com.music.vivi.ui.utils.nextAdaptiveScale
 import com.music.vivi.ui.utils.reactiveZoom
 import com.music.vivi.ui.utils.shakeGlowLevel
 import com.music.vivi.ui.utils.shakeSpinMultiplier
+import com.music.vivi.ui.utils.shouldListenForShake
 import com.music.vivi.utils.rememberPreference
 import kotlin.math.sin
 
@@ -140,7 +141,7 @@ internal fun LiveMeshBackground(
     val adaptiveSetting by rememberPreference(LiveMeshAdaptiveQualityKey, defaultValue = true)
     val shakeSetting by rememberPreference(LiveMeshShakeKey, defaultValue = true)
     val adaptiveEnabled = adaptiveQuality && adaptiveSetting
-    val shakeActive = expanded && shakeSetting
+    val shakeActive = shouldListenForShake(expanded, shakeSetting)
     val context = LocalContext.current
 
     // Only the expanded player listens, so collapsed bars and previews never react to the phone moving.

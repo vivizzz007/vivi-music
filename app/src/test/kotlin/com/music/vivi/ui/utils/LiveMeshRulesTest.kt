@@ -1,6 +1,7 @@
 package com.music.vivi.ui.utils
 
 import androidx.datastore.preferences.core.mutablePreferencesOf
+import com.music.vivi.constants.LiveMeshShakeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -228,6 +229,11 @@ class LiveMeshRulesTest {
 
         assertTrue(party.beatReactivity > LiveMeshConfig.Default.beatReactivity)
         assertTrue(party.lyricReactivity > LiveMeshConfig.Default.lyricReactivity)
+    }
+
+    @Test
+    fun shakeSwitchUsesItsStoredPreferenceName() {
+        assertEquals("liveMeshShake", LiveMeshShakeKey.name)
     }
 
     @Test

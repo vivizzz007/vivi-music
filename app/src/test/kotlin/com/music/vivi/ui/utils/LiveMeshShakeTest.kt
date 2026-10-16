@@ -161,4 +161,51 @@ class LiveMeshShakeTest {
         assertEquals(0f, shakeGlowLevel(-1L), 0f)
         assertEquals(SHAKE_GLOW_PEAK, shakeGlowLevel(0L), 1e-6f)
     }
+
+    @Test
+    fun shakeIsListenedToOnlyWhenPlayerIsExpandedAndSettingIsOn() {
+        assertTrue(shouldListenForShake(expanded = true, shakeEnabled = true))
+        assertFalse(shouldListenForShake(expanded = true, shakeEnabled = false))
+        assertFalse(shouldListenForShake(expanded = false, shakeEnabled = true))
+        assertFalse(shouldListenForShake(expanded = false, shakeEnabled = false))
+    }
+
+    @Test
+    fun realisticShakeSequenceCountsAsOneShake() {
+        val detector = ShakeDetector()
+        val samples = buildList<Triple<Float, Float, Float>> {
+            repeat(10) { add(Triple(0f, 0f, gravity)) }
+            repeat(4) { add(Triple(gravity * 3f, 0f, 0f)) }
+            repeat(10) { add(Triple(0f, 0f, gravity)) }
+        }
+        val triggers = samples.mapIndexed { index, (x, y, z) ->
+            detector.onSample(x, y, z, timeMs = index * 20L)
+        }
+
+        assertEquals(1, triggers.count { it })
+    }
+
+    @Test
+    fun twoShakesSpacedBeyondTheIntervalCountTwice() {
+        val detector = ShakeDetector()
+        val strong = SHAKE_THRESHOLD_G * gravity + 5f
+
+        val first = detector.onSample(strong, 0f, 0f, timeMs = 0L)
+        val tooSoon = detector.onSample(strong, 0f, 0f, timeMs = 300L)
+        val second = detector.onSample(strong, 0f, 0f, timeMs = 700L)
+
+        assertTrue(first)
+        assertFalse(tooSoon)
+        assertTrue(second)
+    }
+
+    @Test
+    fun shakeOnlyTriggersAtTheSampleThatCrossesTheThreshold() {
+        val detector = ShakeDetector()
+        val below = SHAKE_THRESHOLD_G * gravity - 1f
+        val above = SHAKE_THRESHOLD_G * gravity + 1f
+
+        assertFalse(detector.onSample(below, 0f, 0f, timeMs = 0L))
+        assertTrue(detector.onSample(above, 0f, 0f, timeMs = 20L))
+    }
 }
