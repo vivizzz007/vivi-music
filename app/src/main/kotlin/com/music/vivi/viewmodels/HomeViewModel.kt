@@ -77,6 +77,12 @@ data class CommunityPlaylistItem(
     val songs: List<SongItem>
 )
 
+internal enum class ChipToggleAction { RESTORE, LOAD }
+
+// Tapping the active chip, or the one still loading, always returns to the general feed; only other chips load.
+internal fun <T> chipToggleAction(chip: T?, selected: T?, pending: T?): ChipToggleAction =
+    if (chip == null || chip == selected || chip == pending) ChipToggleAction.RESTORE else ChipToggleAction.LOAD
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
@@ -105,6 +111,7 @@ class HomeViewModel @Inject constructor(
     val coversAndRemixes = MutableStateFlow<HomePage.Section?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
+    private var pendingChip: HomePage.Chip? = null
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -897,22 +904,30 @@ class HomeViewModel @Inject constructor(
     }
 
     fun toggleChip(chip: HomePage.Chip?) {
-        if (chip == null || chip == selectedChip.value && previousHomePage.value != null) {
-            homePage.value = previousHomePage.value
+        if (chipToggleAction(chip, selectedChip.value, pendingChip) == ChipToggleAction.RESTORE) {
+            pendingChip = null
+            val restored = previousHomePage.value
             previousHomePage.value = null
             selectedChip.value = null
+            if (restored != null) homePage.value = restored else refresh()
             return
         }
 
         if (selectedChip.value == null) {
             previousHomePage.value = homePage.value
         }
+        pendingChip = chip
 
         viewModelScope.launch(Dispatchers.IO) {
             val hideExplicit = context.dataStore.get(HideExplicitKey, false)
             val hideVideoSongs = context.dataStore.get(HideVideoSongsKey, false)
             val hideYoutubeShorts = context.dataStore.get(HideYoutubeShortsKey, false)
-            val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
+            val nextSections = YouTube.home(params = chip?.endpoint?.params).getOrNull()
+            if (pendingChip != chip) return@launch
+            if (nextSections == null) {
+                pendingChip = null
+                return@launch
+            }
 
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
@@ -921,6 +936,7 @@ class HomeViewModel @Inject constructor(
                 }
             )
             selectedChip.value = chip
+            pendingChip = null
         }
     }
 
