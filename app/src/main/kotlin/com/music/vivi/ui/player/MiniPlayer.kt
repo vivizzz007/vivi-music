@@ -67,7 +67,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -76,8 +75,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -127,6 +124,13 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.component.LiveMeshBackground
+import com.music.vivi.ui.component.rememberLiveMeshClock
+import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
+import com.music.vivi.ui.utils.backgroundBlur
+import com.music.vivi.ui.utils.backgroundSize
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
+import com.music.vivi.ui.utils.rememberReducedBackgroundStyle
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -1000,9 +1004,10 @@ internal fun MiniPlayerColorExtractor(
 ) {
     val context = LocalContext.current
     val fallbackColor = MaterialTheme.colorScheme.surfaceContainer.toArgb()
+    val effectiveMiniPlayerBackground = rememberReducedBackgroundStyle(miniPlayerBackground)
 
-    LaunchedEffect(mediaMetadata?.id, miniPlayerBackground) {
-        if (miniPlayerBackground == PlayerBackgroundStyle.GRADIENT || miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+    LaunchedEffect(mediaMetadata?.id, effectiveMiniPlayerBackground) {
+        if (effectiveMiniPlayerBackground == PlayerBackgroundStyle.GRADIENT || effectiveMiniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
             val currentMetadata = mediaMetadata
             if (currentMetadata?.thumbnailUrl != null) {
                 withContext(Dispatchers.IO) {
@@ -1022,7 +1027,7 @@ internal fun MiniPlayerColorExtractor(
                                     .resizeBitmapArea(100 * 100)
                                     .generate()
                             }
-                            val extractedColors = if (miniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                            val extractedColors = if (effectiveMiniPlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
                                 listOfNotNull(
                                     palette.getVibrantColor(fallbackColor).let { Color(it) },
                                     palette.getLightVibrantColor(fallbackColor).let { Color(it) },
@@ -1055,21 +1060,23 @@ internal fun MiniPlayerBackgroundLayer(
     gradientColors: List<Color>
 ) {
     val context = LocalContext.current
-    
-    when (style) {
+    val effectiveStyle = rememberReducedBackgroundStyle(style)
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+
+    when (effectiveStyle) {
         PlayerBackgroundStyle.BLUR -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (reduceBackgroundEffects || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
+                        .backgroundSize(reduceBackgroundEffects, 128)
                         .allowHardware(false)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .blur(30.dp)
+                        .backgroundBlur(30.dp, reduceBackgroundEffects)
                 )
                 Box(
                     modifier = Modifier
@@ -1151,41 +1158,26 @@ internal fun MiniPlayerBackgroundLayer(
             }
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
-            val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
-            val rotation = infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(60000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "rotation"
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = 1.5f
-                        scaleY = 1.5f
-                    }
-            ) {
-                val matrix = remember { ColorMatrix().apply { setToSaturation(1.6f) } }
+            val liveMesh = rememberMiniLiveMeshStore().config
+            val liveMeshClock = rememberLiveMeshClock(liveMesh)
+            LiveMeshBackground(
+                config = liveMesh,
+                adaptiveQuality = false,
+                lowResolution = false,
+                clock = liveMeshClock,
+            ) { layerModifier, alignment, colorFilter ->
                 AsyncImage(
                     model = ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
+                        .size(liveMesh.textureSize, liveMesh.textureSize)
                         .allowHardware(false)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.colorMatrix(matrix),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(40.dp)
-                        .graphicsLayer { rotationZ = rotation.value }
+                    colorFilter = colorFilter,
+                    alignment = alignment,
+                    modifier = layerModifier,
                 )
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
             }
         }
         else -> {}

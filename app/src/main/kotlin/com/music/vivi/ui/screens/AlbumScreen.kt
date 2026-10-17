@@ -75,7 +75,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.graphicsLayer
@@ -107,6 +106,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalDownloadUtil
 import com.music.vivi.LocalPlayerAwareWindowInsets
@@ -132,8 +132,11 @@ import com.music.vivi.ui.menu.AlbumMenu
 import com.music.vivi.ui.menu.SelectionSongMenu
 import com.music.vivi.ui.menu.SongMenu
 import com.music.vivi.ui.menu.YouTubeAlbumMenu
+import com.music.vivi.ui.utils.LOW_POWER_IMAGE_SIZE
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.fadingEdge
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import com.music.vivi.ui.player.MotionartworkPlayer
 import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.rememberPreference
@@ -147,6 +150,7 @@ fun AlbumScreen(
     viewModel: AlbumViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
@@ -283,11 +287,16 @@ fun AlbumScreen(
 
                             // Apply blur only to the bottom section
                             AsyncImage(
-                                model = albumWithSongs.album.thumbnailUrl,
+                                model = ImageRequest.Builder(context)
+                                    .data(albumWithSongs.album.thumbnailUrl)
+                                    .apply {
+                                        if (reduceBackgroundEffects) size(LOW_POWER_IMAGE_SIZE, LOW_POWER_IMAGE_SIZE)
+                                    }
+                                    .build(),
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .blur(20.dp)
+                                    .backgroundBlur(20.dp, reduceBackgroundEffects)
                                     .graphicsLayer { compositingStrategy = androidx.compose.ui.graphics.CompositingStrategy.Offscreen }
                                     .drawWithContent {
                                         drawContent()

@@ -17,6 +17,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.runtime.*
+import com.music.vivi.audio.AudioPulse
+import com.music.vivi.audio.LYRIC_LINE_STRENGTH
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
@@ -520,6 +522,10 @@ fun LyricsV2(
                     derivedStateOf { LyricsUtils.findCurrentLineIndex(lines, currentPosition + lyricsOffset) }
                 }
 
+                LaunchedEffect(currentLineIndex) {
+                    if (currentLineIndex != -1) AudioPulse.triggerLyricLine(LYRIC_LINE_STRENGTH)
+                }
+
                 // Active set: all lines currently being sung (handles v1 + bg sharing same timestamp)
                 val activeLineIndices by remember(lines, lyricsOffset) {
                     derivedStateOf { LyricsUtils.findActiveLineIndices(lines, currentPosition + lyricsOffset) }
@@ -559,6 +565,9 @@ fun LyricsV2(
                         }
                     }
                     result
+                }
+                val rowLineIndices = remember(mergedLyricsList) {
+                    mergedLyricsList.map { (it as? LyricsListItemV2.Line)?.index }
                 }
 
                 val providerOffset = if (isLyricsProviderShown) 1 else 0
@@ -608,9 +617,7 @@ fun LyricsV2(
                     // Smooth Spring Scroll Physics (Anchored comfortably at ~32% Top Viewport Position)
                     LaunchedEffect(currentLineIndex, isAutoScrollEnabled, mergedLyricsList) {
                         if (currentLineIndex != -1 && isAutoScrollEnabled && !isGuest) {
-                            val actualListIndex = mergedLyricsList.indexOfFirst { 
-                                it is LyricsListItemV2.Line && it.index == currentLineIndex 
-                            }.takeIf { it != -1 } ?: currentLineIndex
+                            val actualListIndex = listRowFor(rowLineIndices, currentLineIndex)
                             val targetIndex = maxOf(0, actualListIndex) + providerOffset
                             try {
                                 val itemInfo =
@@ -703,7 +710,8 @@ fun LyricsV2(
                                     MetroLyricsLine(
                                         entry = line,
                                         nextEntryTime = nextStart,
-                                        effectivePlaybackPosition = currentPosition,
+                                        // Only lines near the active one read the per-frame position, so far lines stay still while scrolling.
+                                        effectivePlaybackPosition = if (followsPlaybackPosition(isActive, distanceFromActive)) currentPosition else 0L,
                                         lyricsOffset = lyricsOffset,
                                         isSynced = true,
                                         isActive = isActive,
@@ -870,12 +878,8 @@ fun LyricsV2(
                                 if (currentLineIndex != -1) {
                                     coroutineScope.launch {
                                         try {
-                                            listState.animateScrollToItem(
-                                                maxOf(
-                                                    0,
-                                                    currentLineIndex - 2 + providerOffset
-                                                )
-                                            )
+                                            val rowIndex = listRowFor(rowLineIndices, currentLineIndex)
+                                            listState.animateScrollToItem(syncScrollIndex(rowIndex, providerOffset))
                                         } catch (e: Exception) {
                                         }
                                     }

@@ -103,7 +103,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -112,7 +111,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -212,6 +210,15 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.component.LiveMeshBackground
+import com.music.vivi.ui.component.rememberLiveMeshClock
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.backgroundBlur
+import com.music.vivi.ui.utils.backgroundSize
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
+import com.music.vivi.ui.utils.rememberReducedBackgroundStyle
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
@@ -286,6 +293,8 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
+    val effectivePlayerBackground = rememberReducedBackgroundStyle(playerBackground)
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
@@ -489,8 +498,8 @@ fun BottomSheetPlayer(
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground) {
-        if (playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+    LaunchedEffect(mediaMetadata?.id, effectivePlayerBackground) {
+        if (effectivePlayerBackground == PlayerBackgroundStyle.GRADIENT || effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
             val currentMetadata = mediaMetadata
             if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
                 val cachedColors = gradientColorsCache[currentMetadata.id]
@@ -516,7 +525,7 @@ fun BottomSheetPlayer(
                                     .resizeBitmapArea(100 * 100)
                                     .generate()
                             }
-                            val extractedColors = if (playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                            val extractedColors = if (effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
                                 listOfNotNull(
                                     palette.getVibrantColor(fallbackColor).let { Color(it) },
                                     palette.getLightVibrantColor(fallbackColor).let { Color(it) },
@@ -931,7 +940,7 @@ fun BottomSheetPlayer(
                             }
                         }
                     }
-                } else when (playerBackground) {
+                } else when (effectivePlayerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -949,14 +958,14 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(100, 100) // Lower resolution for better performance
+                                            .backgroundSize(reduceBackgroundEffects, 100) // Lower resolution for better performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
+                                            .backgroundBlur(120.dp, reduceBackgroundEffects) // hardware-efficient native Compose blur on small image
                                     )
 
                                     Box(
@@ -1174,14 +1183,14 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .backgroundSize(reduceBackgroundEffects, 128) // Downsample significantly for performance
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(150.dp)
+                                            .backgroundBlur(150.dp, reduceBackgroundEffects)
                                     )
 
                                     // Layer 2: Clear Artwork (Limited to top 60% of screen)
@@ -1252,37 +1261,8 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
-                        val infiniteTransition = rememberInfiniteTransition(label = "liveMeshRotation")
-                        
-                        val anchorRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = -360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(80000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "anchorRotation"
-                        )
-                        
-                        val fastRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(40000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "fastRotation"
-                        )
-                        
-                        val slowRotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(60000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            ),
-                            label = "slowRotation"
-                        )
+                        val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
+                        val liveMeshClock = rememberLiveMeshClock(liveMesh)
 
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -1292,96 +1272,23 @@ fun BottomSheetPlayer(
                             label = "liveMeshBackground"
                         ) { thumbnailUrl ->
                             if (thumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .alpha(backgroundAlpha)
-                                        .graphicsLayer {
-                                            // Scale up to avoid showing edges during rotation
-                                            scaleX = 1.7f
-                                            scaleY = 1.7f
-                                        }
-                                ) {
-                                    val matrix = remember { 
-                                        val m = ColorMatrix()
-                                        m.setToSaturation(1.8f) // Reduced to avoid neon look
-                                        m
-                                    }
-                                    val colorFilter = ColorFilter.colorMatrix(matrix)
-
-                                    // Layer 1: The Anchor (Full Image, Counter-Clockwise)
+                                LiveMeshBackground(
+                                    config = liveMesh,
+                                    alpha = backgroundAlpha,
+                                    adaptiveQuality = true,
+                                    clock = liveMeshClock,
+                                ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .size(liveMesh.textureSize, liveMesh.textureSize)
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         colorFilter = colorFilter,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(100.dp)
-                                            .graphicsLayer { rotationZ = anchorRotation }
-                                    )
-
-                                    // Layer 2: Fast Rotating Crop (Top-Left)
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        colorFilter = colorFilter,
-                                        alignment = Alignment.TopStart,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(120.dp)
-                                            .graphicsLayer { 
-                                                rotationZ = fastRotation
-                                                alpha = 0.6f
-                                            }
-                                    )
-
-                                    // Layer 3: Slow Rotating Crop (Bottom-Right)
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        colorFilter = colorFilter,
-                                        alignment = Alignment.BottomEnd,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(120.dp)
-                                            .graphicsLayer { 
-                                                rotationZ = slowRotation
-                                                alpha = 0.5f
-                                            }
-                                    )
-                                    
-                                    // Global dark tint to prevent neon look + vertical gradient for depth
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.2f))
-                                    )
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    listOf(
-                                                        Color.Transparent,
-                                                        Color.Black.copy(alpha = 0.25f)
-                                                    )
-                                                )
-                                            )
+                                        alignment = alignment,
+                                        modifier = layerModifier,
                                     )
                                 }
                             }

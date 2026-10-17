@@ -13,27 +13,75 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.roundToInt
 import kotlin.math.sin
+
+private const val DOT_SPACING_PX = 30f
+
+internal fun dotGridPoints(width: Float, height: Float, spacing: Float): List<Offset> {
+    if (width <= 0f || height <= 0f) return emptyList()
+    val points = ArrayList<Offset>()
+    for (x in 0..(width / spacing).toInt()) {
+        for (y in 0..(height / spacing).toInt()) {
+            points.add(Offset(x * spacing, y * spacing))
+        }
+    }
+    return points
+}
+
+// The dot grid never moves, so it is rasterized once per size instead of re-issuing ~3,000 points every frame.
+private fun renderDotGrid(widthPx: Float, heightPx: Float, density: Density): ImageBitmap? {
+    val width = widthPx.roundToInt()
+    val height = heightPx.roundToInt()
+    if (width <= 0 || height <= 0) return null
+    val points = dotGridPoints(widthPx, heightPx, DOT_SPACING_PX)
+    val bitmap = ImageBitmap(width, height)
+    CanvasDrawScope().draw(
+        density = density,
+        layoutDirection = LayoutDirection.Ltr,
+        canvas = androidx.compose.ui.graphics.Canvas(bitmap),
+        size = Size(width.toFloat(), height.toFloat())
+    ) {
+        drawPoints(
+            points = points,
+            pointMode = PointMode.Points,
+            color = Color.White.copy(alpha = 0.05f),
+            strokeWidth = 3f,
+            cap = StrokeCap.Round
+        )
+    }
+    return bitmap
+}
 
 @Composable
 fun WrappedBackground(
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit = {}
 ) {
+    val reduceAnimations = rememberReduceBackgroundEffects()
     val infiniteTransition = rememberInfiniteTransition(label = "WrappedBackground")
+    val staticPhase = remember { mutableFloatStateOf(0f) }
+    val staticScale = remember { mutableFloatStateOf(1f) }
 
     // Animations for the glow blobs
-    val blob1Offset by infiniteTransition.animateFloat(
+    val blob1Offset by if (reduceAnimations) staticPhase else infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * PI.toFloat(),
         animationSpec = infiniteRepeatable(
@@ -43,7 +91,7 @@ fun WrappedBackground(
         label = "blob1"
     )
 
-    val blob2Offset by infiniteTransition.animateFloat(
+    val blob2Offset by if (reduceAnimations) staticPhase else infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 2f * PI.toFloat(),
         animationSpec = infiniteRepeatable(
@@ -53,7 +101,7 @@ fun WrappedBackground(
         label = "blob2"
     )
 
-    val scale by infiniteTransition.animateFloat(
+    val scale by if (reduceAnimations) staticScale else infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.2f,
         animationSpec = infiniteRepeatable(
@@ -77,19 +125,8 @@ fun WrappedBackground(
         val widthPx = with(density) { maxWidth.toPx() }
         val heightPx = with(density) { maxHeight.toPx() }
 
-        // Optimization: Pre-calculate the dot points once based on screen dimensions
-        // rather than recalculating in a nested loop 60/120 times per second.
-        val dotPoints = remember(widthPx, heightPx) {
-            val points = ArrayList<Offset>()
-            if (widthPx > 0 && heightPx > 0) {
-                val dotSpacing = 30f
-                for (x in 0..(widthPx / dotSpacing).toInt()) {
-                    for (y in 0..(heightPx / dotSpacing).toInt()) {
-                        points.add(Offset(x * dotSpacing, y * dotSpacing))
-                    }
-                }
-            }
-            points
+        val dotLayer = remember(widthPx, heightPx, density) {
+            renderDotGrid(widthPx, heightPx, density)
         }
 
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -133,17 +170,7 @@ fun WrappedBackground(
                 center = Offset(width * 0.1f, height * 0.9f)
             )
 
-            // Optimization: Draw all dot grid texture overlay points in a single, high-performance batch call
-            // instead of running ~3,000 separate CPU-to-GPU drawCircle calls per frame.
-            if (dotPoints.isNotEmpty()) {
-                drawPoints(
-                    points = dotPoints,
-                    pointMode = PointMode.Points,
-                    color = Color.White.copy(alpha = 0.05f),
-                    strokeWidth = 3f, // 3px diameter = 1.5px radius
-                    cap = StrokeCap.Round
-                )
-            }
+            dotLayer?.let { drawImage(it) }
         }
         
         Box(modifier = Modifier.fillMaxSize()) {

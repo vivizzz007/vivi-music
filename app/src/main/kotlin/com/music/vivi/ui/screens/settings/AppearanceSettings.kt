@@ -81,6 +81,18 @@ import com.music.vivi.constants.LyricsAnimationStyleKey
 import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.BackgroundEffectsMode
+import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
+import com.music.vivi.constants.LiveMeshAutoTempoKey
+import com.music.vivi.constants.LiveMeshSeparateMiniKey
+import com.music.vivi.ui.component.LiveMeshSettingsDialog
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.MiniLiveMeshKeys
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.liveMeshRowVisibility
+import com.music.vivi.ui.utils.clamped
+import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
@@ -263,6 +275,27 @@ fun AppearanceSettings(
             MiniPlayerBackgroundStyleKey,
             defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
+
+    val (backgroundEffectsMode, onBackgroundEffectsModeChange) = rememberEnumPreference(
+        BackgroundEffectsModeKey,
+        defaultValue = BackgroundEffectsMode.AUTO,
+    )
+
+    val (liveMeshSeparateMini, onLiveMeshSeparateMiniChange) = rememberPreference(
+        LiveMeshSeparateMiniKey,
+        defaultValue = false,
+    )
+    val (liveMeshAutoTempo, onLiveMeshAutoTempoChange) = rememberPreference(
+        LiveMeshAutoTempoKey,
+        defaultValue = false,
+    )
+    val (liveMeshAdaptiveQuality, onLiveMeshAdaptiveQualityChange) = rememberPreference(
+        LiveMeshAdaptiveQualityKey,
+        defaultValue = true,
+    )
+    val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+    val miniLiveMesh = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
+    val liveMeshRows = liveMeshRowVisibility(playerBackground, miniPlayerBackground, liveMeshSeparateMini)
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
@@ -477,6 +510,18 @@ fun AppearanceSettings(
     }
 
     var showMiniPlayerBackgroundDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showBackgroundEffectsDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showPlayerLiveMeshDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMiniLiveMeshDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -744,6 +789,50 @@ fun AppearanceSettings(
 
     var showDefaultOpenTabDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showPlayerLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            title = stringResource(R.string.live_mesh_settings),
+            initial = playerLiveMesh.config,
+            onDismiss = { showPlayerLiveMeshDialog = false },
+            onConfirm = { config ->
+                playerLiveMesh.save(config)
+                showPlayerLiveMeshDialog = false
+            }
+        )
+    }
+
+    if (showMiniLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            title = stringResource(R.string.live_mesh_settings_mini),
+            initial = miniLiveMesh.config,
+            onDismiss = { showMiniLiveMeshDialog = false },
+            onConfirm = { config ->
+                miniLiveMesh.save(config)
+                showMiniLiveMeshDialog = false
+            }
+        )
+    }
+
+    if (showBackgroundEffectsDialog) {
+        EnumDialog(
+            onDismiss = { showBackgroundEffectsDialog = false },
+            onSelect = {
+                onBackgroundEffectsModeChange(it)
+                showBackgroundEffectsDialog = false
+            },
+            title = stringResource(R.string.background_effects),
+            current = backgroundEffectsMode,
+            values = BackgroundEffectsMode.values().toList(),
+            valueText = {
+                when (it) {
+                    BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                    BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                    BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                }
+            }
+        )
     }
 
     if (showDefaultOpenTabDialog) {
@@ -1312,6 +1401,80 @@ fun AppearanceSettings(
                         )
                     },
                     onClick = { showPlayerBackgroundDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.background_effects)) },
+                    trailingContent = {
+                        Text(
+                            when (backgroundEffectsMode) {
+                                BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                                BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                                BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                            }
+                        )
+                    },
+                    onClick = { showBackgroundEffectsDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.live_mesh_presets)) },
+                    description = { Text(stringResource(R.string.live_mesh_presets_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_presets") },
+                    visible = liveMeshRows.presets,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings)) },
+                    description = { Text(stringResource(R.string.live_mesh_settings_desc)) },
+                    onClick = { showPlayerLiveMeshDialog = true },
+                    visible = liveMeshRows.playerSettings,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.live_mesh_separate_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_separate_mini_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshSeparateMini,
+                            onCheckedChange = onLiveMeshSeparateMiniChange
+                        )
+                    },
+                    onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) },
+                    visible = liveMeshRows.separateMini,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_auto_tempo)) },
+                    description = { Text(stringResource(R.string.live_mesh_auto_tempo_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshAutoTempo,
+                            onCheckedChange = onLiveMeshAutoTempoChange
+                        )
+                    },
+                    onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) },
+                    visible = liveMeshRows.autoTempo,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.live_mesh_adaptive_quality)) },
+                    description = { Text(stringResource(R.string.live_mesh_adaptive_quality_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshAdaptiveQuality,
+                            onCheckedChange = onLiveMeshAdaptiveQualityChange
+                        )
+                    },
+                    onClick = { onLiveMeshAdaptiveQualityChange(!liveMeshAdaptiveQuality) },
+                    visible = liveMeshRows.adaptiveQuality,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
+                    onClick = { showMiniLiveMeshDialog = true },
+                    visible = liveMeshRows.miniSettings,
                 ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(

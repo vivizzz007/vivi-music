@@ -87,6 +87,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -99,6 +100,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -195,6 +197,7 @@ import com.music.vivi.ui.component.BottomSheetPage
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.rememberBottomSheetState
+import com.music.vivi.ui.component.shouldRevealPlayerForTrack
 import com.music.vivi.ui.component.shimmer.ShimmerTheme
 import com.music.vivi.ui.menu.YouTubeSongMenu
 import com.music.vivi.ui.player.BottomSheetPlayer
@@ -225,6 +228,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -884,7 +888,7 @@ class MainActivity : ComponentActivity() {
                             mediaItem: MediaItem?,
                             reason: Int,
                         ) {
-                            if (mediaItem != null && playerBottomSheetState.isDismissed) {
+                            if (shouldRevealPlayerForTrack(mediaItem != null, playerBottomSheetState.isDismissed)) {
                                 playerBottomSheetState.collapseSoft()
                             }
                         }
@@ -902,6 +906,17 @@ class MainActivity : ComponentActivity() {
                     player.addListener(listener)
                     onDispose {
                         player.removeListener(listener)
+                    }
+                }
+
+                val currentPlayerBottomSheetState by rememberUpdatedState(playerBottomSheetState)
+
+                // Reveals the mini player on every new track, so a missed Player.Listener callback cannot leave it hidden
+                LaunchedEffect(playerConnection) {
+                    playerConnection?.mediaMetadata?.drop(1)?.collect { metadata ->
+                        if (shouldRevealPlayerForTrack(metadata != null, currentPlayerBottomSheetState.isDismissed)) {
+                            currentPlayerBottomSheetState.collapseSoft()
+                        }
                     }
                 }
 
@@ -1195,6 +1210,7 @@ class MainActivity : ComponentActivity() {
                                             // Use graphicsLayer instead of offset to avoid recomposition
                                             // graphicsLayer runs during draw phase, not composition phase
                                             .graphicsLayer {
+                                                compositingStrategy = CompositingStrategy.Offscreen
                                                 val navBarHeightPx = navigationBarHeight.toPx()
                                                 val totalHeightPx = navBarTotalHeight.toPx()
 
