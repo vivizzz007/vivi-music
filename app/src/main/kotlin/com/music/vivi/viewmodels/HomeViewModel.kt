@@ -77,6 +77,14 @@ data class CommunityPlaylistItem(
     val songs: List<SongItem>
 )
 
+private const val QUICK_PICKS_MIN_LOCAL = 8
+
+// A single forgotten favourite used to block every fallback, so the section showed one song.
+internal fun needsQuickPicksTopUp(size: Int): Boolean = size < QUICK_PICKS_MIN_LOCAL
+
+internal fun <T> mergeQuickPicks(current: List<T>, extra: List<T>, key: (T) -> Any): List<T> =
+    (current + extra).distinctBy(key).take(20)
+
 internal enum class ChipToggleAction { RESTORE, LOAD }
 
 // Tapping the active chip, or the one still loading, always returns to the general feed; only other chips load.
@@ -412,33 +420,33 @@ class HomeViewModel @Inject constructor(
                 // ── Fallback Tier 1: liked songs ──────────────────────────────────────
                 // quickPicks uses related_song_map which is empty until songs are played
                 // via the related pipeline. Fall back to liked songs for new/fresh users.
-                if (combined.isEmpty()) {
+                if (needsQuickPicksTopUp(combined.size)) {
                     val tLiked = System.currentTimeMillis()
                     val likedSongs = database.likedSongsByCreateDateAsc().first()
                         .filterVideoSongs(hideVideoSongs).shuffled().take(20)
                     android.util.Log.d("QP_TIMING", "[Phase1][FALLBACK-1] liked songs: ${System.currentTimeMillis() - tLiked}ms | count=${likedSongs.size}")
-                    combined = likedSongs
+                    combined = mergeQuickPicks(combined, likedSongs) { it.id }
                 }
 
                 // ── Fallback Tier 2: most-played songs (any time window) ───────────────
-                // If user has neither related nor liked songs, use play history.
-                if (combined.isEmpty()) {
+                // If the user still has too few picks, top up from play history.
+                if (needsQuickPicksTopUp(combined.size)) {
                     val tPlayed = System.currentTimeMillis()
                     val fromTimeStamp = System.currentTimeMillis() - 86400000L * 365 // past year
                     val mostPlayed = database.mostPlayedSongs(fromTimeStamp, limit = 20).first()
                         .filterVideoSongs(hideVideoSongs).shuffled().take(20)
                     android.util.Log.d("QP_TIMING", "[Phase1][FALLBACK-2] mostPlayed songs: ${System.currentTimeMillis() - tPlayed}ms | count=${mostPlayed.size}")
-                    combined = mostPlayed
+                    combined = mergeQuickPicks(combined, mostPlayed) { it.id }
                 }
 
                 // ── Fallback Tier 3: any song in library ─────────────────────────────
                 // Last resort — at minimum show something from the library.
-                if (combined.isEmpty()) {
+                if (needsQuickPicksTopUp(combined.size)) {
                     val tLib = System.currentTimeMillis()
                     val librarySongs = database.songsByCreateDateAsc().first()
                         .filterVideoSongs(hideVideoSongs).shuffled().take(20)
                     android.util.Log.d("QP_TIMING", "[Phase1][FALLBACK-3] library songs: ${System.currentTimeMillis() - tLib}ms | count=${librarySongs.size}")
-                    combined = librarySongs
+                    combined = mergeQuickPicks(combined, librarySongs) { it.id }
                 }
 
                 android.util.Log.d("QP_TIMING", "[Phase1] final source for combined: ${combined.size} songs")
