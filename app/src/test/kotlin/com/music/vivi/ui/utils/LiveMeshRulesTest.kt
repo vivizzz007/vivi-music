@@ -1,7 +1,6 @@
 package com.music.vivi.ui.utils
 
 import androidx.datastore.preferences.core.mutablePreferencesOf
-import com.music.vivi.constants.LiveMeshShakeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -56,7 +55,6 @@ class LiveMeshRulesTest {
         assertTrue(rows.presets)
         assertTrue(rows.playerSettings)
         assertTrue(rows.adaptiveQuality)
-        assertTrue(rows.shake)
         assertFalse(rows.miniSettings)
     }
 
@@ -67,7 +65,6 @@ class LiveMeshRulesTest {
         assertFalse(rows.presets)
         assertFalse(rows.playerSettings)
         assertFalse(rows.adaptiveQuality)
-        assertFalse(rows.shake)
         assertTrue(rows.miniSettings)
     }
 
@@ -90,7 +87,7 @@ class LiveMeshRulesTest {
         val rows = liveMeshRowVisibility(live, live, separateMini = true)
 
         assertTrue(rows.presets && rows.playerSettings && rows.separateMini && rows.miniSettings)
-        assertTrue(rows.autoTempo && rows.adaptiveQuality && rows.shake)
+        assertTrue(rows.autoTempo && rows.adaptiveQuality)
     }
 
     @Test
@@ -99,7 +96,7 @@ class LiveMeshRulesTest {
         others.forEach { player ->
             others.forEach { mini ->
                 val rows = liveMeshRowVisibility(player, mini, separateMini = true)
-                assertFalse("$player / $mini", rows.presets || rows.playerSettings || rows.adaptiveQuality || rows.shake)
+                assertFalse("$player / $mini", rows.presets || rows.playerSettings || rows.adaptiveQuality)
                 assertFalse("$player / $mini", rows.miniSettings)
                 assertFalse("$player / $mini", rows.separateMini)
                 assertFalse("$player / $mini", rows.autoTempo)
@@ -265,11 +262,6 @@ class LiveMeshRulesTest {
 
         assertTrue(party.beatReactivity > LiveMeshConfig.Default.beatReactivity)
         assertTrue(party.lyricReactivity > LiveMeshConfig.Default.lyricReactivity)
-    }
-
-    @Test
-    fun shakeSwitchUsesItsStoredPreferenceName() {
-        assertEquals("liveMeshShake", LiveMeshShakeKey.name)
     }
 
     @Test

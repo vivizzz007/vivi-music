@@ -5,17 +5,11 @@
 
 package com.music.vivi.ui.component
 
-import android.content.Context
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -34,23 +28,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.music.vivi.audio.AudioPulse
 import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
-import com.music.vivi.constants.LiveMeshShakeKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
-import com.music.vivi.ui.utils.ShakeDetector
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.nextAdaptiveScale
 import com.music.vivi.ui.utils.reactiveZoom
-import com.music.vivi.ui.utils.shakeGlowLevel
-import com.music.vivi.ui.utils.shakeSpinMultiplier
-import com.music.vivi.ui.utils.shouldListenForShake
 import com.music.vivi.utils.rememberPreference
 import kotlin.math.sin
 
@@ -64,39 +52,26 @@ private const val CENTER_GLOW_LYRIC = 0.1f
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
-// Angles, shimmer and the shake glow live in snapshot state so layers repaint themselves every frame.
+// Angles and shimmer live in snapshot state so layers repaint themselves every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
 internal class LiveMeshClock {
     var anchor by mutableFloatStateOf(0f)
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
-    var shakeGlow by mutableFloatStateOf(0f)
-    private var shakeStartMs: Long? = null
     private var tempo = 1f
-
-    fun triggerShake(nowMs: Long) {
-        shakeStartMs = nowMs
-    }
 
     fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
         tempo += (targetTempo - tempo) * (dtSeconds * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
         val direction = if (config.reverseDirection) -1f else 1f
 
-        val start = shakeStartMs
-        val elapsed = if (start == null) Long.MAX_VALUE else nowMs - start
-        val spinTempo = tempo * (if (start == null) 1f else shakeSpinMultiplier(elapsed))
-
-        anchor = advanceAngle(anchor, -direction, spinTempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
-        fast = advanceAngle(fast, direction, spinTempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
-        slow = advanceAngle(slow, direction, spinTempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
+        anchor = advanceAngle(anchor, -direction, tempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
+        fast = advanceAngle(fast, direction, tempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
+        slow = advanceAngle(slow, direction, tempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
 
         if (lyricTempo > 0f) {
             shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * lyricTempo * config.lyricReactivity)
         }
-
-        // Updated every frame so the glow repaints for the whole burst, not just at the shake.
-        shakeGlow = if (start == null) 0f else shakeGlowLevel(elapsed)
     }
 }
 
@@ -133,39 +108,12 @@ internal fun LiveMeshBackground(
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
-    expanded: Boolean = false,
     lowResolution: Boolean = true,
     clock: LiveMeshClock = rememberLiveMeshClock(config),
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
     val adaptiveSetting by rememberPreference(LiveMeshAdaptiveQualityKey, defaultValue = true)
-    val shakeSetting by rememberPreference(LiveMeshShakeKey, defaultValue = true)
     val adaptiveEnabled = adaptiveQuality && adaptiveSetting
-    val shakeActive = shouldListenForShake(expanded, shakeSetting)
-    val context = LocalContext.current
-
-    // Only the expanded player listens, so collapsed bars and previews never react to the phone moving.
-    DisposableEffect(shakeActive) {
-        val sensorManager = if (shakeActive) context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager else null
-        val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-        if (sensorManager == null || accelerometer == null) {
-            onDispose {}
-        } else {
-            val detector = ShakeDetector()
-            val listener = object : SensorEventListener {
-                override fun onSensorChanged(event: SensorEvent) {
-                    val now = AudioPulse.nowMs()
-                    if (detector.onSample(event.values[0], event.values[1], event.values[2], now)) {
-                        clock.triggerShake(now)
-                    }
-                }
-
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
-            }
-            sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_GAME)
-            onDispose { sensorManager.unregisterListener(listener) }
-        }
-    }
 
     val spin = if (config.reverseDirection) -1f else 1f
     val baseScale = config.renderScale
@@ -286,12 +234,11 @@ internal fun LiveMeshBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val shake = clock.shakeGlow
                     val tempoBreath = AudioPulse.lyricTempo() * config.lyricReactivity *
                         SHIMMER_GLOW_AMPLITUDE * sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
                     val glow = AudioPulse.beat().coerceIn(0f, 1f) * config.beatReactivity * CENTER_GLOW_BEAT +
                         AudioPulse.lyricPulse().coerceIn(0f, 1f) * config.lyricReactivity * CENTER_GLOW_LYRIC +
-                        shake + tempoBreath
+                        tempoBreath
                     this.alpha = glow.coerceIn(0f, 1f)
                 }
                 .drawWithCache {

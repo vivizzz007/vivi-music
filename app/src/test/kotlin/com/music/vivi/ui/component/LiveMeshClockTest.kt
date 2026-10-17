@@ -1,11 +1,7 @@
 package com.music.vivi.ui.component
 
 import com.music.vivi.ui.utils.LiveMeshConfig
-import com.music.vivi.ui.utils.SHAKE_DECAY_MS
-import com.music.vivi.ui.utils.SHAKE_GLOW_PEAK
-import com.music.vivi.ui.utils.SHAKE_SPIN_PEAK
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LiveMeshClockTest {
@@ -134,132 +130,6 @@ class LiveMeshClockTest {
     }
 
     @Test
-    fun shakeGlowIsZeroWithoutAShake() {
-        val clock = LiveMeshClock()
-
-        clock.advance(1f, neutral, 1f, 0f, nowMs = 5_000L)
-
-        assertEquals(0f, clock.shakeGlow, 0f)
-    }
-
-    @Test
-    fun shakeGlowPeaksRightAfterTheShake() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(1_000L)
-
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 1_000L)
-
-        assertEquals(SHAKE_GLOW_PEAK, clock.shakeGlow, 1e-6f)
-    }
-
-    @Test
-    fun shakeSpinsLayersFasterThanCalmFrames() {
-        val calm = LiveMeshClock()
-        val shaken = LiveMeshClock()
-        shaken.triggerShake(0L)
-
-        calm.advance(1f, neutral, 1f, 0f, nowMs = 0L)
-        shaken.advance(1f, neutral, 1f, 0f, nowMs = 0L)
-
-        assertEquals(anchorPerSecond * (1f + SHAKE_SPIN_PEAK), shaken.anchor, 1e-3f)
-        assertEquals(fastPerSecond * (1f + SHAKE_SPIN_PEAK), shaken.fast, 1e-3f)
-        assertEquals(anchorPerSecond, calm.anchor, 1e-3f)
-    }
-
-    @Test
-    fun shakeSpinFadesBackToNormalSpeed() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(0L)
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 0L)
-
-        // Far enough after the shake that the burst has effectively decayed.
-        clock.advance(1f, neutral, 1f, 0f, nowMs = 60_000L)
-
-        assertEquals(anchorPerSecond, clock.anchor, 1e-2f)
-        assertEquals(0f, clock.shakeGlow, 1e-6f)
-    }
-
-    @Test
-    fun shakeSpinFollowsReverseDirection() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(0L)
-
-        clock.advance(1f, neutral.copy(reverseDirection = true), 1f, 0f, nowMs = 0L)
-
-        assertEquals(-anchorPerSecond * (1f + SHAKE_SPIN_PEAK), clock.anchor, 1e-3f)
-        assertEquals(-fastPerSecond * (1f + SHAKE_SPIN_PEAK), clock.fast, 1e-3f)
-    }
-
-    @Test
-    fun shakeSpinScalesWithAutoTempo() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(0L)
-
-        // Tempo starts at 1 and is pulled to 0.5 for this frame only, so the burst multiplies that tempo.
-        clock.advance(0.25f, neutral, targetTempo = 0.5f, lyricTempo = 0f, nowMs = 0L)
-        val tempo = 1f + (0.5f - 1f) * 0.5f
-        val expected = -360f * tempo * (1f + SHAKE_SPIN_PEAK) * 0.25f * 1000f / 80000f
-
-        assertEquals(expected, clock.anchor, 1e-3f)
-    }
-
-    @Test
-    fun shakeDoesNotChangeShimmerWithoutLyricTempo() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(0L)
-
-        clock.advance(1f, neutral, 1f, lyricTempo = 0f, nowMs = 0L)
-
-        assertEquals(0f, clock.shimmer, 0f)
-    }
-
-    @Test
-    fun shakeGlowDecaysAcrossFramesMonotonically() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(0L)
-        var previous = Float.MAX_VALUE
-
-        for (now in 0L..2_000L step 100L) {
-            clock.advance(0.1f, neutral, 1f, 0f, nowMs = now)
-            assertTrue("at $now", clock.shakeGlow <= previous)
-            previous = clock.shakeGlow
-        }
-    }
-
-    @Test
-    fun shakeGlowFadesAfterThePeak() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(1_000L)
-
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 1_000L + SHAKE_DECAY_MS.toLong())
-
-        assertEquals(SHAKE_GLOW_PEAK * Math.exp(-1.0).toFloat(), clock.shakeGlow, 1e-4f)
-    }
-
-    @Test
-    fun shakeIgnoresTimesBeforeTheShake() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(1_000L)
-
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 900L)
-
-        assertEquals(0f, clock.shakeGlow, 0f)
-    }
-
-    @Test
-    fun repeatedShakeRestartsTheBurst() {
-        val clock = LiveMeshClock()
-        clock.triggerShake(1_000L)
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 2_000L)
-        assertTrue(clock.shakeGlow < SHAKE_GLOW_PEAK)
-
-        clock.triggerShake(2_000L)
-        clock.advance(0f, neutral, 1f, 0f, nowMs = 2_000L)
-
-        assertEquals(SHAKE_GLOW_PEAK, clock.shakeGlow, 1e-6f)
-    }
-
-    @Test
     fun layersKeepTurningAcrossSeveralFrames() {
         val clock = LiveMeshClock()
 
@@ -269,5 +139,4 @@ class LiveMeshClockTest {
         assertEquals(fastPerSecond, clock.fast, 1e-3f)
         assertEquals(slowPerSecond, clock.slow, 1e-3f)
     }
-
 }

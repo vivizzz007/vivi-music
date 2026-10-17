@@ -196,7 +196,6 @@ internal data class LiveMeshRowVisibility(
     val miniSettings: Boolean,
     val autoTempo: Boolean,
     val adaptiveQuality: Boolean,
-    val shake: Boolean,
 )
 
 // Each row follows the surface it configures: player-only rows hide while the player uses another style, and vice versa.
@@ -216,7 +215,6 @@ internal fun liveMeshRowVisibility(
         miniSettings = miniLive && separateMini,
         autoTempo = anyLive,
         adaptiveQuality = playerLive,
-        shake = playerLive,
     )
 }
 
