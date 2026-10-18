@@ -102,10 +102,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
 import com.music.vivi.ui.utils.fadingEdge
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlin.math.roundToInt
 
-private const val LYRICS_ANCHOR_RATIO = 0.35f
+private const val LYRICS_ANCHOR_RATIO = 0.42f
 private val LYRICS_ITEM_FALLBACK_HEIGHT_DP = 68.dp
 private val LYRICS_ITEM_GAP_DP = 16.dp
 private val LYRICS_FADE_TOP_DP = 130.dp
@@ -796,14 +797,27 @@ fun LyricsV2(
                     }
                 }
 
-                LaunchedEffect(isSeeking, lastPreviewTime) {
+                // When user is slider-seeking, force auto-scroll immediately.
+                LaunchedEffect(isSeeking) {
                     if (isSeeking) {
                         lastPreviewTime = 0L
                         isAutoScrollEnabled = true
-                    } else if (lastPreviewTime != 0L) {
-                        delay(4000L)
-                        lastPreviewTime = 0L
-                        isAutoScrollEnabled = true
+                    }
+                }
+
+                // Auto-resync: after the user stops manually scrolling for 5 seconds,
+                // re-enable auto-scroll so lyrics snap back to the current line.
+                // collectLatest ensures each new drag cancels any in-progress 5s countdown.
+                LaunchedEffect(isAutoScrollEnabled) {
+                    if (!isAutoScrollEnabled) {
+                        snapshotFlow { lastPreviewTime }
+                            .collectLatest { startTime ->
+                                if (startTime != 0L) {
+                                    delay(5000L)
+                                    lastPreviewTime = 0L
+                                    isAutoScrollEnabled = true
+                                }
+                            }
                     }
                 }
 
@@ -844,35 +858,29 @@ fun LyricsV2(
                         map
                     }
 
-                    val minOffset = remember(itemHeights.toMap(), mergedLyricsList, activeListIndex, anchorY) {
-                        if (mergedLyricsList.isEmpty() || activeListIndex == -1) return@remember 0f
-                        val indicatorHeightPx = with(density) { 72.dp.toPx() }
-                        val totalBelow = (activeListIndex until mergedLyricsList.size - 1).sumOf { i ->
-                            val currentItem = mergedLyricsList[i]
-                            val nextItem = mergedLyricsList[i + 1]
-                            val height = itemHeights[i]?.toFloat() ?: (if (currentItem is LyricsListItemV2.Indicator) indicatorHeightPx else constraintLineHeightPx)
-                            val nextNoGap = (nextItem as? LyricsListItemV2.Line)?.entry?.isBackground == true || nextItem is LyricsListItemV2.Indicator
-                            (height + if (nextNoGap) 0f else with(density) { LYRICS_ITEM_GAP_DP.toPx() }).toDouble()
-                        }.toFloat()
-                        val lastItem = mergedLyricsList.last()
-                        val lastHeight = itemHeights[mergedLyricsList.size - 1]?.toFloat() ?: (if (lastItem is LyricsListItemV2.Indicator) indicatorHeightPx else constraintLineHeightPx)
-                        with(density) { 100.dp.toPx() } - anchorY - totalBelow - lastHeight
-                    }
+                    // Derive scroll bounds directly from the already-computed positions map.
+                    // Each item's screen Y = anchorY + positions[listIndex] + userManualOffset.
+                    //
+                    // maxOffset (drag DOWN → first item visible near top):
+                    //   anchorY + positions[0] + maxOffset = topPad  →  maxOffset = topPad - anchorY - positions[0]
+                    //   positions[0] is negative, so maxOffset is positive.
+                    //
+                    // minOffset (drag UP → last item visible near bottom):
+                    //   anchorY + positions[last] + minOffset = maxH - botPad  →  minOffset = maxH - botPad - anchorY - positions[last]
+                    //   positions[last] is large positive, so minOffset is negative.
+                    val topPad = with(density) { 56.dp.toPx() }
+                    val botPad = with(density) { 100.dp.toPx() }
+                    val firstPos = if (mergedLyricsList.isEmpty()) 0f
+                        else positions.getOrDefault(0, (0 - activeListIndex) * lineHeightPx)
+                    val lastPos = if (mergedLyricsList.isEmpty()) 0f
+                        else positions.getOrDefault(
+                            mergedLyricsList.size - 1,
+                            (mergedLyricsList.size - 1 - activeListIndex) * lineHeightPx
+                        )
 
-                    val maxOffset = remember(itemHeights.toMap(), mergedLyricsList, activeListIndex, maxHeightPx, anchorY) {
-                        if (mergedLyricsList.isEmpty() || activeListIndex == -1) return@remember 0f
-                        val indicatorHeightPx = with(density) { 72.dp.toPx() }
-                        val totalAbove = (0 until activeListIndex).sumOf { i ->
-                            val item = mergedLyricsList[i]
-                            val height = itemHeights[i]?.toFloat() ?: (if (item is LyricsListItemV2.Indicator) indicatorHeightPx else constraintLineHeightPx)
-                            val noGap = (item as? LyricsListItemV2.Line)?.entry?.isBackground == true || item is LyricsListItemV2.Indicator
-                            (height + if (noGap) 0f else with(density) { LYRICS_ITEM_GAP_DP.toPx() }).toDouble()
-                        }.toFloat()
-                        maxHeightPx - with(density) { 150.dp.toPx() } - anchorY + totalAbove
-                    }
+                    val scrollClampMax = (topPad - anchorY - firstPos).coerceAtLeast(0f)
+                    val scrollClampMin = (maxHeightPx - botPad - anchorY - lastPos).coerceAtMost(0f)
 
-                    val scrollClampMin = minOf(minOffset, maxOffset)
-                    val scrollClampMax = maxOf(minOffset, maxOffset)
 
                     LaunchedEffect(scrollClampMin, scrollClampMax) {
                         if (userManualOffset < scrollClampMin || userManualOffset > scrollClampMax) {
@@ -887,11 +895,14 @@ fun LyricsV2(
                                 userManualOffset = 0f
                                 return@LaunchedEffect
                             }
-                            val anim = androidx.compose.animation.core.Animatable(start)
-                            var lastValue = start
-                            anim.animateTo(0f, tween((kotlin.math.abs(start) / 4f).toInt().coerceIn(200, 600), easing = FastOutSlowInEasing)) {
-                                userManualOffset += (value - lastValue)
-                                lastValue = value
+                            // Direct assignment so there's no drift from concurrent fling/drag state
+                            val durationMs = (kotlin.math.abs(start) / 3f).toInt().coerceIn(300, 700)
+                            val anim = Animatable(start)
+                            anim.animateTo(
+                                targetValue = 0f,
+                                animationSpec = tween(durationMs, easing = FastOutSlowInEasing)
+                            ) {
+                                userManualOffset = value
                             }
                             userManualOffset = 0f
                         }
@@ -943,22 +954,24 @@ fun LyricsV2(
                                                     initialVelocity = velocity
                                                 )
                                                 animState.animateDecay(decayAnimSpec) {
-                                                    if (value in scrollClampMin..scrollClampMax) {
+                                                    if (!isAutoScrollEnabled && value in scrollClampMin..scrollClampMax) {
                                                         userManualOffset = value
-                                                    } else {
+                                                    } else if (!isAutoScrollEnabled) {
                                                         val target = value.coerceIn(scrollClampMin, scrollClampMax)
                                                         cancelAnimation()
                                                         launch {
-                                                            androidx.compose.animation.core.Animatable(userManualOffset).animateTo(
+                                                            Animatable(userManualOffset).animateTo(
                                                                 targetValue = target,
                                                                 animationSpec = androidx.compose.animation.core.spring(
                                                                     dampingRatio = androidx.compose.animation.core.Spring.DampingRatioLowBouncy,
                                                                     stiffness = androidx.compose.animation.core.Spring.StiffnessMedium
                                                                 )
                                                             ) {
-                                                                userManualOffset = value
+                                                                if (!isAutoScrollEnabled) userManualOffset = value
                                                             }
                                                         }
+                                                    } else {
+                                                        cancelAnimation()
                                                     }
                                                 }
                                             }
@@ -1223,17 +1236,22 @@ fun LyricsV2(
                     ) {
                         AnimatedVisibility(
                             visible = !isAutoScrollEnabled && !isSelectionModeActive,
-                            enter = slideInVertically { it } + fadeIn(),
-                            exit = slideOutVertically { it } + fadeOut()
+                            enter = slideInVertically(tween(300, easing = FastOutSlowInEasing)) { it } + fadeIn(tween(300)),
+                            exit = slideOutVertically(tween(250, easing = FastOutSlowInEasing)) { it } + fadeOut(tween(250))
                         ) {
                             FilledTonalButton(onClick = {
+                                // Cancel any in-progress fling before starting spring-back;
+                                // without this, flingJob keeps writing to userManualOffset
+                                // and fights the spring-back animation.
+                                flingJob?.cancel()
+                                flingJob = null
                                 if (currentLineIndex != -1) {
                                     scrollTargetIndex = currentLineIndex
                                     deferredCurrentLineIndex = currentLineIndex
                                     lastMainMaxSeen = currentLineIndex
                                 }
-                                isAutoScrollEnabled = true
                                 lastPreviewTime = 0L
+                                isAutoScrollEnabled = true
                             }) {
                                 Icon(
                                     painter = painterResource(id = R.drawable.sync),
