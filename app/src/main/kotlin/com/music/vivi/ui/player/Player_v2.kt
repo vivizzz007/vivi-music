@@ -50,6 +50,8 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import androidx.media3.common.C
 import com.music.vivi.LocalPlayerConnection
+import androidx.compose.ui.graphics.graphicsLayer
+import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
@@ -211,6 +213,7 @@ fun PlayerV2(
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
+    val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
 
     DisposableEffect(playerState, isPlaying, isKeepScreenOn) {
@@ -455,11 +458,21 @@ fun PlayerV2(
                                             )
                                         }
                                     } else {
+                                        val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
+                                            mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                                        }
                                         AsyncImage(
                                             model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
                                             contentDescription = "Cover Art",
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .graphicsLayer {
+                                                    if (cropAlbumArt && isYtThumbnail) {
+                                                        scaleX = 4f / 3f
+                                                        scaleY = 4f / 3f
+                                                    }
+                                                },
+                                            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
                                         )
                                         // Fix 4: Always render canvas (don't gate on transition state).
                                         // The previous guard caused a visible pop/snap when the
@@ -629,11 +642,21 @@ fun PlayerV2(
                                                 )
                                             }
                                         } else {
+                                            val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
+                                                mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                                            }
                                             AsyncImage(
                                                 model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
                                                 contentDescription = "Cover Art",
-                                                modifier = Modifier.fillMaxSize(),
-                                                contentScale = ContentScale.Crop
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .graphicsLayer {
+                                                        if (cropAlbumArt && isYtThumbnail) {
+                                                            scaleX = 4f / 3f
+                                                            scaleY = 4f / 3f
+                                                        }
+                                                    },
+                                                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
                                             )
                                         }
                                     }

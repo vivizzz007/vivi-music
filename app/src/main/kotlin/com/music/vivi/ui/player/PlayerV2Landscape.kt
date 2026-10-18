@@ -45,6 +45,8 @@ import com.music.vivi.BuildConfig
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import androidx.compose.ui.graphics.graphicsLayer
+import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.EnableGoogleCastKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.PlayerBackgroundStyle
@@ -164,6 +166,7 @@ fun PlayerV2Landscape(
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
+    val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
 
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
 
@@ -361,11 +364,21 @@ fun PlayerV2Landscape(
                         tint = adaptivePrimary.copy(alpha = 0.5f)
                     )
                 } else {
+                    val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
+                        mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                    }
                     AsyncImage(
                         model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
                         contentDescription = "Cover Art",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                if (cropAlbumArt && isYtThumbnail) {
+                                    scaleX = 4f / 3f
+                                    scaleY = 4f / 3f
+                                }
+                            },
+                        contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
                     )
                     PlayerV2Motionartowek(
                         mediaMetadata = mediaMetadata,

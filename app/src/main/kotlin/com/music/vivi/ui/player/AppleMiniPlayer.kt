@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
+import androidx.compose.ui.graphics.graphicsLayer
 import coil3.compose.AsyncImage
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -74,6 +75,7 @@ fun AppleMiniPlayer(
     
     // Theme settings
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
+    val cropAlbumArt by rememberPreference(CropAlbumArtKey, defaultValue = false)
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
@@ -262,11 +264,21 @@ fun AppleMiniPlayer(
                         .background(color = outlineColor.copy(alpha = 0.2f))
                 ) {
                     mediaMetadata?.let { metadata ->
+                        val isYtThumbnail = remember(metadata.thumbnailUrl) {
+                            metadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                        }
                         AsyncImage(
                             model = metadata.thumbnailUrl,
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    if (cropAlbumArt && isYtThumbnail) {
+                                        scaleX = 4f / 3f
+                                        scaleY = 4f / 3f
+                                    }
+                                }
                         )
                     }
                 }
