@@ -214,6 +214,7 @@ import com.music.vivi.ui.component.LiveMeshBackground
 import com.music.vivi.ui.component.rememberLiveMeshClock
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberArtworkDimFactor
 import com.music.vivi.ui.utils.rememberLiveMeshStore
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1272,10 +1273,12 @@ fun BottomSheetPlayer(
                             label = "liveMeshBackground"
                         ) { thumbnailUrl ->
                             if (thumbnailUrl != null) {
+                                val artworkDim = rememberArtworkDimFactor(thumbnailUrl)
                                 LiveMeshBackground(
                                     config = liveMesh,
                                     alpha = backgroundAlpha,
                                     adaptiveQuality = true,
+                                    artworkDim = artworkDim,
                                     clock = liveMeshClock,
                                 ) { layerModifier, alignment, colorFilter ->
                                     AsyncImage(

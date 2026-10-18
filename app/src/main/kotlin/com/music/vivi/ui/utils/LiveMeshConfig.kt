@@ -135,11 +135,12 @@ internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
 internal fun advanceAngle(current: Float, direction: Float, tempo: Float, dtSeconds: Float, periodMs: Int): Float =
     (current + direction * 360f * tempo * dtSeconds * 1000f / periodMs) % 360f
 
-internal const val BEAT_SPEED_BOOST = 0.6f
-internal const val PULSE_RISE_PER_SECOND = 40f
-internal const val PULSE_FALL_PER_SECOND = 2.5f
-internal const val TEMPO_RISE_PER_SECOND = 3f
-internal const val TEMPO_FALL_PER_SECOND = 1.8f
+// Per-frame factors 0.5 / 0.12 and speed 0.05 / 0.03 from the Better Lyrics Lucid preset, converted to rates at 60 fps.
+internal const val BEAT_SPEED_BOOST = 1.4f
+internal const val PULSE_RISE_PER_SECOND = 41.6f
+internal const val PULSE_FALL_PER_SECOND = 7.6f
+internal const val TEMPO_RISE_PER_SECOND = 3.08f
+internal const val TEMPO_FALL_PER_SECOND = 1.82f
 
 // Rising and falling use separate rates, so a value snaps toward a new target and then settles back slowly.
 // The exponential form gives the same response at any frame rate.

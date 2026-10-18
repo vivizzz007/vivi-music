@@ -126,6 +126,7 @@ import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
 import com.music.vivi.ui.component.LiveMeshBackground
 import com.music.vivi.ui.component.rememberLiveMeshClock
+import com.music.vivi.ui.utils.rememberArtworkDimFactor
 import com.music.vivi.ui.utils.rememberMiniLiveMeshStore
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1162,10 +1163,12 @@ internal fun MiniPlayerBackgroundLayer(
         PlayerBackgroundStyle.LIVE_MESH -> {
             val liveMesh = rememberMiniLiveMeshStore().config
             val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = miniBackgroundIsPlaying)
+            val artworkDim = rememberArtworkDimFactor(mediaMetadata?.thumbnailUrl)
             LiveMeshBackground(
                 config = liveMesh,
                 adaptiveQuality = false,
                 lowResolution = false,
+                artworkDim = artworkDim,
                 clock = liveMeshClock,
             ) { layerModifier, alignment, colorFilter ->
                 AsyncImage(

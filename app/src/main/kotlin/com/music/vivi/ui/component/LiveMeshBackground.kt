@@ -133,6 +133,7 @@ internal fun LiveMeshBackground(
     alpha: Float = 1f,
     adaptiveQuality: Boolean = false,
     lowResolution: Boolean = true,
+    artworkDim: Float = 1f,
     clock: LiveMeshClock = rememberLiveMeshClock(config),
     artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
@@ -239,7 +240,8 @@ internal fun LiveMeshBackground(
                 .fillMaxSize()
                 .graphicsLayer {
                     val beat = clock.beatPulse
-                    this.alpha = (config.darkTint * (1f - beat * BEAT_TINT_RELIEF * config.beatReactivity)).coerceIn(0f, 1f)
+                    val tint = (config.darkTint * (1f - beat * BEAT_TINT_RELIEF * config.beatReactivity)).coerceIn(0f, 1f)
+                    this.alpha = 1f - (1f - tint) * artworkDim
                 }
                 .background(Color.Black)
         )
