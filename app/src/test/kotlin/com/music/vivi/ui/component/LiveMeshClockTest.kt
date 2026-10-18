@@ -2,6 +2,7 @@ package com.music.vivi.ui.component
 
 import com.music.vivi.ui.utils.BEAT_SPEED_BOOST
 import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.LiveMeshMotion
 import com.music.vivi.ui.utils.PULSE_FALL_PER_SECOND
 import com.music.vivi.ui.utils.PULSE_RISE_PER_SECOND
 import com.music.vivi.ui.utils.TEMPO_FALL_PER_SECOND
@@ -107,6 +108,44 @@ class LiveMeshClockTest {
 
         val tempoAfterFall = risenTempo + (0.5f - risenTempo) * (1f - exp(-TEMPO_FALL_PER_SECOND * 0.25f))
         assertEquals(riseStep + anchorPerSecond * tempoAfterFall * 0.25f, clock.anchor, 1e-3f)
+    }
+
+    @Test
+    fun motionTempoRiseSetsHowFastTheRotationPicksUp() {
+        val clock = LiveMeshClock()
+        val fastRise = LiveMeshMotion.Default.copy(tempoRise = 10f)
+
+        clock.advance(0.25f, neutral, targetTempo = 2f, lyricTempo = 0f, nowMs = 0L, motion = fastRise)
+
+        val tempo = 1f + (2f - 1f) * (1f - exp(-10f * 0.25f))
+        assertEquals(anchorPerSecond * tempo * 0.25f, clock.anchor, 1e-3f)
+    }
+
+    @Test
+    fun zeroBeatBoostKeepsSpeedFixedOnBeats() {
+        val clock = LiveMeshClock()
+        clock.followPulses(dtSeconds = 1f, beatTarget = 1f, lyricTarget = 0f)
+
+        clock.advance(
+            1f,
+            neutral.copy(beatReactivity = 1f),
+            targetTempo = 1f,
+            lyricTempo = 0f,
+            nowMs = 0L,
+            motion = LiveMeshMotion.Default.copy(beatSpeedBoost = 0f),
+        )
+
+        assertEquals(anchorPerSecond, clock.anchor, 1e-3f)
+    }
+
+    @Test
+    fun motionPulseRiseSetsHowFastBeatsJump() {
+        val clock = LiveMeshClock()
+        val slowRise = LiveMeshMotion.Default.copy(pulseRise = 1f)
+
+        clock.followPulses(dtSeconds = 0.5f, beatTarget = 1f, lyricTarget = 0f, motion = slowRise)
+
+        assertEquals(1f - exp(-1f * 0.5f), clock.beatPulse, 1e-5f)
     }
 
     @Test

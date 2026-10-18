@@ -35,15 +35,14 @@ import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
-import com.music.vivi.ui.utils.PULSE_FALL_PER_SECOND
-import com.music.vivi.ui.utils.PULSE_RISE_PER_SECOND
-import com.music.vivi.ui.utils.TEMPO_FALL_PER_SECOND
-import com.music.vivi.ui.utils.TEMPO_RISE_PER_SECOND
+import com.music.vivi.ui.utils.LiveMeshFrameInput
+import com.music.vivi.ui.utils.LiveMeshMotion
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.beatSpeedFactor
 import com.music.vivi.ui.utils.followTowards
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
+import com.music.vivi.ui.utils.rememberLiveMeshMotion
 import com.music.vivi.ui.utils.nextAdaptiveScale
 import com.music.vivi.ui.utils.reactiveZoom
 import com.music.vivi.utils.rememberPreference
@@ -55,8 +54,10 @@ private const val SHIMMER_ALPHA_AMPLITUDE = 0.35f
 private const val SHIMMER_GLOW_AMPLITUDE = 0.08f
 private const val BEAT_LAYER_BOOST = 0.18f
 private const val BEAT_TINT_RELIEF = 0.6f
-private const val CENTER_GLOW_BEAT = 0.35f
-private const val CENTER_GLOW_LYRIC = 0.1f
+private const val CENTER_GLOW_BEAT = 0.6f
+private const val CENTER_GLOW_LYRIC = 0.25f
+private const val CENTER_GLOW_RADIUS_FRACTION = 0.9f
+private const val CENTER_GLOW_CORE_ALPHA = 0.7f
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
 
 // Angles and shimmer live in snapshot state so layers repaint themselves every frame.
@@ -72,15 +73,22 @@ internal class LiveMeshClock {
         private set
     private var tempo = 1f
 
-    fun followPulses(dtSeconds: Float, beatTarget: Float, lyricTarget: Float) {
-        beatPulse = followTowards(beatPulse, beatTarget.coerceIn(0f, 1f), PULSE_RISE_PER_SECOND, PULSE_FALL_PER_SECOND, dtSeconds)
-        lyricPulse = followTowards(lyricPulse, lyricTarget.coerceIn(0f, 1f), PULSE_RISE_PER_SECOND, PULSE_FALL_PER_SECOND, dtSeconds)
+    fun followPulses(dtSeconds: Float, beatTarget: Float, lyricTarget: Float, motion: LiveMeshMotion = LiveMeshMotion.Default) {
+        beatPulse = followTowards(beatPulse, beatTarget.coerceIn(0f, 1f), motion.pulseRise, motion.pulseFall, dtSeconds)
+        lyricPulse = followTowards(lyricPulse, lyricTarget.coerceIn(0f, 1f), motion.pulseRise, motion.pulseFall, dtSeconds)
     }
 
-    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
-        tempo = followTowards(tempo, targetTempo, TEMPO_RISE_PER_SECOND, TEMPO_FALL_PER_SECOND, dtSeconds)
+    fun advance(
+        dtSeconds: Float,
+        config: LiveMeshConfig,
+        targetTempo: Float,
+        lyricTempo: Float,
+        nowMs: Long,
+        motion: LiveMeshMotion = LiveMeshMotion.Default,
+    ) {
+        tempo = followTowards(tempo, targetTempo, motion.tempoRise, motion.tempoFall, dtSeconds)
         val direction = if (config.reverseDirection) -1f else 1f
-        val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity)
+        val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity, motion.beatSpeedBoost)
 
         anchor = advanceAngle(anchor, -direction, speed, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
         fast = advanceAngle(fast, direction, speed, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
@@ -96,10 +104,35 @@ internal class LiveMeshClock {
 @Composable
 internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = true): LiveMeshClock {
     val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
+    val latestAutoTempo by rememberUpdatedState(autoTempo)
+    return rememberLiveMeshClockDriver(
+        config = config,
+        playing = playing,
+        motion = rememberLiveMeshMotion().motion,
+    ) {
+        LiveMeshFrameInput(
+            beat = AudioPulse.beat(),
+            lyric = AudioPulse.lyricPulse(),
+            lyricTempo = AudioPulse.lyricTempo(),
+            targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f,
+            nowMs = AudioPulse.nowMs(),
+        )
+    }
+}
+
+// The frame loop lives here once, so every surface moves with the same physics and the same motion settings.
+@Composable
+internal fun rememberLiveMeshClockDriver(
+    config: LiveMeshConfig,
+    playing: Boolean,
+    motion: LiveMeshMotion,
+    input: () -> LiveMeshFrameInput,
+): LiveMeshClock {
     val clock = remember { LiveMeshClock() }
     val latestConfig by rememberUpdatedState(config)
-    val latestAutoTempo by rememberUpdatedState(autoTempo)
     val latestPlaying by rememberUpdatedState(playing)
+    val latestMotion by rememberUpdatedState(motion)
+    val latestInput by rememberUpdatedState(input)
 
     LaunchedEffect(Unit) {
         var lastFrameNanos = 0L
@@ -112,9 +145,9 @@ internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = tr
             withFrameNanos { now ->
                 if (lastFrameNanos != 0L) {
                     val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
-                    val targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f
-                    clock.followPulses(dt, AudioPulse.beat(), AudioPulse.lyricPulse())
-                    clock.advance(dt, latestConfig, targetTempo, AudioPulse.lyricTempo(), AudioPulse.nowMs())
+                    val frame = latestInput()
+                    clock.followPulses(dt, frame.beat, frame.lyric, latestMotion)
+                    clock.advance(dt, latestConfig, frame.targetTempo, frame.lyricTempo, frame.nowMs, latestMotion)
                 }
                 lastFrameNanos = now
             }
@@ -268,9 +301,9 @@ internal fun LiveMeshBackground(
                     this.alpha = glow.coerceIn(0f, 1f)
                 }
                 .drawWithCache {
-                    val radius = size.minDimension * 0.6f
+                    val radius = size.minDimension * CENTER_GLOW_RADIUS_FRACTION
                     val glow = Brush.radialGradient(
-                        colors = listOf(Color.White.copy(alpha = 0.6f), Color.Transparent),
+                        colors = listOf(Color.White.copy(alpha = CENTER_GLOW_CORE_ALPHA), Color.Transparent),
                         center = Offset(size.width / 2f, size.height / 2f),
                         radius = radius,
                     )

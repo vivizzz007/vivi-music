@@ -42,10 +42,10 @@ internal fun artworkDimFactor(highlight: Float, strength: Float = ARTWORK_DIM_ST
 }
 
 @Composable
-internal fun rememberArtworkDimFactor(thumbnailUrl: String?): Float {
+internal fun rememberArtworkHighlight(thumbnailUrl: String?): Float? {
     val context = LocalContext.current
-    val dim by produceState(initialValue = 1f, thumbnailUrl) {
-        value = 1f
+    val highlight by produceState<Float?>(initialValue = null, thumbnailUrl) {
+        value = null
         if (thumbnailUrl == null) return@produceState
         value = withContext(Dispatchers.IO) {
             runCatching {
@@ -56,12 +56,20 @@ internal fun rememberArtworkDimFactor(thumbnailUrl: String?): Float {
                         .allowHardware(false)
                         .build()
                 )
-                val bitmap: Bitmap = result.image?.toBitmap() ?: return@runCatching 1f
+                val bitmap: Bitmap = result.image?.toBitmap() ?: return@runCatching null
                 val pixels = IntArray(bitmap.width * bitmap.height)
                 bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-                artworkDimFactor(highlightLuminance(pixels))
-            }.getOrDefault(1f)
+                highlightLuminance(pixels)
+            }.getOrNull()
         }
     }
-    return dim
+    return highlight
+}
+
+// The strength comes from the motion settings, so changing it re-dims the current cover without reloading it.
+@Composable
+internal fun rememberArtworkDimFactor(thumbnailUrl: String?): Float {
+    val highlight = rememberArtworkHighlight(thumbnailUrl)
+    val strength = rememberLiveMeshMotion().motion.artworkDimStrength
+    return highlight?.let { artworkDimFactor(it, strength) } ?: 1f
 }

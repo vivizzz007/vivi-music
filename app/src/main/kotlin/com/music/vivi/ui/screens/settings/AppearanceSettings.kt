@@ -1424,6 +1424,20 @@ fun AppearanceSettings(
                     visible = liveMeshRows.presets,
                 ),
                 Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_motion_title)) },
+                    description = { Text(stringResource(R.string.live_mesh_motion_settings_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_motion") },
+                    visible = liveMeshRows.motion,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.play),
+                    title = { Text(stringResource(R.string.live_mesh_preview_title)) },
+                    description = { Text(stringResource(R.string.live_mesh_preview_settings_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_preview") },
+                    visible = liveMeshRows.motion,
+                ),
+                Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.live_mesh_settings)) },
                     description = { Text(stringResource(R.string.live_mesh_settings_desc)) },

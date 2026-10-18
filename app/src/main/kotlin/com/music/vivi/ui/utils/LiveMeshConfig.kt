@@ -156,8 +156,8 @@ internal fun followTowards(
 }
 
 // Beats push the rotation forward for a moment; reactivity scales how much, and zero keeps the speed unchanged.
-internal fun beatSpeedFactor(beat: Float, beatReactivity: Float): Float =
-    1f + beat.coerceIn(0f, 1f) * BEAT_SPEED_BOOST * beatReactivity
+internal fun beatSpeedFactor(beat: Float, beatReactivity: Float, boost: Float = BEAT_SPEED_BOOST): Float =
+    1f + beat.coerceIn(0f, 1f) * boost * beatReactivity
 
 // Player keys keep the original camelCase names; other scopes prepend their prefix to the "LiveMesh" part.
 internal class LiveMeshKeys(private val prefix: String) {
@@ -221,6 +221,7 @@ internal data class LiveMeshRowVisibility(
     val miniSettings: Boolean,
     val autoTempo: Boolean,
     val adaptiveQuality: Boolean,
+    val motion: Boolean,
 )
 
 // Each row follows the surface it configures: player-only rows hide while the player uses another style, and vice versa.
@@ -240,6 +241,7 @@ internal fun liveMeshRowVisibility(
         miniSettings = miniLive && separateMini,
         autoTempo = anyLive,
         adaptiveQuality = playerLive,
+        motion = anyLive,
     )
 }
 

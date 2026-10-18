@@ -42,6 +42,8 @@ import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.MotionartworkSelection
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
+import com.music.vivi.ui.screens.settings.LiveMeshMotionScreen
+import com.music.vivi.ui.screens.settings.LiveMeshPreviewScreen
 import com.music.vivi.ui.screens.settings.LiveMeshPresetsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.AutoBackupSettings
@@ -386,6 +388,12 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/appearance/live_mesh_presets") {
         LiveMeshPresetsScreen(navController)
+    }
+    composable("settings/appearance/live_mesh_motion") {
+        LiveMeshMotionScreen(navController)
+    }
+    composable("settings/appearance/live_mesh_preview") {
+        LiveMeshPreviewScreen(navController)
     }
 
     composable("settings/content") {
