@@ -249,7 +249,7 @@ class LiveMeshRulesTest {
 
     @Test
     fun lowPowerPresetTurnsOffBeatAndLyricReactions() {
-        val lowPower = LiveMeshPresets.last().config
+        val lowPower = LiveMeshPresets.single { it.config.renderScale == 8f }.config
 
         assertEquals(0f, lowPower.beatReactivity, 0f)
         assertEquals(0f, lowPower.lyricReactivity, 0f)
@@ -257,11 +257,21 @@ class LiveMeshRulesTest {
     }
 
     @Test
-    fun partyPresetIsTheFastestAndMostReactive() {
-        val party = LiveMeshPresets.single { it.config.speed == 2f }.config
+    fun originalPresetIsTheVividPartyLookAndIsFirst() {
+        val original = LiveMeshPresets.first()
 
-        assertTrue(party.beatReactivity > LiveMeshConfig.Default.beatReactivity)
-        assertTrue(party.lyricReactivity > LiveMeshConfig.Default.lyricReactivity)
+        assertEquals(LiveMeshConfig.Default, original.config)
+        assertEquals(2f, original.config.speed, 0f)
+        assertEquals(2.2f, original.config.saturation, 0f)
+    }
+
+    @Test
+    fun classicPresetKeepsThePreviousDefaultLook() {
+        val classic = LiveMeshPresets.last().config
+
+        assertEquals(1.8f, classic.saturation, 0f)
+        assertEquals(1f, classic.speed, 0f)
+        assertEquals(0.5f, classic.beatReactivity, 0f)
     }
 
     @Test

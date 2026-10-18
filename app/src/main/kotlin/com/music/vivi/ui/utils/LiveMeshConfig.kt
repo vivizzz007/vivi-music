@@ -59,19 +59,19 @@ internal data class LiveMeshConfig(
         const val REACTIVITY_MAX = 1f
 
         val Default = LiveMeshConfig(
-            blurStrength = 1f,
-            saturation = 1.8f,
-            speed = 1f,
-            darkTint = 0.2f,
+            blurStrength = 0.8f,
+            saturation = 2.2f,
+            speed = 2f,
+            darkTint = 0.15f,
             renderScale = 4f,
-            layer2Alpha = 0.6f,
-            layer3Alpha = 0.5f,
+            layer2Alpha = 0.8f,
+            layer3Alpha = 0.7f,
             zoom = 1.7f,
             reverseDirection = false,
             bottomShade = 0.25f,
             textureSize = 128,
-            beatReactivity = 0.5f,
-            lyricReactivity = 0.5f,
+            beatReactivity = 0.6f,
+            lyricReactivity = 0.8f,
         )
 
         val MiniDefault = Default.copy(

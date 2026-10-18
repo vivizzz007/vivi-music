@@ -36,8 +36,11 @@ class LiveMeshConfigTest {
     )
 
     @Test
-    fun defaultConfigMatchesOriginalPlayerAppearance() {
-        assertEquals(config(), LiveMeshConfig.Default)
+    fun defaultConfigIsTheVividPartyLook() {
+        assertEquals(
+            config(blur = 0.8f, saturation = 2.2f, speed = 2f, darkTint = 0.15f, layer2Alpha = 0.8f, layer3Alpha = 0.7f, beat = 0.6f, lyric = 0.8f),
+            LiveMeshConfig.Default,
+        )
     }
 
     @Test
