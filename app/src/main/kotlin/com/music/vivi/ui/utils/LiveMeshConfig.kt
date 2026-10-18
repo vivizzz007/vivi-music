@@ -19,6 +19,7 @@ import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
+import kotlin.math.exp
 import kotlin.math.roundToInt
 
 internal data class LiveMeshConfig(
@@ -133,6 +134,29 @@ internal fun liveMeshPeriodMillis(baseMillis: Int, speed: Float): Int =
 
 internal fun advanceAngle(current: Float, direction: Float, tempo: Float, dtSeconds: Float, periodMs: Int): Float =
     (current + direction * 360f * tempo * dtSeconds * 1000f / periodMs) % 360f
+
+internal const val BEAT_SPEED_BOOST = 0.6f
+internal const val PULSE_RISE_PER_SECOND = 40f
+internal const val PULSE_FALL_PER_SECOND = 2.5f
+internal const val TEMPO_RISE_PER_SECOND = 3f
+internal const val TEMPO_FALL_PER_SECOND = 1.8f
+
+// Rising and falling use separate rates, so a value snaps toward a new target and then settles back slowly.
+// The exponential form gives the same response at any frame rate.
+internal fun followTowards(
+    current: Float,
+    target: Float,
+    risePerSecond: Float,
+    fallPerSecond: Float,
+    dtSeconds: Float,
+): Float {
+    val rate = if (target > current) risePerSecond else fallPerSecond
+    return current + (target - current) * (1f - exp(-rate * dtSeconds))
+}
+
+// Beats push the rotation forward for a moment; reactivity scales how much, and zero keeps the speed unchanged.
+internal fun beatSpeedFactor(beat: Float, beatReactivity: Float): Float =
+    1f + beat.coerceIn(0f, 1f) * BEAT_SPEED_BOOST * beatReactivity
 
 // Player keys keep the original camelCase names; other scopes prepend their prefix to the "LiveMesh" part.
 internal class LiveMeshKeys(private val prefix: String) {

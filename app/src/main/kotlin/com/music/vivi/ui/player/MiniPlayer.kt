@@ -1062,6 +1062,8 @@ internal fun MiniPlayerBackgroundLayer(
     val context = LocalContext.current
     val effectiveStyle = rememberReducedBackgroundStyle(style)
     val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+    val playerConnection = LocalPlayerConnection.current
+    val miniBackgroundIsPlaying by playerConnection?.isPlaying?.collectAsState() ?: remember { mutableStateOf(true) }
 
     when (effectiveStyle) {
         PlayerBackgroundStyle.BLUR -> {
@@ -1159,7 +1161,7 @@ internal fun MiniPlayerBackgroundLayer(
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
             val liveMesh = rememberMiniLiveMeshStore().config
-            val liveMeshClock = rememberLiveMeshClock(liveMesh)
+            val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = miniBackgroundIsPlaying)
             LiveMeshBackground(
                 config = liveMesh,
                 adaptiveQuality = false,

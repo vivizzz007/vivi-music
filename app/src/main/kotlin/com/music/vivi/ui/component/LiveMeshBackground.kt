@@ -16,6 +16,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,12 +35,19 @@ import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LowResolutionLayer
+import com.music.vivi.ui.utils.PULSE_FALL_PER_SECOND
+import com.music.vivi.ui.utils.PULSE_RISE_PER_SECOND
+import com.music.vivi.ui.utils.TEMPO_FALL_PER_SECOND
+import com.music.vivi.ui.utils.TEMPO_RISE_PER_SECOND
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
+import com.music.vivi.ui.utils.beatSpeedFactor
+import com.music.vivi.ui.utils.followTowards
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.nextAdaptiveScale
 import com.music.vivi.ui.utils.reactiveZoom
 import com.music.vivi.utils.rememberPreference
+import kotlinx.coroutines.flow.first
 import kotlin.math.sin
 
 private const val SHIMMER_MAX_DEG_PER_SECOND = 240f
@@ -50,7 +58,6 @@ private const val BEAT_TINT_RELIEF = 0.6f
 private const val CENTER_GLOW_BEAT = 0.35f
 private const val CENTER_GLOW_LYRIC = 0.1f
 private const val ADAPTIVE_WINDOW_SECONDS = 2f
-private const val TEMPO_SMOOTHING_PER_SECOND = 2f
 
 // Angles and shimmer live in snapshot state so layers repaint themselves every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
@@ -59,15 +66,25 @@ internal class LiveMeshClock {
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
+    var beatPulse by mutableFloatStateOf(0f)
+        private set
+    var lyricPulse by mutableFloatStateOf(0f)
+        private set
     private var tempo = 1f
 
-    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
-        tempo += (targetTempo - tempo) * (dtSeconds * TEMPO_SMOOTHING_PER_SECOND).coerceAtMost(1f)
-        val direction = if (config.reverseDirection) -1f else 1f
+    fun followPulses(dtSeconds: Float, beatTarget: Float, lyricTarget: Float) {
+        beatPulse = followTowards(beatPulse, beatTarget.coerceIn(0f, 1f), PULSE_RISE_PER_SECOND, PULSE_FALL_PER_SECOND, dtSeconds)
+        lyricPulse = followTowards(lyricPulse, lyricTarget.coerceIn(0f, 1f), PULSE_RISE_PER_SECOND, PULSE_FALL_PER_SECOND, dtSeconds)
+    }
 
-        anchor = advanceAngle(anchor, -direction, tempo, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
-        fast = advanceAngle(fast, direction, tempo, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
-        slow = advanceAngle(slow, direction, tempo, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
+    fun advance(dtSeconds: Float, config: LiveMeshConfig, targetTempo: Float, lyricTempo: Float, nowMs: Long) {
+        tempo = followTowards(tempo, targetTempo, TEMPO_RISE_PER_SECOND, TEMPO_FALL_PER_SECOND, dtSeconds)
+        val direction = if (config.reverseDirection) -1f else 1f
+        val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity)
+
+        anchor = advanceAngle(anchor, -direction, speed, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
+        fast = advanceAngle(fast, direction, speed, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
+        slow = advanceAngle(slow, direction, speed, dtSeconds, liveMeshPeriodMillis(60000, config.speed))
 
         if (lyricTempo > 0f) {
             shimmer = wrap(shimmer + dtSeconds * SHIMMER_MAX_DEG_PER_SECOND * lyricTempo * config.lyricReactivity)
@@ -77,19 +94,26 @@ internal class LiveMeshClock {
 
 // One clock per screen: the caller owns the frame loop, so a crossfading artwork never advances it twice.
 @Composable
-internal fun rememberLiveMeshClock(config: LiveMeshConfig): LiveMeshClock {
+internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = true): LiveMeshClock {
     val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
     val clock = remember { LiveMeshClock() }
     val latestConfig by rememberUpdatedState(config)
     val latestAutoTempo by rememberUpdatedState(autoTempo)
+    val latestPlaying by rememberUpdatedState(playing)
 
     LaunchedEffect(Unit) {
         var lastFrameNanos = 0L
         while (true) {
+            // Suspending instead of skipping frames keeps the render loop fully idle while paused.
+            if (!latestPlaying) {
+                lastFrameNanos = 0L
+                snapshotFlow { latestPlaying }.first { it }
+            }
             withFrameNanos { now ->
                 if (lastFrameNanos != 0L) {
                     val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
                     val targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f
+                    clock.followPulses(dt, AudioPulse.beat(), AudioPulse.lyricPulse())
                     clock.advance(dt, latestConfig, targetTempo, AudioPulse.lyricTempo(), AudioPulse.nowMs())
                 }
                 lastFrameNanos = now
@@ -162,8 +186,8 @@ internal fun LiveMeshBackground(
                 // Scale up so the rotating layers never reveal their edges; beats and lyric lines push it further.
                 val zoom = reactiveZoom(
                     baseZoom = config.zoom,
-                    beat = AudioPulse.beat(),
-                    lyric = AudioPulse.lyricPulse(),
+                    beat = clock.beatPulse,
+                    lyric = clock.lyricPulse,
                     beatReactivity = config.beatReactivity,
                     lyricReactivity = config.lyricReactivity,
                 )
@@ -186,7 +210,7 @@ internal fun LiveMeshBackground(
                     .blur(120.dp * config.blurStrength / layerScale)
                     .graphicsLayer {
                         rotationZ = clock.fast + clock.shimmer * spin
-                        this.alpha = layerAlpha(config.layer2Alpha, clock.shimmer, config.lyricReactivity, config.beatReactivity)
+                        this.alpha = layerAlpha(config.layer2Alpha, clock, config.lyricReactivity, config.beatReactivity)
                     },
                 Alignment.TopStart,
                 colorFilter,
@@ -197,7 +221,7 @@ internal fun LiveMeshBackground(
                     .blur(120.dp * config.blurStrength / layerScale)
                     .graphicsLayer {
                         rotationZ = clock.slow + clock.shimmer * spin
-                        this.alpha = layerAlpha(config.layer3Alpha, clock.shimmer, config.lyricReactivity, config.beatReactivity)
+                        this.alpha = layerAlpha(config.layer3Alpha, clock, config.lyricReactivity, config.beatReactivity)
                     },
                 Alignment.BottomEnd,
                 colorFilter,
@@ -214,7 +238,7 @@ internal fun LiveMeshBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val beat = AudioPulse.beat().coerceIn(0f, 1f)
+                    val beat = clock.beatPulse
                     this.alpha = (config.darkTint * (1f - beat * BEAT_TINT_RELIEF * config.beatReactivity)).coerceIn(0f, 1f)
                 }
                 .background(Color.Black)
@@ -236,8 +260,8 @@ internal fun LiveMeshBackground(
                 .graphicsLayer {
                     val tempoBreath = AudioPulse.lyricTempo() * config.lyricReactivity *
                         SHIMMER_GLOW_AMPLITUDE * sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
-                    val glow = AudioPulse.beat().coerceIn(0f, 1f) * config.beatReactivity * CENTER_GLOW_BEAT +
-                        AudioPulse.lyricPulse().coerceIn(0f, 1f) * config.lyricReactivity * CENTER_GLOW_LYRIC +
+                    val glow = clock.beatPulse * config.beatReactivity * CENTER_GLOW_BEAT +
+                        clock.lyricPulse * config.lyricReactivity * CENTER_GLOW_LYRIC +
                         tempoBreath
                     this.alpha = glow.coerceIn(0f, 1f)
                 }
@@ -257,10 +281,10 @@ internal fun LiveMeshBackground(
 private fun wrap(degrees: Float): Float = degrees % 360f
 
 // Layer opacity breathes with lyric tempo and flares on beats, so motion is visible across the screen.
-private fun layerAlpha(base: Float, shimmerDeg: Float, lyricReactivity: Float, beatReactivity: Float): Float {
+private fun layerAlpha(base: Float, clock: LiveMeshClock, lyricReactivity: Float, beatReactivity: Float): Float {
     val tempo = AudioPulse.lyricTempo()
-    val phase = sin(Math.toRadians(shimmerDeg.toDouble())).toFloat()
+    val phase = sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
     val shimmer = 1f + SHIMMER_ALPHA_AMPLITUDE * tempo * lyricReactivity * phase
-    val beatFlare = AudioPulse.beat().coerceIn(0f, 1f) * BEAT_LAYER_BOOST * beatReactivity
+    val beatFlare = clock.beatPulse * BEAT_LAYER_BOOST * beatReactivity
     return ((base * shimmer) + beatFlare).coerceIn(0f, 1f)
 }

@@ -1262,7 +1262,7 @@ fun BottomSheetPlayer(
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
                         val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
-                        val liveMeshClock = rememberLiveMeshClock(liveMesh)
+                        val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = effectiveIsPlaying)
 
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
