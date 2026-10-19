@@ -362,6 +362,8 @@
     <string name="disable_screenshot">Désactiver la capture d\'écran</string>
     <string name="disable_screenshot_desc">Lorsque cette option est activée, les captures d\'écran et l\'affichage de l\'application dans les applications récentes sont désactivés.</string>
     <string name="enable_lrclib">Activer le fournisseur de paroles LrcLib</string>
+    <string name="enable_lrcred">Activer le fournisseur de paroles lrc.red</string>
+    <string name="enable_lrcred_desc">Recherche et minutages TTML d\'Apple Music provenant de lrc.red</string>
     <string name="enable_kugou">Activer le fournisseur de paroles KuGou</string>
     <string name="hide_explicit">Masquer le contenu explicite</string>
 
@@ -373,7 +375,7 @@
     <string name="backup_create_failed">Impossible de créer une sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
-    <string name="discord_integration">Intégration Discord</string>
+    <string name="discord_integration">Discord</string>
     <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\Vivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
     <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
