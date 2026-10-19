@@ -215,6 +215,7 @@ import com.music.vivi.ui.component.rememberLiveMeshClock
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
 import com.music.vivi.ui.utils.rememberArtworkDimFactor
+import com.music.vivi.ui.utils.rememberArtworkPalette
 import com.music.vivi.ui.utils.rememberLiveMeshStore
 import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.backgroundSize
@@ -1274,26 +1275,14 @@ fun BottomSheetPlayer(
                         ) { thumbnailUrl ->
                             if (thumbnailUrl != null) {
                                 val artworkDim = rememberArtworkDimFactor(thumbnailUrl)
+                                val artworkPalette = rememberArtworkPalette(thumbnailUrl)
                                 LiveMeshBackground(
                                     config = liveMesh,
                                     alpha = backgroundAlpha,
-                                    adaptiveQuality = true,
                                     artworkDim = artworkDim,
+                                    palette = artworkPalette,
                                     clock = liveMeshClock,
-                                ) { layerModifier, alignment, colorFilter ->
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(liveMesh.textureSize, liveMesh.textureSize)
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        colorFilter = colorFilter,
-                                        alignment = alignment,
-                                        modifier = layerModifier,
-                                    )
-                                }
+                                )
                             }
                         }
                     }

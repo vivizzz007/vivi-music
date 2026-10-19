@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +44,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -199,23 +197,13 @@ private fun LivePresetCard(
         highlighted = isActive,
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            val artwork = painterResource(R.drawable.weeknd)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .clip(PresetPreviewShape)
             ) {
-                LiveMeshBackground(config = config) { layerModifier, alignment, colorFilter ->
-                    Image(
-                        painter = artwork,
-                        contentDescription = null,
-                        modifier = layerModifier,
-                        contentScale = ContentScale.Crop,
-                        colorFilter = colorFilter,
-                        alignment = alignment,
-                    )
-                }
+                LiveMeshBackground(config = config)
             }
 
             Row(

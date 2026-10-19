@@ -7,7 +7,6 @@ package com.music.vivi.ui.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,55 +17,52 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.lerp
 import com.music.vivi.audio.AudioPulse
-import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.ui.utils.LiveMeshConfig
-import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.LiveMeshFrameInput
 import com.music.vivi.ui.utils.LiveMeshMotion
+import com.music.vivi.ui.utils.LiveMeshSamplePalette
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.beatSpeedFactor
+import com.music.vivi.ui.utils.flowBlobs
 import com.music.vivi.ui.utils.followTowards
 import com.music.vivi.ui.utils.liveMeshPeriodMillis
 import com.music.vivi.ui.utils.rememberLiveMeshMotion
-import com.music.vivi.ui.utils.nextAdaptiveScale
-import com.music.vivi.ui.utils.reactiveZoom
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.flow.first
 import kotlin.math.sin
+import kotlin.random.Random
 
 private const val SHIMMER_MAX_DEG_PER_SECOND = 240f
-private const val SHIMMER_ALPHA_AMPLITUDE = 0.35f
 private const val SHIMMER_GLOW_AMPLITUDE = 0.08f
-private const val BEAT_LAYER_BOOST = 0.18f
 private const val BEAT_TINT_RELIEF = 0.6f
 private const val CENTER_GLOW_BEAT = 0.6f
 private const val CENTER_GLOW_LYRIC = 0.25f
 private const val CENTER_GLOW_RADIUS_FRACTION = 0.9f
 private const val CENTER_GLOW_CORE_ALPHA = 0.7f
-private const val ADAPTIVE_WINDOW_SECONDS = 2f
+private const val FLOW_BLOB_ALPHA = 0.9f
 
-// Angles and shimmer live in snapshot state so layers repaint themselves every frame.
+// Angles, shimmer and flow time live in snapshot state so the background repaints itself every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
 internal class LiveMeshClock {
     var anchor by mutableFloatStateOf(0f)
     var fast by mutableFloatStateOf(0f)
     var slow by mutableFloatStateOf(0f)
     var shimmer by mutableFloatStateOf(0f)
+    var flowTime by mutableFloatStateOf(0f)
+        private set
     var beatPulse by mutableFloatStateOf(0f)
         private set
     var lyricPulse by mutableFloatStateOf(0f)
@@ -89,6 +85,8 @@ internal class LiveMeshClock {
         tempo = followTowards(tempo, targetTempo, motion.tempoRise, motion.tempoFall, dtSeconds)
         val direction = if (config.reverseDirection) -1f else 1f
         val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity, motion.beatSpeedBoost)
+
+        flowTime += dtSeconds * tempo * config.speed
 
         anchor = advanceAngle(anchor, -direction, speed, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
         fast = advanceAngle(fast, direction, speed, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
@@ -156,118 +154,54 @@ internal fun rememberLiveMeshClockDriver(
     return clock
 }
 
-// Single renderer for the Live Mesh background. The caller supplies how one artwork layer is drawn.
-// Angles are accumulated per frame instead of using infinite animations, so auto tempo and speed changes
-// never make the layers jump. Reactions are read in the draw phase, so nothing recomposes per frame.
+// Colour blobs drift along unrelated sine paths, so the cover's colours flow across the whole surface, centre included.
+// The per-instance seed gives every track and every screen its own rhythm; time and beats are read in the draw phase.
 @Composable
 internal fun LiveMeshBackground(
     config: LiveMeshConfig,
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
-    adaptiveQuality: Boolean = false,
-    lowResolution: Boolean = true,
     artworkDim: Float = 1f,
+    palette: List<Color> = LiveMeshSamplePalette,
     clock: LiveMeshClock = rememberLiveMeshClock(config),
-    artwork: @Composable (layerModifier: Modifier, alignment: Alignment, colorFilter: ColorFilter) -> Unit,
 ) {
-    val adaptiveSetting by rememberPreference(LiveMeshAdaptiveQualityKey, defaultValue = true)
-    val adaptiveEnabled = adaptiveQuality && adaptiveSetting
+    val seed = remember { Random.nextInt() }
+    val colors = palette.ifEmpty { LiveMeshSamplePalette }
 
-    val spin = if (config.reverseDirection) -1f else 1f
-    val baseScale = config.renderScale
-    val adaptiveScale = remember(baseScale) { mutableFloatStateOf(baseScale) }
-    val renderScale = if (adaptiveEnabled) adaptiveScale.floatValue else baseScale
-    val layerScale = if (lowResolution) renderScale else 1f
-
-    val latestAdaptive by rememberUpdatedState(adaptiveEnabled)
-    val latestBaseScale by rememberUpdatedState(baseScale)
-
-    LaunchedEffect(Unit) {
-        var lastFrameNanos = 0L
-        var windowSeconds = 0f
-        var windowFrameSeconds = 0f
-        var windowFrames = 0
-        while (true) {
-            withFrameNanos { now ->
-                if (lastFrameNanos != 0L && latestAdaptive) {
-                    val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
-                    windowSeconds += dt
-                    windowFrameSeconds += dt
-                    windowFrames++
-                    if (windowSeconds >= ADAPTIVE_WINDOW_SECONDS) {
-                        val avgFrameMs = windowFrameSeconds / windowFrames * 1000f
-                        val next = nextAdaptiveScale(adaptiveScale.floatValue, avgFrameMs, latestBaseScale)
-                        if (next != adaptiveScale.floatValue) adaptiveScale.floatValue = next
-                        windowSeconds = 0f
-                        windowFrameSeconds = 0f
-                        windowFrames = 0
+    Box(modifier = modifier.fillMaxSize().alpha(alpha)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .drawBehind {
+                    drawRect(colors.first())
+                    val extent = maxOf(size.width, size.height)
+                    flowBlobs(clock.flowTime, seed, clock.beatPulse, config.beatReactivity).forEach { blob ->
+                        val color = lerp(
+                            colors[blob.paletteIndex % colors.size],
+                            colors[blob.blendIndex % colors.size],
+                            blob.blend,
+                        )
+                        val reach = blob.radius * extent
+                        withTransform({
+                            translate(blob.x * size.width, blob.y * size.height)
+                            rotate(Math.toDegrees(blob.angle.toDouble()).toFloat(), pivot = Offset.Zero)
+                            scale(blob.stretchX, blob.stretchY, pivot = Offset.Zero)
+                        }) {
+                            drawCircle(
+                                brush = Brush.radialGradient(
+                                    colors = listOf(color.copy(alpha = FLOW_BLOB_ALPHA), color.copy(alpha = 0f)),
+                                    center = Offset.Zero,
+                                    radius = reach,
+                                ),
+                                radius = reach,
+                                center = Offset.Zero,
+                            )
+                        }
                     }
                 }
-                lastFrameNanos = now
-            }
-        }
-    }
+        )
 
-    val colorFilter = remember(config.saturation) {
-        ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(config.saturation) })
-    }
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .alpha(alpha)
-            .graphicsLayer {
-                // Scale up so the rotating layers never reveal their edges; beats and lyric lines push it further.
-                val zoom = reactiveZoom(
-                    baseZoom = config.zoom,
-                    beat = clock.beatPulse,
-                    lyric = clock.lyricPulse,
-                    beatReactivity = config.beatReactivity,
-                    lyricReactivity = config.lyricReactivity,
-                )
-                scaleX = zoom
-                scaleY = zoom
-            }
-    ) {
-        val layers: @Composable BoxScope.() -> Unit = {
-            artwork(
-                Modifier
-                    .fillMaxSize()
-                    .blur(100.dp * config.blurStrength / layerScale)
-                    .graphicsLayer { rotationZ = clock.anchor - clock.shimmer * spin },
-                Alignment.Center,
-                colorFilter,
-            )
-            artwork(
-                Modifier
-                    .fillMaxSize()
-                    .blur(120.dp * config.blurStrength / layerScale)
-                    .graphicsLayer {
-                        rotationZ = clock.fast + clock.shimmer * spin
-                        this.alpha = layerAlpha(config.layer2Alpha, clock, config.lyricReactivity, config.beatReactivity)
-                    },
-                Alignment.TopStart,
-                colorFilter,
-            )
-            artwork(
-                Modifier
-                    .fillMaxSize()
-                    .blur(120.dp * config.blurStrength / layerScale)
-                    .graphicsLayer {
-                        rotationZ = clock.slow + clock.shimmer * spin
-                        this.alpha = layerAlpha(config.layer3Alpha, clock, config.lyricReactivity, config.beatReactivity)
-                    },
-                Alignment.BottomEnd,
-                colorFilter,
-            )
-        }
-        if (lowResolution) {
-            LowResolutionLayer(factor = renderScale, content = layers)
-        } else {
-            Box(modifier = Modifier.fillMaxSize(), content = layers)
-        }
-
-        // Beats briefly lift the tint across the whole background, so the reaction is not limited to the zoom.
+        // Beats briefly lift the tint across the whole background, so the reaction is not limited to the colour blobs.
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -314,12 +248,3 @@ internal fun LiveMeshBackground(
 }
 
 private fun wrap(degrees: Float): Float = degrees % 360f
-
-// Layer opacity breathes with lyric tempo and flares on beats, so motion is visible across the screen.
-private fun layerAlpha(base: Float, clock: LiveMeshClock, lyricReactivity: Float, beatReactivity: Float): Float {
-    val tempo = AudioPulse.lyricTempo()
-    val phase = sin(Math.toRadians(clock.shimmer.toDouble())).toFloat()
-    val shimmer = 1f + SHIMMER_ALPHA_AMPLITUDE * tempo * lyricReactivity * phase
-    val beatFlare = clock.beatPulse * BEAT_LAYER_BOOST * beatReactivity
-    return ((base * shimmer) + beatFlare).coerceIn(0f, 1f)
-}

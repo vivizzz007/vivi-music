@@ -9,6 +9,8 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import coil3.imageLoader
 import coil3.request.ImageRequest
@@ -21,6 +23,12 @@ internal const val ARTWORK_DIM_SAMPLE_SIZE = 32
 internal const val ARTWORK_DIM_STRENGTH = 0.3f
 internal const val ARTWORK_DIM_MAX_REDUCTION = 0.8f
 private const val HIGHLIGHT_PERCENTILE = 0.9f
+
+internal class ArtworkPixels(
+    val argb: IntArray,
+    val width: Int,
+    val height: Int,
+)
 
 // The 90th percentile ignores a few small specular spots, so one white logo does not dim a dark cover.
 internal fun highlightLuminance(argbPixels: IntArray): Float {
@@ -42,9 +50,9 @@ internal fun artworkDimFactor(highlight: Float, strength: Float = ARTWORK_DIM_ST
 }
 
 @Composable
-internal fun rememberArtworkHighlight(thumbnailUrl: String?): Float? {
+internal fun rememberArtworkPixels(thumbnailUrl: String?): ArtworkPixels? {
     val context = LocalContext.current
-    val highlight by produceState<Float?>(initialValue = null, thumbnailUrl) {
+    val pixels by produceState<ArtworkPixels?>(initialValue = null, thumbnailUrl) {
         value = null
         if (thumbnailUrl == null) return@produceState
         value = withContext(Dispatchers.IO) {
@@ -57,19 +65,28 @@ internal fun rememberArtworkHighlight(thumbnailUrl: String?): Float? {
                         .build()
                 )
                 val bitmap: Bitmap = result.image?.toBitmap() ?: return@runCatching null
-                val pixels = IntArray(bitmap.width * bitmap.height)
-                bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-                highlightLuminance(pixels)
+                val argb = IntArray(bitmap.width * bitmap.height)
+                bitmap.getPixels(argb, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+                ArtworkPixels(argb, bitmap.width, bitmap.height)
             }.getOrNull()
         }
     }
-    return highlight
+    return pixels
 }
 
-// The strength comes from the motion settings, so changing it re-dims the current cover without reloading it.
+// Dims by the cover's highlight; the strength comes from the motion settings, so changing it re-dims without reloading.
 @Composable
 internal fun rememberArtworkDimFactor(thumbnailUrl: String?): Float {
-    val highlight = rememberArtworkHighlight(thumbnailUrl)
+    val pixels = rememberArtworkPixels(thumbnailUrl)
     val strength = rememberLiveMeshMotion().motion.artworkDimStrength
+    val highlight = remember(pixels) { pixels?.let { highlightLuminance(it.argb) } }
     return highlight?.let { artworkDimFactor(it, strength) } ?: 1f
+}
+
+@Composable
+internal fun rememberArtworkPalette(thumbnailUrl: String?): List<Color> {
+    val pixels = rememberArtworkPixels(thumbnailUrl)
+    return remember(pixels) {
+        pixels?.let { paletteFromPixels(it.argb, it.width, it.height) } ?: LiveMeshSamplePalette
+    }
 }

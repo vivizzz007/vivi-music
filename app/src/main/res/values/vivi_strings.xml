@@ -239,6 +239,9 @@
     <string name="live_mesh_preview_lyric_tempo_desc">How often the simulated lyric lines move the background.</string>
     <string name="live_mesh_preview_brightness">Cover brightness</string>
     <string name="live_mesh_preview_brightness_desc">Bright covers trigger the artwork dimming from the motion settings.</string>
+    <string name="live_mesh_preview_section_motion">Motion (live)</string>
+    <string name="live_mesh_preview_save">Save</string>
+    <string name="live_mesh_preview_discard">Discard</string>
     <string name="live_mesh_apply">Apply</string>
     <string name="live_mesh_preset_active">Active</string>
     <string name="live_mesh_apply_title">Replace current settings?</string>

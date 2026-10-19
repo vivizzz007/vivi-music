@@ -5,7 +5,6 @@
 
 package com.music.vivi.ui.screens.settings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -61,7 +64,9 @@ private val PreviewStageShape = RoundedCornerShape(28.dp)
 @Composable
 fun LiveMeshPreviewScreen(navController: NavController) {
     val config = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
-    val motion = rememberLiveMeshMotion().motion
+    val store = rememberLiveMeshMotion()
+    var draft by remember(store.motion) { mutableStateOf(store.motion) }
+    val motion = draft
     val simulation = remember { LiveMeshSimulation() }
     val clock = rememberLiveMeshClockDriver(
         config = config,
@@ -103,16 +108,7 @@ fun LiveMeshPreviewScreen(navController: NavController) {
                 config = config,
                 artworkDim = dim,
                 clock = clock,
-            ) { layerModifier, alignment, colorFilter ->
-                Image(
-                    painter = painterResource(R.drawable.weeknd),
-                    contentDescription = null,
-                    modifier = layerModifier,
-                    contentScale = ContentScale.Crop,
-                    colorFilter = colorFilter,
-                    alignment = alignment,
-                )
-            }
+            )
         }
 
         LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
@@ -192,6 +188,31 @@ fun LiveMeshPreviewScreen(navController: NavController) {
                 range = 0f..1f,
                 onValueChange = { simulation.artworkHighlight = it },
             )
+        }
+
+        LiveMeshSectionHeader(stringResource(R.string.live_mesh_preview_section_motion))
+        LiveMeshMotionSections(
+            motion = draft,
+            onChange = { draft = it },
+            onChangeFinished = null,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Button(
+                onClick = { store.save(draft) },
+                enabled = draft != store.motion,
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringResource(R.string.live_mesh_preview_save))
+            }
+            FilledTonalButton(
+                onClick = { draft = store.motion },
+                enabled = draft != store.motion,
+            ) {
+                Text(stringResource(R.string.live_mesh_preview_discard))
+            }
         }
 
         Spacer(Modifier.height(16.dp))

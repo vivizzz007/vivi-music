@@ -41,6 +41,88 @@ import com.music.vivi.ui.utils.LiveMeshMotion
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.rememberLiveMeshMotion
 
+// Shared by the settings screen and the preview, so both expose exactly the same motion controls.
+@Composable
+internal fun LiveMeshMotionSections(
+    motion: LiveMeshMotion,
+    onChange: (LiveMeshMotion) -> Unit,
+    onChangeFinished: (() -> Unit)?,
+) {
+    LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_beat))
+    LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
+        LiveMeshValueSlider(
+            label = stringResource(R.string.live_mesh_motion_beat_boost),
+            description = stringResource(R.string.live_mesh_motion_beat_boost_desc),
+            valueText = "%.2f".format(motion.beatSpeedBoost),
+            value = motion.beatSpeedBoost,
+            range = LiveMeshMotion.BEAT_SPEED_BOOST_MIN..LiveMeshMotion.BEAT_SPEED_BOOST_MAX,
+            onValueChange = { onChange(motion.copy(beatSpeedBoost = it)) },
+            onValueChangeFinished = onChangeFinished,
+        )
+    }
+
+    LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_pulse))
+    LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LiveMeshValueSlider(
+                label = stringResource(R.string.live_mesh_motion_pulse_rise),
+                description = stringResource(R.string.live_mesh_motion_pulse_rise_desc),
+                valueText = "%.1f".format(motion.pulseRise),
+                value = motion.pulseRise,
+                range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.PULSE_RISE_MAX,
+                onValueChange = { onChange(motion.copy(pulseRise = it)) },
+                onValueChangeFinished = onChangeFinished,
+            )
+            LiveMeshValueSlider(
+                label = stringResource(R.string.live_mesh_motion_pulse_fall),
+                description = stringResource(R.string.live_mesh_motion_pulse_fall_desc),
+                valueText = "%.1f".format(motion.pulseFall),
+                value = motion.pulseFall,
+                range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.PULSE_FALL_MAX,
+                onValueChange = { onChange(motion.copy(pulseFall = it)) },
+                onValueChangeFinished = onChangeFinished,
+            )
+        }
+    }
+
+    LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_tempo))
+    LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LiveMeshValueSlider(
+                label = stringResource(R.string.live_mesh_motion_tempo_rise),
+                description = stringResource(R.string.live_mesh_motion_tempo_rise_desc),
+                valueText = "%.2f".format(motion.tempoRise),
+                value = motion.tempoRise,
+                range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.TEMPO_RATE_MAX,
+                onValueChange = { onChange(motion.copy(tempoRise = it)) },
+                onValueChangeFinished = onChangeFinished,
+            )
+            LiveMeshValueSlider(
+                label = stringResource(R.string.live_mesh_motion_tempo_fall),
+                description = stringResource(R.string.live_mesh_motion_tempo_fall_desc),
+                valueText = "%.2f".format(motion.tempoFall),
+                value = motion.tempoFall,
+                range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.TEMPO_RATE_MAX,
+                onValueChange = { onChange(motion.copy(tempoFall = it)) },
+                onValueChangeFinished = onChangeFinished,
+            )
+        }
+    }
+
+    LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_artwork))
+    LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
+        LiveMeshValueSlider(
+            label = stringResource(R.string.live_mesh_motion_dim),
+            description = stringResource(R.string.live_mesh_motion_dim_desc),
+            valueText = "%d%%".format((motion.artworkDimStrength * 100f).toInt()),
+            value = motion.artworkDimStrength,
+            range = LiveMeshMotion.DIM_STRENGTH_MIN..LiveMeshMotion.DIM_STRENGTH_MAX,
+            onValueChange = { onChange(motion.copy(artworkDimStrength = it)) },
+            onValueChangeFinished = onChangeFinished,
+        )
+    }
+}
+
 @Composable
 fun LiveMeshMotionScreen(navController: NavController) {
     val store = rememberLiveMeshMotion()
@@ -92,79 +174,11 @@ fun LiveMeshMotionScreen(navController: NavController) {
             }
         }
 
-        LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_beat))
-        LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
-            LiveMeshValueSlider(
-                label = stringResource(R.string.live_mesh_motion_beat_boost),
-                description = stringResource(R.string.live_mesh_motion_beat_boost_desc),
-                valueText = "%.2f".format(draft.beatSpeedBoost),
-                value = draft.beatSpeedBoost,
-                range = LiveMeshMotion.BEAT_SPEED_BOOST_MIN..LiveMeshMotion.BEAT_SPEED_BOOST_MAX,
-                onValueChange = { draft = draft.copy(beatSpeedBoost = it) },
-                onValueChangeFinished = { store.save(draft) },
-            )
-        }
-
-        LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_pulse))
-        LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                LiveMeshValueSlider(
-                    label = stringResource(R.string.live_mesh_motion_pulse_rise),
-                    description = stringResource(R.string.live_mesh_motion_pulse_rise_desc),
-                    valueText = "%.1f".format(draft.pulseRise),
-                    value = draft.pulseRise,
-                    range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.PULSE_RISE_MAX,
-                    onValueChange = { draft = draft.copy(pulseRise = it) },
-                    onValueChangeFinished = { store.save(draft) },
-                )
-                LiveMeshValueSlider(
-                    label = stringResource(R.string.live_mesh_motion_pulse_fall),
-                    description = stringResource(R.string.live_mesh_motion_pulse_fall_desc),
-                    valueText = "%.1f".format(draft.pulseFall),
-                    value = draft.pulseFall,
-                    range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.PULSE_FALL_MAX,
-                    onValueChange = { draft = draft.copy(pulseFall = it) },
-                    onValueChangeFinished = { store.save(draft) },
-                )
-            }
-        }
-
-        LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_tempo))
-        LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                LiveMeshValueSlider(
-                    label = stringResource(R.string.live_mesh_motion_tempo_rise),
-                    description = stringResource(R.string.live_mesh_motion_tempo_rise_desc),
-                    valueText = "%.2f".format(draft.tempoRise),
-                    value = draft.tempoRise,
-                    range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.TEMPO_RATE_MAX,
-                    onValueChange = { draft = draft.copy(tempoRise = it) },
-                    onValueChangeFinished = { store.save(draft) },
-                )
-                LiveMeshValueSlider(
-                    label = stringResource(R.string.live_mesh_motion_tempo_fall),
-                    description = stringResource(R.string.live_mesh_motion_tempo_fall_desc),
-                    valueText = "%.2f".format(draft.tempoFall),
-                    value = draft.tempoFall,
-                    range = LiveMeshMotion.RATE_MIN..LiveMeshMotion.TEMPO_RATE_MAX,
-                    onValueChange = { draft = draft.copy(tempoFall = it) },
-                    onValueChangeFinished = { store.save(draft) },
-                )
-            }
-        }
-
-        LiveMeshSectionHeader(stringResource(R.string.live_mesh_motion_section_artwork))
-        LiveMeshSurface(modifier = Modifier.fillMaxWidth()) {
-            LiveMeshValueSlider(
-                label = stringResource(R.string.live_mesh_motion_dim),
-                description = stringResource(R.string.live_mesh_motion_dim_desc),
-                valueText = "%d%%".format((draft.artworkDimStrength * 100f).toInt()),
-                value = draft.artworkDimStrength,
-                range = LiveMeshMotion.DIM_STRENGTH_MIN..LiveMeshMotion.DIM_STRENGTH_MAX,
-                onValueChange = { draft = draft.copy(artworkDimStrength = it) },
-                onValueChangeFinished = { store.save(draft) },
-            )
-        }
+        LiveMeshMotionSections(
+            motion = draft,
+            onChange = { draft = it },
+            onChangeFinished = { store.save(draft) },
+        )
 
         Spacer(Modifier.height(16.dp))
     }
