@@ -19,6 +19,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
@@ -27,12 +28,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.unit.dp
 import com.music.vivi.audio.AudioPulse
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LiveMeshFrameInput
 import com.music.vivi.ui.utils.LiveMeshMotion
 import com.music.vivi.ui.utils.LiveMeshSamplePalette
+import com.music.vivi.ui.utils.LowResolutionLayer
 import com.music.vivi.ui.utils.advanceAngle
 import com.music.vivi.ui.utils.autoTempoFactor
 import com.music.vivi.ui.utils.beatSpeedFactor
@@ -52,7 +55,11 @@ private const val CENTER_GLOW_BEAT = 0.6f
 private const val CENTER_GLOW_LYRIC = 0.25f
 private const val CENTER_GLOW_RADIUS_FRACTION = 0.9f
 private const val CENTER_GLOW_CORE_ALPHA = 0.7f
-private const val FLOW_BLOB_ALPHA = 0.9f
+private const val FLOW_BLOB_ALPHA = 1f
+// The colour holds solid out to this fraction of the radius, so the shape reads as a colour field rather than a faint glow.
+private const val FLOW_BLOB_SOLID_STOP = 0.5f
+// Visual blur in screen dp; the radius is divided by renderScale because the layer draws at reduced resolution.
+private const val FLOW_BLUR_VISUAL_DP = 40f
 
 // Angles, shimmer and flow time live in snapshot state so the background repaints itself every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
@@ -168,11 +175,15 @@ internal fun LiveMeshBackground(
     val seed = remember { Random.nextInt() }
     val colors = palette.ifEmpty { LiveMeshSamplePalette }
 
+    val flowBlur = (FLOW_BLUR_VISUAL_DP / config.renderScale).dp
+
     Box(modifier = modifier.fillMaxSize().alpha(alpha)) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .drawBehind {
+        LowResolutionLayer(factor = config.renderScale) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(flowBlur)
+                    .drawBehind {
                     drawRect(colors.first())
                     val extent = maxOf(size.width, size.height)
                     flowBlobs(clock.flowTime, seed, clock.beatPulse, config.beatReactivity).forEach { blob ->
@@ -189,7 +200,11 @@ internal fun LiveMeshBackground(
                         }) {
                             drawCircle(
                                 brush = Brush.radialGradient(
-                                    colors = listOf(color.copy(alpha = FLOW_BLOB_ALPHA), color.copy(alpha = 0f)),
+                                    colorStops = arrayOf(
+                                        0f to color.copy(alpha = FLOW_BLOB_ALPHA),
+                                        FLOW_BLOB_SOLID_STOP to color.copy(alpha = FLOW_BLOB_ALPHA),
+                                        1f to color.copy(alpha = 0f),
+                                    ),
                                     center = Offset.Zero,
                                     radius = reach,
                                 ),
@@ -199,7 +214,8 @@ internal fun LiveMeshBackground(
                         }
                     }
                 }
-        )
+            )
+        }
 
         // Beats briefly lift the tint across the whole background, so the reaction is not limited to the colour blobs.
         Box(

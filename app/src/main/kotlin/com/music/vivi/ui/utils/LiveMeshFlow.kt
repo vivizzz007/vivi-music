@@ -14,7 +14,7 @@ import kotlin.math.sqrt
 internal const val FLOW_BLOB_COUNT = 4
 
 private const val FLOW_EDGE_MARGIN = 0.05f
-private const val FLOW_RADIUS_BASE = 0.55f
+private const val FLOW_RADIUS_BASE = 0.7f
 private const val FLOW_RADIUS_WOBBLE = 0.12f
 private const val FLOW_BEAT_RADIUS = 0.15f
 private const val PALETTE_CLUSTERS = 8
