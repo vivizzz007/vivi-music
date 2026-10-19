@@ -889,6 +889,10 @@ private fun LegacyMiniMediaInfo(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
+            val isYtThumbnail = remember(mediaMetadata.thumbnailUrl) {
+                mediaMetadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            }
+
             AsyncImage(
                 model = mediaMetadata.thumbnailUrl?.resize(544, 544),
                 contentDescription = null,
@@ -901,7 +905,13 @@ private fun LegacyMiniMediaInfo(
                 },
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .graphicsLayer {
+                        if (cropAlbumArt && isYtThumbnail) {
+                            scaleX = 4f / 3f
+                            scaleY = 4f / 3f
+                        }
+                    },
             )
 
             androidx.compose.animation.AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {

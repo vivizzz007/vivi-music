@@ -47,12 +47,13 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
     val w = if (isDataSaverEnabled) {
         (width ?: height ?: 150).coerceAtMost(150)
     } else {
-        (width ?: height ?: 1200).coerceAtLeast(544)
+        // Honour the caller's requested size; fall back to 544 only when no size given
+        width ?: height ?: 544
     }
     val h = if (isDataSaverEnabled) {
         (height ?: width ?: 150).coerceAtMost(150)
     } else {
-        (height ?: width ?: 1200).coerceAtLeast(544)
+        height ?: width ?: 544
     }
 
     // Handle wNNN-hNNN path segment style parameters
@@ -69,14 +70,14 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
  * Rewrites a YouTube thumbnail URL to request the highest **reliably available** quality tier.
  *
  * Quality ladder (highest → lowest, all guaranteed to exist for every video):
- *   w >= 1200 → maxresdefault.webp (1280×720, only for HD uploads — used ultra HD path)
- *   w >= 800  → hqdefault.webp    (480×360,  ALWAYS available — primary player quality)
- *   w >= 320  → mqdefault.webp    (320×180,  list items)
- *   w <  320  → default.webp      (120×90,   small icons / data-saver fallback)
+ *   w >= 800  → hqdefault.jpg  (480×360,  ALWAYS available — primary player quality)
+ *   w >= 320  → mqdefault.jpg  (320×180,  list items)
+ *   w <  320  → default.jpg    (120×90,   small icons / data-saver fallback)
  *
- * Note: maxresdefault.webp returns 404 for videos without a Full HD upload.
- * hqdefault.webp is guaranteed to exist for every YouTube video, so it is used
- * as the primary player thumbnail to avoid blank images in MiniPlayer / Player.
+ * NOTE: WebP variants (vi_webp/hqdefault.webp etc.) are NOT available for all YouTube videos —
+ * older uploads and some music videos return 404 for all vi_webp paths.
+ * JPEG variants (vi/hqdefault.jpg etc.) are always available and are used here to prevent
+ * blank thumbnails for affected videos (e.g. https://music.youtube.com/watch?v=JNJJ-QkZ8cM).
  */
 private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
     // Extract video ID using regex that matches any standard YouTube thumbnail path
@@ -89,8 +90,8 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
     if (isDataSaverEnabled) {
         val w = width ?: height ?: 150
         val result = when {
-            w >= 800 -> "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
-            else     -> "https://i.ytimg.com/vi_webp/$videoId/default.webp"
+            w >= 800 -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+            else     -> "https://i.ytimg.com/vi/$videoId/default.jpg"
         }
         Timber.d("[Thumbnail] resizeYtimg (dataSaver): id=$videoId w=$w → $result")
         return result
@@ -98,9 +99,9 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
 
     val w = width ?: height ?: 1200
     val result = when {
-        w >= 800  -> "https://i.ytimg.com/vi_webp/$videoId/hqdefault.webp"  // Always available for every video
-        w >= 320  -> "https://i.ytimg.com/vi_webp/$videoId/mqdefault.webp"
-        else      -> "https://i.ytimg.com/vi_webp/$videoId/default.webp"
+        w >= 800  -> "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+        w >= 320  -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
+        else      -> "https://i.ytimg.com/vi/$videoId/default.jpg"
     }
     Timber.d("[Thumbnail] resizeYtimg: id=$videoId w=$w → $result")
     return result

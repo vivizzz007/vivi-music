@@ -493,7 +493,11 @@ enum class PreferredLyricsProvider {
     YOULYPLUS,
     PAXSENIX,
     UNISON,
-    SPOTIFY
+    SPOTIFY,
+    BINI_LYRICS,
+    LRC_RED,
+    YOUTUBE_SUBTITLE,
+    YOUTUBE_MUSIC
 }
 
 enum class PlayerButtonsStyle {

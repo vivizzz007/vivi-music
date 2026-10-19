@@ -930,6 +930,9 @@ private fun ThumbnailImage(
         var currentUrl by remember(artworkUri) {
             mutableStateOf(artworkUri)
         }
+        val isYtThumbnail = remember(currentUrl) {
+            currentUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        }
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(currentUrl)
@@ -947,7 +950,14 @@ private fun ThumbnailImage(
             },
             contentDescription = null,
             contentScale = if (cropArtwork) ContentScale.Crop else ContentScale.Fit,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    if (cropArtwork && isYtThumbnail) {
+                        scaleX = 4f / 3f
+                        scaleY = 4f / 3f
+                    }
+                }
         )
     }
 }

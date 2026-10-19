@@ -33,6 +33,18 @@ object SpotifyAuth {
     @Serializable
     private data class Nuance(val s: String, val v: Int)
 
+    // Known working fallback nuance secret so token generation doesn't block on GitHub
+    private val DEFAULT_NUANCE = Nuance(
+        s = "GM3TMMJTGYZTQNZVGM4DINJZHA4TGOBYGMZTCMRTGEYDSMJRHE4TEOBUG4YTCMRUGQ4DQOJUGQYTAMRRGA2TCMJSHE3TCMBY",
+        v = 61
+    )
+
+    @Volatile
+    private var cachedNuance: Nuance = DEFAULT_NUANCE
+
+    @Volatile
+    private var serverTimeOffsetSec: Long? = null
+
     @Serializable
     private data class GistFile(val content: String)
 
@@ -45,8 +57,13 @@ object SpotifyAuth {
     suspend fun fetchAccessToken(
         spDc: String,
         spKey: String = "",
+        forceRefreshNuance: Boolean = false,
     ): Result<SpotifyInternalToken> = runCatching {
-        val nuance = fetchNuance()
+        val nuance = if (forceRefreshNuance) {
+            refreshNuance()
+        } else {
+            cachedNuance
+        }
         val serverTimeSec = fetchServerTime()
         val totp = generateTotp(nuance.s, serverTimeSec)
 
@@ -73,6 +90,9 @@ object SpotifyAuth {
         val token = json.decodeFromString<SpotifyInternalToken>(body)
 
         if (token.isAnonymous || token.accessToken.isBlank()) {
+            if (!forceRefreshNuance) {
+                return fetchAccessToken(spDc, spKey, forceRefreshNuance = true)
+            }
             throw Spotify.SpotifyException(
                 401,
                 "Received anonymous token — sp_dc cookie is invalid or expired",
@@ -82,34 +102,35 @@ object SpotifyAuth {
         token
     }
 
-    private suspend fun fetchNuance(): Nuance = withContext(Dispatchers.IO) {
-        val body = try {
-            httpGet(NUANCE_GIST_URL, emptyMap())
+    private suspend fun refreshNuance(): Nuance = withContext(Dispatchers.IO) {
+        try {
+            val body = httpGet(NUANCE_GIST_URL, emptyMap())
+            val gist = json.decodeFromString<GistFiles>(body)
+            val nuancesJson = gist.files.values.firstOrNull()?.content
+                ?: throw Spotify.SpotifyException(500, "Gist has no files")
+            val nuances = json.decodeFromString<List<Nuance>>(nuancesJson)
+            val latest = nuances.maxByOrNull { it.v } ?: DEFAULT_NUANCE
+            cachedNuance = latest
+            latest
         } catch (e: Exception) {
-            throw Spotify.SpotifyException(
-                503,
-                "Failed to fetch TOTP secret from gist: ${e.message}",
-            )
+            cachedNuance
         }
-        val gist = json.decodeFromString<GistFiles>(body)
-        val nuancesJson = gist.files.values.firstOrNull()?.content
-            ?: throw Spotify.SpotifyException(500, "Gist has no files")
-        val nuances = json.decodeFromString<List<Nuance>>(nuancesJson)
-        nuances.maxByOrNull { it.v }
-            ?: throw Spotify.SpotifyException(500, "No nuance data found in gist")
     }
 
     private suspend fun fetchServerTime(): Long = withContext(Dispatchers.IO) {
-        val body = try {
-            httpGet(SERVER_TIME_URL, emptyMap())
-        } catch (e: Exception) {
-            throw Spotify.SpotifyException(
-                503,
-                "Failed to fetch Spotify server time: ${e.message}",
-            )
+        val now = System.currentTimeMillis() / 1000
+        serverTimeOffsetSec?.let { offset ->
+            return@withContext now + offset
         }
-        val response = json.decodeFromString<ServerTimeResponse>(body)
-        response.serverTime
+        val serverTime = try {
+            val body = httpGet(SERVER_TIME_URL, emptyMap())
+            val response = json.decodeFromString<ServerTimeResponse>(body)
+            response.serverTime
+        } catch (e: Exception) {
+            now
+        }
+        serverTimeOffsetSec = serverTime - now
+        serverTime
     }
 
     private fun generateTotp(secret: String, serverTimeSec: Long): String {
