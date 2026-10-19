@@ -225,6 +225,7 @@
     <string name="advanced_login">Login with token</string>
     <string name="token_hidden">Tap to show token</string>
     <string name="token_shown">Tap again to copy or edit</string>
+    <string name="cookies_verified">Cookies: Verified</string>
     <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="yt_sync">Auto sync with account</string>
@@ -1109,6 +1110,7 @@
     <string name="settings_for_account">Settings for account</string>
     <string name="give_feedback">Give feedback</string>
     <string name="account_services">Account services</string>
+    <string name="individual_category_sync">Individual Category Sync</string>
     <string name="account_settings_tab_general">General</string>
     <string name="account_settings_tab_appearance">Appearance</string>
     <string name="account_settings_tab_data">Data &amp; Privacy</string>
