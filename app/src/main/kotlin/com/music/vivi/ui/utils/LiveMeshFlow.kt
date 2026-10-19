@@ -41,8 +41,8 @@ internal data class FlowBlob(
 )
 
 // Clusters the cover's real pixels into more shades than we show, then keeps the most populous ones that differ enough.
-// Four clusters let the shadows of a cover split the background blue apart from its dark tones; over-clustering and
-// merging close shades keeps the dominant background colour first while small accents such as an orange still survive.
+// Over-clustering splits a cover into more shades than we show, and close shades are merged back by colour, so the
+// dominant background colour ranks first while small accents such as an orange still survive as their own slot.
 // Seeding is deterministic, so the same cover always gives the same palette.
 internal fun paletteFromPixels(argbPixels: IntArray, width: Int, height: Int): List<Color>? {
     val count = width * height
@@ -64,27 +64,55 @@ internal fun paletteFromPixels(argbPixels: IntArray, width: Int, height: Int): L
 
     val population = IntArray(PALETTE_CLUSTERS)
     assignment.forEach { population[it]++ }
-    val ranked = (0 until PALETTE_CLUSTERS).sortedByDescending { population[it] }
-    return selectDistinct(ranked, population, centers)
+    val groups = mergeCloseClusters(centers, population)
+    return List(FLOW_BLOB_COUNT) { slot -> groups[slot % groups.size].color() }
 }
 
-// Takes the most populous clusters whose colours differ enough from those already taken.
-// If the cover has too few distinct shades, the remaining slots are filled with the next most populous clusters.
-private fun selectDistinct(ranked: List<Int>, population: IntArray, centers: FloatArray): List<Color> {
-    val chosen = mutableListOf<Int>()
-    for (cluster in ranked) {
-        if (chosen.size == FLOW_BLOB_COUNT) break
-        if (population[cluster] == 0) continue
-        val distinct = chosen.all { distance(centers, it, cluster) >= PALETTE_DISTINCT_DISTANCE }
-        if (distinct) chosen += cluster
+// Clusters that describe the same colour are summed before ranking, so one hue split across several seeds
+// still outranks a smaller but single cluster of a different colour.
+private fun mergeCloseClusters(centers: FloatArray, population: IntArray): List<PaletteGroup> {
+    val groups = mutableListOf<PaletteGroup>()
+    val populated = (0 until PALETTE_CLUSTERS).filter { population[it] > 0 }.sortedByDescending { population[it] }
+    for (cluster in populated) {
+        val red = centers[cluster * 3]
+        val green = centers[cluster * 3 + 1]
+        val blue = centers[cluster * 3 + 2]
+        val group = groups.firstOrNull { it.distanceTo(red, green, blue) < PALETTE_DISTINCT_DISTANCE }
+        if (group != null) {
+            group.add(red, green, blue, population[cluster])
+        } else {
+            groups += PaletteGroup().apply { add(red, green, blue, population[cluster]) }
+        }
     }
-    for (cluster in ranked) {
-        if (chosen.size == FLOW_BLOB_COUNT) break
-        if (cluster !in chosen) chosen += cluster
+    return groups.sortedByDescending { it.population }
+}
+
+private class PaletteGroup {
+    private var red = 0.0
+    private var green = 0.0
+    private var blue = 0.0
+    var population = 0
+        private set
+
+    fun add(red: Float, green: Float, blue: Float, count: Int) {
+        this.red += red.toDouble() * count
+        this.green += green.toDouble() * count
+        this.blue += blue.toDouble() * count
+        population += count
     }
-    return chosen.map { cluster ->
-        Color(centers[cluster * 3], centers[cluster * 3 + 1], centers[cluster * 3 + 2])
+
+    fun distanceTo(red: Float, green: Float, blue: Float): Float {
+        val dr = (this.red / population).toFloat() - red
+        val dg = (this.green / population).toFloat() - green
+        val db = (this.blue / population).toFloat() - blue
+        return sqrt(dr * dr + dg * dg + db * db)
     }
+
+    fun color(): Color = Color(
+        red = (this.red / population).toFloat(),
+        green = (this.green / population).toFloat(),
+        blue = (this.blue / population).toFloat(),
+    )
 }
 
 // Farthest-point seeding spreads the starting centres across the colours the cover actually uses.
@@ -148,15 +176,6 @@ private fun squaredDistance(rgb: FloatArray, pixel: Int, centers: FloatArray, cl
         sum += difference * difference
     }
     return sum
-}
-
-private fun distance(centers: FloatArray, first: Int, second: Int): Float {
-    var sum = 0f
-    for (channel in 0 until 3) {
-        val difference = centers[first * 3 + channel] - centers[second * 3 + channel]
-        sum += difference * difference
-    }
-    return sqrt(sum)
 }
 
 private fun copyPixel(rgb: FloatArray, pixel: Int, centers: FloatArray, cluster: Int) {
