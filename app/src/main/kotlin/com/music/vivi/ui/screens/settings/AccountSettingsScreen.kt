@@ -328,57 +328,57 @@ fun AccountSettingsScreen(
                     )
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                val formattedLastSync = remember(lastFullSync, syncState) {
-                    val isAnySyncing = syncState.overallStatus is SyncStatus.Syncing ||
-                        syncState.likedSongs is SyncStatus.Syncing ||
-                        syncState.likedAlbums is SyncStatus.Syncing ||
-                        syncState.artists is SyncStatus.Syncing ||
-                        syncState.playlists is SyncStatus.Syncing
-
-                    if (isAnySyncing) {
-                        "Syncing now..."
-                    } else if (lastFullSync > 0L) {
-                        java.text.DateFormat.getDateTimeInstance(
-                            java.text.DateFormat.MEDIUM,
-                            java.text.DateFormat.SHORT
-                        ).format(java.util.Date(lastFullSync * 1000))
-                    } else {
-                        "Never"
-                    }
-                }
-
-                ExpressiveSettingGroup(
-                    title = stringResource(R.string.individual_category_sync),
-                    items = listOf(
-                        Material3SettingsItem(
-                            icon = painterResource(R.drawable.timer),
-                            title = { Text("Last synced: $formattedLastSync") },
-                            enabled = false
-                        ),
-                        buildSyncCategoryItem(
-                            title = stringResource(R.string.songs),
-                            status = syncState.likedSongs,
-                            onSyncClick = { accountSettingsViewModel.forceSyncSongs() }
-                        ),
-                        buildSyncCategoryItem(
-                            title = stringResource(R.string.albums),
-                            status = syncState.likedAlbums,
-                            onSyncClick = { accountSettingsViewModel.forceSyncAlbums() }
-                        ),
-                        buildSyncCategoryItem(
-                            title = stringResource(R.string.artists),
-                            status = syncState.artists,
-                            onSyncClick = { accountSettingsViewModel.forceSyncArtists() }
-                        ),
-                        buildSyncCategoryItem(
-                            title = stringResource(R.string.playlists),
-                            status = syncState.playlists,
-                            onSyncClick = { accountSettingsViewModel.forceSyncPlaylists() }
-                        )
-                    )
-                )
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                val formattedLastSync = remember(lastFullSync, syncState) {
+//                    val isAnySyncing = syncState.overallStatus is SyncStatus.Syncing ||
+//                        syncState.likedSongs is SyncStatus.Syncing ||
+//                        syncState.likedAlbums is SyncStatus.Syncing ||
+//                        syncState.artists is SyncStatus.Syncing ||
+//                        syncState.playlists is SyncStatus.Syncing
+//
+//                    if (isAnySyncing) {
+//                        "Syncing now..."
+//                    } else if (lastFullSync > 0L) {
+//                        java.text.DateFormat.getDateTimeInstance(
+//                            java.text.DateFormat.MEDIUM,
+//                            java.text.DateFormat.SHORT
+//                        ).format(java.util.Date(lastFullSync * 1000))
+//                    } else {
+//                        "Never"
+//                    }
+//                }
+//
+//                ExpressiveSettingGroup(
+//                    title = stringResource(R.string.individual_category_sync),
+//                    items = listOf(
+//                        Material3SettingsItem(
+//                            icon = painterResource(R.drawable.timer),
+//                            title = { Text("Last synced: $formattedLastSync") },
+//                            enabled = false
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.songs),
+//                            status = syncState.likedSongs,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncSongs() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.albums),
+//                            status = syncState.likedAlbums,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncAlbums() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.artists),
+//                            status = syncState.artists,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncArtists() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.playlists),
+//                            status = syncState.playlists,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncPlaylists() }
+//                        )
+//                    )
+//                )
             } else {
                 // Sign In Box
                 Column(
