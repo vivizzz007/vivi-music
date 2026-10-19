@@ -15,7 +15,7 @@ import org.junit.Test
 import kotlin.math.exp
 
 class LiveMeshClockTest {
-    private val neutral = LiveMeshConfig.Default.copy(speed = 1f, reverseDirection = false, lyricReactivity = 0.5f, beatReactivity = 0f)
+    private val neutral = LiveMeshConfig.Default.copy(speed = 1f, lyricReactivity = 0.5f, beatReactivity = 0f)
 
     // Angles per one second at tempo 1 with the default periods: anchor 80 s, fast 40 s, slow 60 s.
     private val anchorPerSecond = -4.5f
@@ -36,17 +36,6 @@ class LiveMeshClockTest {
         assertEquals(slowPerSecond, clock.slow, 1e-3f)
     }
 
-    @Test
-    fun reverseDirectionFlipsEveryLayer() {
-        val clock = LiveMeshClock()
-        val reversed = neutral.copy(reverseDirection = true)
-
-        clock.advance(1f, reversed, 1f, 0f, 0L)
-
-        assertEquals(-anchorPerSecond, clock.anchor, 1e-3f)
-        assertEquals(-fastPerSecond, clock.fast, 1e-3f)
-        assertEquals(-slowPerSecond, clock.slow, 1e-3f)
-    }
 
     @Test
     fun higherSpeedTurnsFasterThroughShorterPeriods() {

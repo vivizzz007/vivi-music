@@ -54,7 +54,6 @@ class LiveMeshRulesTest {
 
         assertTrue(rows.presets)
         assertTrue(rows.playerSettings)
-        assertTrue(rows.adaptiveQuality)
         assertFalse(rows.miniSettings)
     }
 
@@ -64,7 +63,6 @@ class LiveMeshRulesTest {
 
         assertFalse(rows.presets)
         assertFalse(rows.playerSettings)
-        assertFalse(rows.adaptiveQuality)
         assertTrue(rows.miniSettings)
     }
 
@@ -73,6 +71,7 @@ class LiveMeshRulesTest {
         listOf(liveMeshRowVisibility(live, other, false), liveMeshRowVisibility(other, live, false)).forEach { rows ->
             assertTrue(rows.separateMini)
             assertTrue(rows.autoTempo)
+            assertTrue(rows.motion)
         }
     }
 
@@ -87,7 +86,7 @@ class LiveMeshRulesTest {
         val rows = liveMeshRowVisibility(live, live, separateMini = true)
 
         assertTrue(rows.presets && rows.playerSettings && rows.separateMini && rows.miniSettings)
-        assertTrue(rows.autoTempo && rows.adaptiveQuality)
+        assertTrue(rows.autoTempo && rows.motion)
     }
 
     @Test
@@ -96,38 +95,13 @@ class LiveMeshRulesTest {
         others.forEach { player ->
             others.forEach { mini ->
                 val rows = liveMeshRowVisibility(player, mini, separateMini = true)
-                assertFalse("$player / $mini", rows.presets || rows.playerSettings || rows.adaptiveQuality)
+                assertFalse("$player / $mini", rows.presets || rows.playerSettings)
                 assertFalse("$player / $mini", rows.miniSettings)
                 assertFalse("$player / $mini", rows.separateMini)
                 assertFalse("$player / $mini", rows.autoTempo)
+                assertFalse("$player / $mini", rows.motion)
             }
         }
-    }
-
-    @Test
-    fun zeroReactivityIgnoresBeatAndLyricPulses() {
-        assertEquals(1.7f, reactiveZoom(1.7f, beat = 1f, lyric = 1f, beatReactivity = 0f, lyricReactivity = 0f), 1e-6f)
-    }
-
-    @Test
-    fun fullPulsesAddBothBoostsAtFullReactivity() {
-        val expected = 1.7f + BEAT_ZOOM_BOOST + LYRIC_ZOOM_BOOST
-        assertEquals(expected, reactiveZoom(1.7f, beat = 1f, lyric = 1f, beatReactivity = 1f, lyricReactivity = 1f), 1e-6f)
-    }
-
-    @Test
-    fun halfPulseGivesHalfBoost() {
-        assertEquals(1.7f + BEAT_ZOOM_BOOST / 2f, reactiveZoom(1.7f, beat = 0.5f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 0f), 1e-6f)
-    }
-
-    @Test
-    fun lyricBoostUsesItsOwnReactivity() {
-        assertEquals(1.7f + LYRIC_ZOOM_BOOST * 0.5f, reactiveZoom(1.7f, beat = 0f, lyric = 1f, beatReactivity = 1f, lyricReactivity = 0.5f), 1e-6f)
-    }
-
-    @Test
-    fun zoomBaseIsKeptWhenNoPulseIsPresent() {
-        assertEquals(2f, reactiveZoom(2f, beat = 0f, lyric = 0f, beatReactivity = 1f, lyricReactivity = 1f), 0f)
     }
 
     @Test
@@ -156,44 +130,6 @@ class LiveMeshRulesTest {
     }
 
     @Test
-    fun adaptiveScaleHoldsExactlyAtTheSlowThreshold() {
-        assertEquals(3f, nextAdaptiveScale(current = 3f, avgFrameMs = 24f, base = 2f), 0f)
-    }
-
-    @Test
-    fun adaptiveScaleHoldsExactlyAtTheFastThreshold() {
-        assertEquals(3f, nextAdaptiveScale(current = 3f, avgFrameMs = 17f, base = 2f), 0f)
-    }
-
-    @Test
-    fun adaptiveScaleDoesNotGrowBeyondMaximumWhenAlreadyThere() {
-        assertEquals(LiveMeshConfig.RENDER_SCALE_MAX, nextAdaptiveScale(current = LiveMeshConfig.RENDER_SCALE_MAX, avgFrameMs = 60f, base = 1f), 0f)
-    }
-
-    @Test
-    fun adaptiveScaleEasesBackOnlyDownToBase() {
-        assertEquals(2f, nextAdaptiveScale(current = 2.5f, avgFrameMs = 10f, base = 2f), 1e-6f)
-    }
-
-    @Test
-    fun adaptiveScaleSnapsUpToBaseWhenBelowIt() {
-        assertEquals(2f, nextAdaptiveScale(current = 1f, avgFrameMs = 20f, base = 2f), 0f)
-    }
-
-    @Test
-    fun adaptiveScaleStaysAtBaseWhenFramesAreFastAndNothingWasRaised() {
-        assertEquals(2f, nextAdaptiveScale(current = 2f, avgFrameMs = 5f, base = 2f), 0f)
-    }
-
-    @Test
-    fun adaptiveScaleRepeatedlyRaisesUnderSustainedLoad() {
-        var scale = 2f
-        repeat(10) { scale = nextAdaptiveScale(scale, avgFrameMs = 40f, base = 2f) }
-
-        assertEquals(LiveMeshConfig.RENDER_SCALE_MAX, scale, 0f)
-    }
-
-    @Test
     fun unitSpeedKeepsEveryPeriod() {
         assertEquals(40000, liveMeshPeriodMillis(40000, speed = 1f))
     }
@@ -215,16 +151,15 @@ class LiveMeshRulesTest {
 
     @Test
     fun clampingIsIdempotent() {
-        val once = LiveMeshConfig.Default.copy(zoom = 9f, textureSize = 9999).clamped()
+        val once = LiveMeshConfig.Default.copy(speed = 9f, renderScale = 99f).clamped()
 
         assertEquals(once, once.clamped())
     }
 
     @Test
-    fun clampingKeepsReverseFlagAndShadesWithinRange() {
-        val clamped = LiveMeshConfig.Default.copy(reverseDirection = true, bottomShade = 7f).clamped()
+    fun clampingKeepsShadesWithinRange() {
+        val clamped = LiveMeshConfig.Default.copy(bottomShade = 7f).clamped()
 
-        assertTrue(clamped.reverseDirection)
         assertEquals(LiveMeshConfig.BOTTOM_SHADE_MAX, clamped.bottomShade, 0f)
     }
 
@@ -241,10 +176,10 @@ class LiveMeshRulesTest {
     }
 
     @Test
-    fun crispPresetRendersAtFullResolutionWithSharperTexture() {
+    fun crispPresetRendersAtFullResolution() {
         val crisp = LiveMeshPresets.single { it.config.renderScale == 1f }.config
 
-        assertEquals(256, crisp.textureSize)
+        assertEquals(1f, crisp.renderScale, 0f)
     }
 
     @Test
@@ -262,29 +197,27 @@ class LiveMeshRulesTest {
 
         assertEquals(LiveMeshConfig.Default, original.config)
         assertEquals(2f, original.config.speed, 0f)
-        assertEquals(2.2f, original.config.saturation, 0f)
     }
 
     @Test
     fun classicPresetKeepsThePreviousDefaultLook() {
         val classic = LiveMeshPresets.last().config
 
-        assertEquals(1.8f, classic.saturation, 0f)
         assertEquals(1f, classic.speed, 0f)
         assertEquals(0.5f, classic.beatReactivity, 0f)
     }
 
     @Test
     fun playerAndMiniKeysUseDistinctPreferenceNames() {
-        assertNotEquals(PlayerLiveMeshKeys.textureSize.name, MiniLiveMeshKeys.textureSize.name)
-        assertEquals("miniLiveMeshTextureSize", MiniLiveMeshKeys.textureSize.name)
+        assertNotEquals(PlayerLiveMeshKeys.speed.name, MiniLiveMeshKeys.speed.name)
+        assertEquals("miniLiveMeshSpeed", MiniLiveMeshKeys.speed.name)
     }
 
     @Test
     fun customPrefixBuildsItsOwnNamesForEveryField() {
         val keys = LiveMeshKeys(prefix = "x")
 
-        assertEquals("xLiveMeshZoom", keys.zoom.name)
+        assertEquals("xLiveMeshRenderScale", keys.renderScale.name)
         assertEquals("xLiveMeshLyricReactivity", keys.lyricReactivity.name)
     }
 
@@ -292,17 +225,10 @@ class LiveMeshRulesTest {
     fun storedValuesForEveryFieldAreReadBack() {
         val keys = PlayerLiveMeshKeys
         val prefs = mutablePreferencesOf(
-            keys.blurStrength to 1.5f,
-            keys.saturation to 2.2f,
             keys.speed to 2f,
             keys.darkTint to 0.1f,
             keys.renderScale to 2f,
-            keys.layer2Alpha to 0.7f,
-            keys.layer3Alpha to 0.4f,
-            keys.zoom to 1.9f,
-            keys.reverseDirection to true,
             keys.bottomShade to 0.5f,
-            keys.textureSize to 192,
             keys.beatReactivity to 0.9f,
             keys.lyricReactivity to 0.1f,
         )
@@ -311,17 +237,10 @@ class LiveMeshRulesTest {
 
         assertEquals(
             LiveMeshConfig(
-                blurStrength = 1.5f,
-                saturation = 2.2f,
                 speed = 2f,
                 darkTint = 0.1f,
                 renderScale = 2f,
-                layer2Alpha = 0.7f,
-                layer3Alpha = 0.4f,
-                zoom = 1.9f,
-                reverseDirection = true,
                 bottomShade = 0.5f,
-                textureSize = 192,
                 beatReactivity = 0.9f,
                 lyricReactivity = 0.1f,
             ),
@@ -331,10 +250,10 @@ class LiveMeshRulesTest {
 
     @Test
     fun miniPreferencesDoNotLeakIntoPlayerSettings() {
-        val prefs = mutablePreferencesOf(MiniLiveMeshKeys.zoom to 1.2f)
+        val prefs = mutablePreferencesOf(MiniLiveMeshKeys.speed to 1.2f)
 
         val player = prefs.toLiveMeshConfig(PlayerLiveMeshKeys, LiveMeshConfig.Default)
 
-        assertEquals(LiveMeshConfig.Default.zoom, player.zoom, 0f)
+        assertEquals(LiveMeshConfig.Default.speed, player.speed, 0f)
     }
 }

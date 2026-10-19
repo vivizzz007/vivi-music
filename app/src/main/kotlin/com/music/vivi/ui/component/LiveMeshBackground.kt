@@ -90,7 +90,7 @@ internal class LiveMeshClock {
         motion: LiveMeshMotion = LiveMeshMotion.Default,
     ) {
         tempo = followTowards(tempo, targetTempo, motion.tempoRise, motion.tempoFall, dtSeconds)
-        val direction = if (config.reverseDirection) -1f else 1f
+        val direction = 1f
         val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity, motion.beatSpeedBoost)
 
         flowTime += dtSeconds * tempo * config.speed

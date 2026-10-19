@@ -16,17 +16,10 @@ internal data class LiveMeshPreset(
 
 // The look the other presets were tuned against; kept separate so they do not change with the default.
 private val ClassicLook = LiveMeshConfig(
-    blurStrength = 1f,
-    saturation = 1.8f,
     speed = 1f,
     darkTint = 0.2f,
     renderScale = 4f,
-    layer2Alpha = 0.6f,
-    layer3Alpha = 0.5f,
-    zoom = 1.7f,
-    reverseDirection = false,
     bottomShade = 0.25f,
-    textureSize = 128,
     beatReactivity = 0.5f,
     lyricReactivity = 0.5f,
 )
@@ -41,13 +34,8 @@ internal val LiveMeshPresets: List<LiveMeshPreset> = listOf(
         nameRes = R.string.live_mesh_preset_calm,
         descriptionRes = R.string.live_mesh_preset_calm_desc,
         config = ClassicLook.copy(
-            blurStrength = 1.4f,
-            saturation = 1.2f,
             speed = 0.5f,
             darkTint = 0.3f,
-            layer2Alpha = 0.4f,
-            layer3Alpha = 0.3f,
-            zoom = 1.6f,
             beatReactivity = 0.2f,
             lyricReactivity = 0.2f,
         ),
@@ -56,14 +44,8 @@ internal val LiveMeshPresets: List<LiveMeshPreset> = listOf(
         nameRes = R.string.live_mesh_preset_dreamy,
         descriptionRes = R.string.live_mesh_preset_dreamy_desc,
         config = ClassicLook.copy(
-            blurStrength = 1.8f,
-            saturation = 1.5f,
             speed = 0.7f,
             darkTint = 0.25f,
-            layer2Alpha = 0.5f,
-            layer3Alpha = 0.4f,
-            zoom = 1.8f,
-            reverseDirection = true,
             beatReactivity = 0.3f,
             lyricReactivity = 0.5f,
         ),
@@ -72,10 +54,7 @@ internal val LiveMeshPresets: List<LiveMeshPreset> = listOf(
         nameRes = R.string.live_mesh_preset_crisp,
         descriptionRes = R.string.live_mesh_preset_crisp_desc,
         config = ClassicLook.copy(
-            blurStrength = 1.2f,
-            saturation = 1.6f,
             renderScale = 1f,
-            textureSize = 256,
             beatReactivity = 0.3f,
             lyricReactivity = 0.4f,
         ),
@@ -86,7 +65,6 @@ internal val LiveMeshPresets: List<LiveMeshPreset> = listOf(
         config = ClassicLook.copy(
             speed = 0.5f,
             renderScale = 8f,
-            textureSize = 64,
             beatReactivity = 0f,
             lyricReactivity = 0f,
         ),

@@ -82,7 +82,6 @@ import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
 import com.music.vivi.constants.BackgroundEffectsMode
-import com.music.vivi.constants.LiveMeshAdaptiveQualityKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.constants.LiveMeshSeparateMiniKey
 import com.music.vivi.ui.component.LiveMeshSettingsDialog
@@ -287,10 +286,6 @@ fun AppearanceSettings(
     )
     val (liveMeshAutoTempo, onLiveMeshAutoTempoChange) = rememberPreference(
         LiveMeshAutoTempoKey,
-        defaultValue = true,
-    )
-    val (liveMeshAdaptiveQuality, onLiveMeshAdaptiveQualityChange) = rememberPreference(
-        LiveMeshAdaptiveQualityKey,
         defaultValue = true,
     )
     val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
@@ -1462,19 +1457,6 @@ fun AppearanceSettings(
                     },
                     onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) },
                     visible = liveMeshRows.autoTempo,
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.tune),
-                    title = { Text(stringResource(R.string.live_mesh_adaptive_quality)) },
-                    description = { Text(stringResource(R.string.live_mesh_adaptive_quality_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = liveMeshAdaptiveQuality,
-                            onCheckedChange = onLiveMeshAdaptiveQualityChange
-                        )
-                    },
-                    onClick = { onLiveMeshAdaptiveQualityChange(!liveMeshAdaptiveQuality) },
-                    visible = liveMeshRows.adaptiveQuality,
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),

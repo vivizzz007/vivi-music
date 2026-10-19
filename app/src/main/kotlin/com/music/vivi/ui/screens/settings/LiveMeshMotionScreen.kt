@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,7 +38,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
+import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.LiveMeshBackground
 import com.music.vivi.ui.component.LiveMeshSectionHeader
@@ -53,6 +56,7 @@ import com.music.vivi.ui.utils.SIMULATED_BPM_MIN
 import com.music.vivi.ui.utils.SIMULATED_TEMPO_MAX
 import com.music.vivi.ui.utils.SIMULATED_TEMPO_MIN
 import com.music.vivi.ui.utils.artworkDimFactor
+import com.music.vivi.ui.utils.rememberArtworkPalette
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.ui.utils.beatSpeedFactor
 import com.music.vivi.ui.utils.rememberLiveMeshMotion
@@ -149,6 +153,10 @@ fun LiveMeshMotionScreen(navController: NavController) {
     val store = rememberLiveMeshMotion()
     var draft by remember(store.motion) { mutableStateOf(store.motion) }
     val simulation = remember { LiveMeshSimulation() }
+    val playerConnection = LocalPlayerConnection.current
+    val mediaMetadata by playerConnection?.mediaMetadata?.collectAsState()
+        ?: remember { mutableStateOf<MediaMetadata?>(null) }
+    val palette = rememberArtworkPalette(mediaMetadata?.thumbnailUrl)
     val clock = rememberLiveMeshClockDriver(
         config = config,
         playing = simulation.playing,
@@ -188,6 +196,7 @@ fun LiveMeshMotionScreen(navController: NavController) {
             LiveMeshBackground(
                 config = config,
                 artworkDim = dim,
+                palette = palette,
                 clock = clock,
             )
         }

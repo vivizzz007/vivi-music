@@ -530,7 +530,6 @@ val MiniPlayerBackgroundStyleKey = stringPreferencesKey("miniPlayerBackgroundSty
 val BackgroundEffectsModeKey = stringPreferencesKey("backgroundEffectsMode")
 val LiveMeshSeparateMiniKey = booleanPreferencesKey("liveMeshSeparateMini")
 val LiveMeshAutoTempoKey = booleanPreferencesKey("liveMeshAutoTempo")
-val LiveMeshAdaptiveQualityKey = booleanPreferencesKey("liveMeshAdaptiveQuality")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val SwipeLyricsKey = booleanPreferencesKey("swipeLyrics")
 val EnableLyricsThumbnailPlayPauseKey = booleanPreferencesKey("enableLyricsThumbnailPlayPause")
