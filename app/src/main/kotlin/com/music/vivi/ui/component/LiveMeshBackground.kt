@@ -101,7 +101,7 @@ internal class LiveMeshClock {
 // One clock per screen: the caller owns the frame loop, so a crossfading artwork never advances it twice.
 @Composable
 internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = true): LiveMeshClock {
-    val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = false)
+    val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = true)
     val latestAutoTempo by rememberUpdatedState(autoTempo)
     return rememberLiveMeshClockDriver(
         config = config,

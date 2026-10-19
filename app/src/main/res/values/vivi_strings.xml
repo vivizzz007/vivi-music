@@ -202,9 +202,7 @@
     <string name="live_mesh_presets_desc">Ready-made looks with live previews. Applying one replaces your current Live Mesh settings.</string>
     <string name="live_mesh_motion_title">Motion</string>
     <string name="live_mesh_motion_desc">How the background reacts to beats, lyric lines and tempo. Changes apply to the player and the mini player.</string>
-    <string name="live_mesh_motion_settings_desc">Beat boost, pulse and tempo response, artwork dimming</string>
-    <string name="live_mesh_motion_open_preview">Preview</string>
-    <string name="live_mesh_motion_section_beat">Beat</string>
+    <string name="live_mesh_motion_settings_desc">Beat boost, pulse and tempo response, artwork dimming</string>    <string name="live_mesh_motion_section_beat">Beat</string>
     <string name="live_mesh_motion_section_pulse">Pulse</string>
     <string name="live_mesh_motion_section_tempo">Tempo</string>
     <string name="live_mesh_motion_section_artwork">Artwork</string>
@@ -220,29 +218,20 @@
     <string name="live_mesh_motion_tempo_fall_desc">How quickly the rotation eases off when the tempo drops.</string>
     <string name="live_mesh_motion_dim">Bright artwork dimming</string>
     <string name="live_mesh_motion_dim_desc">How far the background darkens when the cover is bright, so lyrics stay readable.</string>
-    <string name="live_mesh_preview_title">Live Mesh preview</string>
-    <string name="live_mesh_preview_desc">Simulate playback to see your Live Mesh look and motion without playing music.</string>
-    <string name="live_mesh_preview_settings_desc">Simulate beats, lyric lines, speed and bright artwork</string>
     <string name="live_mesh_preview_readouts">Live readouts</string>
     <string name="live_mesh_preview_beat_readout">Beat pulse</string>
     <string name="live_mesh_preview_lyric_readout">Lyric pulse</string>
     <string name="live_mesh_preview_boost_readout">Rotation boost: %1$sx</string>
     <string name="live_mesh_preview_play">Play simulation</string>
     <string name="live_mesh_preview_pause">Pause simulation</string>
-    <string name="live_mesh_preview_section_playback">Simulated playback</string>
-    <string name="live_mesh_preview_section_artwork">Simulated artwork</string>
-    <string name="live_mesh_preview_bpm">Beat tempo</string>
+    <string name="live_mesh_preview_section_playback">Simulated playback</string>    <string name="live_mesh_preview_bpm">Beat tempo</string>
     <string name="live_mesh_preview_bpm_desc">Beats per minute of the simulated song.</string>
     <string name="live_mesh_preview_speed">Playback speed</string>
     <string name="live_mesh_preview_speed_desc">Emulates a faster or slower tempo. Scales how quickly the layers turn.</string>
     <string name="live_mesh_preview_lyric_tempo">Lyric tempo</string>
     <string name="live_mesh_preview_lyric_tempo_desc">How often the simulated lyric lines move the background.</string>
     <string name="live_mesh_preview_brightness">Cover brightness</string>
-    <string name="live_mesh_preview_brightness_desc">Bright covers trigger the artwork dimming from the motion settings.</string>
-    <string name="live_mesh_preview_section_motion">Motion (live)</string>
-    <string name="live_mesh_preview_save">Save</string>
-    <string name="live_mesh_preview_discard">Discard</string>
-    <string name="live_mesh_apply">Apply</string>
+    <string name="live_mesh_preview_brightness_desc">Bright covers trigger the artwork dimming from the motion settings.</string>    <string name="live_mesh_apply">Apply</string>
     <string name="live_mesh_preset_active">Active</string>
     <string name="live_mesh_apply_title">Replace current settings?</string>
     <string name="live_mesh_apply_message">Your current Live Mesh settings will be overwritten by the %1$s preset. This can\'t be undone.</string>
