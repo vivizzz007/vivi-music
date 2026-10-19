@@ -1354,11 +1354,21 @@ fun BottomSheetPlayer(
                                             playerConnection.togglePlayPause()
                                         }
                                 ) {
+                                    val isYtThumbnail = remember(mediaMetadata.thumbnailUrl) {
+                                        mediaMetadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                                    }
                                     AsyncImage(
                                         model = mediaMetadata.thumbnailUrl,
                                         contentDescription = null,
                                         contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
-                                        modifier = Modifier.fillMaxSize()
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .graphicsLayer {
+                                                if (cropAlbumArt && isYtThumbnail) {
+                                                    scaleX = 4f / 3f
+                                                    scaleY = 4f / 3f
+                                                }
+                                            }
                                     )
 
                                     if (isFullScreen && enableLyricsThumbnailPlayPause) {
