@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -130,15 +131,17 @@ class SpotifyViewModel @Inject constructor(
         withContext(Dispatchers.IO) {
             val token = SpotifyAuth.fetchAccessToken(spDc, spKey).getOrThrow()
             Spotify.accessToken = token.accessToken
-            val profile = Spotify.me().getOrNull()
+
+            val currentSession = getSession()
+            val profile = runCatching { Spotify.me().getOrNull() }.getOrNull()
 
             val newSession = SpotifySession(
                 spDc = spDc,
                 spKey = spKey,
                 accessToken = token.accessToken,
                 expiresAt = token.accessTokenExpirationTimestampMs,
-                accountName = profile?.displayName,
-                accountAvatarUrl = profile?.images?.firstOrNull()?.url
+                accountName = profile?.displayName ?: currentSession?.accountName,
+                accountAvatarUrl = profile?.images?.firstOrNull()?.url ?: currentSession?.accountAvatarUrl
             )
             saveSession(newSession)
             _uiState.update {
@@ -146,7 +149,6 @@ class SpotifyViewModel @Inject constructor(
                     isAuthenticated = true,
                     accountName = newSession.accountName.orEmpty(),
                     accountAvatarUrl = newSession.accountAvatarUrl,
-                    isLoading = false
                 )
             }
             newSession
@@ -156,54 +158,57 @@ class SpotifyViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val session = getSession()
-                if (session == null) {
+                if (session == null || session.spDc.isBlank()) {
                     _uiState.update { it.copy(isAuthenticated = false, isLoading = false) }
                     return@launch
                 }
 
-                // If we already loaded data in this ViewModel instance, just restore auth state
-                // without hitting the network again — the user is re-entering the screen.
+                // Instantly show the cached account on cold start (0ms UI delay)
+                _uiState.update {
+                    it.copy(
+                        isAuthenticated = true,
+                        accountName = session.accountName.orEmpty(),
+                        accountAvatarUrl = session.accountAvatarUrl,
+                        isLoading = !sourcesLoaded
+                    )
+                }
+
+                // If playlists already loaded in this ViewModel lifetime, no network call needed
                 if (sourcesLoaded) {
-                    _uiState.update {
-                        it.copy(
-                            isAuthenticated = true,
-                            accountName = session.accountName.orEmpty(),
-                            accountAvatarUrl = session.accountAvatarUrl,
-                            isLoading = false
-                        )
-                    }
+                    _uiState.update { it.copy(isLoading = false) }
                     return@launch
                 }
 
                 if (session.accessToken != null && session.expiresAt > System.currentTimeMillis() + 60_000L) {
                     Spotify.accessToken = session.accessToken
-                    _uiState.update {
-                        it.copy(
-                            isAuthenticated = true,
-                            accountName = session.accountName.orEmpty(),
-                            accountAvatarUrl = session.accountAvatarUrl,
-                            isLoading = false
-                        )
-                    }
                     loadSources()
                 } else {
                     runCatching { refreshWithCookies(session.spDc, session.spKey.orEmpty()) }
                         .onSuccess { loadSources() }
                         .onFailure { error ->
-                            logout()
-                            _uiState.update {
-                                it.copy(
-                                    isAuthenticated = false,
-                                    isLoading = false,
-                                    errorMessage = "Session expired. Please log in again."
-                                )
+                            if ((error as? Spotify.SpotifyException)?.statusCode == 401) {
+                                logout()
+                                _uiState.update {
+                                    it.copy(
+                                        isAuthenticated = false,
+                                        isLoading = false,
+                                        errorMessage = "Session expired. Please log in again."
+                                    )
+                                }
+                            } else {
+                                // Keep cached session on transient network failures
+                                _uiState.update {
+                                    it.copy(
+                                        isLoading = false,
+                                        errorMessage = error.message ?: "Failed to refresh Spotify session"
+                                    )
+                                }
                             }
                         }
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
-                        isAuthenticated = false,
                         isLoading = false,
                         errorMessage = e.message ?: "Failed to restore session"
                     )
@@ -234,30 +239,51 @@ class SpotifyViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
                 ensureAuthenticated()
-                val meResult = Spotify.me().getOrThrow()
-                val likedSongsResult = Spotify.likedSongs(limit = 1, offset = 0).getOrThrow()
 
-                val playlistsList = mutableListOf<SpotifyPlaylist>()
-                var offset = 0
-                val limit = 50
-                while (true) {
-                    val page = spotifyCallWithTokenRetry {
-                        Spotify.myPlaylists(limit = limit, offset = offset).getOrThrow()
+                // Fetch liked songs, first page of playlists, and profile (if missing) in parallel
+                coroutineScope {
+                    val meDeferred = async {
+                        if (_uiState.value.accountName.isBlank()) {
+                            Spotify.me().getOrNull()
+                        } else null
                     }
-                    playlistsList.addAll(page.items)
-                    offset += limit
-                    if (offset >= page.total) break
-                }
+                    val likedSongsDeferred = async {
+                        Spotify.likedSongs(limit = 1, offset = 0).getOrNull()
+                    }
+                    val playlistsDeferred = async {
+                        spotifyCallWithTokenRetry {
+                            Spotify.myPlaylists(limit = 50, offset = 0).getOrNull()
+                        }
+                    }
 
-                sourcesLoaded = true
-                _uiState.update {
-                    it.copy(
-                        playlists = playlistsList,
-                        likedSongsCount = likedSongsResult.total,
-                        isLoading = false,
-                        accountName = meResult.displayName.orEmpty(),
-                        accountAvatarUrl = meResult.images.firstOrNull()?.url
-                    )
+                    val meResult = meDeferred.await()
+                    val likedSongsResult = likedSongsDeferred.await()
+                    val firstPlaylistsPage = playlistsDeferred.await()
+
+                    val playlistsList = mutableListOf<SpotifyPlaylist>()
+                    if (firstPlaylistsPage != null) {
+                        playlistsList.addAll(firstPlaylistsPage.items)
+
+                        var offset = 50
+                        while (offset < firstPlaylistsPage.total) {
+                            val nextPage = spotifyCallWithTokenRetry {
+                                Spotify.myPlaylists(limit = 50, offset = offset).getOrThrow()
+                            }
+                            playlistsList.addAll(nextPage.items)
+                            offset += 50
+                        }
+                    }
+
+                    sourcesLoaded = true
+                    _uiState.update { current ->
+                        current.copy(
+                            playlists = playlistsList,
+                            likedSongsCount = likedSongsResult?.total ?: current.likedSongsCount,
+                            isLoading = false,
+                            accountName = meResult?.displayName?.ifBlank { null } ?: current.accountName,
+                            accountAvatarUrl = meResult?.images?.firstOrNull()?.url ?: current.accountAvatarUrl
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 reportException(e)
