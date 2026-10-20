@@ -3,6 +3,7 @@ package com.music.vivi.ui.utils
 import androidx.compose.ui.graphics.Color
 import com.music.vivi.ui.component.LiveMeshClock
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -81,6 +82,16 @@ class LiveMeshFlowTest {
 
         assertTrue(palette.first().blue > palette.first().red)
         assertTrue(palette.any { it.red > 0.95f && it.green in 0.4f..0.6f && it.blue < 0.05f })
+    }
+
+    @Test
+    fun tinyAccentBelowTheMinimumShareIsLeftOut() {
+        val litWindow = 0xFFFFD000.toInt()
+        val pixels = IntArray(100) { index -> if (index < 2) litWindow else 0xFF203040.toInt() }
+
+        val palette = paletteFromPixels(pixels, 10, 10)!!
+
+        assertFalse(palette.containsCloseTo(Color(0xFFFFD000)))
     }
 
     @Test

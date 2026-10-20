@@ -20,6 +20,7 @@ private const val FLOW_BEAT_RADIUS = 0.15f
 private const val PALETTE_CLUSTERS = 8
 private const val PALETTE_KMEANS_ITERATIONS = 10
 private const val PALETTE_DISTINCT_DISTANCE = 0.18f
+private const val PALETTE_MIN_SHARE = 0.03f
 
 internal val LiveMeshSamplePalette: List<Color> = listOf(
     Color(0xFF7B2FF7),
@@ -65,7 +66,11 @@ internal fun paletteFromPixels(argbPixels: IntArray, width: Int, height: Int): L
     val population = IntArray(PALETTE_CLUSTERS)
     assignment.forEach { population[it]++ }
     val groups = mergeCloseClusters(centers, population)
-    return List(FLOW_BLOB_COUNT) { slot -> groups[slot % groups.size].color() }
+    // A tiny accent such as a lit window is dropped unless it covers a meaningful share of the cover; the dominant colour always stays.
+    val shown = groups.filterIndexed { index, group ->
+        index == 0 || group.population >= count * PALETTE_MIN_SHARE
+    }
+    return List(FLOW_BLOB_COUNT) { slot -> shown[slot % shown.size].color() }
 }
 
 // Clusters that describe the same colour are summed before ranking, so one hue split across several seeds
