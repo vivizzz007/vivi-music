@@ -635,78 +635,81 @@ fun BottomSheetPlayer(
         if (canvasFetchInFlight) return@LaunchedEffect
         canvasFetchInFlight = true
         
-        withContext(Dispatchers.IO) {
-            val storefront = Locale.getDefault().country.lowercase(Locale.ROOT).takeIf { it.length == 2 } ?: "us"
-            val requestedTitle = item.title
-            val requestedArtist = item.artists.joinToString { it.name }
-            val requestedAlbum = item.album?.title ?: ""
+        try {
+            withContext(Dispatchers.IO) {
+                val storefront = Locale.getDefault().country.lowercase(Locale.ROOT).takeIf { it.length == 2 } ?: "us"
+                val requestedTitle = item.title
+                val requestedArtist = item.artists.joinToString { it.name }
+                val requestedAlbum = item.album?.title ?: ""
 
-            val s = requestedTitle
-            val a = requestedArtist
+                val s = requestedTitle
+                val a = requestedArtist
 
-            android.util.Log.d("CanvasDebug", "=== Canvas Fetch START ===")
-            android.util.Log.d("CanvasDebug", "Source     : $motionartworkSource")
-            android.util.Log.d("CanvasDebug", "Storefront : $storefront")
-            android.util.Log.d("CanvasDebug", "Title      : '$requestedTitle'")
-            android.util.Log.d("CanvasDebug", "Artist     : '$requestedArtist'")
-            android.util.Log.d("CanvasDebug", "Album      : '$requestedAlbum' (blank=${requestedAlbum.isBlank()})")
+                android.util.Log.d("CanvasDebug", "=== Canvas Fetch START ===")
+                android.util.Log.d("CanvasDebug", "Source     : $motionartworkSource")
+                android.util.Log.d("CanvasDebug", "Storefront : $storefront")
+                android.util.Log.d("CanvasDebug", "Title      : '$requestedTitle'")
+                android.util.Log.d("CanvasDebug", "Artist     : '$requestedArtist'")
+                android.util.Log.d("CanvasDebug", "Album      : '$requestedAlbum' (blank=${requestedAlbum.isBlank()})")
 
-            val fetched = when (motionartworkSource) {
-                MotionartworkSource.AUTO -> {
-                    AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
-                        ?: TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
-                        ?: ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                val fetched = when (motionartworkSource) {
+                    MotionartworkSource.AUTO -> {
+                        AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                            ?: TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                            ?: ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() && validateMotionartworkMatch(it, s, a, requestedAlbum) }
+                    }
+                    MotionartworkSource.APPLE_MUSIC -> {
+                        AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    }
+                    MotionartworkSource.VIVIMUSIC -> {
+                        ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    }
+                    MotionartworkSource.TIDAL -> {
+                        TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
+                            ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+                    }
                 }
-                MotionartworkSource.APPLE_MUSIC -> {
-                    AppleMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum, storefront)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+
+                android.util.Log.d("CanvasDebug", "Fetched artwork: ${if (fetched == null) "NULL" else "non-null"}")
+                if (fetched != null) {
+                    android.util.Log.d("CanvasDebug", "  artwork.name      : '${fetched.name}'")
+                    android.util.Log.d("CanvasDebug", "  artwork.artist    : '${fetched.artist}'")
+                    android.util.Log.d("CanvasDebug", "  artwork.albumName : '${fetched.albumName}'")
+                    android.util.Log.d("CanvasDebug", "  artwork.animUrl   : '${fetched.preferredAnimationUrl}'")
                 }
-                MotionartworkSource.VIVIMUSIC -> {
-                    ViviMusicMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+
+                val validated = fetched?.let { artwork ->
+                    // For AUTO mode validation is already done per-provider inside takeIf.
+                    // For single-source modes this block acts as the safety net.
+                    val passes = validateMotionartworkMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
+
+                    android.util.Log.d("CanvasDebug", "Validation:")
+                    android.util.Log.d("CanvasDebug", "  artistMatches  : ${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}  ('${artwork.artist?.trim()}' vs '${requestedArtist.trim()}')")
+                    android.util.Log.d("CanvasDebug", "  songMatches    : ${artwork.name.orEmpty().trim().equals(requestedTitle.trim(), ignoreCase = true)}  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
+                    android.util.Log.d("CanvasDebug", "  albumMatches   : ${artwork.albumName.orEmpty().trim().equals(requestedAlbum.trim(), ignoreCase = true)}  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
+                    android.util.Log.d("CanvasDebug", "  RESULT         : $passes")
+
+                    if (passes) artwork else null
                 }
-                MotionartworkSource.TIDAL -> {
-                    TidalMotionartworkProvider.getBySongArtist(s, a, requestedAlbum)
-                        ?.takeIf { !it.preferredAnimationUrl.isNullOrBlank() }
+
+                android.util.Log.d("CanvasDebug", "Final validated: ${if (validated == null) "NULL (canvas will NOT show)" else "OK (canvas will show)"}")
+                android.util.Log.d("CanvasDebug", "=== Canvas Fetch END ===")
+
+                withContext(Dispatchers.Main) {
+                    canvasArtwork = validated
+                    if (validated != null) {
+                        MotionartworkPlaybackCache.put(cacheKey, validated)
+                        if (!spotifyCanvasPriority) spotifyCanvasUrl = null
+                    }
                 }
             }
-
-            android.util.Log.d("CanvasDebug", "Fetched artwork: ${if (fetched == null) "NULL" else "non-null"}")
-            if (fetched != null) {
-                android.util.Log.d("CanvasDebug", "  artwork.name      : '${fetched.name}'")
-                android.util.Log.d("CanvasDebug", "  artwork.artist    : '${fetched.artist}'")
-                android.util.Log.d("CanvasDebug", "  artwork.albumName : '${fetched.albumName}'")
-                android.util.Log.d("CanvasDebug", "  artwork.animUrl   : '${fetched.preferredAnimationUrl}'")
-            }
-
-            val validated = fetched?.let { artwork ->
-                // For AUTO mode validation is already done per-provider inside takeIf.
-                // For single-source modes this block acts as the safety net.
-                val passes = validateMotionartworkMatch(artwork, requestedTitle, requestedArtist, requestedAlbum)
-
-                android.util.Log.d("CanvasDebug", "Validation:")
-                android.util.Log.d("CanvasDebug", "  artistMatches  : ${artwork.artist.orEmpty().trim().equals(requestedArtist.trim(), ignoreCase = true)}  ('${artwork.artist?.trim()}' vs '${requestedArtist.trim()}')")
-                android.util.Log.d("CanvasDebug", "  songMatches    : ${artwork.name.orEmpty().trim().equals(requestedTitle.trim(), ignoreCase = true)}  ('${artwork.name?.trim()}' vs '${requestedTitle.trim()}')")
-                android.util.Log.d("CanvasDebug", "  albumMatches   : ${artwork.albumName.orEmpty().trim().equals(requestedAlbum.trim(), ignoreCase = true)}  ('${artwork.albumName?.trim()}' vs '${requestedAlbum.trim()}')")
-                android.util.Log.d("CanvasDebug", "  RESULT         : $passes")
-
-                if (passes) artwork else null
-            }
-
-            android.util.Log.d("CanvasDebug", "Final validated: ${if (validated == null) "NULL (canvas will NOT show)" else "OK (canvas will show)"}")
-            android.util.Log.d("CanvasDebug", "=== Canvas Fetch END ===")
-
-            withContext(Dispatchers.Main) {
-                canvasArtwork = validated
-                if (validated != null) {
-                    MotionartworkPlaybackCache.put(cacheKey, validated)
-                    if (!spotifyCanvasPriority) spotifyCanvasUrl = null
-                }
-                canvasFetchInFlight = false
-            }
+        } finally {
+            canvasFetchInFlight = false
         }
     }
 
