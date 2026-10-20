@@ -125,6 +125,8 @@
     <string name="canvas_source_tidal_desc">Uses Tidal&#8217;s animated visuals exclusively. Only shows a motion artwork if Tidal has one for the playing song</string>
     <string name="enable_spotify_canvas">Enable Spotify Canvas</string>
     <string name="enable_spotify_canvas_desc">Show full screen looping videos for supported Spotify tracks (Requires Spotify login)</string>
+    <string name="prefer_spotify_canvas">Prefer Spotify Canvas</string>
+    <string name="prefer_spotify_canvas_desc">Show the Spotify Canvas when both Spotify Canvas and Motion Artwork are available. Turn off to prefer Motion Artwork</string>
     <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
     <string name="max_spotify_canvas_cache_size">Max Spotify Canvas Cache Size</string>
     <string name="clear_spotify_canvas_cache">Clear Spotify Canvas Cache</string>

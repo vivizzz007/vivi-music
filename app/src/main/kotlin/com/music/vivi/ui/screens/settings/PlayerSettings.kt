@@ -52,6 +52,7 @@ import com.music.vivi.constants.CrossfadeCurve
 import com.music.vivi.constants.CrossfadeCurveKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.SpotifyCanvasEnabledKey
+import com.music.vivi.constants.SpotifyCanvasPriorityKey
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.spotify.Spotify
 import com.music.vivi.constants.MotionartworkSource
@@ -237,6 +238,10 @@ fun PlayerSettings(
         SpotifyCanvasEnabledKey,
         defaultValue = false
     )
+    val (spotifyCanvasPriority, onSpotifyCanvasPriorityChange) = rememberPreference(
+        SpotifyCanvasPriorityKey,
+        defaultValue = true
+    )
     val isSpotifyLoggedIn = Spotify.accessToken != null
 
     // Auto-disable if user logs out of Spotify
@@ -416,6 +421,33 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(!spotifyCanvasEnabled) }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.canvas_art),
+                    title = { Text(stringResource(R.string.prefer_spotify_canvas)) },
+                    description = { Text(stringResource(R.string.prefer_spotify_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = spotifyCanvasPriority,
+                            onCheckedChange = onSpotifyCanvasPriorityChange,
+                            enabled = spotifyCanvasEnabled && isSpotifyLoggedIn,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (spotifyCanvasPriority) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    enabled = spotifyCanvasEnabled && isSpotifyLoggedIn,
+                    onClick = {
+                        if (spotifyCanvasEnabled && isSpotifyLoggedIn) {
+                            onSpotifyCanvasPriorityChange(!spotifyCanvasPriority)
+                        }
+                    }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
