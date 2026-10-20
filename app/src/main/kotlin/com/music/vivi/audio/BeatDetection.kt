@@ -17,6 +17,14 @@ internal const val BEAT_MIN_INTERVAL_MS = 260L
 internal const val BEAT_PEAK = 0.8f
 private const val BEAT_RETRIGGER_MARGIN = 0.05f
 
+internal const val BEAT_IMPULSE_DECAY_MS = 350f
+
+// Instant attack for the live background: the beat lands on its onset and decays, so motion follows the rhythm.
+internal fun beatImpulse(elapsedMs: Long, peak: Float): Float {
+    if (elapsedMs < 0L) return 0f
+    return (peak * exp(-elapsedMs / BEAT_IMPULSE_DECAY_MS)).coerceIn(0f, peak)
+}
+
 // A beat swells in over BEAT_ATTACK_MS with a smoothstep curve (no sudden jump), then decays exponentially.
 internal fun beatBump(elapsedMs: Long, peak: Float): Float {
     if (peak <= 0f || elapsedMs < 0L) return 0f
@@ -151,6 +159,12 @@ object AudioPulse {
         val peak = beatPeak
         if (peak <= 0f) return 0f
         return beatBump(AudioPulse.nowMs() - beatStartMs, peak)
+    }
+
+    fun beatImpulse(): Float {
+        val peak = beatPeak
+        if (peak <= 0f) return 0f
+        return beatImpulse(AudioPulse.nowMs() - beatStartMs, peak)
     }
 
     fun lyric(): Float = lyricChannel.current()

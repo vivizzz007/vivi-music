@@ -51,10 +51,10 @@ import kotlin.random.Random
 private const val SHIMMER_MAX_DEG_PER_SECOND = 240f
 private const val SHIMMER_GLOW_AMPLITUDE = 0.08f
 private const val BEAT_TINT_RELIEF = 0.6f
-private const val CENTER_GLOW_BEAT = 0.6f
-private const val CENTER_GLOW_LYRIC = 0.25f
+private const val CENTER_GLOW_BEAT = 0.35f
+private const val CENTER_GLOW_LYRIC = 0.2f
 private const val CENTER_GLOW_RADIUS_FRACTION = 0.9f
-private const val CENTER_GLOW_CORE_ALPHA = 0.7f
+private const val CENTER_GLOW_CORE_ALPHA = 0.5f
 private const val FLOW_BLOB_ALPHA = 1f
 // The colour holds solid out to this fraction of the radius, so the shape reads as a colour field rather than a faint glow.
 private const val FLOW_BLOB_SOLID_STOP = 0.5f
@@ -93,7 +93,7 @@ internal class LiveMeshClock {
         val direction = 1f
         val speed = tempo * beatSpeedFactor(beatPulse, config.beatReactivity, motion.beatSpeedBoost)
 
-        flowTime += dtSeconds * tempo * config.speed
+        flowTime += dtSeconds * speed * config.speed * (1f + lyricTempo.coerceIn(0f, 1f) * config.lyricReactivity)
 
         anchor = advanceAngle(anchor, -direction, speed, dtSeconds, liveMeshPeriodMillis(80000, config.speed))
         fast = advanceAngle(fast, direction, speed, dtSeconds, liveMeshPeriodMillis(40000, config.speed))
@@ -116,7 +116,7 @@ internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = tr
         motion = rememberLiveMeshMotion().motion,
     ) {
         LiveMeshFrameInput(
-            beat = AudioPulse.beat(),
+            beat = AudioPulse.beatImpulse(),
             lyric = AudioPulse.lyricPulse(),
             lyricTempo = AudioPulse.lyricTempo(),
             targetTempo = if (latestAutoTempo) autoTempoFactor(AudioPulse.bpm()) else 1f,
@@ -253,7 +253,7 @@ internal fun LiveMeshBackground(
                 .drawWithCache {
                     val radius = size.minDimension * CENTER_GLOW_RADIUS_FRACTION
                     val glow = Brush.radialGradient(
-                        colors = listOf(Color.White.copy(alpha = CENTER_GLOW_CORE_ALPHA), Color.Transparent),
+                        colors = listOf(colors.first().copy(alpha = CENTER_GLOW_CORE_ALPHA), Color.Transparent),
                         center = Offset(size.width / 2f, size.height / 2f),
                         radius = radius,
                     )

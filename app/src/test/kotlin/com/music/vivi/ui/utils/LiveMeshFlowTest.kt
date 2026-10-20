@@ -201,6 +201,29 @@ class LiveMeshFlowTest {
     }
 
     @Test
+    fun beatsSpeedUpTheFlow() {
+        val still = LiveMeshClock()
+        val beating = LiveMeshClock()
+        beating.followPulses(dtSeconds = 1f, beatTarget = 1f, lyricTarget = 0f)
+
+        still.advance(1f, LiveMeshConfig.Default.copy(beatReactivity = 1f), targetTempo = 1f, lyricTempo = 0f, nowMs = 0L)
+        beating.advance(1f, LiveMeshConfig.Default.copy(beatReactivity = 1f), targetTempo = 1f, lyricTempo = 0f, nowMs = 0L)
+
+        assertTrue(beating.flowTime > still.flowTime)
+    }
+
+    @Test
+    fun fastLyricsSpeedUpTheFlow() {
+        val slow = LiveMeshClock()
+        val fast = LiveMeshClock()
+
+        slow.advance(1f, LiveMeshConfig.Default.copy(lyricReactivity = 1f), targetTempo = 1f, lyricTempo = 0f, nowMs = 0L)
+        fast.advance(1f, LiveMeshConfig.Default.copy(lyricReactivity = 1f), targetTempo = 1f, lyricTempo = 1f, nowMs = 0L)
+
+        assertTrue(fast.flowTime > slow.flowTime)
+    }
+
+    @Test
     fun flowTimeAdvancesWithTempoAndSpeed() {
         val clock = LiveMeshClock()
 

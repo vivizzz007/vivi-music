@@ -10,7 +10,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.music.vivi.audio.BEAT_PEAK
-import com.music.vivi.audio.beatBump
+import com.music.vivi.audio.beatImpulse
 import com.music.vivi.audio.lyricRhythmPulse
 import kotlin.math.roundToLong
 
@@ -42,7 +42,7 @@ internal fun simulatedFrame(bpm: Float, tempo: Float, lyricTempo: Float, nowMs: 
     val beatPeriodMs = (60_000f / bpm.coerceIn(SIMULATED_BPM_MIN, SIMULATED_BPM_MAX)).roundToLong().coerceAtLeast(1L)
     val linePeriodMs = beatPeriodMs * 2
     return LiveMeshFrameInput(
-        beat = beatBump(nowMs % beatPeriodMs, BEAT_PEAK),
+        beat = beatImpulse(nowMs % beatPeriodMs, BEAT_PEAK),
         lyric = lyricRhythmPulse(nowMs % linePeriodMs, linePeriodMs.toFloat(), lyricTempo),
         lyricTempo = lyricTempo.coerceIn(0f, 1f),
         targetTempo = tempo.coerceIn(SIMULATED_TEMPO_MIN, SIMULATED_TEMPO_MAX),

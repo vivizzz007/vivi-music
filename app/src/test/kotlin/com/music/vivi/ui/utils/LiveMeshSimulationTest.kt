@@ -1,7 +1,7 @@
 package com.music.vivi.ui.utils
 
 import com.music.vivi.audio.BEAT_PEAK
-import com.music.vivi.audio.beatBump
+import com.music.vivi.audio.beatImpulse
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,8 +13,8 @@ class LiveMeshSimulationTest {
         val onBeat = simulatedFrame(bpm = 120f, tempo = 1f, lyricTempo = 0f, nowMs = 1000L)
         val startOfBeat = simulatedFrame(bpm = 120f, tempo = 1f, lyricTempo = 0f, nowMs = 0L)
 
-        assertEquals(beatBump(0L, BEAT_PEAK), startOfBeat.beat, 1e-6f)
-        assertEquals(beatBump(0L, BEAT_PEAK), onBeat.beat, 1e-6f)
+        assertEquals(BEAT_PEAK, startOfBeat.beat, 1e-6f)
+        assertEquals(BEAT_PEAK, onBeat.beat, 1e-6f)
     }
 
     @Test
@@ -53,6 +53,13 @@ class LiveMeshSimulationTest {
         val atMinimum = simulatedFrame(bpm = SIMULATED_BPM_MIN, tempo = 1f, lyricTempo = 0f, nowMs = 1000L)
 
         assertEquals(atMinimum.beat, tooSlow.beat, 1e-6f)
+    }
+
+    @Test
+    fun beatImpulseLandsAtFullPeakOnsetAndDecays() {
+        assertEquals(BEAT_PEAK, beatImpulse(0L, BEAT_PEAK), 1e-6f)
+        assertTrue(beatImpulse(100L, BEAT_PEAK) < beatImpulse(0L, BEAT_PEAK))
+        assertEquals(0f, beatImpulse(-5L, BEAT_PEAK), 0f)
     }
 
     @Test
