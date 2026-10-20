@@ -248,6 +248,7 @@ import com.music.vivi.constants.MotionartworkSource
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.SpotifyCanvasEnabledKey
+import com.music.vivi.constants.SpotifyCanvasPriorityKey
 import com.music.spotify.Spotify
 import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
@@ -301,6 +302,7 @@ fun BottomSheetPlayer(
     val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
     val spotifyCanvasEnabled by rememberPreference(SpotifyCanvasEnabledKey, false)
+    val spotifyCanvasPriority by rememberPreference(SpotifyCanvasPriorityKey, true)
     val usePlayerV2 by rememberPreference(UsePlayerV2Key, false)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
@@ -573,7 +575,7 @@ fun BottomSheetPlayer(
     
     val isNetworkConnected by (LocalPlayerConnection.current?.service?.connectivityObserver?.networkStatus ?: kotlinx.coroutines.flow.MutableStateFlow(false)).collectAsState(initial = false)
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, spotifyCanvasPriority, Spotify.accessToken, isNetworkConnected) {
         val item = mediaMetadata ?: return@LaunchedEffect
         
         if (!spotifyCanvasEnabled) {
@@ -626,7 +628,7 @@ fun BottomSheetPlayer(
         // Use cached artwork if available
         MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
             canvasArtwork = cached
-            spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
+            if (!spotifyCanvasPriority) spotifyCanvasUrl = null
             return@LaunchedEffect
         }
 
@@ -701,7 +703,7 @@ fun BottomSheetPlayer(
                 canvasArtwork = validated
                 if (validated != null) {
                     MotionartworkPlaybackCache.put(cacheKey, validated)
-                    spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
+                    if (!spotifyCanvasPriority) spotifyCanvasUrl = null
                 }
                 canvasFetchInFlight = false
             }
