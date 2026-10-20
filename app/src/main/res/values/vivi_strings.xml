@@ -562,6 +562,15 @@
     <string name="vivimusic_1">Vivimusic (Fluid)</string>
     <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
     <string name="apple_music_lyrics_blur_desc">Apply blur to inactive lyrics lines for a premium focus effect</string>
+    <string name="lyrics_blur_duration">Blur transition</string>
+    <string name="lyrics_blur_duration_desc">How long lines take to sharpen or blur when the active line changes.</string>
+    <string name="lyrics_blur_duration_setting_desc">How long the blur takes to change between lines</string>
+    <string name="lyrics_blur_lead">Blur lead time</string>
+    <string name="lyrics_blur_lead_desc">How long before a line starts its blur begins to clear.</string>
+    <string name="lyrics_blur_lead_setting_desc">How early the next line sharpens before it starts</string>
+    <string name="lyrics_blur_strength">Blur strength</string>
+    <string name="lyrics_blur_strength_desc">How strongly lines away from the active one are blurred. 100% is the Lucid curve.</string>
+    <string name="lyrics_blur_strength_setting_desc">How strongly inactive lines are blurred</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
     <string name="lyrics_animation_metro">MetroLyrics</string>
     <string name="lyrics_text_size">Lyrics text size</string>

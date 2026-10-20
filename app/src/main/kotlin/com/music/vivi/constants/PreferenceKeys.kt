@@ -563,6 +563,9 @@ val DeeplFormalityKey = stringPreferencesKey("deeplFormality")
 val LyricsGlowEffectKey = booleanPreferencesKey("lyricsGlowEffect")
 val AppleMusicLyricsBlurKey = booleanPreferencesKey("appleMusicLyricsBlur")
 val LyricsStandardBlurKey = booleanPreferencesKey("lyricsStandardBlur")
+val LyricsBlurDurationKey = intPreferencesKey("lyricsBlurDurationMs")
+val LyricsBlurLeadKey = intPreferencesKey("lyricsBlurLeadMs")
+val LyricsBlurStrengthKey = intPreferencesKey("lyricsBlurStrengthPercent")
 
 val LyricsAnimationStyleKey = stringPreferencesKey("lyricsAnimationStyle")
 enum class LyricsAnimationStyle {

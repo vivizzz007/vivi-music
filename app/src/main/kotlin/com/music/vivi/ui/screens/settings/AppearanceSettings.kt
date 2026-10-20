@@ -78,6 +78,9 @@ import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.LyricsAnimationStyle
 import com.music.vivi.constants.LyricsAnimationStyleKey
+import com.music.vivi.constants.LyricsBlurDurationKey
+import com.music.vivi.constants.LyricsBlurLeadKey
+import com.music.vivi.constants.LyricsBlurStrengthKey
 import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
@@ -85,6 +88,16 @@ import com.music.vivi.constants.BackgroundEffectsMode
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.constants.LiveMeshSeparateMiniKey
 import com.music.vivi.ui.component.LiveMeshSettingsDialog
+import com.music.vivi.ui.component.LyricsBlurTimeDialog
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_MAX_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_MIN_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_MAX_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_MIN_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_MAX_PERCENT
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_MIN_PERCENT
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.MiniLiveMeshKeys
 import com.music.vivi.ui.utils.PlayerLiveMeshKeys
@@ -317,7 +330,19 @@ fun AppearanceSettings(
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
-    val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
+    val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = true)
+    val (lyricsBlurDuration, onLyricsBlurDurationChange) = rememberPreference(
+        LyricsBlurDurationKey,
+        defaultValue = LYRICS_BLUR_DURATION_DEFAULT_MS,
+    )
+    val (lyricsBlurLead, onLyricsBlurLeadChange) = rememberPreference(
+        LyricsBlurLeadKey,
+        defaultValue = LYRICS_BLUR_LEAD_DEFAULT_MS,
+    )
+    val (lyricsBlurStrength, onLyricsBlurStrengthChange) = rememberPreference(
+        LyricsBlurStrengthKey,
+        defaultValue = LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT,
+    )
     val (swipeLyrics, onSwipeLyricsChange) = rememberPreference(SwipeLyricsKey, defaultValue = false)
     val (enableLyricsThumbnailPlayPause, onEnableLyricsThumbnailPlayPauseChange) = rememberPreference(EnableLyricsThumbnailPlayPauseKey, defaultValue = false)
 
@@ -517,6 +542,15 @@ fun AppearanceSettings(
     }
 
     var showMiniLiveMeshDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurDurationDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurLeadDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurStrengthDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -795,6 +829,57 @@ fun AppearanceSettings(
                 playerLiveMesh.save(config)
                 showPlayerLiveMeshDialog = false
             }
+        )
+    }
+
+    if (showLyricsBlurDurationDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_duration,
+            descRes = R.string.lyrics_blur_duration_desc,
+            initialMs = lyricsBlurDuration,
+            minMs = LYRICS_BLUR_DURATION_MIN_MS,
+            maxMs = LYRICS_BLUR_DURATION_MAX_MS,
+            unitSuffix = " ms",
+            stepSize = 100,
+            onDismiss = { showLyricsBlurDurationDialog = false },
+            onConfirm = { duration ->
+                onLyricsBlurDurationChange(duration)
+                showLyricsBlurDurationDialog = false
+            },
+        )
+    }
+
+    if (showLyricsBlurStrengthDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_strength,
+            descRes = R.string.lyrics_blur_strength_desc,
+            initialMs = lyricsBlurStrength,
+            minMs = LYRICS_BLUR_STRENGTH_MIN_PERCENT,
+            maxMs = LYRICS_BLUR_STRENGTH_MAX_PERCENT,
+            unitSuffix = "%",
+            stepSize = 10,
+            onDismiss = { showLyricsBlurStrengthDialog = false },
+            onConfirm = { percent ->
+                onLyricsBlurStrengthChange(percent)
+                showLyricsBlurStrengthDialog = false
+            },
+        )
+    }
+
+    if (showLyricsBlurLeadDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_lead,
+            descRes = R.string.lyrics_blur_lead_desc,
+            initialMs = lyricsBlurLead,
+            minMs = LYRICS_BLUR_LEAD_MIN_MS,
+            maxMs = LYRICS_BLUR_LEAD_MAX_MS,
+            unitSuffix = " ms",
+            stepSize = 100,
+            onDismiss = { showLyricsBlurLeadDialog = false },
+            onConfirm = { lead ->
+                onLyricsBlurLeadChange(lead)
+                showLyricsBlurLeadDialog = false
+            },
         )
     }
 
@@ -1907,8 +1992,7 @@ fun AppearanceSettings(
                         onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) }
                     )
                 } else null,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    Material3SettingsItem(
+                Material3SettingsItem(
                         icon = painterResource(R.drawable.lyrics),
                         title = { Text(stringResource(R.string.standard_lyrics_blur)) },
                         description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
@@ -1927,9 +2011,33 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
-                    )
-                } else null,
+                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.speed),
+                        title = { Text(stringResource(R.string.lyrics_blur_duration)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_duration_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurDuration ms") },
+                        onClick = { showLyricsBlurDurationDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.speed),
+                        title = { Text(stringResource(R.string.lyrics_blur_lead)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_lead_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurLead ms") },
+                        onClick = { showLyricsBlurLeadDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.lyrics_blur_strength)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_strength_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurStrength%") },
+                        onClick = { showLyricsBlurStrengthDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
