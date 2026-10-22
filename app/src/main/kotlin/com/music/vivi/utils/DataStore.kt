@@ -28,6 +28,19 @@ import kotlin.properties.ReadOnlyProperty
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+// Latest stored values, kept current by the app so a screen can start from the real setting instead of the default.
+object PreferenceCache {
+    @Volatile
+    private var snapshot: Map<Preferences.Key<*>, Any> = emptyMap()
+
+    fun update(preferences: Preferences) {
+        snapshot = preferences.asMap().toMap()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T> get(key: Preferences.Key<T>): T? = snapshot[key] as T?
+}
+
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
     runBlocking(Dispatchers.IO) {
         try {
@@ -87,7 +100,7 @@ fun <T> rememberPreference(
             context.dataStore.data
                 .map { it[key] ?: defaultValue }
                 .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
+        }.collectAsStateWithLifecycle(PreferenceCache.get(key) ?: defaultValue)
 
     return remember {
         object : MutableState<T> {
@@ -121,7 +134,7 @@ inline fun <reified T : Enum<T>> rememberEnumPreference(
             context.dataStore.data
                 .map { it[key].toEnum(defaultValue = defaultValue) }
                 .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
+        }.collectAsStateWithLifecycle(PreferenceCache.get(key).toEnum(defaultValue = defaultValue))
 
     return remember {
         object : MutableState<T> {
