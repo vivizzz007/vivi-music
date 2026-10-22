@@ -452,6 +452,7 @@ class MusicService :
 
     private var consecutivePlaybackErr = 0
     private var retryJob: Job? = null
+    private var queueLoadJob: Job? = null
     private var retryCount = 0
     private var silenceSkipJob: Job? = null
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
@@ -1670,7 +1671,8 @@ class MusicService :
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        scope.launch(SilentHandler) {
+        queueLoadJob?.cancel()
+        queueLoadJob = scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
                     queue.getInitialStatus()
@@ -2076,6 +2078,13 @@ class MusicService :
 
     fun clearAutomix() {
         automixItems.value = emptyList()
+    }
+
+    fun stopPlayback() {
+        queueLoadJob?.cancel()
+        queueLoadJob = null
+        player.stop()
+        player.clearMediaItems()
     }
 
     fun playNext(items: List<MediaItem>) {
