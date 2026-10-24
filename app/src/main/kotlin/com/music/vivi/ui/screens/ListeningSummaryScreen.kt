@@ -24,9 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.music.vivi.R
+import com.music.vivi.constants.ShowDailyBreakdownKey
 import com.music.vivi.ui.components.ExpressiveBarChart
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ModernSwitch
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.DayUsageData
 import com.music.vivi.viewmodels.ListeningSummaryViewModel
 import java.time.DayOfWeek
@@ -43,7 +45,7 @@ fun ListeningSummaryScreen(
     val weekDailyData by viewModel.weekDailyData.collectAsState()
     val weekOffset by viewModel.weekOffset.collectAsState()
 
-    var showDailyBreakdown by remember { mutableStateOf(true) }
+    var showDailyBreakdown by rememberPreference(ShowDailyBreakdownKey, defaultValue = true)
 
     fun formatMs(ms: Long): String {
         val totalMinutes = ms / 60000
@@ -253,125 +255,127 @@ fun ListeningSummaryScreen(
                 }
             }
 
-            // Days Usage Breakdown - always visible (not gated by toggle here)
-            item {
-                val days = if (weekDailyData.isNotEmpty()) {
-                    weekDailyData
-                } else {
-                    listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
-                        .map { name -> DayUsageData(name, 0L, 0L, 0L, 0L, 0L) }
-                }
+            // Days Usage Breakdown - only visible when the breakdown switch is on
+            if (showDailyBreakdown) {
+                item {
+                    val days = if (weekDailyData.isNotEmpty()) {
+                        weekDailyData
+                    } else {
+                        listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+                            .map { name -> DayUsageData(name, 0L, 0L, 0L, 0L, 0L) }
+                    }
 
-                val expandedStates = remember(days.size) { days.map { mutableStateOf(false) } }
+                    val expandedStates = remember(days.size) { days.map { mutableStateOf(false) } }
 
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    days.forEachIndexed { index, dayData ->
-                        val isFirst = index == 0
-                        val isLast = index == days.size - 1
-                        val isExpanded = expandedStates[index].value
-                        val prevExpanded = if (index > 0) expandedStates[index - 1].value else false
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        days.forEachIndexed { index, dayData ->
+                            val isFirst = index == 0
+                            val isLast = index == days.size - 1
+                            val isExpanded = expandedStates[index].value
+                            val prevExpanded = if (index > 0) expandedStates[index - 1].value else false
 
-                        val topRadius by animateDpAsState(
-                            targetValue = if (isFirst || prevExpanded) 16.dp else 2.dp,
-                            label = "topRadius_$index"
-                        )
-                        val bottomRadius by animateDpAsState(
-                            targetValue = if (isExpanded || isLast) 16.dp else 2.dp,
-                            label = "bottomRadius_$index"
-                        )
-                        val cardShape = RoundedCornerShape(
-                            topStart = topRadius, topEnd = topRadius,
-                            bottomStart = bottomRadius, bottomEnd = bottomRadius
-                        )
-
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = cardShape,
-                            onClick = { expandedStates[index].value = !expandedStates[index].value },
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            val topRadius by animateDpAsState(
+                                targetValue = if (isFirst || prevExpanded) 16.dp else 2.dp,
+                                label = "topRadius_$index"
                             )
-                        ) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = dayData.dayName,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Text(
-                                            text = formatMs(dayData.totalMs),
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                        Icon(
-                                            painter = painterResource(
-                                                id = if (isExpanded) R.drawable.expand_less else R.drawable.expand_more
-                                            ),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp),
-                                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
+                            val bottomRadius by animateDpAsState(
+                                targetValue = if (isExpanded || isLast) 16.dp else 2.dp,
+                                label = "bottomRadius_$index"
+                            )
+                            val cardShape = RoundedCornerShape(
+                                topStart = topRadius, topEnd = topRadius,
+                                bottomStart = bottomRadius, bottomEnd = bottomRadius
+                            )
 
-                                AnimatedVisibility(
-                                    visible = isExpanded,
-                                    enter = expandVertically() + fadeIn(),
-                                    exit = shrinkVertically() + fadeOut()
-                                ) {
-                                    val breakdownItems = listOf(
-                                        "Songs" to formatMs(dayData.songsMs),
-                                        "Artists" to formatMs(dayData.artistsMs),
-                                        "Albums" to formatMs(dayData.albumsMs)
-                                    )
-                                    Column(
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = cardShape,
+                                onClick = { expandedStates[index].value = !expandedStates[index].value },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                )
+                            ) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        breakdownItems.forEachIndexed { i, (label, value) ->
-                                            val subShape = when (i) {
-                                                0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 2.dp, bottomEnd = 2.dp)
-                                                breakdownItems.size - 1 -> RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
-                                                else -> RoundedCornerShape(2.dp)
-                                            }
-                                            Surface(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                shape = subShape,
-                                                color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                                                tonalElevation = 0.dp
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
+                                        Text(
+                                            text = dayData.dayName,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = formatMs(dayData.totalMs),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                            Icon(
+                                                painter = painterResource(
+                                                    id = if (isExpanded) R.drawable.expand_less else R.drawable.expand_more
+                                                ),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(18.dp),
+                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+
+                                    AnimatedVisibility(
+                                        visible = isExpanded,
+                                        enter = expandVertically() + fadeIn(),
+                                        exit = shrinkVertically() + fadeOut()
+                                    ) {
+                                        val breakdownItems = listOf(
+                                            "Songs" to formatMs(dayData.songsMs),
+                                            "Artists" to formatMs(dayData.artistsMs),
+                                            "Albums" to formatMs(dayData.albumsMs)
+                                        )
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(start = 8.dp, end = 8.dp, bottom = 8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                                        ) {
+                                            breakdownItems.forEachIndexed { i, (label, value) ->
+                                                val subShape = when (i) {
+                                                    0 -> RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 2.dp, bottomEnd = 2.dp)
+                                                    breakdownItems.size - 1 -> RoundedCornerShape(topStart = 2.dp, topEnd = 2.dp, bottomStart = 12.dp, bottomEnd = 12.dp)
+                                                    else -> RoundedCornerShape(2.dp)
+                                                }
+                                                Surface(
+                                                    modifier = Modifier.fillMaxWidth(),
+                                                    shape = subShape,
+                                                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                    tonalElevation = 0.dp
                                                 ) {
-                                                    Text(
-                                                        text = label,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                    )
-                                                    Text(
-                                                        text = value,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Text(
+                                                            text = label,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                        )
+                                                        Text(
+                                                            text = value,
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            color = MaterialTheme.colorScheme.onSurface
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }
