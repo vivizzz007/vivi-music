@@ -106,6 +106,21 @@ object YouTube {
         set(value) {
             innerTube.cookie = value
         }
+    var visitorCookie: String?
+        get() = innerTube.visitorCookie
+        set(value) {
+            innerTube.visitorCookie = value
+        }
+    var onCookieChanged: ((String) -> Unit)?
+        get() = innerTube.onCookieChanged
+        set(value) {
+            innerTube.onCookieChanged = value
+        }
+    var onVisitorCookieChanged: ((String) -> Unit)?
+        get() = innerTube.onVisitorCookieChanged
+        set(value) {
+            innerTube.onVisitorCookieChanged = value
+        }
     var proxy: Proxy?
         get() = innerTube.proxy
         set(value) {
@@ -136,6 +151,7 @@ object YouTube {
     fun clearGuestSession() {
         visitorData = null
         dataSyncId = null
+        visitorCookie = null
     }
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
@@ -1387,20 +1403,37 @@ object YouTube {
 
 
 
-    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
-        val cpn = (1..16).map {
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
-                0,
-                64
-            )]
-        }.joinToString("")
+    fun generateCpn(): String = (1..16).map {
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+            0,
+            64
+        )]
+    }.joinToString("")
 
+    suspend fun registerPlayback(
+        url: String,
+        playlistId: String? = null,
+        cpn: String = generateCpn(),
+        cmt: Float? = null,
+        st: Float? = null,
+        et: Float? = null,
+        state: String? = null,
+        client: YouTubeClient = WEB_REMIX,
+    ) = runCatching {
         innerTube.registerPlayback(
-            url = playbackTracking,
+            url = url,
             playlistId = playlistId,
-            cpn = cpn
+            cpn = cpn,
+            cmt = cmt,
+            st = st,
+            et = et,
+            state = state,
+            client = client
         )
     }
+
+    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) =
+        registerPlayback(url = playbackTracking, playlistId = playlistId)
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
         val response = innerTube.next(
@@ -1489,16 +1522,7 @@ object YouTube {
 
         fun addItem(item: YTItem, renderer: MusicResponsiveListItemRenderer?) {
             when (item) {
-                is SongItem -> {
-                    val isAudioTrack = renderer?.overlay
-                        ?.musicItemThumbnailOverlayRenderer?.content
-                        ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                        ?.watchEndpoint?.watchEndpointMusicSupportedConfigs
-                        ?.watchEndpointMusicConfig?.musicVideoType == MUSIC_VIDEO_TYPE_ATV
-                    if (isAudioTrack) {
-                        songs.add(item)
-                    }
-                }
+                is SongItem -> songs.add(item)
                 is AlbumItem -> albums.add(item)
                 is ArtistItem -> artists.add(item)
                 is PlaylistItem -> playlists.add(item)

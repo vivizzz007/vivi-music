@@ -755,6 +755,7 @@ fun HomeScreen(
         )
     }
 
+    val quickPicksLocalized = stringResource(R.string.quick_picks)
     val homeSections = remember(
         randomizeHomeOrder,
         randomSeed,
@@ -768,7 +769,8 @@ fun HomeScreen(
         communityPlaylists,
         similarRecommendations,
         homePage?.sections,
-        explorePage?.moodAndGenres
+        explorePage?.moodAndGenres,
+        quickPicksLocalized
     ) {
         val list = mutableListOf<HomeSection>()
         val chipActive = selectedChip != null
@@ -842,21 +844,29 @@ fun HomeScreen(
             }
         }
 
-        // If logged in, YouTube provides its own superior "Quick picks" section. 
-        // If logged out as guest, we use our local app-generated Quick Picks.
-        val hasYouTubeQuickPicks = sortedList.any { 
-            it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true 
+        val isYouTubeQuickPicksSection: (com.music.innertube.pages.HomePage.Section?) -> Boolean = { s ->
+            s != null && (
+                s.title.equals("Quick picks", ignoreCase = true) ||
+                s.title.equals(quickPicksLocalized, ignoreCase = true) ||
+                s.label?.contains("START RADIO", ignoreCase = true) == true
+            )
         }
 
-        val deduplicatedList = if (hasYouTubeQuickPicks) {
-            sortedList.filterNot { it == HomeSection.QuickPicks } // Hide local if remote exists
+        val hasYouTubeQuickPicks = sortedList.any { 
+            it is HomeSection.HomePageSection && isYouTubeQuickPicksSection(homePage?.sections?.getOrNull(it.index))
+        }
+
+        val deduplicatedList = if (hasYouTubeQuickPicks && quickPicks.isNullOrEmpty()) {
+            sortedList.filterNot { it == HomeSection.QuickPicks }
+        } else if (hasYouTubeQuickPicks) {
+            sortedList.filterNot { it is HomeSection.HomePageSection && isYouTubeQuickPicksSection(homePage?.sections?.getOrNull(it.index)) }
         } else {
             sortedList
         }
 
         // Always pin the surviving QuickPicks to the very top regardless of sort order
         val isQuickPicksSection: (HomeSection) -> Boolean = {
-            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && homePage?.sections?.getOrNull(it.index)?.title?.equals("Quick picks", ignoreCase = true) == true)
+            it == HomeSection.QuickPicks || (it is HomeSection.HomePageSection && isYouTubeQuickPicksSection(homePage?.sections?.getOrNull(it.index)))
         }
         val qpItems = deduplicatedList.filter(isQuickPicksSection)
         if (qpItems.isNotEmpty()) qpItems + deduplicatedList.filterNot(isQuickPicksSection)

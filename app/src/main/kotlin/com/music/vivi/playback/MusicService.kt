@@ -1568,21 +1568,30 @@ class MusicService :
             }
         }
         if (!database.hasRelatedSongs(mediaId)) {
-            val relatedEndpoint =
-                YouTube.next(WatchEndpoint(videoId = mediaId)).getOrNull()?.relatedEndpoint
-                    ?: return
-            val relatedPage = YouTube.related(relatedEndpoint).getOrNull() ?: return
-            database.query {
-                relatedPage.songs
-                    .map(SongItem::toMediaMetadata)
-                    .onEach(::insert)
-                    .map {
-                        RelatedSongMap(
-                            songId = mediaId,
-                            relatedSongId = it.id
-                        )
-                    }
-                    .forEach(::insert)
+            val nextResult = YouTube.next(WatchEndpoint(videoId = mediaId)).getOrNull()
+            val candidateSongs = mutableListOf<SongItem>()
+
+            nextResult?.relatedEndpoint?.let { endpoint ->
+                YouTube.related(endpoint).getOrNull()?.songs?.let { candidateSongs.addAll(it) }
+            }
+
+            if (candidateSongs.isEmpty() && nextResult != null && nextResult.items.isNotEmpty()) {
+                candidateSongs.addAll(nextResult.items.filter { it.id != mediaId })
+            }
+
+            if (candidateSongs.isNotEmpty()) {
+                database.query {
+                    candidateSongs
+                        .map(SongItem::toMediaMetadata)
+                        .onEach(::insert)
+                        .map {
+                            RelatedSongMap(
+                                songId = mediaId,
+                                relatedSongId = it.id
+                            )
+                        }
+                        .forEach(::insert)
+                }
             }
         }
     }
@@ -3687,17 +3696,30 @@ class MusicService :
                 val watchtimeUrl = freshPlayerResponse?.playbackTracking?.videostatsWatchtimeUrl?.baseUrl
                 
                 playbackUrl?.let { baseUrl ->
-                    YouTube.registerPlayback(null, baseUrl)
-                        .onSuccess {
-                            // Also optionally ping watchtime to be absolutely sure the view registers
-                            watchtimeUrl?.let { wtUrl -> 
-                                YouTube.registerPlayback(null, wtUrl)
-                            }
-                            playbackRegistered.tryEmit(mediaItem.mediaId)
+                    val cpn = YouTube.generateCpn()
+                    val playTimeSeconds = playbackStats.totalPlayTimeMs / 1000f
+
+                    YouTube.registerPlayback(
+                        url = baseUrl,
+                        playlistId = null,
+                        cpn = cpn
+                    ).onSuccess {
+                        // Also ping watchtime with matching cpn and play time duration so YouTube's recommendation engine accurately registers user's hearing
+                        watchtimeUrl?.let { wtUrl -> 
+                            YouTube.registerPlayback(
+                                url = wtUrl,
+                                playlistId = null,
+                                cpn = cpn,
+                                cmt = playTimeSeconds,
+                                st = 0f,
+                                et = playTimeSeconds,
+                                state = "playing"
+                            )
                         }
-                        .onFailure {
-                            reportException(it)
-                        }
+                        playbackRegistered.tryEmit(mediaItem.mediaId)
+                    }.onFailure {
+                        reportException(it)
+                    }
                 }
             }
         }

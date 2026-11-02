@@ -60,11 +60,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.random.Random
+import com.music.vivi.models.toMediaMetadata
 
 data class DailyDiscoverItem(
     val seed: Song,
@@ -491,10 +494,12 @@ class HomeViewModel @Inject constructor(
         YouTube.related(endpoint).onSuccess { page ->
             android.util.Log.d("QP_TIMING", "[Phase2] YouTube.related() took ${System.currentTimeMillis() - tRelated}ms | page.songs=${page.songs.size}")
             page.songs.take(10).forEach { ytSong ->
-                database.song(ytSong.id).first()?.let { localSong ->
-                    if (!hideVideoSongs || !localSong.song.isVideo) {
-                        ytSimilarSongs.add(localSong)
-                    }
+                val localSong = database.song(ytSong.id).first() ?: run {
+                    database.insert(ytSong.toMediaMetadata())
+                    database.song(ytSong.id).first()
+                }
+                if (localSong != null && (!hideVideoSongs || !localSong.song.isVideo)) {
+                    ytSimilarSongs.add(localSong)
                 }
             }
         }.onFailure {
@@ -771,7 +776,11 @@ class HomeViewModel @Inject constructor(
                     // Asynchronously fetch continuations if "Quick picks" is missing 
                     // This way it won't block the rest of the home sections from rendering!
                     launch(Dispatchers.IO) {
-                        var hasQuickPicks = initialPage.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                        var hasQuickPicks = initialPage.sections.any {
+                            it.title.equals("Quick picks", ignoreCase = true) ||
+                            it.label?.contains("START RADIO", ignoreCase = true) == true ||
+                            (it.items.isNotEmpty() && it.items.all { item -> item is SongItem } && it.label != null)
+                        }
                         var currentContinuation = initialPage.continuation
                         var fetchCount = 0
                         
@@ -793,7 +802,11 @@ class HomeViewModel @Inject constructor(
                                 }
                             )
                             
-                            hasQuickPicks = nextSectionsResponse.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                            hasQuickPicks = nextSectionsResponse.sections.any {
+                                it.title.equals("Quick picks", ignoreCase = true) ||
+                                it.label?.contains("START RADIO", ignoreCase = true) == true ||
+                                (it.items.isNotEmpty() && it.items.all { item -> item is SongItem } && it.label != null)
+                            }
                             currentContinuation = nextSectionsResponse.continuation
                             fetchCount++
                         }
@@ -962,6 +975,28 @@ class HomeViewModel @Inject constructor(
             val tInit = System.currentTimeMillis()
             load()
             android.util.Log.d("QP_TIMING", "init: load() fully completed in ${System.currentTimeMillis() - tInit}ms")
+        }
+
+        // Dynamically update Quick Picks whenever a new listening event is recorded
+        viewModelScope.launch(Dispatchers.IO) {
+            database.events()
+                .drop(1)
+                .mapNotNull { it.firstOrNull()?.event?.id }
+                .distinctUntilChanged()
+                .collect {
+                    loadLocalDataPhase()
+                    enrichQuickPicksFromNetwork()
+                }
+        }
+
+        // Dynamically update Quick Picks if the user switches Quick Picks preference
+        viewModelScope.launch(Dispatchers.IO) {
+            quickPicksEnum
+                .drop(1)
+                .collect {
+                    loadLocalDataPhase()
+                    enrichQuickPicksFromNetwork()
+                }
         }
 
         // Run sync in separate coroutine with cooldown to avoid blocking UI
