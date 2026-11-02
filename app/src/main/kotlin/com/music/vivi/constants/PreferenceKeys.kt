@@ -116,6 +116,7 @@ val ShowArtistSubscriberCountKey = booleanPreferencesKey("showArtistSubscriberCo
 val ShowMonthlyListenersKey = booleanPreferencesKey("showMonthlyListeners")
 val ShowArtistVideoKey = booleanPreferencesKey("showArtistVideo")
 val ShowArtistBackgroundVideoKey = booleanPreferencesKey("showArtistBackgroundVideo")
+val ShowDailyBreakdownKey = booleanPreferencesKey("showDailyBreakdown")
 val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
 val ProxyTypeKey = stringPreferencesKey("proxyType")
