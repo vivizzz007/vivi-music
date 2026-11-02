@@ -672,8 +672,9 @@ fun PlayerV2(
                                             modifier = Modifier.sharedBounds(
                                                 rememberSharedContentState(key = "title"),
                                                 animatedVisibilityScope = this@AnimatedContent,
-                                                enter = fadeIn(tween(400)),
-                                                exit = fadeOut(tween(300))
+                                                boundsTransform = BoundsTransform { _, _ ->
+                                                    tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                }
                                             )
                                         )
                                         Text(
@@ -685,8 +686,9 @@ fun PlayerV2(
                                             modifier = Modifier.sharedBounds(
                                                 rememberSharedContentState(key = "artist"),
                                                 animatedVisibilityScope = this@AnimatedContent,
-                                                enter = fadeIn(tween(400)),
-                                                exit = fadeOut(tween(300))
+                                                boundsTransform = BoundsTransform { _, _ ->
+                                                    tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                }
                                             )
                                         )
                                     }
@@ -696,8 +698,9 @@ fun PlayerV2(
                                         modifier = Modifier.sharedBounds(
                                             rememberSharedContentState(key = "actionButtons"),
                                             animatedVisibilityScope = this@AnimatedContent,
-                                            enter = fadeIn(tween(400)),
-                                            exit = fadeOut(tween(300))
+                                            boundsTransform = BoundsTransform { _, _ ->
+                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                            }
                                         )
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
@@ -732,20 +735,22 @@ fun PlayerV2(
                                                         )
                                                     }
                                                 } else {
-                                                    menuState.show {
-                                                        LyricsMenu(
-                                                            lyricsProvider = { currentLyrics },
-                                                            songProvider = { currentSong?.song },
-                                                            mediaMetadataProvider = { mediaMetadata!! },
-                                                            onDismiss = menuState::dismiss,
-                                                            onShowOffsetDialog = {
-                                                                bottomSheetPageState.show {
-                                                                    ShowOffsetDialog(
-                                                                        songProvider = { currentSong?.song }
-                                                                    )
+                                                    mediaMetadata?.let { metadata ->
+                                                        menuState.show {
+                                                            LyricsMenu(
+                                                                lyricsProvider = { currentLyrics },
+                                                                songProvider = { currentSong?.song },
+                                                                mediaMetadataProvider = { metadata },
+                                                                onDismiss = menuState::dismiss,
+                                                                onShowOffsetDialog = {
+                                                                    bottomSheetPageState.show {
+                                                                        ShowOffsetDialog(
+                                                                            songProvider = { currentSong?.song }
+                                                                        )
+                                                                    }
                                                                 }
-                                                            }
-                                                        )
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
@@ -772,15 +777,27 @@ fun PlayerV2(
                                         )
                                 ) {
                                     if (targetState == PlayerInternalState.LYRICS) {
-                                        LyricsV2(
-                                            mediaMetadata = mediaMetadata,
-                                            showLyrics = true,
-                                            sliderPositionProvider = { sliderPosition },
-                                            positionProvider = { sliderPosition ?: position },
-                                            onControlsVisibilityChange = { isVisible ->
-                                                controlsVisible = isVisible
-                                            }
-                                        )
+                                        AnimatedContent(
+                                            targetState = currentLyrics?.id to currentLyrics?.lyrics,
+                                            transitionSpec = {
+                                                (fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) togetherWith
+                                                 fadeOut(animationSpec = tween(200, easing = FastOutSlowInEasing)))
+                                                    .apply { targetContentZIndex = 1f }
+                                            },
+                                            modifier = Modifier.fillMaxSize(),
+                                            label = "LyricsContentTransition"
+                                        ) { _ ->
+                                            LyricsV2(
+                                                mediaMetadata = mediaMetadata,
+                                                showLyrics = true,
+                                                sliderPositionProvider = { sliderPosition },
+                                                positionProvider = { sliderPosition ?: position },
+                                                initialLyrics = currentLyrics,
+                                                onControlsVisibilityChange = { isVisible ->
+                                                    controlsVisible = isVisible
+                                                }
+                                            )
+                                        }
                                     } else {
                                         QueueV2(
                                             navController = navController,

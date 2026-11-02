@@ -819,13 +819,25 @@ fun PlayerV2Landscape(
                     PlayerInternalState.LYRICS -> {
                         // In landscape, when lyrics pressed: pure LyricsV2 with floating circular action buttons (Star on left, Options on right)
                         Box(modifier = Modifier.fillMaxSize()) {
-                            LyricsV2(
-                                mediaMetadata = mediaMetadata,
-                                showLyrics = true,
-                                sliderPositionProvider = { sliderPosition },
-                                positionProvider = { sliderPosition ?: position },
-                                modifier = Modifier.fillMaxSize()
-                            )
+                            AnimatedContent(
+                                targetState = currentLyrics?.id to currentLyrics?.lyrics,
+                                transitionSpec = {
+                                    (fadeIn(animationSpec = tween(300, easing = FastOutSlowInEasing)) togetherWith
+                                     fadeOut(animationSpec = tween(200, easing = FastOutSlowInEasing)))
+                                        .apply { targetContentZIndex = 1f }
+                                },
+                                modifier = Modifier.fillMaxSize(),
+                                label = "LandscapeLyricsContentTransition"
+                            ) { _ ->
+                                LyricsV2(
+                                    mediaMetadata = mediaMetadata,
+                                    showLyrics = true,
+                                    sliderPositionProvider = { sliderPosition },
+                                    positionProvider = { sliderPosition ?: position },
+                                    initialLyrics = currentLyrics,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
 
                             // Small compact circular star/like button at bottom left of lyrics
                             val isLiked = currentSong?.song?.liked == true
@@ -860,12 +872,12 @@ fun PlayerV2Landscape(
                                     .clip(CircleShape)
                                     .background(adaptiveSurface)
                                     .clickable {
-                                        if (mediaMetadata != null) {
+                                        mediaMetadata?.let { metadata ->
                                             menuState.show {
                                                 LyricsMenu(
                                                     lyricsProvider = { currentLyrics },
                                                     songProvider = { currentSong?.song },
-                                                    mediaMetadataProvider = { mediaMetadata!! },
+                                                    mediaMetadataProvider = { metadata },
                                                     onDismiss = menuState::dismiss,
                                                     onShowOffsetDialog = {
                                                         bottomSheetPageState.show {
