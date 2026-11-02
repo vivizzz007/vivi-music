@@ -11,28 +11,39 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import com.music.vivi.ui.utils.LOW_POWER_IMAGE_SIZE
+import com.music.vivi.ui.utils.backgroundBlur
 import com.music.vivi.ui.utils.fadingEdge
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 
 @Composable
 fun OnlineBlur(
     thumbnailUrl: String?,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
     Box(modifier = modifier) {
         if (thumbnailUrl != null) {
             AsyncImage(
-                model = thumbnailUrl,
+                model = ImageRequest.Builder(context)
+                    .data(thumbnailUrl)
+                    .apply {
+                        if (reduceBackgroundEffects) size(LOW_POWER_IMAGE_SIZE, LOW_POWER_IMAGE_SIZE)
+                    }
+                    .build(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .blur(50.dp)
+                    .backgroundBlur(50.dp, reduceBackgroundEffects)
                     .fadingEdge(bottom = 200.dp)
             )
         }

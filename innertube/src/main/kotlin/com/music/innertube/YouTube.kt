@@ -10,6 +10,7 @@ import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.Artist
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.pages.RadioChip
+import com.music.innertube.pages.browseEndpointOf
 import com.music.innertube.models.BrowseEndpoint
 import com.music.innertube.models.GridRenderer
 import com.music.innertube.models.MediaInfo
@@ -1452,8 +1453,8 @@ object YouTube {
                 result.copy(
                     title = title,
                     items = songs + result.items,
-                    lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-                    relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
+                    lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs.browseEndpointOf("MPLY", 1),
+                    relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs.browseEndpointOf("MPTR", 2),
                     currentIndex = currentIndex,
                     endpoint = watchPlaylistEndpoint,
                     radioChips = radioChips
@@ -1464,8 +1465,8 @@ object YouTube {
             title = title,
             items = songs,
             currentIndex = currentIndex,
-            lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-            relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
+            lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs.browseEndpointOf("MPLY", 1),
+            relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs.browseEndpointOf("MPTR", 2),
             continuation = playlistPanelRenderer.continuations?.getContinuation(),
             endpoint = endpoint,
             radioChips = radioChips

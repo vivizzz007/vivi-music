@@ -410,5 +410,7 @@ data class Material3SettingsItem(
     val onClick: (() -> Unit)? = null,
     val isExpressive: Boolean = false,
     val descriptionBelow: Boolean = false,
-    val isExternalLink: Boolean = false
+    val isExternalLink: Boolean = false,
+    // Only ExpressiveSettingGroup animates hidden items; other groups ignore this flag.
+    val visible: Boolean = true,
 )

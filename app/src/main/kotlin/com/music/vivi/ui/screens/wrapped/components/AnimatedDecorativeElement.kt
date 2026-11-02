@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -25,8 +26,9 @@ import kotlin.random.Random
 fun AnimatedDecorativeElement(modifier: Modifier = Modifier, isVisible: Boolean) {
     val rotation = remember { Animatable(0f) }
     val shapeType = remember { Random.nextInt(3) }
-    LaunchedEffect(isVisible) {
-        if (isVisible) {
+    val reduceAnimations = rememberReduceBackgroundEffects()
+    LaunchedEffect(isVisible, reduceAnimations) {
+        if (isVisible && !reduceAnimations) {
             delay(Random.nextLong(500))
             rotation.animateTo(
                 targetValue = 360f,

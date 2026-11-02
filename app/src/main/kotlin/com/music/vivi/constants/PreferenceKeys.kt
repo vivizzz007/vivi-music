@@ -515,12 +515,21 @@ enum class PlayerBackgroundStyle {
     LIVE_MESH,
 }
 
+enum class BackgroundEffectsMode {
+    AUTO,
+    FULL,
+    REDUCED,
+}
+
 val TopSize = stringPreferencesKey("topSize")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 
 val PlayerButtonsStyleKey = stringPreferencesKey("player_buttons_style")
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val MiniPlayerBackgroundStyleKey = stringPreferencesKey("miniPlayerBackgroundStyle")
+val BackgroundEffectsModeKey = stringPreferencesKey("backgroundEffectsMode")
+val LiveMeshSeparateMiniKey = booleanPreferencesKey("liveMeshSeparateMini")
+val LiveMeshAutoTempoKey = booleanPreferencesKey("liveMeshAutoTempo")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val SwipeLyricsKey = booleanPreferencesKey("swipeLyrics")
 val EnableLyricsThumbnailPlayPauseKey = booleanPreferencesKey("enableLyricsThumbnailPlayPause")
@@ -554,6 +563,9 @@ val DeeplFormalityKey = stringPreferencesKey("deeplFormality")
 val LyricsGlowEffectKey = booleanPreferencesKey("lyricsGlowEffect")
 val AppleMusicLyricsBlurKey = booleanPreferencesKey("appleMusicLyricsBlur")
 val LyricsStandardBlurKey = booleanPreferencesKey("lyricsStandardBlur")
+val LyricsBlurDurationKey = intPreferencesKey("lyricsBlurDurationMs")
+val LyricsBlurLeadKey = intPreferencesKey("lyricsBlurLeadMs")
+val LyricsBlurStrengthKey = intPreferencesKey("lyricsBlurStrengthPercent")
 
 val LyricsAnimationStyleKey = stringPreferencesKey("lyricsAnimationStyle")
 enum class LyricsAnimationStyle {

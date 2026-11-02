@@ -100,6 +100,9 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.sp
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT
 import com.music.vivi.ui.utils.fadingEdge
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -196,6 +199,10 @@ fun LyricsV2(
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
     val scrollLyrics by rememberPreference(LyricsScrollKey, true)
+    val lyricsStandardBlur by rememberPreference(LyricsStandardBlurKey, true)
+    val lyricsBlurDuration by rememberPreference(LyricsBlurDurationKey, LYRICS_BLUR_DURATION_DEFAULT_MS)
+    val lyricsBlurLead by rememberPreference(LyricsBlurLeadKey, LYRICS_BLUR_LEAD_DEFAULT_MS)
+    val lyricsBlurStrength by rememberPreference(LyricsBlurStrengthKey, LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT)
     
     val romanizeJapaneseLyrics by rememberPreference(LyricsRomanizeJapaneseKey, true)
     val romanizeKoreanLyrics by rememberPreference(LyricsRomanizeKoreanKey, true)
@@ -1083,6 +1090,10 @@ fun LyricsV2(
                                                 showRomanized = showRomanized,
                                                 showTranslated = hasActiveTranslations,
                                                 isAutoScrollActive = isAutoScrollEnabled,
+                                                blurEnabled = lyricsStandardBlur,
+                                                blurDurationMs = lyricsBlurDuration,
+                                                blurLeadMs = lyricsBlurLead,
+                                                blurStrengthPercent = lyricsBlurStrength,
                                                 isSelectionModeActive = isSelectionModeActive,
                                                 isSelected = isSelected,
                                                 expressiveAccent = adaptivePrimary,

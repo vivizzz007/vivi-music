@@ -57,6 +57,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.CompositingStrategy
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.LyricsRomanizeAsMainKey
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.lyricsLineBlurTarget
 import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
 import com.music.vivi.utils.rememberPreference
@@ -148,6 +151,10 @@ fun MetroLyricsLine(
     isAutoScrollActive: Boolean,
     expressiveAccent: Color,
     bgVisible: Boolean = true,
+    blurEnabled: Boolean = false,
+    blurDurationMs: Int = LYRICS_BLUR_DURATION_DEFAULT_MS,
+    blurLeadMs: Int = LYRICS_BLUR_LEAD_DEFAULT_MS,
+    blurStrengthPercent: Int = 100,
     modifier: Modifier = Modifier
 ) {
     val (romanizeAsMain) = rememberPreference(LyricsRomanizeAsMainKey, false)
@@ -185,10 +192,34 @@ fun MetroLyricsLine(
         label = "lineAlpha"
     )
 
+    // The next line sharpens ahead of its start, so the transition finishes as it becomes active instead of lagging behind it.
+    // The line right before the active one stays sharp because it may still be singing (overlapping vocals).
+    val blurTarget = lyricsLineBlurTarget(
+        enabled = blurEnabled,
+        autoScrollActive = isAutoScrollActive,
+        isActive = isActive,
+        isBackground = entry.isBackground,
+        isSynced = isSynced,
+        selectionActive = isSelectionModeActive,
+        isSelected = isSelected,
+        distance = distanceFromCurrent,
+        entryTime = entry.time,
+        nextEntryTime = nextEntryTime,
+        position = effectivePlaybackPosition,
+        leadMs = blurLeadMs,
+        strengthPercent = blurStrengthPercent,
+    )
+    val animatedBlur by animateFloatAsState(
+        targetValue = blurTarget,
+        animationSpec = tween(durationMillis = blurDurationMs),
+        label = "lyricsBlur"
+    )
+
     val lyricsTextSize = 36f
     val lyricsLineSpacing = 1.3f
 
     val itemModifier = modifier
+        .then(if (animatedBlur > 0f) Modifier.blur(animatedBlur.dp) else Modifier)
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
         .combinedClickable(

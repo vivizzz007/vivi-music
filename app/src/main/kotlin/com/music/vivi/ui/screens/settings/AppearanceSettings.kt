@@ -78,9 +78,33 @@ import com.music.vivi.constants.LibraryFilter
 import com.music.vivi.constants.ListenTogetherInTopBarKey
 import com.music.vivi.constants.LyricsAnimationStyle
 import com.music.vivi.constants.LyricsAnimationStyleKey
+import com.music.vivi.constants.LyricsBlurDurationKey
+import com.music.vivi.constants.LyricsBlurLeadKey
+import com.music.vivi.constants.LyricsBlurStrengthKey
 import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsTextPositionKey
 import com.music.vivi.constants.LyricsTextSizeKey
+import com.music.vivi.constants.BackgroundEffectsMode
+import com.music.vivi.constants.LiveMeshAutoTempoKey
+import com.music.vivi.constants.LiveMeshSeparateMiniKey
+import com.music.vivi.ui.component.LiveMeshSettingsDialog
+import com.music.vivi.ui.component.LyricsBlurTimeDialog
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_MAX_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_MIN_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_MAX_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_MIN_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_MAX_PERCENT
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_MIN_PERCENT
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.MiniLiveMeshKeys
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.liveMeshRowVisibility
+import com.music.vivi.ui.utils.clamped
+import com.music.vivi.constants.BackgroundEffectsModeKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerButtonsStyle
@@ -264,6 +288,23 @@ fun AppearanceSettings(
             defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
 
+    val (backgroundEffectsMode, onBackgroundEffectsModeChange) = rememberEnumPreference(
+        BackgroundEffectsModeKey,
+        defaultValue = BackgroundEffectsMode.AUTO,
+    )
+
+    val (liveMeshSeparateMini, onLiveMeshSeparateMiniChange) = rememberPreference(
+        LiveMeshSeparateMiniKey,
+        defaultValue = false,
+    )
+    val (liveMeshAutoTempo, onLiveMeshAutoTempoChange) = rememberPreference(
+        LiveMeshAutoTempoKey,
+        defaultValue = true,
+    )
+    val playerLiveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default)
+    val miniLiveMesh = rememberLiveMeshStore(MiniLiveMeshKeys, LiveMeshConfig.MiniDefault)
+    val liveMeshRows = liveMeshRowVisibility(playerBackground, miniPlayerBackground, liveMeshSeparateMini)
+
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
         DefaultOpenTabKey,
         defaultValue = NavigationTab.HOME
@@ -289,7 +330,19 @@ fun AppearanceSettings(
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
     val (lyricsGlowEffect, onLyricsGlowEffectChange) = rememberPreference(LyricsGlowEffectKey, defaultValue = false)
     val (appleMusicLyricsBlur, onAppleMusicLyricsBlurChange) = rememberPreference(AppleMusicLyricsBlurKey, defaultValue = true)
-    val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = false)
+    val (lyricsStandardBlur, onLyricsStandardBlurChange) = rememberPreference(LyricsStandardBlurKey, defaultValue = true)
+    val (lyricsBlurDuration, onLyricsBlurDurationChange) = rememberPreference(
+        LyricsBlurDurationKey,
+        defaultValue = LYRICS_BLUR_DURATION_DEFAULT_MS,
+    )
+    val (lyricsBlurLead, onLyricsBlurLeadChange) = rememberPreference(
+        LyricsBlurLeadKey,
+        defaultValue = LYRICS_BLUR_LEAD_DEFAULT_MS,
+    )
+    val (lyricsBlurStrength, onLyricsBlurStrengthChange) = rememberPreference(
+        LyricsBlurStrengthKey,
+        defaultValue = LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT,
+    )
     val (swipeLyrics, onSwipeLyricsChange) = rememberPreference(SwipeLyricsKey, defaultValue = false)
     val (enableLyricsThumbnailPlayPause, onEnableLyricsThumbnailPlayPauseChange) = rememberPreference(EnableLyricsThumbnailPlayPauseKey, defaultValue = false)
 
@@ -477,6 +530,27 @@ fun AppearanceSettings(
     }
 
     var showMiniPlayerBackgroundDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showBackgroundEffectsDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showPlayerLiveMeshDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showMiniLiveMeshDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurDurationDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurLeadDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var showLyricsBlurStrengthDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -744,6 +818,101 @@ fun AppearanceSettings(
 
     var showDefaultOpenTabDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (showPlayerLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            title = stringResource(R.string.live_mesh_settings),
+            initial = playerLiveMesh.config,
+            onDismiss = { showPlayerLiveMeshDialog = false },
+            onConfirm = { config ->
+                playerLiveMesh.save(config)
+                showPlayerLiveMeshDialog = false
+            }
+        )
+    }
+
+    if (showLyricsBlurDurationDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_duration,
+            descRes = R.string.lyrics_blur_duration_desc,
+            initialMs = lyricsBlurDuration,
+            minMs = LYRICS_BLUR_DURATION_MIN_MS,
+            maxMs = LYRICS_BLUR_DURATION_MAX_MS,
+            unitSuffix = " ms",
+            stepSize = 100,
+            onDismiss = { showLyricsBlurDurationDialog = false },
+            onConfirm = { duration ->
+                onLyricsBlurDurationChange(duration)
+                showLyricsBlurDurationDialog = false
+            },
+        )
+    }
+
+    if (showLyricsBlurStrengthDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_strength,
+            descRes = R.string.lyrics_blur_strength_desc,
+            initialMs = lyricsBlurStrength,
+            minMs = LYRICS_BLUR_STRENGTH_MIN_PERCENT,
+            maxMs = LYRICS_BLUR_STRENGTH_MAX_PERCENT,
+            unitSuffix = "%",
+            stepSize = 10,
+            onDismiss = { showLyricsBlurStrengthDialog = false },
+            onConfirm = { percent ->
+                onLyricsBlurStrengthChange(percent)
+                showLyricsBlurStrengthDialog = false
+            },
+        )
+    }
+
+    if (showLyricsBlurLeadDialog) {
+        LyricsBlurTimeDialog(
+            titleRes = R.string.lyrics_blur_lead,
+            descRes = R.string.lyrics_blur_lead_desc,
+            initialMs = lyricsBlurLead,
+            minMs = LYRICS_BLUR_LEAD_MIN_MS,
+            maxMs = LYRICS_BLUR_LEAD_MAX_MS,
+            unitSuffix = " ms",
+            stepSize = 100,
+            onDismiss = { showLyricsBlurLeadDialog = false },
+            onConfirm = { lead ->
+                onLyricsBlurLeadChange(lead)
+                showLyricsBlurLeadDialog = false
+            },
+        )
+    }
+
+    if (showMiniLiveMeshDialog) {
+        LiveMeshSettingsDialog(
+            title = stringResource(R.string.live_mesh_settings_mini),
+            initial = miniLiveMesh.config,
+            onDismiss = { showMiniLiveMeshDialog = false },
+            onConfirm = { config ->
+                miniLiveMesh.save(config)
+                showMiniLiveMeshDialog = false
+            }
+        )
+    }
+
+    if (showBackgroundEffectsDialog) {
+        EnumDialog(
+            onDismiss = { showBackgroundEffectsDialog = false },
+            onSelect = {
+                onBackgroundEffectsModeChange(it)
+                showBackgroundEffectsDialog = false
+            },
+            title = stringResource(R.string.background_effects),
+            current = backgroundEffectsMode,
+            values = BackgroundEffectsMode.values().toList(),
+            valueText = {
+                when (it) {
+                    BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                    BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                    BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                }
+            }
+        )
     }
 
     if (showDefaultOpenTabDialog) {
@@ -1313,6 +1482,74 @@ fun AppearanceSettings(
                     },
                     onClick = { showPlayerBackgroundDialog = true }
                 ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.background_effects)) },
+                    trailingContent = {
+                        Text(
+                            when (backgroundEffectsMode) {
+                                BackgroundEffectsMode.AUTO -> stringResource(R.string.background_effects_auto)
+                                BackgroundEffectsMode.FULL -> stringResource(R.string.background_effects_full)
+                                BackgroundEffectsMode.REDUCED -> stringResource(R.string.background_effects_reduced)
+                            }
+                        )
+                    },
+                    onClick = { showBackgroundEffectsDialog = true }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.palette),
+                    title = { Text(stringResource(R.string.live_mesh_presets)) },
+                    description = { Text(stringResource(R.string.live_mesh_presets_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_presets") },
+                    visible = liveMeshRows.presets,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_motion_title)) },
+                    description = { Text(stringResource(R.string.live_mesh_motion_settings_desc)) },
+                    onClick = { navController.navigate("settings/appearance/live_mesh_motion") },
+                    visible = liveMeshRows.motion,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings)) },
+                    description = { Text(stringResource(R.string.live_mesh_settings_desc)) },
+                    onClick = { showPlayerLiveMeshDialog = true },
+                    visible = liveMeshRows.playerSettings,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.tune),
+                    title = { Text(stringResource(R.string.live_mesh_separate_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_separate_mini_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshSeparateMini,
+                            onCheckedChange = onLiveMeshSeparateMiniChange
+                        )
+                    },
+                    onClick = { onLiveMeshSeparateMiniChange(!liveMeshSeparateMini) },
+                    visible = liveMeshRows.separateMini,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.speed),
+                    title = { Text(stringResource(R.string.live_mesh_auto_tempo)) },
+                    description = { Text(stringResource(R.string.live_mesh_auto_tempo_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = liveMeshAutoTempo,
+                            onCheckedChange = onLiveMeshAutoTempoChange
+                        )
+                    },
+                    onClick = { onLiveMeshAutoTempoChange(!liveMeshAutoTempo) },
+                    visible = liveMeshRows.autoTempo,
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.gradient),
+                    title = { Text(stringResource(R.string.live_mesh_settings_mini)) },
+                    description = { Text(stringResource(R.string.live_mesh_settings_mini_desc)) },
+                    onClick = { showMiniLiveMeshDialog = true },
+                    visible = liveMeshRows.miniSettings,
+                ),
                 if (!useNewPlayerDesign && !usePlayerV2) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
@@ -1755,8 +1992,7 @@ fun AppearanceSettings(
                         onClick = { onAppleMusicLyricsBlurChange(!appleMusicLyricsBlur) }
                     )
                 } else null,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    Material3SettingsItem(
+                Material3SettingsItem(
                         icon = painterResource(R.drawable.lyrics),
                         title = { Text(stringResource(R.string.standard_lyrics_blur)) },
                         description = { Text(stringResource(R.string.apple_music_lyrics_blur_desc)) },
@@ -1775,9 +2011,33 @@ fun AppearanceSettings(
                                 }
                             )
                         },
-                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) }
-                    )
-                } else null,
+                        onClick = { onLyricsStandardBlurChange(!lyricsStandardBlur) },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.speed),
+                        title = { Text(stringResource(R.string.lyrics_blur_duration)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_duration_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurDuration ms") },
+                        onClick = { showLyricsBlurDurationDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.speed),
+                        title = { Text(stringResource(R.string.lyrics_blur_lead)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_lead_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurLead ms") },
+                        onClick = { showLyricsBlurLeadDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
+                Material3SettingsItem(
+                        icon = painterResource(R.drawable.lyrics),
+                        title = { Text(stringResource(R.string.lyrics_blur_strength)) },
+                        description = { Text(stringResource(R.string.lyrics_blur_strength_setting_desc)) },
+                        trailingContent = { Text("$lyricsBlurStrength%") },
+                        onClick = { showLyricsBlurStrengthDialog = true },
+                        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && lyricsStandardBlur,
+                    ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },

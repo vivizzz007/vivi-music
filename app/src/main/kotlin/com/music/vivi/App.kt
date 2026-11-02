@@ -37,6 +37,7 @@ import com.music.vivi.extensions.toInetSocketAddress
 import com.music.vivi.utils.CrashHandler
 import com.music.vivi.utils.InnerTubeXPlayer
 import com.music.vivi.utils.cipher.CipherDeobfuscator
+import com.music.vivi.utils.PreferenceCache
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.normalizeDataSyncId
 import com.music.vivi.utils.reportException
@@ -86,6 +87,11 @@ class App : Application(), SingletonImageLoader.Factory {
         applicationScope.launch {
             initializeSettings()
             observeSettingsChanges()
+        }
+
+        // Screens start from these values, so a setting never flashes its default before the stored value arrives.
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data.collect { PreferenceCache.update(it) }
         }
     }
 

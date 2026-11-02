@@ -5,10 +5,16 @@
 
 package com.music.vivi.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,6 +44,9 @@ import com.music.vivi.utils.listItemShape
  * - Top curve, middle flat, bottom curve per item position
  * - Uses ListItem so icons auto-align: centered on title-only, top-aligned when description present
  */
+// Shapes and spacing follow the visible rows only, so a hidden row never leaves a rounded edge behind.
+internal fun visibleIndexOf(visibility: List<Boolean>, index: Int): Int = visibility.take(index).count { it }
+
 @Composable
 fun ExpressiveSettingGroup(
     title: String? = null,
@@ -45,9 +54,10 @@ fun ExpressiveSettingGroup(
     modifier: Modifier = Modifier,
     itemMinHeight: Dp? = null
 ) {
+    val visibility = items.map { it.visible }
+    val visibleCount = visibility.count { it }
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         title?.let {
             Text(
@@ -58,11 +68,19 @@ fun ExpressiveSettingGroup(
             )
         }
         items.forEachIndexed { index, item ->
-            val shape = listItemShape(index, items.size)
+            val visibleIndex = visibleIndexOf(visibility, index)
+            // Spacing lives inside each visible item, so a hidden item leaves no gap behind.
+            AnimatedVisibility(
+                visible = item.visible,
+                enter = expandVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeIn(),
+                exit = shrinkVertically(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) + fadeOut(),
+            ) {
+            val shape = listItemShape(visibleIndex, visibleCount)
 
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = if (visibleIndex > 0) 2.dp else 0.dp)
                     .animateContentSize(),
                 shape = shape,
                 color = if (androidx.compose.foundation.isSystemInDarkTheme()) {
@@ -146,6 +164,7 @@ fun ExpressiveSettingGroup(
                         containerColor = Color.Transparent
                     )
                 )
+            }
             }
         }
     }
