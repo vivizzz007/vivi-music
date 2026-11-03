@@ -886,7 +886,7 @@ fun ArtistScreen(
                                             },
                                             isPlaying = isPlaying,
                                             coroutineScope = coroutineScope,
-                                            thumbnailRatio = 1f, // Use square thumbnails for all items in horizontal scroll
+                                            thumbnailRatio = if (item is SongItem) 16f / 9f else 1f,
                                             modifier = Modifier
                                                 .combinedClickable(
                                                     onClick = {
