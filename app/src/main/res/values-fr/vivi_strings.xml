@@ -1177,8 +1177,6 @@ est irréversible.
     <string name="spotify_lyrics_desc">Nécessite une connexion à un compte Spotify (via le cookie sp_dc)</string>
     
     <!-- Listening Summary -->
-    <string name="listening_summary">Résumé d\'écoute</string>
     <string name="total_listened">Total écouté</string>
-    <string name="this_week">Cette semaine</string>
     <string name="listening_breakdown">Détail de l\'écoute</string>
 </resources>
