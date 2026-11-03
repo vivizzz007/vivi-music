@@ -2044,10 +2044,11 @@ object Icon {
     }
 
     @Composable
-    fun Explicit() {
+    fun Explicit(tint: Color = LocalContentColor.current) {
         Icon(
             painter = painterResource(R.drawable.explicit),
             contentDescription = null,
+            tint = tint,
             modifier = Modifier
                 .size(18.dp)
                 .padding(end = 2.dp)

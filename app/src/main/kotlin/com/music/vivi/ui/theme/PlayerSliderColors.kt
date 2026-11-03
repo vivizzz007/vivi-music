@@ -20,6 +20,12 @@ import com.music.vivi.constants.PlayerBackgroundStyle
  */
 object PlayerSliderColors {
 
+    // Accord overlay slider colors
+    val ActiveOverlayColor = Color(0xBFFFFFFF)      // contrast_primaryOverlayColor (75% white)
+    val ActiveShadeColor = Color(0x73FFFFFF)        // contrast_primaryOverlayShadeColor (45% white)
+    val InactiveOverlayColor = Color(0x26FFFFFF)    // contrast_secondaryOverlayColor (15% white)
+    val InactiveShadeColor = Color(0x33FFFFFF)      // contrast_secondaryOverlayShadeColor (20% white)
+
     /**
      * Standard slider colors for all slider types
      * 
@@ -34,6 +40,17 @@ object PlayerSliderColors {
         playerBackground: PlayerBackgroundStyle,
         useDarkTheme: Boolean
     ): SliderColors {
+        val effectiveActiveColor = when (playerBackground) {
+            PlayerBackgroundStyle.DEFAULT -> activeColor
+            PlayerBackgroundStyle.BLUR,
+            PlayerBackgroundStyle.GRADIENT,
+            PlayerBackgroundStyle.GLOW_ANIMATED,
+            PlayerBackgroundStyle.APPLE_MUSIC,
+            PlayerBackgroundStyle.LIVE_MESH -> {
+                ActiveShadeColor
+            }
+        }
+
         val inactiveTrackColor = when (playerBackground) {
             PlayerBackgroundStyle.DEFAULT -> {
                 if (useDarkTheme) {
@@ -42,19 +59,23 @@ object PlayerSliderColors {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 }
             }
-            PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC, PlayerBackgroundStyle.LIVE_MESH -> {
-                Color.White.copy(alpha = 0.4f)
+            PlayerBackgroundStyle.BLUR,
+            PlayerBackgroundStyle.GRADIENT,
+            PlayerBackgroundStyle.GLOW_ANIMATED,
+            PlayerBackgroundStyle.APPLE_MUSIC,
+            PlayerBackgroundStyle.LIVE_MESH -> {
+                InactiveShadeColor
             }
         }
         
         return SliderDefaults.colors(
-            activeTrackColor = activeColor,
-            activeTickColor = activeColor,
-            thumbColor = activeColor,
+            activeTrackColor = effectiveActiveColor,
+            activeTickColor = effectiveActiveColor,
+            thumbColor = effectiveActiveColor,
             inactiveTrackColor = inactiveTrackColor,
-            disabledActiveTrackColor = activeColor,
+            disabledActiveTrackColor = effectiveActiveColor,
             disabledInactiveTrackColor = inactiveTrackColor,
-            disabledThumbColor = activeColor
+            disabledThumbColor = effectiveActiveColor
         )
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -54,6 +55,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.PlayerButtonsStyle
+import com.music.vivi.constants.PlayerButtonsStyleKey
+import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.EnableGoogleCastKey
@@ -63,6 +69,7 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.theme.PlayerSliderColors
+import com.music.vivi.ui.theme.SfProDisplayFontFamily
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.extensions.togglePlayPause
@@ -87,6 +94,14 @@ import com.music.vivi.ui.component.CastButton
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.LocalListenTogetherManager
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInput
+import com.music.vivi.ui.component.Icon as MIcon
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
@@ -215,6 +230,56 @@ fun PlayerV2(
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
+    val playerButtonsStyle by rememberEnumPreference(
+        key = PlayerButtonsStyleKey,
+        defaultValue = PlayerButtonsStyle.DEFAULT
+    )
+    val (useNewPlayerDesign) = rememberPreference(
+        UseNewPlayerDesignKey,
+        defaultValue = false
+    )
+    val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
+        if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+    }
+
+    val (textButtonColor, _) = when {
+        playerBackground == PlayerBackgroundStyle.BLUR || 
+        playerBackground == PlayerBackgroundStyle.GRADIENT ||
+        playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED ||
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC ||
+        playerBackground == PlayerBackgroundStyle.LIVE_MESH -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT -> Pair(Color.White, Color.Black)
+                PlayerButtonsStyle.PRIMARY -> Pair(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.onPrimary
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiary,
+                    MaterialTheme.colorScheme.onTertiary
+                )
+            }
+        }
+        else -> {
+            when (playerButtonsStyle) {
+                PlayerButtonsStyle.DEFAULT ->
+                    if (useDarkTheme) Pair(Color.White, Color.Black)
+                    else Pair(Color.Black, Color.White)
+                PlayerButtonsStyle.PRIMARY -> Pair(
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.onPrimary
+                )
+                PlayerButtonsStyle.TERTIARY -> Pair(
+                    MaterialTheme.colorScheme.tertiary,
+                    MaterialTheme.colorScheme.onTertiary
+                )
+            }
+        }
+    }
+
+    val sliderActiveColor = if (useNewPlayerDesign) textButtonColor else textButtonColor.copy(alpha = 0.7f)
 
     DisposableEffect(playerState, isPlaying, isKeepScreenOn) {
         val window = (context as? Activity)?.window
@@ -493,84 +558,143 @@ fun PlayerV2(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 12.dp)
+                                            .clipToBounds()
+                                    ) {
                                         Text(
-                                            mediaMetadata?.title ?: "Unknown",
-                                            style = MaterialTheme.typography.headlineSmall, 
+                                            text = mediaMetadata?.title ?: "Unknown",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.sharedBounds(
-                                            rememberSharedContentState(key = "title"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = BoundsTransform { _, _ ->
-                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                            }
-                                        ).clickable {
-                                                state.collapseSoft()
-                                                mediaMetadata?.album?.id?.let { navController.navigate("album/$it") }
-                                            }
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clipToBounds()
+                                                .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
+                                                .clickable {
+                                                    mediaMetadata?.album?.id?.let {
+                                                        navController.navigate("album/$it")
+                                                        state.collapseSoft()
+                                                    }
+                                                }
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            mediaMetadata?.artists?.firstOrNull()?.name ?: "Unknown",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = adaptiveSecondary,
-                                            fontWeight = FontWeight.Medium,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.sharedBounds(
-                                            rememberSharedContentState(key = "artist"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = BoundsTransform { _, _ ->
-                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                        val artists = mediaMetadata?.artists.orEmpty().filter { it.name.isNotBlank() }
+                                        if (artists.isNotEmpty()) {
+                                            val annotatedString = buildAnnotatedString {
+                                                withStyle(
+                                                    SpanStyle(
+                                                        color = adaptiveSecondary,
+                                                        fontFamily = SfProDisplayFontFamily,
+                                                        fontSize = 16.sp,
+                                                        fontWeight = FontWeight.Normal
+                                                    )
+                                                ) {
+                                                    artists.forEachIndexed { index, artist ->
+                                                        val tag = "artist_${artist.id.orEmpty()}"
+                                                        pushStringAnnotation(tag = tag, annotation = artist.id.orEmpty())
+                                                        append(artist.name)
+                                                        pop()
+                                                        if (index != artists.lastIndex) append(", ")
+                                                    }
+                                                }
                                             }
-                                        ).clickable {
-                                                state.collapseSoft()
-                                                mediaMetadata?.artists?.firstOrNull()?.id?.let { navController.navigate("artist/$it") }
+
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                if (mediaMetadata?.explicit == true) {
+                                                    MIcon.Explicit(tint = adaptiveSecondary)
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                }
+
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
+                                                ) {
+                                                    var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+                                                    var clickOffset by remember { mutableStateOf<Offset?>(null) }
+                                                    Text(
+                                                        text = annotatedString,
+                                                        color = adaptiveSecondary,
+                                                        style = MaterialTheme.typography.titleMedium,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        onTextLayout = { layoutResult = it },
+                                                        modifier = Modifier
+                                                            .pointerInput(Unit) {
+                                                                awaitPointerEventScope {
+                                                                    while (true) {
+                                                                        val event = awaitPointerEvent()
+                                                                        val tapPosition = event.changes.firstOrNull()?.position
+                                                                        if (tapPosition != null) {
+                                                                            clickOffset = tapPosition
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                            .clickable(
+                                                                interactionSource = remember { MutableInteractionSource() },
+                                                                indication = null
+                                                            ) {
+                                                                val tapPosition = clickOffset
+                                                                val layout = layoutResult
+                                                                if (tapPosition != null && layout != null) {
+                                                                    val offset = layout.getOffsetForPosition(tapPosition)
+                                                                    annotatedString
+                                                                        .getStringAnnotations(offset, offset)
+                                                                        .firstOrNull()
+                                                                        ?.let { ann ->
+                                                                            val artistId = ann.item
+                                                                            if (artistId.isNotBlank()) {
+                                                                                navController.navigate("artist/$artistId")
+                                                                                state.collapseSoft()
+                                                                            }
+                                                                        }
+                                                                }
+                                                            }
+                                                    )
+                                                }
                                             }
-                                        )
+                                        } else {
+                                            Text(
+                                                "Unknown",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontFamily = SfProDisplayFontFamily,
+                                                color = adaptiveSecondary,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
                                     }
 
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.sharedBounds(
-                                            rememberSharedContentState(key = "actionButtons"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = BoundsTransform { _, _ ->
-                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                            }
-                                        )
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
 
-
-                                        Box(
-                                            modifier = Modifier
-                                                .size(40.dp)
-                                                .background(adaptivePrimary.copy(alpha = 0.1f), CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
                                         IconButton(
-                                            onClick = playerConnection::toggleLike
+                                            onClick = playerConnection::toggleLike,
+                                            modifier = Modifier.size(36.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(if (isLiked) R.drawable.star_filled_liked else R.drawable.star_like),
+                                                painter = painterResource(if (isLiked) R.drawable.ic_nowplaying_favorited else R.drawable.ic_nowplaying_favorite),
                                                 contentDescription = "Like",
                                                 tint = adaptivePrimary,
+                                                modifier = Modifier.size(28.dp)
                                             )
                                         }
-                                        }
-                                        
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        
-                                        Box(
-                                            modifier = Modifier
-                                                .size(40.dp)
-                                                .background(adaptivePrimary.copy(alpha = 0.1f), CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
+
+                                        Spacer(modifier = Modifier.width(12.dp))
+
                                         IconButton(
                                             onClick = {
                                                 menuState.show {
@@ -588,14 +712,15 @@ fun PlayerV2(
                                                         onDismiss = menuState::dismiss
                                                     )
                                                 }
-                                            }
+                                            },
+                                            modifier = Modifier.size(36.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_horiz),
+                                                painter = painterResource(R.drawable.ic_nowplaying_more),
                                                 contentDescription = "Options",
                                                 tint = adaptivePrimary,
+                                                modifier = Modifier.size(28.dp)
                                             )
-                                        }
                                         }
                                     }
                                 }
@@ -661,61 +786,71 @@ fun PlayerV2(
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
+                                    Column(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(end = 12.dp)
+                                            .clipToBounds()
+                                    ) {
                                         Text(
-                                            mediaMetadata?.title ?: "Unknown",
-                                            style = MaterialTheme.typography.titleMedium, 
+                                            text = mediaMetadata?.title ?: "Unknown",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
-                                            fontWeight = FontWeight.Bold,
+                                            fontWeight = FontWeight.SemiBold,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.sharedBounds(
-                                                rememberSharedContentState(key = "title"),
-                                                animatedVisibilityScope = this@AnimatedContent,
-                                                boundsTransform = BoundsTransform { _, _ ->
-                                                    tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                                }
-                                            )
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clipToBounds()
+                                                .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                         )
-                                        Text(
-                                            mediaMetadata?.artists?.firstOrNull()?.name ?: "Unknown",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = adaptiveSecondary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier.sharedBounds(
-                                                rememberSharedContentState(key = "artist"),
-                                                animatedVisibilityScope = this@AnimatedContent,
-                                                boundsTransform = BoundsTransform { _, _ ->
-                                                    tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                                }
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clipToBounds()
+                                        ) {
+                                            if (mediaMetadata?.explicit == true) {
+                                                MIcon.Explicit(tint = adaptiveSecondary)
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                            }
+                                            val allArtists = mediaMetadata?.artists?.filter { it.name.isNotBlank() }?.joinToString { it.name } ?: "Unknown"
+                                            Text(
+                                                text = allArtists,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontFamily = SfProDisplayFontFamily,
+                                                color = adaptiveSecondary,
+                                                fontWeight = FontWeight.Normal,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clipToBounds()
+                                                    .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                             )
-                                        )
+                                        }
                                     }
 
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.sharedBounds(
-                                            rememberSharedContentState(key = "actionButtons"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = BoundsTransform { _, _ ->
-                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                            }
-                                        )
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
-                                        
+
                                         IconButton(
-                                            onClick = playerConnection::toggleLike
+                                            onClick = playerConnection::toggleLike,
+                                            modifier = Modifier.size(36.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(if (isLiked) R.drawable.star_filled_liked else R.drawable.star_like),
+                                                painter = painterResource(if (isLiked) R.drawable.ic_nowplaying_favorited else R.drawable.ic_nowplaying_favorite),
                                                 contentDescription = "Like",
                                                 tint = adaptivePrimary,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(28.dp)
                                             )
                                         }
-                                        
+
+                                        Spacer(modifier = Modifier.width(12.dp))
+
                                         IconButton(
                                             onClick = {
                                                 if (targetState == PlayerInternalState.QUEUE) {
@@ -753,13 +888,14 @@ fun PlayerV2(
                                                         }
                                                     }
                                                 }
-                                            }
+                                            },
+                                            modifier = Modifier.size(36.dp)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.more_vert),
+                                                painter = painterResource(R.drawable.ic_nowplaying_more),
                                                 contentDescription = "Options",
                                                 tint = adaptivePrimary,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(28.dp)
                                             )
                                         }
                                     }
@@ -849,7 +985,7 @@ fun PlayerV2(
                         val isTrackActive = isTrackDragged || isTrackPressed
                         
                         val trackHeight by animateDpAsState(
-                            targetValue = if (isTrackActive) 14.dp else 8.dp,
+                            targetValue = if (isTrackActive) 10.dp else 7.25.dp,
                             animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMedium),
                             label = "trackScale"
                         )
@@ -883,10 +1019,11 @@ fun PlayerV2(
                                 PlayerSliderTrack(
                                     sliderState = sliderState,
                                     trackHeight = trackHeight,
+                                    useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
                                     colors = PlayerSliderColors.getSliderColors(
-                                        activeColor = adaptivePrimary.copy(alpha = 0.8f),
+                                        activeColor = sliderActiveColor,
                                         playerBackground = playerBackground,
-                                        useDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+                                        useDarkTheme = useDarkTheme
                                     )
                                 )
                             },
@@ -975,7 +1112,7 @@ fun PlayerV2(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(painterResource(R.drawable.volume_mute), contentDescription = "Volume Down", tint = adaptiveSecondary, modifier = Modifier.size(20.dp))
+                            Icon(painterResource(R.drawable.ic_speaker_24dp), contentDescription = "Volume Down", tint = adaptiveSecondary, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(16.dp))
                             
                             val volumeInteractionSource = remember { MutableInteractionSource() }
@@ -984,7 +1121,7 @@ fun PlayerV2(
                             val isVolActive = isVolDragged || isVolPressed
                             
                             val volHeight by animateDpAsState(
-                                targetValue = if (isVolActive) 12.dp else 6.dp,
+                                targetValue = if (isVolActive) 10.dp else 7.25.dp,
                                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
                                 label = "volHeight"
                             )
@@ -1007,18 +1144,19 @@ fun PlayerV2(
                                 track = { sliderState ->
                                     PlayerSliderTrack(
                                         sliderState = sliderState,
-                                        trackHeight = volHeight, 
+                                        trackHeight = volHeight,
+                                        useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
                                         colors = PlayerSliderColors.getSliderColors(
-                                            activeColor = adaptivePrimary.copy(alpha = 0.8f),
+                                            activeColor = sliderActiveColor,
                                             playerBackground = playerBackground,
-                                            useDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+                                            useDarkTheme = useDarkTheme
                                         )
                                     )
                                 },
                                 modifier = Modifier.weight(1f).height(24.dp)
                             )
                             Spacer(modifier = Modifier.width(16.dp))
-                            Icon(painterResource(R.drawable.volume_up), contentDescription = "Volume Up", tint = adaptiveSecondary, modifier = Modifier.size(24.dp))
+                            Icon(painterResource(R.drawable.ic_speaker_wave_3_24dp), contentDescription = "Volume Up", tint = adaptiveSecondary, modifier = Modifier.size(24.dp))
                         }
                     }
 

@@ -7,4 +7,9 @@
     <!-- Widget colors for light mode -->
     <color name="widget_text_primary">#1C1B1F</color>
     <color name="widget_text_secondary">#49454F</color>
+
+    <!-- BlendView live mesh colors (matching Accord) -->
+    <color name="contrast_colorBackground">#FFFFFF</color>
+    <color name="contrast_colorBackgroundContainer">#E6E6E6</color>
+    <color name="contrast_blendOverlayColor">#40000000</color>
 </resources>
