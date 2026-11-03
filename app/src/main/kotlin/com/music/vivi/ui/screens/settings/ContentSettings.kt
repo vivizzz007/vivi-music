@@ -671,7 +671,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.language),
                     title = { Text(stringResource(R.string.content_language)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             if (contentLanguage == SYSTEM_DEFAULT) stringResource(R.string.system_default)
                             else LanguageCodeToName.getOrElse(contentLanguage) { stringResource(R.string.system_default) }
@@ -682,7 +682,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.location_on),
                     title = { Text(stringResource(R.string.content_country)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             if (contentCountry == SYSTEM_DEFAULT) stringResource(R.string.system_default)
                             else CountryCodeToName.getOrElse(contentCountry) { stringResource(R.string.system_default) }
@@ -693,7 +693,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.globe_location_pin),
                     title = { Text("Suggestions Region") },
-                    trailingContent = {
+                    description = {
                         Text(
                             SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
                         )
@@ -1326,13 +1326,13 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.trending_up),
                     title = { Text(stringResource(R.string.top_length)) },
-                    trailingContent = { Text(lengthTop) },
+                    description = { Text(lengthTop) },
                     onClick = { showTopLengthDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.home_outlined),
                     title = { Text(stringResource(R.string.set_quick_picks)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (quickPicks) {
                                 QuickPicks.QUICK_PICKS -> stringResource(R.string.quick_picks)
