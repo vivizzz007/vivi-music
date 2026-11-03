@@ -140,7 +140,7 @@ fun QueueV2(
     val lazyListState = rememberLazyListState()
     
     // Scroll direction tracking
-    var previousIndex by remember { mutableIntStateOf(0) }
+    var previousIndex by remember { mutableIntStateOf(currentWindowIndex) }
     var previousScrollOffset by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(lazyListState) {

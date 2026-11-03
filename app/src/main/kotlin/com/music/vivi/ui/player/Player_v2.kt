@@ -167,6 +167,8 @@ fun PlayerV2(
             // preventing a simultaneous layout + animation race that causes stutter.
             delay(200L)
             controlsVisible = true
+        } else if (playerState == PlayerInternalState.QUEUE) {
+            controlsVisible = true
         }
     }
 
@@ -575,6 +577,13 @@ fun PlayerV2(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clipToBounds()
+                                                .sharedBounds(
+                                                    rememberSharedContentState(key = "title"),
+                                                    animatedVisibilityScope = this@AnimatedContent,
+                                                    boundsTransform = BoundsTransform { _, _ ->
+                                                        tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                    }
+                                                )
                                                 .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                                 .clickable {
                                                     mediaMetadata?.album?.id?.let {
@@ -607,7 +616,15 @@ fun PlayerV2(
 
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
-                                                modifier = Modifier.fillMaxWidth()
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .sharedBounds(
+                                                        rememberSharedContentState(key = "artist"),
+                                                        animatedVisibilityScope = this@AnimatedContent,
+                                                        boundsTransform = BoundsTransform { _, _ ->
+                                                            tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                        }
+                                                    )
                                             ) {
                                                 if (mediaMetadata?.explicit == true) {
                                                     MIcon.Explicit(tint = adaptiveSecondary)
@@ -677,7 +694,14 @@ fun PlayerV2(
                                     }
 
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.sharedBounds(
+                                            rememberSharedContentState(key = "actionButtons"),
+                                            animatedVisibilityScope = this@AnimatedContent,
+                                            boundsTransform = BoundsTransform { _, _ ->
+                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                            }
+                                        )
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
 
@@ -739,7 +763,6 @@ fun PlayerV2(
                                             .sharedElement(
                                                 rememberSharedContentState(key = "coverArt"),
                                                 animatedVisibilityScope = this@AnimatedContent,
-                                                zIndexInOverlay = 1f,
                                                 boundsTransform = BoundsTransform { _, _ ->
                                                     tween(durationMillis = 500, easing = FastOutSlowInEasing)
                                                 }
@@ -803,6 +826,13 @@ fun PlayerV2(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clipToBounds()
+                                                .sharedBounds(
+                                                    rememberSharedContentState(key = "title"),
+                                                    animatedVisibilityScope = this@AnimatedContent,
+                                                    boundsTransform = BoundsTransform { _, _ ->
+                                                        tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                    }
+                                                )
                                                 .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                         )
                                         Row(
@@ -810,6 +840,13 @@ fun PlayerV2(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clipToBounds()
+                                                .sharedBounds(
+                                                    rememberSharedContentState(key = "artist"),
+                                                    animatedVisibilityScope = this@AnimatedContent,
+                                                    boundsTransform = BoundsTransform { _, _ ->
+                                                        tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                    }
+                                                )
                                         ) {
                                             if (mediaMetadata?.explicit == true) {
                                                 MIcon.Explicit(tint = adaptiveSecondary)
@@ -833,7 +870,14 @@ fun PlayerV2(
                                     }
 
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.sharedBounds(
+                                            rememberSharedContentState(key = "actionButtons"),
+                                            animatedVisibilityScope = this@AnimatedContent,
+                                            boundsTransform = BoundsTransform { _, _ ->
+                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                            }
+                                        )
                                     ) {
                                         val isLiked = currentSong?.song?.liked == true
 
