@@ -106,7 +106,35 @@ data class RelatedPage(
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
                     )
-                renderer.isPlaylist ->
+                renderer.isPlaylist -> {
+                    val parts = renderer.subtitle?.runs?.splitBySeparator().orEmpty()
+                    val authorRun = if (parts.firstOrNull()?.firstOrNull()?.text.equals("Playlist", ignoreCase = true)) {
+                        parts.getOrNull(1)?.firstOrNull()
+                    } else {
+                        parts.firstOrNull()?.firstOrNull()
+                    }
+                    val author = authorRun?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    } ?: renderer.subtitle?.runs?.firstOrNull()?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }
+
+                    val metadataRun = if (parts.firstOrNull()?.firstOrNull()?.text.equals("Playlist", ignoreCase = true)) {
+                        parts.getOrNull(2)?.firstOrNull()
+                    } else {
+                        parts.getOrNull(1)?.firstOrNull()
+                    }
+                    val songCountText = metadataRun?.text
+                        ?: renderer.subtitle?.runs?.findLast {
+                            it.text.any { c -> c.isDigit() }
+                        }?.text
+
                     PlaylistItem(
                         id =
                             renderer.navigationEndpoint.browseEndpoint
@@ -116,13 +144,8 @@ data class RelatedPage(
                             renderer.title.runs
                                 ?.firstOrNull()
                                 ?.text ?: return null,
-                        author = Artist(
-                            name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
-                            id = null
-                        ),
-                        songCountText = renderer.subtitle?.runs?.findLast {
-                            it.text.any { c -> c.isDigit() } && !it.text.contains("view", ignoreCase = true)
-                        }?.text,
+                        author = author,
+                        songCountText = songCountText,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         playEndpoint =
                             renderer.thumbnailOverlay
@@ -130,7 +153,7 @@ data class RelatedPage(
                                 ?.content
                                 ?.musicPlayButtonRenderer
                                 ?.playNavigationEndpoint
-                                ?.watchPlaylistEndpoint ?: return null,
+                                ?.watchPlaylistEndpoint,
                         shuffleEndpoint =
                             renderer.menu
                                 ?.menuRenderer
@@ -139,15 +162,18 @@ data class RelatedPage(
                                     it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
                                 }?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
-                                ?.watchPlaylistEndpoint ?: return null,
+                                ?.watchPlaylistEndpoint,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items
-                                .find {
+                            renderer.menu
+                                ?.menuRenderer
+                                ?.items
+                                ?.find {
                                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                                 }?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
                                 ?.watchPlaylistEndpoint
                     )
+                }
                 renderer.isArtist -> {
                     ArtistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
@@ -166,8 +192,10 @@ data class RelatedPage(
                                 ?.navigationEndpoint
                                 ?.watchPlaylistEndpoint ?: return null,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items
-                                .find {
+                            renderer.menu
+                                ?.menuRenderer
+                                ?.items
+                                ?.find {
                                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                                 }?.menuNavigationItemRenderer
                                 ?.navigationEndpoint

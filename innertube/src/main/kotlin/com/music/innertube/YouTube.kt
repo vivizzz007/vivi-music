@@ -31,6 +31,7 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.innertube.models.getContinuation
 import com.music.innertube.models.getItems
 import com.music.innertube.models.oddElements
+import com.music.innertube.models.splitBySeparator
 import com.music.innertube.models.response.AccountMenuResponse
 import com.music.innertube.models.response.BrowseResponse
 import com.music.innertube.models.response.CreatePlaylistResponse
@@ -622,7 +623,12 @@ object YouTube {
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
         val secondarySectionList = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
 
-        var related = secondarySectionList?.contents?.let { parseRelatedItems(it.drop(1)) }
+        var relatedTitle: String? = null
+        var related = secondarySectionList?.contents?.let {
+            val title = parseRelatedTitle(it.drop(1))
+            if (title != null) relatedTitle = title
+            parseRelatedItems(it.drop(1))
+        }
 
         if (related.isNullOrEmpty()) {
             secondarySectionList?.continuations?.getContinuation()?.let { continuationToken ->
@@ -633,6 +639,8 @@ object YouTube {
                 ).body<BrowseResponse>()
 
                 continuationResponse.continuationContents?.sectionListContinuation?.contents?.let {
+                    val title = parseRelatedTitle(it)
+                    if (title != null) relatedTitle = title
                     val parsed = parseRelatedItems(it)
                     if (parsed.isNotEmpty()) {
                         related = parsed
@@ -676,18 +684,53 @@ object YouTube {
         val descFromMicroformat = response.microformat?.microformatDataRenderer?.description
 
         val description: String? = descFromShelf ?: descFromSecondaryShelf ?: descFromHeader ?: descFromEditable ?: descFromTopLevel ?: descFromMicroformat
+        val facepileAuthor = header.facepile?.getAuthorName()?.let { authorName ->
+            Artist(
+                name = authorName,
+                id = header.facepile.getAuthorBrowseId()
+            )
+        }
+        val straplineAuthor = header.straplineTextOne?.runs?.firstOrNull()?.let {
+            Artist(
+                name = it.text,
+                id = it.navigationEndpoint?.browseEndpoint?.browseId
+            )
+        }
+        val subtitleAuthor = header.subtitle.runs?.let { runs ->
+            runs.find { it.navigationEndpoint?.browseEndpoint?.browseId != null }?.let {
+                Artist(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                )
+            } ?: runs.splitBySeparator().let { parts ->
+                if (parts.size >= 3) {
+                    parts[1].firstOrNull()?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }
+                } else if (parts.size == 2 && parts[1].firstOrNull()?.text?.toIntOrNull() == null) {
+                    parts[1].firstOrNull()?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }
+                } else null
+            }
+        }
+        val author = facepileAuthor ?: straplineAuthor ?: subtitleAuthor
 
+        val authorThumbnailUrl = header.facepile?.getAuthorThumbnailUrl()
+            ?: header.straplineThumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+            ?: header.straplineThumbnail?.croppedSquareThumbnailRenderer?.getThumbnailUrl()
 
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
                 title = title,
-                author = header.straplineTextOne?.runs?.firstOrNull()?.let {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                },
+                author = author,
                 songCountText = header.secondSubtitle?.runs?.firstOrNull()?.text,
                 thumbnail = thumbnailUrl,
                 playEndpoint = null,
@@ -697,6 +740,7 @@ object YouTube {
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
                 isEditable = editable,
                 description = description,
+                authorThumbnail = authorThumbnailUrl,
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {
@@ -708,8 +752,16 @@ object YouTube {
                     ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation(),
             continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.continuations?.getContinuation(),
-            related = related?.ifEmpty { null }
+            related = related?.ifEmpty { null },
+            relatedTitle = relatedTitle
         )
+    }
+
+    private fun parseRelatedTitle(contents: List<SectionListRenderer.Content>): String? {
+        return contents.firstNotNullOfOrNull {
+            it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                ?: it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text
+        }
     }
 
     private fun parseRelatedItems(contents: List<SectionListRenderer.Content>): List<YTItem> {

@@ -20,6 +20,7 @@ data class PlaylistPage(
     val songsContinuation: String?,
     val continuation: String?,
     val related: List<YTItem>? = null,
+    val relatedTitle: String? = null,
 ) {
     companion object {
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
@@ -74,7 +75,7 @@ data class PlaylistPage(
                     ?.musicResponsiveListItemFlexColumnRenderer
                     ?.text?.runs?.firstOrNull()
                     ?.navigationEndpoint?.watchEndpoint?.playlistSetVideoId,
-                // ^ setVideoId is null for Liked Songs \u2014 that is fine; it's only needed for playlist mutations
+                // ^ setVideoId is null for Liked Songs — that is fine; it's only needed for playlist mutations
                 libraryAddToken = libraryTokens.addToken,
                 libraryRemoveToken = libraryTokens.removeToken
             )
