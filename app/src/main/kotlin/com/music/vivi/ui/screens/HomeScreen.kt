@@ -507,7 +507,25 @@ fun HomeScreen(
     val menuState = LocalMenuState.current
     val bottomSheetPageState = LocalBottomSheetPageState.current
     val database = LocalDatabase.current
-    val playerConnection = LocalPlayerConnection.current ?: return
+    val playerConnection = LocalPlayerConnection.current
+    if (playerConnection == null) {
+        ShimmerHost(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                TextPlaceholder(
+                    height = 36.dp,
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .width(250.dp),
+                )
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    repeat(2) {
+                        GridItemPlaceHolder()
+                    }
+                }
+            }
+        }
+        return
+    }
     val haptic = LocalHapticFeedback.current
 
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()

@@ -6,6 +6,7 @@
 package com.music.vivi.playback.queues
 
 import androidx.media3.common.MediaItem
+import com.music.vivi.extensions.metadata
 import com.music.vivi.models.MediaMetadata
 
 class ListQueue(
@@ -15,7 +16,8 @@ class ListQueue(
     val position: Long = 0L,
     val isRadio: Boolean = false,
 ) : Queue {
-    override val preloadItem: MediaMetadata? = null
+    override val preloadItem: MediaMetadata?
+        get() = items.getOrNull(startIndex)?.metadata
 
     override suspend fun getInitialStatus() = Queue.Status(title, items, startIndex, position)
 

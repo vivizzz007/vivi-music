@@ -344,7 +344,15 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
+        var isStartupTimeoutReached by mutableStateOf(false)
+        lifecycleScope.launch {
+            delay(2000L)
+            isStartupTimeoutReached = true
+        }
+        splashScreen.setKeepOnScreenCondition {
+            playerConnection == null && !isStartupTimeoutReached
+        }
         super.onCreate(savedInstanceState)
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)

@@ -128,10 +128,10 @@ class PlayerConnection(
     }.stateIn(
         scope,
         SharingStarted.Lazily,
-        player.playbackState != STATE_ENDED && player.playWhenReady
+        isPlaying.value
     )
     
-    val mediaMetadata = MutableStateFlow(player.currentMetadata)
+    val mediaMetadata = MutableStateFlow(try { player.currentMetadata } catch (_: Exception) { null })
     val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
@@ -186,7 +186,11 @@ class PlayerConnection(
             
             // Initial setup if flow hasn't emitted yet but service is ready
             if (attachedPlayer == null && service.isPlayerReady.value) {
-                 updateAttachedPlayer(player)
+                try {
+                    updateAttachedPlayer(player)
+                } catch (e: Exception) {
+                    Timber.tag(TAG).w(e, "Service marked ready but player attach deferred to flow observer")
+                }
             }
 
             Timber.tag(TAG).d("PlayerConnection flow observer registered")

@@ -345,6 +345,7 @@ class MusicService :
     var queueTitle: String? = null
     val radioChips = MutableStateFlow<List<RadioChip>>(emptyList())
     private var radioChipsJob: Job? = null
+    private var playQueueJob: Job? = null
 
     val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
     private val currentSong =
@@ -1612,6 +1613,9 @@ class MusicService :
             return
         }
 
+        playQueueJob?.cancel()
+        playQueueJob = null
+
         // Manually switching to a different song — tapping a track in a
         // playlist/album/queue, not just pressing next/previous — is still a
         // manual navigation action, so it crossfades under the same
@@ -1677,13 +1681,14 @@ class MusicService :
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        scope.launch(SilentHandler) {
+        playQueueJob = scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
                     queue.getInitialStatus()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
+            if (!isActive || currentQueue != queue) return@launch
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
@@ -1720,6 +1725,8 @@ class MusicService :
                     Timber.tag(TAG).d("playQueue: startQueueCrossfade returned false, falling back to instant replace")
                 }
             }
+
+            if (!isActive || currentQueue != queue) return@launch
 
             if (queue.preloadItem != null) {
                 val actualIndex = initialStatus.items.indexOfFirst { it.mediaId == queue.preloadItem!!.id }
@@ -1785,7 +1792,7 @@ class MusicService :
         val currentIndex = player.currentMediaItemIndex
         val currentMediaId = currentMediaMetadata.id
 
-        scope.launch(SilentHandler) {
+        playQueueJob = scope.launch(SilentHandler) {
             // Use simple videoId to let YouTube personalize recommendations
             val radioQueue = YouTubeQueue(
                 endpoint = WatchEndpoint(
@@ -1883,7 +1890,7 @@ class MusicService :
                 params = chip.params
             )
 
-        scope.launch(SilentHandler) {
+        playQueueJob = scope.launch(SilentHandler) {
             val radioQueue = YouTubeQueue(
                 endpoint = endpoint
             )
@@ -3825,6 +3832,8 @@ class MusicService :
         // If the service goes away mid-crossfade, the outgoing (and any not-yet-swapped
         // incoming) player is not `player`, so it would keep playing as an orphan and the
         // fade coroutine would wait forever on the released primary. Tear all of it down.
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         crossfadeJob?.cancel()
@@ -4133,6 +4142,8 @@ class MusicService :
         if (player.duration == C.TIME_UNSET) return false
         if (crossfadeGapless && isNextItemGapless()) return false
 
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         startCrossfade(CrossfadeTrigger.MANUAL_NEXT)
@@ -4153,6 +4164,8 @@ class MusicService :
         if (!player.hasPreviousMediaItem()) return false
         if (player.duration == C.TIME_UNSET) return false
 
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         startCrossfade(CrossfadeTrigger.MANUAL_PREVIOUS)
@@ -4182,6 +4195,8 @@ class MusicService :
         if (player.duration == C.TIME_UNSET) return false
         if (!player.isPlaying) return false
 
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         startCrossfadeToIndex(targetIndex)
@@ -4474,10 +4489,18 @@ class MusicService :
     }
 
     fun cancelCrossfadeIfActive() {
-        if (!isCrossfading) return
+        if (!isCrossfading && secondaryPlayer == null) return
         crossfadeJob?.cancel()
         crossfadeJob = null
         cleanupCrossfade()
+        secondaryPlayer?.let {
+            try {
+                it.stop()
+                it.clearMediaItems()
+                releaseExoPlayer(it)
+            } catch (_: Exception) {}
+        }
+        secondaryPlayer = null
         try { player.volume = 1f } catch (_: Exception) {}
     }
 
