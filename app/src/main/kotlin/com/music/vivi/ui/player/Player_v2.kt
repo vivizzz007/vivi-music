@@ -33,6 +33,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.scale
@@ -49,6 +50,8 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import androidx.media3.common.C
 import com.music.vivi.LocalPlayerConnection
 import androidx.compose.ui.graphics.graphicsLayer
@@ -85,8 +88,6 @@ import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.sp
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
@@ -209,20 +210,11 @@ fun PlayerV2(
         onDispose { context.unregisterReceiver(receiver) }
     }
 
-    val (storedPlayerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
+    val storedPlayerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
-    LaunchedEffect(storedPlayerBackground) {
-        if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
-        }
-    }
-    val playerBackground = if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-        PlayerBackgroundStyle.DEFAULT
-    } else {
-        storedPlayerBackground
-    }
+    val playerBackground = storedPlayerBackground
     
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
@@ -433,6 +425,12 @@ fun PlayerV2(
         label = "adaptiveSurface"
     )
 
+    val blurOverlayAlpha by animateFloatAsState(
+        targetValue = if (playerState == PlayerInternalState.LYRICS || playerState == PlayerInternalState.QUEUE) 1f else 0f,
+        animationSpec = tween(450, easing = FastOutSlowInEasing),
+        label = "blurOverlayAlpha"
+    )
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -457,6 +455,34 @@ fun PlayerV2(
                 modifier = modifier
             )
         } else {
+            if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC && blurOverlayAlpha > 0.001f) {
+                mediaMetadata?.thumbnailUrl?.let { thumbnailUrl ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .alpha(blurOverlayAlpha)
+                    ) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(thumbnailUrl)
+                                .size(100, 100)
+                                .allowHardware(false)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .blur(120.dp)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = 0.35f))
+                        )
+                    }
+                }
+            }
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -503,7 +529,8 @@ fun PlayerV2(
                                     .padding(horizontal = 24.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                // Dynamic Apple Music Style Artwork (scales to fit screen without overflowing into slider)
+                                if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC) {
+                                    // Dynamic Apple Music Style Artwork (scales to fit screen without overflowing into slider)
                                 BoxWithConstraints(
                                     modifier = Modifier
                                         .weight(1f)
@@ -576,8 +603,20 @@ fun PlayerV2(
                                         }
                                     }
                                 }
+                            } else {
+                                Spacer(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                        .SwipeGesture(
+                                            enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
+                                            onSwipeLeft = { if (canSkipNext) playerConnection.seekToNext() },
+                                            onSwipeRight = { if (canSkipPrevious) playerConnection.seekToPrevious() }
+                                        )
+                                )
+                            }
 
-                                // Track Meta Info (Left Aligned)
+                            // Track Meta Info (Left Aligned)
                                 Row(
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -1289,7 +1328,8 @@ fun PlayerV2(
                                     modifier = Modifier.size(48.dp),
                                     tintColor = adaptiveSecondary,
                                     activeTintColor = adaptivePrimary,
-                                    showBackground = false
+                                    showBackground = false,
+                                    customIconRes = R.drawable.airplay_audio
                                 )
                             } else {
                                 IconButton(
@@ -1297,8 +1337,8 @@ fun PlayerV2(
                                     modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.home_speaker_devices),
-                                        contentDescription = "Speaker", 
+                                        painter = painterResource(R.drawable.airplay_audio),
+                                        contentDescription = "Audio Routing", 
                                         tint = adaptiveSecondary, 
                                         modifier = Modifier.size(28.dp)
                                     )

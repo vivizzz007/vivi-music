@@ -384,9 +384,7 @@ fun AppearanceSettings(
     )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        val blurSupported = it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        val notAppleOnV2 = !(it == PlayerBackgroundStyle.APPLE_MUSIC && currentPlayerDesign == PlayerDesignOption.V2)
-        blurSupported && notAppleOnV2
+        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     }
 
     val availableMiniPlayerBackgroundStyles = availableBackgroundStyles.filter { 
@@ -417,9 +415,6 @@ fun AppearanceSettings(
                     PlayerDesignOption.V2 -> {
                         onUsePlayerV2Change(true)
                         onUseNewPlayerDesignChange(false)
-                        if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-                            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
-                        }
                     }
                 }
                 showPlayerDesignDialog = false

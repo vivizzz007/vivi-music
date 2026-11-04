@@ -1189,22 +1189,34 @@ fun BottomSheetPlayer(
                                         .fillMaxSize()
                                         .alpha(backgroundAlpha)
                                 ) {
-                                    // Layer 1: Full-Screen Blurred Background
+                                    // Layer 1: Full-Screen Blurred Backdrop
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128) // Downsample significantly for performance
+                                            .size(128, 128)
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(150.dp)
+                                            .blur(100.dp)
                                     )
 
-                                    // Layer 2: Clear Artwork (Limited to top 60% of screen)
-                                    // Fades out when lyrics are shown to provide a full-screen blur
+                                    // Layer 1.5: Artwork Depth Scrim
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(
+                                                Brush.verticalGradient(
+                                                    0.00f to Color.Black.copy(alpha = 0.34f),
+                                                    0.55f to Color.Black.copy(alpha = 0.48f),
+                                                    1.00f to Color.Black.copy(alpha = 0.64f)
+                                                )
+                                            )
+                                    )
+
+                                    // Layer 2: Clear Artwork (Dissolves along smootherStep into backdrop)
                                     val clearArtworkAlpha by animateFloatAsState(
                                         targetValue = if (showInlineLyrics) 0f else 1f,
                                         animationSpec = tween(500),
@@ -1219,15 +1231,15 @@ fun BottomSheetPlayer(
                                             .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
                                             .drawWithContent {
                                                 drawContent()
-                                                // Fade the bottom edge of the clear box for a cloudy blend
+                                                // Along smootherstep, so neither end of the dissolve shows as a line
                                                 drawRect(
                                                     brush = Brush.verticalGradient(
-                                                        colorStops = arrayOf(
-                                                            0.00f to Color.Black,
-                                                            0.75f to Color.Black,
-                                                            0.92f to Color.Black.copy(alpha = 0.4f),
-                                                            1.00f to Color.Transparent,
-                                                        )
+                                                        colorStops = Array(17) { i ->
+                                                            val t = i / 16f
+                                                            t to Color.Black.copy(alpha = 1f - smootherStep(t))
+                                                        },
+                                                        startY = size.height * (1f - 0.42f),
+                                                        endY = size.height,
                                                     ),
                                                     blendMode = BlendMode.DstIn
                                                 )
@@ -1253,19 +1265,7 @@ fun BottomSheetPlayer(
                                         }
                                     }
                                     
-                                    // Layer 3: Dynamic overlay for depth
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    listOf(
-                                                        Color.Black.copy(alpha = 0.05f),
-                                                        Color.Black.copy(alpha = 0.4f)
-                                                    )
-                                                )
-                                            )
-                                    )
+
                                 }
                             }
                         }
@@ -2889,6 +2889,11 @@ private fun PlayerMoreMenuButton(
             colorFilter = ColorFilter.tint(iconButtonColor),
         )
     }
+}
+
+private fun smootherStep(t: Float): Float {
+    val x = t.coerceIn(0f, 1f)
+    return x * x * x * (x * (x * 6f - 15f) + 10f)
 }
 
 @Composable

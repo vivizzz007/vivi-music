@@ -49,7 +49,8 @@ fun CastButton(
     modifier: Modifier = Modifier,
     tintColor: Color = MaterialTheme.colorScheme.onSurface,
     activeTintColor: Color = MaterialTheme.colorScheme.primary,
-    showBackground: Boolean = true
+    showBackground: Boolean = true,
+    customIconRes: Int? = null
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current
@@ -193,7 +194,7 @@ fun CastButton(
             ) {
                 Image(
                     painter = painterResource(
-                        if (isCasting) R.drawable.cast_connected else R.drawable.cast
+                        customIconRes ?: if (isCasting) R.drawable.cast_connected else R.drawable.cast
                     ),
                     contentDescription = if (isCasting) "Stop casting" else "Cast",
                     colorFilter = ColorFilter.tint(

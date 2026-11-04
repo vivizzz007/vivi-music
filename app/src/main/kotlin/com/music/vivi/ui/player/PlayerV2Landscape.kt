@@ -29,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -41,6 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.C
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
@@ -174,17 +177,12 @@ fun PlayerV2Landscape(
         onDispose { context.unregisterReceiver(receiver) }
     }
 
-    val (storedPlayerBackground, onPlayerBackgroundChange) = rememberEnumPreference(
+    val storedPlayerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.GRADIENT
     )
-    LaunchedEffect(storedPlayerBackground) {
-        if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
-        }
-    }
     val playerBackground = if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-        PlayerBackgroundStyle.DEFAULT
+        PlayerBackgroundStyle.BLUR
     } else {
         storedPlayerBackground
     }
@@ -408,13 +406,36 @@ fun PlayerV2Landscape(
         }
     }
 
-    Row(
-        modifier = modifier
-            .windowInsetsPadding(WindowInsets.systemBars)
-            .padding(horizontal = 16.dp)
-            .fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
+        if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
+            mediaMetadata?.thumbnailUrl?.let { thumbnailUrl ->
+                AsyncImage(
+                    model = ImageRequest.Builder(context)
+                        .data(thumbnailUrl)
+                        .size(100, 100)
+                        .allowHardware(false)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(120.dp)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.30f))
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.systemBars)
+                .padding(horizontal = 16.dp)
+                .fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         // LEFT SIDE: Centered dynamic thumbnail + Bottom Row of Lyrics, Queue, Cast/Headphones
         Column(
             modifier = Modifier
@@ -544,7 +565,8 @@ fun PlayerV2Landscape(
                             modifier = Modifier.size(48.dp),
                             tintColor = adaptiveSecondary,
                             activeTintColor = adaptivePrimary,
-                            showBackground = false
+                            showBackground = false,
+                            customIconRes = R.drawable.airplay_audio
                         )
                     } else {
                         IconButton(
@@ -552,8 +574,8 @@ fun PlayerV2Landscape(
                             modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.home_speaker_devices),
-                                contentDescription = "Speaker",
+                                painter = painterResource(R.drawable.airplay_audio),
+                                contentDescription = "Audio Routing",
                                 tint = adaptiveSecondary,
                                 modifier = Modifier.size(28.dp)
                             )
@@ -1094,6 +1116,7 @@ fun PlayerV2Landscape(
             }
         }
     }
+}
 
     if (showAudioDeviceBottomSheet) {
         AudioDeviceBottomSheet(
