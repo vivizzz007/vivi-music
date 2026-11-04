@@ -517,13 +517,23 @@ fun LyricsV2(
                     return
                 }
 
-                var currentPlaybackPosition by remember { mutableLongStateOf(0L) }
-                var currentLineIndex by remember { mutableIntStateOf(-1) }
-                var activeLineIndices by remember { mutableStateOf(emptySet<Int>()) }
-                var deferredCurrentLineIndex by rememberSaveable { mutableIntStateOf(0) }
-                var scrollTargetIndex by rememberSaveable { mutableIntStateOf(-1) }
+                val initialPos = remember { positionProvider() }
+                val initialActiveLine = remember(lines, initialPos, lyricsOffset) {
+                    if (lines.isNotEmpty()) {
+                        val indices = LyricsUtils.findActiveLineIndices(lines, initialPos + lyricsOffset)
+                        indices.maxOrNull() ?: 0
+                    } else 0
+                }
+
+                var currentPlaybackPosition by remember { mutableLongStateOf(initialPos) }
+                var currentLineIndex by remember { mutableIntStateOf(initialActiveLine) }
+                var activeLineIndices by remember {
+                    mutableStateOf(if (lines.isNotEmpty()) LyricsUtils.findActiveLineIndices(lines, initialPos + lyricsOffset) else emptySet())
+                }
+                var deferredCurrentLineIndex by rememberSaveable { mutableIntStateOf(initialActiveLine) }
+                var scrollTargetIndex by rememberSaveable { mutableIntStateOf(initialActiveLine) }
                 var previousScrollActiveIndices by remember { mutableStateOf(emptySet<Int>()) }
-                var lastMainMaxSeen by remember(lyrics, lines) { mutableIntStateOf(-1) }
+                var lastMainMaxSeen by remember(lyrics, lines) { mutableIntStateOf(initialActiveLine) }
                 var isSeeking by remember { mutableStateOf(false) }
                 var isAutoScrollEnabled by rememberSaveable { mutableStateOf(scrollLyrics) }
                 var lastPreviewTime by rememberSaveable { mutableLongStateOf(0L) }
@@ -633,11 +643,15 @@ fun LyricsV2(
 
                 LaunchedEffect(lyrics, lines) {
                     isAutoScrollEnabled = scrollLyrics
-                    scrollTargetIndex = -1
-                    currentLineIndex = -1
-                    deferredCurrentLineIndex = 0
+                    val pos = positionProvider()
+                    val active = if (lines.isNotEmpty()) {
+                        LyricsUtils.findActiveLineIndices(lines, pos + lyricsOffset).maxOrNull() ?: 0
+                    } else 0
+                    scrollTargetIndex = active
+                    currentLineIndex = active
+                    deferredCurrentLineIndex = active
                     previousScrollActiveIndices = emptySet()
-                    lastMainMaxSeen = -1
+                    lastMainMaxSeen = active
                     userManualOffset = 0f
                 }
 
@@ -649,7 +663,7 @@ fun LyricsV2(
                     }
                     var lastPlayerPos = playerConnection.player.currentPosition
                     var lastUpdateTime = System.currentTimeMillis()
-                    var lastPlaybackPosition = 0L
+                    var lastPlaybackPosition = lastPlayerPos
                     val hasWordTimings = lines.any { !it.words.isNullOrEmpty() }
 
                     while (isActive) {
@@ -773,8 +787,10 @@ fun LyricsV2(
                 // When user is slider-seeking, force auto-scroll immediately.
                 LaunchedEffect(isSeeking) {
                     if (isSeeking) {
+                        flingJob?.cancel()
                         lastPreviewTime = 0L
                         isAutoScrollEnabled = true
+                        userManualOffset = 0f
                     }
                 }
 
@@ -937,8 +953,15 @@ fun LyricsV2(
                                         lastPreviewTime = 0L // Pause auto-scroll timer while touching screen
 
                                         var dragConsumed = false
+                                        var totalDragY = 0f
+                                        var hasHiddenControlsForDrag = false
                                         verticalDrag(down.id) { change ->
                                             val dragAmount = change.positionChange().y
+                                            totalDragY += dragAmount
+                                            if (!hasHiddenControlsForDrag && kotlin.math.abs(totalDragY) > 8f) {
+                                                hasHiddenControlsForDrag = true
+                                                onControlsVisibilityChange(false)
+                                            }
                                             velocityTracker.addPosition(change.uptimeMillis, change.position)
 
                                             val newOffset = userManualOffset + dragAmount
@@ -956,6 +979,10 @@ fun LyricsV2(
                                             change.consume()
                                             isAutoScrollEnabled = false
                                             lastPreviewTime = 0L // Keep timer paused during active drag
+                                        }
+
+                                        if (!dragConsumed && kotlin.math.abs(totalDragY) <= 8f) {
+                                            onControlsVisibilityChange(true)
                                         }
 
                                         if (isAutoScrollEnabled) return@awaitEachGesture
@@ -1013,7 +1040,7 @@ fun LyricsV2(
                             val targetProviderBase = anchorY + (positions[0] ?: 0f) - with(density) { 32.dp.toPx() }
                             val animatedProviderBase by animateFloatAsState(
                                 targetValue = targetProviderBase,
-                                animationSpec = if (isInitialLayout || !isAutoScrollEnabled) snap()
+                                animationSpec = if (isInitialLayout || !isAutoScrollEnabled || isSeeking) snap()
                                 else {
                                     tween(750, 0, FastOutSlowInEasing)
                                 },
@@ -1048,7 +1075,7 @@ fun LyricsV2(
 
                                     val animatedOffset by animateFloatAsState(
                                         targetValue = targetOffset,
-                                        animationSpec = if (isInitialLayout || !isAutoScrollEnabled) snap()
+                                        animationSpec = if (isInitialLayout || !isAutoScrollEnabled || isSeeking) snap()
                                         else {
                                             tween(750, (distance * LYRICS_STAGGER_DELAY_PER_DISTANCE).coerceAtMost(LYRICS_STAGGER_DELAY_MAX_MS), FastOutSlowInEasing)
                                         },

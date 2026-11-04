@@ -100,6 +100,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.pointerInput
 import com.music.vivi.ui.component.Icon as MIcon
 import com.music.vivi.listentogether.RoomRole
@@ -148,38 +149,23 @@ fun PlayerV2(
     val castVolume by castHandler?.castVolume?.collectAsState() ?: remember { mutableFloatStateOf(1f) }
     val effectiveIsPlaying = if (isCasting) castIsPlaying else isPlaying
     var lastManualSeekTime by remember { mutableLongStateOf(0L) }
-    
-    BackHandler(enabled = playerState != PlayerInternalState.COVER) {
-        playerState = PlayerInternalState.COVER
-    }
-    
     var controlsVisible by remember { mutableStateOf(true) }
     var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-
-    LaunchedEffect(playerState) {
-        if (playerState == PlayerInternalState.LYRICS) {
-            controlsVisible = true
-            delay(1500L)
-            if (playerState == PlayerInternalState.LYRICS) {
-                controlsVisible = false
-            }
-        } else if (playerState == PlayerInternalState.COVER) {
-            // Fix 1: Delay controls appearing so AnimatedContent morph starts first,
-            // preventing a simultaneous layout + animation race that causes stutter.
-            delay(200L)
-            controlsVisible = true
-        } else if (playerState == PlayerInternalState.QUEUE) {
-            controlsVisible = true
-        }
+    
+    BackHandler(enabled = playerState != PlayerInternalState.COVER) {
+        controlsVisible = true
+        playerState = PlayerInternalState.COVER
     }
 
-    LaunchedEffect(lastInteractionTime) {
+    LaunchedEffect(playerState, lastInteractionTime, effectiveIsPlaying) {
         if (playerState == PlayerInternalState.LYRICS) {
             controlsVisible = true
-            delay(2000L)
+            delay(5000L)
             if (playerState == PlayerInternalState.LYRICS) {
                 controlsVisible = false
             }
+        } else {
+            controlsVisible = true
         }
     }
     
@@ -455,10 +441,8 @@ fun PlayerV2(
                 awaitPointerEventScope {
                     while (true) {
                         val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
-                        if (event.changes.any { it.pressed }) {
-                            if (playerState == PlayerInternalState.LYRICS) {
-                                lastInteractionTime = System.currentTimeMillis()
-                            } else if (playerState == PlayerInternalState.COVER) {
+                        if (event.changes.any { it.changedToDown() }) {
+                            if (playerState == PlayerInternalState.COVER) {
                                 controlsVisible = true
                             }
                         }
@@ -814,7 +798,10 @@ fun PlayerV2(
                                             )
                                             .background(adaptiveSurface, RoundedCornerShape(8.dp))
                                             .clip(RoundedCornerShape(8.dp))
-                                            .clickable { playerState = PlayerInternalState.COVER }
+                                            .clickable {
+                                                controlsVisible = true
+                                                playerState = PlayerInternalState.COVER
+                                            }
                                     ) {
                                         if (hidePlayerThumbnail) {
                                             Box(
@@ -1014,6 +1001,9 @@ fun PlayerV2(
                                                 initialLyrics = currentLyrics,
                                                 onControlsVisibilityChange = { isVisible ->
                                                     controlsVisible = isVisible
+                                                    if (isVisible) {
+                                                        lastInteractionTime = System.currentTimeMillis()
+                                                    }
                                                 }
                                             )
                                         }
@@ -1036,18 +1026,22 @@ fun PlayerV2(
             // Persistent Controls & Utility Action Bar Container (Always at the bottom)
             AnimatedVisibility(
                 visible = controlsVisible,
-                // Fix 2: Removed expandVertically/shrinkVertically — these force layout
-                // recalculation every frame during the animation, which is expensive and
-                // the main cause of the stutter when re-entering the cover view.
-                // Pure draw-layer ops (fade + slide) are much cheaper.
-                enter = fadeIn(animationSpec = tween(400, easing = FastOutSlowInEasing)) +
-                        slideInVertically(animationSpec = tween(400, easing = FastOutSlowInEasing)) { it / 3 },
-                exit = fadeOut(animationSpec = tween(300, easing = FastOutSlowInEasing)) +
-                       slideOutVertically(animationSpec = tween(300, easing = FastOutSlowInEasing)) { it / 3 }
+                enter = fadeIn(animationSpec = tween(400, easing = LinearOutSlowInEasing)),
+                exit = fadeOut(animationSpec = tween(450, easing = FastOutLinearInEasing))
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .pointerInput(Unit) {
+                            awaitPointerEventScope {
+                                while (true) {
+                                    val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                                    if (event.changes.any { it.changedToDown() }) {
+                                        lastInteractionTime = System.currentTimeMillis()
+                                    }
+                                }
+                            }
+                        }
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -1102,7 +1096,7 @@ fun PlayerV2(
                                 PlayerSliderTrack(
                                     sliderState = sliderState,
                                     trackHeight = trackHeight,
-                                    useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
+                                    useOverlay = false,
                                     colors = PlayerSliderColors.getSliderColors(
                                         activeColor = sliderActiveColor,
                                         playerBackground = playerBackground,
@@ -1228,7 +1222,7 @@ fun PlayerV2(
                                     PlayerSliderTrack(
                                         sliderState = sliderState,
                                         trackHeight = volHeight,
-                                        useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
+                                        useOverlay = false,
                                         colors = PlayerSliderColors.getSliderColors(
                                             activeColor = sliderActiveColor,
                                             playerBackground = playerBackground,
@@ -1253,7 +1247,10 @@ fun PlayerV2(
                     ) {
                         val isLyricsActive = playerState == PlayerInternalState.LYRICS
                         IconButton(
-                            onClick = { playerState = if (isLyricsActive) PlayerInternalState.COVER else PlayerInternalState.LYRICS }
+                            onClick = {
+                                if (isLyricsActive) controlsVisible = true
+                                playerState = if (isLyricsActive) PlayerInternalState.COVER else PlayerInternalState.LYRICS
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.lyrics_apple), 
@@ -1311,7 +1308,10 @@ fun PlayerV2(
                         
                         val isQueueActive = playerState == PlayerInternalState.QUEUE
                         IconButton(
-                            onClick = { playerState = if (isQueueActive) PlayerInternalState.COVER else PlayerInternalState.QUEUE }
+                            onClick = {
+                                if (isQueueActive) controlsVisible = true
+                                playerState = if (isQueueActive) PlayerInternalState.COVER else PlayerInternalState.QUEUE
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.apple_queue),
