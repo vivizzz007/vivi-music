@@ -103,6 +103,7 @@ fun PlayerV2Landscape(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
@@ -135,8 +136,19 @@ fun PlayerV2Landscape(
         playerState = PlayerInternalState.COVER
     }
 
-    var position by remember { mutableLongStateOf(0L) }
-    var duration by remember { mutableLongStateOf(0L) }
+    var position by remember {
+        mutableLongStateOf(
+            try { playerConnection.player.currentPosition.coerceAtLeast(0L) } catch (_: Exception) { 0L }
+        )
+    }
+    var duration by remember {
+        mutableLongStateOf(
+            try {
+                val raw = playerConnection.player.duration
+                if (raw == C.TIME_UNSET || raw < 0) 0L else raw
+            } catch (_: Exception) { 0L }
+        )
+    }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
     val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
@@ -297,12 +309,33 @@ fun PlayerV2Landscape(
         }
     }
 
-    // Also update once on song change
-    LaunchedEffect(mediaMetadata?.id) {
+    // Also update position when playback state changes (e.g., song change, seek, restoration)
+    LaunchedEffect(playbackState, mediaMetadata?.id) {
         if (!isCasting) {
             val rawDuration = playerConnection.player.duration
             position = playerConnection.player.currentPosition.coerceAtLeast(0L)
             duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+        }
+    }
+
+    // Capture seek and position discontinuity events immediately, even while paused
+    DisposableEffect(playerConnection.player) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPositionDiscontinuity(
+                oldPosition: androidx.media3.common.Player.PositionInfo,
+                newPosition: androidx.media3.common.Player.PositionInfo,
+                reason: Int
+            ) {
+                if (!isCasting && sliderPosition == null) {
+                    val rawDuration = playerConnection.player.duration
+                    position = playerConnection.player.currentPosition.coerceAtLeast(0L)
+                    duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+                }
+            }
+        }
+        playerConnection.player.addListener(listener)
+        onDispose {
+            playerConnection.player.removeListener(listener)
         }
     }
 
@@ -377,30 +410,32 @@ fun PlayerV2Landscape(
 
     Row(
         modifier = modifier
-            .fillMaxSize()
-            .padding(
-                start = WindowInsets.systemBars.asPaddingValues().calculateStartPadding(LayoutDirection.Ltr) + 16.dp,
-                end = WindowInsets.systemBars.asPaddingValues().calculateEndPadding(LayoutDirection.Ltr) + 16.dp,
-                top = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 8.dp,
-                bottom = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding() + 8.dp
-            ),
+            .windowInsetsPadding(WindowInsets.systemBars)
+            .padding(horizontal = 16.dp)
+            .fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // LEFT SIDE: Centered Thumbnail + Bottom Row of Lyrics, Queue, Cast/Headphones
+        // LEFT SIDE: Centered dynamic thumbnail + Bottom Row of Lyrics, Queue, Cast/Headphones
         Column(
             modifier = Modifier
-                .weight(0.48f)
-                .fillMaxHeight()
-                .padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+                .weight(1f)
+                .fillMaxHeight(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Thumbnail Box (upsized to ~215dp, centered)
-            Box(
+            // Dynamic Thumbnail container (scales to available space)
+            BoxWithConstraints(
                 modifier = Modifier
-                    .size(215.dp)
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                val maxDimension = minOf(maxWidth * 0.92f, maxHeight - 8.dp)
+                val thumbnailSize = maxDimension.coerceAtLeast(140.dp)
+
+                // Thumbnail Box
+                Box(
+                    modifier = Modifier
+                        .size(thumbnailSize)
                     .aspectRatio(1f)
                     .customSoftShadow(
                         elevation = playerThumbnailShadowElevation.dp / 2f,
@@ -452,15 +487,16 @@ fun PlayerV2Landscape(
                     )
                 }
             }
+            }
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Bottom Row of Lyrics, Queue, Cast/Headphones (aligned with volume slider row on the right)
+            // Bottom Row of Lyrics, Cast/Headphones, Queue
             Row(
                 modifier = Modifier
-                    .width(215.dp)
-                    .height(40.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxWidth()
+                    .height(48.dp),
+                horizontalArrangement = Arrangement.spacedBy(36.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 1. Lyrics Button (Left)
@@ -470,7 +506,7 @@ fun PlayerV2Landscape(
                         playerState = if (isLyricsActive) PlayerInternalState.COVER else PlayerInternalState.LYRICS
                     },
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(
                             if (isLyricsActive) adaptivePrimary.copy(alpha = 0.2f) else Color.Transparent
@@ -480,32 +516,32 @@ fun PlayerV2Landscape(
                         painter = painterResource(R.drawable.lyrics_apple),
                         contentDescription = "Lyrics",
                         tint = if (isLyricsActive) adaptivePrimary else adaptiveSecondary,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
 
                 // 2. Cast / Headphone / Audio Device Button (Center)
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     if (bluetoothDeviceName != null) {
                         IconButton(
                             onClick = { showAudioDeviceBottomSheet = true },
-                            modifier = Modifier.size(44.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.headphones_apple),
                                 contentDescription = "Audio Device",
                                 tint = adaptiveSecondary,
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
                         CastButton(
-                            modifier = Modifier.size(44.dp),
+                            modifier = Modifier.size(48.dp),
                             tintColor = adaptiveSecondary,
                             activeTintColor = adaptivePrimary,
                             showBackground = false
@@ -513,13 +549,13 @@ fun PlayerV2Landscape(
                     } else {
                         IconButton(
                             onClick = { showAudioDeviceBottomSheet = true },
-                            modifier = Modifier.size(44.dp)
+                            modifier = Modifier.size(48.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.home_speaker_devices),
                                 contentDescription = "Speaker",
                                 tint = adaptiveSecondary,
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(28.dp)
                             )
                         }
                     }
@@ -532,7 +568,7 @@ fun PlayerV2Landscape(
                         playerState = if (isQueueActive) PlayerInternalState.COVER else PlayerInternalState.QUEUE
                     },
                     modifier = Modifier
-                        .size(44.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
                         .background(
                             if (isQueueActive) adaptivePrimary.copy(alpha = 0.2f) else Color.Transparent
@@ -542,19 +578,19 @@ fun PlayerV2Landscape(
                         painter = painterResource(R.drawable.apple_queue),
                         contentDescription = "Queue",
                         tint = if (isQueueActive) adaptivePrimary else adaptiveSecondary,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(20.dp))
 
         // RIGHT SIDE: Raw controls (Cover) OR Pure Lyrics (Lyrics) OR Pure Queue (Queue)
         // No extra box or card behind anything, completely transparent on player background.
         Box(
             modifier = Modifier
-                .weight(0.52f)
+                .weight(1f)
                 .fillMaxHeight(),
             contentAlignment = Alignment.Center
         ) {
@@ -574,9 +610,10 @@ fun PlayerV2Landscape(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(top = 16.dp, bottom = 16.dp, start = 8.dp, end = 16.dp),
-                            verticalArrangement = Arrangement.SpaceBetween
+                                .padding(horizontal = 12.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            Spacer(modifier = Modifier.weight(1f))
                             // Song Title, Artist & Action Buttons (Star, More)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -737,6 +774,8 @@ fun PlayerV2Landscape(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(16.dp))
+
                             // Progress Slider & Timestamps
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 val currentPos = sliderPosition ?: position
@@ -776,7 +815,6 @@ fun PlayerV2Landscape(
                                         PlayerSliderTrack(
                                             sliderState = sliderState,
                                             trackHeight = trackHeight,
-                                            useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
                                             colors = PlayerSliderColors.getSliderColors(
                                                 activeColor = sliderActiveColor,
                                                 playerBackground = playerBackground,
@@ -815,6 +853,8 @@ fun PlayerV2Landscape(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(12.dp))
+
                             // Playback Controls Row (Naked Transparent Controls)
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -831,14 +871,14 @@ fun PlayerV2Landscape(
                                     },
                                     enabled = !isListenTogetherGuest && canSkipPrevious,
                                     modifier = Modifier
-                                        .size(64.dp)
+                                        .size(56.dp)
                                         .alpha(if (isListenTogetherGuest || !canSkipPrevious) 0.4f else 1f)
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.apple_skip_previous),
                                         contentDescription = "Previous",
                                         tint = adaptivePrimary,
-                                        modifier = Modifier.size(48.dp)
+                                        modifier = Modifier.size(40.dp)
                                     )
                                 }
 
@@ -853,13 +893,13 @@ fun PlayerV2Landscape(
                                             playerConnection.player.togglePlayPause()
                                         }
                                     },
-                                    modifier = Modifier.size(88.dp)
+                                    modifier = Modifier.size(76.dp)
                                 ) {
                                     if (isListenTogetherGuest) {
                                         Icon(
                                             painter = painterResource(if (isMuted) R.drawable.volume_off else R.drawable.volume_up),
                                             contentDescription = if (isMuted) "Unmute" else "Mute",
-                                            modifier = Modifier.size(64.dp),
+                                            modifier = Modifier.size(56.dp),
                                             tint = adaptivePrimary
                                         )
                                     } else {
@@ -868,7 +908,7 @@ fun PlayerV2Landscape(
                                                 if (effectiveIsPlaying) R.drawable.pause_applemusic else R.drawable.play_applemusic
                                             ),
                                             contentDescription = if (effectiveIsPlaying) "Pause" else "Play",
-                                            modifier = Modifier.size(80.dp),
+                                            modifier = Modifier.size(68.dp),
                                             tint = adaptivePrimary
                                         )
                                     }
@@ -884,82 +924,85 @@ fun PlayerV2Landscape(
                                     },
                                     enabled = !isListenTogetherGuest && canSkipNext,
                                     modifier = Modifier
-                                        .size(64.dp)
+                                        .size(56.dp)
                                         .alpha(if (isListenTogetherGuest || !canSkipNext) 0.4f else 1f)
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.apple_skip_next),
                                         contentDescription = "Next",
                                         tint = adaptivePrimary,
-                                        modifier = Modifier.size(48.dp)
+                                        modifier = Modifier.size(40.dp)
                                     )
                                 }
                             }
 
-                            // Volume Slider Row (height 40.dp matching the left button row)
+                            Spacer(modifier = Modifier.height(14.dp))
+
+                            // Volume Slider Row
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(40.dp),
+                                    .height(36.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    painterResource(R.drawable.ic_speaker_24dp),
-                                    contentDescription = "Volume Down",
-                                    tint = adaptiveSecondary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
+                            Icon(
+                                painterResource(R.drawable.ic_speaker_24dp),
+                                contentDescription = "Volume Down",
+                                tint = adaptiveSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
 
                                 val volumeInteractionSource = remember { MutableInteractionSource() }
-                                val isVolDragged by volumeInteractionSource.collectIsDraggedAsState()
-                                val isVolPressed by volumeInteractionSource.collectIsPressedAsState()
-                                val isVolActive = isVolDragged || isVolPressed
+                            val isVolDragged by volumeInteractionSource.collectIsDraggedAsState()
+                            val isVolPressed by volumeInteractionSource.collectIsPressedAsState()
+                            val isVolActive = isVolDragged || isVolPressed
 
-                                val volHeight by animateDpAsState(
-                                    targetValue = if (isVolActive) 10.dp else 7.25.dp,
-                                    animationSpec = spring(
-                                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                                        stiffness = Spring.StiffnessLow
-                                    ),
-                                    label = "landscapeVolHeight"
-                                )
+                            val volHeight by animateDpAsState(
+                                targetValue = if (isVolActive) 10.dp else 7.25.dp,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessLow
+                                ),
+                                label = "landscapeVolHeight"
+                            )
 
-                                Slider(
-                                    value = if (isCasting) castVolume
-                                    else if (isVolActive) systemVolume
-                                    else animatedVolume,
-                                    onValueChange = { newValue ->
-                                        onVolumeChange(newValue)
-                                    },
-                                    interactionSource = volumeInteractionSource,
-                                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                    track = { sliderState ->
-                                        PlayerSliderTrack(
-                                            sliderState = sliderState,
-                                            trackHeight = volHeight,
-                                            useOverlay = playerBackground != PlayerBackgroundStyle.DEFAULT,
-                                            colors = PlayerSliderColors.getSliderColors(
-                                                activeColor = sliderActiveColor,
-                                                playerBackground = playerBackground,
-                                                useDarkTheme = useDarkTheme
-                                            )
+                            Slider(
+                                value = if (isCasting) castVolume
+                                else if (isVolActive) systemVolume
+                                else animatedVolume,
+                                onValueChange = { newValue ->
+                                    onVolumeChange(newValue)
+                                },
+                                interactionSource = volumeInteractionSource,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        trackHeight = volHeight,
+                                        colors = PlayerSliderColors.getSliderColors(
+                                            activeColor = sliderActiveColor,
+                                            playerBackground = playerBackground,
+                                            useDarkTheme = useDarkTheme
                                         )
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Icon(
-                                    painterResource(R.drawable.ic_speaker_wave_3_24dp),
-                                    contentDescription = "Volume Up",
-                                    tint = adaptiveSecondary,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Icon(
+                                painterResource(R.drawable.ic_speaker_wave_3_24dp),
+                                contentDescription = "Volume Up",
+                                tint = adaptiveSecondary,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
+
+                        Spacer(modifier = Modifier.weight(1f))
                     }
+                }
 
                     PlayerInternalState.LYRICS -> {
                         // In landscape, when lyrics pressed: pure LyricsV2 with floating circular action buttons (Star on left, Options on right)

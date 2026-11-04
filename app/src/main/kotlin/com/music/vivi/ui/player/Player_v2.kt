@@ -120,6 +120,7 @@ fun PlayerV2(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val playerConnection = LocalPlayerConnection.current ?: return
+    val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
@@ -182,8 +183,19 @@ fun PlayerV2(
         }
     }
     
-    var position by remember { mutableLongStateOf(0L) }
-    var duration by remember { mutableLongStateOf(0L) }
+    var position by remember {
+        mutableLongStateOf(
+            try { playerConnection.player.currentPosition.coerceAtLeast(0L) } catch (_: Exception) { 0L }
+        )
+    }
+    var duration by remember {
+        mutableLongStateOf(
+            try {
+                val raw = playerConnection.player.duration
+                if (raw == C.TIME_UNSET || raw < 0) 0L else raw
+            } catch (_: Exception) { 0L }
+        )
+    }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
     val audioManager = remember { context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager }
@@ -360,12 +372,33 @@ fun PlayerV2(
         }
     }
 
-    // Also update once on song change
-    LaunchedEffect(mediaMetadata?.id) {
+    // Also update position when playback state changes (e.g., song change, seek, restoration)
+    LaunchedEffect(playbackState, mediaMetadata?.id) {
         if (!isCasting) {
             val rawDuration = playerConnection.player.duration
             position = playerConnection.player.currentPosition.coerceAtLeast(0L)
             duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+        }
+    }
+
+    // Capture seek and position discontinuity events immediately, even while paused
+    DisposableEffect(playerConnection.player) {
+        val listener = object : androidx.media3.common.Player.Listener {
+            override fun onPositionDiscontinuity(
+                oldPosition: androidx.media3.common.Player.PositionInfo,
+                newPosition: androidx.media3.common.Player.PositionInfo,
+                reason: Int
+            ) {
+                if (!isCasting && sliderPosition == null) {
+                    val rawDuration = playerConnection.player.duration
+                    position = playerConnection.player.currentPosition.coerceAtLeast(0L)
+                    duration = if (rawDuration == C.TIME_UNSET || rawDuration < 0) 0L else rawDuration
+                }
+            }
+        }
+        playerConnection.player.addListener(listener)
+        onDispose {
+            playerConnection.player.removeListener(listener)
         }
     }
 
@@ -483,76 +516,82 @@ fun PlayerV2(
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(horizontal = 24.dp)
+                                    .padding(horizontal = 24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Spacer(modifier = Modifier.weight(1f))
-
-                                // Massive Apple Music Style Artwork
-                                Box(
+                                // Dynamic Apple Music Style Artwork (scales to fit screen without overflowing into slider)
+                                BoxWithConstraints(
                                     modifier = Modifier
-                                        .sharedElement(
-                                            rememberSharedContentState(key = "coverArt"),
-                                            animatedVisibilityScope = this@AnimatedContent,
-                                            boundsTransform = BoundsTransform { _, _ ->
-                                                tween(durationMillis = 500, easing = FastOutSlowInEasing)
-                                            }
-                                        )
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .customSoftShadow(
-                                            elevation = playerThumbnailShadowElevation.dp, 
-                                            cornerRadius = 12.dp, 
-                                            enabled = showPlayerThumbnailShadow
-                                        )
-                                        .background(adaptiveSurface, RoundedCornerShape(12.dp))
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .SwipeGesture(
-                                            enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
-                                            onSwipeLeft = { if (canSkipNext) playerConnection.seekToNext() },
-                                            onSwipeRight = { if (canSkipPrevious) playerConnection.seekToPrevious() }
-                                        )
+                                        .weight(1f)
+                                        .fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    if (hidePlayerThumbnail) {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.vivi_music_small_icon),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(72.dp),
-                                                tint = adaptivePrimary.copy(alpha = 0.5f)
+                                    val artworkSize = minOf(maxWidth, maxHeight - 16.dp).coerceAtLeast(100.dp)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .sharedElement(
+                                                rememberSharedContentState(key = "coverArt"),
+                                                animatedVisibilityScope = this@AnimatedContent,
+                                                boundsTransform = BoundsTransform { _, _ ->
+                                                    tween(durationMillis = 500, easing = FastOutSlowInEasing)
+                                                }
+                                            )
+                                            .size(artworkSize)
+                                            .aspectRatio(1f)
+                                            .customSoftShadow(
+                                                elevation = playerThumbnailShadowElevation.dp, 
+                                                cornerRadius = 12.dp, 
+                                                enabled = showPlayerThumbnailShadow
+                                            )
+                                            .background(adaptiveSurface, RoundedCornerShape(12.dp))
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .SwipeGesture(
+                                                enabled = (playerState == PlayerInternalState.COVER && !isListenTogetherGuest),
+                                                onSwipeLeft = { if (canSkipNext) playerConnection.seekToNext() },
+                                                onSwipeRight = { if (canSkipPrevious) playerConnection.seekToPrevious() }
+                                            )
+                                    ) {
+                                        if (hidePlayerThumbnail) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(72.dp),
+                                                    tint = adaptivePrimary.copy(alpha = 0.5f)
+                                                )
+                                            }
+                                        } else {
+                                            val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
+                                                mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                                            }
+                                            AsyncImage(
+                                                model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
+                                                contentDescription = "Cover Art",
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .graphicsLayer {
+                                                        if (cropAlbumArt && isYtThumbnail) {
+                                                            scaleX = 4f / 3f
+                                                            scaleY = 4f / 3f
+                                                        }
+                                                    },
+                                                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
+                                            )
+                                            // Fix 4: Always render canvas (don't gate on transition state).
+                                            // The previous guard caused a visible pop/snap when the
+                                            // transition completed and the canvas suddenly appeared.
+                                            PlayerV2Motionartowek(
+                                                mediaMetadata = mediaMetadata,
+                                                isPlaying = isPlaying,
+                                                modifier = Modifier.fillMaxSize()
                                             )
                                         }
-                                    } else {
-                                        val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
-                                            mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
-                                        }
-                                        AsyncImage(
-                                            model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                            contentDescription = "Cover Art",
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .graphicsLayer {
-                                                    if (cropAlbumArt && isYtThumbnail) {
-                                                        scaleX = 4f / 3f
-                                                        scaleY = 4f / 3f
-                                                    }
-                                                },
-                                            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
-                                        )
-                                        // Fix 4: Always render canvas (don't gate on transition state).
-                                        // The previous guard caused a visible pop/snap when the
-                                        // transition completed and the canvas suddenly appeared.
-                                        PlayerV2Motionartowek(
-                                            mediaMetadata = mediaMetadata,
-                                            isPlaying = isPlaying,
-                                            modifier = Modifier.fillMaxSize()
-                                        )
                                     }
                                 }
-                                
-                                Spacer(modifier = Modifier.weight(1f)) // Allows the content to lock down
 
                                 // Track Meta Info (Left Aligned)
                                 Row(
