@@ -112,7 +112,8 @@ fun DiscordLoginScreen(navController: NavController) {
                 webView = this
                 loadUrl("https://discord.com/login")
             }
-        }
+        },
+        onRelease = { it.destroy() }
     )
 
     TopAppBar(

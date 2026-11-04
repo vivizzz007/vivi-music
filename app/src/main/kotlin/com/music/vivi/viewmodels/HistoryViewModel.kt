@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -234,6 +235,8 @@ constructor(
         }
     }
 
+    private var playbackRegisteredJob: Job? = null
+
     /**
      * Call once from the screen when a [PlayerConnection] is available.
      * Collects [MusicService.playbackRegistered] and automatically triggers a
@@ -241,7 +244,8 @@ constructor(
      * regardless of which tab (Local / Remote) is currently visible.
      */
     fun bindPlayerConnection(playerConnection: PlayerConnection) {
-        viewModelScope.launch(Dispatchers.IO) {
+        playbackRegisteredJob?.cancel()
+        playbackRegisteredJob = viewModelScope.launch(Dispatchers.IO) {
             playerConnection.service.playbackRegistered.collect { songId ->
                 Timber.tag(TAG).i(
                     "[HistorySync] playbackRegistered received for song=%s — scheduling remote refresh in 3.5s",
