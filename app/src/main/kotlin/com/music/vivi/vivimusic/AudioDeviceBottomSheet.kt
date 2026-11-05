@@ -69,7 +69,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -123,7 +124,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.foundation.layout.FlowRow
 import com.music.vivi.R
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.AudioQuality
@@ -308,12 +308,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = modifier
     ) {
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp)
-                .animateContentSize()
         ) {
             when {
                 isLoading -> {
@@ -530,7 +531,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
 
                     // Volume Control
                     var volumeSliderValue by rememberSaveable { mutableFloatStateOf(currentVolume) }
-                    LaunchedEffect(currentVolume) { volumeSliderValue = currentVolume }
+                    var lastNonZeroVolume by rememberSaveable { mutableFloatStateOf(if (currentVolume > 0f) currentVolume else maxVolume * 0.5f) }
+                    LaunchedEffect(currentVolume) {
+                        volumeSliderValue = currentVolume
+                        if (currentVolume > 0f) {
+                            lastNonZeroVolume = currentVolume
+                        }
+                    }
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(4.dp),
@@ -538,18 +545,12 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                     ) {
                         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-                                Icon(
-                                    painter = painterResource(if (volumeSliderValue > 0) R.drawable.volume_up else R.drawable.volume_off),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(start = 12.dp).size(24.dp)
-                                )
                                 Text(
                                     text = stringResource(R.string.volume),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.weight(1f).padding(start = 16.dp, end = 16.dp)
+                                    modifier = Modifier.weight(1f).padding(start = 12.dp, end = 16.dp)
                                 )
                                 val percentage = if (maxVolume > 0) ((volumeSliderValue / maxVolume) * 100).toInt() else 0
                                 Text(
@@ -561,12 +562,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                 )
                             }
                             ViviVolumeSlider(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 value = volumeSliderValue,
                                 onValueChange = { newValue ->
+                                    isUserDragging = true
                                     volumeSliderValue = newValue
                                     currentVolume = newValue
-                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newValue.toInt(), 0)
+                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, kotlin.math.round(newValue).toInt(), 0)
                                 },
                                 onValueChangeFinished = { isUserDragging = false },
                                 valueRange = 0f..maxVolume.toFloat()
@@ -591,7 +593,10 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             )
                             val options = listOf(stringResource(R.string.audio_quality_auto), stringResource(R.string.audio_quality_high), stringResource(R.string.audio_quality_low))
                             val selectedIndex = when (audioQuality) { AudioQuality.AUTO -> 0; AudioQuality.HIGH -> 1; AudioQuality.LOW -> 2; else -> 0 }
-                            FlowRow(modifier = Modifier.padding(horizontal = 16.dp).padding(vertical = 8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                            ) {
                                 options.forEachIndexed { index, label ->
                                     ToggleButton(
                                         checked = selectedIndex == index,
