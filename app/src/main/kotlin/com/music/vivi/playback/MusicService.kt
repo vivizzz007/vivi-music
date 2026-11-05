@@ -186,6 +186,7 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.toPersistQueue
 import com.music.vivi.extensions.toQueue
 import com.music.vivi.lyrics.LyricsHelper
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.PersistPlayerState
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
@@ -347,7 +348,7 @@ class MusicService :
     private var radioChipsJob: Job? = null
     private var playQueueJob: Job? = null
 
-    val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
+    val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     private val currentSong =
         currentMediaMetadata
             .flatMapLatest { mediaMetadata ->
@@ -404,6 +405,8 @@ class MusicService :
     private var secondaryPlayer: ExoPlayer? = null
     private var fadingPlayer: ExoPlayer? = null
     private var isCrossfading = false
+    val isCrossfadingFlow = MutableStateFlow(false)
+    val crossfadeOutgoingItem = MutableStateFlow<MediaMetadata?>(null)
     private var crossfadeJob: Job? = null
 
     private lateinit var mediaSession: MediaLibrarySession
@@ -3858,6 +3861,8 @@ class MusicService :
         }
         secondaryPlayer = null
         isCrossfading = false
+        isCrossfadingFlow.value = false
+        crossfadeOutgoingItem.value = null
         player.removeListener(this)
         player.removeListener(sleepTimer)
         releaseExoPlayer(player)
@@ -4022,13 +4027,18 @@ class MusicService :
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         if (isCrossfading) return
-        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
-        if (crossfadeGapless && isNextItemGapless()) return
+        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= (crossfadeDuration / 2f)) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
 
-        val triggerTime = player.duration - crossfadeDuration.toLong()
+        val halfDuration = (crossfadeDuration / 2f).toLong().coerceAtLeast(500L)
+        val triggerTime = player.duration - halfDuration
         val delayMs = triggerTime - player.currentPosition
-        if (delayMs <= 0) return
+        if (delayMs <= 0) {
+            if (player.isPlaying && player.currentPosition < player.duration && !sleepTimer.pauseWhenSongEnd) {
+                startCrossfade()
+            }
+            return
+        }
 
         val targetMediaId = player.currentMediaItem?.mediaId
 
@@ -4158,18 +4168,10 @@ class MusicService :
      * actually moves to the previous track, not the restart branch.
      */
     fun manualSkipToPreviousWithCrossfade(): Boolean {
-        if (!crossfadeEnabled || !crossfadeManualSkipEnabled) return false
-        if (isCrossfading) return false
-        if (castConnectionHandler?.isCasting?.value == true) return false
-        if (!player.hasPreviousMediaItem()) return false
-        if (player.duration == C.TIME_UNSET) return false
-
-        playQueueJob?.cancel()
-        playQueueJob = null
-        crossfadeTriggerJob?.cancel()
-        crossfadeTriggerJob = null
-        startCrossfade(CrossfadeTrigger.MANUAL_PREVIOUS)
-        return isCrossfading
+        // Apple Music AutoMix is strictly forward-facing; skipping to previous track
+        // should instantly jump back without waiting for a crossfade dissolve.
+        cancelCrossfadeIfActive()
+        return false
     }
 
     /**
@@ -4388,9 +4390,12 @@ class MusicService :
     }
 
     private fun performCrossfadeSwap() {
-        isCrossfading = true
         val nextPlayer = secondaryPlayer ?: return
         val currentPlayer = player
+
+        isCrossfading = true
+        crossfadeOutgoingItem.value = currentPlayer.currentMetadata
+        isCrossfadingFlow.value = true
 
         fadingPlayer = currentPlayer
         player = nextPlayer
@@ -4409,6 +4414,27 @@ class MusicService :
 
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
+        fadingPlayer?.pauseAtEndOfMediaItems = true
+        fadingPlayer?.addListener(object : Player.Listener {
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                // Outgoing player must NEVER play subsequent items from the queue
+                try {
+                    fadingPlayer?.volume = 0f
+                    fadingPlayer?.stop()
+                    fadingPlayer?.clearMediaItems()
+                } catch (_: Exception) {}
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_ENDED) {
+                    try {
+                        fadingPlayer?.volume = 0f
+                        fadingPlayer?.stop()
+                        fadingPlayer?.clearMediaItems()
+                    } catch (_: Exception) {}
+                }
+            }
+        })
 
         // Add listener to sync play/pause state
         player.addListener(object : Player.Listener {
@@ -4458,13 +4484,23 @@ class MusicService :
                     delay(100)
                 }
 
-                val progress = i / steps.toFloat()
+                val progress = (i / steps.toFloat()).coerceIn(0f, 1f)
                 val fadeIn = crossfadeCurve.fadeIn(progress)
-                val fadeOut = crossfadeCurve.fadeOut(progress)
+                // fadeOut completes over the first half so Song A fades to silence before its track ends
+                val fadeOutProgress = (progress * 2f).coerceIn(0f, 1f)
+                val fadeOut = crossfadeCurve.fadeOut(fadeOutProgress)
 
                 try {
                     player.volume = startVolume * fadeIn
-                    fadingPlayer?.volume = startVolume * fadeOut
+                    fadingPlayer?.let { fp ->
+                        if (fadeOutProgress >= 1f) {
+                            fp.volume = 0f
+                            fp.stop()
+                            fp.clearMediaItems()
+                        } else {
+                            fp.volume = startVolume * fadeOut
+                        }
+                    }
                 } catch (e: Exception) { break }
 
                 delay(stepTime)
@@ -4485,6 +4521,8 @@ class MusicService :
         fadingPlayer = null
         releaseFadingLoudnessEnhancer()
         isCrossfading = false
+        isCrossfadingFlow.value = false
+        crossfadeOutgoingItem.value = null
         sleepTimer.notifySongTransition()
     }
 

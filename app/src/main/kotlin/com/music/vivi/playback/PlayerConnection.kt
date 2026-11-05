@@ -22,6 +22,7 @@ import com.music.vivi.extensions.getCurrentQueueIndex
 import com.music.vivi.extensions.getQueueWindows
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.MusicService.MusicBinder
 import com.music.vivi.playback.queues.Queue
 import com.music.vivi.playback.queues.YouTubeQueue
@@ -131,7 +132,20 @@ class PlayerConnection(
         isPlaying.value
     )
     
-    val mediaMetadata = MutableStateFlow(try { player.currentMetadata } catch (_: Exception) { null })
+    val mediaMetadata = MutableStateFlow<MediaMetadata?>(try { player.currentMetadata } catch (_: Exception) { null })
+    fun getNextMediaMetadata(playerInstance: Player = player): MediaMetadata? {
+        return try {
+            val nextIndex = playerInstance.nextMediaItemIndex
+            if (nextIndex != androidx.media3.common.C.INDEX_UNSET && nextIndex < playerInstance.mediaItemCount) {
+                playerInstance.getMediaItemAt(nextIndex).metadata
+            } else null
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val nextMediaMetadata = MutableStateFlow<MediaMetadata?>(getNextMediaMetadata())
+    val isCrossfading = service.isCrossfadingFlow
+    val crossfadeOutgoingItem = service.crossfadeOutgoingItem
     val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
@@ -216,6 +230,7 @@ class PlayerConnection(
         currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
         shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
         repeatMode.value = newPlayer.repeatMode
+        nextMediaMetadata.value = getNextMediaMetadata(newPlayer)
         
         Timber.tag(TAG).d("Attached to new player instance: $newPlayer")
     }
@@ -544,6 +559,7 @@ class PlayerConnection(
     }
 
     private fun updateCanSkipPreviousAndNext() {
+        nextMediaMetadata.value = getNextMediaMetadata()
         if (!player.currentTimeline.isEmpty) {
             val window =
                 player.currentTimeline.getWindow(player.currentMediaItemIndex, Timeline.Window())

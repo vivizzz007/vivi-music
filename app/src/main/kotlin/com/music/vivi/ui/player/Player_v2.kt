@@ -6,9 +6,12 @@ package com.music.vivi.ui.player
 
 import android.app.Activity
 import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.media.AudioDeviceCallback
+import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
@@ -20,6 +23,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -32,6 +36,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
@@ -44,7 +49,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +60,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import androidx.media3.common.C
+import androidx.media3.common.Player
 import com.music.vivi.LocalPlayerConnection
 import androidx.compose.ui.graphics.graphicsLayer
 import com.music.vivi.constants.CropAlbumArtKey
@@ -68,6 +76,11 @@ import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.EnableGoogleCastKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.KeepScreenOn
+import com.music.vivi.constants.CrossfadeEnabledKey
+import com.music.vivi.constants.CrossfadeDurationKey
+import kotlin.math.PI
+import kotlin.math.sin
+import kotlin.math.roundToInt
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
@@ -87,6 +100,7 @@ import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -101,12 +115,15 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.pointerInput
 import com.music.vivi.ui.component.Icon as MIcon
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 
 enum class PlayerInternalState { COVER, LYRICS, QUEUE }
 
@@ -185,28 +202,28 @@ fun PlayerV2(
     }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
 
-    val audioManager = remember { context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager }
-    val maxSystemVolume = remember { audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC).toFloat() }
+    val audioManager = remember { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
+    val maxSystemVolume = remember { audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).toFloat() }
     
     // Custom volume state implementation since produceState awaitDispose can be tricky with imports
-    var systemVolume by remember { mutableFloatStateOf(audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume) }
-    val animatedVolume by androidx.compose.animation.core.animateFloatAsState(
+    var systemVolume by remember { mutableFloatStateOf(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume) }
+    val animatedVolume by animateFloatAsState(
         targetValue = systemVolume,
-        animationSpec = androidx.compose.animation.core.tween(
+        animationSpec = tween(
             durationMillis = 150,
-            easing = androidx.compose.animation.core.FastOutLinearInEasing
+            easing = FastOutLinearInEasing
         ),
         label = "volumeAnimation"
     )
     DisposableEffect(context) {
-        val receiver = object : android.content.BroadcastReceiver() {
-            override fun onReceive(c: android.content.Context?, intent: android.content.Intent?) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(c: Context?, intent: Intent?) {
                 if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
-                    systemVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume
+                    systemVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).toFloat() / maxSystemVolume
                 }
             }
         }
-        context.registerReceiver(receiver, android.content.IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
+        context.registerReceiver(receiver, IntentFilter("android.media.VOLUME_CHANGED_ACTION"))
         onDispose { context.unregisterReceiver(receiver) }
     }
 
@@ -221,6 +238,180 @@ fun PlayerV2(
     val enableGoogleCast by rememberPreference(EnableGoogleCastKey, defaultValue = true)
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
+    val crossfadeEnabled by rememberPreference(CrossfadeEnabledKey, defaultValue = false)
+    val crossfadeDuration by rememberPreference(CrossfadeDurationKey, defaultValue = 5f)
+    val isCrossfadingService by playerConnection.isCrossfading.collectAsState()
+    val crossfadeOutgoingItem by playerConnection.crossfadeOutgoingItem.collectAsState()
+    val nextMediaMetadata by playerConnection.nextMediaMetadata.collectAsState()
+
+    var isMixing by remember { mutableStateOf(false) }
+    val mixAlpha by animateFloatAsState(
+        targetValue = if (isMixing) 1f else 0f,
+        animationSpec = tween(300),
+        label = "mixAlpha"
+    )
+
+    var fromCoverUrl by remember { mutableStateOf<String?>(mediaMetadata?.thumbnailUrl) }
+    var toCoverUrl by remember { mutableStateOf<String?>(null) }
+    val coverProgress = remember { Animatable(0f) }
+
+    var displayedMetadata by remember { mutableStateOf<MediaMetadata?>(mediaMetadata) }
+    val fullDurationMs = (crossfadeDuration * 1000f).roundToInt().coerceAtLeast(1000)
+    val halfDurationMs = (fullDurationMs / 2).coerceAtLeast(500)
+
+    val coroutineScope = rememberCoroutineScope()
+    var isTransitionRunning by remember { mutableStateOf(false) }
+    var activeTransitionSongId by remember { mutableStateOf<String?>(null) }
+    var expectedNextSongId by remember { mutableStateOf<String?>(null) }
+    var activeTransitionJob by remember { mutableStateOf<Job?>(null) }
+
+    // Synchronize initial cover when not in active transition
+    LaunchedEffect(mediaMetadata?.id, mediaMetadata?.thumbnailUrl) {
+        if (!isTransitionRunning) {
+            fromCoverUrl = mediaMetadata?.thumbnailUrl
+            displayedMetadata = mediaMetadata
+        }
+    }
+
+    // 1. IN SONG A: Start "Mixing" label and cover dissolve at (duration - halfDurationMs)
+    // For a 10s crossfade, this triggers at exactly 5 seconds before Song A ends
+    LaunchedEffect(position, duration, isPlaying, crossfadeEnabled, crossfadeDuration) {
+        if (!crossfadeEnabled || !isPlaying || duration <= 0L || sliderPosition != null) return@LaunchedEffect
+        val remaining = duration - position
+        val currentMediaId = mediaMetadata?.id
+        if (currentMediaId != null &&
+            remaining in 1L..halfDurationMs.toLong() &&
+            !isTransitionRunning &&
+            activeTransitionSongId != currentMediaId
+        ) {
+            val nextMeta = nextMediaMetadata ?: playerConnection.getNextMediaMetadata()
+            if (nextMeta != null && nextMeta.id != currentMediaId) {
+                activeTransitionSongId = currentMediaId
+                expectedNextSongId = nextMeta.id
+                isTransitionRunning = true
+                isMixing = true
+                fromCoverUrl = mediaMetadata?.thumbnailUrl
+                toCoverUrl = nextMeta.thumbnailUrl
+                displayedMetadata = mediaMetadata
+
+                activeTransitionJob?.cancel()
+                activeTransitionJob = coroutineScope.launch {
+                    coverProgress.snapTo(0f)
+                    val animJob = launch {
+                        coverProgress.animateTo(1f, tween(fullDurationMs, easing = LinearEasing))
+                    }
+                    delay(halfDurationMs.toLong())
+                    val playheadMeta = playerConnection.mediaMetadata.value ?: nextMeta
+                    if (playheadMeta.id == nextMeta.id) {
+                        displayedMetadata = playheadMeta
+                    }
+
+                    animJob.join()
+                    if (playerConnection.mediaMetadata.value?.id == nextMeta.id) {
+                        fromCoverUrl = toCoverUrl
+                        toCoverUrl = null
+                        coverProgress.snapTo(0f)
+                        delay(900L)
+                        isMixing = false
+                        isTransitionRunning = false
+                        activeTransitionSongId = null
+                        expectedNextSongId = null
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. MusicService Crossfade Sync & Manual Skip Handler
+    LaunchedEffect(isCrossfadingService, mediaMetadata?.id) {
+        val newMeta = mediaMetadata
+        if (newMeta == null) {
+            activeTransitionJob?.cancel()
+            activeTransitionJob = null
+            displayedMetadata = null
+            fromCoverUrl = null
+            toCoverUrl = null
+            isMixing = false
+            isTransitionRunning = false
+            activeTransitionSongId = null
+            expectedNextSongId = null
+            return@LaunchedEffect
+        }
+
+        // When the service is not crossfading (e.g. crossfade completed or cancelled due to skip):
+        if (!isCrossfadingService) {
+            activeTransitionJob?.cancel()
+            activeTransitionJob = null
+            isTransitionRunning = false
+            displayedMetadata = newMeta
+            fromCoverUrl = newMeta.thumbnailUrl
+            toCoverUrl = null
+            coverProgress.snapTo(0f)
+            isMixing = false
+            activeTransitionSongId = null
+            expectedNextSongId = null
+            return@LaunchedEffect
+        }
+
+        // Crossfade service is active:
+        val currentSongId = newMeta.id
+        if (isTransitionRunning) {
+            if (currentSongId != expectedNextSongId && currentSongId != activeTransitionSongId) {
+                // User rapidly skipped to another song: abort the stale transition immediately!
+                activeTransitionJob?.cancel()
+                activeTransitionJob = null
+                isTransitionRunning = false
+                isMixing = false
+                activeTransitionSongId = null
+                expectedNextSongId = null
+                fromCoverUrl = newMeta.thumbnailUrl
+                toCoverUrl = null
+                displayedMetadata = newMeta
+                coverProgress.snapTo(0f)
+            } else {
+                // Anticipated transition in progress, let it run
+                return@LaunchedEffect
+            }
+        }
+
+        if (crossfadeEnabled && isCrossfadingService) {
+            val fromMeta = crossfadeOutgoingItem ?: displayedMetadata
+            val toMeta = newMeta
+            if (fromMeta != null && fromMeta.id != toMeta.id) {
+                activeTransitionSongId = fromMeta.id
+                expectedNextSongId = toMeta.id
+                isTransitionRunning = true
+                isMixing = true
+                fromCoverUrl = fromMeta.thumbnailUrl
+                toCoverUrl = toMeta.thumbnailUrl
+                displayedMetadata = fromMeta
+
+                activeTransitionJob?.cancel()
+                activeTransitionJob = coroutineScope.launch {
+                    coverProgress.snapTo(0f)
+                    val animJob = launch {
+                        coverProgress.animateTo(1f, tween(fullDurationMs, easing = LinearEasing))
+                    }
+                    delay(halfDurationMs.toLong())
+                    if (playerConnection.mediaMetadata.value?.id == toMeta.id) {
+                        displayedMetadata = toMeta
+                    }
+
+                    animJob.join()
+                    if (playerConnection.mediaMetadata.value?.id == toMeta.id) {
+                        fromCoverUrl = toCoverUrl
+                        toCoverUrl = null
+                        coverProgress.snapTo(0f)
+                        delay(900L)
+                        isMixing = false
+                        isTransitionRunning = false
+                        activeTransitionSongId = null
+                        expectedNextSongId = null
+                    }
+                }
+            }
+        }
+    }
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
@@ -230,7 +421,7 @@ fun PlayerV2(
         UseNewPlayerDesignKey,
         defaultValue = false
     )
-    val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -289,27 +480,27 @@ fun PlayerV2(
     var showAudioDeviceBottomSheet by remember { mutableStateOf(false) }
     
     val bluetoothDeviceName by produceState<String?>(initialValue = getConnectedBluetoothDeviceName(context)) {
-        val am = context.getSystemService(android.content.Context.AUDIO_SERVICE) as AudioManager
+        val am = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val scope = this
         val updateDeviceState: () -> Unit = {
             scope.value = getConnectedBluetoothDeviceName(context)
             scope.launch {
-                kotlinx.coroutines.delay(500)
+                delay(500)
                 scope.value = getConnectedBluetoothDeviceName(context)
             }
         }
 
         val receiver = object : BroadcastReceiver() {
-            override fun onReceive(c: android.content.Context, intent: Intent) {
+            override fun onReceive(c: Context, intent: Intent) {
                 updateDeviceState()
             }
         }
         val callback = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            object : android.media.AudioDeviceCallback() {
-                override fun onAudioDevicesAdded(addedDevices: Array<out android.media.AudioDeviceInfo>?) {
+            object : AudioDeviceCallback() {
+                override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>?) {
                     updateDeviceState()
                 }
-                override fun onAudioDevicesRemoved(removedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>?) {
                     updateDeviceState()
                 }
             }
@@ -361,10 +552,10 @@ fun PlayerV2(
 
     // Capture seek and position discontinuity events immediately, even while paused
     DisposableEffect(playerConnection.player) {
-        val listener = object : androidx.media3.common.Player.Listener {
+        val listener = object : Player.Listener {
             override fun onPositionDiscontinuity(
-                oldPosition: androidx.media3.common.Player.PositionInfo,
-                newPosition: androidx.media3.common.Player.PositionInfo,
+                oldPosition: Player.PositionInfo,
+                newPosition: Player.PositionInfo,
                 reason: Int
             ) {
                 if (!isCasting && sliderPosition == null) {
@@ -431,6 +622,29 @@ fun PlayerV2(
         label = "blurOverlayAlpha"
     )
 
+    val mixingInfiniteTransition = rememberInfiniteTransition(label = "MixingShimmer")
+    val mixingShimmerTranslate by mixingInfiniteTransition.animateFloat(
+        initialValue = -80f,
+        targetValue = 200f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "mixingShimmerTranslate"
+    )
+    val mixingShimmerBrush = remember(mixingShimmerTranslate, adaptiveSecondary) {
+        Brush.linearGradient(
+            colors = listOf(
+                adaptiveSecondary.copy(alpha = 0.5f),
+                Color.White,
+                Color.White,
+                adaptiveSecondary.copy(alpha = 0.5f)
+            ),
+            start = Offset(mixingShimmerTranslate, 0f),
+            end = Offset(mixingShimmerTranslate + 60f, 0f)
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -438,7 +652,7 @@ fun PlayerV2(
             .pointerInput(Unit) {
                 awaitPointerEventScope {
                     while (true) {
-                        val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
                         if (event.changes.any { it.changedToDown() }) {
                             if (playerState == PlayerInternalState.COVER) {
                                 controlsVisible = true
@@ -507,7 +721,7 @@ fun PlayerV2(
             }
 
             // Morphing Content Area (Cover vs Lyrics vs Queue)
-            androidx.compose.animation.SharedTransitionLayout(
+            SharedTransitionLayout(
                     modifier = Modifier.weight(1f)
                 ) {
                     AnimatedContent(
@@ -576,27 +790,19 @@ fun PlayerV2(
                                                 )
                                             }
                                         } else {
-                                            val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
-                                                mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
-                                            }
-                                            AsyncImage(
-                                                model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                                                contentDescription = "Cover Art",
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .graphicsLayer {
-                                                        if (cropAlbumArt && isYtThumbnail) {
-                                                            scaleX = 4f / 3f
-                                                            scaleY = 4f / 3f
-                                                        }
-                                                    },
-                                                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
+                                            AutoMixCoverArt(
+                                                fromCoverUrl = fromCoverUrl,
+                                                toCoverUrl = toCoverUrl,
+                                                progress = coverProgress.value,
+                                                crossfadeEnabled = crossfadeEnabled,
+                                                cropAlbumArt = cropAlbumArt,
+                                                modifier = Modifier.fillMaxSize()
                                             )
                                             // Fix 4: Always render canvas (don't gate on transition state).
                                             // The previous guard caused a visible pop/snap when the
                                             // transition completed and the canvas suddenly appeared.
                                             PlayerV2Motionartowek(
-                                                mediaMetadata = mediaMetadata,
+                                                mediaMetadata = displayedMetadata,
                                                 isPlaying = isPlaying,
                                                 modifier = Modifier.fillMaxSize()
                                             )
@@ -629,7 +835,7 @@ fun PlayerV2(
                                             .clipToBounds()
                                     ) {
                                         Text(
-                                            text = mediaMetadata?.title ?: "Unknown",
+                                            text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.headlineSmall,
                                             fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
@@ -648,14 +854,14 @@ fun PlayerV2(
                                                 )
                                                 .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                                 .clickable {
-                                                    mediaMetadata?.album?.id?.let {
+                                                    displayedMetadata?.album?.id?.let {
                                                         navController.navigate("album/$it")
                                                         state.collapseSoft()
                                                     }
                                                 }
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        val artists = mediaMetadata?.artists.orEmpty().filter { it.name.isNotBlank() }
+                                        val artists = displayedMetadata?.artists.orEmpty().filter { it.name.isNotBlank() }
                                         if (artists.isNotEmpty()) {
                                             val annotatedString = buildAnnotatedString {
                                                 withStyle(
@@ -688,7 +894,7 @@ fun PlayerV2(
                                                         }
                                                     )
                                             ) {
-                                                if (mediaMetadata?.explicit == true) {
+                                                if (displayedMetadata?.explicit == true) {
                                                     MIcon.Explicit(tint = adaptiveSecondary)
                                                     Spacer(modifier = Modifier.width(4.dp))
                                                 }
@@ -881,7 +1087,7 @@ fun PlayerV2(
                                             .clipToBounds()
                                     ) {
                                         Text(
-                                            text = mediaMetadata?.title ?: "Unknown",
+                                            text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.titleMedium,
                                             fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
@@ -913,11 +1119,11 @@ fun PlayerV2(
                                                     }
                                                 )
                                         ) {
-                                            if (mediaMetadata?.explicit == true) {
+                                            if (displayedMetadata?.explicit == true) {
                                                 MIcon.Explicit(tint = adaptiveSecondary)
                                                 Spacer(modifier = Modifier.width(4.dp))
                                             }
-                                            val allArtists = mediaMetadata?.artists?.filter { it.name.isNotBlank() }?.joinToString { it.name } ?: "Unknown"
+                                            val allArtists = displayedMetadata?.artists?.filter { it.name.isNotBlank() }?.joinToString { it.name } ?: "Unknown"
                                             Text(
                                                 text = allArtists,
                                                 style = MaterialTheme.typography.titleSmall,
@@ -1074,7 +1280,7 @@ fun PlayerV2(
                         .pointerInput(Unit) {
                             awaitPointerEventScope {
                                 while (true) {
-                                    val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                                    val event = awaitPointerEvent(PointerEventPass.Initial)
                                     if (event.changes.any { it.changedToDown() }) {
                                         lastInteractionTime = System.currentTimeMillis()
                                     }
@@ -1107,8 +1313,8 @@ fun PlayerV2(
                         )
                         
                         Slider(
-                            value = currentPos.toFloat(),
-                            valueRange = 0f..(if (duration == androidx.media3.common.C.TIME_UNSET) 0f else duration.toFloat()),
+                            value = currentPos.toFloat().coerceIn(0f, maxOf(1f, duration.toFloat())),
+                            valueRange = 0f..(if (duration == C.TIME_UNSET || duration <= 0L) 1f else duration.toFloat()),
                             onValueChange = { value ->
                                 if (!isListenTogetherGuest) {
                                     sliderPosition = value.toLong()
@@ -1147,9 +1353,20 @@ fun PlayerV2(
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(makeTimeString(currentPos), color = adaptiveSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                            if (playerBackground != PlayerBackgroundStyle.APPLE_MUSIC && crossfadeEnabled && (mixAlpha > 0.001f || isMixing)) {
+                                Text(
+                                    text = "Mixing",
+                                    style = MaterialTheme.typography.labelSmall.copy(
+                                        brush = mixingShimmerBrush,
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
+                                    modifier = Modifier.graphicsLayer { alpha = mixAlpha }
+                                )
+                            }
                             Text("-" + makeTimeString(maxOf(0L, duration - currentPos)), color = adaptiveSecondary, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
                     
@@ -1252,7 +1469,7 @@ fun PlayerV2(
                                     } else {
                                         systemVolume = newValue
                                         val targetVolume = (newValue * maxSystemVolume).toInt()
-                                        audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, targetVolume, 0)
+                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, targetVolume, 0)
                                     }
                                 },
                                 interactionSource = volumeInteractionSource,
@@ -1317,8 +1534,8 @@ fun PlayerV2(
                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                                     color = adaptiveSecondary.copy(alpha = 0.8f),
                                     maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center,
                                     modifier = Modifier
                                         .absoluteOffset(y = 30.dp)
                                         .widthIn(max = 84.dp)
@@ -1368,6 +1585,94 @@ fun PlayerV2(
         
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
+        }
+    }
+}
+
+/**
+ * AutoMix Cover Art displaying seamless dual-layer dissolve with dynamic mid-transition
+ * sine-wave blur (adapted from AutoMix.kt) strictly when crossfade is enabled.
+ * If crossfade is disabled, it acts as standard single-layer Cover Art.
+ */
+@Composable
+private fun AutoMixCoverArt(
+    fromCoverUrl: String?,
+    toCoverUrl: String?,
+    progress: Float,
+    crossfadeEnabled: Boolean,
+    cropAlbumArt: Boolean,
+    modifier: Modifier = Modifier,
+    maxBlur: Dp = 3.dp
+) {
+    if (!crossfadeEnabled || toCoverUrl.isNullOrBlank()) {
+        val targetUrl = toCoverUrl ?: fromCoverUrl
+        val isYtThumbnail = remember(targetUrl) {
+            targetUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        }
+        AsyncImage(
+            model = targetUrl?.resize(1200, 1200),
+            contentDescription = "Cover Art",
+            modifier = modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    if (cropAlbumArt && isYtThumbnail) {
+                        scaleX = 4f / 3f
+                        scaleY = 4f / 3f
+                    }
+                },
+            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
+        )
+        return
+    }
+
+    val k = progress.coerceIn(0f, 1f)
+    val blurRadius = (maxBlur.value * sin(PI * k.toDouble())).toFloat().dp
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .blur(blurRadius)
+    ) {
+        val fromUrl = fromCoverUrl
+        if (!fromUrl.isNullOrBlank()) {
+            val fromIsYt = remember(fromUrl) {
+                fromUrl.contains("ytimg") || fromUrl.contains("/vi/") || fromUrl.contains("youtube.com")
+            }
+            AsyncImage(
+                model = fromUrl.resize(1200, 1200),
+                contentDescription = "Cover Art Outgoing",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = 1f - k
+                        if (fromIsYt) {
+                            scaleX = 4f / 3f
+                            scaleY = 4f / 3f
+                        }
+                    },
+                contentScale = ContentScale.Crop
+            )
+        }
+
+        val toUrl = toCoverUrl
+        if (!toUrl.isNullOrBlank()) {
+            val toIsYt = remember(toUrl) {
+                toUrl.contains("ytimg") || toUrl.contains("/vi/") || toUrl.contains("youtube.com")
+            }
+            AsyncImage(
+                model = toUrl.resize(1200, 1200),
+                contentDescription = "Cover Art Incoming",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = k
+                        if (toIsYt) {
+                            scaleX = 4f / 3f
+                            scaleY = 4f / 3f
+                        }
+                    },
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }
