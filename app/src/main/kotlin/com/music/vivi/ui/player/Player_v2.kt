@@ -21,6 +21,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -78,8 +79,6 @@ import com.music.vivi.constants.HidePlayerThumbnailKey
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeDurationKey
-import kotlin.math.PI
-import kotlin.math.sin
 import kotlin.math.roundToInt
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
@@ -106,6 +105,7 @@ import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import com.music.vivi.ui.component.CastButton
+import com.music.vivi.ui.menu.ListenTogetherDialog
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.LocalListenTogetherManager
@@ -124,6 +124,7 @@ import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
+import com.music.vivi.ui.screens.settings.integrations.ListenTogetherAvatarList
 
 enum class PlayerInternalState { COVER, LYRICS, QUEUE }
 
@@ -151,6 +152,18 @@ fun PlayerV2(
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+    val listenTogetherRoomState by listenTogetherManager?.roomState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
+    val listenTogetherUsersCount = listenTogetherRoomState?.users?.size ?: if (listenTogetherManager?.isInRoom == true) 1 else 0
+    val isInListenTogetherRoom = listenTogetherManager?.isInRoom == true || listenTogetherUsersCount > 0
+    var showListenTogetherDialog by remember { mutableStateOf(false) }
+    val hostUser = remember(listenTogetherRoomState) {
+        listenTogetherRoomState?.users?.firstOrNull { it.isHost || it.userId == listenTogetherRoomState?.hostId }
+    }
+    val hostName = hostUser?.username
+    val hostAvatarRes = remember(hostUser?.avatarIndex) {
+        val index = hostUser?.avatarIndex ?: 0
+        ListenTogetherAvatarList.getOrElse(index) { R.drawable.person }
+    }
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -309,14 +322,13 @@ fun PlayerV2(
                     animJob.join()
                     if (playerConnection.mediaMetadata.value?.id == nextMeta.id) {
                         fromCoverUrl = toCoverUrl
-                        toCoverUrl = null
-                        coverProgress.snapTo(0f)
-                        delay(900L)
-                        isMixing = false
-                        isTransitionRunning = false
-                        activeTransitionSongId = null
-                        expectedNextSongId = null
                     }
+                    toCoverUrl = null
+                    coverProgress.snapTo(0f)
+                    isMixing = false
+                    isTransitionRunning = false
+                    activeTransitionSongId = null
+                    expectedNextSongId = null
                 }
             }
         }
@@ -340,16 +352,27 @@ fun PlayerV2(
 
         // When the service is not crossfading (e.g. crossfade completed or cancelled due to skip):
         if (!isCrossfadingService) {
-            activeTransitionJob?.cancel()
-            activeTransitionJob = null
-            isTransitionRunning = false
-            displayedMetadata = newMeta
-            fromCoverUrl = newMeta.thumbnailUrl
-            toCoverUrl = null
-            coverProgress.snapTo(0f)
-            isMixing = false
-            activeTransitionSongId = null
-            expectedNextSongId = null
+            if (!isTransitionRunning) {
+                displayedMetadata = newMeta
+                fromCoverUrl = newMeta.thumbnailUrl
+                toCoverUrl = null
+                coverProgress.snapTo(0f)
+                isMixing = false
+                activeTransitionSongId = null
+                expectedNextSongId = null
+            } else if (newMeta.id != expectedNextSongId && newMeta.id != activeTransitionSongId) {
+                // User rapidly skipped to another song: abort the stale transition immediately!
+                activeTransitionJob?.cancel()
+                activeTransitionJob = null
+                isTransitionRunning = false
+                isMixing = false
+                activeTransitionSongId = null
+                expectedNextSongId = null
+                fromCoverUrl = newMeta.thumbnailUrl
+                toCoverUrl = null
+                displayedMetadata = newMeta
+                coverProgress.snapTo(0f)
+            }
             return@LaunchedEffect
         }
 
@@ -400,14 +423,13 @@ fun PlayerV2(
                     animJob.join()
                     if (playerConnection.mediaMetadata.value?.id == toMeta.id) {
                         fromCoverUrl = toCoverUrl
-                        toCoverUrl = null
-                        coverProgress.snapTo(0f)
-                        delay(900L)
-                        isMixing = false
-                        isTransitionRunning = false
-                        activeTransitionSongId = null
-                        expectedNextSongId = null
                     }
+                    toCoverUrl = null
+                    coverProgress.snapTo(0f)
+                    isMixing = false
+                    isTransitionRunning = false
+                    activeTransitionSongId = null
+                    expectedNextSongId = null
                 }
             }
         }
@@ -790,22 +812,23 @@ fun PlayerV2(
                                                 )
                                             }
                                         } else {
-                                            AutoMixCoverArt(
+                                            Blendingimage(
                                                 fromCoverUrl = fromCoverUrl,
                                                 toCoverUrl = toCoverUrl,
+                                                nextCoverUrl = nextMediaMetadata?.thumbnailUrl,
                                                 progress = coverProgress.value,
+                                                crossfadeDuration = crossfadeDuration,
                                                 crossfadeEnabled = crossfadeEnabled,
                                                 cropAlbumArt = cropAlbumArt,
                                                 modifier = Modifier.fillMaxSize()
                                             )
-                                            // Fix 4: Always render canvas (don't gate on transition state).
-                                            // The previous guard caused a visible pop/snap when the
-                                            // transition completed and the canvas suddenly appeared.
-                                            PlayerV2Motionartowek(
-                                                mediaMetadata = displayedMetadata,
-                                                isPlaying = isPlaying,
-                                                modifier = Modifier.fillMaxSize()
-                                            )
+                                            if (toCoverUrl == null) {
+                                                PlayerV2Motionartowek(
+                                                    mediaMetadata = displayedMetadata,
+                                                    isPlaying = isPlaying,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -834,6 +857,41 @@ fun PlayerV2(
                                             .padding(end = 12.dp)
                                             .clipToBounds()
                                     ) {
+                                        if (isListenTogetherGuest && !hostName.isNullOrBlank()) {
+                                            Surface(
+                                                shape = RoundedCornerShape(50),
+                                                color = adaptiveSecondary.copy(alpha = 0.16f),
+                                                modifier = Modifier
+                                                    .padding(bottom = 6.dp)
+                                                    .clickable { showListenTogetherDialog = true }
+                                            ) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                    modifier = Modifier.padding(start = 4.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(hostAvatarRes),
+                                                        contentDescription = "Host Avatar",
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .size(18.dp)
+                                                            .clip(CircleShape)
+                                                    )
+                                                    Text(
+                                                        text = hostName,
+                                                        style = MaterialTheme.typography.labelSmall.copy(
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            fontSize = 12.sp
+                                                        ),
+                                                        color = adaptivePrimary,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
+                                                }
+                                            }
+                                        }
+
                                         Text(
                                             text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.headlineSmall,
@@ -1516,49 +1574,150 @@ fun PlayerV2(
                             )
                         }
 
-                        Box(contentAlignment = Alignment.Center) {
-                            if (bluetoothDeviceName != null) {
-                                IconButton(
-                                    onClick = { showAudioDeviceBottomSheet = true },
-                                    modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
+                        if (isInListenTogetherRoom) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = adaptiveSecondary.copy(alpha = 0.16f),
+                                    modifier = Modifier.height(42.dp)
                                 ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.headphones_apple), 
-                                        contentDescription = "Audio Device", 
-                                        tint = adaptiveSecondary, 
-                                        modifier = Modifier.size(28.dp)
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Left Half: Audio Device / AirPlay / Cast
+                                        val onLeftClick: (() -> Unit)? = if (bluetoothDeviceName != null || !(BuildConfig.CAST_AVAILABLE && enableGoogleCast)) {
+                                            { showAudioDeviceBottomSheet = true }
+                                        } else null
+
+                                        Box(
+                                            modifier = Modifier
+                                                .then(if (onLeftClick != null) Modifier.clickable(onClick = onLeftClick) else Modifier)
+                                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (bluetoothDeviceName != null) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.headphones_apple),
+                                                    contentDescription = "Audio Device",
+                                                    tint = adaptivePrimary,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
+                                                CastButton(
+                                                    modifier = Modifier.size(24.dp),
+                                                    tintColor = adaptiveSecondary,
+                                                    activeTintColor = adaptivePrimary,
+                                                    showBackground = false,
+                                                    customIconRes = R.drawable.airplay_audio
+                                                )
+                                            } else {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.airplay_audio),
+                                                    contentDescription = "Audio Routing",
+                                                    tint = adaptiveSecondary,
+                                                    modifier = Modifier.size(24.dp)
+                                                )
+                                            }
+                                        }
+
+                                        // Center dividing line
+                                        Box(
+                                            modifier = Modifier
+                                                .width(1.dp)
+                                                .height(22.dp)
+                                                .background(adaptiveSecondary.copy(alpha = 0.25f))
+                                        )
+
+                                        // Right Half: Listen Together / SharePlay
+                                        Row(
+                                            modifier = Modifier
+                                                .clickable { showListenTogetherDialog = true }
+                                                .padding(horizontal = 14.dp, vertical = 8.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.group_filled),
+                                                contentDescription = "Listen Together",
+                                                tint = adaptivePrimary,
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                            if (listenTogetherUsersCount > 0) {
+                                                Text(
+                                                    text = "$listenTogetherUsersCount",
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 13.sp
+                                                    ),
+                                                    color = adaptivePrimary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (bluetoothDeviceName != null) {
+                                    Text(
+                                        text = bluetoothDeviceName!!,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = adaptiveSecondary.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .padding(top = 2.dp)
+                                            .widthIn(max = 120.dp)
                                     )
                                 }
-                                Text(
-                                    text = bluetoothDeviceName!!,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                                    color = adaptiveSecondary.copy(alpha = 0.8f),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier
-                                        .absoluteOffset(y = 30.dp)
-                                        .widthIn(max = 84.dp)
-                                )
-                            } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
-                                CastButton(
-                                    modifier = Modifier.size(48.dp),
-                                    tintColor = adaptiveSecondary,
-                                    activeTintColor = adaptivePrimary,
-                                    showBackground = false,
-                                    customIconRes = R.drawable.airplay_audio
-                                )
-                            } else {
-                                IconButton(
-                                    onClick = { showAudioDeviceBottomSheet = true },
-                                    modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.airplay_audio),
-                                        contentDescription = "Audio Routing", 
-                                        tint = adaptiveSecondary, 
-                                        modifier = Modifier.size(28.dp)
+                            }
+                        } else {
+                            Box(contentAlignment = Alignment.Center) {
+                                if (bluetoothDeviceName != null) {
+                                    IconButton(
+                                        onClick = { showAudioDeviceBottomSheet = true },
+                                        modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.headphones_apple),
+                                            contentDescription = "Audio Device",
+                                            tint = adaptiveSecondary,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = bluetoothDeviceName!!,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                                        color = adaptiveSecondary.copy(alpha = 0.8f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier
+                                            .absoluteOffset(y = 30.dp)
+                                            .widthIn(max = 84.dp)
                                     )
+                                } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
+                                    CastButton(
+                                        modifier = Modifier.size(48.dp),
+                                        tintColor = adaptiveSecondary,
+                                        activeTintColor = adaptivePrimary,
+                                        showBackground = false,
+                                        customIconRes = R.drawable.airplay_audio
+                                    )
+                                } else {
+                                    IconButton(
+                                        onClick = { showAudioDeviceBottomSheet = true },
+                                        modifier = Modifier.background(Color.Transparent, RoundedCornerShape(12.dp))
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.airplay_audio),
+                                            contentDescription = "Audio Routing",
+                                            tint = adaptiveSecondary,
+                                            modifier = Modifier.size(28.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -1586,92 +1745,11 @@ fun PlayerV2(
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
         }
-    }
-}
-
-/**
- * AutoMix Cover Art displaying seamless dual-layer dissolve with dynamic mid-transition
- * sine-wave blur (adapted from AutoMix.kt) strictly when crossfade is enabled.
- * If crossfade is disabled, it acts as standard single-layer Cover Art.
- */
-@Composable
-private fun AutoMixCoverArt(
-    fromCoverUrl: String?,
-    toCoverUrl: String?,
-    progress: Float,
-    crossfadeEnabled: Boolean,
-    cropAlbumArt: Boolean,
-    modifier: Modifier = Modifier,
-    maxBlur: Dp = 3.dp
-) {
-    if (!crossfadeEnabled || toCoverUrl.isNullOrBlank()) {
-        val targetUrl = toCoverUrl ?: fromCoverUrl
-        val isYtThumbnail = remember(targetUrl) {
-            targetUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
-        }
-        AsyncImage(
-            model = targetUrl?.resize(1200, 1200),
-            contentDescription = "Cover Art",
-            modifier = modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    if (cropAlbumArt && isYtThumbnail) {
-                        scaleX = 4f / 3f
-                        scaleY = 4f / 3f
-                    }
-                },
-            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
-        )
-        return
-    }
-
-    val k = progress.coerceIn(0f, 1f)
-    val blurRadius = (maxBlur.value * sin(PI * k.toDouble())).toFloat().dp
-
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .blur(blurRadius)
-    ) {
-        val fromUrl = fromCoverUrl
-        if (!fromUrl.isNullOrBlank()) {
-            val fromIsYt = remember(fromUrl) {
-                fromUrl.contains("ytimg") || fromUrl.contains("/vi/") || fromUrl.contains("youtube.com")
-            }
-            AsyncImage(
-                model = fromUrl.resize(1200, 1200),
-                contentDescription = "Cover Art Outgoing",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = 1f - k
-                        if (fromIsYt) {
-                            scaleX = 4f / 3f
-                            scaleY = 4f / 3f
-                        }
-                    },
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        val toUrl = toCoverUrl
-        if (!toUrl.isNullOrBlank()) {
-            val toIsYt = remember(toUrl) {
-                toUrl.contains("ytimg") || toUrl.contains("/vi/") || toUrl.contains("youtube.com")
-            }
-            AsyncImage(
-                model = toUrl.resize(1200, 1200),
-                contentDescription = "Cover Art Incoming",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = k
-                        if (toIsYt) {
-                            scaleX = 4f / 3f
-                            scaleY = 4f / 3f
-                        }
-                    },
-                contentScale = ContentScale.Crop
+        if (showListenTogetherDialog) {
+            ListenTogetherDialog(
+                visible = showListenTogetherDialog,
+                mediaMetadata = mediaMetadata,
+                onDismiss = { showListenTogetherDialog = false }
             )
         }
     }

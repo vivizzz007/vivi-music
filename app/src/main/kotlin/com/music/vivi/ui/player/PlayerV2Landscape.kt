@@ -15,8 +15,10 @@ import android.os.Looper
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import com.music.vivi.ui.menu.ListenTogetherDialog
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -97,6 +99,7 @@ import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import com.music.vivi.ui.screens.settings.integrations.ListenTogetherAvatarList
 
 @Composable
 fun PlayerV2Landscape(
@@ -118,6 +121,16 @@ fun PlayerV2Landscape(
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+    val listenTogetherRoomState by listenTogetherManager?.roomState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
+    val hostUser = remember(listenTogetherRoomState) {
+        listenTogetherRoomState?.users?.firstOrNull { it.isHost || it.userId == listenTogetherRoomState?.hostId }
+    }
+    val hostName = hostUser?.username
+    val hostAvatarRes = remember(hostUser?.avatarIndex) {
+        val index = hostUser?.avatarIndex ?: 0
+        ListenTogetherAvatarList.getOrElse(index) { R.drawable.person }
+    }
+    var showListenTogetherDialog by remember { mutableStateOf(false) }
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -643,6 +656,40 @@ fun PlayerV2Landscape(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                                    if (isListenTogetherGuest && !hostName.isNullOrBlank()) {
+                                        Surface(
+                                            shape = RoundedCornerShape(50),
+                                            color = adaptiveSecondary.copy(alpha = 0.16f),
+                                            modifier = Modifier
+                                                .padding(bottom = 6.dp)
+                                                .clickable { showListenTogetherDialog = true }
+                                        ) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                modifier = Modifier.padding(start = 4.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(hostAvatarRes),
+                                                    contentDescription = "Host Avatar",
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .size(18.dp)
+                                                        .clip(CircleShape)
+                                                )
+                                                Text(
+                                                    text = hostName,
+                                                    style = MaterialTheme.typography.labelSmall.copy(
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        fontSize = 12.sp
+                                                    ),
+                                                    color = adaptivePrimary,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+                                    }
                                     Text(
                                         text = mediaMetadata?.title ?: "Unknown",
                                         style = MaterialTheme.typography.titleLarge,
@@ -1121,6 +1168,14 @@ fun PlayerV2Landscape(
     if (showAudioDeviceBottomSheet) {
         AudioDeviceBottomSheet(
             onDismiss = { showAudioDeviceBottomSheet = false }
+        )
+    }
+
+    if (showListenTogetherDialog) {
+        ListenTogetherDialog(
+            visible = showListenTogetherDialog,
+            mediaMetadata = mediaMetadata,
+            onDismiss = { showListenTogetherDialog = false }
         )
     }
 }
