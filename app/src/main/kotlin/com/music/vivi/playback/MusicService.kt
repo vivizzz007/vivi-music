@@ -290,7 +290,7 @@ class MusicService :
         private set//improvement
 
     private var crossfadeEnabled = false
-    private var crossfadeDuration = 5000f
+    private var crossfadeDuration = 6000f
     private var crossfadeGapless = true
     private var crossfadeManualSkipEnabled = false
     private var crossfadeCurve = CrossfadeCurve.EASE_OUT_QUAD
@@ -407,6 +407,8 @@ class MusicService :
     private var isCrossfading = false
     val isCrossfadingFlow = MutableStateFlow(false)
     val crossfadeOutgoingItem = MutableStateFlow<MediaMetadata?>(null)
+    val crossfadeIncomingItem = MutableStateFlow<MediaMetadata?>(null)
+    val crossfadeProgressFlow = MutableStateFlow(0f)
     private var crossfadeJob: Job? = null
 
     private lateinit var mediaSession: MediaLibrarySession
@@ -576,6 +578,7 @@ class MusicService :
 
         // Mark player as initialized after successful creation
         playerInitialized.value = true
+        _playerFlow.value = player
         Timber.tag(TAG).d("Player successfully initialized")
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -1114,7 +1117,7 @@ class MusicService :
             dataStore.data.map { prefs ->
                 CrossfadeSettings(
                     enabled = prefs[CrossfadeEnabledKey] ?: false,
-                    durationSeconds = prefs[CrossfadeDurationKey] ?: 5f,
+                    durationSeconds = prefs[CrossfadeDurationKey] ?: 6f,
                     gapless = prefs[CrossfadeGaplessKey] ?: true,
                     manualSkip = prefs[CrossfadeManualSkipKey] ?: false,
                     curve = prefs[CrossfadeCurveKey].toEnum(CrossfadeCurve.EASE_OUT_QUAD),
@@ -1301,7 +1304,6 @@ class MusicService :
 
                 // Cleanup handled manually in onDestroy/release
             }
-        _playerFlow.value = player
         return player
     }
 
@@ -2463,6 +2465,7 @@ class MusicService :
             }
         }
         previousMediaItemIndex = player.currentMediaItemIndex
+        currentMediaMetadata.value = player.currentMetadata
 
         lastPlaybackSpeed = -1.0f // force update song
 
@@ -2676,7 +2679,9 @@ class MusicService :
     ) {
         if (events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
-                Player.EVENT_PLAY_WHEN_READY_CHANGED
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_TIMELINE_CHANGED,
+                Player.EVENT_TRACKS_CHANGED
             )
         ) {
             scheduleCrossfade()
@@ -3863,6 +3868,8 @@ class MusicService :
         isCrossfading = false
         isCrossfadingFlow.value = false
         crossfadeOutgoingItem.value = null
+        crossfadeIncomingItem.value = null
+        crossfadeProgressFlow.value = 0f
         player.removeListener(this)
         player.removeListener(sleepTimer)
         releaseExoPlayer(player)
@@ -4027,11 +4034,10 @@ class MusicService :
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         if (isCrossfading) return
-        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= (crossfadeDuration / 2f)) return
+        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
 
-        val halfDuration = (crossfadeDuration / 2f).toLong().coerceAtLeast(500L)
-        val triggerTime = player.duration - halfDuration
+        val triggerTime = player.duration - crossfadeDuration.toLong()
         val delayMs = triggerTime - player.currentPosition
         if (delayMs <= 0) {
             if (player.isPlaying && player.currentPosition < player.duration && !sleepTimer.pauseWhenSongEnd) {
@@ -4395,122 +4401,132 @@ class MusicService :
 
         isCrossfading = true
         crossfadeOutgoingItem.value = currentPlayer.currentMetadata
+        crossfadeIncomingItem.value = nextPlayer.currentMetadata
+        crossfadeProgressFlow.value = 0f
         isCrossfadingFlow.value = true
 
-        fadingPlayer = currentPlayer
-        player = nextPlayer
-        _playerFlow.value = player
+        currentPlayer.pauseAtEndOfMediaItems = true
+
+        // Add listener to sync play/pause state from primary to incoming player only on user request
+        val playPauseListener = object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (isCrossfading && secondaryPlayer != null) {
+                    if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+                        secondaryPlayer?.playWhenReady = playWhenReady
+                    }
+                }
+            }
+        }
+        currentPlayer.addListener(playPauseListener)
+
+        crossfadeJob?.cancel()
+        crossfadeJob = scope.launch {
+            val duration = crossfadeDuration.toLong()
+            val steps = 50
+            val stepTime = (duration / steps).coerceAtLeast(20L)
+            val startVolume = try { currentPlayer.volume } catch (_: Exception) { 1f }
+
+            for (i in 0..steps) {
+                if (!isActive) break
+                // Pause volume ramp only if user paused playback
+                while (!currentPlayer.playWhenReady && !nextPlayer.playWhenReady && isActive &&
+                    currentPlayer.playbackState != Player.STATE_ENDED) {
+                    delay(100)
+                }
+
+                // If outgoing track reached the end, stop waiting and finalize immediately
+                if (currentPlayer.playbackState == Player.STATE_ENDED ||
+                    (!currentPlayer.isPlaying && currentPlayer.duration != C.TIME_UNSET && currentPlayer.currentPosition >= (currentPlayer.duration - 500L).coerceAtLeast(0L))
+                ) {
+                    Timber.tag(TAG).d("Crossfade: Song A reached end at step $i, finalizing immediately")
+                    break
+                }
+
+                val progress = (i / steps.toFloat()).coerceIn(0f, 1f)
+                crossfadeProgressFlow.value = progress
+
+                val fadeIn = crossfadeCurve.fadeIn(progress)
+                val fadeOut = crossfadeCurve.fadeOut(progress)
+
+                try {
+                    nextPlayer.volume = startVolume * fadeIn
+                    currentPlayer.volume = startVolume * fadeOut
+                } catch (_: Exception) { break }
+
+                delay(stepTime)
+            }
+
+            try {
+                currentPlayer.removeListener(playPauseListener)
+                finalizeCrossfadeSwap(currentPlayer, nextPlayer, startVolume)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error finalizing crossfade swap")
+            }
+        }
+    }
+
+    private fun finalizeCrossfadeSwap(oldPlayer: ExoPlayer, newPlayer: ExoPlayer, targetVolume: Float) {
+        val incomingMeta = newPlayer.currentMetadata
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: swapping to ${incomingMeta?.title} (id=${incomingMeta?.id})")
+
+        fadingPlayer = oldPlayer
+        player = newPlayer
         secondaryPlayer = null
 
         // Audio normalization follows the audio session, and the incoming player has a
         // different one. Keep the outgoing player's enhancer alive so it stays normalized
-        // while it fades out, and create a fresh one for the new primary player so the
-        // incoming track is normalized from the first sample (and stays so afterwards).
+        // while it fades out, and create a fresh one for the new primary player.
         releaseFadingLoudnessEnhancer()
         fadingLoudnessEnhancer = loudnessEnhancer
         loudnessEnhancer = null
         loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
         setupLoudnessEnhancer()
 
-        fadingPlayer?.removeListener(this)
-        fadingPlayer?.removeListener(sleepTimer)
-        fadingPlayer?.pauseAtEndOfMediaItems = true
-        fadingPlayer?.addListener(object : Player.Listener {
-            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                // Outgoing player must NEVER play subsequent items from the queue
-                try {
-                    fadingPlayer?.volume = 0f
-                    fadingPlayer?.stop()
-                    fadingPlayer?.clearMediaItems()
-                } catch (_: Exception) {}
-            }
+        oldPlayer.removeListener(this)
+        oldPlayer.removeListener(sleepTimer)
 
-            override fun onPlaybackStateChanged(playbackState: Int) {
-                if (playbackState == Player.STATE_ENDED) {
-                    try {
-                        fadingPlayer?.volume = 0f
-                        fadingPlayer?.stop()
-                        fadingPlayer?.clearMediaItems()
-                    } catch (_: Exception) {}
-                }
-            }
-        })
-
-        // Add listener to sync play/pause state
-        player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isCrossfading && fadingPlayer != null) {
-                    if (isPlaying) {
-                        fadingPlayer?.play()
-                    } else {
-                        fadingPlayer?.pause()
-                    }
-                } else {
-                    player.removeListener(this)
-                }
-            }
-        })
-
-        nextPlayer.removeListener(secondaryPlayerListener)
-        nextPlayer.addListener(this)
-        nextPlayer.addListener(sleepTimer)
+        newPlayer.removeListener(secondaryPlayerListener)
+        newPlayer.addListener(this)
+        newPlayer.addListener(sleepTimer)
 
         sleepTimer.player = player
 
         try {
             (mediaSession as MediaSession).player = player
         } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to swap player in MediaSession")
+            Timber.tag(TAG).e(e, "Failed to swap player in MediaSession")
         }
 
-        // The new primary was seeked to its target before we attached as listener, so
-        // onMediaItemTransition() is never called for it. Do the parts of that callback that
-        // keep the queue healthy: keep the "previous index" in sync, load more songs near the
-        // end of the queue, and pre-resolve the next stream URL.
         previousMediaItemIndex = player.currentMediaItemIndex
+        currentMediaMetadata.value = incomingMeta
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: currentMediaMetadata updated to ${incomingMeta?.title}")
+
+        try {
+            player.volume = targetVolume
+            player.pauseAtEndOfMediaItems = false
+            player.playWhenReady = true
+            player.play()
+        } catch (_: Exception) {}
+
+        // Emit new player FIRST so PlayerConnection attaches to newPlayer before oldPlayer is cleared
+        _playerFlow.value = null
+        _playerFlow.value = player
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: _playerFlow emitted for new player: ${player.currentMetadata?.title}")
+
+        cleanupCrossfade()
+
+        updateNotification()
+        updateWidgetUI(player.isPlaying)
+
+        scheduleCrossfade()
         maybeLoadMore(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
         prefetchNextTrack()
-
-        crossfadeJob = scope.launch {
-            val duration = crossfadeDuration.toLong()
-            val steps = 20
-            val stepTime = duration / steps
-            val startVolume = try { fadingPlayer?.volume ?: 1f } catch(e:Exception) { 1f }
-
-            for (i in 0..steps) {
-                if (!isActive) break
-                // Pause volume ramp if player is paused
-                while (!player.isPlaying && isActive) {
-                    delay(100)
-                }
-
-                val progress = (i / steps.toFloat()).coerceIn(0f, 1f)
-                val fadeIn = crossfadeCurve.fadeIn(progress)
-                // fadeOut completes over the first half so Song A fades to silence before its track ends
-                val fadeOutProgress = (progress * 2f).coerceIn(0f, 1f)
-                val fadeOut = crossfadeCurve.fadeOut(fadeOutProgress)
-
-                try {
-                    player.volume = startVolume * fadeIn
-                    fadingPlayer?.let { fp ->
-                        if (fadeOutProgress >= 1f) {
-                            fp.volume = 0f
-                            fp.stop()
-                            fp.clearMediaItems()
-                        } else {
-                            fp.volume = startVolume * fadeOut
-                        }
-                    }
-                } catch (e: Exception) { break }
-
-                delay(stepTime)
-            }
-
-            try {
-                fadingPlayer?.volume = 0f
-                player.volume = startVolume
-                cleanupCrossfade()
-            } catch (e: Exception) { }
+        if (dataStore.get(PersistentQueueKey, true)) {
+            saveQueueToDisk()
+        }
+        scrobbleManager?.onSongStop()
+        if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
+            scrobbleManager?.onSongStart(player.currentMetadata, duration = player.duration)
         }
     }
 
@@ -4523,6 +4539,8 @@ class MusicService :
         isCrossfading = false
         isCrossfadingFlow.value = false
         crossfadeOutgoingItem.value = null
+        crossfadeIncomingItem.value = null
+        crossfadeProgressFlow.value = 0f
         sleepTimer.notifySongTransition()
     }
 

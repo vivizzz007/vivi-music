@@ -50,7 +50,11 @@ import com.music.vivi.BuildConfig
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
+import coil3.request.crossfade
+import com.music.vivi.constants.CrossfadeDurationKey
+import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CropAlbumArtKey
 import com.music.vivi.constants.EnableGoogleCastKey
 import com.music.vivi.constants.HidePlayerThumbnailKey
@@ -395,6 +399,69 @@ fun PlayerV2Landscape(
         label = "adaptiveSurface"
     )
 
+    val crossfadeEnabled by rememberPreference(CrossfadeEnabledKey, defaultValue = false)
+    val crossfadeDuration by rememberPreference(CrossfadeDurationKey, defaultValue = 6f)
+    val isCrossfadingService by playerConnection.isCrossfading.collectAsState()
+    val crossfadeOutgoingItem by playerConnection.crossfadeOutgoingItem.collectAsState()
+    val crossfadeIncomingItem by playerConnection.crossfadeIncomingItem.collectAsState()
+    val crossfadeProgressService by playerConnection.crossfadeProgress.collectAsState()
+    val nextMediaMetadata by playerConnection.nextMediaMetadata.collectAsState()
+
+    val isTransitioning = isCrossfadingService
+    val isMixing = isTransitioning && crossfadeEnabled
+    val mixAlpha by animateFloatAsState(
+        targetValue = if (isMixing) 1f else 0f,
+        animationSpec = tween(300),
+        label = "mixAlpha"
+    )
+
+    val coverProgress by animateFloatAsState(
+        targetValue = if (isTransitioning) crossfadeProgressService else 0f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing),
+        label = "coverProgress"
+    )
+
+    val displayedMetadata = if (isTransitioning && crossfadeOutgoingItem != null) {
+        crossfadeOutgoingItem
+    } else {
+        mediaMetadata
+    }
+
+    val fromCoverUrl = if (isTransitioning && crossfadeOutgoingItem != null) {
+        crossfadeOutgoingItem?.thumbnailUrl
+    } else {
+        mediaMetadata?.thumbnailUrl
+    }
+
+    val toCoverUrl = if (isTransitioning) {
+        crossfadeIncomingItem?.thumbnailUrl ?: nextMediaMetadata?.thumbnailUrl
+    } else {
+        null
+    }
+
+    val mixingInfiniteTransition = rememberInfiniteTransition(label = "MixingShimmerLandscape")
+    val mixingShimmerTranslate by mixingInfiniteTransition.animateFloat(
+        initialValue = -80f,
+        targetValue = 200f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "mixingShimmerTranslateLandscape"
+    )
+    val mixingShimmerBrush = remember(mixingShimmerTranslate, adaptiveSecondary) {
+        Brush.linearGradient(
+            colors = listOf(
+                adaptiveSecondary.copy(alpha = 0.5f),
+                Color.White,
+                Color.White,
+                adaptiveSecondary.copy(alpha = 0.5f)
+            ),
+            start = Offset(mixingShimmerTranslate, 0f),
+            end = Offset(mixingShimmerTranslate + 60f, 0f)
+        )
+    }
+
     val onSeek: (Long) -> Unit = { pos ->
         if (duration == C.TIME_UNSET || duration <= 0) {
             sliderPosition = null
@@ -421,24 +488,63 @@ fun PlayerV2Landscape(
 
     Box(modifier = modifier.fillMaxSize()) {
         if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-            mediaMetadata?.thumbnailUrl?.let { thumbnailUrl ->
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(thumbnailUrl)
-                        .size(100, 100)
-                        .allowHardware(false)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(120.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.30f))
-                )
+            if (toCoverUrl != null && fromCoverUrl != null) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(fromCoverUrl)
+                            .size(100, 100)
+                            .crossfade(500)
+                            .allowHardware(false)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = 1f - coverProgress }
+                            .blur(120.dp)
+                    )
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(toCoverUrl)
+                            .size(100, 100)
+                            .crossfade(500)
+                            .allowHardware(false)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer { alpha = coverProgress }
+                            .blur(120.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.30f))
+                    )
+                }
+            } else {
+                displayedMetadata?.thumbnailUrl?.let { thumbnailUrl ->
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(thumbnailUrl)
+                            .size(100, 100)
+                            .crossfade(500)
+                            .allowHardware(false)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(120.dp)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.30f))
+                    )
+                }
             }
         }
 
@@ -498,27 +604,23 @@ fun PlayerV2Landscape(
                         tint = adaptivePrimary.copy(alpha = 0.5f)
                     )
                 } else {
-                    val isYtThumbnail = remember(mediaMetadata?.thumbnailUrl) {
-                        mediaMetadata?.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
-                    }
-                    AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl?.resize(1200, 1200),
-                        contentDescription = "Cover Art",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                if (cropAlbumArt && isYtThumbnail) {
-                                    scaleX = 4f / 3f
-                                    scaleY = 4f / 3f
-                                }
-                            },
-                        contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
-                    )
-                    PlayerV2Motionartowek(
-                        mediaMetadata = mediaMetadata,
-                        isPlaying = isPlaying,
+                    Blendingimage(
+                        fromCoverUrl = fromCoverUrl,
+                        toCoverUrl = toCoverUrl,
+                        nextCoverUrl = nextMediaMetadata?.thumbnailUrl,
+                        progress = coverProgress,
+                        crossfadeDuration = crossfadeDuration,
+                        crossfadeEnabled = crossfadeEnabled,
+                        cropAlbumArt = cropAlbumArt,
                         modifier = Modifier.fillMaxSize()
                     )
+                    if (toCoverUrl == null) {
+                        PlayerV2Motionartowek(
+                            mediaMetadata = displayedMetadata,
+                            isPlaying = isPlaying,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
             }
@@ -691,7 +793,7 @@ fun PlayerV2Landscape(
                                         }
                                     }
                                     Text(
-                                        text = mediaMetadata?.title ?: "Unknown",
+                                        text = displayedMetadata?.title ?: "Unknown",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontFamily = SfProDisplayFontFamily,
                                         color = adaptivePrimary,
@@ -701,14 +803,14 @@ fun PlayerV2Landscape(
                                         modifier = Modifier
                                             .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                             .clickable {
-                                                mediaMetadata?.album?.id?.let {
+                                                displayedMetadata?.album?.id?.let {
                                                     navController.navigate("album/$it")
                                                     state.collapseSoft()
                                                 }
                                             }
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
-                                    val lArtists = mediaMetadata?.artists.orEmpty().filter { it.name.isNotBlank() }
+                                    val lArtists = displayedMetadata?.artists.orEmpty().filter { it.name.isNotBlank() }
                                     if (lArtists.isNotEmpty()) {
                                         val annotatedString = buildAnnotatedString {
                                             withStyle(
@@ -729,7 +831,7 @@ fun PlayerV2Landscape(
                                             }
                                         }
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            if (mediaMetadata?.explicit == true) {
+                                            if (displayedMetadata?.explicit == true) {
                                                 MIcon.Explicit(tint = adaptiveSecondary)
                                                 Spacer(modifier = Modifier.width(4.dp))
                                             }
@@ -900,7 +1002,8 @@ fun PlayerV2Landscape(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 2.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
                                         text = makeTimeString(currentPos),
@@ -908,6 +1011,16 @@ fun PlayerV2Landscape(
                                         color = adaptiveSecondary,
                                         fontWeight = FontWeight.Medium
                                     )
+                                    if (crossfadeEnabled && (mixAlpha > 0.001f || isMixing)) {
+                                        Text(
+                                            text = "Mixing",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                brush = mixingShimmerBrush,
+                                                fontWeight = FontWeight.SemiBold
+                                            ),
+                                            modifier = Modifier.graphicsLayer { alpha = mixAlpha }
+                                        )
+                                    }
                                     Text(
                                         text = if (duration != C.TIME_UNSET && duration > 0) {
                                             val remaining = duration - currentPos

@@ -243,6 +243,7 @@ import androidx.media3.common.MimeTypes
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import coil3.request.crossfade
 import com.music.vivi.Motionartwork.apple.AppleMusicMotionartworkProvider
 import com.music.vivi.Motionartwork.Motionartwork
 import com.music.vivi.Motionartwork.tidal.TidalMotionartworkProvider
@@ -376,6 +377,8 @@ fun BottomSheetPlayer(
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val nextMediaMetadata by playerConnection.nextMediaMetadata.collectAsState()
+    val crossfadeIncomingItem by playerConnection.crossfadeIncomingItem.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val automix by playerConnection.service.automixItems.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
@@ -558,6 +561,64 @@ fun BottomSheetPlayer(
             }
         } else {
             gradientColors = emptyList()
+        }
+    }
+
+    // Preload incoming background thumbnail and gradient colors so the transition into next song has ZERO splash
+    val incomingBackgroundItem = crossfadeIncomingItem ?: nextMediaMetadata
+    LaunchedEffect(incomingBackgroundItem?.id, playerBackground) {
+        val nextThumbnail = incomingBackgroundItem?.thumbnailUrl ?: return@LaunchedEffect
+        withContext(Dispatchers.IO) {
+            val req100 = ImageRequest.Builder(context)
+                .data(nextThumbnail)
+                .size(100, 100)
+                .allowHardware(false)
+                .build()
+            context.imageLoader.execute(req100)
+
+            val req128 = ImageRequest.Builder(context)
+                .data(nextThumbnail)
+                .size(128, 128)
+                .allowHardware(false)
+                .build()
+            context.imageLoader.execute(req128)
+
+            if ((playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) &&
+                !gradientColorsCache.containsKey(incomingBackgroundItem.id)
+            ) {
+                val reqGradient = ImageRequest.Builder(context)
+                    .data(nextThumbnail)
+                    .size(100, 100)
+                    .allowHardware(false)
+                    .memoryCacheKey("gradient_${incomingBackgroundItem.id}")
+                    .build()
+                val result = runCatching { context.imageLoader.execute(reqGradient) }.getOrNull()
+                val bitmap = result?.image?.toBitmap()
+                if (bitmap != null) {
+                    val palette = withContext(Dispatchers.Default) {
+                        Palette.from(bitmap)
+                            .maximumColorCount(8)
+                            .resizeBitmapArea(100 * 100)
+                            .generate()
+                    }
+                    val extractedColors = if (playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                        listOfNotNull(
+                            palette.getVibrantColor(fallbackColor).let { Color(it) },
+                            palette.getLightVibrantColor(fallbackColor).let { Color(it) },
+                            palette.getDarkVibrantColor(fallbackColor).let { Color(it) },
+                            palette.getMutedColor(fallbackColor).let { Color(it) },
+                            palette.getLightMutedColor(fallbackColor).let { Color(it) },
+                            palette.getDarkMutedColor(fallbackColor).let { Color(it) }
+                        ).distinct()
+                    } else {
+                        PlayerColorExtractor.extractGradientColors(
+                            palette = palette,
+                            fallbackColor = fallbackColor
+                        )
+                    }
+                    gradientColorsCache[incomingBackgroundItem.id] = extractedColors
+                }
+            }
         }
     }
 
@@ -903,7 +964,7 @@ fun BottomSheetPlayer(
 
     val bottomSheetBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC ->
-            MaterialTheme.colorScheme.surfaceContainer
+            Color.Black
         PlayerBackgroundStyle.LIVE_MESH ->
             if (useDarkTheme) Color(0xFF191919) else Color(0xFFE6E6E6)
         else ->
@@ -969,6 +1030,7 @@ fun BottomSheetPlayer(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
                                             .size(100, 100) // Lower resolution for better performance
+                                            .crossfade(600)
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
@@ -1194,6 +1256,7 @@ fun BottomSheetPlayer(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
                                             .size(128, 128)
+                                            .crossfade(600)
                                             .allowHardware(false)
                                             .build(),
                                         contentDescription = null,
@@ -1249,6 +1312,7 @@ fun BottomSheetPlayer(
                                             model = ImageRequest.Builder(context)
                                                 .data(thumbnailUrl)
                                                 .size(CoilSize.ORIGINAL)
+                                                .crossfade(600)
                                                 .build(),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop,

@@ -222,14 +222,16 @@ enum class CrossfadeCurve {
         when (this) {
             EQUAL_POWER -> cos((t * Math.PI / 2.0)).toFloat()
             EASE_OUT_QUAD -> (1f - t) * (1f - t)
-            EASE_OUT_CUBIC -> 1f - t * t * t
+            EASE_OUT_CUBIC -> (1f - t) * (1f - t) * (1f - t)
             SMOOTHSTEP -> 1f - (3f * t * t - 2f * t * t * t)
         }
 
     fun fadeIn(t: Float): Float =
         when (this) {
+            EQUAL_POWER -> sin((t * Math.PI / 2.0)).toFloat()
+            EASE_OUT_QUAD -> t * t
+            EASE_OUT_CUBIC -> t * t * t
             SMOOTHSTEP -> 3f * t * t - 2f * t * t * t
-            else -> sin((t * Math.PI / 2.0)).toFloat()
         }
 }
 

@@ -125,7 +125,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Job
 import com.music.vivi.ui.screens.settings.integrations.ListenTogetherAvatarList
-
+import android.util.Log
+import coil3.request.crossfade
 enum class PlayerInternalState { COVER, LYRICS, QUEUE }
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -252,187 +253,48 @@ fun PlayerV2(
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val crossfadeEnabled by rememberPreference(CrossfadeEnabledKey, defaultValue = false)
-    val crossfadeDuration by rememberPreference(CrossfadeDurationKey, defaultValue = 5f)
+    val crossfadeDuration by rememberPreference(CrossfadeDurationKey, defaultValue = 6f)
     val isCrossfadingService by playerConnection.isCrossfading.collectAsState()
     val crossfadeOutgoingItem by playerConnection.crossfadeOutgoingItem.collectAsState()
+    val crossfadeIncomingItem by playerConnection.crossfadeIncomingItem.collectAsState()
+    val crossfadeProgressService by playerConnection.crossfadeProgress.collectAsState()
     val nextMediaMetadata by playerConnection.nextMediaMetadata.collectAsState()
 
-    var isMixing by remember { mutableStateOf(false) }
+    val isTransitioning = isCrossfadingService
+    val isMixing = isTransitioning && crossfadeEnabled
     val mixAlpha by animateFloatAsState(
         targetValue = if (isMixing) 1f else 0f,
         animationSpec = tween(300),
         label = "mixAlpha"
     )
 
-    var fromCoverUrl by remember { mutableStateOf<String?>(mediaMetadata?.thumbnailUrl) }
-    var toCoverUrl by remember { mutableStateOf<String?>(null) }
-    val coverProgress = remember { Animatable(0f) }
+    val coverProgress by animateFloatAsState(
+        targetValue = if (isTransitioning) crossfadeProgressService else 0f,
+        animationSpec = tween(durationMillis = 150, easing = LinearEasing),
+        label = "coverProgress"
+    )
 
-    var displayedMetadata by remember { mutableStateOf<MediaMetadata?>(mediaMetadata) }
-    val fullDurationMs = (crossfadeDuration * 1000f).roundToInt().coerceAtLeast(1000)
-    val halfDurationMs = (fullDurationMs / 2).coerceAtLeast(500)
-
-    val coroutineScope = rememberCoroutineScope()
-    var isTransitionRunning by remember { mutableStateOf(false) }
-    var activeTransitionSongId by remember { mutableStateOf<String?>(null) }
-    var expectedNextSongId by remember { mutableStateOf<String?>(null) }
-    var activeTransitionJob by remember { mutableStateOf<Job?>(null) }
-
-    // Synchronize initial cover when not in active transition
-    LaunchedEffect(mediaMetadata?.id, mediaMetadata?.thumbnailUrl) {
-        if (!isTransitionRunning) {
-            fromCoverUrl = mediaMetadata?.thumbnailUrl
-            displayedMetadata = mediaMetadata
-        }
+    val displayedMetadata = if (isTransitioning && crossfadeOutgoingItem != null) {
+        crossfadeOutgoingItem
+    } else {
+        mediaMetadata
     }
 
-    // 1. IN SONG A: Start "Mixing" label and cover dissolve at (duration - halfDurationMs)
-    // For a 10s crossfade, this triggers at exactly 5 seconds before Song A ends
-    LaunchedEffect(position, duration, isPlaying, crossfadeEnabled, crossfadeDuration) {
-        if (!crossfadeEnabled || !isPlaying || duration <= 0L || sliderPosition != null) return@LaunchedEffect
-        val remaining = duration - position
-        val currentMediaId = mediaMetadata?.id
-        if (currentMediaId != null &&
-            remaining in 1L..halfDurationMs.toLong() &&
-            !isTransitionRunning &&
-            activeTransitionSongId != currentMediaId
-        ) {
-            val nextMeta = nextMediaMetadata ?: playerConnection.getNextMediaMetadata()
-            if (nextMeta != null && nextMeta.id != currentMediaId) {
-                activeTransitionSongId = currentMediaId
-                expectedNextSongId = nextMeta.id
-                isTransitionRunning = true
-                isMixing = true
-                fromCoverUrl = mediaMetadata?.thumbnailUrl
-                toCoverUrl = nextMeta.thumbnailUrl
-                displayedMetadata = mediaMetadata
-
-                activeTransitionJob?.cancel()
-                activeTransitionJob = coroutineScope.launch {
-                    coverProgress.snapTo(0f)
-                    val animJob = launch {
-                        coverProgress.animateTo(1f, tween(fullDurationMs, easing = LinearEasing))
-                    }
-                    delay(halfDurationMs.toLong())
-                    val playheadMeta = playerConnection.mediaMetadata.value ?: nextMeta
-                    if (playheadMeta.id == nextMeta.id) {
-                        displayedMetadata = playheadMeta
-                    }
-
-                    animJob.join()
-                    if (playerConnection.mediaMetadata.value?.id == nextMeta.id) {
-                        fromCoverUrl = toCoverUrl
-                    }
-                    toCoverUrl = null
-                    coverProgress.snapTo(0f)
-                    isMixing = false
-                    isTransitionRunning = false
-                    activeTransitionSongId = null
-                    expectedNextSongId = null
-                }
-            }
-        }
+    val fromCoverUrl = if (isTransitioning && crossfadeOutgoingItem != null) {
+        crossfadeOutgoingItem?.thumbnailUrl
+    } else {
+        mediaMetadata?.thumbnailUrl
     }
 
-    // 2. MusicService Crossfade Sync & Manual Skip Handler
-    LaunchedEffect(isCrossfadingService, mediaMetadata?.id) {
-        val newMeta = mediaMetadata
-        if (newMeta == null) {
-            activeTransitionJob?.cancel()
-            activeTransitionJob = null
-            displayedMetadata = null
-            fromCoverUrl = null
-            toCoverUrl = null
-            isMixing = false
-            isTransitionRunning = false
-            activeTransitionSongId = null
-            expectedNextSongId = null
-            return@LaunchedEffect
-        }
+    val toCoverUrl = if (isTransitioning) {
+        crossfadeIncomingItem?.thumbnailUrl ?: nextMediaMetadata?.thumbnailUrl
+    } else {
+        null
+    }
 
-        // When the service is not crossfading (e.g. crossfade completed or cancelled due to skip):
-        if (!isCrossfadingService) {
-            if (!isTransitionRunning) {
-                displayedMetadata = newMeta
-                fromCoverUrl = newMeta.thumbnailUrl
-                toCoverUrl = null
-                coverProgress.snapTo(0f)
-                isMixing = false
-                activeTransitionSongId = null
-                expectedNextSongId = null
-            } else if (newMeta.id != expectedNextSongId && newMeta.id != activeTransitionSongId) {
-                // User rapidly skipped to another song: abort the stale transition immediately!
-                activeTransitionJob?.cancel()
-                activeTransitionJob = null
-                isTransitionRunning = false
-                isMixing = false
-                activeTransitionSongId = null
-                expectedNextSongId = null
-                fromCoverUrl = newMeta.thumbnailUrl
-                toCoverUrl = null
-                displayedMetadata = newMeta
-                coverProgress.snapTo(0f)
-            }
-            return@LaunchedEffect
-        }
-
-        // Crossfade service is active:
-        val currentSongId = newMeta.id
-        if (isTransitionRunning) {
-            if (currentSongId != expectedNextSongId && currentSongId != activeTransitionSongId) {
-                // User rapidly skipped to another song: abort the stale transition immediately!
-                activeTransitionJob?.cancel()
-                activeTransitionJob = null
-                isTransitionRunning = false
-                isMixing = false
-                activeTransitionSongId = null
-                expectedNextSongId = null
-                fromCoverUrl = newMeta.thumbnailUrl
-                toCoverUrl = null
-                displayedMetadata = newMeta
-                coverProgress.snapTo(0f)
-            } else {
-                // Anticipated transition in progress, let it run
-                return@LaunchedEffect
-            }
-        }
-
-        if (crossfadeEnabled && isCrossfadingService) {
-            val fromMeta = crossfadeOutgoingItem ?: displayedMetadata
-            val toMeta = newMeta
-            if (fromMeta != null && fromMeta.id != toMeta.id) {
-                activeTransitionSongId = fromMeta.id
-                expectedNextSongId = toMeta.id
-                isTransitionRunning = true
-                isMixing = true
-                fromCoverUrl = fromMeta.thumbnailUrl
-                toCoverUrl = toMeta.thumbnailUrl
-                displayedMetadata = fromMeta
-
-                activeTransitionJob?.cancel()
-                activeTransitionJob = coroutineScope.launch {
-                    coverProgress.snapTo(0f)
-                    val animJob = launch {
-                        coverProgress.animateTo(1f, tween(fullDurationMs, easing = LinearEasing))
-                    }
-                    delay(halfDurationMs.toLong())
-                    if (playerConnection.mediaMetadata.value?.id == toMeta.id) {
-                        displayedMetadata = toMeta
-                    }
-
-                    animJob.join()
-                    if (playerConnection.mediaMetadata.value?.id == toMeta.id) {
-                        fromCoverUrl = toCoverUrl
-                    }
-                    toCoverUrl = null
-                    coverProgress.snapTo(0f)
-                    isMixing = false
-                    isTransitionRunning = false
-                    activeTransitionSongId = null
-                    expectedNextSongId = null
-                }
-            }
-        }
+    // Debug log: trace what the UI is showing after crossfade state changes
+    LaunchedEffect(isCrossfadingService, mediaMetadata?.id, crossfadeOutgoingItem?.id, crossfadeIncomingItem?.id) {
+        Log.d("CrossfadeUI", "isCrossfading=$isCrossfadingService | mediaMetadata=${mediaMetadata?.title} (${mediaMetadata?.id}) | outgoing=${crossfadeOutgoingItem?.title} | incoming=${crossfadeIncomingItem?.title} | displayed=${displayedMetadata?.title}")
     }
     val isKeepScreenOn by rememberPreference(KeepScreenOn, false)
     val playerButtonsStyle by rememberEnumPreference(
@@ -702,6 +564,7 @@ fun PlayerV2(
                             model = ImageRequest.Builder(context)
                                 .data(thumbnailUrl)
                                 .size(100, 100)
+                                .crossfade(500)
                                 .allowHardware(false)
                                 .build(),
                             contentDescription = null,
@@ -816,7 +679,7 @@ fun PlayerV2(
                                                 fromCoverUrl = fromCoverUrl,
                                                 toCoverUrl = toCoverUrl,
                                                 nextCoverUrl = nextMediaMetadata?.thumbnailUrl,
-                                                progress = coverProgress.value,
+                                                progress = coverProgress,
                                                 crossfadeDuration = crossfadeDuration,
                                                 crossfadeEnabled = crossfadeEnabled,
                                                 cropAlbumArt = cropAlbumArt,

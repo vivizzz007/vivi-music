@@ -12,6 +12,7 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.LruCache
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -29,12 +30,15 @@ import coil3.compose.AsyncImage
 import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
+import coil3.request.crossfade
 import coil3.toBitmap
 import com.music.vivi.ui.utils.resize
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.sin
 
-private const val MASK = 64
+private const val MASK = 32
 
 private fun smoothstep(a: Float, b: Float, x: Float): Float {
     val k = ((x - a) / (b - a)).coerceIn(0f, 1f)
@@ -58,9 +62,9 @@ fun AutoMixCover(
 ) {
     val mask = remember { Bitmap.createBitmap(MASK, MASK, Bitmap.Config.ARGB_8888) }
     val pixels = remember { IntArray(MASK * MASK) }
-    val imgPaint = remember { Paint(Paint.FILTER_BITMAP_FLAG) }
+    val imgPaint = remember { Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG) }
     val maskPaint = remember {
-        Paint(Paint.FILTER_BITMAP_FLAG).apply {
+        Paint(Paint.FILTER_BITMAP_FLAG or Paint.ANTI_ALIAS_FLAG).apply {
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
         }
     }
@@ -70,15 +74,16 @@ fun AutoMixCover(
         val f = 0.22f
         val th = -0.3f + 1.6f * progress
         for (y in 0 until MASK) {
+            val v = y / (MASK - 1f)
+            val vTerm = 0.17f * sin(v * 4.4f - s * 1.2f)
+            val yOffset = y * MASK
             for (x in 0 until MASK) {
                 val u = x / (MASK - 1f)
-                val v = y / (MASK - 1f)
                 val n = 0.5f +
                     0.20f * sin(u * 5.2f + s) +
-                    0.17f * sin(v * 4.4f - s * 1.2f + u * 2f) +
-                    0.13f * sin((u + v) * 7.5f + s * 0.8f)
+                    vTerm + 0.13f * sin((u + v) * 7.5f + s * 0.8f)
                 val a = (255f * smoothstep(n - f, n + f, th)).toInt()
-                pixels[y * MASK + x] = (a shl 24) or 0x00FFFFFF
+                pixels[yOffset + x] = (a shl 24) or 0x00FFFFFF
             }
         }
         mask.setPixels(pixels, 0, MASK, 0, 0, MASK, MASK)
@@ -115,11 +120,6 @@ private fun drawCover(
     nc.drawBitmap(bmp, src, RectF(0f, 0f, w, h), paint)
 }
 
-/**
- * High-level Blendingimage cover composable used in Player_v2.
- * Renders standard AsyncImage when idle, and switches to procedural AutoMixCover
- * during crossfade transitions.
- */
 private val bitmapCache = LruCache<String, Bitmap>(10)
 
 @Composable
@@ -128,7 +128,7 @@ fun Blendingimage(
     toCoverUrl: String?,
     nextCoverUrl: String? = null,
     progress: Float,
-    crossfadeDuration: Float = 5f,
+    crossfadeDuration: Float = 6f,
     crossfadeEnabled: Boolean,
     cropAlbumArt: Boolean,
     modifier: Modifier = Modifier
@@ -138,20 +138,22 @@ fun Blendingimage(
     var coverA by remember(fromCoverUrl) { mutableStateOf(fromCoverUrl?.let { bitmapCache.get(it) }) }
     var coverB by remember(toCoverUrl) { mutableStateOf(toCoverUrl?.let { bitmapCache.get(it) }) }
 
-    // Preload Song A cover so it is immediately warm in memory
+    // Preload Song A cover on IO dispatcher
     LaunchedEffect(fromCoverUrl) {
         if (!fromCoverUrl.isNullOrBlank() && coverA == null) {
             val cached = bitmapCache.get(fromCoverUrl)
             if (cached != null) {
                 coverA = cached
             } else {
-                val req = ImageRequest.Builder(context)
-                    .data(fromCoverUrl.resize(800, 800))
-                    .allowHardware(false)
-                    .build()
-                context.imageLoader.execute(req).image?.toBitmap()?.let {
-                    bitmapCache.put(fromCoverUrl, it)
-                    coverA = it
+                withContext(Dispatchers.IO) {
+                    val req = ImageRequest.Builder(context)
+                        .data(fromCoverUrl.resize(800, 800))
+                        .allowHardware(false)
+                        .build()
+                    context.imageLoader.execute(req).image?.toBitmap()?.let {
+                        bitmapCache.put(fromCoverUrl, it)
+                        coverA = it
+                    }
                 }
             }
         }
@@ -160,42 +162,51 @@ fun Blendingimage(
     // Preload next track's cover in advance while Song A is playing
     LaunchedEffect(nextCoverUrl) {
         if (!nextCoverUrl.isNullOrBlank() && bitmapCache.get(nextCoverUrl) == null) {
-            val req = ImageRequest.Builder(context)
-                .data(nextCoverUrl.resize(800, 800))
-                .allowHardware(false)
-                .build()
-            context.imageLoader.execute(req).image?.toBitmap()?.let {
-                bitmapCache.put(nextCoverUrl, it)
+            withContext(Dispatchers.IO) {
+                val req = ImageRequest.Builder(context)
+                    .data(nextCoverUrl.resize(800, 800))
+                    .allowHardware(false)
+                    .build()
+                context.imageLoader.execute(req).image?.toBitmap()?.let {
+                    bitmapCache.put(nextCoverUrl, it)
+                }
             }
         }
     }
 
-    // Load Song B cover when transition begins
+    // Load Song B cover immediately on IO dispatcher
     LaunchedEffect(toCoverUrl) {
         if (!toCoverUrl.isNullOrBlank() && coverB == null) {
             val cached = bitmapCache.get(toCoverUrl)
             if (cached != null) {
                 coverB = cached
             } else {
-                val req = ImageRequest.Builder(context)
-                    .data(toCoverUrl.resize(800, 800))
-                    .allowHardware(false)
-                    .build()
-                context.imageLoader.execute(req).image?.toBitmap()?.let {
-                    bitmapCache.put(toCoverUrl, it)
-                    coverB = it
+                withContext(Dispatchers.IO) {
+                    val req = ImageRequest.Builder(context)
+                        .data(toCoverUrl.resize(800, 800))
+                        .allowHardware(false)
+                        .build()
+                    context.imageLoader.execute(req).image?.toBitmap()?.let {
+                        bitmapCache.put(toCoverUrl, it)
+                        coverB = it
+                    }
                 }
             }
         }
     }
 
-    if (!crossfadeEnabled || toCoverUrl.isNullOrBlank()) {
-        val targetUrl = toCoverUrl ?: fromCoverUrl
+    val safeProgress = progress.coerceIn(0f, 1f)
+
+    if (!crossfadeEnabled || toCoverUrl.isNullOrBlank() || safeProgress <= 0f) {
+        val targetUrl = if (safeProgress >= 1f && !toCoverUrl.isNullOrBlank()) toCoverUrl else (fromCoverUrl ?: toCoverUrl)
         val isYtThumbnail = remember(targetUrl) {
             targetUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
         }
         AsyncImage(
-            model = targetUrl?.resize(1200, 1200),
+            model = ImageRequest.Builder(context)
+                .data(targetUrl?.resize(1200, 1200))
+                .crossfade(400)
+                .build(),
             contentDescription = "Cover Art",
             modifier = modifier
                 .fillMaxSize()
@@ -212,34 +223,56 @@ fun Blendingimage(
 
     val bmpA = coverA ?: fromCoverUrl?.let { bitmapCache.get(it) }
     val bmpB = coverB ?: toCoverUrl?.let { bitmapCache.get(it) }
-    val timeSec = progress * crossfadeDuration
+    val timeSec = safeProgress * crossfadeDuration
 
     if (bmpA != null && bmpB != null) {
+        // Organic liquid AutoMix transition
         AutoMixCover(
             coverA = bmpA,
             coverB = bmpB,
-            progress = progress,
+            progress = safeProgress,
             timeSec = timeSec,
             modifier = modifier
         )
     } else {
-        val targetUrl = if (progress >= 0.5f) toCoverUrl else (fromCoverUrl ?: toCoverUrl)
-        val isYtThumbnail = remember(targetUrl) {
-            targetUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        // Smooth continuous cross-dissolve fallback (NO sudden 5/5 jump)
+        val isYtA = remember(fromCoverUrl) {
+            fromCoverUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
         }
-        AsyncImage(
-            model = targetUrl?.resize(1200, 1200),
-            contentDescription = "Cover Art Fallback",
-            modifier = modifier
-                .fillMaxSize()
-                .graphicsLayer {
-                    if (cropAlbumArt && isYtThumbnail) {
-                        scaleX = 4f / 3f
-                        scaleY = 4f / 3f
-                    }
-                },
-            contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
-        )
+        val isYtB = remember(toCoverUrl) {
+            toCoverUrl.contains("ytimg") || toCoverUrl.contains("/vi/") || toCoverUrl.contains("youtube.com")
+        }
+        Box(modifier = modifier.fillMaxSize()) {
+            if (!fromCoverUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = fromCoverUrl.resize(1200, 1200),
+                    contentDescription = "Cover Art A",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = 1f - safeProgress
+                            if (cropAlbumArt && isYtA) {
+                                scaleX = 4f / 3f
+                                scaleY = 4f / 3f
+                            }
+                        },
+                    contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
+                )
+            }
+            AsyncImage(
+                model = toCoverUrl.resize(1200, 1200),
+                contentDescription = "Cover Art B",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = safeProgress
+                        if (cropAlbumArt && isYtB) {
+                            scaleX = 4f / 3f
+                            scaleY = 4f / 3f
+                        }
+                    },
+                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit
+            )
+        }
     }
 }
-
