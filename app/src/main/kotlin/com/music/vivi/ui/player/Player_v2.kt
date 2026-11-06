@@ -1575,9 +1575,9 @@ fun PlayerV2(
                         }
 
                         if (isInListenTogetherRoom) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
+                            Box(
+                                modifier = Modifier.height(48.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Surface(
                                     shape = RoundedCornerShape(50),
@@ -1668,7 +1668,7 @@ fun PlayerV2(
                                         overflow = TextOverflow.Ellipsis,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
-                                            .padding(top = 2.dp)
+                                            .absoluteOffset(y = 34.dp)
                                             .widthIn(max = 120.dp)
                                     )
                                 }
