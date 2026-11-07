@@ -849,8 +849,10 @@
     <string name="recognition">Recognition</string>
     <string name="recognize_music">Recognize Music</string>
     <string name="tap_to_recognize">Tap to recognize</string>
+    <string name="tap_to_recognize_hint">Tap on the hearing icon to recognize</string>
     <string name="listening">Listening…</string>
     <string name="processing">Processing…</string>
+    <string name="identifying_song">Identifying song…</string>
     <string name="no_match_found">No match found</string>
     <string name="recognition_error">Recognition error</string>
     <string name="try_again">Try again</string>
@@ -1195,4 +1197,17 @@
     <string name="top_comments">Top</string>
     <string name="newest_comments">Newest</string>
     <string name="replies">Replies</string>
+
+    <string name="ticket_liked_subtitle">Your favorites</string>
+    <string name="ticket_offline_subtitle">Available offline</string>
+    <string name="ticket_cached_subtitle">Device cache</string>
+    <string name="ticket_top_subtitle">Most played</string>
+
+    <string name="everything">Everything</string>
+    <string name="recently_added">Recently added</string>
+    <string name="hold_near_music">Hold your phone near the music</string>
+    <string name="keep_phone_close">Keep your phone close to the music</string>
+    <string name="match_found_saved">Match found · saved to history</string>
+    <string name="album">Album</string>
+    <string name="genre">Genre</string>
 </resources>
