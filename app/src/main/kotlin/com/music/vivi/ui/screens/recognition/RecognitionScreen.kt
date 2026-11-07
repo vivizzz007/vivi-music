@@ -113,6 +113,7 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.recognition.MusicRecognitionService
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.utils.listItemShape
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -129,8 +130,10 @@ fun RecognitionScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     var hasInitialized by rememberSaveable { mutableStateOf(false) }
+    var lastSavedTrackId by rememberSaveable { mutableStateOf<String?>(null) }
 
     fun resetToReady() {
+        lastSavedTrackId = null
         MusicRecognitionService.stopRecognizing()
     }
 
@@ -141,12 +144,11 @@ fun RecognitionScreen(
         }
     }
 
-    BackHandler {
-        resetToReady()
-        navController.navigateUp()
-    }
-
     val recognitionStatus by MusicRecognitionService.recognitionStatus.collectAsState()
+
+    BackHandler(enabled = recognitionStatus !is RecognitionStatus.Ready) {
+        resetToReady()
+    }
 
     var hasPermission by remember {
         mutableStateOf(
@@ -165,6 +167,7 @@ fun RecognitionScreen(
     }
 
     fun startRecognition() {
+        lastSavedTrackId = null
         if (hasPermission) {
             MusicRecognitionService.startRecognizing(context)
         } else {
@@ -173,6 +176,8 @@ fun RecognitionScreen(
     }
 
     fun saveToHistory(result: RecognitionResult) {
+        if (lastSavedTrackId == result.trackId) return
+        lastSavedTrackId = result.trackId
         coroutineScope.launch(Dispatchers.IO) {
             database.query {
                 insert(
@@ -251,8 +256,11 @@ fun RecognitionScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            resetToReady()
-                            navController.navigateUp()
+                            if (recognitionStatus !is RecognitionStatus.Ready) {
+                                resetToReady()
+                            } else {
+                                navController.navigateUp()
+                            }
                         },
                         onLongClick = {
                             resetToReady()
@@ -1064,7 +1072,7 @@ private fun SuccessState(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 rows.forEachIndexed { index, row ->
-                    DetailRowItem(row = row, shape = segmentShape(index, rows.size))
+                    DetailRowItem(row = row, shape = listItemShape(index, rows.size))
                 }
                 Spacer(Modifier.height(16.dp))
 
@@ -1162,7 +1170,7 @@ private fun SuccessState(
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 rows.forEachIndexed { index, row ->
-                    DetailRowItem(row = row, shape = segmentShape(index, rows.size))
+                    DetailRowItem(row = row, shape = listItemShape(index, rows.size))
                 }
             }
             Spacer(Modifier.height(24.dp))
@@ -1176,14 +1184,6 @@ private fun SuccessState(
             Spacer(Modifier.height(50.dp))
         }
     }
-}
-
-private fun segmentShape(index: Int, count: Int): Shape {
-    val outer = 28.dp
-    val inner = 4.dp
-    val top = if (index == 0) outer else inner
-    val bottom = if (index == count - 1) outer else inner
-    return RoundedCornerShape(topStart = top, topEnd = top, bottomEnd = bottom, bottomStart = bottom)
 }
 
 @Composable
