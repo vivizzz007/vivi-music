@@ -321,6 +321,7 @@ class MusicService :
             Timber.tag(TAG).e(error, "Secondary player error")
             secondaryPlayer?.stop()
             secondaryPlayer?.clearMediaItems()
+            releaseSecondaryLoudnessEnhancer()
             secondaryPlayer = null
         }
     }
@@ -435,6 +436,8 @@ class MusicService :
     // remember which session the current one was created for, and keep the outgoing
     // player's enhancer alive (as `fadingLoudnessEnhancer`) until its fade-out is done.
     private var loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+    private var secondaryLoudnessEnhancer: LoudnessEnhancer? = null
+    private var secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
     private var fadingLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var discordRpc: DiscordRPC? = null
@@ -955,7 +958,10 @@ class MusicService :
                 .distinctUntilChanged(),
         ) { format, normalizeAudio ->
             format to normalizeAudio
-        }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
+        }.collectLatest(scope) { (format, normalizeAudio) ->
+            setupLoudnessEnhancer()
+            secondaryPlayer?.let { setupSecondaryLoudnessEnhancer(it) }
+        }
 
         combine(
             dataStore.data.map { it[AudioOffload] ?: false },
@@ -2418,6 +2424,96 @@ class MusicService :
         }
     }
 
+    private fun setupSecondaryLoudnessEnhancer(targetPlayer: ExoPlayer) {
+        val audioSessionId = targetPlayer.audioSessionId
+        if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
+            Timber.tag(TAG).w("setupSecondaryLoudnessEnhancer: invalid audioSessionId ($audioSessionId)")
+            return
+        }
+
+        if (secondaryLoudnessEnhancer != null && secondaryLoudnessEnhancerSessionId != audioSessionId) {
+            Timber.tag(TAG).d("Secondary LoudnessEnhancer session changed ($secondaryLoudnessEnhancerSessionId -> $audioSessionId), recreating")
+            releaseSecondaryLoudnessEnhancer()
+        }
+
+        if (secondaryLoudnessEnhancer == null) {
+            try {
+                secondaryLoudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                secondaryLoudnessEnhancerSessionId = audioSessionId
+                Timber.tag(TAG).d("Secondary LoudnessEnhancer created for sessionId=$audioSessionId")
+            } catch (e: Exception) {
+                reportException(e)
+                secondaryLoudnessEnhancer = null
+                secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+                return
+            }
+        }
+        val enhancer = secondaryLoudnessEnhancer ?: return
+
+        scope.launch {
+            try {
+                val currentMediaId = withContext(Dispatchers.Main) {
+                    targetPlayer.currentMediaItem?.mediaId
+                }
+
+                val normalizeAudio = withContext(Dispatchers.IO) {
+                    dataStore.data.map { it[AudioNormalizationKey] ?: true }.first()
+                }
+
+                if (normalizeAudio && currentMediaId != null) {
+                    val format = withContext(Dispatchers.IO) {
+                        database.format(currentMediaId).first()
+                    }
+                    val loudness = format?.loudnessDb ?: format?.perceptualLoudnessDb
+
+                    withContext(Dispatchers.Main) {
+                        if (secondaryPlayer !== targetPlayer || secondaryLoudnessEnhancer !== enhancer) return@withContext
+
+                        if (loudness != null) {
+                            val loudnessDb = loudness.toFloat()
+                            val targetGain = (-loudnessDb * 100).toInt()
+                            val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
+
+                            try {
+                                enhancer.setTargetGain(clampedGain)
+                                enhancer.enabled = true
+                                Timber.tag(TAG).i("Secondary LoudnessEnhancer gain applied: $clampedGain mB")
+                            } catch (e: Exception) {
+                                Timber.tag(TAG).e(e, "Failed to apply secondary loudness enhancement")
+                                reportException(e)
+                                releaseSecondaryLoudnessEnhancer()
+                            }
+                        } else {
+                            enhancer.enabled = false
+                            Timber.tag(TAG).w("Secondary normalization: no loudness data available")
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        if (secondaryPlayer !== targetPlayer || secondaryLoudnessEnhancer !== enhancer) return@withContext
+                        enhancer.enabled = false
+                    }
+                }
+            } catch (e: Exception) {
+                reportException(e)
+                if (secondaryLoudnessEnhancer === enhancer) releaseSecondaryLoudnessEnhancer()
+            }
+        }
+    }
+
+    private fun releaseSecondaryLoudnessEnhancer() {
+        try {
+            secondaryLoudnessEnhancer?.release()
+            Timber.tag(TAG).d("Secondary LoudnessEnhancer released")
+        } catch (e: Exception) {
+            reportException(e)
+            Timber.tag(TAG).e(e, "Error releasing secondary LoudnessEnhancer: ${e.message}")
+        } finally {
+            secondaryLoudnessEnhancer = null
+            secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        }
+    }
+
     private fun openAudioEffectSession() {
         if (isAudioEffectSessionOpened) return
         isAudioEffectSessionOpened = true
@@ -3835,6 +3931,7 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        releaseSecondaryLoudnessEnhancer()
         releaseFadingLoudnessEnhancer()
         mediaSession.release()
         // If the service goes away mid-crossfade, the outgoing (and any not-yet-swapped
@@ -4399,6 +4496,9 @@ class MusicService :
         val nextPlayer = secondaryPlayer ?: return
         val currentPlayer = player
 
+        // Immediately set up audio normalization for the incoming player before it fades in
+        setupSecondaryLoudnessEnhancer(nextPlayer)
+
         isCrossfading = true
         crossfadeOutgoingItem.value = currentPlayer.currentMetadata
         crossfadeIncomingItem.value = nextPlayer.currentMetadata
@@ -4425,6 +4525,7 @@ class MusicService :
             val steps = 50
             val stepTime = (duration / steps).coerceAtLeast(20L)
             val startVolume = try { currentPlayer.volume } catch (_: Exception) { 1f }
+            var secondaryEnhancerReady = secondaryLoudnessEnhancer != null
 
             for (i in 0..steps) {
                 if (!isActive) break
@@ -4432,6 +4533,12 @@ class MusicService :
                 while (!currentPlayer.playWhenReady && !nextPlayer.playWhenReady && isActive &&
                     currentPlayer.playbackState != Player.STATE_ENDED) {
                     delay(100)
+                }
+
+                // Audio session may be assigned lazily — retry normalization setup until it sticks
+                if (!secondaryEnhancerReady) {
+                    setupSecondaryLoudnessEnhancer(nextPlayer)
+                    secondaryEnhancerReady = secondaryLoudnessEnhancer != null
                 }
 
                 // If outgoing track reached the end, stop waiting and finalize immediately
@@ -4473,14 +4580,21 @@ class MusicService :
         player = newPlayer
         secondaryPlayer = null
 
-        // Audio normalization follows the audio session, and the incoming player has a
-        // different one. Keep the outgoing player's enhancer alive so it stays normalized
-        // while it fades out, and create a fresh one for the new primary player.
+        // Audio normalization handover:
+        // Keep Song A's (outgoing) enhancer alive while it fades out as fadingPlayer,
+        // then promote Song B's pre-initialized enhancer directly to primary — no DB query delay.
         releaseFadingLoudnessEnhancer()
         fadingLoudnessEnhancer = loudnessEnhancer
-        loudnessEnhancer = null
-        loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
-        setupLoudnessEnhancer()
+
+        loudnessEnhancer = secondaryLoudnessEnhancer
+        loudnessEnhancerSessionId = secondaryLoudnessEnhancerSessionId
+        secondaryLoudnessEnhancer = null
+        secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+
+        // If secondary enhancer was not yet initialized or failed, set it up now
+        if (loudnessEnhancer == null) {
+            setupLoudnessEnhancer()
+        }
 
         oldPlayer.removeListener(this)
         oldPlayer.removeListener(sleepTimer)
@@ -4536,6 +4650,7 @@ class MusicService :
         fadingPlayer?.let { releaseExoPlayer(it) }
         fadingPlayer = null
         releaseFadingLoudnessEnhancer()
+        releaseSecondaryLoudnessEnhancer()
         isCrossfading = false
         isCrossfadingFlow.value = false
         crossfadeOutgoingItem.value = null
@@ -4549,6 +4664,7 @@ class MusicService :
         crossfadeJob?.cancel()
         crossfadeJob = null
         cleanupCrossfade()
+        releaseSecondaryLoudnessEnhancer()
         secondaryPlayer?.let {
             try {
                 it.stop()
