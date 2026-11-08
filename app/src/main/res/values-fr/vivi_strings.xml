@@ -681,7 +681,7 @@ est irréversible.
     <string name="listen_together_in_top_bar">« Écouter ensemble » dans la barre supérieure</string>
     <string name="listen_together_in_top_bar_desc">Affichez « Écouter ensemble » dans la barre d\'application supérieure plutôt que dans la barre de navigation</string>
     <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour en devenir l\'hôte ou rejoignez une salle existante à l\'aide d\'un code.</string>
-	<string name="listen_together_host_description">En tant qu'hôte, tout le monde dans cette salle écoute en synchronisation avec votre lecture. Vous pouvez examiner les demandes de participation, accepter les suggestions de morceaux et gérer les participants.</string>
+	<string name="listen_together_host_description">En tant qu\'hôte, tout le monde dans cette salle écoute en synchronisation avec votre lecture. Vous pouvez examiner les demandes de participation, accepter les suggestions de morceaux et gérer les participants.</string>
     <string name="listen_together_guest_description">Vous écoutez en synchronisation avec l\'hôte. Vous pouvez suggérer des morceaux à jouer ensuite et voir les autres auditeurs connectés dans la salle.</string>
 	<string name="listen_together_background_disconnect_note">Remarque : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture et que vous passez ensuite à une autre application, ou si vous vous connectez au serveur mais restez inactif sans rejoindre une salle pendant 15 minutes.</string>
     <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configuré. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble.</string>
