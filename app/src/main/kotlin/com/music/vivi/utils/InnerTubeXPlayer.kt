@@ -140,32 +140,83 @@ object InnerTubeXPlayer {
                 hl = youtube.locale.hl
             )
 
-            val hints =
+            val isHighQualityWanted = audioQuality == AudioQuality.HIGH ||
+                (audioQuality == AudioQuality.AUTO && !connectivityManager.isActiveNetworkMetered)
+            val isPremiumUser = !youtube.cookie.isNullOrBlank()
+            val shouldPrioritizePremium = isHighQualityWanted && isPremiumUser && !hasRecentWebRemixFailure(videoId)
+
+            val baseHints =
                 contentHints.copy(
                     isUploaded =
                         contentHints.isUploaded == true ||
                             playlistId == "MLPT" ||
                             playlistId?.contains("MLPT") == true,
+                    playbackClientOverrideId = if (shouldPrioritizePremium) "WEB_REMIX" else null,
                 ).withStreamCapabilities(
                     allowHls = false,
                     allowSabr = false,
                     allowBoundedRange = allowBoundedRange,
-                )
+                ).let {
+                    if (shouldPrioritizePremium) it.withPremium(true) else it
+                }
             val excludedClients =
                 buildSet {
                     addAll(disabledStreamClients)
                     if (hasRecentWebRemixFailure(videoId)) add("WEB_REMIX")
                 }
-            val stream =
+            val stream = try {
+                bundle().extractor.extract(
+                    videoId = videoId,
+                    hints = baseHints,
+                    excludedClients = excludedClients,
+                    audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                    clientPlaybackNonce = generateClientPlaybackNonce(),
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (shouldPrioritizePremium) {
+                    Timber.tag(TAG).w(e, "WEB_REMIX Premium extraction failed for $videoId; falling back to standard extraction")
+                    markWebRemixFailed(videoId)
+                    val fallbackHints = contentHints.copy(
+                        isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
+                    ).withStreamCapabilities(
+                        allowHls = false,
+                        allowSabr = false,
+                        allowBoundedRange = allowBoundedRange,
+                    )
+                    bundle().extractor.extract(
+                        videoId = videoId,
+                        hints = fallbackHints,
+                        excludedClients = excludedClients + "WEB_REMIX",
+                        audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                        clientPlaybackNonce = generateClientPlaybackNonce(),
+                    )
+                } else {
+                    throw e
+                }
+            } ?: if (shouldPrioritizePremium) {
+                Timber.tag(TAG).w("WEB_REMIX Premium extraction returned null for $videoId; falling back to standard extraction")
+                markWebRemixFailed(videoId)
+                val fallbackHints = contentHints.copy(
+                    isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
+                ).withStreamCapabilities(
+                    allowHls = false,
+                    allowSabr = false,
+                    allowBoundedRange = allowBoundedRange,
+                )
                 requireNotNull(
                     bundle().extractor.extract(
                         videoId = videoId,
-                        hints = hints,
-                        excludedClients = excludedClients,
+                        hints = fallbackHints,
+                        excludedClients = excludedClients + "WEB_REMIX",
                         audioQuality = audioQuality.toInnerTubeX(connectivityManager),
                         clientPlaybackNonce = generateClientPlaybackNonce(),
-                    ),
+                    )
                 ) { "InnerTubeX returned no playable stream" }
+            } else {
+                error("InnerTubeX returned no playable stream")
+            }
             check(stream.sabrBootstrap == null) { "SABR is not supported by this playback engine" }
             Result.success(stream.toPlaybackData())
         } catch (error: CancellationException) {
@@ -266,14 +317,19 @@ object InnerTubeXPlayer {
                 videoId: String,
                 visitorData: String,
                 cookie: String?,
-            ): PoTokenResult? =
-                poTokenGenerator.getWebClientPoToken(videoId, visitorData)?.let { token ->
+            ): PoTokenResult? {
+                if (!cookie.isNullOrBlank()) {
+                    // Authenticated sessions bypass BotGuard PO token on YouTube Music (WEB_REMIX)
+                    return null
+                }
+                return poTokenGenerator.getWebClientPoToken(videoId, visitorData)?.let { token ->
                     PoTokenResult(
                         playerRequestToken = token.playerRequestPoToken,
                         streamingDataToken = token.streamingDataPoToken,
                         visitorData = visitorData,
                     )
                 }
+            }
 
             override suspend fun prewarm(cookie: String?) {
                 innerTubeX.visitorData?.let { poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, it) }
@@ -318,28 +374,13 @@ object InnerTubeXPlayer {
     )
 
     private class AndroidPlayerConfigRepository(context: Context) : PlayerConfigRepository {
-        private val preferences = context.getSharedPreferences("innertubex_player_config", Context.MODE_PRIVATE)
-
-        override val enabled: Boolean = true
-        override val sourceUrl: String = PLAYER_CONFIG_URL
-        override val defaultSourceUrl: String = PLAYER_CONFIG_URL
-        override var cachedJson: String
-            get() = preferences.getString("json", "").orEmpty()
-            set(value) = preferences.edit().putString("json", value).apply()
-        override var cachedAtMs: Long
-            get() = preferences.getLong("cached_at_ms", 0L)
-            set(value) = preferences.edit().putLong("cached_at_ms", value).apply()
-        override var cachedSourceUrl: String
-            get() = preferences.getString("source_url", "").orEmpty()
-            set(value) = preferences.edit().putString("source_url", value).apply()
-        override var cachedEtag: String
-            get() = preferences.getString("etag", "").orEmpty()
-            set(value) = preferences.edit().putString("etag", value).apply()
-
-        private companion object {
-            const val PLAYER_CONFIG_URL =
-                "https://raw.githubusercontent.com/ZemerTeam/zemer-cipher/master/library/src/main/assets/player_configs.json"
-        }
+        override val enabled: Boolean = false
+        override val sourceUrl: String = ""
+        override val defaultSourceUrl: String = ""
+        override var cachedJson: String = ""
+        override var cachedAtMs: Long = 0L
+        override var cachedSourceUrl: String = ""
+        override var cachedEtag: String = ""
     }
 
     private fun AudioQuality.toInnerTubeX(connectivityManager: ConnectivityManager): InnerTubeXAudioQuality =

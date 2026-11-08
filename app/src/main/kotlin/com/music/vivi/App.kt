@@ -87,6 +87,11 @@ class App : Application(), SingletonImageLoader.Factory {
             initializeSettings()
             observeSettingsChanges()
         }
+
+        // Prewarm InnerTubeX extraction engine and public player in the background for instant playback
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching { InnerTubeXPlayer.prewarm() }
+        }
     }
 
     private suspend fun initializeSettings() {
