@@ -15,8 +15,6 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -89,7 +87,6 @@ fun AccountSyncIndicator(
     activeColor: Color = MaterialTheme.colorScheme.primary,
     trackColor: Color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.25f),
     errorColor: Color = MaterialTheme.colorScheme.error,
-    onSyncClick: (() -> Unit)? = null,
     avatarContent: @Composable () -> Unit,
 ) {
     val isAnySyncing = artistsStatus is SyncStatus.Syncing ||
@@ -189,17 +186,7 @@ fun AccountSyncIndicator(
     val containerHeight = avatarSize + 18.dp
 
     Box(
-        modifier = modifier
-            .size(width = containerWidth, height = containerHeight)
-            .then(
-                if (onSyncClick != null) {
-                    Modifier.clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = onSyncClick
-                    )
-                } else Modifier
-            ),
+        modifier = modifier.size(width = containerWidth, height = containerHeight),
         contentAlignment = Alignment.CenterStart
     ) {
         // Round Avatar positioned at CenterStart

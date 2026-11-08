@@ -134,12 +134,6 @@ fun AccountSettingsScreen(
                             activeColor = MaterialTheme.colorScheme.primary,
                             trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.25f),
                             errorColor = MaterialTheme.colorScheme.error,
-                            onSyncClick = {
-                                syncTriggerCount++
-                                if (!isSyncing) {
-                                    accountSettingsViewModel.forceSyncLibrary()
-                                }
-                            },
                         ) {
                             if (!accountImageUrl.isNullOrBlank()) {
                                 AsyncImage(
