@@ -460,7 +460,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                         text = "$rawBattery",
                                                         style = MaterialTheme.typography.labelLarge,
                                                         fontWeight = FontWeight.ExtraBold,
-                                                        color = MaterialTheme.colorScheme.primary,
+                                                        color = MaterialTheme.colorScheme.onSurface,
                                                         modifier = Modifier
                                                             .align(Alignment.Center)
                                                             .graphicsLayer { translationY = -2.dp.toPx() }
@@ -468,7 +468,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                     Icon(
                                                         painter = painterResource(R.drawable.headphones),
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.tertiary,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                         modifier = Modifier
                                                             .align(Alignment.BottomCenter)
                                                             .size(12.dp)
@@ -477,16 +477,14 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                                 }
                                             } else {
                                                 Box(
-                                                    modifier = Modifier
-                                                        .size(44.dp)
-                                                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                                                    modifier = Modifier.size(44.dp),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(activeDeviceIconRes),
                                                         contentDescription = null,
                                                         modifier = Modifier.size(24.dp),
-                                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        tint = MaterialTheme.colorScheme.onSurface
                                                     )
                                                 }
                                             }
