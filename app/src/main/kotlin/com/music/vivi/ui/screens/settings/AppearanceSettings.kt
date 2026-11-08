@@ -201,7 +201,7 @@ fun AppearanceSettings(
     )
     val (usePlayerV2, onUsePlayerV2Change) = rememberPreference(
         com.music.vivi.constants.UsePlayerV2Key,
-        defaultValue = false
+        defaultValue = true
     )
     
     val currentPlayerDesign = remember(useNewPlayerDesign, usePlayerV2) {
@@ -256,7 +256,7 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.GRADIENT,
+            defaultValue = PlayerBackgroundStyle.LIVE_MESH,
         )
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
