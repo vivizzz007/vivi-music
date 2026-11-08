@@ -86,6 +86,7 @@ fun AppleMiniPlayer(
     
     // Player states
     val playbackState by playerConnection.playbackState.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
@@ -234,7 +235,8 @@ fun AppleMiniPlayer(
             MiniPlayerBackgroundLayer(
                 style = miniPlayerBackground,
                 mediaMetadata = mediaMetadata,
-                gradientColors = gradientColors
+                gradientColors = gradientColors,
+                isPlaying = isPlaying
             )
 
             // Bottom Progress Bar
@@ -306,11 +308,15 @@ fun AppleMiniPlayer(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            if (metadata.explicit) MIcon.Explicit()
+                            val artistColor = onSurfaceColor.copy(alpha = 0.7f)
+                            if (metadata.explicit) {
+                                MIcon.Explicit(tint = artistColor)
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
                             if (metadata.artists.any { it.name.isNotBlank() }) {
                                 Text(
                                     text = metadata.artists.joinToString { it.name },
-                                    color = onSurfaceColor.copy(alpha = 0.7f),
+                                    color = artistColor,
                                     fontSize = 12.sp,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,

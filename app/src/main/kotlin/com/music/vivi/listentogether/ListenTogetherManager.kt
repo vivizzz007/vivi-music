@@ -116,6 +116,7 @@ class ListenTogetherManager @Inject constructor(
     val roomState = client.roomState
     val role = client.role
     val userId = client.userId
+    val pingMs = client.pingMs
     val pendingJoinRequests = client.pendingJoinRequests
     val bufferingUsers = client.bufferingUsers
     val logs = client.logs

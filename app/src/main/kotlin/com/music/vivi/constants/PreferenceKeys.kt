@@ -33,6 +33,7 @@ val CustomFontPathKey = stringPreferencesKey("custom_font_path")
 
 enum class AppFont(val value: String) {
     SYSTEM("system"),
+    SF_PRO("sf_pro"),
     OUTFIT("outfit"),
     PLUS_JAKARTA_SANS("plus_jakarta_sans"),
     CUSTOM("custom");
@@ -613,6 +614,7 @@ enum class SearchSource {
 }
 
 val VisitorDataKey = stringPreferencesKey("visitorData")
+val VisitorCookieKey = stringPreferencesKey("visitorCookie")
 val DataSyncIdKey = stringPreferencesKey("dataSyncId")
 val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")

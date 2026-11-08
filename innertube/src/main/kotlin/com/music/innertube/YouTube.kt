@@ -31,6 +31,7 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.innertube.models.getContinuation
 import com.music.innertube.models.getItems
 import com.music.innertube.models.oddElements
+import com.music.innertube.models.splitBySeparator
 import com.music.innertube.models.response.AccountMenuResponse
 import com.music.innertube.models.response.BrowseResponse
 import com.music.innertube.models.response.CreatePlaylistResponse
@@ -106,6 +107,21 @@ object YouTube {
         set(value) {
             innerTube.cookie = value
         }
+    var visitorCookie: String?
+        get() = innerTube.visitorCookie
+        set(value) {
+            innerTube.visitorCookie = value
+        }
+    var onCookieChanged: ((String) -> Unit)?
+        get() = innerTube.onCookieChanged
+        set(value) {
+            innerTube.onCookieChanged = value
+        }
+    var onVisitorCookieChanged: ((String) -> Unit)?
+        get() = innerTube.onVisitorCookieChanged
+        set(value) {
+            innerTube.onVisitorCookieChanged = value
+        }
     var proxy: Proxy?
         get() = innerTube.proxy
         set(value) {
@@ -136,6 +152,7 @@ object YouTube {
     fun clearGuestSession() {
         visitorData = null
         dataSyncId = null
+        visitorCookie = null
     }
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> = runCatching {
@@ -606,7 +623,12 @@ object YouTube {
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
         val secondarySectionList = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
 
-        var related = secondarySectionList?.contents?.let { parseRelatedItems(it.drop(1)) }
+        var relatedTitle: String? = null
+        var related = secondarySectionList?.contents?.let {
+            val title = parseRelatedTitle(it.drop(1))
+            if (title != null) relatedTitle = title
+            parseRelatedItems(it.drop(1))
+        }
 
         if (related.isNullOrEmpty()) {
             secondarySectionList?.continuations?.getContinuation()?.let { continuationToken ->
@@ -617,6 +639,8 @@ object YouTube {
                 ).body<BrowseResponse>()
 
                 continuationResponse.continuationContents?.sectionListContinuation?.contents?.let {
+                    val title = parseRelatedTitle(it)
+                    if (title != null) relatedTitle = title
                     val parsed = parseRelatedItems(it)
                     if (parsed.isNotEmpty()) {
                         related = parsed
@@ -660,18 +684,53 @@ object YouTube {
         val descFromMicroformat = response.microformat?.microformatDataRenderer?.description
 
         val description: String? = descFromShelf ?: descFromSecondaryShelf ?: descFromHeader ?: descFromEditable ?: descFromTopLevel ?: descFromMicroformat
+        val facepileAuthor = header.facepile?.getAuthorName()?.let { authorName ->
+            Artist(
+                name = authorName,
+                id = header.facepile.getAuthorBrowseId()
+            )
+        }
+        val straplineAuthor = header.straplineTextOne?.runs?.firstOrNull()?.let {
+            Artist(
+                name = it.text,
+                id = it.navigationEndpoint?.browseEndpoint?.browseId
+            )
+        }
+        val subtitleAuthor = header.subtitle.runs?.let { runs ->
+            runs.find { it.navigationEndpoint?.browseEndpoint?.browseId != null }?.let {
+                Artist(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                )
+            } ?: runs.splitBySeparator().let { parts ->
+                if (parts.size >= 3) {
+                    parts[1].firstOrNull()?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }
+                } else if (parts.size == 2 && parts[1].firstOrNull()?.text?.toIntOrNull() == null) {
+                    parts[1].firstOrNull()?.let {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }
+                } else null
+            }
+        }
+        val author = facepileAuthor ?: straplineAuthor ?: subtitleAuthor
 
+        val authorThumbnailUrl = header.facepile?.getAuthorThumbnailUrl()
+            ?: header.straplineThumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+            ?: header.straplineThumbnail?.croppedSquareThumbnailRenderer?.getThumbnailUrl()
 
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
                 title = title,
-                author = header.straplineTextOne?.runs?.firstOrNull()?.let {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                },
+                author = author,
                 songCountText = header.secondSubtitle?.runs?.firstOrNull()?.text,
                 thumbnail = thumbnailUrl,
                 playEndpoint = null,
@@ -681,6 +740,7 @@ object YouTube {
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
                 isEditable = editable,
                 description = description,
+                authorThumbnail = authorThumbnailUrl,
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {
@@ -692,8 +752,16 @@ object YouTube {
                     ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation(),
             continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.continuations?.getContinuation(),
-            related = related?.ifEmpty { null }
+            related = related?.ifEmpty { null },
+            relatedTitle = relatedTitle
         )
+    }
+
+    private fun parseRelatedTitle(contents: List<SectionListRenderer.Content>): String? {
+        return contents.firstNotNullOfOrNull {
+            it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                ?: it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text
+        }
     }
 
     private fun parseRelatedItems(contents: List<SectionListRenderer.Content>): List<YTItem> {
@@ -1387,20 +1455,37 @@ object YouTube {
 
 
 
-    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
-        val cpn = (1..16).map {
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
-                0,
-                64
-            )]
-        }.joinToString("")
+    fun generateCpn(): String = (1..16).map {
+        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+            0,
+            64
+        )]
+    }.joinToString("")
 
+    suspend fun registerPlayback(
+        url: String,
+        playlistId: String? = null,
+        cpn: String = generateCpn(),
+        cmt: Float? = null,
+        st: Float? = null,
+        et: Float? = null,
+        state: String? = null,
+        client: YouTubeClient = WEB_REMIX,
+    ) = runCatching {
         innerTube.registerPlayback(
-            url = playbackTracking,
+            url = url,
             playlistId = playlistId,
-            cpn = cpn
+            cpn = cpn,
+            cmt = cmt,
+            st = st,
+            et = et,
+            state = state,
+            client = client
         )
     }
+
+    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) =
+        registerPlayback(url = playbackTracking, playlistId = playlistId)
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
         val response = innerTube.next(
@@ -1489,16 +1574,7 @@ object YouTube {
 
         fun addItem(item: YTItem, renderer: MusicResponsiveListItemRenderer?) {
             when (item) {
-                is SongItem -> {
-                    val isAudioTrack = renderer?.overlay
-                        ?.musicItemThumbnailOverlayRenderer?.content
-                        ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                        ?.watchEndpoint?.watchEndpointMusicSupportedConfigs
-                        ?.watchEndpointMusicConfig?.musicVideoType == MUSIC_VIDEO_TYPE_ATV
-                    if (isAudioTrack) {
-                        songs.add(item)
-                    }
-                }
+                is SongItem -> songs.add(item)
                 is AlbumItem -> albums.add(item)
                 is ArtistItem -> artists.add(item)
                 is PlaylistItem -> playlists.add(item)

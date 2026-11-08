@@ -106,7 +106,7 @@ fun PlayerSettings(
     )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
-        defaultValue = 5f
+        defaultValue = 6f
     )
     val (crossfadeCurve, onCrossfadeCurveChange) = rememberEnumPreference(
         CrossfadeCurveKey,
@@ -263,7 +263,7 @@ fun PlayerSettings(
             valueText = {
                 when (it) {
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                    AudioQuality.HIGH -> "${stringResource(R.string.audio_quality_high)} (${stringResource(R.string.audio_quality_high_desc)})"
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }
             }
@@ -335,11 +335,11 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.audio_quality)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (audioQuality) {
                                 AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                AudioQuality.HIGH -> "${stringResource(R.string.audio_quality_high)} (${stringResource(R.string.audio_quality_high_desc)})"
                                 AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                             }
                         )
@@ -350,7 +350,7 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.graphic_eq),
                     title = { Text(stringResource(R.string.jiosaavn_settings)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             if (saavnEnabled) {
                                 saavnQuality.toLabel()
@@ -365,22 +365,20 @@ fun PlayerSettings(
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.fast_forward),
                     title = { Text(stringResource(R.string.sponsorblock)) },
-                    description = { Text(stringResource(R.string.sponsorblock_desc)) },
-                    trailingContent = {
-                        Text(
-                            if (sponsorBlockEnabled) {
-                                stringResource(R.string.enabled)
-                            } else {
-                                stringResource(R.string.disabled)
-                            }
-                        )
+                    description = {
+                        val status = if (sponsorBlockEnabled) {
+                            stringResource(R.string.enabled)
+                        } else {
+                            stringResource(R.string.disabled)
+                        }
+                        Text("$status • ${stringResource(R.string.sponsorblock_desc)}")
                     },
                     onClick = { navController.navigate("settings/player/sponsorblock") }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.canvas_art),
                     title = { Text(stringResource(R.string.vivimusic_canvas)) },
-                    trailingContent = {
+                    description = {
                         val summary = if (!canvasThumbnailAnimation) {
                             stringResource(R.string.disable)
                         } else {

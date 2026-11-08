@@ -66,6 +66,14 @@ val PlusJakartaSansFontFamily = FontFamily(
     )
 )
 
+val SfProDisplayFontFamily = FontFamily(
+    Font(com.music.vivi.R.font.sf_pro_display_regular, FontWeight.Normal),
+    Font(com.music.vivi.R.font.sf_pro_display_medium, FontWeight.Medium),
+    Font(com.music.vivi.R.font.sf_pro_display_semibold, FontWeight.SemiBold),
+    Font(com.music.vivi.R.font.sf_pro_display_bold, FontWeight.Bold),
+    Font(com.music.vivi.R.font.sf_pro_display_heavy, FontWeight.Black)
+)
+
 // Define M3 Expressive Typography based on Material Design guidelines
 // https://m3.material.io/styles/typography/type-scale-tokens
 @OptIn(ExperimentalTextApi::class)

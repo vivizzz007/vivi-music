@@ -225,6 +225,7 @@
     <string name="advanced_login">Login with token</string>
     <string name="token_hidden">Tap to show token</string>
     <string name="token_shown">Tap again to copy or edit</string>
+    <string name="cookies_verified">Cookies: Verified</string>
     <string name="token_adv_login_description">This is an ADVANCED login method. As an alternative to the web portal, you may directly enter or update your login token here. For example, this can speed up logging in on multiple devices. Please note that any invalid token formats the app fails to parse will not be accepted</string>
     <string name="ytm_sync">Automatically sync with your YouTube Music account</string>
     <string name="yt_sync">Auto sync with account</string>
@@ -441,6 +442,7 @@
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
     <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in vivimusic</string>
     <string name="logging_in">Logging in…</string>
+    <string name="view_listening_history">View listening history</string>
 
     <string name="scrobbling_configuration">Scrobbling Configuration</string>
     <string name="scrobble_min_track_duration">Scrobble songs longer than</string>
@@ -680,6 +682,8 @@
     <string name="listen_together_in_top_bar">Listen Together in top bar</string>
     <string name="listen_together_in_top_bar_desc">Show Listen Together in top app bar instead of navigation bar</string>
     <string name="listen_together_description">Listen to music with your friends in real-time. Create a room to be the host or join an existing room with a code.</string>
+    <string name="listen_together_host_description">As the host, everyone in this room listens in sync with your playback. You can review join requests, accept song suggestions, and manage participants.</string>
+    <string name="listen_together_guest_description">You are listening in sync with the host. You can suggest songs to play next and view other connected listeners in the room.</string>
     <string name="listen_together_background_disconnect_note">Note: You may get disconnected if you create a room while no music is playing and then switch to another app, or if you connect to the server but remain idle without joining a room for 15 minutes.</string>
     <string name="listen_together_not_configured">Listen Together is not configured. Please set up the server URL in Settings → Integrations → Listen Together.</string>
     <string name="listen_together_suggestion_received">%1$s requested %2$s</string>
@@ -706,6 +710,16 @@
     <string name="join">Join</string>
     <string name="approve">Approve</string>
     <string name="reject">Reject</string>
+    <string name="decline">Decline</string>
+    <string name="accept">Accept</string>
+    <string name="waiting_for_you">Waiting for you</string>
+    <string name="show_all_count">Show all %1$d</string>
+    <string name="show_less_action">Show less</string>
+    <string name="transfer">Transfer</string>
+    <string name="block">Block</string>
+    <string name="listener">Listener</string>
+    <string name="joined_just_now">Just joined</string>
+    <string name="joined_minutes_ago">Joined %d min ago</string>
     <string name="clear">Clear</string>
     <string name="copy">Copy</string>
     <string name="change">Change</string>
@@ -721,6 +735,17 @@
     <string name="host_label">Host</string>
     <string name="you_label">You</string>
     <string name="connected_users">Connected users</string>
+    <string name="status">Status</string>
+    <string name="server">Server</string>
+    <string name="tap_to_start">Tap to start</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="not_connected">Not connected</string>
+    <string name="wait">Wait</string>
+    <string name="connecting">Connecting</string>
+    <string name="connection_lost">Connection lost</string>
+    <string name="waiting_for_connection">Waiting for connection</string>
+    <string name="waiting_for_network">Waiting for network</string>
+    <string name="online">Online</string>
     <string name="enter_username">Enter username</string>
     <string name="enter_room_code">Enter room code</string>
     <string name="listen_together_settings_desc">Configure server, username, and more</string>
@@ -824,8 +849,10 @@
     <string name="recognition">Recognition</string>
     <string name="recognize_music">Recognize Music</string>
     <string name="tap_to_recognize">Tap to recognize</string>
+    <string name="tap_to_recognize_hint">Tap on the hearing icon to recognize</string>
     <string name="listening">Listening…</string>
     <string name="processing">Processing…</string>
+    <string name="identifying_song">Identifying song…</string>
     <string name="no_match_found">No match found</string>
     <string name="recognition_error">Recognition error</string>
     <string name="try_again">Try again</string>
@@ -1047,9 +1074,11 @@
     <string name="font_sans_flex">Sans Flex</string>
     <string name="font_outfit">Outfit</string>
     <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+    <string name="font_sf_pro">SF Pro Display</string>
     <string name="typography_preview">Typography Preview</string>
     <string name="preview_text_quote">\"Where words fail, music speaks.\"</string>
     <string name="font_system_desc">Use the default system typeface.</string>
+    <string name="font_sf_pro_desc">Apple\'s signature typography for Apple Music.</string>
     <string name="font_google_sans_desc">Google\'s signature geometric sans-serif.</string>
     <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
     <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
@@ -1108,6 +1137,7 @@
     <string name="settings_for_account">Settings for account</string>
     <string name="give_feedback">Give feedback</string>
     <string name="account_services">Account services</string>
+    <string name="individual_category_sync">Individual Category Sync</string>
     <string name="account_settings_tab_general">General</string>
     <string name="account_settings_tab_appearance">Appearance</string>
     <string name="account_settings_tab_data">Data &amp; Privacy</string>
@@ -1167,4 +1197,18 @@
     <string name="top_comments">Top</string>
     <string name="newest_comments">Newest</string>
     <string name="replies">Replies</string>
+
+    <string name="ticket_liked_subtitle">Your favorites</string>
+    <string name="ticket_offline_subtitle">Available offline</string>
+    <string name="ticket_cached_subtitle">Device cache</string>
+    <string name="ticket_top_subtitle">Most played</string>
+
+    <string name="everything">Everything</string>
+    <string name="recently_added">Recently added</string>
+    <string name="hold_near_music">Hold your phone near the music</string>
+    <string name="keep_phone_close">Keep your phone close to the music</string>
+    <string name="match_found_saved">Match found · saved to history</string>
+    <string name="album">Album</string>
+    <string name="genre">Genre</string>
+    <string name="audio_quality_high_desc">256+ kbps with Premium</string>
 </resources>

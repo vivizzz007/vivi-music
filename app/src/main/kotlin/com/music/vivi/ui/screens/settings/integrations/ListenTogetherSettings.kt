@@ -93,6 +93,23 @@ import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.ListenTogetherViewModel
 import kotlinx.coroutines.flow.collectLatest
 
+val ListenTogetherAvatarList = listOf(
+    R.drawable.person,
+    R.drawable.man,
+    R.drawable.woman,
+    R.drawable.man_1,
+    R.drawable.man_2,
+    R.drawable.man_3,
+    R.drawable.man_4,
+    R.drawable.man_5,
+    R.drawable.man_6,
+    R.drawable.woman_1,
+    R.drawable.woman_2,
+    R.drawable.woman_3,
+    R.drawable.woman_4,
+    R.drawable.luxury_women
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListenTogetherSettings(
@@ -127,24 +144,7 @@ fun ListenTogetherSettings(
     var showBlockedUsersDialog by rememberSaveable { mutableStateOf(false) }
     var roomCodeInput by rememberSaveable { mutableStateOf("") }
     
-    val avatarOptions = remember {
-        listOf(
-            R.drawable.person,
-            R.drawable.man,
-            R.drawable.woman,
-            R.drawable.man_1,
-            R.drawable.man_2,
-            R.drawable.man_3,
-            R.drawable.man_4,
-            R.drawable.man_5,
-            R.drawable.man_6,
-            R.drawable.woman_1,
-            R.drawable.woman_2,
-            R.drawable.woman_3,
-            R.drawable.woman_4,
-            R.drawable.luxury_women
-        )
-    }
+    val avatarOptions = remember { ListenTogetherAvatarList }
     
     // Handle events
     LaunchedEffect(Unit) {

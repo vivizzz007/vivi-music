@@ -35,6 +35,10 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
+import com.music.vivi.constants.PlayerButtonsStyle
+import com.music.vivi.constants.PlayerButtonsStyleKey
+import com.music.vivi.constants.DarkModeKey
+import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.constants.QueueEditLockKey
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
@@ -118,8 +122,17 @@ fun QueueV2(
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.GRADIENT
+        defaultValue = PlayerBackgroundStyle.LIVE_MESH
     )
+    val playerButtonsStyle by rememberEnumPreference(
+        key = PlayerButtonsStyleKey,
+        defaultValue = PlayerButtonsStyle.DEFAULT
+    )
+    val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
+        if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+    }
     val adaptivePrimary = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.onSurface else Color.White
     val adaptiveSecondary = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.onSurfaceVariant else Color.White.copy(alpha = 0.7f)
     val adaptiveSurface = if (playerBackground == PlayerBackgroundStyle.DEFAULT) MaterialTheme.colorScheme.surfaceVariant else Color.White.copy(alpha = 0.2f)
@@ -127,7 +140,7 @@ fun QueueV2(
     val lazyListState = rememberLazyListState()
     
     // Scroll direction tracking
-    var previousIndex by remember { mutableIntStateOf(0) }
+    var previousIndex by remember { mutableIntStateOf(currentWindowIndex) }
     var previousScrollOffset by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(lazyListState) {
@@ -227,55 +240,103 @@ fun QueueV2(
             .fillMaxSize()
             .background(Color.Transparent)
     ) {
-        // Fixed Top Control Pills
+        // Fixed Top Control Pills (iOS 17 Stadium/Capsule Design)
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            val pillShape = RoundedCornerShape(16.dp)
-            val activeColor = adaptivePrimary.copy(alpha = 0.25f)
-            val inactiveColor = adaptivePrimary.copy(alpha = 0.1f)
+            val pillShape = RoundedCornerShape(percent = 50)
+            val isDefaultBg = playerBackground == PlayerBackgroundStyle.DEFAULT
+            val (activeBg, activeContent) = when {
+                !isDefaultBg -> {
+                    when (playerButtonsStyle) {
+                        PlayerButtonsStyle.DEFAULT -> Pair(Color.White.copy(alpha = 0.85f), Color.Black)
+                        PlayerButtonsStyle.PRIMARY -> Pair(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.onPrimary
+                        )
+                        PlayerButtonsStyle.TERTIARY -> Pair(
+                            MaterialTheme.colorScheme.tertiary,
+                            MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
+                }
+                else -> {
+                    when (playerButtonsStyle) {
+                        PlayerButtonsStyle.DEFAULT ->
+                            if (useDarkTheme) Pair(Color.White, Color.Black)
+                            else Pair(Color.Black, Color.White)
+                        PlayerButtonsStyle.PRIMARY -> Pair(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.onPrimary
+                        )
+                        PlayerButtonsStyle.TERTIARY -> Pair(
+                            MaterialTheme.colorScheme.tertiary,
+                            MaterialTheme.colorScheme.onTertiary
+                        )
+                    }
+                }
+            }
+            val inactiveBg = if (isDefaultBg) {
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+            } else {
+                adaptivePrimary.copy(alpha = 0.15f)
+            }
+            val inactiveContent = adaptivePrimary
             
             // Shuffle
+            val shuffleBg by animateColorAsState(if (shuffleModeEnabled) activeBg else inactiveBg, label = "shuffleBg")
+            val shuffleContent by animateColorAsState(if (shuffleModeEnabled) activeContent else inactiveContent, label = "shuffleContent")
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
-                    .background(if (shuffleModeEnabled) activeColor else inactiveColor, pillShape)
+                    .height(42.dp)
+                    .background(shuffleBg, pillShape)
                     .clip(pillShape)
                     .clickable(enabled = !isGuest) { playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(painterResource(R.drawable.shuffle), contentDescription = "Shuffle", tint = adaptivePrimary, modifier = Modifier.size(24.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_shuffle),
+                    contentDescription = "Shuffle",
+                    tint = shuffleContent,
+                    modifier = Modifier.size(20.dp)
+                )
             }
+
             // Repeat
+            val isRepeatActive = repeatMode != Player.REPEAT_MODE_OFF
+            val repeatBg by animateColorAsState(if (isRepeatActive) activeBg else inactiveBg, label = "repeatBg")
+            val repeatContent by animateColorAsState(if (isRepeatActive) activeContent else inactiveContent, label = "repeatContent")
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
-                    .background(if (repeatMode != Player.REPEAT_MODE_OFF) activeColor else inactiveColor, pillShape)
+                    .height(42.dp)
+                    .background(repeatBg, pillShape)
                     .clip(pillShape)
                     .clickable(enabled = !isGuest) { playerConnection.player.toggleRepeatMode() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(
-                        when (repeatMode) {
-                            Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                            else -> R.drawable.repeat
-                        }
+                        if (repeatMode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat
                     ),
                     contentDescription = "Repeat",
-                    tint = adaptivePrimary,
-                    modifier = Modifier.size(24.dp)
+                    tint = repeatContent,
+                    modifier = Modifier.size(20.dp)
                 )
             }
-            // Timer
+
+            // Sleep Timer
+            val timerBg by animateColorAsState(if (sleepTimerEnabled) activeBg else inactiveBg, label = "timerBg")
+            val timerContent by animateColorAsState(if (sleepTimerEnabled) activeContent else inactiveContent, label = "timerContent")
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(48.dp)
-                    .background(if (sleepTimerEnabled) activeColor else inactiveColor, pillShape)
+                    .height(42.dp)
+                    .background(timerBg, pillShape)
                     .clip(pillShape)
                     .clickable(enabled = !isGuest) {
                         if (sleepTimerEnabled) {
@@ -287,60 +348,54 @@ fun QueueV2(
                 contentAlignment = Alignment.Center
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.bedtime), contentDescription = "Sleep Timer", tint = adaptivePrimary, modifier = Modifier.size(24.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_timer_24dp),
+                        contentDescription = "Sleep Timer",
+                        tint = timerContent,
+                        modifier = Modifier.size(20.dp)
+                    )
                     if (sleepTimerEnabled) {
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = makeTimeString(sleepTimerTimeLeft.coerceAtLeast(0L)),
                             style = MaterialTheme.typography.labelSmall,
-                            color = adaptivePrimary
+                            fontWeight = FontWeight.SemiBold,
+                            color = timerContent
                         )
                     }
                 }
+            }
+
+            // Lock
+            val isUnlocked = !locked
+            val lockBg by animateColorAsState(if (isUnlocked) activeBg else inactiveBg, label = "lockBg")
+            val lockContent by animateColorAsState(if (isUnlocked) activeContent else inactiveContent, label = "lockContent")
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(42.dp)
+                    .background(lockBg, pillShape)
+                    .clip(pillShape)
+                    .clickable(enabled = !isGuest) { locked = !locked },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                    contentDescription = if (locked) "Unlock Queue" else "Lock Queue",
+                    tint = lockContent,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
 
         // Queue Header Row
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    if (queueTitle != null) {
-                        Text(
-                            text = stringResource(R.string.playing_from),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = adaptiveSecondary
-                        )
-                        Text(
-                            text = queueTitle!!,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = adaptivePrimary,
-                            maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.queue),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = adaptivePrimary
-                        )
-                    }
-                }
-                if (!isGuest) {
-                    IconButton(onClick = { locked = !locked }) {
-                        Icon(
-                            painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                            contentDescription = if (locked) "Unlock Queue" else "Lock Queue",
-                            tint = adaptiveSecondary
-                        )
-                    }
-                }
-            }
+            Text(
+                text = stringResource(R.string.queue),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = adaptivePrimary
+            )
             
             if (radioChips.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))

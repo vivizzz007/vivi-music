@@ -60,21 +60,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.random.Random
+import com.music.vivi.models.toMediaMetadata
 
 data class DailyDiscoverItem(
     val seed: Song,
     val recommendation: YTItem,
     val relatedEndpoint: BrowseEndpoint?
-)
-
-data class CommunityPlaylistItem(
-    val playlist: PlaylistItem,
-    val songs: List<SongItem>
 )
 
 @HiltViewModel
@@ -101,7 +99,7 @@ class HomeViewModel @Inject constructor(
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
+    val communityPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val coversAndRemixes = MutableStateFlow<HomePage.Section?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
@@ -491,10 +489,12 @@ class HomeViewModel @Inject constructor(
         YouTube.related(endpoint).onSuccess { page ->
             android.util.Log.d("QP_TIMING", "[Phase2] YouTube.related() took ${System.currentTimeMillis() - tRelated}ms | page.songs=${page.songs.size}")
             page.songs.take(10).forEach { ytSong ->
-                database.song(ytSong.id).first()?.let { localSong ->
-                    if (!hideVideoSongs || !localSong.song.isVideo) {
-                        ytSimilarSongs.add(localSong)
-                    }
+                val localSong = database.song(ytSong.id).first() ?: run {
+                    database.insert(ytSong.toMediaMetadata())
+                    database.song(ytSong.id).first()
+                }
+                if (localSong != null && (!hideVideoSongs || !localSong.song.isVideo)) {
+                    ytSimilarSongs.add(localSong)
                 }
             }
         }.onFailure {
@@ -517,36 +517,47 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun getCommunityPlaylists() {
         val fromTimeStamp = System.currentTimeMillis() - 86400000L * 7 * 4
-        val artistSeeds = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+        var artistSeeds = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
             .filter { it.artist.isYouTubeArtist }
-            .shuffled().take(3)
-        val songSeeds = database.mostPlayedSongs(fromTimeStamp, limit = 5).first()
-            .shuffled().take(2)
+            .map { it.artist.name }
+        if (artistSeeds.isEmpty()) {
+            artistSeeds = database.artistsByCreateDateAsc().first().take(5).map { it.artist.name }
+        }
+
+        var songSeeds = database.mostPlayedSongs(fromTimeStamp, limit = 5).first()
+        if (songSeeds.isEmpty()) {
+            songSeeds = database.likedSongsByCreateDateAsc().first().take(5)
+        }
 
         val candidatePlaylists = java.util.Collections.synchronizedList(mutableListOf<PlaylistItem>())
 
+        val queries = mutableListOf<String>()
+        if (artistSeeds.isNotEmpty()) {
+            queries.addAll(artistSeeds.shuffled().take(3).map { "$it playlist" })
+        }
+        if (songSeeds.isNotEmpty()) {
+            queries.addAll(songSeeds.shuffled().take(2).map { it.title })
+        }
+
         kotlinx.coroutines.coroutineScope {
-            artistSeeds.map { seed ->
+            queries.map { query ->
                 launch(Dispatchers.IO) {
-                    YouTube.artist(seed.id).onSuccess { page ->
-                        page.sections.forEach { section ->
-                            section.items.filterIsInstance<PlaylistItem>().forEach { playlist ->
-                                if (playlist.author?.name != "YouTube Music" &&
-                                    playlist.author?.name != "YouTube" &&
-                                    playlist.author?.name != "Playlist" &&
-                                    playlist.author?.name != seed.artist.name &&
-                                    !playlist.id.startsWith("RD") &&
-                                    !playlist.id.startsWith("OLAK")
-                                ) {
-                                    candidatePlaylists.add(playlist)
-                                }
+                    YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST).onSuccess { result ->
+                        result.items.filterIsInstance<PlaylistItem>().forEach { playlist ->
+                            if (playlist.author?.name != "YouTube Music" &&
+                                playlist.author?.name != "YouTube" &&
+                                playlist.author?.name != "Playlist" &&
+                                !playlist.id.startsWith("RD") &&
+                                !playlist.id.startsWith("OLAK")
+                            ) {
+                                candidatePlaylists.add(playlist)
                             }
                         }
                     }
                 }
             }
 
-            songSeeds.map { seed ->
+            songSeeds.shuffled().take(2).map { seed ->
                 launch(Dispatchers.IO) {
                     val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
                     if (endpoint != null) {
@@ -567,38 +578,35 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        val uniqueCandidates = if (candidatePlaylists.isEmpty()) {
-            val fallbackPlaylists = mutableListOf<PlaylistItem>()
-            YouTube.searchSummary("top playlists").getOrNull()?.let { result ->
-                fallbackPlaylists.addAll(
-                    result.summaries.flatMap { it.items }.filterIsInstance<PlaylistItem>()
-                        .filter { it.author?.name != "YouTube Music" && it.author?.name != "YouTube" && !it.id.startsWith("RD") }
-                )
-            }
-            fallbackPlaylists.shuffled().take(5)
-        } else {
-            candidatePlaylists.distinctBy { it.id }.shuffled().take(5)
-        }
-
-        val playlists = java.util.Collections.synchronizedList(mutableListOf<CommunityPlaylistItem>())
-
-        kotlinx.coroutines.coroutineScope {
-            uniqueCandidates.map { playlist ->
-                launch(Dispatchers.IO) {
-                    YouTube.playlist(playlist.id).onSuccess { page ->
-                        val songs = page.songs.take(10)
-                        if (songs.isNotEmpty()) {
-                            // Use song count from the playlist page if available, otherwise use original
-                            val songCountText = page.playlist.songCountText ?: playlist.songCountText
-                            val updatedPlaylist = playlist.copy(songCountText = songCountText)
-                            playlists.add(CommunityPlaylistItem(updatedPlaylist, songs))
+        if (candidatePlaylists.size < 20) {
+            val fallbackQueries = listOf("top playlist", "hits playlist", "best music playlist", "chill playlist").shuffled()
+            for (fallbackQuery in fallbackQueries) {
+                if (candidatePlaylists.size >= 25) break
+                YouTube.search(fallbackQuery, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST).onSuccess { result ->
+                    result.items.filterIsInstance<PlaylistItem>().forEach { playlist ->
+                        if (playlist.author?.name != "YouTube Music" &&
+                            playlist.author?.name != "YouTube" &&
+                            playlist.author?.name != "Playlist" &&
+                            !playlist.id.startsWith("RD") &&
+                            !playlist.id.startsWith("OLAK")
+                        ) {
+                            candidatePlaylists.add(playlist)
                         }
                     }
                 }
-            }.forEach { it.join() }
+            }
         }
 
-        communityPlaylists.value = playlists.shuffled()
+        if (candidatePlaylists.isEmpty()) {
+            YouTube.searchSummary("top playlists").getOrNull()?.let { result ->
+                candidatePlaylists.addAll(
+                    result.summaries.flatMap { it.items }.filterIsInstance<PlaylistItem>()
+                        .filter { it.author?.name != "YouTube Music" && it.author?.name != "YouTube" && it.author?.name != "Playlist" && !it.id.startsWith("RD") && !it.id.startsWith("OLAK") }
+                )
+            }
+        }
+
+        communityPlaylists.value = candidatePlaylists.distinctBy { it.id }.shuffled().take(25)
     }
 
     /**
@@ -771,7 +779,11 @@ class HomeViewModel @Inject constructor(
                     // Asynchronously fetch continuations if "Quick picks" is missing 
                     // This way it won't block the rest of the home sections from rendering!
                     launch(Dispatchers.IO) {
-                        var hasQuickPicks = initialPage.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                        var hasQuickPicks = initialPage.sections.any {
+                            it.title.equals("Quick picks", ignoreCase = true) ||
+                            it.label?.contains("START RADIO", ignoreCase = true) == true ||
+                            (it.items.isNotEmpty() && it.items.all { item -> item is SongItem } && it.label != null)
+                        }
                         var currentContinuation = initialPage.continuation
                         var fetchCount = 0
                         
@@ -793,7 +805,11 @@ class HomeViewModel @Inject constructor(
                                 }
                             )
                             
-                            hasQuickPicks = nextSectionsResponse.sections.any { it.title.equals("Quick picks", ignoreCase = true) }
+                            hasQuickPicks = nextSectionsResponse.sections.any {
+                                it.title.equals("Quick picks", ignoreCase = true) ||
+                                it.label?.contains("START RADIO", ignoreCase = true) == true ||
+                                (it.items.isNotEmpty() && it.items.all { item -> item is SongItem } && it.label != null)
+                            }
                             currentContinuation = nextSectionsResponse.continuation
                             fetchCount++
                         }
@@ -964,6 +980,28 @@ class HomeViewModel @Inject constructor(
             android.util.Log.d("QP_TIMING", "init: load() fully completed in ${System.currentTimeMillis() - tInit}ms")
         }
 
+        // Dynamically update Quick Picks whenever a new listening event is recorded
+        viewModelScope.launch(Dispatchers.IO) {
+            database.events()
+                .drop(1)
+                .mapNotNull { it.firstOrNull()?.event?.id }
+                .distinctUntilChanged()
+                .collect {
+                    loadLocalDataPhase()
+                    enrichQuickPicksFromNetwork()
+                }
+        }
+
+        // Dynamically update Quick Picks if the user switches Quick Picks preference
+        viewModelScope.launch(Dispatchers.IO) {
+            quickPicksEnum
+                .drop(1)
+                .collect {
+                    loadLocalDataPhase()
+                    enrichQuickPicksFromNetwork()
+                }
+        }
+
         // Run sync in separate coroutine with cooldown to avoid blocking UI
         viewModelScope.launch(Dispatchers.IO) {
             syncUtils.tryAutoSync()
@@ -1035,5 +1073,10 @@ class HomeViewModel @Inject constructor(
                     }
                 }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        wrappedAudioService.release()
     }
 }

@@ -195,7 +195,8 @@ fun LoginScreen(
                     webView = this
                     loadUrl("https://accounts.google.com/ServiceLogin?continue=https%3A%2F%2Fmusic.youtube.com")
                 }
-            }
+            },
+            onRelease = { it.destroy() }
         )
 
         Column(modifier = Modifier.onGloballyPositioned { headerHeightPx = it.size.height }) {

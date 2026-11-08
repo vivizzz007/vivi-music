@@ -87,6 +87,11 @@ class App : Application(), SingletonImageLoader.Factory {
             initializeSettings()
             observeSettingsChanges()
         }
+
+        // Prewarm InnerTubeX extraction engine and public player in the background for instant playback
+        applicationScope.launch(Dispatchers.IO) {
+            runCatching { InnerTubeXPlayer.prewarm() }
+        }
     }
 
     private suspend fun initializeSettings() {
@@ -214,6 +219,31 @@ class App : Application(), SingletonImageLoader.Factory {
                 .distinctUntilChanged()
                 .collect { dataSyncId ->
                     YouTube.dataSyncId = normalizeDataSyncId(dataSyncId)
+                }
+        }
+
+        YouTube.onCookieChanged = { updatedCookie ->
+            applicationScope.launch(Dispatchers.IO) {
+                dataStore.edit { preferences ->
+                    preferences[InnerTubeCookieKey] = updatedCookie
+                }
+            }
+        }
+
+        YouTube.onVisitorCookieChanged = { updatedVisitorCookie ->
+            applicationScope.launch(Dispatchers.IO) {
+                dataStore.edit { preferences ->
+                    preferences[VisitorCookieKey] = updatedVisitorCookie
+                }
+            }
+        }
+
+        applicationScope.launch(Dispatchers.IO) {
+            dataStore.data
+                .map { it[VisitorCookieKey] }
+                .distinctUntilChanged()
+                .collect { visitorCookie ->
+                    YouTube.visitorCookie = visitorCookie
                 }
         }
 
@@ -350,6 +380,7 @@ class App : Application(), SingletonImageLoader.Factory {
             Timber.d("forgetAccount: Clearing DataStore preferences")
             context.dataStore.edit { settings ->
                 settings.remove(InnerTubeCookieKey)
+                settings.remove(VisitorCookieKey)
                 settings.remove(VisitorDataKey)
                 settings.remove(DataSyncIdKey)
                 settings.remove(AccountNameKey)
@@ -362,6 +393,7 @@ class App : Application(), SingletonImageLoader.Factory {
             Timber.d("forgetAccount: Clearing YouTube object auth state")
             Timber.d("forgetAccount: Before - cookie=${YouTube.cookie?.take(50)}, visitorData=${YouTube.visitorData?.take(20)}, dataSyncId=${YouTube.dataSyncId?.take(20)}")
             YouTube.cookie = null
+            YouTube.visitorCookie = null
             YouTube.visitorData = null
             YouTube.dataSyncId = null
             Timber.d("forgetAccount: After - cookie=${YouTube.cookie}, visitorData=${YouTube.visitorData}, dataSyncId=${YouTube.dataSyncId}")

@@ -23,11 +23,16 @@ import android.media.MediaRecorder
 import androidx.core.content.ContextCompat
 import com.music.shazamkit.Shazam
 import com.music.shazamkit.models.RecognitionStatus
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.nio.ByteOrder
@@ -51,6 +56,24 @@ object MusicRecognitionService {
     private val _recognitionStatus = MutableStateFlow<RecognitionStatus>(RecognitionStatus.Ready)
     val recognitionStatus: StateFlow<RecognitionStatus> = _recognitionStatus.asStateFlow()
     
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private var recognitionJob: Job? = null
+    private var activeAudioRecord: AudioRecord? = null
+
+    fun startRecognizing(context: Context) {
+        recognitionJob?.cancel()
+        val appContext = context.applicationContext
+        recognitionJob = serviceScope.launch {
+            recognize(appContext)
+        }
+    }
+
+    fun stopRecognizing() {
+        recognitionJob?.cancel()
+        recognitionJob = null
+        reset()
+    }
+    
     fun hasRecordPermission(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
             context, 
@@ -73,6 +96,7 @@ object MusicRecognitionService {
         try {
             // Step 1: Record audio
             val audioData = recordAudio()
+            if (!isActive) return@withContext _recognitionStatus.value
             
             _recognitionStatus.value = RecognitionStatus.Processing
             
@@ -88,9 +112,12 @@ object MusicRecognitionService {
                 decodedAudio, 
                 VibraSignature.REQUIRED_SAMPLE_RATE
             ).getOrElse { error ->
-                _recognitionStatus.value = RecognitionStatus.Error("Failed to resample audio: ${error.message}")
+                if (isActive) {
+                    _recognitionStatus.value = RecognitionStatus.Error("Failed to resample audio: ${error.message}")
+                }
                 return@withContext _recognitionStatus.value
             }
+            if (!isActive) return@withContext _recognitionStatus.value
             
             // Verify format
             require(
@@ -106,32 +133,44 @@ object MusicRecognitionService {
             val signature = try {
                 VibraSignature.fromI16(resampledAudio.data)
             } catch (e: Exception) {
-                _recognitionStatus.value = RecognitionStatus.Error("Failed to generate fingerprint: ${e.message}")
+                if (isActive) {
+                    _recognitionStatus.value = RecognitionStatus.Error("Failed to generate fingerprint: ${e.message}")
+                }
                 return@withContext _recognitionStatus.value
             }
+            if (!isActive) return@withContext _recognitionStatus.value
             
             // Step 4: Send to Shazam API
             val sampleDurationMs = (resampledAudio.data.size / 2) * 1000L / VibraSignature.REQUIRED_SAMPLE_RATE
             
             val result = Shazam.recognize(signature, sampleDurationMs)
+            if (!isActive) return@withContext _recognitionStatus.value
             
             result.fold(
                 onSuccess = { recognitionResult ->
-                    _recognitionStatus.value = RecognitionStatus.Success(recognitionResult)
+                    if (isActive) {
+                        _recognitionStatus.value = RecognitionStatus.Success(recognitionResult)
+                    }
                 },
                 onFailure = { error ->
-                    val message = error.message ?: "Unknown error"
-                    _recognitionStatus.value = if (message.contains("No match", ignoreCase = true)) {
-                        RecognitionStatus.NoMatch("No matches found. Try again with clearer audio.")
-                    } else {
-                        RecognitionStatus.Error(message)
+                    if (isActive) {
+                        val message = error.message ?: "Unknown error"
+                        _recognitionStatus.value = if (message.contains("No match", ignoreCase = true)) {
+                            RecognitionStatus.NoMatch("No matches found. Try again with clearer audio.")
+                        } else {
+                            RecognitionStatus.Error(message)
+                        }
                     }
                 }
             )
             
             _recognitionStatus.value
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            _recognitionStatus.value = RecognitionStatus.Error(e.message ?: "Recognition failed")
+            if (isActive) {
+                _recognitionStatus.value = RecognitionStatus.Error(e.message ?: "Recognition failed")
+            }
             _recognitionStatus.value
         }
     }
@@ -151,6 +190,7 @@ object MusicRecognitionService {
             AUDIO_FORMAT,
             bufferSize
         )
+        activeAudioRecord = audioRecord
         
         val outputStream = ByteArrayOutputStream()
         val buffer = ByteArray(bufferSize)
@@ -166,14 +206,30 @@ object MusicRecognitionService {
                 }
             }
         } finally {
-            audioRecord.stop()
-            audioRecord.release()
+            try {
+                if (audioRecord.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+                    audioRecord.stop()
+                }
+                audioRecord.release()
+            } catch (_: Exception) {}
+            if (activeAudioRecord == audioRecord) {
+                activeAudioRecord = null
+            }
         }
         
         outputStream.toByteArray()
     }
     
     fun reset() {
+        try {
+            activeAudioRecord?.let {
+                if (it.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
+                    it.stop()
+                }
+                it.release()
+            }
+        } catch (_: Exception) {}
+        activeAudioRecord = null
         _recognitionStatus.value = RecognitionStatus.Ready
     }
 }

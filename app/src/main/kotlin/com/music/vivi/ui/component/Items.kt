@@ -1310,11 +1310,14 @@ fun YouTubeGridItem(
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         }
         
-        val isLiveOrStation = (item is SongItem && item.duration == null) || item.title.contains("Station", ignoreCase = true)
+        val isLive = item is SongItem && (
+            item.viewCountText?.contains("watching", ignoreCase = true) == true ||
+            item.title.contains(Regex("""\b(live\s*stream|livestream|24/7\s*live|live\s*24/7)\b""", RegexOption.IGNORE_CASE))
+        )
 
         if (subtitle != null) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (isLiveOrStation) {
+                if (isLive) {
                     androidx.compose.material3.Surface(
                         color = MaterialTheme.colorScheme.error,
                         shape = RoundedCornerShape(1.dp),
@@ -1351,6 +1354,7 @@ fun YouTubeGridItem(
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
+            thumbnailRatio = thumbnailRatio,
         )
 
         if (item is SongItem && !isActive) {
@@ -1538,19 +1542,22 @@ fun ItemThumbnail(
             val isYtThumbnail = remember(thumbnailUrl) {
                 thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
             }
+            val targetWidth = remember(thumbnailRatio) {
+                if (thumbnailRatio > 1f) (544 * thumbnailRatio).toInt() else 544
+            }
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(thumbnailUrl?.resize(544, 544))
+                    .data(thumbnailUrl?.resize(targetWidth, 544))
                     .memoryCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .diskCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .networkCachePolicy(coil3.request.CachePolicy.ENABLED)
                     .build(),
                 contentDescription = null,
-                contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                contentScale = if (thumbnailRatio > 1f || cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        if (cropAlbumArt && isYtThumbnail) {
+                        if (cropAlbumArt && isYtThumbnail && thumbnailRatio == 1f) {
                             scaleX = 4f / 3f
                             scaleY = 4f / 3f
                         }
@@ -2044,10 +2051,11 @@ object Icon {
     }
 
     @Composable
-    fun Explicit() {
+    fun Explicit(tint: Color = LocalContentColor.current) {
         Icon(
             painter = painterResource(R.drawable.explicit),
             contentDescription = null,
+            tint = tint,
             modifier = Modifier
                 .size(18.dp)
                 .padding(end = 2.dp)
