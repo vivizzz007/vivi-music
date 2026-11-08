@@ -92,6 +92,7 @@ fun AccountSettingsScreen(
 
     val syncState by accountSettingsViewModel.syncState.collectAsState()
     val isSyncing = syncState.overallStatus is SyncStatus.Syncing
+    var syncTriggerCount by remember { mutableStateOf(0) }
 
     Column(
         modifier = Modifier
@@ -124,33 +125,50 @@ fun AccountSettingsScreen(
                             .padding(horizontal = 24.dp, vertical = 18.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (!accountImageUrl.isNullOrBlank()) {
-                            AsyncImage(
-                                model = accountImageUrl,
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(CircleShape)
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(56.dp)
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.person),
+                        AccountSyncIndicator(
+                            artistsStatus = syncState.artists,
+                            playlistsStatus = syncState.playlists,
+                            albumsStatus = syncState.likedAlbums,
+                            lastSyncTime = lastFullSync,
+                            syncTriggerCount = syncTriggerCount,
+                            activeColor = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.25f),
+                            errorColor = MaterialTheme.colorScheme.error,
+                            onSyncClick = {
+                                syncTriggerCount++
+                                if (!isSyncing) {
+                                    accountSettingsViewModel.forceSyncLibrary()
+                                }
+                            },
+                        ) {
+                            if (!accountImageUrl.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = accountImageUrl,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.size(28.dp)
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
                                 )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.person),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(18.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
@@ -288,6 +306,7 @@ fun AccountSettingsScreen(
                                 }
                             },
                             onClick = {
+                                syncTriggerCount++
                                 if (!isSyncing) {
                                     accountSettingsViewModel.forceSyncLibrary()
                                 }
