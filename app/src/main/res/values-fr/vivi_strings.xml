@@ -194,8 +194,8 @@
     <string name="wavy">Ondulé</string>
 	<string name="expressive_wavy">Ondulé expressif</string>
     <string name="enable_swipe_thumbnail">Activer le balayage pour changer de titre</string>
-    <string name="swipe_song_to_add">Balayez le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
-    <string name="swipe_song_to_remove">Balayez le titre pour le supprimer de la playlist.</string>
+    <string name="swipe_song_to_add">Balayer le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
+    <string name="swipe_song_to_remove">Balayer le titre pour le supprimer de la playlist.</string>
     <string name="lyrics_click_change">Changer les paroles en les sélectionnant</string>
     <string name="lyrics_auto_scroll">Défilement automatique des paroles</string>
     <string name="lyrics_glow_effect">Activer l\'effet de paroles lumineuses</string>
