@@ -133,7 +133,7 @@ fun AutoPlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val playlist = when (viewModel.playlist) {
         "liked" -> stringResource(R.string.liked)
-        "uploaded" -> stringResource(R.string.uploaded_playlist)
+
         else -> stringResource(R.string.offline)
     }
 
@@ -166,7 +166,7 @@ fun AutoPlaylistScreen(
     val playlistType = when (playlistId) {
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
-        "uploaded" -> PlaylistType.UPLOADED
+
         else -> PlaylistType.OTHER
     }
 
@@ -182,14 +182,12 @@ fun AutoPlaylistScreen(
         selection.clear()
     }
 
-    if (isSearching) {
-        BackHandler {
-            isSearching = false
-            query = TextFieldValue()
-        }
-    } else if (inSelectMode) {
-        BackHandler(onBack = onExitSelectionMode)
+    BackHandler(enabled = isSearching) {
+        isSearching = false
+        query = TextFieldValue()
     }
+    
+    BackHandler(enabled = inSelectMode && !isSearching, onBack = onExitSelectionMode)
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -209,10 +207,6 @@ fun AutoPlaylistScreen(
                 if (playlistType == PlaylistType.LIKE) {
                     println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncLikedSongs()")
                     viewModel.syncLikedSongs()
-                }
-                if (playlistType == PlaylistType.UPLOADED) {
-                    println("[UPLOAD_DEBUG] AutoPlaylistScreen: Calling syncUploadedSongs()")
-                    viewModel.syncUploadedSongs()
                 }
             }
         } else {
@@ -303,7 +297,7 @@ fun AutoPlaylistScreen(
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
-    val canRefresh = playlistType == PlaylistType.LIKE || playlistType == PlaylistType.UPLOADED
+    val canRefresh = playlistType == PlaylistType.LIKE
 
     Box(
         modifier = Modifier
@@ -853,5 +847,5 @@ private fun AutoPlaylistHeader(
 
 
 enum class PlaylistType {
-    LIKE, DOWNLOAD, UPLOADED, OTHER
+    LIKE, DOWNLOAD, OTHER
 }

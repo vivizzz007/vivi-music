@@ -22,8 +22,11 @@ import com.music.vivi.extensions.getCurrentQueueIndex
 import com.music.vivi.extensions.getQueueWindows
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.togglePlayPause
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.MusicService.MusicBinder
 import com.music.vivi.playback.queues.Queue
+import com.music.vivi.playback.queues.YouTubeQueue
+import com.music.innertube.pages.RadioChip
 import com.music.vivi.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -95,8 +98,12 @@ class PlayerConnection(
         
         playbackState = MutableStateFlow(initialState.first)
         playWhenReady = MutableStateFlow(initialState.second)
-        isPlaying = combine(playbackState, playWhenReady) { state, ready ->
-            ready && state != STATE_ENDED
+        isPlaying = combine(playbackState, playWhenReady, service.isCrossfadingFlow) { state, ready, isCrossfading ->
+            if (isCrossfading) {
+                ready
+            } else {
+                ready && state != STATE_ENDED
+            }
         }.stateIn(
             scope,
             SharingStarted.Lazily,
@@ -126,10 +133,25 @@ class PlayerConnection(
     }.stateIn(
         scope,
         SharingStarted.Lazily,
-        player.playbackState != STATE_ENDED && player.playWhenReady
+        isPlaying.value
     )
     
-    val mediaMetadata = MutableStateFlow(player.currentMetadata)
+    val mediaMetadata = MutableStateFlow<MediaMetadata?>(try { player.currentMetadata } catch (_: Exception) { null })
+    fun getNextMediaMetadata(playerInstance: Player = player): MediaMetadata? {
+        return try {
+            val nextIndex = playerInstance.nextMediaItemIndex
+            if (nextIndex != androidx.media3.common.C.INDEX_UNSET && nextIndex < playerInstance.mediaItemCount) {
+                playerInstance.getMediaItemAt(nextIndex).metadata
+            } else null
+        } catch (_: Exception) {
+            null
+        }
+    }
+    val nextMediaMetadata = MutableStateFlow<MediaMetadata?>(getNextMediaMetadata())
+    val isCrossfading = service.isCrossfadingFlow
+    val crossfadeOutgoingItem = service.crossfadeOutgoingItem
+    val crossfadeIncomingItem = service.crossfadeIncomingItem
+    val crossfadeProgress = service.crossfadeProgressFlow
     val currentSong =
         mediaMetadata.flatMapLatest {
             database.song(it?.id)
@@ -142,6 +164,7 @@ class PlayerConnection(
             database.format(mediaMetadata?.id)
         }
 
+    val radioChips = service.radioChips
     val queueTitle = MutableStateFlow<String?>(null)
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
     val currentMediaItemIndex = MutableStateFlow(-1)
@@ -175,15 +198,35 @@ class PlayerConnection(
             // Observe player changes (e.g. crossfade swap)
             scope.launch {
                 service.playerFlow.collect { newPlayer ->
-                    if (newPlayer != null && newPlayer != attachedPlayer) {
+                    if (newPlayer != null) {
                         updateAttachedPlayer(newPlayer)
+                    }
+                }
+            }
+
+            // Keep metadata and queue in sync with authoritative service state
+            scope.launch {
+                service.currentMediaMetadata.collect { meta ->
+                    if (meta != null && meta.id != mediaMetadata.value?.id) {
+                        mediaMetadata.value = meta
+                        val p = attachedPlayer ?: player
+                        currentMediaItemIndex.value = p.currentMediaItemIndex
+                        currentWindowIndex.value = p.getCurrentQueueIndex()
+                        queueWindows.value = p.getQueueWindows()
+                        nextMediaMetadata.value = getNextMediaMetadata(p)
+                        updateCanSkipPreviousAndNext()
+                        Timber.tag(TAG).d("currentMediaMetadata sync: updated to ${meta.title} (id=${meta.id})")
                     }
                 }
             }
             
             // Initial setup if flow hasn't emitted yet but service is ready
             if (attachedPlayer == null && service.isPlayerReady.value) {
-                 updateAttachedPlayer(player)
+                try {
+                    updateAttachedPlayer(player)
+                } catch (e: Exception) {
+                    Timber.tag(TAG).w(e, "Service marked ready but player attach deferred to flow observer")
+                }
             }
 
             Timber.tag(TAG).d("PlayerConnection flow observer registered")
@@ -202,18 +245,27 @@ class PlayerConnection(
         // Refresh all state from new player
         playbackState.value = newPlayer.playbackState
         playWhenReady.value = newPlayer.playWhenReady
-        mediaMetadata.value = newPlayer.currentMetadata
+        val meta = newPlayer.currentMetadata
+        mediaMetadata.value = meta
         queueTitle.value = service.queueTitle
         queueWindows.value = newPlayer.getQueueWindows()
         currentWindowIndex.value = newPlayer.getCurrentQueueIndex()
         currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
         shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
         repeatMode.value = newPlayer.repeatMode
+        nextMediaMetadata.value = getNextMediaMetadata(newPlayer)
+        updateCanSkipPreviousAndNext()
         
-        Timber.tag(TAG).d("Attached to new player instance: $newPlayer")
+        Timber.tag(TAG).d("updateAttachedPlayer: mediaMetadata updated to ${meta?.title} (id=${meta?.id})")
+        Timber.tag(TAG).d("updateAttachedPlayer: queueIndex=${newPlayer.currentMediaItemIndex}, queueSize=${newPlayer.mediaItemCount}, canSkipNext=${canSkipNext.value}, canSkipPrevious=${canSkipPrevious.value}")
     }
 
     fun playQueue(queue: Queue) {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("playQueue blocked - Listen Together guest")
+            return
+        }
         if (!playerReadinessFlow.value) {
             Timber.tag(TAG).w("playQueue called before player ready; delegating to service")
         }
@@ -223,6 +275,10 @@ class PlayerConnection(
             Timber.tag(TAG).e(e, "Error in playQueue")
             throw e
         }
+    }
+
+    fun selectRadioChip(chip: RadioChip) {
+        service.applyRadioChip(chip)
     }
 
     fun startRadioSeamlessly() {
@@ -302,6 +358,11 @@ class PlayerConnection(
      * Toggle play/pause - handles Cast when active
      */
     fun togglePlayPause() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("togglePlayPause blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -322,6 +383,11 @@ class PlayerConnection(
      * Start playback - handles Cast when active
      */
     fun play() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("play blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -341,6 +407,11 @@ class PlayerConnection(
      * Pause playback - handles Cast when active
      */
     fun pause() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("pause blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -357,6 +428,11 @@ class PlayerConnection(
      * Seek to position - handles Cast when active
      */
     fun seekTo(position: Long) {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekTo blocked - Listen Together guest")
+            return
+        }
         try {
             val castHandler = service.castConnectionHandler
             if (castHandler?.isCasting?.value == true) {
@@ -370,6 +446,11 @@ class PlayerConnection(
     }
 
     fun seekToNext() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekToNext blocked - Listen Together guest")
+            return
+        }
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -377,11 +458,19 @@ class PlayerConnection(
                 castHandler.skipToNext()
                 return
             }
-            player.seekToNext()
-            if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                player.prepare()
+            // Try a crossfaded manual skip first (only engages if the user
+            // enabled "Crossfade on manual skip"); fall back to an instant
+            // seek otherwise.
+            if (!service.manualSkipToNextWithCrossfade()) {
+                service.cancelCrossfadeIfActive()
+                val p = attachedPlayer ?: player
+                p.seekToNext()
+                if (p.playbackState == Player.STATE_IDLE || p.playbackState == Player.STATE_ENDED) {
+                    p.prepare()
+                }
+                p.playWhenReady = true
+                updateCanSkipPreviousAndNext()
             }
-            player.playWhenReady = true
             onSkipNext?.invoke()
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error in seekToNext")
@@ -391,6 +480,11 @@ class PlayerConnection(
     var onRestartSong: (() -> Unit)? = null
 
     fun seekToPrevious() {
+        // Block if Listen Together guest (unless internal sync)
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            Timber.tag(TAG).d("seekToPrevious blocked - Listen Together guest")
+            return
+        }
         try {
             // When casting, use Cast skip instead of local player
             val castHandler = service.castConnectionHandler
@@ -399,22 +493,29 @@ class PlayerConnection(
                 return
             }
 
+            val p = attachedPlayer ?: player
             // Logic to mimic standard seekToPrevious behavior but with explicit callbacks
             // If we are more than 3 seconds in, just restart the song
-            if (player.currentPosition > 3000 || !player.hasPreviousMediaItem()) {
-                player.seekTo(0)
-                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                    player.prepare()
+            if (p.currentPosition > 3000 || !p.hasPreviousMediaItem()) {
+                p.seekTo(0)
+                if (p.playbackState == Player.STATE_IDLE || p.playbackState == Player.STATE_ENDED) {
+                    p.prepare()
                 }
-                player.playWhenReady = true
+                p.playWhenReady = true
+                updateCanSkipPreviousAndNext()
                 onRestartSong?.invoke()
             } else {
-                // Otherwise go to previous media item
-                player.seekToPreviousMediaItem()
-                if (player.playbackState == Player.STATE_IDLE || player.playbackState == Player.STATE_ENDED) {
-                    player.prepare()
+                // Otherwise go to previous media item — try a crossfaded
+                // manual skip first, falling back to an instant seek.
+                if (!service.manualSkipToPreviousWithCrossfade()) {
+                    service.cancelCrossfadeIfActive()
+                    p.seekToPreviousMediaItem()
+                    if (p.playbackState == Player.STATE_IDLE || p.playbackState == Player.STATE_ENDED) {
+                        p.prepare()
+                    }
+                    p.playWhenReady = true
+                    updateCanSkipPreviousAndNext()
                 }
-                player.playWhenReady = true
                 onSkipPrevious?.invoke()
             }
         } catch (e: Exception) {
@@ -422,7 +523,18 @@ class PlayerConnection(
         }
     }
 
+    fun seekToQueueItem(index: Int) {
+        if (!service.manualSeekToIndexWithCrossfade(index)) {
+            service.cancelCrossfadeIfActive()
+            player.seekToDefaultPosition(index)
+            player.playWhenReady = true
+        }
+    }
+
     override fun onPlaybackStateChanged(state: Int) {
+        if (isCrossfading.value && state == Player.STATE_ENDED) {
+            return
+        }
         playbackState.value = state
         error.value = player.playerError
     }
@@ -431,6 +543,9 @@ class PlayerConnection(
         newPlayWhenReady: Boolean,
         reason: Int,
     ) {
+        if (isCrossfading.value && reason != Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+            return
+        }
         playWhenReady.value = newPlayWhenReady
     }
 
@@ -439,27 +554,34 @@ class PlayerConnection(
         reason: Int,
     ) {
         mediaMetadata.value = mediaItem?.metadata
-        currentMediaItemIndex.value = player.currentMediaItemIndex
-        currentWindowIndex.value = player.getCurrentQueueIndex()
+        val p = attachedPlayer ?: player
+        currentMediaItemIndex.value = p.currentMediaItemIndex
+        currentWindowIndex.value = p.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
+        // Auto-refresh radio filter chips for every newly active song
+        if (mediaItem != null) {
+            service.refreshChipsForCurrentSong()
+        }
     }
 
     override fun onTimelineChanged(
         timeline: Timeline,
         reason: Int,
     ) {
-        mediaMetadata.value = player.currentMetadata
-        queueWindows.value = player.getQueueWindows()
+        val p = attachedPlayer ?: player
+        mediaMetadata.value = p.currentMetadata
+        queueWindows.value = p.getQueueWindows()
         queueTitle.value = service.queueTitle
-        currentMediaItemIndex.value = player.currentMediaItemIndex
-        currentWindowIndex.value = player.getCurrentQueueIndex()
+        currentMediaItemIndex.value = p.currentMediaItemIndex
+        currentWindowIndex.value = p.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
     override fun onShuffleModeEnabledChanged(enabled: Boolean) {
+        val p = attachedPlayer ?: player
         shuffleModeEnabled.value = enabled
-        queueWindows.value = player.getQueueWindows()
-        currentWindowIndex.value = player.getCurrentQueueIndex()
+        queueWindows.value = p.getQueueWindows()
+        currentWindowIndex.value = p.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
     }
 
@@ -475,19 +597,40 @@ class PlayerConnection(
         error.value = playbackError
     }
 
+    override fun onEvents(player: Player, events: Player.Events) {
+        if (events.containsAny(
+                Player.EVENT_AVAILABLE_COMMANDS_CHANGED,
+                Player.EVENT_TIMELINE_CHANGED,
+                Player.EVENT_MEDIA_ITEM_TRANSITION,
+                Player.EVENT_REPEAT_MODE_CHANGED,
+                Player.EVENT_SHUFFLE_MODE_ENABLED_CHANGED
+            )
+        ) {
+            updateCanSkipPreviousAndNext()
+        }
+    }
+
     private fun updateCanSkipPreviousAndNext() {
-        if (!player.currentTimeline.isEmpty) {
-            val window =
-                player.currentTimeline.getWindow(player.currentMediaItemIndex, Timeline.Window())
-            canSkipPrevious.value = player.isCommandAvailable(COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM) ||
-                    !window.isLive ||
-                    player.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-            canSkipNext.value = window.isLive &&
-                    window.isDynamic ||
-                    player.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
-        } else {
-            canSkipPrevious.value = false
-            canSkipNext.value = false
+        val p = attachedPlayer ?: player
+        nextMediaMetadata.value = getNextMediaMetadata(p)
+        try {
+            if (!p.currentTimeline.isEmpty && p.currentMediaItemIndex in 0 until p.currentTimeline.windowCount) {
+                val window =
+                    p.currentTimeline.getWindow(p.currentMediaItemIndex, Timeline.Window())
+                canSkipPrevious.value = p.hasPreviousMediaItem() ||
+                        p.isCommandAvailable(COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM) ||
+                        !window.isLive ||
+                        p.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                canSkipNext.value = p.hasNextMediaItem() ||
+                        (window.isLive && window.isDynamic) ||
+                        p.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+            } else {
+                canSkipPrevious.value = p.hasPreviousMediaItem()
+                canSkipNext.value = p.hasNextMediaItem()
+            }
+        } catch (_: Exception) {
+            canSkipPrevious.value = p.hasPreviousMediaItem()
+            canSkipNext.value = p.hasNextMediaItem()
         }
     }
 

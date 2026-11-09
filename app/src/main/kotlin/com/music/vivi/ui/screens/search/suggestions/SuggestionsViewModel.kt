@@ -22,12 +22,29 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.ArtistItem
 import com.music.innertube.models.WatchEndpoint
+import com.music.innertube.models.AlbumItem
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.playback.queues.YouTubeQueue
 import androidx.navigation.NavController
+import android.content.Context
+import com.music.innertube.models.filterExplicit
+import com.music.vivi.constants.HideExplicitKey
+import com.music.vivi.db.MusicDatabase
+import com.music.vivi.utils.NetworkConnectivityObserver
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import com.music.vivi.constants.SuggestionRegionKey
 
 @HiltViewModel
-class SuggestionsViewModel @Inject constructor() : ViewModel() {
+class SuggestionsViewModel @Inject constructor(
+    @ApplicationContext val context: Context,
+    val database: MusicDatabase,
+    val networkConnectivityObserver: NetworkConnectivityObserver,
+) : ViewModel() {
     private var currentLoadedRegion: String? = null
     
     private val _suggestionTracks = MutableStateFlow<List<SuggestionTrack>?>(null)
@@ -42,11 +59,46 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
     private val _suggestionVideos = MutableStateFlow<List<SuggestionTrack>?>(null)
     val suggestionVideos: StateFlow<List<SuggestionTrack>?> = _suggestionVideos
 
+    private val _youtubeNewReleases = MutableStateFlow<List<AlbumItem>?>(null)
+    val youtubeNewReleases: StateFlow<List<AlbumItem>?> = _youtubeNewReleases
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _isManualLoading = MutableStateFlow(false)
     val isManualLoading: StateFlow<Boolean> = _isManualLoading
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            context.dataStore.data
+                .map { it[SuggestionRegionKey] ?: "system" }
+                .distinctUntilChanged()
+                .collect { regionCode ->
+                    refresh(countryCode = regionCode, force = false)
+                }
+        }
+
+        // Auto-retry load when network connectivity is restored
+        viewModelScope.launch(Dispatchers.IO) {
+            var wasOffline = false
+            networkConnectivityObserver.networkStatus.collect { isConnected ->
+                if (isConnected) {
+                    val hasData = _suggestionTracks.value != null ||
+                            _suggestionAlbums.value != null ||
+                            _suggestionVideos.value != null ||
+                            _youtubeNewReleases.value != null
+
+                    if (wasOffline || !hasData) {
+                        val regionCode = context.dataStore.data.first()[SuggestionRegionKey] ?: "system"
+                        refresh(countryCode = regionCode, force = true)
+                    }
+                    wasOffline = false
+                } else {
+                    wasOffline = true
+                }
+            }
+        }
+    }
 
     fun refresh(countryCode: String = "system", force: Boolean = false) {
         val resolvedCode = if (countryCode == "system") {
@@ -55,11 +107,13 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
             countryCode.lowercase()
         }
 
-        // Allow refresh if force is true OR if we are switching regions
-        if (_isLoading.value && !force && currentLoadedRegion == resolvedCode) return
+        // Abort if we already loaded this region (unless forced)
+        if (!force && currentLoadedRegion == resolvedCode) return
+        
+        // Abort if a load is currently happening
+        if (!_isLoading.compareAndSet(expect = false, update = true)) return
         
         viewModelScope.launch(Dispatchers.IO) {
-            _isLoading.value = true
             if (force) _isManualLoading.value = true
             
             // Clear current data if we are switching regions or forcing a fresh load
@@ -68,6 +122,7 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                 _suggestionArtists.value = null
                 _suggestionAlbums.value = null
                 _suggestionVideos.value = null
+                _youtubeNewReleases.value = null
             }
 
             try {
@@ -75,7 +130,7 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                     // Launch each fetch in its own job so they update the UI independently
                     launch {
                         try {
-                            val tracks = AppleMusicScraper.fetchTopSongs(resolvedCode)
+                            val tracks = AppleMusicScraper.fetchTopSongs(context, resolvedCode)
                             if (tracks.isNotEmpty()) {
                                 _suggestionTracks.value = tracks
                                 _suggestionArtists.value = AppleMusicScraper.getTrendingArtists(tracks)
@@ -87,7 +142,7 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
 
                     launch {
                         try {
-                            val albums = AppleMusicScraper.fetchTopAlbums(resolvedCode)
+                            val albums = AppleMusicScraper.fetchTopAlbums(context, resolvedCode)
                             if (albums.isNotEmpty()) {
                                 _suggestionAlbums.value = albums
                             }
@@ -98,7 +153,7 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
 
                     launch {
                         try {
-                            val videos = AppleMusicScraper.fetchTopVideos(resolvedCode)
+                            val videos = AppleMusicScraper.fetchTopVideos(context, resolvedCode)
                             if (videos.isNotEmpty()) {
                                 _suggestionVideos.value = videos
                             }
@@ -106,11 +161,56 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                             Log.e("SuggestionsViewModel", "Failed to fetch videos", e)
                         }
                     }
+
+                    launch {
+                        try {
+                            YouTube.newReleaseAlbums().onSuccess { albums ->
+                                val artists: MutableMap<Int, String> = mutableMapOf()
+                                val favouriteArtists: MutableMap<Int, String> = mutableMapOf()
+                                database.allArtistsByPlayTime().first().let { list ->
+                                    var favIndex = 0
+                                    for ((artistsIndex, artist) in list.withIndex()) {
+                                        artists[artistsIndex] = artist.id
+                                        if (artist.artist.bookmarkedAt != null) {
+                                            favouriteArtists[favIndex] = artist.id
+                                            favIndex++
+                                        }
+                                    }
+                                }
+                                _youtubeNewReleases.value =
+                                    albums
+                                        .sortedBy { album ->
+                                            val artistIds = album.artists.orEmpty().mapNotNull { it.id }
+                                            val firstArtistKey =
+                                                artistIds.firstNotNullOfOrNull { artistId ->
+                                                    if (artistId in favouriteArtists.values) {
+                                                        favouriteArtists.entries.firstOrNull { it.value == artistId }?.key
+                                                    } else {
+                                                        artists.entries.firstOrNull { it.value == artistId }?.key
+                                                    }
+                                                } ?: Int.MAX_VALUE
+                                            firstArtistKey
+                                        }.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                            }
+                        } catch (e: Exception) {
+                            Log.e("SuggestionsViewModel", "Failed to fetch YouTube new releases", e)
+                        }
+                    }
                 }
 
-                currentLoadedRegion = resolvedCode
+                val hasData = _suggestionTracks.value != null ||
+                        _suggestionAlbums.value != null ||
+                        _suggestionVideos.value != null ||
+                        _youtubeNewReleases.value != null
+
+                if (hasData) {
+                    currentLoadedRegion = resolvedCode
+                } else {
+                    currentLoadedRegion = null
+                }
             } catch (e: Exception) {
                 Log.e("SuggestionsViewModel", "Failed to fetch suggestions", e)
+                currentLoadedRegion = null
             } finally {
                 _isLoading.value = false
                 _isManualLoading.value = false
@@ -150,13 +250,20 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                 // 3. Any result where at least one artist matches
                 songs.firstOrNull { s ->
                     s.artists.any { a -> artistMatches(a.name, track.artist) }
-                } ?:
-                // 4. Fallback — first song in results (last resort)
-                songs.firstOrNull()
+                }
+                // No blind fallback — if nothing matched confidently, we report it
 
                 if (bestMatch != null) {
                     withContext(Dispatchers.Main) {
                         playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        android.widget.Toast.makeText(
+                            context,
+                            "\"${track.title}\" is not available on YouTube Music",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -196,7 +303,7 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
     fun playVideo(video: SuggestionTrack, playerConnection: PlayerConnection?) {
         viewModelScope.launch(Dispatchers.IO) {
             val query = "${video.title} ${video.artist}"
-            YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
+            YouTube.search(query, YouTube.SearchFilter.FILTER_VIDEO)
                 .onSuccess { searchResult ->
                     val songs = searchResult.items.filterIsInstance<SongItem>()
 
@@ -211,12 +318,20 @@ class SuggestionsViewModel @Inject constructor() : ViewModel() {
                     } ?:
                     songs.firstOrNull { s ->
                         s.artists.any { a -> artistMatches(a.name, video.artist) }
-                    } ?:
-                    songs.firstOrNull()
+                    }
+                    // No blind fallback — if nothing matched confidently, we report it
 
                     if (bestMatch != null) {
                         withContext(Dispatchers.Main) {
                             playerConnection?.playQueue(YouTubeQueue(WatchEndpoint(videoId = bestMatch.id)))
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "\"${video.title}\" is not available on YouTube Music",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }

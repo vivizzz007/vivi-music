@@ -25,6 +25,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,19 +41,29 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
+import com.music.vivi.constants.AudioTrackPlaybackParamsKey
 import com.music.vivi.constants.AudioQuality
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.constants.SaavnAudioQuality
 import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
+import com.music.vivi.constants.CrossfadeCurve
+import com.music.vivi.constants.CrossfadeCurveKey
+import com.music.vivi.constants.CanvasThumbnailAnimationKey
+import com.music.vivi.constants.SpotifyCanvasEnabledKey
+import com.music.vivi.constants.MotionartworkSourceKey
+import com.music.spotify.Spotify
+import com.music.vivi.constants.MotionartworkSource
 import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeGaplessKey
+import com.music.vivi.constants.CrossfadeManualSkipKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
 import com.music.vivi.constants.DisableLoadMoreWhenRepeatAllKey
 import com.music.vivi.constants.EnableGoogleCastKey
+import com.music.vivi.constants.EnableSponsorBlockKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.KeepScreenOn
 import com.music.vivi.constants.PauseOnMute
@@ -67,10 +78,12 @@ import com.music.vivi.constants.SimilarContent
 import com.music.vivi.constants.SkipSilenceInstantKey
 import com.music.vivi.constants.SkipSilenceKey
 import com.music.vivi.constants.StopMusicOnTaskClearKey
+import com.music.vivi.ui.component.ActionPromptDialog
+import com.music.vivi.ui.component.CrossfadeCurvePreview
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.EnumDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberEnumPreference
@@ -93,11 +106,19 @@ fun PlayerSettings(
     )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
-        defaultValue = 5f
+        defaultValue = 6f
+    )
+    val (crossfadeCurve, onCrossfadeCurveChange) = rememberEnumPreference(
+        CrossfadeCurveKey,
+        defaultValue = CrossfadeCurve.EASE_OUT_QUAD
     )
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(
         CrossfadeGaplessKey,
         defaultValue = true
+    )
+    val (crossfadeManualSkip, onCrossfadeManualSkipChange) = rememberPreference(
+        CrossfadeManualSkipKey,
+        defaultValue = false
     )
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(
         PersistentQueueKey,
@@ -119,6 +140,11 @@ fun PlayerSettings(
     val (audioOffload, onAudioOffloadChange) = rememberPreference(
         key = AudioOffload,
         defaultValue = false
+    )
+
+    val (audioTrackPlaybackParams, onAudioTrackPlaybackParamsChange) = rememberPreference(
+        key = AudioTrackPlaybackParamsKey,
+        defaultValue = true
     )
 
     val (enableGoogleCast, onEnableGoogleCastChange) = rememberPreference(
@@ -195,6 +221,30 @@ fun PlayerSettings(
         SaavnAudioQualityKey,
         defaultValue = SaavnAudioQuality.QUALITY_320
     )
+    val (sponsorBlockEnabled, _) = rememberPreference(
+        EnableSponsorBlockKey,
+        defaultValue = true
+    )
+    val (canvasThumbnailAnimation, onCanvasThumbnailAnimationChange) = rememberPreference(
+        CanvasThumbnailAnimationKey,
+        defaultValue = true
+    )
+    val (canvasSource) = rememberEnumPreference(
+        MotionartworkSourceKey,
+        defaultValue = MotionartworkSource.AUTO
+    )
+    val (spotifyCanvasEnabled, onSpotifyCanvasEnabledChange) = rememberPreference(
+        SpotifyCanvasEnabledKey,
+        defaultValue = false
+    )
+    val isSpotifyLoggedIn = Spotify.accessToken != null
+
+    // Auto-disable if user logs out of Spotify
+    LaunchedEffect(isSpotifyLoggedIn) {
+        if (!isSpotifyLoggedIn && spotifyCanvasEnabled) {
+            onSpotifyCanvasEnabledChange(false)
+        }
+    }
 
     var showAudioQualityDialog by remember {
         mutableStateOf(false)
@@ -213,7 +263,7 @@ fun PlayerSettings(
             valueText = {
                 when (it) {
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                    AudioQuality.HIGH -> "${stringResource(R.string.audio_quality_high)} (${stringResource(R.string.audio_quality_high_desc)})"
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }
             }
@@ -233,25 +283,42 @@ fun PlayerSettings(
             .padding(horizontal = 16.dp)
     ) {
         var showCrossfadeBetaDialog by remember { mutableStateOf(false) }
+        var showCrossfadeCurveDialog by remember { mutableStateOf(false) }
 
-        if (showCrossfadeBetaDialog) {
-            DefaultDialog(
-                onDismiss = { showCrossfadeBetaDialog = false },
-                title = { Text(stringResource(R.string.crossfade_beta_title)) },
-                buttons = {
-                    TextButton(onClick = { showCrossfadeBetaDialog = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                    TextButton(onClick = {
-                        showCrossfadeBetaDialog = false
-                        onCrossfadeEnabledChange(true)
-                    }) {
-                        Text(stringResource(R.string.enable))
+        if (showCrossfadeCurveDialog) {
+            EnumDialog(
+                onDismiss = { showCrossfadeCurveDialog = false },
+                onSelect = {
+                    onCrossfadeCurveChange(it)
+                    showCrossfadeCurveDialog = false
+                },
+                title = stringResource(R.string.crossfade_curve),
+                current = crossfadeCurve,
+                values = CrossfadeCurve.entries,
+                valueText = {
+                    when (it) {
+                        CrossfadeCurve.EQUAL_POWER -> stringResource(R.string.crossfade_curve_entry_equal_power)
+                        CrossfadeCurve.EASE_OUT_QUAD -> stringResource(R.string.crossfade_curve_entry_ease_out_quad)
+                        CrossfadeCurve.EASE_OUT_CUBIC -> stringResource(R.string.crossfade_curve_entry_ease_out_cubic)
+                        CrossfadeCurve.SMOOTHSTEP -> stringResource(R.string.crossfade_curve_entry_smoothstep)
                     }
                 }
-            ) {
-                Text(stringResource(R.string.crossfade_beta_message))
-            }
+            )
+        }
+
+        if (showCrossfadeBetaDialog) {
+            ActionPromptDialog(
+                onDismiss = { showCrossfadeBetaDialog = false },
+                title = stringResource(R.string.crossfade_beta_title),
+                onCancel = { showCrossfadeBetaDialog = false },
+                onConfirm = {
+                    showCrossfadeBetaDialog = false
+                    onCrossfadeEnabledChange(true)
+                },
+                content = {
+                    Text(stringResource(R.string.crossfade_beta_message))
+                }
+            )
         }
 
         Spacer(
@@ -262,7 +329,7 @@ fun PlayerSettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.player),
             items = buildList {
                 add(Material3SettingsItem(
@@ -272,7 +339,7 @@ fun PlayerSettings(
                         Text(
                             when (audioQuality) {
                                 AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                                AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
+                                AudioQuality.HIGH -> "${stringResource(R.string.audio_quality_high)} (${stringResource(R.string.audio_quality_high_desc)})"
                                 AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                             }
                         )
@@ -293,6 +360,60 @@ fun PlayerSettings(
                         )
                     },
                     onClick = { navController.navigate("settings/player/jio") }
+                ))
+                // SponsorBlock settings navigation
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.fast_forward),
+                    title = { Text(stringResource(R.string.sponsorblock)) },
+                    description = {
+                        val status = if (sponsorBlockEnabled) {
+                            stringResource(R.string.enabled)
+                        } else {
+                            stringResource(R.string.disabled)
+                        }
+                        Text("$status • ${stringResource(R.string.sponsorblock_desc)}")
+                    },
+                    onClick = { navController.navigate("settings/player/sponsorblock") }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.canvas_art),
+                    title = { Text(stringResource(R.string.vivimusic_canvas)) },
+                    description = {
+                        val summary = if (!canvasThumbnailAnimation) {
+                            stringResource(R.string.disable)
+                        } else {
+                            when (canvasSource) {
+                                MotionartworkSource.AUTO -> stringResource(R.string.canvas_source_auto)
+                                MotionartworkSource.APPLE_MUSIC -> stringResource(R.string.canvas_source_apple_music)
+                                MotionartworkSource.VIVIMUSIC -> stringResource(R.string.canvas_source_vivimusic)
+                                MotionartworkSource.TIDAL -> stringResource(R.string.canvas_source_tidal)
+                            }
+                        }
+                        Text(summary)
+                    },
+                    onClick = { navController.navigate("settings/player/motionartwork") }
+                ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.canvas_art),
+                    title = { Text(stringResource(R.string.enable_spotify_canvas)) },
+                    description = { Text(stringResource(R.string.enable_spotify_canvas_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = spotifyCanvasEnabled,
+                            onCheckedChange = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(it) },
+                            enabled = isSpotifyLoggedIn,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (spotifyCanvasEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(!spotifyCanvasEnabled) }
                 ))
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
@@ -345,6 +466,28 @@ fun PlayerSettings(
                         }
                     ))
                     add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.linear_scale),
+                        title = { Text(stringResource(R.string.crossfade_curve)) },
+                        description = {
+                            Column {
+                                Text(
+                                    when (crossfadeCurve) {
+                                        CrossfadeCurve.EQUAL_POWER -> stringResource(R.string.crossfade_curve_entry_equal_power)
+                                        CrossfadeCurve.EASE_OUT_QUAD -> stringResource(R.string.crossfade_curve_entry_ease_out_quad)
+                                        CrossfadeCurve.EASE_OUT_CUBIC -> stringResource(R.string.crossfade_curve_entry_ease_out_cubic)
+                                        CrossfadeCurve.SMOOTHSTEP -> stringResource(R.string.crossfade_curve_entry_smoothstep)
+                                    }
+                                )
+                                Spacer(Modifier.height(8.dp))
+                                CrossfadeCurvePreview(
+                                    curve = crossfadeCurve,
+                                    durationSeconds = crossfadeDuration,
+                                )
+                            }
+                        },
+                        onClick = { showCrossfadeCurveDialog = true }
+                    ))
+                    add(Material3SettingsItem(
                         icon = painterResource(R.drawable.album),
                         title = { Text(stringResource(R.string.crossfade_gapless)) },
                         description = { Text(stringResource(R.string.crossfade_gapless_desc)) },
@@ -364,6 +507,27 @@ fun PlayerSettings(
                             )
                         },
                         onClick = { onCrossfadeGaplessChange(!crossfadeGapless) }
+                    ))
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.fast_forward),
+                        title = { Text(stringResource(R.string.crossfade_manual_skip)) },
+                        description = { Text(stringResource(R.string.crossfade_manual_skip_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = crossfadeManualSkip,
+                                onCheckedChange = onCrossfadeManualSkipChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (crossfadeManualSkip) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onCrossfadeManualSkipChange(!crossfadeManualSkip) }
                     ))
                 }
                 add(Material3SettingsItem(
@@ -470,6 +634,27 @@ fun PlayerSettings(
                     },
                     onClick = { if (!crossfadeEnabled) onAudioOffloadChange(!audioOffload) }
                 ))
+                add(Material3SettingsItem(
+                    icon = painterResource(R.drawable.graphic_eq),
+                    title = { Text(stringResource(R.string.audio_track_playback_params)) },
+                    description = { Text(stringResource(R.string.audio_track_playback_params_description)) },
+                    trailingContent = {
+                        Switch(
+                            checked = audioTrackPlaybackParams,
+                            onCheckedChange = onAudioTrackPlaybackParamsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (audioTrackPlaybackParams) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onAudioTrackPlaybackParamsChange(!audioTrackPlaybackParams) }
+                ))
                 // Only show Cast setting in GMS builds (not in F-Droid/FOSS)
                 if (BuildConfig.CAST_AVAILABLE) {
                     add(Material3SettingsItem(
@@ -526,7 +711,7 @@ fun PlayerSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.queue),
             items = listOf(
                 Material3SettingsItem(
@@ -744,7 +929,7 @@ fun PlayerSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(

@@ -340,8 +340,6 @@
     <string name="artist_page_settings">Página del Artista</string>
     <string name="enable_wavy_slider">Habilitar control deslizante ondulado</string>
     <string name="wavy">Ondulado</string>
-    <string name="enable_simpmusic">Habilitar letras de SimpMusic</string>
-    <string name="enable_simpmusic_desc">Utiliza el proveedor SimpMusic Lyrics para sincronizar las letras</string>
     <string name="skip_silence_desc">Avanzar rápidamente por las partes silenciosas de las canciones</string>
     <string name="skip_silence_instant">Saltar el silencio al instante</string>
     <string name="skip_silence_instant_desc">Salta hacia adelante durante los momentos de silencio en lugar de acelerar la reproducción</string>

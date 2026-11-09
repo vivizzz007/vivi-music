@@ -22,13 +22,26 @@ fun Queue.toPersistQueue(
     position: Long
 ): PersistQueue {
     return when (this) {
-        is ListQueue -> PersistQueue(
-            title = title,
-            items = items,
-            mediaItemIndex = mediaItemIndex,
-            position = position,
-            queueType = QueueType.LIST
-        )
+        is ListQueue -> {
+            if (this.isRadio) {
+                PersistQueue(
+                    title = title,
+                    items = items,
+                    mediaItemIndex = mediaItemIndex,
+                    position = position,
+                    queueType = QueueType.YOUTUBE,
+                    queueData = QueueData.YouTubeData(endpoint = "youtube_queue")
+                )
+            } else {
+                PersistQueue(
+                    title = title,
+                    items = items,
+                    mediaItemIndex = mediaItemIndex,
+                    position = position,
+                    queueType = QueueType.LIST
+                )
+            }
+        }
         is YouTubeQueue -> {
             // Since endpoint is private, we'll store a simplified version
             val endpoint = "youtube_queue"
@@ -92,7 +105,8 @@ fun PersistQueue.toQueue(): Queue {
                 title = title,
                 items = items.map { it.toMediaItem() },
                 startIndex = mediaItemIndex,
-                position = position
+                position = position,
+                isRadio = true
             )
         }
         is QueueType.YOUTUBE_ALBUM_RADIO -> {

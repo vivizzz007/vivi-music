@@ -9,6 +9,7 @@
 <resources>
     <!-- Bottom navigation -->
     <string name="home">Ana Sayfa</string>
+    <string name="music">Müzik</string>
     <string name="songs">Şarkılar</string>
     <string name="artists">Sanatçılar</string>
     <string name="albums">Albümler</string>
@@ -72,6 +73,7 @@
     <string name="from_your_library">Kütüphanenizden</string>
 
     <!-- Album screen -->
+    <string name="album_label">Albüm</string>
     <string name="other_versions">Diğer versiyonlar</string>
     <string name="album_description_placeholder">Bu albüm için yer tutucu bir açıklamadır. Aşağıdaki şarkıları dinlemenin keyfini çıkarın!</string>
 
@@ -95,6 +97,8 @@
     <string name="details">Detaylar</string>
     <string name="edit">Düzenle</string>
     <string name="start_radio">Radyo başlat</string>
+    <string name="apple_mini_player_design">Apple tarzı mini oynatıcı</string>
+    <string name="classic_mini_player">Klasik mini oynatıcı</string>
     <string name="play">Çal</string>
     <string name="pause">Duraklat</string>
     <string name="play_next">Bir sonra çal</string>
@@ -209,6 +213,11 @@
         <item quantity="one">%d yıl</item>
         <item quantity="other">%d yıllar</item>
     </plurals>
+    <plurals name="n_apk_found">
+        <item quantity="zero">Hiç APK bulunamadı</item>
+        <item quantity="one">%d APK bulundu</item>
+        <item quantity="other">%d APK bulundu</item>
+    </plurals>
 
     <!-- Snackbar -->
     <string name="playlist_imported">Çalma listesi içe aktarıldı</string>
@@ -272,6 +281,7 @@
     <string name="right">Sağ</string>
     <string name="player_slider_style">Oynatıcı kaydırma biçimi</string>
     <string name="default_">Varsayılan</string>
+    <string name="apple_music">Apple Music</string>
     <string name="squiggly">Dalgalı</string>
     <string name="misc">Çeşitli</string>
     <string name="default_open_tab">Varsayılan giriş sekmesi</string>
@@ -283,6 +293,7 @@
     <string name="action_logout">Oturumu kapat</string>
     <string name="action_login">Giriş Yap</string>
     <string name="login">Oturum aç</string>
+    <string name="show_audio_quality_badge">Ses kalitesi rozetini göster</string>
     <string name="not_logged_in">Oturum açılmadı</string>
     <string name="login_failed">Oturum açma başarısız</string>
 
@@ -296,6 +307,10 @@
 
     <string name="player_and_audio">Müzik çalar ve ses</string>
     <string name="audio_quality">Ses kalitesi</string>
+    <string name="network_ip_version">Ağ IP Sürümü</string>
+    <string name="ip_version_auto">Otomatik</string>
+    <string name="ip_version_ipv4">Zorunlu IPv4</string>
+    <string name="ip_version_ipv6">Zorunlu IPv6</string>
     <string name="audio_quality_auto">Otomatik</string>
     <string name="audio_quality_high">Yüksek</string>
     <string name="audio_quality_low">Düşük</string>
@@ -323,6 +338,9 @@
     <string name="max_song_cache_size">Maksimum şarkı önbellek boyutu</string>
     <string name="clear_song_cache">Şarkı önbelleğini temizle</string>
     <string name="size_used">%s kullanıldı</string>
+
+    <string name="clear_downloaded_updates">İndirilen güncellemeleri temizle</string>
+    <string name="clear_downloaded_updates_desc">İndirilen APK dosyalarını kaldırır</string>
 
     <string name="privacy">Gizlilik</string>
     <string name="listen_history">Dinleme geçmişi</string>
@@ -374,4 +392,54 @@
     <string name="audio_devices">Ses cihazları</string>
     <string name="bluetooth_headphones">Bluetooth kulaklık</string>
     <string name="license">GNU General Public License v3.0</string>
+    <string name="standard_lyrics_blur">Standart şarkı sözü bulanıklığı</string>
+    <string name="listen_together_smart_resync">Akıllı Ağ Yeniden Senkronizasyonu</string>
+    <string name="listen_together_smart_resync_desc">Bağlantı koptuktan sonra otomatik olarak yayıncıya yetişir</string>
+
+    <!-- JioSaavn Streaming -->
+    <string name="enable_saavn_streaming">JioSaavn Akışını Etkinleştir</string>
+    <string name="enable_saavn_streaming_desc">Sesi YouTube Music yerine JioSaavn\'dan aktarır (mevcut değilse YT\'ye geri döner)</string>
+    <string name="saavn_audio_quality">JioSaavn Ses Kalitesi</string>
+    <string name="retry_stream">Akışı Yeniden Dene</string>
+    <string name="retry_stream_desc_saavn">JioSaavn\'dan 320 kbps hızında yeniden getir</string>
+    <string name="retry_stream_desc_yt">YouTube Music\'ten yeniden getir</string>
+
+    <!-- Dynamic Search Prompts -->
+    <string name="search_prompt_whats_on_mind">Aklında ne var?</string>
+    <string name="search_prompt_todays_pick">Günün seçimi nedir?</string>
+    <string name="search_prompt_trending">Trend olan hitleri ara…</string>
+    <string name="search_prompt_vibe">Şanslı hissediyor musun? Bir mod ara…</string>
+    <string name="search_prompt_songs_artists">Şarkılar, sanatçılar, albümler için ara…</string>
+    <string name="search_prompt_template_song">\"%s\" ara…</string>
+    <string name="search_prompt_template_song_try">\"%s\" aramayı dene…</string>
+    <string name="search_prompt_template_artist">\"%s\" sanatçısını ara…</string>
+    <string name="enable_settings_popup">Ayarlar açılır penceresini etkinleştir</string>
+    <string name="enable_settings_popup_desc">Ayarlar düğmesine dokunulduğunda ayarları doğrudan açmak yerine hızlı ayarlar penceresini gösterir</string>
+
+    <!-- Automatic Backup -->
+    <string name="automatic_backup">Otomatik yedekleme</string>
+    <string name="automatic_backup_desc">Veri kaybını önlemek için ayarlarınızın ve veritabanınızın otomatik yedeklemelerini yapılandırın.</string>
+    <string name="enable_automatic_backup">Otomatik Yedeklemeyi Etkinleştir</string>
+    <string name="weekly_backup">Haftalık yedekleme</string>
+    <string name="weekly_backup_desc">Verilerinizi arka planda her hafta otomatik olarak yedekler.</string>
+    <string name="backup_before_update">Güncelleme öncesi yedekle</string>
+    <string name="backup_before_update_desc">Uygulama güncellemesini indirmeden önce verilerinizi otomatik olarak yedekler.</string>
+    <string name="stored_backups">Kaydedilen yedeklemeler</string>
+    <string name="no_stored_backups">Henüz kaydedilmiş otomatik yedekleme yok.</string>
+    <string name="backup_type_weekly">Haftalık Yedekleme</string>
+    <string name="backup_type_before_update">Güncelleme Öncesi</string>
+    <string name="delete_backup_confirm">Bu yedeklemeyi silmek istediğinizden emin misiniz?</string>
+    <string name="restore_backup_confirm">Bu yedeği geri yüklemek istediğinizden emin misiniz? Değişiklikleri uygulamak için uygulama kapanacak ve yeniden başlatılacaktır.</string>
+    <string name="backup_deleted">Yedekleme başarıyla silindi</string>
+    <string name="others">Diğerleri</string>
+    <string name="last_backed_up">Son yedekleme: %s</string>
+    <string name="never_backed_up">Hiçbir zaman</string>
+    <string name="autobackup_settings">Otomatik Yedekleme Ayarları</string>
+    <string name="new_release_notifications">Yeni çıkan uyarıları</string>
+    <string name="new_release_notifications_subtitle">Favorilere eklenen sanatçılar yeni şarkı veya albüm çıkardığında bildir (beta)</string>
+    <string name="new_release_channel_name">Yeni Çıkanlar</string>
+    <string name="new_release_channel_desc">Favori sanatçılarınızın yeni çıkan içerikleri için bildirimler</string>
+    <string name="new_release_notifications_info">Bazı cihazlarda (Samsung, Xiaomi vb.) pil optimizasyonu arka plan bildirimlerini geciktirebilir veya engelleyebilir. Zamanında uyarı alabilmek için cihaz ayarlarınızdan Vivi Music\'in pil kullanımını Kısıtlanmamış olarak ayarlayın.</string>
+    <string name="taste_based_release_notifications">Zevke dayalı yeni çıkan uyarıları</string>
+    <string name="taste_based_release_notifications_subtitle">Sık dinlediğiniz sanatçılar yeni şarkı veya albüm çıkardığında bildir</string>
 </resources>

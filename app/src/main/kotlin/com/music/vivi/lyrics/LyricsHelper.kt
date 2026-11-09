@@ -7,6 +7,8 @@ package com.music.vivi.lyrics
 
 import android.content.Context
 import android.util.LruCache
+
+import com.music.vivi.constants.LyricsPrioritizeSyncAccuracyKey
 import com.music.vivi.constants.LyricsProviderOrderKey
 import com.music.vivi.constants.PreferredLyricsProvider
 import com.music.vivi.constants.PreferredLyricsProviderKey
@@ -18,14 +20,20 @@ import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class LyricsHelper
 @Inject
 constructor(
@@ -47,7 +55,7 @@ constructor(
 
         // Migration path: place the old preferred provider first in the default order
         val preferredEnum = preferences[PreferredLyricsProviderKey]
-            .toEnum(PreferredLyricsProvider.YOULYPLUS)
+            .toEnum(PreferredLyricsProvider.MUSIXMATCH)
         val preferredName = LyricsProviderRegistry.getProviderNameForEnum(preferredEnum)
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         val migratedOrder = listOf(preferredName) + defaultOrder.filter { it != preferredName }
@@ -58,6 +66,10 @@ constructor(
 
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
     private var currentLyricsJob: Job? = null
+
+    private val helperScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val activeFetches = mutableMapOf<String, Deferred<LyricsWithProvider>>()
+    private val fetchesMutex = Mutex()
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         currentLyricsJob?.cancel()
@@ -81,36 +93,111 @@ constructor(
             return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
 
-        val providers = resolveLyricsProviders()
-        val scope = CoroutineScope(SupervisorJob())
-        val deferred = scope.async {
-            for (provider in providers) {
-                if (provider.isEnabled(context)) {
-                    try {
-                        val result = provider.getLyrics(
-                            mediaMetadata.id,
-                            mediaMetadata.title,
-                            mediaMetadata.artists.joinToString { it.name },
-                            mediaMetadata.duration,
-                            mediaMetadata.album?.title,
-                        )
-                        result.onSuccess { lyrics ->
-                            return@async LyricsWithProvider(lyrics, provider.name)
-                        }.onFailure {
-                            reportException(it)
-                        }
-                    } catch (e: Exception) {
-                        // Catch network-related exceptions like UnresolvedAddressException
-                        reportException(e)
+        val cacheKey = mediaMetadata.id
+        val deferred = fetchesMutex.withLock {
+            activeFetches.getOrPut(cacheKey) {
+                helperScope.async {
+                    val preferences = context.dataStore.data.first()
+                    val prioritizeSync = preferences[LyricsPrioritizeSyncAccuracyKey] ?: true
+                    
+                    val providers = resolveLyricsProviders()
+                    
+                    val channel = kotlinx.coroutines.channels.Channel<Triple<Int, String, String>>(kotlinx.coroutines.channels.Channel.UNLIMITED)
+                    
+                    val jobs = providers.mapIndexedNotNull { index, provider ->
+                        if (provider.isEnabled(context)) {
+                            launch {
+                                try {
+                                    val result = provider.getLyrics(
+                                        mediaMetadata.id,
+                                        mediaMetadata.title,
+                                        mediaMetadata.artists.joinToString { it.name },
+                                        mediaMetadata.duration,
+                                        mediaMetadata.album?.title,
+                                    )
+                                    result.onSuccess { lyrics ->
+                                        if (lyrics.isNotBlank() && lyrics != LYRICS_NOT_FOUND) {
+                                            channel.send(Triple(index, provider.name, lyrics))
+                                        }
+                                    }.onFailure {
+                                        reportException(it)
+                                    }
+                                } catch (e: Exception) {
+                                    reportException(e)
+                                }
+                            }
+                        } else null
                     }
+
+                    launch {
+                        kotlinx.coroutines.joinAll(*jobs.toTypedArray())
+                        channel.close()
+                    }
+
+                    var bestLyrics = LYRICS_NOT_FOUND
+                    var bestProvider = "Unknown"
+                    var bestSyncType = LyricsUtils.SyncType.NONE
+                    var bestIndex = Int.MAX_VALUE
+
+                    try {
+                        kotlinx.coroutines.withTimeout(15000) {
+                            for ((index, providerName, lyrics) in channel) {
+                                if (!prioritizeSync) {
+                                    if (index < bestIndex) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestIndex = index
+                                        if (index == 0) break
+                                    }
+                                } else {
+                                    val syncType = try {
+                                        LyricsUtils.getSyncType(lyrics)
+                                    } catch (e: Exception) {
+                                        reportException(e)
+                                        LyricsUtils.SyncType.NONE
+                                    }
+                                    
+                                    if (syncType == LyricsUtils.SyncType.WORD) {
+                                        if (bestSyncType != LyricsUtils.SyncType.WORD || index < bestIndex) {
+                                            bestLyrics = lyrics
+                                            bestProvider = providerName
+                                            bestSyncType = syncType
+                                            bestIndex = index
+                                        }
+                                        if (index == 0) break
+                                    } else if (syncType == LyricsUtils.SyncType.LINE && (bestSyncType == LyricsUtils.SyncType.NONE || (bestSyncType == LyricsUtils.SyncType.LINE && index < bestIndex))) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestSyncType = syncType
+                                        bestIndex = index
+                                    } else if (bestLyrics == LYRICS_NOT_FOUND || (syncType == bestSyncType && index < bestIndex)) {
+                                        bestLyrics = lyrics
+                                        bestProvider = providerName
+                                        bestSyncType = syncType
+                                        bestIndex = index
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                        // Use whatever we found
+                    } finally {
+                        jobs.forEach { it.cancel() }
+                        channel.close()
+                    }
+                    
+                    LyricsWithProvider(bestLyrics, bestProvider)
                 }
             }
-            return@async LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
         }
 
-        val result = deferred.await()
-        scope.cancel()
-        return result
+        return try {
+            deferred.await()
+        } finally {
+            fetchesMutex.withLock {
+                activeFetches.remove(cacheKey)
+            }
+        }
     }
 
     suspend fun getAllLyrics(

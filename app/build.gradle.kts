@@ -18,15 +18,16 @@ plugins {
 
 android {
     namespace = "com.music.vivi"
-    compileSdk = 36
+    compileSdk = 37
     ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 72
-        versionName = "6.0.3"
+        targetSdk = 37
+        versionCode = 79
+        val betaVersionName = project.findProperty("betaVersionName") as String?
+        versionName = betaVersionName ?: "7.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -41,11 +42,12 @@ android {
         buildConfigField("String", "LASTFM_API_KEY", "\"$lastFmKey\"")
         buildConfigField("String", "LASTFM_SECRET", "\"$lastFmSecret\"")
 
+
+
 //add nightly build label support
         val isNightly = project.hasProperty("nightly") && project.property("nightly") == "true"
         buildConfigField("Boolean", "IS_NIGHTLY", isNightly.toString())
     }
-    
 
     flavorDimensions += listOf("abi", "variant")
     productFlavors {
@@ -59,6 +61,7 @@ android {
         // GMS variant - with Google Cast support (requires Google Play Services)
         create("gms") {
             dimension = "variant"
+//            isDefault = true
             buildConfigField("Boolean", "CAST_AVAILABLE", "true")
         }
         
@@ -84,46 +87,53 @@ android {
         }
     }
 
-    signingConfigs {
-        create("persistentDebug") {
-            storeFile = file("persistent-debug.keystore")
-            storePassword = "android"
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-        }
-        create("release") {
-            storeFile = file("keystore/release.keystore")
+   signingConfigs {
+    create("persistentDebug") {
+        storeFile = file("persistent-debug.keystore")
+        storePassword = "android"
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+    }
+    create("release") {
+        val keystoreFile = file("keystore/release.keystore")
+        if (keystoreFile.exists()) {
+            storeFile = keystoreFile
             storePassword = System.getenv("STORE_PASSWORD")
             keyAlias = System.getenv("KEY_ALIAS")
             keyPassword = System.getenv("KEY_PASSWORD")
         }
-        getByName("debug") {
-            keyAlias = "androiddebugkey"
-            keyPassword = "android"
-            storePassword = "android"
-            storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
-        }
     }
+    getByName("debug") {
+        keyAlias = "androiddebugkey"
+        keyPassword = "android"
+        storePassword = "android"
+        storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
+    }
+}
 
-    buildTypes {
-        release {
-            isMinifyEnabled = true
-            isShrinkResources = true
-            isCrunchPngs = false
-            isDebuggable = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            buildConfigField("String", "ARCHITECTURE", "\"release\"")
-        }
-        debug {
-            applicationIdSuffix = ".debug"
-            isDebuggable = true
-            signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("String", "ARCHITECTURE", "\"debug\"")
-        }
+buildTypes {
+    release {
+        signingConfig = if (file("keystore/release.keystore").exists())
+            signingConfigs.getByName("release")
+        else
+            signingConfigs.getByName("debug")
+        isMinifyEnabled = true
+        isShrinkResources = true
+        isCrunchPngs = false
+        isDebuggable = false
+        proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+        )
+        buildConfigField("String", "ARCHITECTURE", "\"release\"")
     }
+    debug {
+        applicationIdSuffix = ".debug"
+        isDebuggable = true
+        signingConfig = signingConfigs.getByName("debug")
+        buildConfigField("String", "ARCHITECTURE", "\"debug\"")
+    }
+}
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
@@ -135,6 +145,7 @@ android {
         jvmToolchain(21)
         compilerOptions {
             freeCompilerArgs.add("-Xannotation-default-target=param-property")
+            freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3ExpressiveApi")
             jvmTarget.set(JvmTarget.JVM_21)
         }
     }
@@ -234,8 +245,10 @@ dependencies {
     implementation(libs.androidx.adaptive)
     implementation(libs.androidx.adaptive.layout)
     implementation(libs.androidx.adaptive.navigation)
+    implementation(libs.material3.adaptive.navigation.suite)
     implementation(libs.palette)
     implementation(libs.materialKolor)
+    implementation(libs.vico.compose.m3)
 
     implementation(libs.appcompat)
 
@@ -270,21 +283,19 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(project(":innertube"))
-    implementation(project(":kugou"))
-    implementation(project(":lrclib"))
     implementation(project(":kizzy"))
     implementation(project(":lastfm"))
-    implementation(project(":betterlyrics"))
-    implementation(project(":simpmusic"))
-    implementation(project(":youlyplus"))
-    implementation(project(":canvas"))
+    implementation(project(":Motionartwork"))
     implementation(project(":shazamkit"))
     implementation(project(":artistvideo"))
-    implementation(project(":applecanvas"))
-    implementation(project(":vivimusiccanvas"))
-    implementation(project(":paxsenixlyrics"))
     implementation(project(":jiosaavn"))
     implementation(project(":spotify"))
+    implementation(project(":lyricsProvider"))
+
+    implementation(libs.innertubex)
+    implementation(libs.expressivelab)
+
+
 
 
     implementation(libs.ktor.client.core)
@@ -300,8 +311,10 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.smoothCorner)
     implementation(libs.lottie.compose)
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+    implementation(libs.haze)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
+
+    testImplementation(libs.junit)
 }
 

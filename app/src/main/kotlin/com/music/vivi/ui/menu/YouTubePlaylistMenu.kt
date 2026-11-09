@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -142,6 +143,7 @@ fun YouTubePlaylistMenu(
 
     YouTubeListItem(
         item = playlist,
+        backgroundColor = Color.Transparent,
         trailingContent = {
             if (playlist.id != "LM" && !playlist.isEditable) {
                 IconButton(
@@ -408,6 +410,7 @@ fun YouTubePlaylistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (!isGuest) {
                         Material3MenuItemData(
@@ -516,6 +519,7 @@ fun YouTubePlaylistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (songs.isNotEmpty()) {
                         add(

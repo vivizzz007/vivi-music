@@ -126,7 +126,6 @@
         <item quantity="one">مورد</item>
         <item quantity="other">موارد</item>
     </plurals>
-    <string name="enable_simpmusic">فعال‌سازی simpMusic Lyrics</string>
     <string name="close">بستن</string>
     <string name="enable_wavy_slider">فعال‌سازی اسلایدر موجی</string>
     <string name="seek_seconds_addup_description">درصورت فعال بودن، با هر بار پرش، ۵ ثانیه به‌صورت تدریجی اضافه می‌شود</string>
@@ -148,7 +147,6 @@
     <string name="sync_playlist_desc">همگام سازی این لیست پخش با یوتیوب موزیک</string>
     <string name="remove_download_playlist_desc">حذف تمام اهنگ های دانلود شده از این لیست پخش</string>
     <string name="primary_color_style">رنگ اصلی</string>
-    <string name="enable_simpmusic_desc">استفاده از ارائه‌دهنده SimpMusic Lyrics برای متن ترانه همگام‌شده</string>
     <string name="new_mini_player_design">طراحی جدید مینی پخش‌کننده</string>
     <string name="starting_radio">درحال شروع رادیو</string>
     <string name="download_in_progress_desc">دانلود در جریان است</string>

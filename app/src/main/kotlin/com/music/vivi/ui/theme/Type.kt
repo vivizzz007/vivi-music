@@ -15,67 +15,6 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalTextApi::class)
-val GoogleSansFontFamily = FontFamily(
-    Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.google_sans_flex,
-        weight = FontWeight.Bold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
-)
-
-@OptIn(ExperimentalTextApi::class)
-val SansFlexFontFamily = FontFamily(
-    Font(
-        resId = com.music.vivi.R.font.sans_flex,
-        weight = FontWeight.Normal,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(400),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.sans_flex,
-        weight = FontWeight.Medium,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(500),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    ),
-    Font(
-        resId = com.music.vivi.R.font.sans_flex,
-        weight = FontWeight.Bold,
-        variationSettings = FontVariation.Settings(
-            FontVariation.weight(700),
-            FontVariation.width(100f),
-            FontVariation.Setting("ROND", 100f)
-        )
-    )
-)
 
 @OptIn(ExperimentalTextApi::class)
 val OutfitFontFamily = FontFamily(
@@ -125,6 +64,14 @@ val PlusJakartaSansFontFamily = FontFamily(
             FontVariation.weight(700)
         )
     )
+)
+
+val SfProDisplayFontFamily = FontFamily(
+    Font(com.music.vivi.R.font.sf_pro_display_regular, FontWeight.Normal),
+    Font(com.music.vivi.R.font.sf_pro_display_medium, FontWeight.Medium),
+    Font(com.music.vivi.R.font.sf_pro_display_semibold, FontWeight.SemiBold),
+    Font(com.music.vivi.R.font.sf_pro_display_bold, FontWeight.Bold),
+    Font(com.music.vivi.R.font.sf_pro_display_heavy, FontWeight.Black)
 )
 
 // Define M3 Expressive Typography based on Material Design guidelines

@@ -8,9 +8,13 @@ package com.music.vivi.playback.queues
 import androidx.media3.common.MediaItem
 import com.music.vivi.extensions.metadata
 import com.music.vivi.models.MediaMetadata
+import com.music.innertube.pages.RadioChip
+import kotlinx.coroutines.flow.StateFlow
 
 interface Queue {
     val preloadItem: MediaMetadata?
+    val radioChips: StateFlow<List<RadioChip>>? get() = null
+
 
     suspend fun getInitialStatus(): Status
 

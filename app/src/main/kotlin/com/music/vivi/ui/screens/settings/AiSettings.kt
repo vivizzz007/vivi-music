@@ -47,7 +47,7 @@ import com.music.vivi.constants.OpenRouterModelKey
 import com.music.vivi.constants.TranslateLanguageKey
 import com.music.vivi.constants.TranslateModeKey
 import com.music.vivi.ui.component.EnumDialog
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.utils.rememberPreference
@@ -389,7 +389,7 @@ fun AiSettings(
             )
         )
         
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.ai_provider),
             items = listOf(
                 Material3SettingsItem(
@@ -422,7 +422,7 @@ fun AiSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.ai_setup_guide),
             items = buildList {
                 if (aiProvider == "DeepL") {
@@ -430,7 +430,7 @@ fun AiSettings(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.key),
                             title = { Text("DeepL ${stringResource(R.string.ai_api_key)}") },
-                            description = { 
+                            trailingContent = {
                                 Text(
                                     if (deeplApiKey.isNotEmpty()) 
                                         "•".repeat(minOf(deeplApiKey.length, 8))
@@ -445,7 +445,7 @@ fun AiSettings(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.tune),
                             title = { Text(stringResource(R.string.ai_deepl_formality)) },
-                            description = { 
+                            trailingContent = {
                                 Text(
                                     when (deeplFormality) {
                                         "default" -> stringResource(R.string.ai_deepl_formality_default)
@@ -463,7 +463,7 @@ fun AiSettings(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.key),
                             title = { Text(stringResource(R.string.ai_api_key)) },
-                            description = { 
+                            trailingContent = {
                                 Text(
                                     if (openRouterApiKey.isNotEmpty()) 
                                         "•".repeat(minOf(openRouterApiKey.length, 8))
@@ -479,7 +479,7 @@ fun AiSettings(
                             Material3SettingsItem(
                                 icon = painterResource(R.drawable.discover_tune),
                                 title = { Text(stringResource(R.string.ai_model)) },
-                                description = { Text(openRouterModel.ifBlank { stringResource(R.string.not_set) }) },
+                                trailingContent = { Text(openRouterModel.ifBlank { stringResource(R.string.not_set) }) },
                                 onClick = { showModelDialog = true }
                             )
                         )
@@ -490,7 +490,7 @@ fun AiSettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.ai_translation_mode),
             items = buildList {
                 if (aiProvider != "DeepL") {
@@ -524,7 +524,7 @@ fun AiSettings(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.ai_target_language)) },
-                        description = { Text(LanguageCodeToName[translateLanguage] ?: translateLanguage) },
+                        trailingContent = { Text(LanguageCodeToName[translateLanguage] ?: translateLanguage) },
                         onClick = { showLanguageDialog = true }
                     )
                 )

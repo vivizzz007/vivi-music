@@ -54,6 +54,7 @@ import com.music.vivi.R
 import com.music.vivi.constants.AutoBackupEnabledKey
 import com.music.vivi.constants.AutoBackupWeeklyKey
 import com.music.vivi.constants.AutoBackupBeforeUpdateKey
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
@@ -174,7 +175,7 @@ fun AutoBackupSettings(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Checklist Settings Group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.options),
             items = listOf(
                 Material3SettingsItem(
@@ -213,7 +214,7 @@ fun AutoBackupSettings(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Stored Automatic Backups Group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.stored_backups),
             items = if (backupsList.isEmpty()) {
                 listOf(

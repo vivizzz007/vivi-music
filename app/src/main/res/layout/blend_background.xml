@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/blend_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageSwitcher
+        android:id="@+id/bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/contrast_colorBackground"
+        android:scaleType="centerCrop" />
+
+    <FrameLayout
+        android:id="@+id/rotate_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false">
+
+        <ImageSwitcher
+            android:id="@+id/type1"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="top|start" />
+
+        <ImageSwitcher
+            android:id="@+id/type3"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="bottom|end" />
+
+    </FrameLayout>
+
+</merge>
+

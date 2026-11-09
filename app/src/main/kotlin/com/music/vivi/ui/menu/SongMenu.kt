@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -303,6 +304,7 @@ fun SongMenu(
         song = song,
         badges = {},
         shape = listItemShape(0, 2),
+        backgroundColor = Color.Transparent,
         trailingContent = {
             IconButton(
                 onClick = {
@@ -393,6 +395,7 @@ fun SongMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                         Material3MenuItemData(
@@ -474,6 +477,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -626,6 +630,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -705,6 +710,7 @@ fun SongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -726,14 +732,15 @@ fun SongMenu(
                             }
                         )
                     )
-                    if (song.song.albumId != null) {
+                    val albumId = song.song.albumId?.takeIf { it.isNotBlank() } ?: song.album?.id?.takeIf { it.isNotBlank() }
+                    val albumName = song.song.albumName ?: song.album?.title
+                    
+                    if (!albumId.isNullOrBlank()) {
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_album)) },
-                                description = {
-                                    song.song.albumName?.let {
-                                        Text(text = it)
-                                    }
+                                description = albumName?.let { name ->
+                                    { Text(text = name) }
                                 },
                                 icon = {
                                     Icon(
@@ -743,7 +750,7 @@ fun SongMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    navController.navigate("album/${song.song.albumId}")
+                                    navController.navigate("album/$albumId")
                                 }
                             )
                         )

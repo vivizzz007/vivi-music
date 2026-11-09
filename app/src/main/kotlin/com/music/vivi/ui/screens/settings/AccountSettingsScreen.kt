@@ -5,7 +5,10 @@
 
 package com.music.vivi.ui.screens.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.ButtonGroupDefaults
@@ -20,8 +23,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +39,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -43,15 +50,19 @@ import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.constants.*
 import com.music.vivi.ui.component.*
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.safeOpenUri
+import com.music.vivi.utils.SyncStatus
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.AccountSettingsViewModel
 import com.music.vivi.viewmodels.HomeViewModel
 import com.music.vivi.R
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AccountSettingsScreen(
     navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior
+    scrollBehavior: TopAppBarScrollBehavior,
+    homeViewModel: HomeViewModel
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -62,6 +73,7 @@ fun AccountSettingsScreen(
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val (visitorData, _) = rememberPreference(VisitorDataKey, "")
     val (dataSyncId, _) = rememberPreference(DataSyncIdKey, "")
+    val (lastFullSync, _) = rememberPreference(LastFullSyncKey, 0L)
 
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -69,7 +81,7 @@ fun AccountSettingsScreen(
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(UseLoginForBrowse, true)
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, true)
 
-    val homeViewModel: HomeViewModel = hiltViewModel()
+
     val accountSettingsViewModel: AccountSettingsViewModel = hiltViewModel()
     val accountName by homeViewModel.accountName.collectAsState()
     val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
@@ -78,117 +90,133 @@ fun AccountSettingsScreen(
     var showTokenEditor by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.account)) },
-                navigationIcon = {
-                    IconButton(
-                        onClick = navController::navigateUp,
-                        onLongClick = navController::backToMain
+    val syncState by accountSettingsViewModel.syncState.collectAsState()
+    val isSyncing = syncState.overallStatus is SyncStatus.Syncing
+    var syncTriggerCount by remember { mutableStateOf(0) }
+
+    Column(
+        modifier = Modifier
+            .windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+            )
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp)
+    ) {
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
+        Spacer(Modifier.height(16.dp))
+
+            if (isLoggedIn) {
+                Surface(
+                    onClick = { navController.navigate("account") },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 18.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        AccountSyncIndicator(
+                            artistsStatus = syncState.artists,
+                            playlistsStatus = syncState.playlists,
+                            albumsStatus = syncState.likedAlbums,
+                            lastSyncTime = lastFullSync,
+                            syncTriggerCount = syncTriggerCount,
+                            activeColor = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.25f),
+                            errorColor = MaterialTheme.colorScheme.error,
+                        ) {
+                            if (!accountImageUrl.isNullOrBlank()) {
+                                AsyncImage(
+                                    model = accountImageUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.person),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = accountName,
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clip(MaterialShapes.Cookie7Sided.toShape())
+                                            .background(MaterialTheme.colorScheme.primary),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.check),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimary,
+                                            modifier = Modifier.size(12.dp),
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.cookies_verified),
+                                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                                    )
+                                }
+                            }
+                        }
+
                         Icon(
-                            painterResource(R.drawable.arrow_back),
-                            contentDescription = null
+                            painter = painterResource(R.drawable.chevron_right_px),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(26.dp)
                         )
                     }
-                },
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .windowInsetsPadding(
-                    LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                )
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-        ) {
-            // Account Profile Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.settings),
-                items = listOf(
-                    Material3SettingsItem(
-                        icon = if (isLoggedIn && !accountImageUrl.isNullOrBlank()) null else painterResource(R.drawable.login),
-                        title = {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                if (isLoggedIn && !accountImageUrl.isNullOrBlank()) {
-                                    AsyncImage(
-                                        model = accountImageUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .size(40.dp)
-                                            .clip(CircleShape)
-                                    )
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                }
-                                Text(
-                                    text = if (isLoggedIn) accountName else stringResource(R.string.login),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                                )
-                            }
-                        },
-                        trailingContent = if (isLoggedIn) ({
-                            OutlinedButton(
-//                                onClick = {
-//                                    accountSettingsViewModel.logoutKeepData(context, onInnerTubeCookieChange)
-//                                    navController.navigateUp()
-//                                },
-                                onClick = {
-                                    showLogoutDialog = true
-                                },
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSurface
-                                )
-                            ) {
-                                Text(stringResource(R.string.action_logout))
-                            }
-                        }) else null,
-                        onClick = {
-                            if (isLoggedIn) navController.navigate("account")
-                            else navController.navigate("login")
-                        }
-                    )
-                )
-            )
+                }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-            // Token / Advanced Login Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.advanced_login),
-                items = listOf(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.token),
-                        title = {
-                            Text(
-                                when {
-                                    !isLoggedIn -> stringResource(R.string.advanced_login)
-                                    showToken -> stringResource(R.string.token_shown)
-                                    else -> stringResource(R.string.token_hidden)
-                                }
-                            )
-                        },
-                        onClick = {
-                            if (!isLoggedIn) showTokenEditor = true
-                            else if (!showToken) showToken = true
-                            else showTokenEditor = true
-                        }
-                    )
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Sync & Content Section
-            if (isLoggedIn) {
-                Material3SettingsGroup(
-                    title = stringResource(R.string.settings_section_player_content),
+                ExpressiveSettingGroup(
                     items = listOf(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.add_circle),
@@ -236,26 +264,238 @@ fun AccountSettingsScreen(
                                 )
                             },
                             onClick = { onYtmSyncChange(!ytmSync) }
+                        ),
+                        // Overall Force Library Sync button
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.sync),
+                            title = {
+                                Text(
+                                    text = if (isSyncing)
+                                        stringResource(R.string.library_syncing)
+                                    else
+                                        stringResource(R.string.library_force_sync)
+                                )
+                            },
+                            description = {
+                                if (syncState.overallStatus is SyncStatus.Completed) {
+                                    Text(
+                                        text = stringResource(R.string.library_sync_done),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                } else if (syncState.overallStatus is SyncStatus.Error) {
+                                    Text(
+                                        text = stringResource(R.string.library_sync_error),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            },
+                            trailingContent = {
+                                if (isSyncing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            },
+                            onClick = {
+                                syncTriggerCount++
+                                if (!isSyncing) {
+                                    accountSettingsViewModel.forceSyncLibrary()
+                                }
+                            }
+                        ),
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.token),
+                            title = {
+                                Text(
+                                    when {
+                                        showToken -> stringResource(R.string.token_shown)
+                                        else -> stringResource(R.string.token_hidden)
+                                    }
+                                )
+                            },
+                            onClick = {
+                                if (!showToken) showToken = true
+                                else showTokenEditor = true
+                            }
+                        ),
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.logout),
+                            title = { Text(stringResource(R.string.action_logout)) },
+                            onClick = { showLogoutDialog = true }
                         )
                     )
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-            }
 
-            // Quick Links Section
-            Material3SettingsGroup(
-                title = stringResource(R.string.integrations),
-                items = buildList {
-                    add(
+                ExpressiveSettingGroup(
+                    items = listOf(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.integration),
                             title = { Text(stringResource(R.string.integrations)) },
                             onClick = { navController.navigate("settings/integrations") }
                         )
                     )
+                )
+
+//                Spacer(modifier = Modifier.height(16.dp))
+//
+//                val formattedLastSync = remember(lastFullSync, syncState) {
+//                    val isAnySyncing = syncState.overallStatus is SyncStatus.Syncing ||
+//                        syncState.likedSongs is SyncStatus.Syncing ||
+//                        syncState.likedAlbums is SyncStatus.Syncing ||
+//                        syncState.artists is SyncStatus.Syncing ||
+//                        syncState.playlists is SyncStatus.Syncing
+//
+//                    if (isAnySyncing) {
+//                        "Syncing now..."
+//                    } else if (lastFullSync > 0L) {
+//                        java.text.DateFormat.getDateTimeInstance(
+//                            java.text.DateFormat.MEDIUM,
+//                            java.text.DateFormat.SHORT
+//                        ).format(java.util.Date(lastFullSync * 1000))
+//                    } else {
+//                        "Never"
+//                    }
+//                }
+//
+//                ExpressiveSettingGroup(
+//                    title = stringResource(R.string.individual_category_sync),
+//                    items = listOf(
+//                        Material3SettingsItem(
+//                            icon = painterResource(R.drawable.timer),
+//                            title = { Text("Last synced: $formattedLastSync") },
+//                            enabled = false
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.songs),
+//                            status = syncState.likedSongs,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncSongs() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.albums),
+//                            status = syncState.likedAlbums,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncAlbums() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.artists),
+//                            status = syncState.artists,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncArtists() }
+//                        ),
+//                        buildSyncCategoryItem(
+//                            title = stringResource(R.string.playlists),
+//                            status = syncState.playlists,
+//                            onSyncClick = { accountSettingsViewModel.forceSyncPlaylists() }
+//                        )
+//                    )
+//                )
+            } else {
+                // Sign In Box
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
+                        .padding(20.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.google),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.login),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = stringResource(R.string.account_sync_desc_off),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { navController.navigate("login") }
+                        ) {
+                            Text(
+                                text = stringResource(R.string.login),
+                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
                 }
-            )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ExpressiveSettingGroup(
+                    items = listOf(
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.token),
+                            title = { Text(stringResource(R.string.advanced_login)) },
+                            onClick = { showTokenEditor = true }
+                        ),
+                        Material3SettingsItem(
+                            icon = painterResource(R.drawable.integration),
+                            title = { Text(stringResource(R.string.integrations)) },
+                            onClick = { navController.navigate("settings/integrations") }
+                        )
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    onClick = {
+                        uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/issues")
+                    },
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(MaterialShapes.Cookie7Sided.toShape())
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.feedback),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(14.dp),
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.give_feedback),
+                            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -342,7 +582,7 @@ fun AccountSettingsScreen(
                             },
                             modifier = Modifier.weight(1f),
                             shapes = ButtonGroupDefaults.connectedMiddleButtonShapes(),
-                            colors = ToggleButtonDefaults.toggleButtonColors(
+                            colors = ToggleButtonDefaults.colors(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {
@@ -372,5 +612,66 @@ fun AccountSettingsScreen(
                 )
             }
         }
-    }
+
+    TopAppBar(
+        title = { Text(stringResource(R.string.account)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        }
+    )
 }
+
+@Composable
+fun buildSyncCategoryItem(
+    title: String,
+    status: SyncStatus,
+    onSyncClick: () -> Unit
+): Material3SettingsItem {
+    val isSyncing = status is SyncStatus.Syncing
+    val isDone = status is SyncStatus.Completed
+    
+    return Material3SettingsItem(
+        icon = painterResource(R.drawable.cloud),
+        title = { Text(title) },
+        description = {
+            Column {
+                if (status is SyncStatus.Error) {
+                    Text(
+                        text = stringResource(R.string.library_sync_error),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+                
+                val animatedProgress by androidx.compose.animation.core.animateFloatAsState(
+                    targetValue = if (isSyncing) 1f else 0f,
+                    animationSpec = androidx.compose.animation.core.tween(
+                        durationMillis = if (isSyncing) 2000 else 0,
+                        easing = androidx.compose.animation.core.LinearOutSlowInEasing
+                    )
+                )
+                androidx.compose.animation.AnimatedVisibility(visible = isSyncing) {
+                    LinearProgressIndicator(
+                        progress = { animatedProgress },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp)),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                }
+            }
+        }
+    )
+}
+

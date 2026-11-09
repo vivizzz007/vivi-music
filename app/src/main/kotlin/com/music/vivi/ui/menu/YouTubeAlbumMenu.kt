@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -245,6 +246,7 @@ fun YouTubeAlbumMenu(
     YouTubeListItem(
         item = albumItem,
         badges = {},
+        backgroundColor = Color.Transparent,
         trailingContent = {
             IconButton(
                 onClick = {
@@ -347,6 +349,7 @@ fun YouTubeAlbumMenu(
         }
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (!isGuest) {
                         Material3MenuItemData(
@@ -430,6 +433,7 @@ fun YouTubeAlbumMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
@@ -515,6 +519,7 @@ fun YouTubeAlbumMenu(
             item { Spacer(modifier = Modifier.height(12.dp)) }
             item {
                 Material3MenuGroup(
+                    expressive = true,
                     items = listOf(
                         Material3MenuItemData(
                             title = { Text(text = stringResource(R.string.view_artist)) },

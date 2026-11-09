@@ -48,6 +48,9 @@ import timber.log.Timber
 fun CastButton(
     modifier: Modifier = Modifier,
     tintColor: Color = MaterialTheme.colorScheme.onSurface,
+    activeTintColor: Color = MaterialTheme.colorScheme.primary,
+    showBackground: Boolean = true,
+    customIconRes: Int? = null
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current
@@ -133,19 +136,21 @@ fun CastButton(
             modifier = modifier
         ) {
             // Shadow background for cast button
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .align(Alignment.Center)
-                    .background(
-                        brush = Brush.radialGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.4f),
-                                Color.Transparent
+            if (showBackground) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .align(Alignment.Center)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.4f),
+                                    Color.Transparent
+                                )
                             )
                         )
-                    )
-            )
+                )
+            }
             
             // Cast button
             Box(
@@ -189,13 +194,13 @@ fun CastButton(
             ) {
                 Image(
                     painter = painterResource(
-                        if (isCasting) R.drawable.cast_connected else R.drawable.cast
+                        customIconRes ?: if (isCasting) R.drawable.cast_connected else R.drawable.cast
                     ),
                     contentDescription = if (isCasting) "Stop casting" else "Cast",
                     colorFilter = ColorFilter.tint(
-                        if (isCasting) MaterialTheme.colorScheme.primary else tintColor
+                        if (isCasting) activeTintColor else tintColor
                     ),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(if (showBackground) 24.dp else 28.dp)
                 )
             }
         }

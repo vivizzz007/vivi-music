@@ -357,8 +357,6 @@
     <string name="enable_wavy_slider">Увімкнути хвилястий повзунок</string>
     <string name="wavy">Хвилястий</string>
     <string name="pause_music_when_media_is_muted">Призупиняти музику, коли медіа вимкнено</string>
-    <string name="enable_simpmusic">Увімкнути текст пісні SimpMusic</string>
-    <string name="enable_simpmusic_desc">Використовуйте постачальника текстів пісень SimpMusic для синхронізованих текстів пісень</string>
     <string name="system_equalizer">Системний еквалайзер</string>
     <string name="album_art">Обкладинка альбому</string>
     <string name="no_song_playing">Пісня не відтворюється</string>

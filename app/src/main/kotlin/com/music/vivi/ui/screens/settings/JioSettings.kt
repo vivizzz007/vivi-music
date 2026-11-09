@@ -22,7 +22,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import com.music.vivi.ui.component.AnimatedRadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -40,7 +40,7 @@ import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.constants.SaavnAudioQuality
 import com.music.vivi.constants.SaavnAudioQualityKey
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.utils.backToMain
@@ -120,12 +120,12 @@ fun JioSettings(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Options settings group
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.saavn_audio_quality),
             items = listOf(
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_320,
                             onClick = null,
                             enabled = saavnEnabled
@@ -137,7 +137,7 @@ fun JioSettings(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_160,
                             onClick = null,
                             enabled = saavnEnabled
@@ -149,7 +149,7 @@ fun JioSettings(
                 ),
                 Material3SettingsItem(
                     leadingContent = {
-                        RadioButton(
+                        AnimatedRadioButton(
                             selected = saavnQuality == SaavnAudioQuality.QUALITY_96,
                             onClick = null,
                             enabled = saavnEnabled

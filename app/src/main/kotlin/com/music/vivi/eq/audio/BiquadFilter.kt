@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.eq.audio
 
 import com.music.vivi.eq.data.FilterType
@@ -13,12 +17,16 @@ import kotlin.math.sqrt
  * Based on Robert Bristow-Johnson's Audio EQ Cookbook
  */
 class BiquadFilter(
-    private val sampleRate: Int,
-    private val frequency: Double,
-    private val gain: Double,
-    private val q: Double = 1.41,
-    private val filterType: FilterType = FilterType.PK
+    val sampleRate: Int,
+    val frequency: Double,
+    var gain: Double,
+    val q: Double = 1.41,
+    val filterType: FilterType = FilterType.PK
 ) {
+    var lastOutputLeft = 0.0
+        private set
+    var lastOutputRight = 0.0
+        private set
     // Filter coefficients
     private var a0 = 0.0
     private var a1 = 0.0
@@ -170,15 +178,17 @@ class BiquadFilter(
     }
 
     /**
-     * Process stereo samples (left and right channels)
+     * Process stereo samples (left and right channels) in-place without object allocations.
+     * Access results via [lastOutputLeft] and [lastOutputRight].
      */
-    fun processStereo(inputLeft: Double, inputRight: Double): Pair<Double, Double> {
+    fun processStereo(inputLeft: Double, inputRight: Double) {
         // Left channel
         val outputLeft = b0 * inputLeft + b1 * x1L + b2 * x2L - a1 * y1L - a2 * y2L
         x2L = x1L
         x1L = inputLeft
         y2L = y1L
         y1L = outputLeft
+        lastOutputLeft = outputLeft
 
         // Right channel
         val outputRight = b0 * inputRight + b1 * x1R + b2 * x2R - a1 * y1R - a2 * y2R
@@ -186,8 +196,16 @@ class BiquadFilter(
         x1R = inputRight
         y2R = y1R
         y1R = outputRight
+        lastOutputRight = outputRight
+    }
 
-        return Pair(outputLeft, outputRight)
+    /**
+     * Update the gain parameter and recalculate coefficients without resetting state history.
+     */
+    fun updateGain(newGain: Double) {
+        if (this.gain == newGain) return
+        this.gain = newGain
+        calculateCoefficients()
     }
 
     /**

@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.ui.menu
 
 import android.content.Intent
@@ -68,6 +72,7 @@ import com.music.vivi.ui.component.NewActionGrid
 import com.music.vivi.ui.component.VolumeSlider
 import com.music.vivi.constants.EnableSaavnStreamingKey
 import com.music.vivi.utils.rememberPreference
+import com.music.vivi.ui.screens.CommentSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -118,6 +123,14 @@ fun OldPlayerMenu(
     var showListenTogetherDialog by rememberSaveable { mutableStateOf(false) }
     var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
     var showPitchTempoDialog by rememberSaveable { mutableStateOf(false) }
+    var showCommentSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (showCommentSheet) {
+        CommentSheet(
+            videoId = mediaMetadata.id,
+            onDismiss = { showCommentSheet = false }
+        )
+    }
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
@@ -126,7 +139,6 @@ fun OldPlayerMenu(
             coroutineScope.launch(Dispatchers.IO) {
                 playlist.playlist.browseId?.let { YouTube.addToPlaylist(it, mediaMetadata.id) }
             }
-            onDismiss()
             listOf(mediaMetadata.id)
         },
         onDismiss = { showChoosePlaylistDialog = false }
@@ -297,6 +309,7 @@ fun OldPlayerMenu(
         // Core Old Player Items
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // Shuffle
                     if (!isListenTogetherGuest) {
@@ -398,6 +411,23 @@ fun OldPlayerMenu(
                         )
                     )
 
+                    // Comments
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(stringResource(R.string.comments_header)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.chat_msg),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                showCommentSheet = true
+                            }
+                        )
+                    )
+
                     // Repeat
                     if (!isListenTogetherGuest) {
                         add(
@@ -432,6 +462,7 @@ fun OldPlayerMenu(
         // Artist & Add to library
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // ── Single smart Retry button ────────────────────────────
                     // Always visible. Re-triggers the full resolution chain.
@@ -454,10 +485,7 @@ fun OldPlayerMenu(
                                 )
                             },
                             onClick = {
-                                val player = playerConnection.player
-                                player.seekTo(0)
-                                player.prepare()
-                                player.play()
+                                playerConnection.service.retryCurrentStream()
                                 onDismiss()
                             }
                         )
@@ -558,6 +586,7 @@ fun OldPlayerMenu(
         // Listen together
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -599,6 +628,7 @@ fun OldPlayerMenu(
         // details, eq, adv
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

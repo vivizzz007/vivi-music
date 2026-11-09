@@ -1,11 +1,17 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.models
 
+import com.music.innertube.models.NavigationEndpoint
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class MusicQueueRenderer(
     val content: Content?,
     val header: Header?,
+    val subHeaderChipCloud: Header.MusicQueueHeaderRenderer.ChipCloud? = null,
 ) {
     @Serializable
     data class Content(
@@ -20,6 +26,29 @@ data class MusicQueueRenderer(
         data class MusicQueueHeaderRenderer(
             val title: Runs?,
             val subtitle: Runs?,
-        )
+            val chips: ChipCloud?,
+        ) {
+            @Serializable
+            data class ChipCloud(
+                val chipCloudRenderer: ChipCloudRenderer?
+            ) {
+                @Serializable
+                data class ChipCloudRenderer(
+                    val chips: List<Chip>?
+                ) {
+                    @Serializable
+                    data class Chip(
+                        val chipCloudChipRenderer: ChipCloudChipRenderer?
+                    ) {
+                        @Serializable
+                        data class ChipCloudChipRenderer(
+                            val text: Runs?,
+                            val navigationEndpoint: NavigationEndpoint?,
+                            val isSelected: Boolean = false,
+                        )
+                    }
+                }
+            }
+        }
     }
 }

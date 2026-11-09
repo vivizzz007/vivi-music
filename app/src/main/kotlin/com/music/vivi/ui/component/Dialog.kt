@@ -15,7 +15,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.clip
+import com.music.vivi.utils.listItemShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.text.KeyboardActions
@@ -153,33 +157,51 @@ fun ActionPromptDialog(
                 )
             }
         } else null,
-        buttons = {
-            if (onReset != null) {
-                Row(modifier = Modifier.weight(1f)) {
-                    TextButton(
-                        onClick = { onReset() },
+    ) {
+        content()
+
+        Spacer(Modifier.height(16.dp))
+
+        val actions = mutableListOf<Pair<String, () -> Unit>>()
+        actions.add(stringResource(android.R.string.ok) to onConfirm)
+        if (onReset != null) {
+            actions.add(stringResource(R.string.reset) to onReset)
+        }
+        if (onCancel != null) {
+            actions.add(stringResource(android.R.string.cancel) to onCancel)
+        }
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            actions.forEachIndexed { index, (label, action) ->
+                val shape = listItemShape(index, actions.size)
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 1.dp)
+                        .clip(shape)
+                        .clickable { action() },
+                    shape = shape,
+                    color = if (isSystemInDarkTheme()) {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                    }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(stringResource(R.string.reset))
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
                     }
                 }
             }
-
-            if (onCancel != null) {
-                TextButton(
-                    onClick = { onCancel() }
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            }
-
-            TextButton(
-                onClick = { onConfirm() }
-            ) {
-                Text(stringResource(android.R.string.ok))
-            }
         }
-    ) {
-        content()
     }
 }
 

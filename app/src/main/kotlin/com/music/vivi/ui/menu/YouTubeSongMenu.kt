@@ -322,6 +322,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOfNotNull(
                     if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
                         Material3MenuItemData(
@@ -387,6 +388,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (song.historyRemoveToken != null) {
                         add(
@@ -480,6 +482,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -561,6 +564,7 @@ fun YouTubeSongMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     if (artists.isNotEmpty()) {
                         add(
@@ -584,11 +588,20 @@ fun YouTubeSongMenu(
                             )
                         )
                     }
-                    song.album?.let { album ->
+                    val albumId = song.album?.id?.takeIf { it.isNotBlank() }
+                        ?: librarySong?.song?.albumId?.takeIf { it.isNotBlank() }
+                        ?: librarySong?.album?.id?.takeIf { it.isNotBlank() }
+                    val albumName = song.album?.name
+                        ?: librarySong?.song?.albumName
+                        ?: librarySong?.album?.title
+
+                    if (!albumId.isNullOrBlank()) {
                         add(
                             Material3MenuItemData(
                                 title = { Text(text = stringResource(R.string.view_album)) },
-                                description = { Text(text = album.name) },
+                                description = albumName?.let { name ->
+                                    { Text(text = name) }
+                                },
                                 icon = {
                                     Icon(
                                         painter = painterResource(R.drawable.album),
@@ -596,7 +609,7 @@ fun YouTubeSongMenu(
                                     )
                                 },
                                 onClick = {
-                                    navController.navigate("album/${album.id}")
+                                    navController.navigate("album/$albumId")
                                     onDismiss()
                                 }
                             )

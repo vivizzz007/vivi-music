@@ -11,7 +11,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -124,11 +126,13 @@ fun LocalSearchScreen(
             }
     ) {
         stickyHeader {
-            Box(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(if (pureBlack) Color.Black else MaterialTheme.colorScheme.background)
             ) {
+                Spacer(modifier = Modifier.height(10.dp))
+
                 ChipsRow(
                     chips = listOf(
                         LocalFilter.ALL to stringResource(R.string.filter_all),
@@ -140,6 +144,8 @@ fun LocalSearchScreen(
                     currentValue = searchFilter,
                     onValueUpdate = { viewModel.filter.value = it },
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
 

@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.models
 
 import kotlinx.serialization.Serializable
@@ -13,6 +17,7 @@ data class Context(
     data class Client(
         val clientName: String,
         val clientVersion: String,
+        val userAgent: String? = null,
         val osName: String? = null,
         val osVersion: String? = null,
         val deviceMake: String? = null,

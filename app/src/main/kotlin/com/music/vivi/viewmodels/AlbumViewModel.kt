@@ -19,7 +19,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
-import com.music.vivi.utils.Wikipedia
+import kotlinx.coroutines.async
+import kotlinx.coroutines.Deferred
 import com.music.vivi.utils.AppleMusicAboutAlbum
 import javax.inject.Inject
 
@@ -47,6 +48,18 @@ constructor(
             if (album?.description != null) {
                 description.value = album.description
             }
+
+            // Pre-fetch Apple Music description concurrently if we have basic metadata and no description yet
+            var appleDescDeferred: Deferred<String?>? = null
+            if (album?.description == null && album?.album?.title != null) {
+                val artistName = album.artists.firstOrNull()?.name
+                if (artistName != null) {
+                    appleDescDeferred = async(Dispatchers.IO) {
+                        AppleMusicAboutAlbum.fetchAlbumDescription(album.album.title, artistName)
+                    }
+                }
+            }
+
             YouTube
                 .album(albumId)
                 .onSuccess {
@@ -85,30 +98,26 @@ constructor(
                     
                     if (description.value == null && descriptionRuns.value == null) {
                         viewModelScope.launch(Dispatchers.IO) {
-                            val artistName = album?.artists?.firstOrNull()?.name 
-                                ?: database.albumWithSongs(albumId).first()?.artists?.firstOrNull()?.name
-                            val wikiDescription = Wikipedia.fetchAlbumInfo(it.album.title, artistName)
-                            if (wikiDescription != null) {
-                                description.value = wikiDescription
+                            val appleDescription = if (appleDescDeferred != null) {
+                                appleDescDeferred?.await()
+                            } else {
+                                val artistName = album?.artists?.firstOrNull()?.name 
+                                    ?: database.albumWithSongs(albumId).first()?.artists?.firstOrNull()?.name
+                                AppleMusicAboutAlbum.fetchAlbumDescription(it.album.title, artistName)
+                            }
+                            
+                            if (appleDescription != null) {
+                                description.value = appleDescription
                                 val currentAlbum = database.album(albumId).first()
                                 if (currentAlbum != null) {
                                     database.query {
-                                        update(currentAlbum.album.copy(description = wikiDescription))
-                                    }
-                                }
-                            } else {
-                                val appleDescription = AppleMusicAboutAlbum.fetchAlbumDescription(it.album.title, artistName)
-                                if (appleDescription != null) {
-                                    description.value = appleDescription
-                                    val currentAlbum = database.album(albumId).first()
-                                    if (currentAlbum != null) {
-                                        database.query {
-                                            update(currentAlbum.album.copy(description = appleDescription))
-                                        }
+                                        update(currentAlbum.album.copy(description = appleDescription))
                                     }
                                 }
                             }
                         }
+                    } else if (it.description != null && appleDescDeferred != null) {
+                        appleDescDeferred?.cancel()
                     }
                 }.onFailure {
                     reportException(it)

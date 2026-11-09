@@ -23,6 +23,7 @@ import androidx.core.content.getSystemService
 import androidx.datastore.preferences.core.edit
 import com.music.vivi.R
 import com.music.vivi.constants.ListenTogetherAutoApprovalKey
+import com.music.vivi.constants.ListenTogetherAvatarIndexKey
 import com.music.vivi.constants.ListenTogetherIsHostKey
 import com.music.vivi.constants.ListenTogetherRoomCodeKey
 import com.music.vivi.constants.ListenTogetherServerUrlKey
@@ -211,19 +212,15 @@ class ListenTogetherClient @Inject constructor(
     private val _logs = MutableStateFlow<List<LogEntry>>(emptyList())
     val logs: StateFlow<List<LogEntry>> = _logs.asStateFlow()
 
+    private var pingSentTimestamp = 0L
+    private val _pingMs = MutableStateFlow<Long?>(null)
+    val pingMs: StateFlow<Long?> = _pingMs.asStateFlow()
+
     // Event flow
     private val _events = MutableSharedFlow<ListenTogetherEvent>()
     val events: SharedFlow<ListenTogetherEvent> = _events.asSharedFlow()
     
-    init {
-        setInstance(this)
-        ensureNotificationChannel()
-        // Load persisted session info asynchronously after construction to avoid calling log() before flows are initialized
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
-            loadPersistedSession()
-            observeNetworkChanges()
-        }
-    }
+
 
     /**
      * Observe network changes to trigger reconnections
@@ -250,6 +247,9 @@ class ListenTogetherClient @Inject constructor(
                         }
                     } else if (!available && previous) {
                         log(LogLevel.WARNING, "Network lost")
+                        if (_connectionState.value == ConnectionState.CONNECTED) {
+                            _connectionState.value = ConnectionState.DISCONNECTED
+                        }
                     }
                 }
             } catch (e: Exception) {
@@ -416,6 +416,16 @@ class ListenTogetherClient @Inject constructor(
         .pingInterval(30, TimeUnit.SECONDS)
         .build()
 
+    init {
+        setInstance(this)
+        ensureNotificationChannel()
+        // Load persisted session info asynchronously after construction to avoid calling log() before flows are initialized
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            loadPersistedSession()
+            observeNetworkChanges()
+        }
+    }
+
     private fun getServerUrl(): String {
         val savedUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
         // If the saved URL is no longer in our list (e.g. Meowery was removed), revert to ViviMusic default
@@ -459,13 +469,21 @@ class ListenTogetherClient @Inject constructor(
      * Connect to the Listen Together server
      */
     fun connect() {
-        if (_connectionState.value == ConnectionState.CONNECTED || 
-            _connectionState.value == ConnectionState.CONNECTING) {
-            log(LogLevel.WARNING, "Already connected or connecting")
+        if (_connectionState.value == ConnectionState.CONNECTED) {
+            log(LogLevel.WARNING, "Already connected")
             return
         }
 
-        _connectionState.value = ConnectionState.CONNECTING
+        // Clean up previous websocket to prevent memory leaks and duplicate events
+        try {
+            webSocket?.cancel()
+            webSocket = null
+        } catch (e: Exception) {
+            log(LogLevel.ERROR, "Error cancelling previous websocket", e.message)
+        }
+
+        val isReconnectingSession = sessionToken != null || _roomState.value != null || _connectionState.value == ConnectionState.RECONNECTING
+        _connectionState.value = if (isReconnectingSession) ConnectionState.RECONNECTING else ConnectionState.CONNECTING
         val serverUrl = getServerUrl()
         log(LogLevel.INFO, "Connecting to server", serverUrl)
 
@@ -525,14 +543,15 @@ class ListenTogetherClient @Inject constructor(
         val action = pendingAction ?: return
         pendingAction = null
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         when (action) {
             is PendingAction.CreateRoom -> {
                 log(LogLevel.INFO, "Executing pending create room", action.username)
-                sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(action.username))
+                sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(action.username, avatarIndex))
             }
             is PendingAction.JoinRoom -> {
                 log(LogLevel.INFO, "Executing pending join room", "${action.roomCode} as ${action.username}")
-                sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(action.roomCode.uppercase(), action.username))
+                sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(action.roomCode.uppercase(), action.username, avatarIndex))
             }
         }
     }
@@ -559,6 +578,8 @@ class ListenTogetherClient @Inject constructor(
         _userId.value = null
         _pendingJoinRequests.value = emptyList()
         _bufferingUsers.value = emptyList()
+        _pingMs.value = null
+        pingSentTimestamp = 0L
         
         // Clear from persistent storage
         clearPersistedSession()
@@ -570,8 +591,12 @@ class ListenTogetherClient @Inject constructor(
     private fun startPingJob() {
         pingJob?.cancel()
         pingJob = scope.launch {
+            // Immediate ping on start to measure baseline latency
+            pingSentTimestamp = System.currentTimeMillis()
+            sendMessageNoPayload(MessageTypes.PING)
             while (true) {
                 delay(PING_INTERVAL_MS)
+                pingSentTimestamp = System.currentTimeMillis()
                 sendMessageNoPayload(MessageTypes.PING)
             }
         }
@@ -697,17 +722,21 @@ class ListenTogetherClient @Inject constructor(
         pingJob?.cancel()
         pingJob = null
         
-        // Don't clear room state - we might reconnect
-        // Only update connection state
-        _connectionState.value = ConnectionState.DISCONNECTED
         _pendingJoinRequests.value = emptyList()
         _bufferingUsers.value = emptyList()
         
-        // If we have a session, try to reconnect
+        // If we have an active session, transition to RECONNECTING when network is available
         if (sessionToken != null && _roomState.value != null) {
-            log(LogLevel.INFO, "Connection lost, will attempt to reconnect")
-            handleConnectionFailure(Exception("Connection lost"))
+            if (isNetworkAvailable) {
+                _connectionState.value = ConnectionState.RECONNECTING
+                log(LogLevel.INFO, "Connection lost, will attempt to reconnect")
+                handleConnectionFailure(Exception("Connection lost"))
+            } else {
+                _connectionState.value = ConnectionState.DISCONNECTED
+                log(LogLevel.WARNING, "Connection lost, no network available")
+            }
         } else {
+            _connectionState.value = ConnectionState.DISCONNECTED
             scope.launch { _events.emit(ListenTogetherEvent.Disconnected) }
         }
     }
@@ -798,10 +827,11 @@ class ListenTogetherClient @Inject constructor(
                     wasHost = true
                     sessionStartTime = System.currentTimeMillis()
                     
+                    val hostAvatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
                     _roomState.value = RoomState(
                         roomCode = payload.roomCode,
                         hostId = payload.userId,
-                        users = listOf(UserInfo(payload.userId, storedUsername ?: "", true)),
+                        users = listOf(UserInfo(payload.userId, storedUsername ?: "", true, avatarIndex = hostAvatarIndex)),
                         isPlaying = false,
                         position = 0,
                         lastUpdate = System.currentTimeMillis(),
@@ -884,7 +914,7 @@ class ListenTogetherClient @Inject constructor(
                 MessageTypes.USER_JOINED -> {
                     val payload = codec.decodePayload(msgType, payloadBytes, detectedFormat) as? UserJoinedPayload ?: return
                     _roomState.value = _roomState.value?.copy(
-                        users = _roomState.value!!.users + UserInfo(payload.userId, payload.username, false)
+                        users = _roomState.value!!.users + UserInfo(payload.userId, payload.username, false, avatarIndex = payload.avatarIndex)
                     )
                     _pendingJoinRequests.value = _pendingJoinRequests.value.filter { it.userId != payload.userId }
                     
@@ -1101,7 +1131,11 @@ class ListenTogetherClient @Inject constructor(
                 }
                 
                 MessageTypes.PONG -> {
-                    log(LogLevel.DEBUG, "Pong received")
+                    if (pingSentTimestamp > 0L) {
+                        val latency = (System.currentTimeMillis() - pingSentTimestamp).coerceAtLeast(0L)
+                        _pingMs.value = latency
+                    }
+                    log(LogLevel.DEBUG, "Pong received", "Latency: ${_pingMs.value}ms")
                 }
                 
                 MessageTypes.RECONNECTED -> {
@@ -1216,8 +1250,9 @@ class ListenTogetherClient @Inject constructor(
         
         storedUsername = username
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         if (_connectionState.value == ConnectionState.CONNECTED) {
-            sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(username))
+            sendMessage(MessageTypes.CREATE_ROOM, CreateRoomPayload(username, avatarIndex))
         } else {
             log(LogLevel.INFO, "Not connected, queueing create room action")
             pendingAction = PendingAction.CreateRoom(username)
@@ -1242,8 +1277,9 @@ class ListenTogetherClient @Inject constructor(
 
         storedUsername = username
         
+        val avatarIndex = context.dataStore.get(ListenTogetherAvatarIndexKey, 0)
         if (_connectionState.value == ConnectionState.CONNECTED) {
-            sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(roomCode.uppercase(), username))
+            sendMessage(MessageTypes.JOIN_ROOM, JoinRoomPayload(roomCode.uppercase(), username, avatarIndex))
         } else {
             log(LogLevel.INFO, "Not connected, queueing join room action")
             pendingAction = PendingAction.JoinRoom(roomCode, username)
@@ -1521,20 +1557,20 @@ class ListenTogetherClient @Inject constructor(
         log(LogLevel.INFO, "Forcing reconnection to server")
         reconnectAttempts = 0  // Reset attempts to retry from start
         
+        _connectionState.value = ConnectionState.RECONNECTING
+        
         if (webSocket != null) {
             try {
-                webSocket?.close(1000, "Forcing reconnection")
+                webSocket?.cancel()
             } catch (e: Exception) {
-                log(LogLevel.DEBUG, "Error closing WebSocket", e.message)
+                log(LogLevel.DEBUG, "Error cancelling WebSocket", e.message)
             }
             webSocket = null
         }
         
-        _connectionState.value = ConnectionState.DISCONNECTED
-        
-        // Attempt connection with reset backoff
+        // Attempt connection with brief reset backoff
         scope.launch {
-            delay(500)
+            delay(150)
             connect()
         }
     }

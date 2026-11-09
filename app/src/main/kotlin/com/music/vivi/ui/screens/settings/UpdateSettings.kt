@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import android.content.Intent
 import android.net.Uri
@@ -33,7 +34,7 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.vivimusic.component.UpdateInfoDialog
 import com.music.vivi.ui.utils.backToMain
@@ -50,6 +51,16 @@ import com.music.vivi.vivimusic.updater.saveBetaUpdatesSetting
 import com.music.vivi.vivimusic.updater.autoClearOldApks
 import androidx.compose.material3.MaterialTheme
 import com.music.vivi.BuildConfig
+import com.music.vivi.utils.rememberPreference
+import com.music.vivi.constants.EnableNotificationsKey
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import android.Manifest
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
+import com.music.vivi.vivimusic.updater.checkForUpdate
 
 //here b5.0.1 must be used for the beta tag
 
@@ -70,20 +81,56 @@ fun UpdateSettings(
     val context = LocalContext.current
     var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
     var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
-    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context) && autoUpdateEnabled) }
+    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context)) }
     var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
     var showInfoDialog by remember { mutableStateOf(false) }
 
-    DisposableEffect(context, autoUpdateEnabled) {
+    // Detect system permission state dynamically
+    var hasSystemPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else true
+        )
+    }
+
+    // Refresh system permission state when screen is resumed
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasSystemPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+                } else true
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val (notificationsEnabled, _) = rememberPreference(
+        EnableNotificationsKey,
+        defaultValue = true
+    )
+
+    val isNotificationsActive = hasSystemPermission && notificationsEnabled
+
+    DisposableEffect(context) {
         val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == "update_available") {
-                isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+                isUpdateAvailable = getUpdateAvailableState(context)
             }
         }
         sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
         // Sync initial state
-        isUpdateAvailable = getUpdateAvailableState(context) && autoUpdateEnabled
+        isUpdateAvailable = getUpdateAvailableState(context)
         onDispose {
             sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
         }
@@ -92,6 +139,15 @@ fun UpdateSettings(
     LaunchedEffect(Unit) {
         autoClearOldApks(context)
         apkCount = getDownloadedApkCount(context)
+        if (autoUpdateEnabled) {
+            checkForUpdate(
+                context = context,
+                onSuccess = { _, isAvailable, _, _, _, _, _, _ ->
+                    saveUpdateAvailableState(context, isAvailable)
+                },
+                onError = {}
+            )
+        }
     }
 
     if (showInfoDialog) {
@@ -104,13 +160,21 @@ fun UpdateSettings(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
     ) {
-        Material3SettingsGroup(
-            title = stringResource(R.string.app_updates_title),
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.update_settings_title),
+            style = MaterialTheme.typography.displaySmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Spacer(modifier = Modifier.height(10.dp))
+        ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.network_update),
                     title = { Text(stringResource(R.string.system_update)) },
-                    description = {
+                    trailingContent = {
                         if (isUpdateAvailable) {
                             Text(
                                 text = stringResource(R.string.update_available),
@@ -121,31 +185,32 @@ fun UpdateSettings(
                         }
                     },
                     onClick = {
-                        val isFoss = !BuildConfig.CAST_AVAILABLE
-                        if (isFoss) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/vivizzz007/vivi-music"))
-                            context.startActivity(intent)
-                        } else {
-                            navController.navigate("update")
-                        }
+                        navController.navigate("update")
                     }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.info),
-                    title = {
-                        Text(stringResource(R.string.version, BuildConfig.VERSION_NAME))
-                    },
-                    description = {
-                        val arch = BuildConfig.ARCHITECTURE
-                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
-                        Text("$arch - $variant")
-                    }
+                    title = { Text(stringResource(R.string.app_version)) },
+                    trailingContent = { Text(BuildConfig.VERSION_NAME) }
                 ),
-                
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.stockpot_flavour),
+                    title = { Text(stringResource(R.string.flavour)) },
+                    trailingContent = {
+                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
+                        Text(variant)
+                    }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+        
+        ExpressiveSettingGroup(
+            items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.update),
                     title = { Text(stringResource(R.string.auto_update_check)) },
-                    description = { Text(stringResource(R.string.auto_update_check_subtitle)) },
                     trailingContent = {
                         Switch(
                             checked = autoUpdateEnabled,
@@ -179,7 +244,6 @@ fun UpdateSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.biotech),
                     title = { Text(stringResource(R.string.beta_updates)) },
-                    description = { Text(stringResource(R.string.beta_updates_subtitle)) },
                     trailingContent = {
                         Switch(
                             checked = betaUpdatesEnabled,
@@ -203,32 +267,39 @@ fun UpdateSettings(
                         saveBetaUpdatesSetting(context, betaUpdatesEnabled)
                     }
                 ),
-
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.notification),
                     title = { Text(stringResource(R.string.notification_settings)) },
-                    description = { Text(stringResource(R.string.notification_settings_summary)) },
+                    trailingContent = {
+                        val status = if (isNotificationsActive) {
+                            stringResource(R.string.enabled)
+                        } else {
+                            stringResource(R.string.disabled)
+                        }
+                        Text(status)
+                    },
                     onClick = {
                         navController.navigate("settings/update/notification_permission")
                     }
-                ),
+                )
+            )
+        )
 
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExpressiveSettingGroup(
+            items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.delete),
                     title = { Text(stringResource(R.string.clear_downloaded_updates)) },
-                    description = {
-                        if (apkCount == 0) {
-                            Text(
-                                text = stringResource(R.string.clear_downloaded_updates_desc),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        } else {
+                    description = if (apkCount > 0) {
+                        {
                             Text(
                                 text = pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount),
                                 color = MaterialTheme.colorScheme.error
                             )
                         }
-                    },
+                    } else null,
                     trailingContent = {
                         IconButton(
                             onClick = { showInfoDialog = true },
@@ -253,19 +324,12 @@ fun UpdateSettings(
                         }
                     }
                 )
-
-//                Material3SettingsItem(
-//                    icon = painterResource(R.drawable.info),
-//                    title = { Text(stringResource(R.string.namespace)) },
-//                    description = { Text(BuildConfig.APPLICATION_ID) }
-//                )
-
             )
         )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        Material3SettingsGroup(
-            title = stringResource(R.string.changelog),
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.history),
@@ -286,7 +350,9 @@ fun UpdateSettings(
     }
 
     TopAppBar(
-        title = { Text(stringResource(R.string.update_settings_title)) },
+        title = {
+//            Text(stringResource(R.string.update_settings_title))
+        },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

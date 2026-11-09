@@ -42,6 +42,7 @@ class OnlinePlaylistViewModel @Inject constructor(
     val playlist = MutableStateFlow<PlaylistItem?>(null)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
     val relatedItems = MutableStateFlow<List<YTItem>>(emptyList())
+    val relatedTitle = MutableStateFlow<String?>(null)
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading = _isLoading.asStateFlow()
@@ -76,6 +77,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = applySongFilters(playlistPage.songs)
                     relatedItems.value = playlistPage.related ?: emptyList()
+                    relatedTitle.value = playlistPage.relatedTitle
                     continuation = playlistPage.songsContinuation
                     _isLoading.value = false
                     if (continuation != null) {

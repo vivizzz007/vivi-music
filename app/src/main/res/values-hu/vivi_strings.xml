@@ -257,8 +257,6 @@
     <string name="show_artist_monthly_listeners">Havi hallgatók megjelenítése</string>
     <string name="enable_wavy_slider">Hullámzó lejátszási sáv</string>
     <string name="wavy">Hullámzó</string>
-    <string name="enable_simpmusic">SimpMusic dalszövegek engedélyezése</string>
-    <string name="enable_simpmusic_desc">A szinkronizált dalszövegekhez a SimpMusic szolgáltató használata</string>
     <string name="skip_silence_desc">Számok csendes részeinek átugrása</string>
     <string name="skip_silence_instant">Csend azonnali átugrása</string>
     <string name="skip_silence_instant_desc">A lejátszás felgyorsítása helyett ugorjon előre a csendes részeknél</string>

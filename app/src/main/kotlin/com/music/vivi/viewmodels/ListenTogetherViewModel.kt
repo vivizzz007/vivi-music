@@ -7,7 +7,11 @@ package com.music.vivi.viewmodels
 
 import androidx.lifecycle.ViewModel
 import com.music.vivi.listentogether.ListenTogetherManager
+import androidx.lifecycle.viewModelScope
+import com.music.vivi.listentogether.ListenTogetherEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,8 +30,40 @@ class ListenTogetherViewModel @Inject constructor(
     val hasPersistedSession = manager.hasPersistedSession
     val blockedUsernames = manager.blockedUsernames
 
+    val roomCodeInput = MutableStateFlow("")
+    val usernameInput = MutableStateFlow("")
+    val isCreatingRoom = MutableStateFlow(false)
+    val isJoiningRoom = MutableStateFlow(false)
+    val joinErrorMessage = MutableStateFlow<String?>(null)
+    
+    val selectedUserForMenu = MutableStateFlow<String?>(null)
+    val selectedUsername = MutableStateFlow<String?>(null)
+
     init {
-        manager.initialize()
+        viewModelScope.launch {
+            manager.events.collect { event ->
+                when (event) {
+                    is ListenTogetherEvent.JoinRejected -> {
+                        val reason = event.reason
+                        joinErrorMessage.value = when {
+                            reason.isNullOrBlank() -> "Join request denied"
+                            reason.contains("invalid", ignoreCase = true) -> "Invalid room code"
+                            else -> "Join request denied: $reason"
+                        }
+                        isJoiningRoom.value = false
+                        isCreatingRoom.value = false
+                    }
+                    is ListenTogetherEvent.JoinApproved -> {
+                        isJoiningRoom.value = false
+                        joinErrorMessage.value = null
+                    }
+                    is ListenTogetherEvent.RoomCreated -> {
+                        isCreatingRoom.value = false
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     fun connect() {

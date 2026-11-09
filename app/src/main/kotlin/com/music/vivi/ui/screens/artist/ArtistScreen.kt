@@ -15,6 +15,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -140,10 +141,10 @@ import com.music.vivi.constants.ShowArtistBackgroundVideoKey
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import com.music.vivi.artistvideo.AppleMusicArtistBackgroundProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.music.vivi.canvas.AppleMusicArtistBackgroundProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -380,8 +381,8 @@ fun ArtistScreen(
                                                 ArtistVideo(
                                                     videoUrl = videoUrl,
                                                     modifier = Modifier
-                                                        .width(45.dp)
-                                                        .height(45.dp),
+                                                        .height(45.dp)
+                                                        .aspectRatio(16f / 9f),
                                                     onClick = {
                                                         val watchEndpoint = artistVideoSong?.endpoint
                                                             ?: artistPage?.artist?.radioEndpoint
@@ -408,9 +409,9 @@ fun ArtistScreen(
                                     )
                                 }
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.padding(bottom = 16.dp)
                                 ) {
                                     if (showArtistSubscriberCount) {
@@ -433,7 +434,9 @@ fun ArtistScreen(
                                                     text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -459,7 +462,9 @@ fun ArtistScreen(
                                                     text = "${monthlyListeners.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.monthly_listeners)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -881,7 +886,7 @@ fun ArtistScreen(
                                             },
                                             isPlaying = isPlaying,
                                             coroutineScope = coroutineScope,
-                                            thumbnailRatio = 1f, // Use square thumbnails for all items in horizontal scroll
+                                            thumbnailRatio = if (item is SongItem) 16f / 9f else 1f,
                                             modifier = Modifier
                                                 .combinedClickable(
                                                     onClick = {

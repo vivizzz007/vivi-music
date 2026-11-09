@@ -30,7 +30,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,7 +56,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.db.entities.FormatEntity
 import com.music.vivi.db.entities.Song
-import com.music.vivi.ui.component.LocalBottomSheetPageState
+
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 
@@ -72,7 +72,7 @@ fun ShowMediaInfo(videoId: String) {
     var currentFormat by remember { mutableStateOf<FormatEntity?>(null) }
     val playerConnection = LocalPlayerConnection.current
     val context = LocalContext.current
-    val sheetState = LocalBottomSheetPageState.current
+
     val clipboardManager = LocalClipboard.current
 
     LaunchedEffect(Unit, videoId) {
@@ -99,21 +99,12 @@ fun ShowMediaInfo(videoId: String) {
     ) {
         // Header: "Song Info" title + Done button
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(R.string.song_info),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                TextButton(onClick = { sheetState.dismiss() }) {
-                    Text(stringResource(R.string.done))
-                }
-            }
+            Text(
+                text = stringResource(R.string.song_info),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
 
         // Large Album Art Card

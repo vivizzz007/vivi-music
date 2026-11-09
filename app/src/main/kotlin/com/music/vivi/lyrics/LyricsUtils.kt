@@ -344,6 +344,60 @@ object LyricsUtils {
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
 
+    enum class SyncType {
+        WORD, LINE, NONE
+    }
+
+    fun getSyncType(lyrics: String): SyncType {
+        if (lyrics.isBlank()) return SyncType.NONE
+
+        val unescapedLyrics = lyrics
+            .trim()
+            .removePrefix("\"")
+            .removeSuffix("\"")
+            .replace("\\\\", "\\")
+            .replace("\\n", "\n")
+            .replace("\\r", "\r")
+            .replace("\\t", "\t")
+
+        val decodedLyrics = decodeHtmlEntities(unescapedLyrics)
+        
+        val lines = decodedLyrics.lines()
+            .filter { it.isNotBlank() && !it.trim().startsWith("[offset:") }
+        
+        val isRichSync = lines.any { line ->
+            RICH_SYNC_LINE_REGEX.matches(line.trim()) && 
+            RICH_SYNC_WORD_REGEX.containsMatchIn(line)
+        }
+        
+        if (isRichSync) return SyncType.WORD
+
+        var hasLineSync = false
+        var hasWordSync = false
+
+        for (i in lines.indices) {
+            val line = lines[i].trim()
+            if (!line.startsWith("<") || !line.endsWith(">")) {
+                if (LINE_REGEX.matches(line)) {
+                    hasLineSync = true
+                    if (i + 1 < lines.size) {
+                        val nextLine = lines[i + 1].trim()
+                        if (nextLine.startsWith("<") && nextLine.endsWith(">")) {
+                            hasWordSync = true
+                            break
+                        }
+                    }
+                }
+            }
+        }
+
+        return when {
+            hasWordSync -> SyncType.WORD
+            hasLineSync -> SyncType.LINE
+            else -> SyncType.NONE
+        }
+    }
+
     fun parseLyrics(lyrics: String): List<LyricsEntry> {
         // Unescape JSON string if needed
         val unescapedLyrics = lyrics
@@ -581,6 +635,43 @@ object LyricsUtils {
         }
         return lines.lastIndex
     }
+
+    fun findActiveLineIndices(
+        lines: List<LyricsEntry>,
+        position: Long,
+    ): Set<Int> {
+        val active = mutableSetOf<Int>()
+        val hasWordTimings = lines.any { !it.words.isNullOrEmpty() }
+
+        for (index in lines.indices) {
+            val line = lines[index]
+            if (line.time > position) break // Past current position, stop early
+
+            // Determine this line's end time
+            val lineEndMs: Long = if (!line.words.isNullOrEmpty()) {
+                // Use last word's endTime converted to ms
+                (line.words.last().endTime * 1000).toLong()
+            } else {
+                // Fallback: next line's start time
+                if (index + 1 < lines.size) lines[index + 1].time else Long.MAX_VALUE
+            }
+
+            if (position <= lineEndMs) {
+                active.add(index)
+            }
+        }
+
+        if (!hasWordTimings && active.size > 1) {
+            val mainActive = active.filter { !it.let { lines[it].isBackground } }
+            if (mainActive.size > 1) {
+                val maxTime = mainActive.maxOf { lines[it].time }
+                active.removeAll { it in mainActive && lines[it].time < maxTime }
+            }
+        }
+
+        return active
+    }
+
 
     // TODO: Will be useful if we let the user pick the language, useless for now
     /* enum class CyrillicLanguage {

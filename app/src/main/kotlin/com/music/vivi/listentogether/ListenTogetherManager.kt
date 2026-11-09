@@ -30,6 +30,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -107,11 +108,15 @@ class ListenTogetherManager @Inject constructor(
     // Track if a buffer-complete arrived before the pending sync was ready
     private var bufferCompleteReceivedForTrack: String? = null
 
+    // Idle disconnect job to save resources
+    private var idleDisconnectJob: Job? = null
+
     // Expose client state
     val connectionState = client.connectionState
     val roomState = client.roomState
     val role = client.role
     val userId = client.userId
+    val pingMs = client.pingMs
     val pendingJoinRequests = client.pendingJoinRequests
     val bufferingUsers = client.bufferingUsers
     val logs = client.logs
@@ -126,6 +131,13 @@ class ListenTogetherManager @Inject constructor(
     // Chat state
     private val _chatMessages = MutableStateFlow<List<ChatMessagePayload>>(emptyList())
     val chatMessages = _chatMessages
+
+    private val _unreadMessageCount = MutableStateFlow(0)
+    val unreadMessageCount: kotlinx.coroutines.flow.StateFlow<Int> = _unreadMessageCount
+
+    fun markChatAsRead() {
+        _unreadMessageCount.value = 0
+    }
     
     private val playerListener = object : Player.Listener {
         override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
@@ -362,6 +374,22 @@ class ListenTogetherManager @Inject constructor(
                     handleEvent(event)
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error handling event: $event")
+                }
+            }
+        }
+
+        // Idle Disconnect Timer (15 minutes) - saves resources if user connects but never joins
+        scope.launch {
+            combine(connectionState, client.roomState) { cState, rState ->
+                cState to rState
+            }.collect { (cState, rState) ->
+                idleDisconnectJob?.cancel()
+                if (cState == ConnectionState.CONNECTED && rState == null) {
+                    idleDisconnectJob = scope.launch {
+                        delay(15 * 60 * 1000L) // 15 minutes
+                        Timber.tag(TAG).w("Idle disconnect timeout reached (15m without joining a room). Disconnecting...")
+                        disconnect()
+                    }
                 }
             }
         }
@@ -701,7 +729,17 @@ class ListenTogetherManager @Inject constructor(
 
             is ListenTogetherEvent.ChatMessageReceived -> {
                 Timber.tag(TAG).d("Chat message received from ${event.payload.username}")
-                _chatMessages.value = _chatMessages.value + event.payload
+                
+                // Prevent duplicate keys causing LazyColumn crash
+                val exists = _chatMessages.value.any { it.timestamp == event.payload.timestamp && it.userId == event.payload.userId }
+                if (!exists) {
+                    _chatMessages.value = _chatMessages.value + event.payload
+                    if (event.payload.userId != userId.value) {
+                        _unreadMessageCount.value++
+                    }
+                } else {
+                    Timber.tag(TAG).w("Ignoring duplicate chat message from ${event.payload.username}")
+                }
             }
 
             else -> { /* Other events handled by UI */ }
@@ -729,6 +767,7 @@ class ListenTogetherManager @Inject constructor(
         lastSyncActionTime = 0L  // Reset sync debouncing
         ++currentTrackGeneration  // Increment to invalidate any pending track-change coroutines
         _chatMessages.value = emptyList() // Clear chat on room leave
+        _unreadMessageCount.value = 0
     }
 
     private fun updateGuestMuteState() {
@@ -800,6 +839,8 @@ class ListenTogetherManager @Inject constructor(
         val posDiff = kotlin.math.abs(player.currentPosition - targetPos)
         val willPlay = pending.isPlaying
         
+        connection.allowInternalSync = true
+        
         // Use appropriate tolerance based on whether we're about to play
         val tolerance = if (willPlay && player.playWhenReady) PLAYBACK_POSITION_TOLERANCE_MS else POSITION_TOLERANCE_MS
         
@@ -818,6 +859,8 @@ class ListenTogetherManager @Inject constructor(
             Timber.tag(TAG).d("Applying pending sync: pausing playback")
             connection.pause()
         }
+        
+        connection.allowInternalSync = false
 
         scope.launch {
             delay(200)
@@ -842,6 +885,7 @@ class ListenTogetherManager @Inject constructor(
         isSyncing = true
 
         try {
+            connection.allowInternalSync = true
             when (action.action) {
                 PlaybackActions.PLAY -> {
                     val basePos = action.position ?: 0L
@@ -1119,6 +1163,7 @@ class ListenTogetherManager @Inject constructor(
                 }
             }
         } finally {
+            connection.allowInternalSync = false
             // Minimal delay to prevent feedback loops
             scope.launch {
                 delay(200)

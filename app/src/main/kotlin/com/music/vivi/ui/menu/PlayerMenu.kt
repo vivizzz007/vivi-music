@@ -347,6 +347,7 @@ fun PlayerMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     // ── Single smart Retry button ────────────────────────────
                     // Always visible. Re-triggers the full resolution chain.
@@ -369,10 +370,7 @@ fun PlayerMenu(
                                 )
                             },
                             onClick = {
-                                val player = playerConnection.player
-                                player.seekTo(0)
-                                player.prepare()
-                                player.play()
+                                playerConnection.service.retryCurrentStream()
                                 onDismiss()
                             }
                         )
@@ -470,6 +468,7 @@ fun PlayerMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -555,6 +554,7 @@ fun PlayerMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(
@@ -614,6 +614,7 @@ fun PlayerMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = buildList {
                     add(
                         Material3MenuItemData(

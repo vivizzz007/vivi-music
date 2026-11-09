@@ -96,7 +96,7 @@ fun BottomSheet(
                     },
                     onDragCancel = {
                         velocityTracker.resetTracking()
-                        state.snapTo(state.collapsedBound)
+                        state.performFling(0f, onDismiss)
                     },
                     onDragEnd = {
                         val velocity = -velocityTracker.calculateVelocity().y
@@ -192,19 +192,19 @@ class BottomSheetState(
     }
 
     private fun collapse() {
-        collapse(SpringSpec())
-    }
-
-    private fun expand() {
-        expand(SpringSpec())
-    }
-
-    fun collapseSoft() {
         collapse(spring(stiffness = Spring.StiffnessMediumLow))
     }
 
-    fun expandSoft() {
+    private fun expand() {
         expand(spring(stiffness = Spring.StiffnessMediumLow))
+    }
+
+    fun collapseSoft() {
+        collapse(spring(stiffness = Spring.StiffnessLow))
+    }
+
+    fun expandSoft() {
+        expand(spring(stiffness = Spring.StiffnessLow))
     }
 
     fun dismiss() {
@@ -237,8 +237,8 @@ class BottomSheetState(
             }
         } else {
             val l0 = dismissedBound
-            val l1 = (collapsedBound - dismissedBound) / 2
-            val l2 = (expandedBound - collapsedBound) / 2
+            val l1 = (dismissedBound + collapsedBound) / 2
+            val l2 = (collapsedBound + expandedBound) / 2
             val l3 = expandedBound
 
             when (value) {

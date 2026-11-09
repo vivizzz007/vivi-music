@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.pages
 
 import com.music.innertube.models.Album
@@ -13,6 +17,7 @@ import com.music.innertube.models.clean
 import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
 import com.music.innertube.models.filterYoutubeShorts
+import com.music.innertube.models.findViewCountText
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
@@ -114,6 +119,7 @@ data class SearchSummaryPage(
                             renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
+                        viewCountText = subtitle?.findViewCountText()
                     )
                 }
 
@@ -137,6 +143,7 @@ data class SearchSummaryPage(
                                 ?.buttonRenderer
                                 ?.command
                                 ?.watchPlaylistEndpoint ?: return null,
+                        subtext = subtitle?.map { list -> list.joinToString(separator = "") { it.text } }?.joinToString(separator = " • ")
                     )
                 }
 
@@ -208,7 +215,7 @@ data class SearchSummaryPage(
             }
         }
 
-        fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): YTItem? {
+        fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer, implicitArtist: Artist? = null): YTItem? {
             val secondaryLine =
                 renderer.flexColumns
                     .getOrNull(1)
@@ -244,13 +251,13 @@ data class SearchSummaryPage(
                                 ?.runs
                                 ?.firstOrNull()
                                 ?.text ?: return null,
-                        artists = listRun.getOrNull(0)?.oddElements()?.map {
+                        artists = if (implicitArtist != null) listOf(implicitArtist) else listRun.getOrNull(0)?.oddElements()?.map {
                             Artist(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: return null,
-                        album = listRun.getOrNull(1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
+                        album = listRun.getOrNull(if (implicitArtist != null) 0 else 1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
                             Album(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId!!
@@ -271,7 +278,8 @@ data class SearchSummaryPage(
                         endpoint = renderer.navigationEndpoint?.watchEndpoint
                             ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
                         libraryAddToken = libraryTokens.addToken,
-                        libraryRemoveToken = libraryTokens.removeToken
+                        libraryRemoveToken = libraryTokens.removeToken,
+                        viewCountText = (secondaryLine + thirdLine).findViewCountText()
                     )
                 }
 
@@ -302,6 +310,7 @@ data class SearchSummaryPage(
                                 ?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
                                 ?.watchPlaylistEndpoint ?: return null,
+                        subtext = secondaryLine.map { list -> list.joinToString(separator = "") { it.text } }.joinToString(separator = " • ")
                     )
                 }
 
@@ -362,12 +371,18 @@ data class SearchSummaryPage(
                                 ?.firstOrNull()
                                 ?.text ?: return null,
                         author =
-                            secondaryLine.getOrNull(1)?.firstOrNull()?.let {
+                            (if (secondaryLine.firstOrNull()?.firstOrNull()?.text.equals("Playlist", ignoreCase = true) ||
+                                secondaryLine.firstOrNull()?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") != true
+                            ) {
+                                secondaryLine.getOrNull(1)?.firstOrNull() ?: secondaryLine.firstOrNull()?.firstOrNull()
+                            } else {
+                                secondaryLine.firstOrNull()?.firstOrNull()
+                            })?.let {
                                 Artist(
                                     name = it.text,
                                     id = it.navigationEndpoint?.browseEndpoint?.browseId,
                                 )
-                            } ?: return null,
+                            },
                         songCountText =
                             renderer.flexColumns
                                 .getOrNull(1)
@@ -375,7 +390,7 @@ data class SearchSummaryPage(
                                 ?.text
                                 ?.runs
                                 ?.lastOrNull()
-                                ?.text ?: return null,
+                                ?.text,
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         playEndpoint =
                             renderer.overlay
@@ -383,7 +398,8 @@ data class SearchSummaryPage(
                                 ?.content
                                 ?.musicPlayButtonRenderer
                                 ?.playNavigationEndpoint
-                                ?.watchPlaylistEndpoint ?: return null,
+                                ?.watchPlaylistEndpoint
+                                ?: renderer.navigationEndpoint?.watchPlaylistEndpoint,
                         shuffleEndpoint =
                             renderer.menu
                                 ?.menuRenderer
@@ -391,13 +407,13 @@ data class SearchSummaryPage(
                                 ?.find { it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE" }
                                 ?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
-                                ?.watchPlaylistEndpoint ?: return null,
+                                ?.watchPlaylistEndpoint,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items
-                                .find { it.menuNavigationItemRenderer?.icon?.iconType == "MIX" }
+                            renderer.menu?.menuRenderer?.items
+                                ?.find { it.menuNavigationItemRenderer?.icon?.iconType == "MIX" }
                                 ?.menuNavigationItemRenderer
                                 ?.navigationEndpoint
-                                ?.watchPlaylistEndpoint ?: return null,
+                                ?.watchPlaylistEndpoint,
                     )
                 }
 

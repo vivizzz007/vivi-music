@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.pages
 
 import com.music.innertube.models.Album
@@ -8,6 +12,7 @@ import com.music.innertube.models.MusicResponsiveListItemRenderer
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
+import com.music.innertube.models.findViewCountText
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
@@ -74,7 +79,8 @@ object SearchPage {
                     endpoint = renderer.navigationEndpoint?.watchEndpoint
                         ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
                     libraryAddToken = libraryTokens.addToken,
-                    libraryRemoveToken = libraryTokens.removeToken
+                    libraryRemoveToken = libraryTokens.removeToken,
+                    viewCountText = secondaryLine.findViewCountText()
                 )
             }
             renderer.isArtist -> {
@@ -104,6 +110,7 @@ object SearchPage {
                             ?.menuNavigationItemRenderer
                             ?.navigationEndpoint
                             ?.watchPlaylistEndpoint ?: return null,
+                    subtext = secondaryLine.map { list -> list.joinToString(separator = "") { it.text } }.joinToString(separator = " • ")
                 )
             }
             renderer.isAlbum -> {
@@ -162,12 +169,18 @@ object SearchPage {
                             ?.firstOrNull()
                             ?.text ?: return null,
                     author =
-                        secondaryLine.firstOrNull()?.firstOrNull()?.let {
+                        (if (secondaryLine.firstOrNull()?.firstOrNull()?.text.equals("Playlist", ignoreCase = true) ||
+                            secondaryLine.firstOrNull()?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") != true
+                        ) {
+                            secondaryLine.getOrNull(1)?.firstOrNull() ?: secondaryLine.firstOrNull()?.firstOrNull()
+                        } else {
+                            secondaryLine.firstOrNull()?.firstOrNull()
+                        })?.let {
                             Artist(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId,
                             )
-                        } ?: return null,
+                        },
                     songCountText =
                         renderer.flexColumns
                             .getOrNull(1)
@@ -175,7 +188,7 @@ object SearchPage {
                             ?.text
                             ?.runs
                             ?.lastOrNull()
-                            ?.text ?: return null,
+                            ?.text,
                     thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     playEndpoint =
                         renderer.overlay
@@ -183,7 +196,8 @@ object SearchPage {
                             ?.content
                             ?.musicPlayButtonRenderer
                             ?.playNavigationEndpoint
-                            ?.watchPlaylistEndpoint ?: return null,
+                            ?.watchPlaylistEndpoint
+                            ?: renderer.navigationEndpoint?.watchPlaylistEndpoint,
                     shuffleEndpoint =
                         renderer.menu
                             ?.menuRenderer
@@ -191,13 +205,13 @@ object SearchPage {
                             ?.find { it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE" }
                             ?.menuNavigationItemRenderer
                             ?.navigationEndpoint
-                            ?.watchPlaylistEndpoint ?: return null,
+                            ?.watchPlaylistEndpoint,
                     radioEndpoint =
-                        renderer.menu.menuRenderer.items
-                            .find { it.menuNavigationItemRenderer?.icon?.iconType == "MIX" }
+                        renderer.menu?.menuRenderer?.items
+                            ?.find { it.menuNavigationItemRenderer?.icon?.iconType == "MIX" }
                             ?.menuNavigationItemRenderer
                             ?.navigationEndpoint
-                            ?.watchPlaylistEndpoint ?: return null,
+                            ?.watchPlaylistEndpoint,
                 )
             }
             else -> null

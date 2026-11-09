@@ -26,23 +26,16 @@ dependencyResolutionManagement {
 
 rootProject.name = "vivimusic"
 include(":app")
-include(":canvas")
+// Previous canvas included below
 include(":innertube")
-include(":kugou")
-include(":lrclib")
 include(":kizzy")
 include(":lastfm")
-include(":betterlyrics")
-include(":simpmusic")
-include(":youlyplus")
 include(":shazamkit")
 include(":artistvideo")
-include(":applecanvas")
-include(":vivimusiccanvas")
-include(":paxsenixlyrics")
+include(":Motionartwork")
 include(":jiosaavn")
 include(":spotify")
-
+include(":lyricsProvider")
 
 // Use a local copy of NewPipe Extractor by uncommenting the lines below.
 // We assume, that vivimusic and NewPipe Extractor have the same parent directory.

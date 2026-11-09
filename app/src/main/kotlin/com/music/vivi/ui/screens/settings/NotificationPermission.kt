@@ -55,7 +55,7 @@ import com.music.vivi.constants.EnableNotificationsKey
 import com.music.vivi.constants.NewReleaseNotificationsKey
 import com.music.vivi.constants.TasteBasedReleaseNotificationsKey
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.utils.backToMain
@@ -228,8 +228,7 @@ fun NotificationPermission(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Checkbox settings group for updates and download notifications
-        Material3SettingsGroup(
-            title = stringResource(R.string.notification_settings),
+        ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.update_notifications)) },

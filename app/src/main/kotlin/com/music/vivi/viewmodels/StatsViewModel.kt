@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.music.innertube.YouTube
 import com.music.vivi.constants.HideVideoSongsKey
+import com.music.vivi.constants.StatPeriod
 import com.music.vivi.constants.statToPeriod
 import com.music.vivi.db.MusicDatabase
 import com.music.vivi.ui.screens.OptionStats
@@ -40,7 +41,7 @@ constructor(
     val database: MusicDatabase,
 ) : ViewModel() {
     val selectedOption = MutableStateFlow(OptionStats.CONTINUOUS)
-    val indexChips = MutableStateFlow(0)
+    val indexChips = MutableStateFlow(StatPeriod.ALL.ordinal)
 
     val totalPlayTime =
         combine(

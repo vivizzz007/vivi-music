@@ -39,9 +39,10 @@ import com.music.vivi.R
 import com.music.vivi.constants.DisableScreenshotKey
 import com.music.vivi.constants.PauseListenHistoryKey
 import com.music.vivi.constants.PauseSearchHistoryKey
+import com.music.vivi.ui.component.ActionPromptDialog
 import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
-import com.music.vivi.ui.component.Material3SettingsGroup
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
@@ -71,33 +72,22 @@ fun PrivacySettings(
     }
 
     if (showClearListenHistoryDialog) {
-        DefaultDialog(
+        ActionPromptDialog(
             onDismiss = { showClearListenHistoryDialog = false },
+            onCancel = { showClearListenHistoryDialog = false },
+            onConfirm = {
+                showClearListenHistoryDialog = false
+                database.query {
+                    clearListenHistory()
+                }
+            },
             content = {
                 Text(
                     text = stringResource(R.string.clear_listen_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showClearListenHistoryDialog = false },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showClearListenHistoryDialog = false
-                        database.query {
-                            clearListenHistory()
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
+            }
         )
     }
 
@@ -106,33 +96,22 @@ fun PrivacySettings(
     }
 
     if (showClearSearchHistoryDialog) {
-        DefaultDialog(
+        ActionPromptDialog(
             onDismiss = { showClearSearchHistoryDialog = false },
+            onCancel = { showClearSearchHistoryDialog = false },
+            onConfirm = {
+                showClearSearchHistoryDialog = false
+                database.query {
+                    clearSearchHistory()
+                }
+            },
             content = {
                 Text(
                     text = stringResource(R.string.clear_search_history_confirm),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp),
                 )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showClearSearchHistoryDialog = false },
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showClearSearchHistoryDialog = false
-                        database.query {
-                            clearSearchHistory()
-                        }
-                    },
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
+            }
         )
     }
 
@@ -154,7 +133,7 @@ fun PrivacySettings(
             )
         )
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.listen_history),
             items = listOf(
                 Material3SettingsItem(
@@ -187,7 +166,7 @@ fun PrivacySettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.search_history),
             items = listOf(
                 Material3SettingsItem(
@@ -220,13 +199,12 @@ fun PrivacySettings(
 
         Spacer(modifier = Modifier.height(27.dp))
 
-        Material3SettingsGroup(
+        ExpressiveSettingGroup(
             title = stringResource(R.string.misc),
             items = listOf(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.screenshot),
                     title = { Text(stringResource(R.string.disable_screenshot)) },
-                    description = { Text(stringResource(R.string.disable_screenshot_desc)) },
                     trailingContent = {
                         Switch(
                             checked = disableScreenshot,
@@ -243,6 +221,15 @@ fun PrivacySettings(
                         )
                     },
                     onClick = { onDisableScreenshotChange(!disableScreenshot) }
+                ),
+                Material3SettingsItem(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.disable_screenshot_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 )
             )
         )

@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.models
 
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
@@ -35,7 +39,8 @@ data class SongItem(
     val setVideoId: String? = null,
     val libraryAddToken: String? = null,
     val libraryRemoveToken: String? = null,
-    val historyRemoveToken: String? = null
+    val historyRemoveToken: String? = null,
+    val viewCountText: String? = null
 ) : YTItem() {
     val isVideoSong: Boolean
         get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
@@ -70,6 +75,7 @@ data class PlaylistItem(
     val radioEndpoint: WatchEndpoint?,
     val isEditable: Boolean = false,
     val description: String? = null,
+    val authorThumbnail: String? = null,
 ) : YTItem() {
     override val explicit: Boolean
         get() = false
@@ -85,6 +91,7 @@ data class ArtistItem(
     val playEndpoint: WatchEndpoint? = null,
     val shuffleEndpoint: WatchEndpoint?,
     val radioEndpoint: WatchEndpoint?,
+    val subtext: String? = null
 ) : YTItem() {
     override val explicit: Boolean
         get() = false

@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.models
 
 import kotlinx.serialization.Serializable
@@ -22,11 +26,15 @@ data class YouTubeClient(
     val useSignatureTimestamp: Boolean = false,
     val isEmbedded: Boolean = false,
     val useWebPoTokens: Boolean = false,
+    val requirePoToken: Boolean = false,
+    val includeUserAgentInContext: Boolean = false,
 ) {
     fun toContext(locale: YouTubeLocale, visitorData: String?, dataSyncId: String?) = Context(
+        thirdParty = if (isEmbedded) Context.ThirdParty(embedUrl = "https://www.reddit.com/") else null,
         client = Context.Client(
             clientName = clientName,
             clientVersion = clientVersion,
+            userAgent = if (includeUserAgentInContext) userAgent else null,
             osName = osName,
             osVersion = osVersion,
             deviceMake = deviceMake,
@@ -43,7 +51,10 @@ data class YouTubeClient(
 
     companion object {
         const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0"
+        const val USER_AGENT_MOBILE_WEB = "Mozilla/5.0 (Android 14; Mobile; rv:140.0) Gecko/140.0 Firefox/140.0"
 
+        const val ORIGIN_YOUTUBE = "https://www.youtube.com"
+        const val REFERER_YOUTUBE = "$ORIGIN_YOUTUBE/"
         const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
         const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
         const val API_URL_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/youtubei/v1/"
@@ -53,16 +64,31 @@ data class YouTubeClient(
             clientVersion = "2.20260213.00.00",
             clientId = "1",
             userAgent = USER_AGENT_WEB,
+            loginSupported = true,
         )
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
-            clientVersion = "1.20260213.01.00",
+            clientVersion = "1.20260828.01.00",
             clientId = "67",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
             useSignatureTimestamp = true,
             useWebPoTokens = true,
+        )
+
+        /**
+         * YouTube Mobile Web client — does NOT require PoToken for unauthenticated streaming.
+         * This is the equivalent of what Brave/Chrome Mobile sends when playing YouTube without login.
+         * Uses clientId=2 which YouTube treats as a trusted mobile browser.
+         */
+        val MWEB = YouTubeClient(
+            clientName = "MWEB",
+            clientVersion = "2.20260828.03.00",
+            clientId = "2",
+            userAgent = USER_AGENT_MOBILE_WEB,
+            loginSupported = false,
+            useSignatureTimestamp = true,
         )
 
         val WEB_CREATOR = YouTubeClient(
@@ -73,17 +99,28 @@ data class YouTubeClient(
             loginSupported = true,
             loginRequired = true,
             useSignatureTimestamp = true,
+            useWebPoTokens = true,
         )
 
         val TVHTML5 = YouTubeClient(
             clientName = "TVHTML5",
             clientVersion = "7.20260213.00.00",
             clientId = "7",
-            userAgent = "Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 (KHTML, like Gecko) SamsungBrowser/9.2 TV Safari/605.1.15",
+            userAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)",
             loginSupported = true,
-            loginRequired = true,
             useSignatureTimestamp = true,
             useWebPoTokens = true,
+            includeUserAgentInContext = true,
+        )
+
+        val TVHTML5_SIMPLY = YouTubeClient(
+            clientName = "TVHTML5_SIMPLY",
+            clientVersion = "1.0",
+            clientId = "75",
+            userAgent = TVHTML5.userAgent,
+            useSignatureTimestamp = true,
+            useWebPoTokens = true,
+            requirePoToken = true,
         )
 
         /**
@@ -139,7 +176,24 @@ data class YouTubeClient(
             clientId = "28",
             userAgent = "com.google.android.apps.youtube.vr.oculus/1.61.48 (Linux; U; Android 12; en_US; Oculus Quest 3; Build/SQ3A.220605.009.A1; Cronet/132.0.6808.3)",
             loginSupported = false,
-            useSignatureTimestamp = false
+            useSignatureTimestamp = false,
+            includeUserAgentInContext = true,
+        )
+
+        val ANDROID_VR_1_65_10 = YouTubeClient(
+            clientName = "ANDROID_VR",
+            clientVersion = "1.65.10",
+            clientId = "28",
+            userAgent = "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+            osName = "Android",
+            osVersion = "12L",
+            deviceMake = "Oculus",
+            deviceModel = "Quest 3",
+            androidSdkVersion = "32",
+            friendlyName = "Android VR 1.65",
+            loginSupported = false,
+            useSignatureTimestamp = false,
+            includeUserAgentInContext = true,
         )
 
         /**

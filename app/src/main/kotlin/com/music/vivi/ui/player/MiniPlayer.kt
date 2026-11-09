@@ -97,6 +97,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.Player
 import androidx.palette.graphics.Palette
 import coil3.compose.AsyncImage
@@ -117,6 +118,7 @@ import com.music.vivi.constants.PureBlackMiniPlayerKey
 import com.music.vivi.constants.SwipeSensitivityKey
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.constants.UseAppleMiniPlayerKey
 import com.music.vivi.constants.UseNewMiniPlayerDesignKey
 import com.music.vivi.db.entities.ArtistEntity
 import com.music.vivi.listentogether.ListenTogetherManager
@@ -125,6 +127,7 @@ import com.music.vivi.playback.CastConnectionHandler
 import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
+import com.music.vivi.ui.utils.resize
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -133,9 +136,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 import com.music.vivi.vivimusic.isBluetoothHeadphoneConnected
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Headphones
-import androidx.compose.material.icons.filled.Speaker
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.draw.drawBehind
@@ -146,6 +146,7 @@ import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import com.music.vivi.ui.component.Icon as MIcon
+import timber.log.Timber
 
 /**
  * Stable wrapper for progress state - reads values only during draw phase
@@ -170,11 +171,17 @@ fun MiniPlayer(
     modifier: Modifier = Modifier
 ) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
+    val useAppleMiniPlayer by rememberPreference(UseAppleMiniPlayerKey, false)
     
     // Create stable progress state - doesn't cause recomposition on position changes
     val progressState = remember { ProgressState(positionState, durationState) }
 
-    if (useNewMiniPlayerDesign) {
+    if (useAppleMiniPlayer) {
+        AppleMiniPlayer(
+            progressState = progressState,
+            modifier = modifier
+        )
+    } else if (useNewMiniPlayerDesign) {
         NewMiniPlayer(
             progressState = progressState,
             modifier = modifier
@@ -212,6 +219,7 @@ private fun NewMiniPlayer(
     
     // Player states - only collect what's needed at this level
     val playbackState by playerConnection.playbackState.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
@@ -330,9 +338,13 @@ private fun NewMiniPlayer(
 
                                 if (shouldChangeSong) {
                                     if (currentOffset > 0 && canSkipPrevious) {
-                                        playerConnection.player.seekToPreviousMediaItem()
+                                        if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                                            playerConnection.player.seekToPreviousMediaItem()
+                                        }
                                     } else if (currentOffset <= 0 && canSkipNext) {
-                                        playerConnection.player.seekToNext()
+                                        if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                                            playerConnection.player.seekToNext()
+                                        }
                                     }
                                 }
                                 coroutineScope.launch {
@@ -357,7 +369,8 @@ private fun NewMiniPlayer(
             MiniPlayerBackgroundLayer(
                 style = miniPlayerBackground,
                 mediaMetadata = mediaMetadata,
-                gradientColors = gradientColors
+                gradientColors = gradientColors,
+                isPlaying = isPlaying
             )
 
             Row(
@@ -410,7 +423,7 @@ private fun NewMiniPlayer(
                         .clickable { showAudioDeviceBottomSheet = true }
                 ) {
                     Icon(
-                        imageVector = if (isBluetoothConnected) Icons.Default.Headphones else Icons.Default.Speaker,
+                        painter = painterResource(if (isBluetoothConnected) R.drawable.bluetooth else R.drawable.speaker_apple),
                         contentDescription = stringResource(R.string.audio_devices),
                         tint = primaryColor,
                         modifier = Modifier.size(20.dp)
@@ -523,9 +536,15 @@ private fun NewMiniPlayerPlayButton(
         ) {
             mediaMetadata?.let { metadata ->
                 AsyncImage(
-                    model = metadata.thumbnailUrl,
+                    model = metadata.thumbnailUrl?.resize(544, 544),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    onSuccess = {
+                        Timber.d("[Thumbnail] MiniPlayer play-button loaded: ${metadata.thumbnailUrl}")
+                    },
+                    onError = {
+                        Timber.e("[Thumbnail] MiniPlayer play-button FAILED: url=${metadata.thumbnailUrl} | error=${it.result.throwable}")
+                    },
                     modifier = Modifier.fillMaxSize().clip(CircleShape)
                 )
             }
@@ -582,11 +601,15 @@ private fun NewMiniPlayerSongInfo(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (metadata.explicit) MIcon.Explicit()
+                val artistColor = onSurfaceColor.copy(alpha = 0.7f)
+                if (metadata.explicit) {
+                    MIcon.Explicit(tint = artistColor)
+                    Spacer(modifier = Modifier.width(4.dp))
+                }
                 if (metadata.artists.any { it.name.isNotBlank() }) {
                     Text(
                         text = metadata.artists.joinToString { it.name },
-                        color = onSurfaceColor.copy(alpha = 0.7f),
+                        color = artistColor,
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -719,9 +742,13 @@ private fun LegacyMiniPlayer(
 
                                 if (shouldChangeSong) {
                                     if (currentOffset > 0 && canSkipPrevious) {
-                                        playerConnection.player.seekToPreviousMediaItem()
+                                        if (!playerConnection.service.manualSkipToPreviousWithCrossfade()) {
+                                            playerConnection.player.seekToPreviousMediaItem()
+                                        }
                                     } else if (currentOffset <= 0 && canSkipNext) {
-                                        playerConnection.player.seekToNext()
+                                        if (!playerConnection.service.manualSkipToNextWithCrossfade()) {
+                                            playerConnection.player.seekToNext()
+                                        }
                                     }
                                 }
                                 coroutineScope.launch { offsetXAnimatable.animateTo(0f, animationSpec) }
@@ -869,13 +896,29 @@ private fun LegacyMiniMediaInfo(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
+            val isYtThumbnail = remember(mediaMetadata.thumbnailUrl) {
+                mediaMetadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            }
+
             AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
+                model = mediaMetadata.thumbnailUrl?.resize(544, 544),
                 contentDescription = null,
                 contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                onSuccess = {
+                    Timber.d("[Thumbnail] LegacyMiniPlayer loaded: ${mediaMetadata.thumbnailUrl}")
+                },
+                onError = {
+                    Timber.e("[Thumbnail] LegacyMiniPlayer FAILED: url=${mediaMetadata.thumbnailUrl} | error=${it.result.throwable}")
+                },
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .graphicsLayer {
+                        if (cropAlbumArt && isYtThumbnail) {
+                            scaleX = 4f / 3f
+                            scaleY = 4f / 3f
+                        }
+                    },
             )
 
             androidx.compose.animation.AnimatedVisibility(visible = error != null, enter = fadeIn(), exit = fadeOut()) {
@@ -967,7 +1010,7 @@ private fun FavoriteButton(
     }
 }
 @Composable
-private fun MiniPlayerColorExtractor(
+internal fun MiniPlayerColorExtractor(
     mediaMetadata: MediaMetadata?,
     miniPlayerBackground: PlayerBackgroundStyle,
     onGradientColorsChange: (List<Color>) -> Unit
@@ -1023,10 +1066,11 @@ private fun MiniPlayerColorExtractor(
 }
 
 @Composable
-private fun MiniPlayerBackgroundLayer(
+internal fun MiniPlayerBackgroundLayer(
     style: PlayerBackgroundStyle,
     mediaMetadata: MediaMetadata?,
-    gradientColors: List<Color>
+    gradientColors: List<Color>,
+    isPlaying: Boolean = true
 ) {
     val context = LocalContext.current
     
@@ -1125,42 +1169,8 @@ private fun MiniPlayerBackgroundLayer(
             }
         }
         PlayerBackgroundStyle.LIVE_MESH -> {
-            val infiniteTransition = rememberInfiniteTransition(label = "liveMesh")
-            val rotation = infiniteTransition.animateFloat(
-                initialValue = 0f,
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(60000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "rotation"
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        scaleX = 1.5f
-                        scaleY = 1.5f
-                    }
-            ) {
-                val matrix = remember { ColorMatrix().apply { setToSaturation(1.6f) } }
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
-                        .allowHardware(false)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    colorFilter = ColorFilter.colorMatrix(matrix),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(40.dp)
-                        .graphicsLayer { rotationZ = rotation.value }
-                )
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
-            }
+            val thumbnailUrl = mediaMetadata?.thumbnailUrl
+            AndroidView<BlendView>(factory = { ctx -> BlendView(ctx, isMiniPlayer = true).apply { setBlurRadius(BlendView.SHALLOW_BLUR_RADIUS) } }, update = { blendView -> if (isPlaying) blendView.startRotationAnimation() else blendView.stopRotationAnimation(); blendView.setImageUrl(thumbnailUrl) }, modifier = Modifier.fillMaxSize())
         }
         else -> {}
     }

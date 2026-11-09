@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.music.innertube.models.ArtistItem
 import com.music.vivi.LocalDatabase
 import com.music.vivi.LocalListenTogetherManager
@@ -65,6 +66,7 @@ fun YouTubeArtistMenu(
 
     YouTubeListItem(
         item = artist,
+        backgroundColor = Color.Transparent,
         trailingContent = {},
     )
 
@@ -162,6 +164,7 @@ fun YouTubeArtistMenu(
 
         item {
             Material3MenuGroup(
+                expressive = true,
                 items = listOf(
                     Material3MenuItemData(
                         title = {

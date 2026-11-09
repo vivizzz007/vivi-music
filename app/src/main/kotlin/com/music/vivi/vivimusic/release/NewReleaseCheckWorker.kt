@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.vivimusic.release
 
 import android.content.Context
@@ -118,7 +122,7 @@ class NewReleaseCheckWorker(
                                         id = item.id,
                                         title = item.title,
                                         type = "Song",
-                                        deepLinkUrl = "vivimusic://watch?v=${item.id}",
+                                        deepLinkUrl = "https://music.youtube.com/watch?v=${item.id}",
                                         thumbnailUrl = item.thumbnail
                                     )
                                 )
@@ -129,7 +133,7 @@ class NewReleaseCheckWorker(
                                         id = item.browseId,
                                         title = item.title,
                                         type = "Album",
-                                        deepLinkUrl = "vivimusic://browse/${item.browseId}",
+                                        deepLinkUrl = "https://music.youtube.com/browse/${item.browseId}",
                                         thumbnailUrl = item.thumbnail
                                     )
                                 )
@@ -209,12 +213,10 @@ class NewReleaseCheckWorker(
             Timber.tag(TAG).d("Enqueuing periodic release check worker")
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
-                .setRequiresBatteryNotLow(true)
                 .build()
 
             val workRequest = PeriodicWorkRequestBuilder<NewReleaseCheckWorker>(
-                24, TimeUnit.HOURS,
-                2, TimeUnit.HOURS
+                15, TimeUnit.MINUTES
             )
                 .setConstraints(constraints)
                 .addTag(UNIQUE_WORK_NAME)

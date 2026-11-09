@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.eq.audio
 
 import androidx.media3.common.C
@@ -25,6 +29,7 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
     private var equalizerEnabled = false
 
     private var inputBuffer: ByteBuffer = EMPTY_BUFFER
+    private var buffer: ByteBuffer = EMPTY_BUFFER
     private var outputBuffer: ByteBuffer = EMPTY_BUFFER
     private var inputEnded = false
 
@@ -50,13 +55,34 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
             return
         }
 
-        // Convert preamp from dB to linear gain
         preampGain = 10.0.pow(parametricEQ.preamp / 20.0)
+
+        val activeBands = parametricEQ.bands.filter { it.enabled && it.frequency < sampleRate / 2.0 }
+
+        if (equalizerEnabled && filters.size == activeBands.size) {
+            // Check if we can update filter gains in-place to avoid resetting history buffers (zipper-noise free)
+            var canUpdateInPlace = true
+            for (i in filters.indices) {
+                val filter = filters[i]
+                val band = activeBands[i]
+                if (filter.frequency != band.frequency || filter.filterType != band.filterType) {
+                    canUpdateInPlace = false
+                    break
+                }
+            }
+            if (canUpdateInPlace) {
+                for (i in filters.indices) {
+                    filters[i].updateGain(activeBands[i].gain)
+                }
+                Timber.tag(TAG).d("Updated EQ profile gains in-place (zipper-noise free)")
+                return
+            }
+        }
 
         createFilters(parametricEQ.bands)
         equalizerEnabled = true
 
-        // Reset filter states to ensure clean transition
+        // Reset filter states to ensure clean transition for newly loaded profiles
         filters.forEach { it.reset() }
 
         Timber.tag(TAG)
@@ -138,20 +164,25 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
 
     override fun isActive(): Boolean = isActive
 
+    private fun replaceOutputBuffer(size: Int): ByteBuffer {
+        if (buffer.capacity() < size) {
+            buffer = ByteBuffer.allocateDirect(size).order(ByteOrder.nativeOrder())
+        } else {
+            buffer.clear()
+        }
+        outputBuffer = buffer
+        return buffer
+    }
+
     override fun queueInput(inputBuffer: ByteBuffer) {
         if (!equalizerEnabled || filters.isEmpty()) {
             // Passthrough mode - directly use input as output
             val remaining = inputBuffer.remaining()
             if (remaining == 0) return
 
-            // Ensure output buffer is large enough
-            if (outputBuffer.capacity() < remaining) {
-                outputBuffer = ByteBuffer.allocateDirect(remaining).order(ByteOrder.nativeOrder())
-            } else {
-                outputBuffer.clear()
-            }
-            outputBuffer.put(inputBuffer)
-            outputBuffer.flip()
+            val out = replaceOutputBuffer(remaining)
+            out.put(inputBuffer)
+            out.flip()
             return
         }
 
@@ -160,33 +191,22 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
             return
         }
 
-        // Ensure we have our own output buffer (reuse if possible to avoid allocations)
-        // Note: We MUST NOT use inputBuffer as outputBuffer if we modify it
-        if (outputBuffer === EMPTY_BUFFER || outputBuffer === inputBuffer) {
-            // Need new buffer - was empty or same as input
-            outputBuffer = ByteBuffer.allocateDirect(inputSize).order(ByteOrder.nativeOrder())
-        } else if (outputBuffer.capacity() < inputSize) {
-            // Need larger buffer
-            outputBuffer = ByteBuffer.allocateDirect(inputSize).order(ByteOrder.nativeOrder())
-        } else {
-            // Reuse existing buffer (most common path)
-            outputBuffer.clear()
-        }
+        val out = replaceOutputBuffer(inputSize)
 
         // Process audio samples
         when (encoding) {
             C.ENCODING_PCM_16BIT -> {
                 // Ensure the output buffer is ready to receive data
                 // We don't set limit() here because putShort will advance position
-                processAudioBuffer16Bit(inputBuffer, outputBuffer)
+                processAudioBuffer16Bit(inputBuffer, out)
             }
             else -> {
                 // Unsupported format, passthrough
-                outputBuffer.put(inputBuffer)
+                out.put(inputBuffer)
             }
         }
 
-        outputBuffer.flip()
+        out.flip()
         // inputBuffer position is already updated by processAudioBuffer16Bit/put
     }
 
@@ -227,11 +247,11 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
                     var processedLeft = leftSample
                     var processedRight = rightSample
 
-                    // Apply all filters in series
+                    // Apply all filters in series in-place
                     for (filter in filters) {
-                        val (left, right) = filter.processStereo(processedLeft, processedRight)
-                        processedLeft = left
-                        processedRight = right
+                        filter.processStereo(processedLeft, processedRight)
+                        processedLeft = filter.lastOutputLeft
+                        processedRight = filter.lastOutputRight
                     }
 
                     // Apply preamp gain
@@ -278,6 +298,7 @@ class CustomEqualizerAudioProcessor : AudioProcessor {
     override fun reset() {
         @Suppress("DEPRECATION")
         flush()
+        buffer = EMPTY_BUFFER
         inputBuffer = EMPTY_BUFFER
         sampleRate = 0
         channelCount = 0

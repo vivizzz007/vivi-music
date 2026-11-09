@@ -1,0 +1,473 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+package com.music.vivi.utils
+
+import android.content.Context
+import android.net.ConnectivityManager
+import com.music.innertube.models.Thumbnail
+import com.music.innertube.models.response.PlayerResponse
+import com.metrolist.innertubex.InnerTube
+import com.metrolist.innertubex.InnerTubeLogLevel
+import com.metrolist.innertubex.InnerTubeLogger
+import com.metrolist.innertubex.cipher.PlayerConfigRepository
+import com.metrolist.innertubex.cipher.RemotePlayerConfigStore
+import com.metrolist.innertubex.cipher.YouTubeCipherService
+import com.metrolist.innertubex.extraction.AudioQuality as InnerTubeXAudioQuality
+import com.metrolist.innertubex.extraction.ContentHints
+import com.metrolist.innertubex.extraction.ExtractedStream
+import com.metrolist.innertubex.extraction.InnerTubeExtractor
+import com.metrolist.innertubex.extraction.PoTokenResult
+import com.metrolist.innertubex.extraction.StreamResolveException
+import com.metrolist.innertubex.extraction.TokenProvider
+import com.metrolist.innertubex.extraction.TokenProviderCapabilities
+import com.metrolist.innertubex.extraction.YtConfigParserImpl
+import com.metrolist.innertubex.extraction.generateClientPlaybackNonce
+import com.metrolist.innertubex.extraction.strategy.PoTokenProviderKind
+import com.music.innertube.models.IpVersion
+import com.music.vivi.constants.AudioQuality
+import com.music.vivi.utils.potoken.PoTokenGenerator
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
+import java.net.Proxy
+import java.net.ProxySelector
+import java.net.SocketAddress
+import java.net.URI
+import java.io.IOException
+import okhttp3.Dns
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.okhttp.OkHttp
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.json.Json
+import timber.log.Timber
+import kotlin.time.Clock
+
+/** The sole stream extraction entry point for the Android app using innertubex back-end. */
+object InnerTubeXPlayer {
+    private const val TAG = "InnerTubeXPlayer"
+    private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
+    private const val DEFAULT_STREAM_TTL_SECONDS = 5 * 60
+    private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
+
+    @Volatile
+    private var applicationContext: Context? = null
+
+    @Volatile
+    private var currentBundle: ExtractionBundle? = null
+    private val bundleMutex = Mutex()
+    private val webRemixFailures = java.util.concurrent.ConcurrentHashMap<String, Long>()
+
+    @Volatile
+    var disabledStreamClients: Set<String> = emptySet()
+
+    // Isolated Streaming HttpClient & InnerTube instance
+    private val httpClient = HttpClient(OkHttp) {
+        engine {
+            config {
+                dns(object : Dns {
+                    override fun lookup(hostname: String): List<InetAddress> {
+                        val addresses = Dns.SYSTEM.lookup(hostname)
+                        return when (com.music.innertube.YouTube.ipVersion) {
+                            IpVersion.IPV4 -> addresses.filterIsInstance<Inet4Address>().ifEmpty { addresses }
+                            IpVersion.IPV6 -> addresses.filterIsInstance<Inet6Address>().ifEmpty { addresses }
+                            IpVersion.AUTO -> addresses
+                        }
+                    }
+                })
+                proxySelector(object : ProxySelector() {
+                    override fun select(uri: URI?): List<Proxy> = listOfNotNull(com.music.innertube.YouTube.proxy ?: Proxy.NO_PROXY)
+                    override fun connectFailed(uri: URI?, sa: SocketAddress?, ioe: IOException?) { }
+                })
+                proxyAuthenticator { _, response ->
+                    com.music.innertube.YouTube.proxyAuth?.let { auth ->
+                        response.request.newBuilder()
+                            .header("Proxy-Authorization", auth)
+                            .build()
+                    } ?: response.request
+                }
+            }
+        }
+        expectSuccess = false
+        install(ContentNegotiation) {
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                    explicitNulls = false
+                    encodeDefaults = true
+                }
+            )
+        }
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60_000
+            connectTimeoutMillis = 30_000
+            socketTimeoutMillis = 60_000
+        }
+    }
+    val innerTubeX = InnerTube(httpClient)
+
+    @Synchronized
+    fun initialize(context: Context) {
+        if (applicationContext == null) applicationContext = context.applicationContext
+    }
+
+    suspend fun prewarm() {
+        bundle().extractor.prewarm()
+        tokenProvider.prewarm()
+    }
+
+    suspend fun playerResponseForPlayback(
+        videoId: String,
+        playlistId: String? = null,
+        audioQuality: AudioQuality,
+        connectivityManager: ConnectivityManager,
+        contentHints: ContentHints = ContentHints(),
+        allowBoundedRange: Boolean = true,
+    ): Result<PlaybackData> =
+        try {
+            // 🔥 Inject NewPipe's YouTube auth & network context before extraction
+            val youtube = com.music.innertube.YouTube
+            innerTubeX.cookie = youtube.cookie
+            innerTubeX.visitorData = youtube.visitorData
+            innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(
+                gl = youtube.locale.gl,
+                hl = youtube.locale.hl
+            )
+
+            val isHighQualityWanted = audioQuality == AudioQuality.HIGH ||
+                (audioQuality == AudioQuality.AUTO && !connectivityManager.isActiveNetworkMetered)
+            val isPremiumUser = !youtube.cookie.isNullOrBlank()
+            val shouldPrioritizePremium = isHighQualityWanted && isPremiumUser && !hasRecentWebRemixFailure(videoId)
+
+            val baseHints =
+                contentHints.copy(
+                    isUploaded =
+                        contentHints.isUploaded == true ||
+                            playlistId == "MLPT" ||
+                            playlistId?.contains("MLPT") == true,
+                    playbackClientOverrideId = if (shouldPrioritizePremium) "WEB_REMIX" else null,
+                ).withStreamCapabilities(
+                    allowHls = false,
+                    allowSabr = false,
+                    allowBoundedRange = allowBoundedRange,
+                ).let {
+                    if (shouldPrioritizePremium) it.withPremium(true) else it
+                }
+            val excludedClients =
+                buildSet {
+                    addAll(disabledStreamClients)
+                    if (hasRecentWebRemixFailure(videoId)) add("WEB_REMIX")
+                }
+            val stream = try {
+                bundle().extractor.extract(
+                    videoId = videoId,
+                    hints = baseHints,
+                    excludedClients = excludedClients,
+                    audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                    clientPlaybackNonce = generateClientPlaybackNonce(),
+                )
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                if (shouldPrioritizePremium) {
+                    Timber.tag(TAG).w(e, "WEB_REMIX Premium extraction failed for $videoId; falling back to standard extraction")
+                    markWebRemixFailed(videoId)
+                    val fallbackHints = contentHints.copy(
+                        isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
+                    ).withStreamCapabilities(
+                        allowHls = false,
+                        allowSabr = false,
+                        allowBoundedRange = allowBoundedRange,
+                    )
+                    bundle().extractor.extract(
+                        videoId = videoId,
+                        hints = fallbackHints,
+                        excludedClients = excludedClients + "WEB_REMIX",
+                        audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                        clientPlaybackNonce = generateClientPlaybackNonce(),
+                    )
+                } else {
+                    throw e
+                }
+            } ?: if (shouldPrioritizePremium) {
+                Timber.tag(TAG).w("WEB_REMIX Premium extraction returned null for $videoId; falling back to standard extraction")
+                markWebRemixFailed(videoId)
+                val fallbackHints = contentHints.copy(
+                    isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
+                ).withStreamCapabilities(
+                    allowHls = false,
+                    allowSabr = false,
+                    allowBoundedRange = allowBoundedRange,
+                )
+                requireNotNull(
+                    bundle().extractor.extract(
+                        videoId = videoId,
+                        hints = fallbackHints,
+                        excludedClients = excludedClients + "WEB_REMIX",
+                        audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                        clientPlaybackNonce = generateClientPlaybackNonce(),
+                    )
+                ) { "InnerTubeX returned no playable stream" }
+            } else {
+                error("InnerTubeX returned no playable stream")
+            }
+            check(stream.sabrBootstrap == null) { "SABR is not supported by this playback engine" }
+            Result.success(stream.toPlaybackData())
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: StreamResolveException) {
+            val cause = error.cause
+            Result.failure(
+                if (error.reason == StreamResolveException.Reason.NETWORK && cause != null) {
+                    cause
+                } else {
+                    error
+                },
+            )
+        } catch (error: Exception) {
+            Result.failure(error)
+        }
+
+    fun markWebRemixFailed(videoId: String) {
+        webRemixFailures[videoId] = System.currentTimeMillis()
+    }
+
+    fun clearWebRemixFailures() {
+        webRemixFailures.clear()
+    }
+
+    suspend fun refreshAfterStreamRejection(): Boolean {
+        val changed = bundle().cipherService.refreshAfterStreamRejection()
+        if (changed) clearWebRemixFailures()
+        return changed
+    }
+
+    private fun hasRecentWebRemixFailure(videoId: String): Boolean {
+        val failedAt = webRemixFailures[videoId] ?: return false
+        if ((System.currentTimeMillis() - failedAt) !in 0 until WEB_REMIX_FAILURE_TTL_MS) {
+            webRemixFailures.remove(videoId, failedAt)
+            return false
+        }
+        return true
+    }
+
+    private suspend fun bundle(): ExtractionBundle {
+        val currentGeneration = 0L // Hardcode logic generation since we don't hot-reload proxies in this hybrid mode
+        currentBundle?.let { return it }
+        return bundleMutex.withLock {
+            currentBundle?.let { return@withLock it }
+            try {
+                currentBundle?.cipherService?.dispose()
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                logger.log(
+                    com.metrolist.innertubex.InnerTubeLogEvent(
+                        level = InnerTubeLogLevel.WARN,
+                        tag = TAG,
+                        message = "old cipher disposal failed",
+                        details = mapOf("exceptionType" to (error::class.simpleName ?: "unknown")),
+                    ),
+                )
+            }
+
+            val remoteStore = RemotePlayerConfigStore(httpClient, configRepository, logger)
+            val cipherService = YouTubeCipherService(httpClient, remoteStore, logger)
+            val extractor =
+                InnerTubeExtractor(
+                    configParser =
+                        YtConfigParserImpl(
+                            httpClient,
+                            innerTubeX,
+                            remoteStore,
+                            logger,
+                        ),
+                    cipherService = cipherService,
+                    innerTube = innerTubeX,
+                    tokenProvider = tokenProvider,
+                    logger = logger,
+                )
+            ExtractionBundle(currentGeneration, cipherService, extractor).also { currentBundle = it }
+        }
+    }
+
+    private val configRepository: PlayerConfigRepository by lazy {
+        AndroidPlayerConfigRepository(requireNotNull(applicationContext) { "InnerTubeXPlayer is not initialized" })
+    }
+
+    private val poTokenGenerator: PoTokenGenerator by lazy {
+        PoTokenGenerator(requireNotNull(applicationContext) { "InnerTubeXPlayer is not initialized" })
+    }
+
+    private val tokenProvider =
+        object : TokenProvider {
+            override val capabilities =
+                TokenProviderCapabilities(
+                    providers = setOf(PoTokenProviderKind.WEB_BOTGUARD),
+                    usesWebView = true,
+                )
+
+            override suspend fun getPoToken(
+                videoId: String,
+                visitorData: String,
+                cookie: String?,
+            ): PoTokenResult? {
+                if (!cookie.isNullOrBlank()) {
+                    // Authenticated sessions bypass BotGuard PO token on YouTube Music (WEB_REMIX)
+                    return null
+                }
+                return poTokenGenerator.getWebClientPoToken(videoId, visitorData)?.let { token ->
+                    PoTokenResult(
+                        playerRequestToken = token.playerRequestPoToken,
+                        streamingDataToken = token.streamingDataPoToken,
+                        visitorData = visitorData,
+                    )
+                }
+            }
+
+            override suspend fun prewarm(cookie: String?) {
+                innerTubeX.visitorData?.let { poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, it) }
+            }
+
+            override suspend fun close() {
+                poTokenGenerator.close()
+            }
+        }
+
+    private val logger =
+        InnerTubeLogger { event ->
+            val details = event.details.entries.joinToString(prefix = " [", postfix = "]") { "${it.key}=${it.value}" }
+            val message = event.message + details.takeUnless { event.details.isEmpty() }.orEmpty()
+            when (event.level) {
+                InnerTubeLogLevel.DEBUG -> Timber.tag(event.tag).d(message)
+                InnerTubeLogLevel.INFO -> Timber.tag(event.tag).i(message)
+                InnerTubeLogLevel.WARN -> Timber.tag(event.tag).w(message)
+                InnerTubeLogLevel.ERROR -> Timber.tag(event.tag).e(message)
+            }
+        }
+
+    class PlaybackData(
+        val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
+        val videoDetails: PlayerResponse.VideoDetails?,
+        val playbackTracking: PlayerResponse.PlaybackTracking?,
+        val format: PlayerResponse.StreamingData.Format,
+        val streamUrl: String,
+        val streamExpiresInSeconds: Int,
+        val streamClient: String,
+        val streamHeaders: Map<String, String>,
+        val requireBoundedRange: Boolean,
+        val rangeChunkSizeBytes: Long,
+        val useRangeChunks: Boolean,
+        val isSaavnStream: Boolean = false,
+    )
+
+    private data class ExtractionBundle(
+        val transportGeneration: Long,
+        val cipherService: YouTubeCipherService,
+        val extractor: InnerTubeExtractor,
+    )
+
+    private class AndroidPlayerConfigRepository(context: Context) : PlayerConfigRepository {
+        override val enabled: Boolean = false
+        override val sourceUrl: String = ""
+        override val defaultSourceUrl: String = ""
+        override var cachedJson: String = ""
+        override var cachedAtMs: Long = 0L
+        override var cachedSourceUrl: String = ""
+        override var cachedEtag: String = ""
+    }
+
+    private fun AudioQuality.toInnerTubeX(connectivityManager: ConnectivityManager): InnerTubeXAudioQuality =
+        when (this) {
+            AudioQuality.HIGH -> InnerTubeXAudioQuality.HIGH
+            AudioQuality.LOW -> InnerTubeXAudioQuality.LOW
+            AudioQuality.AUTO -> InnerTubeXAudioQuality.AUTO
+        }
+
+
+    private fun ExtractedStream.toPlaybackData(): PlaybackData {
+        val metadata = mediaMetadata
+        val tracking = playbackTracking
+        val fullMimeType =
+            if (codecs.isNullOrBlank()) {
+                mimeType.orEmpty()
+            } else {
+                "${mimeType.orEmpty()}; codecs=\"$codecs\""
+            }
+        return PlaybackData(
+            audioConfig =
+                if (loudnessDb != null || perceptualLoudnessDb != null) {
+                    PlayerResponse.PlayerConfig.AudioConfig(loudnessDb, perceptualLoudnessDb)
+                } else {
+                    null
+                },
+            videoDetails =
+                metadata?.let {
+                    PlayerResponse.VideoDetails(
+                        videoId = videoId,
+                        title = it.title,
+                        author = it.author,
+                        channelId = it.channelId.orEmpty(),
+                        lengthSeconds = it.durationSeconds?.toString().orEmpty(),
+                        musicVideoType = it.musicVideoType,
+                        viewCount = it.viewCount,
+                        thumbnail = com.music.innertube.models.Thumbnails(
+                            it.thumbnails.map { thumbnail ->
+                                Thumbnail(thumbnail.url, thumbnail.width, thumbnail.height)
+                            },
+                        )
+                    )
+                },
+            playbackTracking =
+                tracking?.let {
+                    PlayerResponse.PlaybackTracking(
+                        videostatsPlaybackUrl =
+                            it.playbackUrl?.let(PlayerResponse.PlaybackTracking::VideostatsPlaybackUrl),
+                        videostatsWatchtimeUrl =
+                            it.watchtimeUrl?.let(PlayerResponse.PlaybackTracking::VideostatsWatchtimeUrl),
+                        atrUrl = null,
+                    )
+                },
+            format =
+                PlayerResponse.StreamingData.Format(
+                    itag = itag,
+                    url = audioUrl,
+                    mimeType = fullMimeType,
+                    bitrate = bitrate ?: 0,
+                    width = null,
+                    height = null,
+                    contentLength = contentLengthBytes,
+                    quality = "",
+                    fps = null,
+                    qualityLabel = null,
+                    averageBitrate = bitrate,
+                    audioQuality = null,
+                    approxDurationMs = metadata?.durationSeconds?.times(1000)?.toString(),
+                    audioSampleRate = sampleRate,
+                    audioChannels = null,
+                    loudnessDb = loudnessDb,
+                    lastModified = null,
+                    signatureCipher = null,
+                    cipher = null,
+                    audioTrack = null,
+                ),
+            streamUrl = audioUrl,
+            streamExpiresInSeconds =
+                expiresAt
+                    ?.let { ((it.toEpochMilliseconds() - Clock.System.now().toEpochMilliseconds()) / 1000L).toInt() }
+                    ?.coerceAtLeast(1)
+                    ?: DEFAULT_STREAM_TTL_SECONDS,
+            streamClient = clientName,
+            streamHeaders = headers,
+            requireBoundedRange = this.requireBoundedRange,
+            rangeChunkSizeBytes = this.rangeChunkSizeBytes,
+            useRangeChunks = this.useRangeChunks,
+        )
+    }
+}

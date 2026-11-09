@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.vivi.ui.component
 
 import androidx.compose.foundation.background
@@ -28,6 +32,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.vivi.R
 import com.music.vivi.constants.ThumbnailCornerRadius
+import com.music.vivi.ui.utils.resize
 
 @Composable
 fun SpeedDialGridItem(
@@ -45,7 +50,7 @@ fun SpeedDialGridItem(
     ) {
         // Thumbnail
         ItemThumbnail(
-            thumbnailUrl = item.thumbnail,
+            thumbnailUrl = item.thumbnail?.resize(200, 200),
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),

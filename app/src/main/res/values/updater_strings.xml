@@ -24,7 +24,7 @@
     <string name="whats_new">What\'s new?</string>
     <string name="update_available">Update</string>
     <string name="checking_for_updates">Checking for updates…</string>
-    <string name="cant_check_updates">Can\'t check for\nupdates</string>
+    <string name="cant_check_updates">Pay the dev,\nhe will give you updates</string>
     <string name="app_up_to_date">App is up to date</string>
     <string name="version">Version %1$s</string>
     <string name="released">Released: %1$s</string>
@@ -73,7 +73,7 @@
     <string name="donate">Donate</string>
     <string name="support_development">Support development</string>
     <string name="beta_updates">Beta Updates</string>
-    <string name="beta_updates_subtitle">Enable this if you want to receive beta updates (e.g. b5.0.1)</string>
+    <string name="beta_updates_subtitle">Receive beta updates</string>
     <string name="on_latest_version">You\'re on the latest version</string>
     <string name="current_version_v">Current version: %1$s</string>
     <string name="update_to_v">Update available %1$s</string>
@@ -82,7 +82,7 @@
     <string name="update_size_v">Size: %1$s MB</string>
 
     <!-- Notification Permission Settings -->
-    <string name="notification_settings">Notification Permission</string>
+    <string name="notification_settings">Notification setting</string>
     <string name="notification_settings_summary">Configure notification settings.</string>
     <string name="notification_settings_desc">Configure and manage notifications for app updates, beta releases, and download progress. Disabling notifications will prevent background status updates from appearing.</string>
     <string name="enable_notifications">Enable Notifications</string>

@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube.pages
 
 import com.music.innertube.models.Album
@@ -10,6 +14,12 @@ import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
 
+data class RadioChip(
+    val title: String,
+    val params: String,
+    val isSelected: Boolean
+)
+
 data class NextResult(
     val title: String? = null,
     val items: List<SongItem>,
@@ -18,6 +28,7 @@ data class NextResult(
     val relatedEndpoint: BrowseEndpoint? = null,
     val continuation: String?,
     val endpoint: WatchEndpoint, // current or continuation next endpoint
+    val radioChips: List<RadioChip> = emptyList(),
 )
 
 object NextPage {

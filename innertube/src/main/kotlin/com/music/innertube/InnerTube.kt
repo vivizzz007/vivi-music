@@ -1,3 +1,7 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
 package com.music.innertube
 
 import com.music.innertube.models.Context
@@ -17,6 +21,7 @@ import java.net.Inet4Address
 import kotlin.io.encoding.ExperimentalEncodingApi
 import io.ktor.client.*
 import io.ktor.client.call.body
+import io.ktor.client.statement.bodyAsText
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
@@ -47,12 +52,67 @@ class InnerTube {
     )
     var visitorData: String? = null
     var dataSyncId: String? = null
+    var onCookieChanged: ((String) -> Unit)? = null
+    var onVisitorCookieChanged: ((String) -> Unit)? = null
+
+    var visitorCookie: String? = null
+        set(value) {
+            field = value
+            visitorCookieMap.clear()
+            if (value != null) {
+                visitorCookieMap.putAll(parseCookieString(value))
+            }
+        }
+    private val visitorCookieMap = java.util.concurrent.ConcurrentHashMap<String, String>()
+
     var cookie: String? = null
         set(value) {
             field = value
-            cookieMap = if (value == null) emptyMap() else parseCookieString(value)
+            cookieMap.clear()
+            if (value != null) {
+                cookieMap.putAll(parseCookieString(value))
+            }
         }
-    private var cookieMap = emptyMap<String, String>()
+    private val cookieMap = java.util.concurrent.ConcurrentHashMap<String, String>()
+
+    val isLoggedIn: Boolean
+        get() = cookie != null && (cookieMap.containsKey("SAPISID") || cookieMap.containsKey("__Secure-3PAPISID") || cookieMap.containsKey("__Secure-1PAPISID"))
+
+    @Synchronized
+    fun updateCookiesFromHeaders(headers: List<String>) {
+        if (headers.isEmpty()) return
+        val targetMap = if (isLoggedIn) cookieMap else visitorCookieMap
+        var changed = false
+        for (header in headers) {
+            val cookiePair = header.substringBefore(';').trim()
+            val eqIdx = cookiePair.indexOf('=')
+            if (eqIdx <= 0) continue
+            val key = cookiePair.substring(0, eqIdx).trim()
+            val value = cookiePair.substring(eqIdx + 1).trim()
+            if (key.isEmpty()) continue
+
+            val isExpired = header.contains("Max-Age=0", ignoreCase = true) ||
+                    header.contains("expires=Thu, 01 Jan 1970", ignoreCase = true) ||
+                    header.contains("expires=Thu, 01-Jan-1970", ignoreCase = true)
+
+            if (isExpired) {
+                if (targetMap.remove(key) != null) changed = true
+            } else {
+                val oldVal = targetMap.put(key, value)
+                if (oldVal != value) changed = true
+            }
+        }
+        if (changed) {
+            val serialized = targetMap.entries.joinToString("; ") { "${it.key}=${it.value}" }
+            if (isLoggedIn) {
+                cookie = serialized
+                onCookieChanged?.invoke(serialized)
+            } else {
+                visitorCookie = serialized
+                onVisitorCookieChanged?.invoke(serialized)
+            }
+        }
+    }
 
     var proxy: Proxy? = null
         set(value) {
@@ -127,7 +187,12 @@ class InnerTube {
                         return when (this@InnerTube.ipVersion) {
                             IpVersion.IPV4 -> addresses.filter { it is Inet4Address }.ifEmpty { addresses }
                             IpVersion.IPV6 -> addresses.filter { it is Inet6Address }.ifEmpty { addresses }
-                            IpVersion.AUTO -> addresses
+                            IpVersion.AUTO -> {
+                                // Prioritize IPv4 to fix prevalent home Wi-Fi IPv6 routing blackholes
+                                val ipv4 = addresses.filterIsInstance<Inet4Address>()
+                                val ipv6 = addresses.filterIsInstance<Inet6Address>()
+                                ipv4 + ipv6 
+                            }
                         }
                     }
                 })
@@ -144,6 +209,17 @@ class InnerTube {
                             .header("Proxy-Authorization", auth)
                             .build()
                     }
+                }
+
+                // Intercept responses to keep cookies updated based on user playback and browsing
+                addNetworkInterceptor { chain ->
+                    val request = chain.request()
+                    val response = chain.proceed(request)
+                    val setCookies = response.headers("Set-Cookie")
+                    if (setCookies.isNotEmpty()) {
+                        updateCookiesFromHeaders(setCookies)
+                    }
+                    response
                 }
             }
         }
@@ -173,12 +249,15 @@ class InnerTube {
             append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
             append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
             visitorData?.let { append("X-Goog-Visitor-Id", it) }
+            val activeCookie = cookie ?: visitorCookie
+            if (activeCookie != null) {
+                append("cookie", activeCookie)
+            }
             if (setLogin && client.loginSupported) {
-                cookie?.let { cookie ->
-                    append("cookie", cookie)
-                    if ("SAPISID" !in cookieMap) return@let
+                val sapisid = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"] ?: cookieMap["__Secure-1PAPISID"]
+                if (sapisid != null) {
                     val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
+                    val sapisidHash = sha1("$currentTime $sapisid ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }
             }
@@ -277,6 +356,10 @@ class InnerTube {
         url: String,
         cpn: String,
         playlistId: String?,
+        cmt: Float? = null,
+        st: Float? = null,
+        et: Float? = null,
+        state: String? = null,
         client: YouTubeClient = YouTubeClient.WEB_REMIX,
     ) = withRetry {
         httpClient.get(url) {
@@ -284,6 +367,10 @@ class InnerTube {
             parameter("ver", "2")
             parameter("c", client.clientName)
             parameter("cpn", cpn)
+            if (cmt != null) parameter("cmt", String.format(Locale.US, "%.3f", cmt))
+            if (st != null) parameter("st", String.format(Locale.US, "%.3f", st))
+            if (et != null) parameter("et", String.format(Locale.US, "%.3f", et))
+            if (state != null) parameter("state", state)
 
             if (playlistId != null) {
                 parameter("list", playlistId)
@@ -409,6 +496,16 @@ class InnerTube {
     }
 
     suspend fun getSwJsData() = withRetry { httpClient.get("https://music.youtube.com/sw.js_data") }
+
+    suspend fun getWebPage(url: String): String = withRetry {
+        httpClient.get(url) {
+            header(HttpHeaders.UserAgent, YouTubeClient.WEB_REMIX.userAgent)
+            header(HttpHeaders.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+            header(HttpHeaders.AcceptLanguage, "en-US,en;q=0.5")
+            val activeCookie = cookie ?: visitorCookie
+            activeCookie?.let { header(HttpHeaders.Cookie, it) }
+        }.bodyAsText()
+    }
 
     suspend fun accountMenu(client: YouTubeClient) = withRetry {
         httpClient.post("account/account_menu") {
@@ -710,6 +807,56 @@ class InnerTube {
                 PlaylistDeleteBody(
                     context = client.toContext(locale, visitorData, dataSyncId),
                     playlistId = playlistId
+                )
+            )
+        }
+    }
+
+    suspend fun createComment(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createCommentParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createCommentParams = createCommentParams
+                )
+            )
+        }
+    }
+
+    suspend fun createCommentReply(
+        client: YouTubeClient = YouTubeClient.WEB_REMIX,
+        commentText: String,
+        createReplyParams: String,
+    ) = withRetry {
+        httpClient.post("comment/create_comment_reply") {
+            ytClient(client, setLogin = true)
+            setBody(
+                CreateCommentReplyBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    commentText = commentText,
+                    createReplyParams = createReplyParams
+                )
+            )
+        }
+    }
+
+    suspend fun performCommentAction(
+        client: YouTubeClient = YouTubeClient.WEB,
+        action: String,
+    ) = withRetry {
+        android.util.Log.d("InnerTube", "performCommentAction dispatching: client=${client.clientName}, action length=${action.length}")
+        httpClient.post("comment/perform_comment_action") {
+            ytClient(client, setLogin = true)
+            setBody(
+                PerformCommentActionBody(
+                    context = client.toContext(locale, visitorData, dataSyncId),
+                    actions = listOf(action)
                 )
             )
         }
