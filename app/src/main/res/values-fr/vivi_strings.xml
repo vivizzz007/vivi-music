@@ -209,7 +209,7 @@
     <string name="show_liked_playlist">Afficher la playlist « Favoris »</string>
     <string name="show_downloaded_playlist">Afficher la playlist « Hors-Ligne »</string>
     <string name="show_top_playlist">Afficher la playlist « Mon Top »</string>
-    <string name="show_cached_playlist">Afficher la playlist « Mise en Cache »</string>
+    <string name="show_cached_playlist">Afficher la playlist « En Cache »</string>
     <string name="show_uploaded_playlist">Afficher la playlist « Téléchargés »</string>
     <string name="shuffle_playlist_first">Lecture aléatoire de la playlist/de l\'album en premier</string>
     <string name="shuffle_playlist_first_desc">Lors de la lecture aléatoire, jouez d\'abord tous les titres de la playlist/de l\'album d\'origine, puis le contenu similaire.</string>
