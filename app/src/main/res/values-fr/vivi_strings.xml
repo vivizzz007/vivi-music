@@ -1202,6 +1202,7 @@ est irréversible.
     <string name="ticket_offline_subtitle">Disponible hors ligne</string>
     <string name="ticket_cached_subtitle">Cache de l\'appareil</string>
     <string name="ticket_top_subtitle">Les plus joués</string>
+	
     <string name="everything">Tout</string>
     <string name="recently_added">Récemment ajouté</string>
     <string name="hold_near_music">Approchez votre téléphone de la musique</string>
