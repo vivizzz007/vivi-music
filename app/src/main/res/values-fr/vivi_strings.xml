@@ -194,8 +194,8 @@
     <string name="wavy">Ondulé</string>
 	<string name="expressive_wavy">Ondulé expressif</string>
     <string name="enable_swipe_thumbnail">Activer le balayage pour changer de titre</string>
-    <string name="swipe_song_to_add">Balayez le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
-    <string name="swipe_song_to_remove">Balayez le titre pour le supprimer de la playlist.</string>
+    <string name="swipe_song_to_add">Balayer le titre vers la gauche pour l\'ajouter à la file d\'attente ou vers la droite pour le lire ensuite.</string>
+    <string name="swipe_song_to_remove">Balayer le titre pour le supprimer de la playlist.</string>
     <string name="lyrics_click_change">Changer les paroles en les sélectionnant</string>
     <string name="lyrics_auto_scroll">Défilement automatique des paroles</string>
     <string name="lyrics_glow_effect">Activer l\'effet de paroles lumineuses</string>
@@ -209,7 +209,7 @@
     <string name="show_liked_playlist">Afficher la playlist « Favoris »</string>
     <string name="show_downloaded_playlist">Afficher la playlist « Hors-Ligne »</string>
     <string name="show_top_playlist">Afficher la playlist « Mon Top »</string>
-    <string name="show_cached_playlist">Afficher la playlist « Mise en Cache »</string>
+    <string name="show_cached_playlist">Afficher la playlist « En Cache »</string>
     <string name="show_uploaded_playlist">Afficher la playlist « Téléchargés »</string>
     <string name="shuffle_playlist_first">Lecture aléatoire de la playlist/de l\'album en premier</string>
     <string name="shuffle_playlist_first_desc">Lors de la lecture aléatoire, jouez d\'abord tous les titres de la playlist/de l\'album d\'origine, puis le contenu similaire.</string>
@@ -225,6 +225,7 @@
     <string name="advanced_login">Connexion avec jeton</string>
     <string name="token_hidden">Appuyez pour afficher le jeton</string>
     <string name="token_shown">Appuyez à nouveau pour copier ou modifier</string>
+	<string name="cookies_verified">Cookies : vérifiés</string>
     <string name="token_adv_login_description">Il s\'agit d\'une méthode de connexion AVANCÉE. À la place du portail Web, vous pouvez saisir ou mettre à jour directement votre jeton de connexion ici. Cela peut par exemple accélérer la connexion sur plusieurs appareils. Veuillez noter que tout format de jeton invalide que l\'application ne parvient pas à analyser ne sera pas accepté.</string>
     <string name="ytm_sync">Synchronisation automatique avec votre compte YouTube Music</string>
     <string name="yt_sync">Synchronisation automatique avec le compte</string>
@@ -441,6 +442,7 @@
     <string name="last_fm_send_likes">Envoyer des « J\'aime » / « Je n\'aime pas »</string>
     <string name="last_fm_send_likes_description">Ajouter/Retirer des titres de la liste « J\'aime » sur Last.fm lorsqu\'ils sont ajoutés/retirés de la liste « J\'aime » dans Vivi Music</string>
     <string name="logging_in">Connexion en cours…</string>
+	<string name="view_listening_history">Consulter l\'historique d\'écoute</string>
 
     <string name="scrobbling_configuration">Configuration du scrobbling</string>
     <string name="scrobble_min_track_duration">Enregistrer les titres d\'une durée supérieure à</string>
@@ -680,7 +682,9 @@ est irréversible.
     <string name="listen_together_in_top_bar">« Écouter ensemble » dans la barre supérieure</string>
     <string name="listen_together_in_top_bar_desc">Affichez « Écouter ensemble » dans la barre d\'application supérieure plutôt que dans la barre de navigation</string>
     <string name="listen_together_description">Écoutez de la musique avec vos amis en temps réel. Créez une salle pour en devenir l\'hôte ou rejoignez une salle existante à l\'aide d\'un code.</string>
-    <string name="listen_together_background_disconnect_note">Remarque : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture et que vous passez ensuite à une autre application, ou si vous vous connectez au serveur mais restez inactif sans rejoindre une salle pendant 15 minutes.</string>
+	<string name="listen_together_host_description">En tant qu\'hôte, tout le monde dans cette salle écoute en synchronisation avec votre lecture. Vous pouvez examiner les demandes de participation, accepter les suggestions de morceaux et gérer les participants.</string>
+    <string name="listen_together_guest_description">Vous écoutez en synchronisation avec l\'hôte. Vous pouvez suggérer des morceaux à jouer ensuite et voir les autres auditeurs connectés dans la salle.</string>
+	<string name="listen_together_background_disconnect_note">Remarque : vous risquez d\'être déconnecté si vous créez une salle alors qu\'aucune musique n\'est en cours de lecture et que vous passez ensuite à une autre application, ou si vous vous connectez au serveur mais restez inactif sans rejoindre une salle pendant 15 minutes.</string>
     <string name="listen_together_not_configured">« Écouter ensemble » n\'est pas configuré. Veuillez configurer l\'URL du serveur dans Paramètres → Intégrations → Écouter ensemble.</string>
     <string name="listen_together_suggestion_received">%1$s a demandé %2$s</string>
     <string name="listen_together_suggestion_sent">Suggestion envoyée à l\'animateur !</string>
@@ -706,6 +710,16 @@ est irréversible.
     <string name="join">Rejoindre</string>
     <string name="approve">Approuver</string>
     <string name="reject">Refuser</string>
+	<string name="decline">Refuser</string>
+    <string name="accept">Accepter</string>
+    <string name="waiting_for_you">En attente de vous</string>
+    <string name="show_all_count">Tout afficher (%1$d)</string>
+    <string name="show_less_action">Afficher moins</string>
+    <string name="transfer">Transférer</string>
+    <string name="block">Bloquer</string>
+    <string name="listener">Auditeur</string>
+    <string name="joined_just_now">À l\'instant</string>
+    <string name="joined_minutes_ago">Rejoint il y a %d min</string>
     <string name="clear">Effacer</string>
     <string name="copy">Copier</string>
     <string name="change">Changer</string>
@@ -721,6 +735,17 @@ est irréversible.
     <string name="host_label">Hôte</string>
     <string name="you_label">Vous</string>
     <string name="connected_users">Utilisateurs connectés</string>
+	<string name="status">Statut</string>
+    <string name="server">Serveur</string>
+    <string name="tap_to_start">Appuyer pour démarrer</string>
+    <string name="disconnected">Déconnecté</string>
+    <string name="not_connected">Non connecté</string>
+    <string name="wait">Patienter</string>
+    <string name="connecting">Connexion en cours</string>
+    <string name="connection_lost">Connexion perdue</string>
+    <string name="waiting_for_connection">En attente de connexion</string>
+    <string name="waiting_for_network">En attente du réseau</string>
+    <string name="online">En ligne</string>
     <string name="enter_username">Entrez votre nom d\'utilisateur</string>
     <string name="enter_room_code">Entrez le code de la salle</string>
     <string name="listen_together_settings_desc">Configurez le serveur, le nom d\'utilisateur et plus encore</string>
@@ -824,8 +849,10 @@ est irréversible.
     <string name="recognition">Reconnaissance</string>
     <string name="recognize_music">Reconnaître la musique</string>
     <string name="tap_to_recognize">Appuyez pour reconnaître</string>
+	<string name="tap_to_recognize_hint">Appuyez sur l\'icône d\'écoute pour identifier</string>
     <string name="listening">Écoute…</string>
     <string name="processing">Traitement en cours…</string>
+	<string name="identifying_song">Identification du morceau en cours…</string>
     <string name="no_match_found">Aucun résultat trouvé</string>
     <string name="recognition_error">Erreur de reconnaissance</string>
     <string name="try_again">Réessayer</string>
@@ -1047,9 +1074,11 @@ est irréversible.
     <string name="font_sans_flex">Sans Flex</string>
     <string name="font_outfit">Tenue</string>
     <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
+	<string name="font_sf_pro">Écran SF Pro</string>
     <string name="typography_preview">Aperçu typographique</string>
     <string name="preview_text_quote">\"Quand les mots manquent, la musique prend le relais.\"</string>
     <string name="font_system_desc">Utilisez la police par défaut du système.</string>
+	<string name="font_sf_pro_desc">La typographie emblématique d\'Apple pour Apple Music.</string>
     <string name="font_google_sans_desc">La police sans empattement géométrique emblématique de Google.</string>
     <string name="font_sans_flex_desc">Une police sans empattement moderne, polyvalente et souple.</string>
     <string name="font_outfit_desc">Une police sans empattement géométrique, épurée et moderne.</string>
@@ -1108,6 +1137,7 @@ est irréversible.
     <string name="settings_for_account">Paramètres du compte</string>
     <string name="give_feedback">Donner son avis</string>
     <string name="account_services">Services de gestion de compte</string>
+	<string name="individual_category_sync">Synchronisation des catégories individuelles</string>
     <string name="account_settings_tab_general">Généralités</string>
     <string name="account_settings_tab_appearance">Apparence</string>
     <string name="account_settings_tab_data">Données &amp; Confidentialité</string>
@@ -1168,15 +1198,17 @@ est irréversible.
     <string name="newest_comments">Plus récents</string>
     <string name="replies">Réponses</string>
 
-	<!-- Appearance -->
-    <string name="enable_settings_dropdown">Activer le menu déroulant des paramètres</string>
-    <string name="enable_settings_dropdown_desc">Afficher un menu déroulant Material 3 en cliquant sur l\'icône des paramètres sur l\'écran d\'accueil</string>
-    
-    <!-- Lyrics Providers -->
-    <string name="musixmatch_desc">La plus grande base de données de paroles au monde (prend en charge la synchronisation mot à mot et ligne par ligne)</string>
-    <string name="spotify_lyrics_desc">Nécessite une connexion à un compte Spotify (via le cookie sp_dc)</string>
-    
-    <!-- Listening Summary -->
-    <string name="total_listened">Total écouté</string>
-    <string name="listening_breakdown">Détail de l\'écoute</string>
+    <string name="ticket_liked_subtitle">Vos favoris</string>
+    <string name="ticket_offline_subtitle">Disponible hors ligne</string>
+    <string name="ticket_cached_subtitle">Cache de l\'appareil</string>
+    <string name="ticket_top_subtitle">Les plus joués</string>
+	
+    <string name="everything">Tout</string>
+    <string name="recently_added">Récemment ajouté</string>
+    <string name="hold_near_music">Approchez votre téléphone de la musique</string>
+    <string name="keep_phone_close">Gardez votre téléphone près de la musique</string>
+    <string name="match_found_saved">Correspondance trouvée · enregistré dans l\'historique</string>
+    <string name="album">Album</string>
+    <string name="genre">Genre</string>
+	<string name="audio_quality_high_desc">256+ kbps avec Premium</string>
 </resources>
