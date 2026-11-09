@@ -90,7 +90,6 @@ import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.menu.LyricsMenu
 import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.theme.PlayerSliderColors
-import com.music.vivi.ui.theme.SfProDisplayFontFamily
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
@@ -839,7 +838,6 @@ fun PlayerV2Landscape(
                                     Text(
                                         text = displayedMetadata?.title ?: "Unknown",
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontFamily = SfProDisplayFontFamily,
                                         color = adaptivePrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
@@ -860,7 +858,6 @@ fun PlayerV2Landscape(
                                             withStyle(
                                                 SpanStyle(
                                                     color = adaptiveSecondary,
-                                                    fontFamily = SfProDisplayFontFamily,
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Normal
                                                 )
@@ -932,7 +929,6 @@ fun PlayerV2Landscape(
                                         Text(
                                             text = "Unknown",
                                             style = MaterialTheme.typography.bodyLarge,
-                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptiveSecondary,
                                             fontWeight = FontWeight.Normal,
                                             maxLines = 1,

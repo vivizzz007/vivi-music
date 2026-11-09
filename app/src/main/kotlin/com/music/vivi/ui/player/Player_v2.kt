@@ -84,7 +84,6 @@ import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.theme.PlayerSliderColors
-import com.music.vivi.ui.theme.SfProDisplayFontFamily
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.extensions.togglePlayPause
@@ -713,7 +712,6 @@ fun PlayerV2(
                                         Text(
                                             text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.headlineSmall,
-                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             maxLines = 1,
@@ -743,7 +741,6 @@ fun PlayerV2(
                                                 withStyle(
                                                     SpanStyle(
                                                         color = adaptiveSecondary,
-                                                        fontFamily = SfProDisplayFontFamily,
                                                         fontSize = 16.sp,
                                                         fontWeight = FontWeight.Normal
                                                     )
@@ -828,7 +825,6 @@ fun PlayerV2(
                                             Text(
                                                 "Unknown",
                                                 style = MaterialTheme.typography.titleMedium,
-                                                fontFamily = SfProDisplayFontFamily,
                                                 color = adaptiveSecondary,
                                                 fontWeight = FontWeight.Normal,
                                                 maxLines = 1,
@@ -965,7 +961,6 @@ fun PlayerV2(
                                         Text(
                                             text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.titleMedium,
-                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptivePrimary,
                                             fontWeight = FontWeight.SemiBold,
                                             maxLines = 1,
@@ -1003,7 +998,6 @@ fun PlayerV2(
                                             Text(
                                                 text = allArtists,
                                                 style = MaterialTheme.typography.titleSmall,
-                                                fontFamily = SfProDisplayFontFamily,
                                                 color = adaptiveSecondary,
                                                 fontWeight = FontWeight.Normal,
                                                 maxLines = 1,
