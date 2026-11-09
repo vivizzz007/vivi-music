@@ -18,7 +18,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import com.music.vivi.ui.menu.ListenTogetherDialog
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -91,7 +90,6 @@ import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.menu.LyricsMenu
 import com.music.vivi.ui.menu.OldPlayerMenu
 import com.music.vivi.ui.theme.PlayerSliderColors
-import com.music.vivi.ui.theme.SfProDisplayFontFamily
 import com.music.vivi.ui.utils.ShowMediaInfo
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.ui.utils.resize
@@ -126,15 +124,8 @@ fun PlayerV2Landscape(
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
     val listenTogetherRoomState by listenTogetherManager?.roomState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
-    val hostUser = remember(listenTogetherRoomState) {
-        listenTogetherRoomState?.users?.firstOrNull { it.isHost || it.userId == listenTogetherRoomState?.hostId }
-    }
-    val hostName = hostUser?.username
-    val hostAvatarRes = remember(hostUser?.avatarIndex) {
-        val index = hostUser?.avatarIndex ?: 0
-        ListenTogetherAvatarList.getOrElse(index) { R.drawable.person }
-    }
-    var showListenTogetherDialog by remember { mutableStateOf(false) }
+    val listenTogetherUsersCount = listenTogetherRoomState?.users?.size ?: if (listenTogetherManager?.isInRoom == true) 1 else 0
+    val isInListenTogetherRoom = listenTogetherManager?.isInRoom == true || listenTogetherUsersCount > 0
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -657,43 +648,129 @@ fun PlayerV2Landscape(
                 }
 
                 // 2. Cast / Headphone / Audio Device Button (Center)
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (bluetoothDeviceName != null) {
-                        IconButton(
-                            onClick = { showAudioDeviceBottomSheet = true },
-                            modifier = Modifier.size(48.dp)
+                if (isInListenTogetherRoom) {
+                    Box(
+                        modifier = Modifier.height(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = adaptiveSecondary.copy(alpha = 0.16f),
+                            modifier = Modifier.height(42.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.headphones_apple),
-                                contentDescription = "Audio Device",
-                                tint = adaptiveSecondary,
-                                modifier = Modifier.size(28.dp)
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Left Half: Audio Device / AirPlay / Cast
+                                val onLeftClick: (() -> Unit)? = if (bluetoothDeviceName != null || !(BuildConfig.CAST_AVAILABLE && enableGoogleCast)) {
+                                    { showAudioDeviceBottomSheet = true }
+                                } else null
+
+                                Box(
+                                    modifier = Modifier
+                                        .then(if (onLeftClick != null) Modifier.clickable(onClick = onLeftClick) else Modifier)
+                                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (bluetoothDeviceName != null) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.headphones_apple),
+                                            contentDescription = "Audio Device",
+                                            tint = adaptivePrimary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
+                                        CastButton(
+                                            modifier = Modifier.size(24.dp),
+                                            tintColor = adaptiveSecondary,
+                                            activeTintColor = adaptivePrimary,
+                                            showBackground = false,
+                                            customIconRes = R.drawable.airplay_audio
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(R.drawable.airplay_audio),
+                                            contentDescription = "Audio Routing",
+                                            tint = adaptiveSecondary,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+
+                                // Center dividing line
+                                Box(
+                                    modifier = Modifier
+                                        .width(1.dp)
+                                        .height(22.dp)
+                                        .background(adaptiveSecondary.copy(alpha = 0.25f))
+                                )
+
+                                // Right Half: Listen Together (Read-Only User Count)
+                                Row(
+                                    modifier = Modifier
+                                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.group_filled),
+                                        contentDescription = "Listen Together",
+                                        tint = adaptivePrimary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    if (listenTogetherUsersCount > 0) {
+                                        Text(
+                                            text = "$listenTogetherUsersCount",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 13.sp
+                                            ),
+                                            color = adaptivePrimary
+                                        )
+                                    }
+                                }
+                            }
                         }
-                    } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
-                        CastButton(
-                            modifier = Modifier.size(48.dp),
-                            tintColor = adaptiveSecondary,
-                            activeTintColor = adaptivePrimary,
-                            showBackground = false,
-                            customIconRes = R.drawable.airplay_audio
-                        )
-                    } else {
-                        IconButton(
-                            onClick = { showAudioDeviceBottomSheet = true },
-                            modifier = Modifier.size(48.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.airplay_audio),
-                                contentDescription = "Audio Routing",
-                                tint = adaptiveSecondary,
-                                modifier = Modifier.size(28.dp)
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (bluetoothDeviceName != null) {
+                            IconButton(
+                                onClick = { showAudioDeviceBottomSheet = true },
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.headphones_apple),
+                                    contentDescription = "Audio Device",
+                                    tint = adaptiveSecondary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
+                        } else if (BuildConfig.CAST_AVAILABLE && enableGoogleCast) {
+                            CastButton(
+                                modifier = Modifier.size(48.dp),
+                                tintColor = adaptiveSecondary,
+                                activeTintColor = adaptivePrimary,
+                                showBackground = false,
+                                customIconRes = R.drawable.airplay_audio
                             )
+                        } else {
+                            IconButton(
+                                onClick = { showAudioDeviceBottomSheet = true },
+                                modifier = Modifier.size(48.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.airplay_audio),
+                                    contentDescription = "Audio Routing",
+                                    tint = adaptiveSecondary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -758,44 +835,9 @@ fun PlayerV2Landscape(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    if (isListenTogetherGuest && !hostName.isNullOrBlank()) {
-                                        Surface(
-                                            shape = RoundedCornerShape(50),
-                                            color = adaptiveSecondary.copy(alpha = 0.16f),
-                                            modifier = Modifier
-                                                .padding(bottom = 6.dp)
-                                                .clickable { showListenTogetherDialog = true }
-                                        ) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                modifier = Modifier.padding(start = 4.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
-                                            ) {
-                                                Image(
-                                                    painter = painterResource(hostAvatarRes),
-                                                    contentDescription = "Host Avatar",
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .size(18.dp)
-                                                        .clip(CircleShape)
-                                                )
-                                                Text(
-                                                    text = hostName,
-                                                    style = MaterialTheme.typography.labelSmall.copy(
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        fontSize = 12.sp
-                                                    ),
-                                                    color = adaptivePrimary,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-                                        }
-                                    }
                                     Text(
                                         text = displayedMetadata?.title ?: "Unknown",
                                         style = MaterialTheme.typography.titleLarge,
-                                        fontFamily = SfProDisplayFontFamily,
                                         color = adaptivePrimary,
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
@@ -816,7 +858,6 @@ fun PlayerV2Landscape(
                                             withStyle(
                                                 SpanStyle(
                                                     color = adaptiveSecondary,
-                                                    fontFamily = SfProDisplayFontFamily,
                                                     fontSize = 14.sp,
                                                     fontWeight = FontWeight.Normal
                                                 )
@@ -888,7 +929,6 @@ fun PlayerV2Landscape(
                                         Text(
                                             text = "Unknown",
                                             style = MaterialTheme.typography.bodyLarge,
-                                            fontFamily = SfProDisplayFontFamily,
                                             color = adaptiveSecondary,
                                             fontWeight = FontWeight.Normal,
                                             maxLines = 1,
@@ -1281,14 +1321,6 @@ fun PlayerV2Landscape(
     if (showAudioDeviceBottomSheet) {
         AudioDeviceBottomSheet(
             onDismiss = { showAudioDeviceBottomSheet = false }
-        )
-    }
-
-    if (showListenTogetherDialog) {
-        ListenTogetherDialog(
-            visible = showListenTogetherDialog,
-            mediaMetadata = mediaMetadata,
-            onDismiss = { showListenTogetherDialog = false }
         )
     }
 }
