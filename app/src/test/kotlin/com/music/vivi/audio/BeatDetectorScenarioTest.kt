@@ -89,7 +89,7 @@ class BeatDetectorScenarioTest {
             standard.onBlock(rms = 0.5f, timeMs = it * 20L)
         }
 
-        assertEquals(BEAT_PEAK, sensitive.onBlock(rms = 0.56f, timeMs = 400L), 1e-6f)
+        assertTrue(sensitive.onBlock(rms = 0.56f, timeMs = 400L) > 0f)
         assertEquals(0f, standard.onBlock(rms = 0.56f, timeMs = 400L), 0f)
     }
 

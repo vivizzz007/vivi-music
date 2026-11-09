@@ -1330,7 +1330,8 @@ fun BottomSheetPlayer(
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
                         val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
-                        val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = effectiveIsPlaying)
+                        // The collapsed sheet hides this background at alpha 0, so animating it there is pure waste.
+                        val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = effectiveIsPlaying && !state.isCollapsed)
 
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,

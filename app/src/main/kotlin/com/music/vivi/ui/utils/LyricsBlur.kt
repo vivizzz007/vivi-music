@@ -8,9 +8,12 @@ package com.music.vivi.ui.utils
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 
 internal const val LYRICS_BLUR_DURATION_DEFAULT_MS = 1000
@@ -67,10 +70,26 @@ internal fun lyricsLineBlurTarget(
 
 @Composable
 internal fun Modifier.animatedLyricsBlur(targetDp: Float, durationMs: Int): Modifier {
-    val radius by animateFloatAsState(
+    val radius = animateFloatAsState(
         targetValue = targetDp,
         animationSpec = tween(durationMillis = durationMs),
         label = "lyricsBlur",
     )
-    return if (radius > 0f) this.blur(radius.dp) else this
+    return layerBlur { radius.value }
+}
+
+/**
+ * Same look as [Modifier.blur] with rectangular edges, but the radius is read inside the layer block. A running blur
+ * animation then only redraws the layer instead of recomposing the whole lyrics line every frame.
+ */
+internal fun Modifier.layerBlur(radiusDp: () -> Float): Modifier = graphicsLayer {
+    val radiusPx = radiusDp().dp.toPx()
+    if (radiusPx > 0f) {
+        renderEffect = BlurEffect(radiusPx, radiusPx, TileMode.Clamp)
+        shape = RectangleShape
+        clip = true
+    } else {
+        renderEffect = null
+        clip = false
+    }
 }

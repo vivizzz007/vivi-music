@@ -8,6 +8,7 @@ package com.music.vivi.audio
 import android.os.SystemClock
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.PI
 import kotlin.math.exp
 import kotlin.math.sqrt
 
@@ -36,6 +37,17 @@ internal fun beatBump(elapsedMs: Long, peak: Float): Float {
 }
 internal const val BEAT_THRESHOLD_RATIO = 1.25f
 internal const val BEAT_MIN_RMS = 0.02f
+// A block this many times louder than the running average counts as a full-strength beat; weaker rises scale down.
+internal const val BEAT_FULL_STRENGTH_RATIO = 2f
+internal const val BASS_CUTOFF_HZ = 150f
+
+// 0 right at the threshold, 1 at BEAT_FULL_STRENGTH_RATIO, so gentle swells barely move the background while drum hits do.
+internal fun beatStrength(ratio: Float, thresholdRatio: Float): Float {
+    if (ratio <= thresholdRatio) return 0f
+    val span = BEAT_FULL_STRENGTH_RATIO - thresholdRatio
+    if (span <= 0f) return 1f
+    return ((ratio - thresholdRatio) / span).coerceIn(0f, 1f)
+}
 
 internal fun decayedPulse(pulse: Float, elapsedMs: Long, decayMs: Float = BEAT_PULSE_DECAY_MS): Float {
     if (pulse <= 0f || elapsedMs <= 0L) return pulse.coerceIn(0f, 1f)
@@ -52,6 +64,42 @@ internal fun pcm16Rms(buffer: ByteBuffer): Float {
         sumSquares += sample * sample
     }
     return sqrt(sumSquares / count).toFloat()
+}
+
+// Loudness of the bass band only. Two cascaded one-pole low-passes are cheap enough for the audio thread and steep
+// enough that piano, strings and vocals barely register, while kicks and bass hits still do. Filter state carries
+// across blocks so block boundaries do not click.
+internal class BassLevelMeter(
+    sampleRate: Int,
+    channelCount: Int,
+    cutoffHz: Float = BASS_CUTOFF_HZ,
+) {
+    private val channels = channelCount.coerceAtLeast(1)
+    private val coefficient = (1.0 - exp(-2.0 * PI * cutoffHz / sampleRate.coerceAtLeast(1))).toFloat()
+    private val monoScale = 1f / (channels * 32768f)
+    private var stage1 = 0f
+    private var stage2 = 0f
+
+    fun rms(buffer: ByteBuffer): Float {
+        val shorts = buffer.duplicate().order(ByteOrder.nativeOrder()).asShortBuffer()
+        val frames = shorts.remaining() / channels
+        if (frames == 0) return 0f
+        var sumSquares = 0.0
+        repeat(frames) {
+            var sum = 0
+            repeat(channels) { sum += shorts.get() }
+            val mono = sum * monoScale
+            stage1 += coefficient * (mono - stage1)
+            stage2 += coefficient * (stage1 - stage2)
+            sumSquares += stage2 * stage2
+        }
+        return sqrt(sumSquares / frames).toFloat()
+    }
+
+    fun reset() {
+        stage1 = 0f
+        stage2 = 0f
+    }
 }
 
 // Tracks a slowly moving average of loudness and reports a pulse whenever a block is clearly louder than
@@ -76,7 +124,7 @@ internal class BeatDetector(
         val isBeat = rms > BEAT_MIN_RMS && rms > average * thresholdRatio && beatAllowed
         if (isBeat) {
             lastBeatMs = timeMs
-            pulse = maxOf(pulse, BEAT_PEAK)
+            pulse = maxOf(pulse, BEAT_PEAK * beatStrength(rms / average, thresholdRatio))
         }
         return pulse
     }

@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.unit.dp
 import com.music.vivi.audio.AudioPulse
+import com.music.vivi.constants.EnableHighRefreshRateKey
 import com.music.vivi.constants.LiveMeshAutoTempoKey
 import com.music.vivi.ui.utils.LiveMeshConfig
 import com.music.vivi.ui.utils.LiveMeshFrameInput
@@ -60,6 +61,13 @@ private const val FLOW_BLOB_ALPHA = 1f
 private const val FLOW_BLOB_SOLID_STOP = 0.5f
 // Visual blur in screen dp; the radius is divided by renderScale because the layer draws at reduced resolution.
 private const val FLOW_BLUR_VISUAL_DP = 40f
+
+// With the high refresh rate setting off, the background is held to ~60 updates a second even where the display cannot
+// drop to exactly 60 Hz. Slightly under 1/60 s so vsync jitter on 60 Hz never drops frames.
+internal const val LIVE_MESH_MIN_FRAME_NANOS = 15_000_000L
+
+internal fun shouldAdvanceLiveMesh(sinceLastAdvanceNanos: Long, capFrameRate: Boolean): Boolean =
+    sinceLastAdvanceNanos > 0L && (!capFrameRate || sinceLastAdvanceNanos >= LIVE_MESH_MIN_FRAME_NANOS)
 
 // Angles, shimmer and flow time live in snapshot state so the background repaints itself every frame.
 // The player keeps one clock across artwork changes, so the motion continues instead of restarting per track.
@@ -109,11 +117,13 @@ internal class LiveMeshClock {
 @Composable
 internal fun rememberLiveMeshClock(config: LiveMeshConfig, playing: Boolean = true): LiveMeshClock {
     val autoTempo by rememberPreference(LiveMeshAutoTempoKey, defaultValue = true)
+    val highRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
     val latestAutoTempo by rememberUpdatedState(autoTempo)
     return rememberLiveMeshClockDriver(
         config = config,
         playing = playing,
         motion = rememberLiveMeshMotion().motion,
+        capFrameRate = !highRefreshRate,
     ) {
         LiveMeshFrameInput(
             beat = AudioPulse.beatImpulse(),
@@ -131,9 +141,11 @@ internal fun rememberLiveMeshClockDriver(
     config: LiveMeshConfig,
     playing: Boolean,
     motion: LiveMeshMotion,
+    capFrameRate: Boolean = false,
     input: () -> LiveMeshFrameInput,
 ): LiveMeshClock {
     val clock = remember { LiveMeshClock() }
+    val latestCapFrameRate by rememberUpdatedState(capFrameRate)
     val latestConfig by rememberUpdatedState(config)
     val latestPlaying by rememberUpdatedState(playing)
     val latestMotion by rememberUpdatedState(motion)
@@ -148,13 +160,15 @@ internal fun rememberLiveMeshClockDriver(
                 snapshotFlow { latestPlaying }.first { it }
             }
             withFrameNanos { now ->
-                if (lastFrameNanos != 0L) {
+                if (lastFrameNanos == 0L) {
+                    lastFrameNanos = now
+                } else if (shouldAdvanceLiveMesh(now - lastFrameNanos, latestCapFrameRate)) {
                     val dt = ((now - lastFrameNanos) / 1_000_000_000f).coerceAtMost(0.1f)
                     val frame = latestInput()
                     clock.followPulses(dt, frame.beat, frame.lyric, latestMotion)
                     clock.advance(dt, latestConfig, frame.targetTempo, frame.lyricTempo, frame.nowMs, latestMotion)
+                    lastFrameNanos = now
                 }
-                lastFrameNanos = now
             }
         }
     }

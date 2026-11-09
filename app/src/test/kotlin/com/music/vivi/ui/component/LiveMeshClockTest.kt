@@ -248,4 +248,62 @@ class LiveMeshClockTest {
         assertEquals(fastPerSecond, clock.fast, 1e-3f)
         assertEquals(slowPerSecond, clock.slow, 1e-3f)
     }
+
+    private fun advancedFrames(refreshHz: Int, capFrameRate: Boolean, seconds: Int = 1): Int {
+        val frameNanos = 1_000_000_000L / refreshHz
+        var last = 0L
+        var advanced = 0
+        for (frame in 1..refreshHz * seconds) {
+            val now = frame * frameNanos
+            if (shouldAdvanceLiveMesh(now - last, capFrameRate)) {
+                advanced++
+                last = now
+            }
+        }
+        return advanced
+    }
+
+    @Test
+    fun highRefreshRateSettingRunsTheBackgroundAtFullDisplayRate() {
+        assertEquals(60, advancedFrames(60, capFrameRate = false))
+        assertEquals(90, advancedFrames(90, capFrameRate = false))
+        assertEquals(120, advancedFrames(120, capFrameRate = false))
+        assertEquals(144, advancedFrames(144, capFrameRate = false))
+    }
+
+    @Test
+    fun cappedSixtyHertzScreensStillAdvanceEveryFrame() {
+        assertEquals(60, advancedFrames(60, capFrameRate = true))
+    }
+
+    @Test
+    fun cappedOneTwentyHertzScreensAreHeldToSixtyUpdates() {
+        assertEquals(60, advancedFrames(120, capFrameRate = true))
+    }
+
+    @Test
+    fun cappedUnevenRefreshRatesStayBelowTheCapButNeverStall() {
+        val ninety = advancedFrames(90, capFrameRate = true)
+        val oneFortyFour = advancedFrames(144, capFrameRate = true)
+
+        assertTrue(ninety in 40..60)
+        assertTrue(oneFortyFour in 40..60)
+    }
+
+    @Test
+    fun cappedSlightlyEarlySixtyHertzFrameStillAdvances() {
+        assertTrue(shouldAdvanceLiveMesh(16_000_000L, capFrameRate = true))
+        assertTrue(shouldAdvanceLiveMesh(LIVE_MESH_MIN_FRAME_NANOS, capFrameRate = true))
+    }
+
+    @Test
+    fun cappedHalfFrameAtOneTwentyHertzIsSkipped() {
+        assertTrue(!shouldAdvanceLiveMesh(8_333_333L, capFrameRate = true))
+    }
+
+    @Test
+    fun noTimePassedNeverAdvancesEitherWay() {
+        assertTrue(!shouldAdvanceLiveMesh(0L, capFrameRate = true))
+        assertTrue(!shouldAdvanceLiveMesh(0L, capFrameRate = false))
+    }
 }

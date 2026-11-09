@@ -39,6 +39,7 @@ class BeatAnalyzerAudioProcessor internal constructor(
 
     private var outputBuffer: ByteBuffer = EMPTY_BUFFER
     private val detector = BeatDetector()
+    private var bassMeter: BassLevelMeter? = null
 
     companion object {
         private val EMPTY_BUFFER: ByteBuffer = ByteBuffer.allocateDirect(0).order(ByteOrder.nativeOrder())
@@ -49,6 +50,11 @@ class BeatAnalyzerAudioProcessor internal constructor(
         bytesPerFrame = inputAudioFormat.bytesPerFrame
         encoding = inputAudioFormat.encoding
         active = sampleRate > 0
+        bassMeter = if (active && encoding == C.ENCODING_PCM_16BIT) {
+            BassLevelMeter(sampleRate, inputAudioFormat.channelCount)
+        } else {
+            null
+        }
         return inputAudioFormat
     }
 
@@ -59,11 +65,13 @@ class BeatAnalyzerAudioProcessor internal constructor(
         if (size == 0) return
 
         val rms = if (encoding == C.ENCODING_PCM_16BIT) pcm16Rms(inputBuffer) else 0f
+        // Beats come from the bass band only: overall loudness also rises with every piano note or string swell.
+        val bass = bassMeter?.rms(inputBuffer) ?: 0f
         if (bytesPerFrame > 0 && sampleRate > 0) {
             val frames = size / bytesPerFrame
             streamTimeMs += frames * 1000L / sampleRate
         }
-        val pulse = detector.onBlock(rms, streamTimeMs)
+        val pulse = detector.onBlock(bass, streamTimeMs)
         sink.publish(pulse, rms)
 
         if (outputBuffer === EMPTY_BUFFER || outputBuffer.capacity() < size) {
@@ -89,6 +97,7 @@ class BeatAnalyzerAudioProcessor internal constructor(
         inputEnded = false
         streamTimeMs = 0L
         detector.reset()
+        bassMeter?.reset()
         sink.reset()
     }
 
@@ -99,6 +108,7 @@ class BeatAnalyzerAudioProcessor internal constructor(
         bytesPerFrame = 0
         encoding = C.ENCODING_INVALID
         active = false
+        bassMeter = null
     }
 
     override fun queueEndOfStream() {

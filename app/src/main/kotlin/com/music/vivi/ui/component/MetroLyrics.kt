@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -59,6 +58,7 @@ import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.LyricsRomanizeAsMainKey
 import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
 import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.layerBlur
 import com.music.vivi.ui.utils.lyricsLineBlurTarget
 import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
@@ -209,7 +209,7 @@ fun MetroLyricsLine(
         leadMs = blurLeadMs,
         strengthPercent = blurStrengthPercent,
     )
-    val animatedBlur by animateFloatAsState(
+    val animatedBlur = animateFloatAsState(
         targetValue = blurTarget,
         animationSpec = tween(durationMillis = blurDurationMs),
         label = "lyricsBlur"
@@ -219,7 +219,7 @@ fun MetroLyricsLine(
     val lyricsLineSpacing = 1.3f
 
     val itemModifier = modifier
-        .then(if (animatedBlur > 0f) Modifier.blur(animatedBlur.dp) else Modifier)
+        .layerBlur { animatedBlur.value }
         .fillMaxWidth()
         .clip(RoundedCornerShape(16.dp))
         .combinedClickable(
@@ -285,13 +285,15 @@ fun MetroLyricsLine(
         ) {
             val wordList = entry.words
             val effectiveWords: List<MetroWordTimestamp> = if (wordList != null && wordList.isNotEmpty() && (!showRomanized || !romanizeAsMain || !isRomanizedAvailable || mainText == entry.text)) {
-                wordList.mapIndexed { idx, word ->
-                    MetroWordTimestamp(
-                        text = word.text,
-                        startTime = word.startTime,
-                        endTime = word.endTime,
-                        hasTrailingSpace = idx < wordList.size - 1
-                    )
+                remember(wordList) {
+                    wordList.mapIndexed { idx, word ->
+                        MetroWordTimestamp(
+                            text = word.text,
+                            startTime = word.startTime,
+                            endTime = word.endTime,
+                            hasTrailingSpace = idx < wordList.size - 1
+                        )
+                    }
                 }
             } else {
                 remember(mainText, entry.time) {
