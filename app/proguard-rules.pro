@@ -5,6 +5,8 @@
 # For more details, see
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
+-dontusemixedcaseclassnames
+
 ##──────────────────────────────────────────────────────────────────────────────
 ## 1. PoToken / WebView JS Interface
 ##──────────────────────────────────────────────────────────────────────────────
@@ -13,11 +15,6 @@
 }
 -keep class com.music.vivi.utils.potoken.** { *; }
 
-# Keep coroutine continuation for WebView callbacks
--keepclassmembers class * {
-    void resume(...);
-    void resumeWithException(...);
-}
 
 
 ##──────────────────────────────────────────────────────────────────────────────
