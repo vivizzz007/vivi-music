@@ -442,6 +442,7 @@
     <string name="last_fm_send_likes">Envoyer des « J\'aime » / « Je n\'aime pas »</string>
     <string name="last_fm_send_likes_description">Ajouter/Retirer des titres de la liste « J\'aime » sur Last.fm lorsqu\'ils sont ajoutés/retirés de la liste « J\'aime » dans Vivi Music</string>
     <string name="logging_in">Connexion en cours…</string>
+	<string name="view_listening_history">Consulter l\'historique d\'écoute</string>
 
     <string name="scrobbling_configuration">Configuration du scrobbling</string>
     <string name="scrobble_min_track_duration">Enregistrer les titres d\'une durée supérieure à</string>
