@@ -13,12 +13,16 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import kotlin.random.Random
+
+private const val STATIC_PROGRESS = 0.5f
 
 enum class ShapeType {
     Circle, Rect, Line
@@ -57,22 +61,27 @@ internal fun AnimatedBackground(
         }
     }
 
+    val reduceAnimations = rememberReduceBackgroundEffects()
     val infiniteTransition = rememberInfiniteTransition(label = "animated_bg")
-    val progressAnims = elements.map {
-        infiniteTransition.animateFloat(
-            initialValue = 0f,
-            targetValue = 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(it.duration, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "element_progress"
-        )
+    val progressAnims: List<State<Float>> = if (reduceAnimations) {
+        emptyList()
+    } else {
+        elements.map {
+            infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(it.duration, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "element_progress"
+            )
+        }
     }
 
     Canvas(modifier = Modifier.fillMaxSize()) {
         elements.forEachIndexed { index, element ->
-            val progress = progressAnims[index].value
+            val progress = progressAnims.getOrNull(index)?.value ?: STATIC_PROGRESS
             val currentX = element.initialX + (element.targetX - element.initialX) * progress
             val currentY = element.initialY + (element.targetY - element.initialY) * progress
 

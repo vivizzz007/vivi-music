@@ -103,7 +103,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
@@ -112,7 +111,6 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.rotate
@@ -211,6 +209,17 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.component.LiveMeshBackground
+import com.music.vivi.ui.component.rememberLiveMeshClock
+import com.music.vivi.ui.utils.LiveMeshConfig
+import com.music.vivi.ui.utils.PlayerLiveMeshKeys
+import com.music.vivi.ui.utils.rememberArtworkDimFactor
+import com.music.vivi.ui.utils.rememberArtworkPalette
+import com.music.vivi.ui.utils.rememberLiveMeshStore
+import com.music.vivi.ui.utils.backgroundBlur
+import com.music.vivi.ui.utils.backgroundSize
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
+import com.music.vivi.ui.utils.rememberReducedBackgroundStyle
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
@@ -299,6 +308,8 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.LIVE_MESH
     )
+    val effectivePlayerBackground = rememberReducedBackgroundStyle(playerBackground)
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
@@ -507,8 +518,8 @@ fun BottomSheetPlayer(
     val defaultGradientColors = listOf(MaterialTheme.colorScheme.surface, MaterialTheme.colorScheme.surfaceVariant)
     val fallbackColor = MaterialTheme.colorScheme.surface.toArgb()
 
-    LaunchedEffect(mediaMetadata?.id, playerBackground) {
-        if (playerBackground == PlayerBackgroundStyle.GRADIENT || playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+    LaunchedEffect(mediaMetadata?.id, effectivePlayerBackground) {
+        if (effectivePlayerBackground == PlayerBackgroundStyle.GRADIENT || effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
             val currentMetadata = mediaMetadata
             if (currentMetadata != null && currentMetadata.thumbnailUrl != null) {
                 val cachedColors = gradientColorsCache[currentMetadata.id]
@@ -534,7 +545,7 @@ fun BottomSheetPlayer(
                                     .resizeBitmapArea(100 * 100)
                                     .generate()
                             }
-                            val extractedColors = if (playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
+                            val extractedColors = if (effectivePlayerBackground == PlayerBackgroundStyle.GLOW_ANIMATED) {
                                 listOfNotNull(
                                     palette.getVibrantColor(fallbackColor).let { Color(it) },
                                     palette.getLightVibrantColor(fallbackColor).let { Color(it) },
@@ -1007,7 +1018,7 @@ fun BottomSheetPlayer(
                             }
                         }
                     }
-                } else when (playerBackground) {
+                } else when (effectivePlayerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
                         AnimatedContent(
                             targetState = mediaMetadata?.thumbnailUrl,
@@ -1025,7 +1036,7 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(100, 100) // Lower resolution for better performance
+                                            .backgroundSize(reduceBackgroundEffects, 100) // Lower resolution for better performance
                                             .crossfade(600)
                                             .allowHardware(false)
                                             .build(),
@@ -1033,7 +1044,7 @@ fun BottomSheetPlayer(
                                         contentScale = ContentScale.FillBounds,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
+                                            .backgroundBlur(120.dp, reduceBackgroundEffects) // hardware-efficient native Compose blur on small image
                                     )
 
                                     Box(
@@ -1251,7 +1262,7 @@ fun BottomSheetPlayer(
                                     AsyncImage(
                                         model = ImageRequest.Builder(context)
                                             .data(thumbnailUrl)
-                                            .size(128, 128)
+                                            .backgroundSize(reduceBackgroundEffects, 128) // Downsample significantly for performance
                                             .crossfade(600)
                                             .allowHardware(false)
                                             .build(),
@@ -1259,20 +1270,7 @@ fun BottomSheetPlayer(
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .fillMaxSize()
-                                            .blur(100.dp)
-                                    )
-
-                                    // Layer 1.5: Artwork Depth Scrim
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    0.00f to Color.Black.copy(alpha = 0.34f),
-                                                    0.55f to Color.Black.copy(alpha = 0.48f),
-                                                    1.00f to Color.Black.copy(alpha = 0.64f)
-                                                )
-                                            )
+                                            .backgroundBlur(150.dp, reduceBackgroundEffects)
                                     )
 
                                     // Layer 2: Clear Artwork (Dissolves along smootherStep into backdrop)
@@ -1331,9 +1329,28 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.LIVE_MESH -> {
-                        if (backgroundAlpha > 0.01f) {
-                            val thumbnailUrl = mediaMetadata?.thumbnailUrl
-                            AndroidView<BlendView>(factory = { ctx -> BlendView(ctx) }, update = { blendView -> if (isPlaying) blendView.startRotationAnimation() else blendView.stopRotationAnimation(); blendView.setImageUrl(thumbnailUrl) }, modifier = Modifier.fillMaxSize())
+                        val liveMesh = rememberLiveMeshStore(PlayerLiveMeshKeys, LiveMeshConfig.Default).config
+                        // The collapsed sheet hides this background at alpha 0, so animating it there is pure waste.
+                        val liveMeshClock = rememberLiveMeshClock(liveMesh, playing = effectiveIsPlaying && !state.isCollapsed)
+
+                        AnimatedContent(
+                            targetState = mediaMetadata?.thumbnailUrl,
+                            transitionSpec = {
+                                fadeIn(tween(1500)).togetherWith(fadeOut(tween(1500)))
+                            },
+                            label = "liveMeshBackground"
+                        ) { thumbnailUrl ->
+                            if (thumbnailUrl != null) {
+                                val artworkDim = rememberArtworkDimFactor(thumbnailUrl)
+                                val artworkPalette = rememberArtworkPalette(thumbnailUrl)
+                                LiveMeshBackground(
+                                    config = liveMesh,
+                                    alpha = backgroundAlpha,
+                                    artworkDim = artworkDim,
+                                    palette = artworkPalette,
+                                    clock = liveMeshClock,
+                                )
+                            }
                         }
                     }
                     PlayerBackgroundStyle.DEFAULT -> {
@@ -1344,8 +1361,7 @@ fun BottomSheetPlayer(
         },
         onDismiss = {
             playerConnection.service.clearAutomix()
-            playerConnection.player.stop()
-            playerConnection.player.clearMediaItems()
+            playerConnection.service.stopPlayback()
         },
         collapsedContent = {
             MiniPlayer(

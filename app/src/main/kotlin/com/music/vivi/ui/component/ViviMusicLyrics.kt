@@ -27,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -42,6 +41,7 @@ import androidx.compose.ui.unit.sp
 import com.music.vivi.constants.AppleMusicLyricsBlurKey
 import com.music.vivi.lyrics.LyricsEntry
 import com.music.vivi.ui.screens.settings.LyricsPosition
+import com.music.vivi.ui.utils.layerBlur
 import com.music.vivi.utils.rememberPreference
 import kotlinx.coroutines.delay
 
@@ -109,7 +109,7 @@ fun ViviMusicLyricsLine(
         }
     }
 
-    val animatedBlur by animateFloatAsState(
+    val animatedBlur = animateFloatAsState(
         targetValue = targetBlur,
         // Faster, more reactive blur — 600 ms instead of 1000 ms
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
@@ -187,7 +187,7 @@ fun ViviMusicLyricsLine(
             else Color.Transparent
         )
         .padding(horizontal = 24.dp, vertical = (8 * lineSpacing).dp)
-        .blur(animatedBlur.dp)
+        .layerBlur { animatedBlur.value }
 
     // ── Agent alignment ───────────────────────────────────────────────────────
     val agentAlignment = when {
