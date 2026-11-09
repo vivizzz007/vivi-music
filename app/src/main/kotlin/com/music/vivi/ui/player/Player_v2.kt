@@ -105,7 +105,6 @@ import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.vivimusic.getConnectedBluetoothDeviceName
 import com.music.vivi.ui.component.CastButton
-import com.music.vivi.ui.menu.ListenTogetherDialog
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.LocalListenTogetherManager
@@ -156,15 +155,6 @@ fun PlayerV2(
     val listenTogetherRoomState by listenTogetherManager?.roomState?.collectAsState(initial = null) ?: remember { mutableStateOf(null) }
     val listenTogetherUsersCount = listenTogetherRoomState?.users?.size ?: if (listenTogetherManager?.isInRoom == true) 1 else 0
     val isInListenTogetherRoom = listenTogetherManager?.isInRoom == true || listenTogetherUsersCount > 0
-    var showListenTogetherDialog by remember { mutableStateOf(false) }
-    val hostUser = remember(listenTogetherRoomState) {
-        listenTogetherRoomState?.users?.firstOrNull { it.isHost || it.userId == listenTogetherRoomState?.hostId }
-    }
-    val hostName = hostUser?.username
-    val hostAvatarRes = remember(hostUser?.avatarIndex) {
-        val index = hostUser?.avatarIndex ?: 0
-        ListenTogetherAvatarList.getOrElse(index) { R.drawable.person }
-    }
     val isMuted by playerConnection.isMuted.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -720,41 +710,6 @@ fun PlayerV2(
                                             .padding(end = 12.dp)
                                             .clipToBounds()
                                     ) {
-                                        if (isListenTogetherGuest && !hostName.isNullOrBlank()) {
-                                            Surface(
-                                                shape = RoundedCornerShape(50),
-                                                color = adaptiveSecondary.copy(alpha = 0.16f),
-                                                modifier = Modifier
-                                                    .padding(bottom = 6.dp)
-                                                    .clickable { showListenTogetherDialog = true }
-                                            ) {
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                    modifier = Modifier.padding(start = 4.dp, end = 10.dp, top = 3.dp, bottom = 3.dp)
-                                                ) {
-                                                    Image(
-                                                        painter = painterResource(hostAvatarRes),
-                                                        contentDescription = "Host Avatar",
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier
-                                                            .size(18.dp)
-                                                            .clip(CircleShape)
-                                                    )
-                                                    Text(
-                                                        text = hostName,
-                                                        style = MaterialTheme.typography.labelSmall.copy(
-                                                            fontWeight = FontWeight.SemiBold,
-                                                            fontSize = 12.sp
-                                                        ),
-                                                        color = adaptivePrimary,
-                                                        maxLines = 1,
-                                                        overflow = TextOverflow.Ellipsis
-                                                    )
-                                                }
-                                            }
-                                        }
-
                                         Text(
                                             text = displayedMetadata?.title ?: "Unknown",
                                             style = MaterialTheme.typography.headlineSmall,
@@ -1494,10 +1449,9 @@ fun PlayerV2(
                                                 .background(adaptiveSecondary.copy(alpha = 0.25f))
                                         )
 
-                                        // Right Half: Listen Together / SharePlay
+                                        // Right Half: Listen Together (Read-Only User Count)
                                         Row(
                                             modifier = Modifier
-                                                .clickable { showListenTogetherDialog = true }
                                                 .padding(horizontal = 14.dp, vertical = 8.dp),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -1607,13 +1561,6 @@ fun PlayerV2(
         
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
-        }
-        if (showListenTogetherDialog) {
-            ListenTogetherDialog(
-                visible = showListenTogetherDialog,
-                mediaMetadata = mediaMetadata,
-                onDismiss = { showListenTogetherDialog = false }
-            )
         }
     }
 }
