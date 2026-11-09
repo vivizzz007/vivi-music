@@ -53,6 +53,7 @@ import com.music.vivi.ui.component.Material3SettingsItem
 
 import com.music.vivi.ui.theme.OutfitFontFamily
 import com.music.vivi.ui.theme.PlusJakartaSansFontFamily
+import com.music.vivi.ui.theme.SfProDisplayFontFamily
 import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 
@@ -117,7 +118,7 @@ fun FontSelectionScreen(
     val activeFontFamily = remember(selectedFont, customFontPath) {
         when (AppFont.fromValue(selectedFont)) {
             AppFont.SYSTEM -> FontFamily.Default
-
+            AppFont.SF_PRO -> SfProDisplayFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
             AppFont.CUSTOM -> {
@@ -209,6 +210,31 @@ fun FontSelectionScreen(
                             )
                         },
                         onClick = { onSelectedFontChange(AppFont.SYSTEM.value) }
+                    )
+                )
+
+                add(
+                    Material3SettingsItem(
+                        leadingContent = {
+                            AnimatedRadioButton(
+                                selected = selectedFont == AppFont.SF_PRO.value,
+                                onClick = null
+                            )
+                        },
+                        title = {
+                            Text(
+                                text = stringResource(R.string.font_sf_pro),
+                                fontFamily = SfProDisplayFontFamily,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        },
+                        description = {
+                            Text(
+                                text = stringResource(R.string.font_sf_pro_desc),
+                                fontFamily = SfProDisplayFontFamily
+                            )
+                        },
+                        onClick = { onSelectedFontChange(AppFont.SF_PRO.value) }
                     )
                 )
 

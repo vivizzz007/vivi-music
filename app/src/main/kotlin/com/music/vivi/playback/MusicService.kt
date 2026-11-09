@@ -46,6 +46,7 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
@@ -187,6 +188,7 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.extensions.toPersistQueue
 import com.music.vivi.extensions.toQueue
 import com.music.vivi.lyrics.LyricsHelper
+import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.PersistPlayerState
 import com.music.vivi.models.PersistQueue
 import com.music.vivi.models.toMediaMetadata
@@ -290,7 +292,7 @@ class MusicService :
         private set//improvement
 
     private var crossfadeEnabled = false
-    private var crossfadeDuration = 5000f
+    private var crossfadeDuration = 6000f
     private var crossfadeGapless = true
     private var crossfadeManualSkipEnabled = false
     private var crossfadeCurve = CrossfadeCurve.EASE_OUT_QUAD
@@ -321,6 +323,7 @@ class MusicService :
             Timber.tag(TAG).e(error, "Secondary player error")
             secondaryPlayer?.stop()
             secondaryPlayer?.clearMediaItems()
+            releaseSecondaryLoudnessEnhancer()
             secondaryPlayer = null
         }
     }
@@ -347,7 +350,7 @@ class MusicService :
     val radioChips = MutableStateFlow<List<RadioChip>>(emptyList())
     private var radioChipsJob: Job? = null
 
-    val currentMediaMetadata = MutableStateFlow<com.music.vivi.models.MediaMetadata?>(null)
+    val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     private val currentSong =
         currentMediaMetadata
             .flatMapLatest { mediaMetadata ->
@@ -404,6 +407,10 @@ class MusicService :
     private var secondaryPlayer: ExoPlayer? = null
     private var fadingPlayer: ExoPlayer? = null
     private var isCrossfading = false
+    val isCrossfadingFlow = MutableStateFlow(false)
+    val crossfadeOutgoingItem = MutableStateFlow<MediaMetadata?>(null)
+    val crossfadeIncomingItem = MutableStateFlow<MediaMetadata?>(null)
+    val crossfadeProgressFlow = MutableStateFlow(0f)
     private var crossfadeJob: Job? = null
 
     private lateinit var mediaSession: MediaLibrarySession
@@ -430,6 +437,8 @@ class MusicService :
     // remember which session the current one was created for, and keep the outgoing
     // player's enhancer alive (as `fadingLoudnessEnhancer`) until its fade-out is done.
     private var loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+    private var secondaryLoudnessEnhancer: LoudnessEnhancer? = null
+    private var secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
     private var fadingLoudnessEnhancer: LoudnessEnhancer? = null
 
     private var discordRpc: DiscordRPC? = null
@@ -452,14 +461,45 @@ class MusicService :
 
     private var consecutivePlaybackErr = 0
     private var retryJob: Job? = null
-    private var queueLoadJob: Job? = null
+    private var playQueueJob: Job? = null
     private var retryCount = 0
     private var silenceSkipJob: Job? = null
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
     private var prefetchJob: Job? = null
 
+    private data class CachedStream(
+        val url: String,
+        val expiresAtMs: Long,
+        val requestHeaders: Map<String, String>,
+        val clientName: String,
+        val requireBoundedRange: Boolean = false,
+        val rangeChunkSizeBytes: Long = 0L,
+        val useRangeChunks: Boolean = false,
+    )
+
+    private fun DataSpec.withResolvedStream(stream: CachedStream): DataSpec {
+        val combinedHeaders = if (stream.requestHeaders.isNotEmpty()) {
+            httpRequestHeaders + stream.requestHeaders
+        } else {
+            httpRequestHeaders
+        }
+        val resolved = withUri(stream.url.toUri())
+            .buildUpon()
+            .setHttpRequestHeaders(combinedHeaders)
+            .build()
+        if ((!stream.requireBoundedRange && !stream.useRangeChunks) || stream.rangeChunkSizeBytes <= 0L) {
+            return resolved
+        }
+        val boundedLength = if (length == C.LENGTH_UNSET.toLong()) {
+            stream.rangeChunkSizeBytes
+        } else {
+            minOf(length, stream.rangeChunkSizeBytes)
+        }
+        return resolved.subrange(0, boundedLength)
+    }
+
     // URL cache for stream URLs - class-level so it can be invalidated on errors
-    private val songUrlCache = HashMap<String, Pair<String, Long>>()
+    private val songUrlCache = HashMap<String, CachedStream>()
 
     // Flag to bypass cache when quality changes - forces fresh stream fetch
     private val bypassCacheForQualityChange = mutableSetOf<String>()
@@ -574,6 +614,7 @@ class MusicService :
 
         // Mark player as initialized after successful creation
         playerInitialized.value = true
+        _playerFlow.value = player
         Timber.tag(TAG).d("Player successfully initialized")
 
         audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -950,7 +991,10 @@ class MusicService :
                 .distinctUntilChanged(),
         ) { format, normalizeAudio ->
             format to normalizeAudio
-        }.collectLatest(scope) { (format, normalizeAudio) -> setupLoudnessEnhancer()}
+        }.collectLatest(scope) { (format, normalizeAudio) ->
+            setupLoudnessEnhancer()
+            secondaryPlayer?.let { setupSecondaryLoudnessEnhancer(it) }
+        }
 
         combine(
             dataStore.data.map { it[AudioOffload] ?: false },
@@ -1112,7 +1156,7 @@ class MusicService :
             dataStore.data.map { prefs ->
                 CrossfadeSettings(
                     enabled = prefs[CrossfadeEnabledKey] ?: false,
-                    durationSeconds = prefs[CrossfadeDurationKey] ?: 5f,
+                    durationSeconds = prefs[CrossfadeDurationKey] ?: 6f,
                     gapless = prefs[CrossfadeGaplessKey] ?: true,
                     manualSkip = prefs[CrossfadeManualSkipKey] ?: false,
                     curve = prefs[CrossfadeCurveKey].toEnum(CrossfadeCurve.EASE_OUT_QUAD),
@@ -1300,7 +1344,6 @@ class MusicService :
 
                 // Cleanup handled manually in onDestroy/release
             }
-        _playerFlow.value = player
         return player
     }
 
@@ -1571,21 +1614,30 @@ class MusicService :
             }
         }
         if (!database.hasRelatedSongs(mediaId)) {
-            val relatedEndpoint =
-                YouTube.next(WatchEndpoint(videoId = mediaId)).getOrNull()?.relatedEndpoint
-                    ?: return
-            val relatedPage = YouTube.related(relatedEndpoint).getOrNull() ?: return
-            database.query {
-                relatedPage.songs
-                    .map(SongItem::toMediaMetadata)
-                    .onEach(::insert)
-                    .map {
-                        RelatedSongMap(
-                            songId = mediaId,
-                            relatedSongId = it.id
-                        )
-                    }
-                    .forEach(::insert)
+            val nextResult = YouTube.next(WatchEndpoint(videoId = mediaId)).getOrNull()
+            val candidateSongs = mutableListOf<SongItem>()
+
+            nextResult?.relatedEndpoint?.let { endpoint ->
+                YouTube.related(endpoint).getOrNull()?.songs?.let { candidateSongs.addAll(it) }
+            }
+
+            if (candidateSongs.isEmpty() && nextResult != null && nextResult.items.isNotEmpty()) {
+                candidateSongs.addAll(nextResult.items.filter { it.id != mediaId })
+            }
+
+            if (candidateSongs.isNotEmpty()) {
+                database.query {
+                    candidateSongs
+                        .map(SongItem::toMediaMetadata)
+                        .onEach(::insert)
+                        .map {
+                            RelatedSongMap(
+                                songId = mediaId,
+                                relatedSongId = it.id
+                            )
+                        }
+                        .forEach(::insert)
+                }
             }
         }
     }
@@ -1605,6 +1657,9 @@ class MusicService :
             }
             return
         }
+
+        playQueueJob?.cancel()
+        playQueueJob = null
 
         // Manually switching to a different song — tapping a track in a
         // playlist/album/queue, not just pressing next/previous — is still a
@@ -1671,14 +1726,15 @@ class MusicService :
             player.prepare()
             player.playWhenReady = playWhenReady
         }
-        queueLoadJob?.cancel()
-        queueLoadJob = scope.launch(SilentHandler) {
+        playQueueJob?.cancel()
+        playQueueJob = scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
                     queue.getInitialStatus()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
+            if (!isActive || currentQueue != queue) return@launch
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
@@ -1715,6 +1771,8 @@ class MusicService :
                     Timber.tag(TAG).d("playQueue: startQueueCrossfade returned false, falling back to instant replace")
                 }
             }
+
+            if (!isActive || currentQueue != queue) return@launch
 
             if (queue.preloadItem != null) {
                 val actualIndex = initialStatus.items.indexOfFirst { it.mediaId == queue.preloadItem!!.id }
@@ -1780,7 +1838,7 @@ class MusicService :
         val currentIndex = player.currentMediaItemIndex
         val currentMediaId = currentMediaMetadata.id
 
-        scope.launch(SilentHandler) {
+        playQueueJob = scope.launch(SilentHandler) {
             // Use simple videoId to let YouTube personalize recommendations
             val radioQueue = YouTubeQueue(
                 endpoint = WatchEndpoint(
@@ -1878,7 +1936,7 @@ class MusicService :
                 params = chip.params
             )
 
-        scope.launch(SilentHandler) {
+        playQueueJob = scope.launch(SilentHandler) {
             val radioQueue = YouTubeQueue(
                 endpoint = endpoint
             )
@@ -2081,8 +2139,8 @@ class MusicService :
     }
 
     fun stopPlayback() {
-        queueLoadJob?.cancel()
-        queueLoadJob = null
+        playQueueJob?.cancel()
+        playQueueJob = null
         player.stop()
         player.clearMediaItems()
     }
@@ -2408,6 +2466,96 @@ class MusicService :
         }
     }
 
+    private fun setupSecondaryLoudnessEnhancer(targetPlayer: ExoPlayer) {
+        val audioSessionId = targetPlayer.audioSessionId
+        if (audioSessionId == C.AUDIO_SESSION_ID_UNSET || audioSessionId <= 0) {
+            Timber.tag(TAG).w("setupSecondaryLoudnessEnhancer: invalid audioSessionId ($audioSessionId)")
+            return
+        }
+
+        if (secondaryLoudnessEnhancer != null && secondaryLoudnessEnhancerSessionId != audioSessionId) {
+            Timber.tag(TAG).d("Secondary LoudnessEnhancer session changed ($secondaryLoudnessEnhancerSessionId -> $audioSessionId), recreating")
+            releaseSecondaryLoudnessEnhancer()
+        }
+
+        if (secondaryLoudnessEnhancer == null) {
+            try {
+                secondaryLoudnessEnhancer = LoudnessEnhancer(audioSessionId)
+                secondaryLoudnessEnhancerSessionId = audioSessionId
+                Timber.tag(TAG).d("Secondary LoudnessEnhancer created for sessionId=$audioSessionId")
+            } catch (e: Exception) {
+                reportException(e)
+                secondaryLoudnessEnhancer = null
+                secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+                return
+            }
+        }
+        val enhancer = secondaryLoudnessEnhancer ?: return
+
+        scope.launch {
+            try {
+                val currentMediaId = withContext(Dispatchers.Main) {
+                    targetPlayer.currentMediaItem?.mediaId
+                }
+
+                val normalizeAudio = withContext(Dispatchers.IO) {
+                    dataStore.data.map { it[AudioNormalizationKey] ?: true }.first()
+                }
+
+                if (normalizeAudio && currentMediaId != null) {
+                    val format = withContext(Dispatchers.IO) {
+                        database.format(currentMediaId).first()
+                    }
+                    val loudness = format?.loudnessDb ?: format?.perceptualLoudnessDb
+
+                    withContext(Dispatchers.Main) {
+                        if (secondaryPlayer !== targetPlayer || secondaryLoudnessEnhancer !== enhancer) return@withContext
+
+                        if (loudness != null) {
+                            val loudnessDb = loudness.toFloat()
+                            val targetGain = (-loudnessDb * 100).toInt()
+                            val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
+
+                            try {
+                                enhancer.setTargetGain(clampedGain)
+                                enhancer.enabled = true
+                                Timber.tag(TAG).i("Secondary LoudnessEnhancer gain applied: $clampedGain mB")
+                            } catch (e: Exception) {
+                                Timber.tag(TAG).e(e, "Failed to apply secondary loudness enhancement")
+                                reportException(e)
+                                releaseSecondaryLoudnessEnhancer()
+                            }
+                        } else {
+                            enhancer.enabled = false
+                            Timber.tag(TAG).w("Secondary normalization: no loudness data available")
+                        }
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        if (secondaryPlayer !== targetPlayer || secondaryLoudnessEnhancer !== enhancer) return@withContext
+                        enhancer.enabled = false
+                    }
+                }
+            } catch (e: Exception) {
+                reportException(e)
+                if (secondaryLoudnessEnhancer === enhancer) releaseSecondaryLoudnessEnhancer()
+            }
+        }
+    }
+
+    private fun releaseSecondaryLoudnessEnhancer() {
+        try {
+            secondaryLoudnessEnhancer?.release()
+            Timber.tag(TAG).d("Secondary LoudnessEnhancer released")
+        } catch (e: Exception) {
+            reportException(e)
+            Timber.tag(TAG).e(e, "Error releasing secondary LoudnessEnhancer: ${e.message}")
+        } finally {
+            secondaryLoudnessEnhancer = null
+            secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+        }
+    }
+
     private fun openAudioEffectSession() {
         if (isAudioEffectSessionOpened) return
         isAudioEffectSessionOpened = true
@@ -2455,6 +2603,7 @@ class MusicService :
             }
         }
         previousMediaItemIndex = player.currentMediaItemIndex
+        currentMediaMetadata.value = player.currentMetadata
 
         lastPlaybackSpeed = -1.0f // force update song
 
@@ -2558,7 +2707,7 @@ class MusicService :
 
         // Nothing to do — URL is already cached and hasn't expired
         val cachedEntry = songUrlCache[nextMediaId]
-        if (cachedEntry != null && cachedEntry.second > System.currentTimeMillis()) return
+        if (cachedEntry != null && cachedEntry.expiresAtMs > System.currentTimeMillis()) return
 
         prefetchJob = scope.launch(Dispatchers.IO + SilentHandler) {
             Timber.tag(TAG).d("[Prefetch] Resolving stream URL for next track: $nextMediaId")
@@ -2574,8 +2723,15 @@ class MusicService :
                 // Only write to cache if the job wasn't cancelled while we were resolving
                 if (isActive) {
                     songUrlCache[nextMediaId] =
-                        playbackData.streamUrl to
-                            System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
+                        CachedStream(
+                            url = playbackData.streamUrl,
+                            expiresAtMs = System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L),
+                            requestHeaders = playbackData.streamHeaders,
+                            clientName = playbackData.streamClient,
+                            requireBoundedRange = playbackData.requireBoundedRange,
+                            rangeChunkSizeBytes = playbackData.rangeChunkSizeBytes,
+                            useRangeChunks = playbackData.useRangeChunks,
+                        )
                     Timber.tag(TAG).d("[Prefetch] Cached stream URL for $nextMediaId (expires in ${playbackData.streamExpiresInSeconds}s)")
 
                     playbackData.format?.let { format ->
@@ -2668,7 +2824,9 @@ class MusicService :
     ) {
         if (events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
-                Player.EVENT_PLAY_WHEN_READY_CHANGED
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_TIMELINE_CHANGED,
+                Player.EVENT_TRACKS_CHANGED
             )
         ) {
             scheduleCrossfade()
@@ -3018,8 +3176,9 @@ class MusicService :
                 return
             }
             isExpiredUrlError(error) -> {
-                Timber.tag(TAG).d("Expired URL (403) detected, refreshing stream URL")
-                handleExpiredUrlError(mediaId)
+                val failedClient = mediaId?.let { songUrlCache[it]?.clientName }
+                Timber.tag(TAG).d("Expired URL (403) detected for $mediaId (client=$failedClient), refreshing stream URL")
+                handleExpiredUrlError(mediaId, failedClient)
                 return
             }
 
@@ -3255,7 +3414,7 @@ class MusicService :
     /**
      * Handles expired URL (403) errors by clearing caches and retrying.
      */
-    private fun handleExpiredUrlError(mediaId: String?) {
+    private fun handleExpiredUrlError(mediaId: String?, failedStreamClient: String? = null) {
         if (mediaId == null) {
             handleFinalFailure()
             return
@@ -3263,11 +3422,18 @@ class MusicService :
 
         incrementRetryCount(mediaId)
 
+        val client = failedStreamClient ?: songUrlCache[mediaId]?.clientName
+        client?.let { InnerTubeXPlayer.markStreamClientFailed(mediaId, it) }
+
         // Clear the cached URL
         songUrlCache.remove(mediaId)
-        Timber.tag(TAG).d("Cleared cached URL for $mediaId")
+        Timber.tag(TAG).d("Cleared cached URL for $mediaId (client=$client)")
 
-
+        scope.launch {
+            if (InnerTubeXPlayer.refreshAfterStreamRejection()) {
+                Timber.tag(TAG).d("Player config refreshed after stream rejection")
+            }
+        }
 
         retryJob?.cancel()
         retryJob = scope.launch {
@@ -3489,9 +3655,9 @@ class MusicService :
                     return@Factory dataSpec
                 }
 
-                songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
+                songUrlCache[mediaId]?.takeIf { it.expiresAtMs > System.currentTimeMillis() }?.let { cached ->
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                    return@Factory dataSpec.withUri(it.first.toUri())
+                    return@Factory dataSpec.withResolvedStream(cached)
                 }
             } else {
                 Timber.tag("MusicService").i("BYPASSING CACHE for $mediaId due to quality change")
@@ -3569,11 +3735,19 @@ class MusicService :
                     Timber.tag("MusicService").d("Cleared bypass cache flag for $mediaId after fresh fetch")
                 }
 
-                val streamUrl = nonNullPlayback.streamUrl
+                Timber.tag("MusicService").i("STREAM RESOLVED: $mediaId | client=${nonNullPlayback.streamClient} | itag=${nonNullPlayback.format.itag} | bitrate=${nonNullPlayback.format.bitrate} | bounded=${nonNullPlayback.requireBoundedRange}")
 
-                songUrlCache[mediaId] =
-                    streamUrl to System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L)
-                return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+                val cached = CachedStream(
+                    url = nonNullPlayback.streamUrl,
+                    expiresAtMs = System.currentTimeMillis() + (nonNullPlayback.streamExpiresInSeconds * 1000L),
+                    requestHeaders = nonNullPlayback.streamHeaders,
+                    clientName = nonNullPlayback.streamClient,
+                    requireBoundedRange = nonNullPlayback.requireBoundedRange,
+                    rangeChunkSizeBytes = nonNullPlayback.rangeChunkSizeBytes,
+                    useRangeChunks = nonNullPlayback.useRangeChunks,
+                )
+                songUrlCache[mediaId] = cached
+                return@Factory dataSpec.withResolvedStream(cached)
             }
         }
     }
@@ -3700,17 +3874,30 @@ class MusicService :
                 val watchtimeUrl = freshPlayerResponse?.playbackTracking?.videostatsWatchtimeUrl?.baseUrl
                 
                 playbackUrl?.let { baseUrl ->
-                    YouTube.registerPlayback(null, baseUrl)
-                        .onSuccess {
-                            // Also optionally ping watchtime to be absolutely sure the view registers
-                            watchtimeUrl?.let { wtUrl -> 
-                                YouTube.registerPlayback(null, wtUrl)
-                            }
-                            playbackRegistered.tryEmit(mediaItem.mediaId)
+                    val cpn = YouTube.generateCpn()
+                    val playTimeSeconds = playbackStats.totalPlayTimeMs / 1000f
+
+                    YouTube.registerPlayback(
+                        url = baseUrl,
+                        playlistId = null,
+                        cpn = cpn
+                    ).onSuccess {
+                        // Also ping watchtime with matching cpn and play time duration so YouTube's recommendation engine accurately registers user's hearing
+                        watchtimeUrl?.let { wtUrl -> 
+                            YouTube.registerPlayback(
+                                url = wtUrl,
+                                playlistId = null,
+                                cpn = cpn,
+                                cmt = playTimeSeconds,
+                                st = 0f,
+                                et = playTimeSeconds,
+                                state = "playing"
+                            )
                         }
-                        .onFailure {
-                            reportException(it)
-                        }
+                        playbackRegistered.tryEmit(mediaItem.mediaId)
+                    }.onFailure {
+                        reportException(it)
+                    }
                 }
             }
         }
@@ -3811,11 +3998,14 @@ class MusicService :
         connectivityObserver.unregister()
         abandonAudioFocus()
         releaseLoudnessEnhancer()
+        releaseSecondaryLoudnessEnhancer()
         releaseFadingLoudnessEnhancer()
         mediaSession.release()
         // If the service goes away mid-crossfade, the outgoing (and any not-yet-swapped
         // incoming) player is not `player`, so it would keep playing as an orphan and the
         // fade coroutine would wait forever on the released primary. Tear all of it down.
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         crossfadeJob?.cancel()
@@ -3840,6 +4030,10 @@ class MusicService :
         }
         secondaryPlayer = null
         isCrossfading = false
+        isCrossfadingFlow.value = false
+        crossfadeOutgoingItem.value = null
+        crossfadeIncomingItem.value = null
+        crossfadeProgressFlow.value = 0f
         player.removeListener(this)
         player.removeListener(sleepTimer)
         releaseExoPlayer(player)
@@ -4005,12 +4199,16 @@ class MusicService :
         crossfadeTriggerJob = null
         if (isCrossfading) return
         if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
-        if (crossfadeGapless && isNextItemGapless()) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
 
         val triggerTime = player.duration - crossfadeDuration.toLong()
         val delayMs = triggerTime - player.currentPosition
-        if (delayMs <= 0) return
+        if (delayMs <= 0) {
+            if (player.isPlaying && player.currentPosition < player.duration && !sleepTimer.pauseWhenSongEnd) {
+                startCrossfade()
+            }
+            return
+        }
 
         val targetMediaId = player.currentMediaItem?.mediaId
 
@@ -4124,6 +4322,8 @@ class MusicService :
         if (player.duration == C.TIME_UNSET) return false
         if (crossfadeGapless && isNextItemGapless()) return false
 
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         startCrossfade(CrossfadeTrigger.MANUAL_NEXT)
@@ -4138,16 +4338,10 @@ class MusicService :
      * actually moves to the previous track, not the restart branch.
      */
     fun manualSkipToPreviousWithCrossfade(): Boolean {
-        if (!crossfadeEnabled || !crossfadeManualSkipEnabled) return false
-        if (isCrossfading) return false
-        if (castConnectionHandler?.isCasting?.value == true) return false
-        if (!player.hasPreviousMediaItem()) return false
-        if (player.duration == C.TIME_UNSET) return false
-
-        crossfadeTriggerJob?.cancel()
-        crossfadeTriggerJob = null
-        startCrossfade(CrossfadeTrigger.MANUAL_PREVIOUS)
-        return isCrossfading
+        // Apple Music AutoMix is strictly forward-facing; skipping to previous track
+        // should instantly jump back without waiting for a crossfade dissolve.
+        cancelCrossfadeIfActive()
+        return false
     }
 
     /**
@@ -4173,6 +4367,8 @@ class MusicService :
         if (player.duration == C.TIME_UNSET) return false
         if (!player.isPlaying) return false
 
+        playQueueJob?.cancel()
+        playQueueJob = null
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         startCrossfadeToIndex(targetIndex)
@@ -4364,93 +4560,154 @@ class MusicService :
     }
 
     private fun performCrossfadeSwap() {
-        isCrossfading = true
         val nextPlayer = secondaryPlayer ?: return
         val currentPlayer = player
 
-        fadingPlayer = currentPlayer
-        player = nextPlayer
-        _playerFlow.value = player
-        secondaryPlayer = null
+        // Immediately set up audio normalization for the incoming player before it fades in
+        setupSecondaryLoudnessEnhancer(nextPlayer)
 
-        // Audio normalization follows the audio session, and the incoming player has a
-        // different one. Keep the outgoing player's enhancer alive so it stays normalized
-        // while it fades out, and create a fresh one for the new primary player so the
-        // incoming track is normalized from the first sample (and stays so afterwards).
-        releaseFadingLoudnessEnhancer()
-        fadingLoudnessEnhancer = loudnessEnhancer
-        loudnessEnhancer = null
-        loudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
-        setupLoudnessEnhancer()
+        isCrossfading = true
+        crossfadeOutgoingItem.value = currentPlayer.currentMetadata
+        crossfadeIncomingItem.value = nextPlayer.currentMetadata
+        crossfadeProgressFlow.value = 0f
+        isCrossfadingFlow.value = true
 
-        fadingPlayer?.removeListener(this)
-        fadingPlayer?.removeListener(sleepTimer)
+        currentPlayer.pauseAtEndOfMediaItems = true
 
-        // Add listener to sync play/pause state
-        player.addListener(object : Player.Listener {
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isCrossfading && fadingPlayer != null) {
-                    if (isPlaying) {
-                        fadingPlayer?.play()
-                    } else {
-                        fadingPlayer?.pause()
+        // Add listener to sync play/pause state from primary to incoming player only on user request
+        val playPauseListener = object : Player.Listener {
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                if (isCrossfading && secondaryPlayer != null) {
+                    if (reason == Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) {
+                        secondaryPlayer?.playWhenReady = playWhenReady
                     }
-                } else {
-                    player.removeListener(this)
                 }
             }
-        })
+        }
+        currentPlayer.addListener(playPauseListener)
 
-        nextPlayer.removeListener(secondaryPlayerListener)
-        nextPlayer.addListener(this)
-        nextPlayer.addListener(sleepTimer)
+        crossfadeJob?.cancel()
+        crossfadeJob = scope.launch {
+            val duration = crossfadeDuration.toLong()
+            val steps = 50
+            val stepTime = (duration / steps).coerceAtLeast(20L)
+            val startVolume = try { currentPlayer.volume } catch (_: Exception) { 1f }
+            var secondaryEnhancerReady = secondaryLoudnessEnhancer != null
+
+            for (i in 0..steps) {
+                if (!isActive) break
+                // Pause volume ramp only if user paused playback
+                while (!currentPlayer.playWhenReady && !nextPlayer.playWhenReady && isActive &&
+                    currentPlayer.playbackState != Player.STATE_ENDED) {
+                    delay(100)
+                }
+
+                // Audio session may be assigned lazily — retry normalization setup until it sticks
+                if (!secondaryEnhancerReady) {
+                    setupSecondaryLoudnessEnhancer(nextPlayer)
+                    secondaryEnhancerReady = secondaryLoudnessEnhancer != null
+                }
+
+                // If outgoing track reached the end, stop waiting and finalize immediately
+                if (currentPlayer.playbackState == Player.STATE_ENDED ||
+                    (!currentPlayer.isPlaying && currentPlayer.duration != C.TIME_UNSET && currentPlayer.currentPosition >= (currentPlayer.duration - 500L).coerceAtLeast(0L))
+                ) {
+                    Timber.tag(TAG).d("Crossfade: Song A reached end at step $i, finalizing immediately")
+                    break
+                }
+
+                val progress = (i / steps.toFloat()).coerceIn(0f, 1f)
+                crossfadeProgressFlow.value = progress
+
+                val fadeIn = crossfadeCurve.fadeIn(progress)
+                val fadeOut = crossfadeCurve.fadeOut(progress)
+
+                try {
+                    nextPlayer.volume = startVolume * fadeIn
+                    currentPlayer.volume = startVolume * fadeOut
+                } catch (_: Exception) { break }
+
+                delay(stepTime)
+            }
+
+            try {
+                currentPlayer.removeListener(playPauseListener)
+                finalizeCrossfadeSwap(currentPlayer, nextPlayer, startVolume)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Error finalizing crossfade swap")
+            }
+        }
+    }
+
+    private fun finalizeCrossfadeSwap(oldPlayer: ExoPlayer, newPlayer: ExoPlayer, targetVolume: Float) {
+        val incomingMeta = newPlayer.currentMetadata
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: swapping to ${incomingMeta?.title} (id=${incomingMeta?.id})")
+
+        fadingPlayer = oldPlayer
+        player = newPlayer
+        secondaryPlayer = null
+
+        // Audio normalization handover:
+        // Keep Song A's (outgoing) enhancer alive while it fades out as fadingPlayer,
+        // then promote Song B's pre-initialized enhancer directly to primary — no DB query delay.
+        releaseFadingLoudnessEnhancer()
+        fadingLoudnessEnhancer = loudnessEnhancer
+
+        loudnessEnhancer = secondaryLoudnessEnhancer
+        loudnessEnhancerSessionId = secondaryLoudnessEnhancerSessionId
+        secondaryLoudnessEnhancer = null
+        secondaryLoudnessEnhancerSessionId = C.AUDIO_SESSION_ID_UNSET
+
+        // If secondary enhancer was not yet initialized or failed, set it up now
+        if (loudnessEnhancer == null) {
+            setupLoudnessEnhancer()
+        }
+
+        oldPlayer.removeListener(this)
+        oldPlayer.removeListener(sleepTimer)
+
+        newPlayer.removeListener(secondaryPlayerListener)
+        newPlayer.addListener(this)
+        newPlayer.addListener(sleepTimer)
 
         sleepTimer.player = player
 
         try {
             (mediaSession as MediaSession).player = player
         } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to swap player in MediaSession")
+            Timber.tag(TAG).e(e, "Failed to swap player in MediaSession")
         }
 
-        // The new primary was seeked to its target before we attached as listener, so
-        // onMediaItemTransition() is never called for it. Do the parts of that callback that
-        // keep the queue healthy: keep the "previous index" in sync, load more songs near the
-        // end of the queue, and pre-resolve the next stream URL.
         previousMediaItemIndex = player.currentMediaItemIndex
+        currentMediaMetadata.value = incomingMeta
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: currentMediaMetadata updated to ${incomingMeta?.title}")
+
+        try {
+            player.volume = targetVolume
+            player.pauseAtEndOfMediaItems = false
+            player.playWhenReady = true
+            player.play()
+        } catch (_: Exception) {}
+
+        // Emit new player FIRST so PlayerConnection attaches to newPlayer before oldPlayer is cleared
+        _playerFlow.value = null
+        _playerFlow.value = player
+        Timber.tag(TAG).d("finalizeCrossfadeSwap: _playerFlow emitted for new player: ${player.currentMetadata?.title}")
+
+        cleanupCrossfade()
+
+        updateNotification()
+        updateWidgetUI(player.isPlaying)
+
+        scheduleCrossfade()
         maybeLoadMore(Player.MEDIA_ITEM_TRANSITION_REASON_AUTO)
         prefetchNextTrack()
-
-        crossfadeJob = scope.launch {
-            val duration = crossfadeDuration.toLong()
-            val steps = 20
-            val stepTime = duration / steps
-            val startVolume = try { fadingPlayer?.volume ?: 1f } catch(e:Exception) { 1f }
-
-            for (i in 0..steps) {
-                if (!isActive) break
-                // Pause volume ramp if player is paused
-                while (!player.isPlaying && isActive) {
-                    delay(100)
-                }
-
-                val progress = i / steps.toFloat()
-                val fadeIn = crossfadeCurve.fadeIn(progress)
-                val fadeOut = crossfadeCurve.fadeOut(progress)
-
-                try {
-                    player.volume = startVolume * fadeIn
-                    fadingPlayer?.volume = startVolume * fadeOut
-                } catch (e: Exception) { break }
-
-                delay(stepTime)
-            }
-
-            try {
-                fadingPlayer?.volume = 0f
-                player.volume = startVolume
-                cleanupCrossfade()
-            } catch (e: Exception) { }
+        if (dataStore.get(PersistentQueueKey, true)) {
+            saveQueueToDisk()
+        }
+        scrobbleManager?.onSongStop()
+        if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
+            scrobbleManager?.onSongStart(player.currentMetadata, duration = player.duration)
         }
     }
 
@@ -4460,15 +4717,29 @@ class MusicService :
         fadingPlayer?.let { releaseExoPlayer(it) }
         fadingPlayer = null
         releaseFadingLoudnessEnhancer()
+        releaseSecondaryLoudnessEnhancer()
         isCrossfading = false
+        isCrossfadingFlow.value = false
+        crossfadeOutgoingItem.value = null
+        crossfadeIncomingItem.value = null
+        crossfadeProgressFlow.value = 0f
         sleepTimer.notifySongTransition()
     }
 
     fun cancelCrossfadeIfActive() {
-        if (!isCrossfading) return
+        if (!isCrossfading && secondaryPlayer == null) return
         crossfadeJob?.cancel()
         crossfadeJob = null
         cleanupCrossfade()
+        releaseSecondaryLoudnessEnhancer()
+        secondaryPlayer?.let {
+            try {
+                it.stop()
+                it.clearMediaItems()
+                releaseExoPlayer(it)
+            } catch (_: Exception) {}
+        }
+        secondaryPlayer = null
         try { player.volume = 1f } catch (_: Exception) {}
     }
 

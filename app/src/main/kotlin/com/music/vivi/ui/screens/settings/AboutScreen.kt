@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -120,11 +121,54 @@ fun AboutScreen(
             modifier = Modifier.padding(start = 8.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        AppVersionTile(
-            appName = stringResource(R.string.vivi_music_title),
-            description = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
-            onGithubClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") }
-        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+        ) {
+            ListItem(
+                leadingContent = {
+                    Image(
+                        painter = painterResource(R.drawable.icon),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                    )
+                },
+                colors = ListItemDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                ),
+                headlineContent = {
+                    Text(
+                        text = stringResource(R.string.vivi_music_title),
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                },
+                supportingContent = {
+                    Text(
+                        text = "v${BuildConfig.VERSION_NAME} • ${stringResource(if (BuildConfig.IS_NIGHTLY) R.string.build_nightly else R.string.build_stable)}",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                trailingContent = {
+                    androidx.compose.material3.IconButton(
+                        onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.github),
+                            contentDescription = "GitHub",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            )
+        }
         
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -132,8 +176,47 @@ fun AboutScreen(
         ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
-                    title = { Text(stringResource(R.string.app_developer), color = MaterialTheme.colorScheme.primary) },
-                    description = { Text(stringResource(R.string.developer_name)) },
+                    title = {
+                        Text(
+                            text = stringResource(R.string.developer_name),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    description = {
+                        Surface(
+                            modifier = Modifier.padding(top = 4.dp),
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .clip(cookieShape)
+                                        .background(MaterialTheme.colorScheme.secondary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.check),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondary,
+                                        modifier = Modifier.size(10.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.app_developer),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
+                    },
                     leadingContent = {
                         Image(
                             painter = painterResource(R.drawable.dev),
@@ -260,64 +343,6 @@ fun AboutScreen(
     )
 }
 
-@Composable
-private fun AppVersionTile(
-    appName: String,
-    description: String,
-    onGithubClick: () -> Unit
-) {
-    val containerColor = MaterialTheme.colorScheme.primaryContainer
-    val onContainerColor = MaterialTheme.colorScheme.onPrimaryContainer
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-    ) {
-        ListItem(
-            leadingContent = {
-                Image(
-                    painter = painterResource(R.drawable.icon),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                )
-            },
-            colors = ListItemDefaults.colors(
-                containerColor = containerColor
-            ),
-            headlineContent = {
-                Text(
-                    text = appName,
-                    color = onContainerColor,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            },
-            supportingContent = {
-                Text(
-                    text = description,
-                    color = onContainerColor.copy(alpha = 0.7f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            trailingContent = {
-                androidx.compose.material3.IconButton(
-                    onClick = onGithubClick,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = containerColor
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.github),
-                        contentDescription = "GitHub",
-                        tint = onContainerColor
-                    )
-                }
-            }
-        )
-    }
-}
 
 @Composable
 private fun SupportDialog(

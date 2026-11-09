@@ -18,7 +18,8 @@ fun CastButton(
     modifier: Modifier = Modifier,
     tintColor: Color = MaterialTheme.colorScheme.onSurface,
     activeTintColor: Color = MaterialTheme.colorScheme.primary,
-    showBackground: Boolean = true
+    showBackground: Boolean = true,
+    customIconRes: Int? = null
 ) {
     // No-op: Cast not available in FOSS build
 }

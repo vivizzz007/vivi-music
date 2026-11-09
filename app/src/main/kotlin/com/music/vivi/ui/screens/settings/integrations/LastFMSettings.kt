@@ -52,6 +52,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -74,7 +76,9 @@ import com.music.vivi.ui.component.DefaultDialog
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.component.TextFieldDialog
 import com.music.vivi.ui.utils.backToMain
+import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.reportException
@@ -97,6 +101,8 @@ fun LastFMSettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) { 
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
 
     var lastfmUsername by rememberPreference(LastFMUsernameKey, "")
     var lastfmSession by rememberPreference(LastFMSessionKey, "")
@@ -153,6 +159,21 @@ fun LastFMSettings(
     var showLoginDialog by rememberSaveable { mutableStateOf(false) }
     var isLoggingIn by rememberSaveable { mutableStateOf(false) }
     var loginError by rememberSaveable { mutableStateOf<String?>(null) }
+    var showEnterUsernameDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showEnterUsernameDialog) {
+        TextFieldDialog(
+            onDismiss = { showEnterUsernameDialog = false },
+            title = { Text(stringResource(R.string.view_listening_history)) },
+            placeholder = { Text(stringResource(R.string.username)) },
+            singleLine = true,
+            onDone = { username ->
+                if (username.isNotBlank()) {
+                    uriHandler.safeOpenUri(context, "https://www.last.fm/user/${username.trim()}")
+                }
+            }
+        )
+    }
 
     if (showLoginDialog) {
         var tempUsername by rememberSaveable { mutableStateOf("") }
@@ -385,6 +406,18 @@ fun LastFMSettings(
                             }) {
                                 Text(stringResource(R.string.action_login))
                             }
+                        }
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.history),
+                    title = { Text(stringResource(R.string.view_listening_history)) },
+                    isExternalLink = true,
+                    onClick = {
+                        if (isLoggedIn && lastfmUsername.isNotEmpty()) {
+                            uriHandler.safeOpenUri(context, "https://www.last.fm/user/$lastfmUsername")
+                        } else {
+                            showEnterUsernameDialog = true
                         }
                     }
                 )

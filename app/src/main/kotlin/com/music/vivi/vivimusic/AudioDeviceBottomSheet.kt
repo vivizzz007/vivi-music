@@ -36,6 +36,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +45,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.runtime.key
-import com.music.vivi.vivimusic.shapes.RoundedStarShape
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -69,7 +69,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.progressSemantics
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -91,7 +92,6 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberSliderState
@@ -107,6 +107,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
@@ -123,7 +125,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.foundation.layout.FlowRow
 import com.music.vivi.R
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.constants.AudioQuality
@@ -308,12 +309,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
         containerColor = MaterialTheme.colorScheme.surface,
         modifier = modifier
     ) {
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 16.dp)
                 .padding(bottom = 24.dp)
-                .animateContentSize()
         ) {
             when {
                 isLoading -> {
@@ -373,154 +375,282 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        activeDevice?.let { device ->
-                            // Tappable device row — shows chevron hint when Bluetooth is available
-                            val topShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                            Surface(
-                                shape = topShape,
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier.fillMaxWidth()
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp),
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .animateContentSize(
-                                            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
-                                        ),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    val isActiveDevice = device.isActive
-                                    val containerColor = if (isActiveDevice) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
-                                    val onContainer = if (isActiveDevice) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
-                                    val scallopShape = RoundedStarShape(sides = 8, curve = 0.10, rotation = 0f)
-                                    val backgroundScale by animateFloatAsState(targetValue = if (isActiveDevice) 1.10f else 1f, animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing), label = "activeDeviceScale")
-                                    @DrawableRes val deviceIconRes = when (device.type) { AudioDeviceType.BLUETOOTH -> R.drawable.bluetooth; AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headset_applemusic; AudioDeviceType.USB_HEADSET -> R.drawable.usb; AudioDeviceType.HDMI -> R.drawable.tv; AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple; else -> R.drawable.speaker_apple }
+                                // Section Header matching Volume and Audio Quality
+                                Text(
+                                    text = stringResource(R.string.audio_devices),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(bottom = 12.dp)
+                                )
 
-                                    Surface(modifier = Modifier.weight(1f), color = Color.Transparent, tonalElevation = 0.dp) {
-                                        Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                                            Box(modifier = Modifier.padding(start = 4.dp).size(56.dp), contentAlignment = Alignment.Center) {
-                                                val isBatteryIndicatorArea = device.type == AudioDeviceType.BLUETOOTH && device.batteryLevel != null
-                                                if (!isBatteryIndicatorArea) {
-                                                    Box(modifier = Modifier.matchParentSize().graphicsLayer(scaleX = backgroundScale, scaleY = backgroundScale).background(color = onContainer.copy(alpha = 0.12f), shape = if (isActiveDevice) scallopShape else CircleShape))
-                                                }
-                                                val density = LocalDensity.current
-                                                if (device.type == AudioDeviceType.BLUETOOTH && device.batteryLevel != null) {
-                                                    val strokeWidthPx = with(density) { 4.dp.toPx() }
-                                                    val wavyStroke = remember(strokeWidthPx) { Stroke(width = strokeWidthPx, cap = StrokeCap.Round) }
-                                                    CircularWavyProgressIndicator(progress = { device.batteryLevel.toFloat() / 100f }, modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.primaryContainer, stroke = wavyStroke, trackStroke = wavyStroke, gapSize = 3.dp)
-                                                    Text(text = "${device.batteryLevel}%", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.onSurface, textAlign = TextAlign.Center)
-                                                } else {
-                                                    Icon(painter = painterResource(deviceIconRes), contentDescription = null, tint = onContainer, modifier = Modifier.size(24.dp))
-                                                }
-                                            }
-                                            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    if (device.type == AudioDeviceType.BLUETOOTH) { Icon(painter = painterResource(R.drawable.bluetooth), contentDescription = null, tint = onContainer.copy(alpha = 0.7f), modifier = Modifier.padding(end = 6.dp).size(16.dp)) }
-                                                    Text(text = device.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, color = onContainer, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                                }
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                val statusText = if (isActiveDevice) "Connected" else "Available"
-                                                Row(modifier = Modifier.clip(RoundedCornerShape(50)).background(onContainer.copy(alpha = 0.08f)).padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                                    Text(text = statusText, maxLines = 1, style = MaterialTheme.typography.labelMedium, overflow = TextOverflow.Ellipsis, color = onContainer)
-                                                }
-                                            }
-                                        }
+                                activeDevice?.let { device ->
+                                    val rawBattery = device.batteryLevel
+                                    val hasValidBattery = device.type == AudioDeviceType.BLUETOOTH && rawBattery != null && rawBattery in 0..100
+                                    val batteryProgress by animateFloatAsState(
+                                        targetValue = if (hasValidBattery) (rawBattery!! / 100f).coerceIn(0f, 1f) else 0f,
+                                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                                        label = "batteryArc"
+                                    )
+                                    val chevronRotation by animateFloatAsState(
+                                        targetValue = if (showDevicePopup) 180f else 0f,
+                                        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
+                                        label = "chevron"
+                                    )
+                                    @DrawableRes val activeDeviceIconRes = when (device.type) {
+                                        AudioDeviceType.BLUETOOTH, AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headphones
+                                        AudioDeviceType.USB_HEADSET -> R.drawable.usb
+                                        AudioDeviceType.HDMI -> R.drawable.tv
+                                        AudioDeviceType.PHONE_SPEAKER -> R.drawable.phone_android
+                                        AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple
                                     }
-                                    
-                                    AnimatedVisibility(
-                                        visible = hasBluetooth,
-                                        enter = fadeIn() + expandHorizontally(),
-                                        exit = fadeOut() + shrinkHorizontally()
+
+                                    Surface(
+                                        onClick = { showDevicePopup = !showDevicePopup },
+                                        enabled = hasBluetooth,
+                                        shape = RoundedCornerShape(32.dp),
+                                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        val chevronRotation by animateFloatAsState(
-                                            targetValue = if (showDevicePopup) 180f else 0f,
-                                            animationSpec = tween(durationMillis = 300),
-                                            label = "chevron"
-                                        )
                                         Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.padding(start = 12.dp)
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            val isActive = device.isActive
-                                            IconButton(
-                                                onClick = { showDevicePopup = !showDevicePopup },
-                                                modifier = Modifier.size(48.dp)
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.expand_more),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                        .size(28.dp)
-                                                        .graphicsLayer { rotationZ = chevronRotation },
-                                                    tint = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                            if (hasValidBattery) {
+                                                val progressColor = MaterialTheme.colorScheme.primary
+                                                val trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                                Box(modifier = Modifier.size(56.dp), contentAlignment = Alignment.Center) {
+                                                    Canvas(modifier = Modifier.fillMaxSize()) {
+                                                        val strokeWidth = 8.dp.toPx()
+                                                        val inset = strokeWidth / 2f
+                                                        val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
+                                                        val style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                                        drawArc(
+                                                            color = trackColor,
+                                                            startAngle = 135f,
+                                                            sweepAngle = 270f,
+                                                            useCenter = false,
+                                                            topLeft = Offset(inset, inset),
+                                                            size = arcSize,
+                                                            style = style
+                                                        )
+                                                        drawArc(
+                                                            color = progressColor,
+                                                            startAngle = 135f,
+                                                            sweepAngle = 270f * batteryProgress,
+                                                            useCenter = false,
+                                                            topLeft = Offset(inset, inset),
+                                                            size = arcSize,
+                                                            style = style
+                                                        )
+                                                    }
+                                                    Text(
+                                                        text = "$rawBattery",
+                                                        style = MaterialTheme.typography.labelLarge,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        modifier = Modifier
+                                                            .align(Alignment.Center)
+                                                            .graphicsLayer { translationY = -2.dp.toPx() }
+                                                    )
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.headphones),
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        modifier = Modifier
+                                                            .align(Alignment.BottomCenter)
+                                                            .size(12.dp)
+                                                            .graphicsLayer { translationY = -3.dp.toPx() }
+                                                    )
+                                                }
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier.size(44.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(activeDeviceIconRes),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(24.dp),
+                                                        tint = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.width(14.dp))
+
+                                            Column(modifier = Modifier.weight(1f)) {
+                                                Text(
+                                                    text = if (device.type == AudioDeviceType.PHONE_SPEAKER) {
+                                                        stringResource(R.string.this_phone)
+                                                    } else {
+                                                        device.name
+                                                    },
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = if (hasValidBattery) "Connected · $rawBattery% battery" else "Connected",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+
+                                            if (hasBluetooth) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(width = 32.dp, height = 44.dp)
+                                                        .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.expand_more),
+                                                        contentDescription = null,
+                                                        modifier = Modifier
+                                                            .size(20.dp)
+                                                            .graphicsLayer { rotationZ = chevronRotation },
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        }
 
-                        // Animated in-place device switcher panel
-                        AnimatedVisibility(
-                            visible = hasBluetooth && showDevicePopup,
-                            enter = expandVertically(
-                                animationSpec = tween(300, easing = FastOutSlowInEasing)
-                            ) + fadeIn(tween(200)),
-                            exit = shrinkVertically(
-                                animationSpec = tween(250, easing = FastOutSlowInEasing)
-                            ) + fadeOut(tween(150))
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                val availableDevices = audioDevices.filter { !it.isActive }
-                                availableDevices.forEach { dev ->
-                                    key(dev.deviceId) {
-                                        @DrawableRes val deviceIconRes = when (dev.type) {
-                                            AudioDeviceType.BLUETOOTH -> R.drawable.bluetooth
-                                            AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headset_applemusic
-                                            AudioDeviceType.USB_HEADSET -> R.drawable.usb
-                                            AudioDeviceType.HDMI -> R.drawable.tv
-                                            AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple
-                                            AudioDeviceType.PHONE_SPEAKER -> R.drawable.phone_android
-                                            else -> R.drawable.speaker_apple
-                                        }
+                                // Animated in-place device switcher panel
+                                AnimatedVisibility(
+                                    visible = hasBluetooth && showDevicePopup,
+                                    enter = expandVertically(
+                                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                    ) + fadeIn(
+                                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec()
+                                    ),
+                                    exit = shrinkVertically(
+                                        animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                                    ) + fadeOut(
+                                        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec()
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(top = 10.dp),
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        val availableDevices = audioDevices.filter { !it.isActive }
+                                        availableDevices.forEach { dev ->
+                                            key(dev.deviceId) {
+                                                val devBattery = dev.batteryLevel
+                                                val hasDevBattery = dev.type == AudioDeviceType.BLUETOOTH && devBattery != null && devBattery in 0..100
+                                                @DrawableRes val deviceIconRes = when (dev.type) {
+                                                    AudioDeviceType.BLUETOOTH, AudioDeviceType.WIRED_HEADPHONES -> R.drawable.headphones
+                                                    AudioDeviceType.USB_HEADSET -> R.drawable.usb
+                                                    AudioDeviceType.HDMI -> R.drawable.tv
+                                                    AudioDeviceType.PHONE_SPEAKER -> R.drawable.phone_android
+                                                    AudioDeviceType.EXTERNAL_SPEAKER -> R.drawable.speaker_apple
+                                                }
 
-                                        Surface(
-                                            onClick = {
-                                                service?.setPreferredAudioDevice(dev.deviceId)
-                                                refreshDevices()
-                                                showDevicePopup = false
-                                            },
-                                            shape = RoundedCornerShape(4.dp),
-                                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .padding(horizontal = 16.dp, vertical = 20.dp)
-                                                    .fillMaxWidth(),
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(14.dp)
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(deviceIconRes),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                                Text(
-                                                    text = if (dev.type == AudioDeviceType.PHONE_SPEAKER)
-                                                        stringResource(R.string.this_phone) else dev.name,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontWeight = FontWeight.Medium,
-                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.weight(1f)
-                                                )
+                                                Surface(
+                                                    onClick = {
+                                                        service?.setPreferredAudioDevice(dev.deviceId)
+                                                        refreshDevices()
+                                                        showDevicePopup = false
+                                                    },
+                                                    shape = RoundedCornerShape(20.dp),
+                                                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Row(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                                                        verticalAlignment = Alignment.CenterVertically
+                                                    ) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .size(40.dp)
+                                                                .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Icon(
+                                                                painter = painterResource(deviceIconRes),
+                                                                contentDescription = null,
+                                                                modifier = Modifier.size(22.dp),
+                                                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                            )
+                                                        }
+
+                                                        Spacer(modifier = Modifier.width(14.dp))
+
+                                                        Column(modifier = Modifier.weight(1f)) {
+                                                            Text(
+                                                                text = if (dev.type == AudioDeviceType.PHONE_SPEAKER)
+                                                                    stringResource(R.string.this_phone) else dev.name,
+                                                                style = MaterialTheme.typography.titleMedium,
+                                                                fontWeight = FontWeight.Medium,
+                                                                color = MaterialTheme.colorScheme.onSurface,
+                                                                maxLines = 1,
+                                                                overflow = TextOverflow.Ellipsis
+                                                            )
+                                                            val subtitle = when (dev.type) {
+                                                                AudioDeviceType.PHONE_SPEAKER -> stringResource(R.string.phone_speaker)
+                                                                AudioDeviceType.BLUETOOTH -> if (hasDevBattery) "$devBattery% battery" else null
+                                                                AudioDeviceType.WIRED_HEADPHONES -> stringResource(R.string.wired_headphones)
+                                                                AudioDeviceType.HDMI -> stringResource(R.string.hdmi)
+                                                                else -> null
+                                                            }
+                                                            if (subtitle != null) {
+                                                                Text(
+                                                                    text = subtitle,
+                                                                    style = MaterialTheme.typography.bodySmall,
+                                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                                    maxLines = 1,
+                                                                    overflow = TextOverflow.Ellipsis
+                                                                )
+                                                            }
+                                                        }
+
+                                                        if (hasDevBattery) {
+                                                            val progressColor = MaterialTheme.colorScheme.primary
+                                                            val trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                                            Box(modifier = Modifier.size(34.dp), contentAlignment = Alignment.Center) {
+                                                                Canvas(modifier = Modifier.fillMaxSize()) {
+                                                                    val strokeWidth = 3.5.dp.toPx()
+                                                                    val inset = strokeWidth / 2f
+                                                                    val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
+                                                                    val style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
+                                                                    drawArc(trackColor, -90f, 360f, false, Offset(inset, inset), arcSize, style = style)
+                                                                    drawArc(progressColor, -90f, 360f * (devBattery!! / 100f).coerceIn(0f, 1f), false, Offset(inset, inset), arcSize, style = style)
+                                                                }
+                                                                Text(
+                                                                    text = "$devBattery",
+                                                                    style = MaterialTheme.typography.labelSmall,
+                                                                    fontWeight = FontWeight.SemiBold,
+                                                                    color = MaterialTheme.colorScheme.onSurface
+                                                                )
+                                                            }
+                                                            Spacer(modifier = Modifier.width(4.dp))
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -530,7 +660,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
 
                     // Volume Control
                     var volumeSliderValue by rememberSaveable { mutableFloatStateOf(currentVolume) }
-                    LaunchedEffect(currentVolume) { volumeSliderValue = currentVolume }
+                    var lastNonZeroVolume by rememberSaveable { mutableFloatStateOf(if (currentVolume > 0f) currentVolume else maxVolume * 0.5f) }
+                    LaunchedEffect(currentVolume) {
+                        volumeSliderValue = currentVolume
+                        if (currentVolume > 0f) {
+                            lastNonZeroVolume = currentVolume
+                        }
+                    }
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(4.dp),
@@ -538,18 +674,12 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                     ) {
                         Column(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
-                                Icon(
-                                    painter = painterResource(if (volumeSliderValue > 0) R.drawable.volume_up else R.drawable.volume_off),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(start = 12.dp).size(24.dp)
-                                )
                                 Text(
                                     text = stringResource(R.string.volume),
                                     style = MaterialTheme.typography.titleMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.weight(1f).padding(start = 16.dp, end = 16.dp)
+                                    modifier = Modifier.weight(1f).padding(start = 12.dp, end = 16.dp)
                                 )
                                 val percentage = if (maxVolume > 0) ((volumeSliderValue / maxVolume) * 100).toInt() else 0
                                 Text(
@@ -561,12 +691,13 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                                 )
                             }
                             ViviVolumeSlider(
-                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                                modifier = Modifier.fillMaxWidth(),
                                 value = volumeSliderValue,
                                 onValueChange = { newValue ->
+                                    isUserDragging = true
                                     volumeSliderValue = newValue
                                     currentVolume = newValue
-                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, newValue.toInt(), 0)
+                                    audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, kotlin.math.round(newValue).toInt(), 0)
                                 },
                                 onValueChangeFinished = { isUserDragging = false },
                                 valueRange = 0f..maxVolume.toFloat()
@@ -591,7 +722,10 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
                             )
                             val options = listOf(stringResource(R.string.audio_quality_auto), stringResource(R.string.audio_quality_high), stringResource(R.string.audio_quality_low))
                             val selectedIndex = when (audioQuality) { AudioQuality.AUTO -> 0; AudioQuality.HIGH -> 1; AudioQuality.LOW -> 2; else -> 0 }
-                            FlowRow(modifier = Modifier.padding(horizontal = 16.dp).padding(vertical = 8.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+                            ) {
                                 options.forEachIndexed { index, label ->
                                     ToggleButton(
                                         checked = selectedIndex == index,
@@ -612,11 +746,6 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
         }
     }
 }
-
-
-
-
-
 
 private fun loadDevices(
     context: Context,

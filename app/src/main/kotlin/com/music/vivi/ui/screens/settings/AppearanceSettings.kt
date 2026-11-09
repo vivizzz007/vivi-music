@@ -225,7 +225,7 @@ fun AppearanceSettings(
     )
     val (usePlayerV2, onUsePlayerV2Change) = rememberPreference(
         com.music.vivi.constants.UsePlayerV2Key,
-        defaultValue = false
+        defaultValue = true
     )
     
     val currentPlayerDesign = remember(useNewPlayerDesign, usePlayerV2) {
@@ -280,7 +280,7 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.GRADIENT,
+            defaultValue = PlayerBackgroundStyle.LIVE_MESH,
         )
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
@@ -437,9 +437,7 @@ fun AppearanceSettings(
     )
 
     val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        val blurSupported = it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        val notAppleOnV2 = !(it == PlayerBackgroundStyle.APPLE_MUSIC && currentPlayerDesign == PlayerDesignOption.V2)
-        blurSupported && notAppleOnV2
+        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     }
 
     val availableMiniPlayerBackgroundStyles = availableBackgroundStyles.filter { 
@@ -470,9 +468,6 @@ fun AppearanceSettings(
                     PlayerDesignOption.V2 -> {
                         onUsePlayerV2Change(true)
                         onUseNewPlayerDesignChange(false)
-                        if (playerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
-                            onPlayerBackgroundChange(PlayerBackgroundStyle.DEFAULT)
-                        }
                     }
                 }
                 showPlayerDesignDialog = false
@@ -1304,9 +1299,10 @@ fun AppearanceSettings(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.alphabet_cyrillic),
                         title = { Text(stringResource(R.string.app_font)) },
-                        trailingContent = {
+                        description = {
                             val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
                                 AppFont.SYSTEM -> stringResource(R.string.font_system)
+                                AppFont.SF_PRO -> stringResource(R.string.font_sf_pro)
                                 AppFont.OUTFIT -> stringResource(R.string.font_outfit)
                                 AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
                                 AppFont.CUSTOM -> stringResource(R.string.font_custom)
@@ -1382,7 +1378,7 @@ fun AppearanceSettings(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.nav_bar),
                         title = { Text(stringResource(R.string.mini_player)) },
-                        trailingContent = {
+                        description = {
                             Text(
                                 text = when (currentMiniPlayerDesign) {
                                     MiniPlayerDesignOption.CLASSIC -> stringResource(R.string.classic_mini_player)
@@ -1420,7 +1416,7 @@ fun AppearanceSettings(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.miniplayer_background_style)) },
-                        trailingContent = {
+                        description = {
                             Text(
                                 when (miniPlayerBackground) {
                                     PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
@@ -1454,7 +1450,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.player_design)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (currentPlayerDesign) {
                                 PlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
@@ -1468,7 +1464,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.gradient),
                     title = { Text(stringResource(R.string.player_background_style)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (playerBackground) {
                                 PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
@@ -1676,7 +1672,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.palette),
                     title = { Text(stringResource(R.string.player_buttons_style)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (playerButtonsStyle) {
                                 PlayerButtonsStyle.DEFAULT -> stringResource(R.string.default_style)
@@ -1690,7 +1686,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.sliders),
                     title = { Text(stringResource(R.string.player_slider_style)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (sliderStyle) {
                                 SliderStyle.DEFAULT -> stringResource(R.string.default_)
@@ -1771,7 +1767,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.tune),
                     title = { Text(stringResource(R.string.swipe_sensitivity)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             stringResource(
                                 R.string.sensitivity_percentage,
@@ -1916,7 +1912,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_position)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (lyricsPosition) {
                                 LyricsPosition.LEFT -> stringResource(R.string.left)
@@ -2041,13 +2037,13 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_text_size)) },
-                    trailingContent = { Text("${lyricsTextSize.roundToInt()} sp") },
+                    description = { Text("${lyricsTextSize.roundToInt()} sp") },
                     onClick = { showLyricsTextSizeDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_line_spacing)) },
-                    trailingContent = { Text("${String.format("%.1f", lyricsLineSpacing)}x") },
+                    description = { Text("${String.format("%.1f", lyricsLineSpacing)}x") },
                     onClick = { showLyricsLineSpacingDialog = true }
                 ),
                 Material3SettingsItem(
@@ -2143,7 +2139,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.nav_bar),
                     title = { Text(stringResource(R.string.default_open_tab)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (defaultOpenTab) {
                                 NavigationTab.HOME -> stringResource(R.string.home)
@@ -2260,7 +2256,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.grid_cell_size)) },
-                    trailingContent = {
+                    description = {
                         Text(
                             when (gridItemSize) {
                                 GridItemSize.BIG -> stringResource(R.string.big)
@@ -2273,7 +2269,7 @@ fun AppearanceSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.grid_view),
                     title = { Text(stringResource(R.string.display_density)) },
-                    trailingContent = {
+                    description = {
                         Text(DensityScale.fromValue(densityScale).label)
                     },
                     onClick = { showDensityScaleDialog = true }

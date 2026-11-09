@@ -15,6 +15,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -408,9 +409,9 @@ fun ArtistScreen(
                                     )
                                 }
 
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.padding(bottom = 16.dp)
                                 ) {
                                     if (showArtistSubscriberCount) {
@@ -433,7 +434,9 @@ fun ArtistScreen(
                                                     text = "${subscribers.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.subscribers)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -459,7 +462,9 @@ fun ArtistScreen(
                                                     text = "${monthlyListeners.split(' ').firstOrNull() ?: ""} ${stringResource(R.string.monthly_listeners)}",
                                                     style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                                    fontWeight = FontWeight.Medium
+                                                    fontWeight = FontWeight.Medium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
                                                 )
                                             }
                                         }
@@ -881,7 +886,7 @@ fun ArtistScreen(
                                             },
                                             isPlaying = isPlaying,
                                             coroutineScope = coroutineScope,
-                                            thumbnailRatio = 1f, // Use square thumbnails for all items in horizontal scroll
+                                            thumbnailRatio = if (item is SongItem) 16f / 9f else 1f,
                                             modifier = Modifier
                                                 .combinedClickable(
                                                     onClick = {
