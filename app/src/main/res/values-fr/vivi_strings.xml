@@ -116,7 +116,7 @@
     <string name="vivimusic_canvas_desc">Remplace la pochette d\'album statique dans le lecteur par une vidéo animée en boucle lorsqu\'une telle vidéo est disponible pour le titre en cours</string>
     <string name="canvas_source">Source de l\'animation</string>
     <string name="canvas_source_auto">Automatique</string>
-    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Tidal et Vivi Music. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
+    <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Tidal et Ctrl Music. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une illustration animée que si Apple Music en propose une pour le morceau en cours de lecture.</string>
     <string name="canvas_source_vivimusic">Vivi Music</string>
@@ -439,7 +439,7 @@
     <string name="enable_scrobbling">Activer le scrobbling</string>
     <string name="lastfm_now_playing">Envoyer « En cours de lecture »</string>
     <string name="last_fm_send_likes">Envoyer des « J\'aime » / « Je n\'aime pas »</string>
-    <string name="last_fm_send_likes_description">Ajouter/Retirer des titres de la liste « J\'aime » sur Last.fm lorsqu\'ils sont ajoutés/retirés de la liste « J\'aime » dans Vivi Music</string>
+    <string name="last_fm_send_likes_description">Ajouter/Retirer des titres de la liste « J\'aime » sur Last.fm lorsqu\'ils sont ajoutés/retirés de la liste « J\'aime » dans Ctrl Music</string>
     <string name="logging_in">Connexion en cours…</string>
 
     <string name="scrobbling_configuration">Configuration du scrobbling</string>
@@ -480,7 +480,7 @@
     <string name="karaoke">Karaoké</string>
     <string name="apple_music_style">Apple Music</string>
     <string name="apple_music_style_letter">Apple Music V2 (Lettre par Lettre)</string>
-    <string name="vivimusic_1">Vivi Music (Fluide)</string>
+    <string name="vivimusic_1">Ctrl Music (Fluide)</string>
     <string name="apple_music_lyrics_blur">Paroles d\'Apple Music floues</string>
     <string name="apple_music_lyrics_blur_desc">Appliquez un effet de flou aux lignes de paroles inactives pour créer un effet de mise au point haut de gamme.</string>
     <string name="lyrics_v2_fluid">Paroles V2 (Fluide)</string>
@@ -510,14 +510,14 @@
     <string name="wrapped_total_artists_subtitle">artistes uniques</string>
     <string name="wrapped_total_songs_title">Vous avez écouté</string>
     <string name="wrapped_total_songs_subtitle">titres uniques</string>
-    <string name="wrapped_intro_title">Vivi Music</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">Il est temps de découvrir ce que vous avez écouté</string>
     <string name="wrapped_intro_button">C\'est parti !</string>
-    <string name="wrapped_end_thanks">Merci d\'avoir écouté Vivi Music !</string>
+    <string name="wrapped_end_thanks">Merci d\'avoir écouté Ctrl Music !</string>
     <string name="wrapped_end_create_playlist">Créez votre playlist personnalisée</string>
     <string name="wrapped_end_creating_playlist">Création en cours...</string>
     <string name="wrapped_end_playlist_saved">Playlist enregistrée</string>
-    <string name="wrapped_logo_content_description">Logo Vivi Music</string>
+    <string name="wrapped_logo_content_description">Logo Ctrl Music</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">VOTRE RÉSUMÉ EST PRÊT !</string>
     <string name="wrapped_ready_subtitle">C\'est le moment de découvrir ce que vous avez aimé cette année.</string>
@@ -553,7 +553,7 @@ est irréversible.
     <string name="error_eq_apply_failed">Échec de l\'application du profil d\'égalisation : %1$s</string>
 
 	<!-- ViviEqualizer Strings -->
-    <string name="vivi_equalizer">Vivi Equalizer</string>
+    <string name="vivi_equalizer">Ctrl Music Equalizer</string>
     <string name="vivi_equalizer_desc">Réglage acoustique de qualité professionnelle &amp; Effets</string>
     <string name="eq_simple">Simple</string>
     <string name="eq_advanced">Avancé</string>
@@ -561,7 +561,7 @@ est irréversible.
     <string name="eq_label_mid">Milieux</string>
     <string name="eq_label_treble">Aigus</string>
     <string name="eq_preset_flat">Plat</string>
-    <string name="eq_preset_vivi_signature">Vivi Signature</string>
+    <string name="eq_preset_vivi_signature">Ctrl Signature</string>
     <string name="eq_preset_acoustic">Acoustique</string>
     <string name="eq_preset_spatial">Scène 3D</string>
     <string name="eq_preset_bass_boost">Amplification des Basses</string>
@@ -578,9 +578,9 @@ est irréversible.
     <string name="eq_preset_dirac_music">Dirac Music</string>
     <string name="eq_preset_dirac_movie">Dirac Movie</string>
     <string name="eq_preset_dirac_game">Dirac Game</string>
-    <string name="eq_enable_title">Vivi Equalizer</string>
+    <string name="eq_enable_title">Ctrl Music Equalizer</string>
     <string name="eq_enable_summary">Activer le traitement audio professionnel</string>
-    <string name="eq_label_vivi">Vivi Signature</string>
+    <string name="eq_label_vivi">Ctrl Signature</string>
     <string name="eq_label_dolby">Dolby Atmos</string>
     <string name="eq_label_dirac">Dirac Audio</string>
     <string name="eq_reset">Réinitialiser</string>
@@ -598,9 +598,9 @@ est irréversible.
     <string name="plays">lectures</string>
     <string name="casting_to">Conversion vers %s</string>
     <string name="progress_percent">Progression %s%%</string>
-    <string name="listening_to_vivimusic">Écouter Vivi Music</string>
+    <string name="listening_to_vivimusic">Écouter Ctrl Music</string>
     <string name="listen_on_youtube_music">Écoutez sur YouTube Music</string>
-    <string name="visit_vivimusic">Rendez-vous sur Vivi Music</string>
+    <string name="visit_vivimusic">Rendez-vous sur Ctrl Music</string>
     <string name="open">Ouvrir</string>
     <string name="failed_to_create_image">Échec de la création de l\'image : %s</string>
     <string name="copied_title">Titre copié</string>
@@ -617,13 +617,13 @@ est irréversible.
     <!-- Widget strings -->
     <string name="album_art">Pochette d\'album</string>
     <string name="no_song_playing">Aucun titre n\'est en cours de lecture</string>
-    <string name="tap_to_open">Appuyez pour ouvrir Vivi Music</string>
+    <string name="tap_to_open">Appuyez pour ouvrir Ctrl Music</string>
     <string name="previous">Précédent</string>
     <string name="play_pause">Lecture/Pause</string>
     <string name="next">Suivant</string>
     <string name="like">J\'aime</string>
     <string name="not_playing">Aucun titre n\'est en cours de lecture</string>
-    <string name="tap_to_play">Appuyez pour ouvrir Vivi Music</string>
+    <string name="tap_to_play">Appuyez pour ouvrir Ctrl Music</string>
     <string name="widget_description">Widget de lecteur de musique avec commandes de lecture</string>
     <string name="queue_widget_description">Lecteur de musique avec aperçu de la file d\'attente</string>
     <string name="turntable_widget_description">Widget musical circulaire avec boutons de lecture et de « J\'aime »</string>
@@ -782,7 +782,7 @@ est irréversible.
     <string name="crash_share_logs">Partager les journaux</string>
 	<string name="copy_logs">Copier les journaux</string>
     <string name="crash_share_title">Partager un rapport d\'incident</string>
-    <string name="crash_report_subject">Rapport d\'erreur Vivi Music</string>
+    <string name="crash_report_subject">Rapport d\'erreur Ctrl Music</string>
     <string name="crash_close">Fermer</string>
     <string name="crash_no_log">Aucun journal d\'erreurs n\'est disponible</string>
 
@@ -835,7 +835,7 @@ est irréversible.
     <string name="delete_from_history">Supprimer de l\'historique</string>
     <string name="re_listen">Réécouter</string>
     <string name="hold_to_recognize">Maintenez l\'icône de recherche enfoncée pour reconnaître un titre.</string>
-    <string name="play_on_app">Écoutez sur Vivi Music</string>
+    <string name="play_on_app">Écoutez sur Ctrl Music</string>
     <string name="recognized_track">Titre reconnu</string>
 
     <!-- CSV Import Strings -->
@@ -874,9 +874,9 @@ est irréversible.
     <string name="discord_rpc_preview">Aperçu de Rich Presence</string>
     <string name="discord_presence">Présence</string>
     <string name="discord_connect_description">Connectez-vous avec Discord pour partager ce que vous écoutez.</string>
-    <string name="discord_playing_vivimusic">Écouter Vivi Music</string>
-    <string name="discord_watching_vivimusic">Regarder Vivi Music</string>
-    <string name="discord_competing_vivimusic">En compétition sur Vivi Music</string>
+    <string name="discord_playing_vivimusic">Écouter Ctrl Music</string>
+    <string name="discord_watching_vivimusic">Regarder Ctrl Music</string>
+    <string name="discord_competing_vivimusic">En compétition sur Ctrl Music</string>
     <string name="discord_activity_name">Nom de l\'activité</string>
     <string name="discord_activity_name_description">Nom personnalisé de l\'activité (laissez vide pour utiliser le nom par défaut)</string>
     <string name="discord_advanced_mode">Mode avancé</string>
@@ -932,14 +932,14 @@ est irréversible.
 
 	<!-- Onboarding -->
     <string name="welcome_to">Bienvenue sur</string>
-	<string name="welcome_to_vivi">Bienvenue sur Vivi Music</string>
+	<string name="welcome_to_vivi">Bienvenue sur Ctrl Music</string>
     <string name="accessibility">Accessibilité</string>
     <string name="welcome_preparing_subtitle">Nous allons tout préparer pour vous.</string>
     <string name="get_started">C\'est parti !</string>
 
     <string name="perm_required">Obligatoire</string>
     <string name="perm_permissions">Autorisations</string>
-    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de Vivi Music. Veuillez les accorder pour continuer.</string>
+    <string name="perm_intro_text">Ces autorisations sont nécessaires au bon fonctionnement de Ctrl Music. Veuillez les accorder pour continuer.</string>
 
     <string name="perm_notif_title">Notifications</string>
     <string name="perm_notif_desc">Sachez immédiatement quand votre musique est en cours de lecture et contrôlez-la depuis la barre de notifications.</string>
@@ -949,7 +949,7 @@ est irréversible.
 
     <string name="feat_discover">Découverte</string>
     <string name="feat_features">Caractéristiques</string>
-    <string name="feat_intro">Découvrez tout ce que Vivi Music a à vous offrir pour votre parcours musical.</string>
+    <string name="feat_intro">Découvrez tout ce que Ctrl Music a à vous offrir pour votre parcours musical.</string>
 
     <string name="feat_lyrics_title">Paroles Intelligentes</string>
     <string name="feat_lyrics_desc">Profitez des paroles synchronisées, mot à mot, de millions de titres.</string>
@@ -973,7 +973,7 @@ est irréversible.
     <string name="welcome_update_status">Mise à jour</string>
     <string name="welcome_update_intro">Pour vous garantir les dernières fonctionnalités et les dernières améliorations en matière de sécurité.</string>
     <string name="welcome_checking_updates">Recherche de mises à jour…</string>
-    <string name="welcome_up_to_date">Vivi Music est à jour !</string>
+    <string name="welcome_up_to_date">Ctrl Music est à jour !</string>
     <string name="welcome_update_available">Une nouvelle version est disponible : %s</string>
     <string name="welcome_everything_ready">Tout est désormais à jour</string>
     <string name="commits_title">Commits</string>
@@ -1060,9 +1060,9 @@ est irréversible.
     <string name="error_invalid_font">Fichier de police non valide sélectionné.</string>
 
 	<!-- YouTube Decryption / Cipher Settings -->
-    <string name="youtube_decryption_settings">Vivi Extracteur</string>
+    <string name="youtube_decryption_settings">Ctrl Music Extracteur</string>
     <string name="youtube_decryption_desc">Configurer les paramètres de l\'extracteur</string>
-    <string name="youtube_decryption_support">Vivi Extracteur</string>
+    <string name="youtube_decryption_support">Ctrl Music Extracteur</string>
     <string name="youtube_decryption_support_desc">Extrait automatiquement les paramètres de lecture YouTube. Verrouillé sur « Actif ».</string>
     <string name="auto_cipher_fetching">Mises à jour automatiques</string>
     <string name="auto_cipher_fetching_desc">Récupérer les nouveaux mappages d\'extracteurs en arrière-plan lorsque des problèmes sont détectés.</string>
@@ -1087,7 +1087,7 @@ est irréversible.
     <string name="disabled">Désactivé</string>
 
 	<!-- Setup Wizard / Onboarding -->
-    <string name="setting_up_vivimusic">Configuration de Vivi Music…</string>
+    <string name="setting_up_vivimusic">Configuration de Ctrl Music…</string>
     <string name="skip">Passer</string>
 
     <!-- Data Saver -->
@@ -1102,7 +1102,7 @@ est irréversible.
 
     <string name="tab_recommended">Recommandé</string>
     <string name="tab_all_services">Tous les services</string>
-    <string name="whats_new_title">Nouveautés de Vivi Music</string>
+    <string name="whats_new_title">Nouveautés de Ctrl Music</string>
     <string name="whats_new_desc">Découvrez les nouvelles fonctionnalités, les améliorations apportées à l\'interface utilisateur et les mises à jour</string>
     <string name="account_sync_desc_off">Connectez-vous pour synchroniser votre bibliothèque YouTube Music, vos playlists et vos recommandations</string>
     <string name="settings_for_account">Paramètres du compte</string>

@@ -304,14 +304,14 @@
     <string name="wrapped_total_artists_subtitle">Jedineční interpreti</string>
     <string name="wrapped_total_songs_title">Vypočuli ste si</string>
     <string name="wrapped_total_songs_subtitle">Jedinečné skladby</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">Je čas zistiť, čo ste počúvali</string>
     <string name="wrapped_intro_button">poďme!</string>
     <string name="wrapped_end_thanks">Ďakujeme za počúvanie s vivimusicom!</string>
     <string name="wrapped_end_create_playlist">Vytvorte si svoj Wrapped zoznam skladieb</string>
     <string name="wrapped_end_creating_playlist">Vytvára sa...</string>
     <string name="wrapped_end_playlist_saved">Zoznam skladieb bol uložený</string>
-    <string name="wrapped_logo_content_description">vivimusic Logo</string>
+    <string name="wrapped_logo_content_description">Ctrl Music Logo</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">VAŠE WRAPPED JE HOTOVÉ!</string>
     <string name="wrapped_ready_subtitle">Je čas pozrieť sa, čo sa vám tento rok páčilo.</string>

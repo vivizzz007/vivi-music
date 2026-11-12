@@ -111,23 +111,6 @@ fun SettingsScreen(
             items = buildList {
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(if (isUpdateAvailable) R.drawable.update_alert else R.drawable.system_update_uptodate),
-                        title = { Text(stringResource(R.string.system_update)) },
-                        description = {
-                            if (isUpdateAvailable) {
-                                Text(
-                                    text = stringResource(R.string.update_available),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            } else {
-                                Text(stringResource(R.string.app_update_uptodate))
-                            }
-                        },
-                        onClick = { navController.navigate("settings/update") }
-                    )
-                )
-                add(
-                    Material3SettingsItem(
                         icon = painterResource(R.drawable.google),
                         title = { Text(stringResource(R.string.account)) },
                         description = { Text(stringResource(R.string.setting_account_desc)) },
@@ -159,14 +142,6 @@ fun SettingsScreen(
                 )
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.group),
-                        title = { Text(stringResource(R.string.listen_together)) },
-                        description = { Text(stringResource(R.string.setting_listen_together_desc)) },
-                        onClick = { navController.navigate(Screens.ListenTogether.route) }
-                    )
-                )
-                add(
-                    Material3SettingsItem(
                         icon = painterResource(R.drawable.language),
                         title = { Text(stringResource(R.string.content)) },
                         description = { Text(stringResource(R.string.setting_content_desc)) },
@@ -180,14 +155,6 @@ fun SettingsScreen(
         ExpressiveSettingGroup(
             itemMinHeight = 64.dp,
             items = buildList {
-                add(
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.translate),
-                        title = { Text(stringResource(R.string.ai_lyrics_translation)) },
-                        description = { Text(stringResource(R.string.setting_ai_lyrics_translation_desc)) },
-                        onClick = { navController.navigate("settings/ai") }
-                    )
-                )
                 add(
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.security),

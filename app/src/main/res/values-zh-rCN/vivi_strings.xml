@@ -241,7 +241,7 @@
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">启用向 Chromecast 和其他支持投屏功能的设备投屏音频</string>
     <string name="last_fm_send_likes">发送点赞/取消点赞</string>
-    <string name="last_fm_send_likes_description">Last.fm上的歌曲在vivimusic上被点赞/取消点赞时,也会被标记为喜欢/不喜欢</string>
+    <string name="last_fm_send_likes_description">Last.fm上的歌曲在Ctrl Music上被点赞/取消点赞时,也会被标记为喜欢/不喜欢</string>
     <string name="logging_in">正在登录…</string>
     <string name="hide_video_songs">隐藏带视频歌曲</string>
     <string name="details_desc">查看歌曲信息</string>
@@ -296,14 +296,14 @@
     <string name="wrapped_total_artists_subtitle">独特的音乐人</string>
     <string name="wrapped_total_songs_title">您听了</string>
     <string name="wrapped_total_songs_subtitle">独特的歌曲</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">是时候看看您最近听了什么了</string>
     <string name="wrapped_intro_button">让我们开始吧!</string>
-    <string name="wrapped_end_thanks">感谢您使用 vivimusic 听歌!</string>
+    <string name="wrapped_end_thanks">感谢您使用 Ctrl Music 听歌!</string>
     <string name="wrapped_end_create_playlist">创建您的年度总结播放列表</string>
     <string name="wrapped_end_creating_playlist">正在创建…</string>
     <string name="wrapped_end_playlist_saved">播放列表已保存</string>
-    <string name="wrapped_logo_content_description">vivimusic 徽标</string>
+    <string name="wrapped_logo_content_description">Ctrl Music 徽标</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">您的年度总结已准备好！</string>
     <string name="wrapped_ready_subtitle">是时候看看您今年最喜欢什么了.</string>
@@ -315,9 +315,9 @@
     <string name="wrapped_playlist_saved">播放列表已保存</string>
     <string name="casting_to">转换为 %s</string>
     <string name="progress_percent">进度 %s%%</string>
-    <string name="listening_to_vivimusic">收听 vivimusic</string>
+    <string name="listening_to_vivimusic">收听 Ctrl Music</string>
     <string name="listen_on_youtube_music">在 YouTube Music 上收听</string>
-    <string name="visit_vivimusic">访问 vivimusic</string>
+    <string name="visit_vivimusic">访问 Ctrl Music</string>
     <string name="open">打开</string>
     <string name="failed_to_create_image">无法创建图片：%s</string>
     <string name="copied_title">已复制标题</string>
@@ -345,7 +345,7 @@
     <string name="system_equalizer">系统均衡器</string>
     <string name="album_art">专辑封面</string>
     <string name="no_song_playing">没有音乐正在播放</string>
-    <string name="tap_to_open">点击打开 vivimusic</string>
+    <string name="tap_to_open">点击打开 Ctrl Music</string>
     <string name="previous">上一曲</string>
     <string name="play_pause">播放/暂停</string>
     <string name="next">下一曲</string>
@@ -458,7 +458,7 @@
     <string name="crash_share_logs">分享日志</string>
     <string name="crash_description">发生意外错误。请提供崩溃报告以帮助我们修复问题。</string>
     <string name="crash_share_title">分享崩溃报告</string>
-    <string name="crash_report_subject">vivimusic 崩溃报告</string>
+    <string name="crash_report_subject">Ctrl Music 崩溃报告</string>
     <string name="crash_close">关闭</string>
     <string name="crash_no_log">没有可用的崩溃日志</string>
     <string name="palette_dynamic">灵动</string>
@@ -501,7 +501,7 @@
     <string name="listen_together_no_blocked_users">无已屏蔽的用户</string>
     <string name="unblock">取消屏蔽</string>
     <string name="not_playing">未在播放歌曲</string>
-    <string name="tap_to_play">点击打开 vivimusic</string>
+    <string name="tap_to_play">点击打开 Ctrl Music</string>
     <string name="widget_music_player">播放器</string>
     <string name="listen_together_sync_volume">与房主音量保持一致</string>
     <string name="listen_together_sync_volume_desc">访客音量随房主同步</string>
@@ -561,7 +561,7 @@
     <string name="recently_converted">最近转换</string>
     <string name="csv_import_failed">无法导入 CSV 文件</string>
     <string name="importing_csv">正在导入 CSV</string>
-    <string name="play_on_app">在 vivimusic 上播放</string>
+    <string name="play_on_app">在 Ctrl Music 上播放</string>
     <string name="listening">正在聆听…</string>
     <string name="continue_action">继续</string>
     <string name="hold_to_recognize">按住搜索图标识别音乐</string>
@@ -615,9 +615,9 @@
     <string name="discord_rpc_preview">Rich Presence 预览</string>
     <string name="discord_presence">在场</string>
     <string name="discord_connect_description">使用 Discord 登录来分享你正在收听的内容</string>
-    <string name="discord_playing_vivimusic">播放 vivimusic</string>
-    <string name="discord_watching_vivimusic">观看vivimusic</string>
-    <string name="discord_competing_vivimusic">参与vivimusic评选</string>
+    <string name="discord_playing_vivimusic">播放 Ctrl Music</string>
+    <string name="discord_watching_vivimusic">观看Ctrl Music</string>
+    <string name="discord_competing_vivimusic">参与Ctrl Music评选</string>
     <string name="discord_activity_name">活动名称</string>
     <string name="discord_activity_name_description">自定义活动名称（留空则使用默认值）</string>
     <string name="discord_advanced_mode">高级模式</string>

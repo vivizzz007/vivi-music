@@ -44,20 +44,6 @@ fun IntegrationScreen(
             title = stringResource(R.string.general),
             items = listOf(
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.discord),
-                    title = { Text(stringResource(R.string.discord_integration)) },
-                    onClick = {
-                        navController.navigate("settings/integrations/discord")
-                    }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.lastfm),
-                    title = { Text(stringResource(R.string.lastfm_integration)) },
-                    onClick = {
-                        navController.navigate("settings/integrations/lastfm")
-                    }
-                ),
-                Material3SettingsItem(
                     icon = painterResource(R.drawable.spotify),
                     title = { Text(stringResource(R.string.spotify)) },
                     onClick = {

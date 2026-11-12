@@ -315,7 +315,7 @@ fun UpdateScreen(navController: NavHostController) {
                                                 }
                                             } else {
                                                 val targetApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
-                                                val urlToDownload = currentStatus.apkUrl ?: "https://github.com/vivizzz007/vivi-music/releases/download/${currentStatus.version}/$targetApkName"
+                                                val urlToDownload = currentStatus.apkUrl ?: "https://github.com/ctrlfxx/ctrlmusic/releases/download/${currentStatus.version}/$targetApkName"
                                                 
                                                 if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) {
                                                     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(urlToDownload))
@@ -799,159 +799,15 @@ fun isNewerVersion(latestVersion: String, currentVersion: String): Boolean {
 }
 
 // Fetches ALL releases, finds the latest version > current, and returns its info
+// Ctrl Music does not self-update from the upstream vivi-music releases.
+// Always reports "up to date" so no update prompts or downloads happen.
 suspend fun checkForUpdate(
     context: Context,
     onSuccess: (tag: String, isAvailable: Boolean, changelog: List<ChangelogSection>, size: String, date: String, description: String?, imageUrl: String?, apkUrl: String?) -> Unit,
     onError: () -> Unit,
 ) {
-    withContext(Dispatchers.IO) {
-        try {
-            val url = URL("https://api.github.com/repos/vivizzz007/vivi-music/releases")
-            val json = url.openStream().bufferedReader().use { it.readText() }
-            val releases = JSONArray(json)
-            
-            val currentVersion = BuildConfig.VERSION_NAME
-            val betaEnabled = getBetaUpdatesSetting(context)
-
-
-
-            var bestStableRelease: JSONObject? = null
-            var bestOverallRelease: JSONObject? = null
-
-            for (i in 0 until releases.length()) {
-                val release = releases.getJSONObject(i)
-                val tagName = release.getString("tag_name")
-                val isBeta = tagName.startsWith("b")
-                
-                // Track best stable
-                if (!isBeta) {
-                    if (bestStableRelease == null || isNewerVersion(tagName, bestStableRelease.getString("tag_name"))) {
-                        bestStableRelease = release
-                    }
-                }
-                
-                // Track best overall
-                if (bestOverallRelease == null || isNewerVersion(tagName, bestOverallRelease.getString("tag_name"))) {
-                    bestOverallRelease = release
-                }
-            }
-
-            // Select the target release based on user preference
-            val targetRelease = if (betaEnabled) bestOverallRelease else bestStableRelease
-
-            if (targetRelease != null) {
-                val targetTagName = targetRelease.getString("tag_name")
-                val isNewer = isNewerVersion(targetTagName, currentVersion)
-                
-                // Track Switch Logic:
-                // If the user has disabled beta updates, we should offer the latest stable release
-                // even if it's technically a lower version number than their current beta/custom build.
-                // This allows users to correctly "roll back" to the stable track.
-                val currentIsBeta = currentVersion.startsWith("b")
-                val targetIsStable = targetTagName.startsWith("v")
-                
-                // Compare version numbers ignoring prefixes
-                val currentClean = currentVersion.removePrefix("b").removePrefix("v")
-                val targetClean = targetTagName.removePrefix("b").removePrefix("v")
-                val isDifferentVersion = currentClean != targetClean
-                
-                var shouldShow = isNewer
-                if (!shouldShow && !betaEnabled) {
-                    // Logic: If I'm on a Beta (b5.0.7) and latest stable is v5.0.6, 
-                    // and I just turned OFF beta, I want to see v5.0.6.
-                    if (currentIsBeta && targetIsStable) {
-                        shouldShow = true
-                    } else if (isDifferentVersion && targetIsStable) {
-                        // Also show if current is a newer unofficial stable (e.g. built locally as 5.0.7)
-                        // but user wants the official stable 5.0.6.
-                        shouldShow = true
-                    }
-                }
-
-                if (shouldShow) {
-                    val tagWithPrefix = targetRelease.getString("tag_name")
-                    val displayTag = tagWithPrefix
-
-                    // FETCH CHANGELOG URL FROM RELEASE ASSETS DYNAMICALLY BASED ON CHANNEL
-                    val changelogList = mutableListOf<ChangelogSection>()
-                    var description: String? = null
-                    var imageUrl: String? = null
-                    try {
-                        val changelogUrl =
-                            URL("https://github.com/vivizzz007/vivi-music/releases/download/$tagWithPrefix/changelog.json?t=${System.currentTimeMillis()}")
-                        val changelogJson = changelogUrl.openStream().bufferedReader().use { it.readText() }
-                        val changelogData = JSONObject(changelogJson)
-
-                        description = changelogData.optString("description").takeIf { it.isNotEmpty() }
-                        imageUrl = changelogData.optString("image").takeIf { it.isNotEmpty() }
-
-                        val changelogArray = changelogData.getJSONArray("changelog")
-                        for (j in 0 until changelogArray.length()) {
-                            val sectionObj = changelogArray.getJSONObject(j)
-                            val title = sectionObj.optString("title", "")
-                            val secDesc = sectionObj.optString("description").takeIf { it.isNotBlank() }
-                            val itemsArray = sectionObj.optJSONArray("items")
-                            val itemsList = mutableListOf<String>()
-                            if (itemsArray != null) {
-                                for (k in 0 until itemsArray.length()) {
-                                    itemsList.add(itemsArray.getString(k))
-                                }
-                            }
-                            
-                            val blocksArray = sectionObj.optJSONArray("blocks")
-                            var blocksList: List<SDUIBlock>? = null
-                            if (blocksArray != null) {
-                                val sduiList = mutableListOf<SDUIBlock>()
-                                for (k in 0 until blocksArray.length()) {
-                                    sduiList.add(parseSDUIBlock(blocksArray.getJSONObject(k)))
-                                }
-                                blocksList = sduiList
-                            }
-                            
-                            changelogList.add(ChangelogSection(title, itemsList, secDesc, blocksList))
-                        }
-                    } catch (e: Exception) {
-                        // Fallback: Parse body as a single list if it starts with characters or split by lines
-                        val body = targetRelease.optString("body", context.getString(R.string.no_changelog_available))
-                        val fallbackItems = body.split("\n").filter { it.isNotBlank() }
-                        changelogList.add(ChangelogSection(context.getString(R.string.changelog), fallbackItems))
-                    }
-
-                    val publishedAt = targetRelease.getString("published_at")
-                    val formattedReleaseDate = formatGitHubDate(publishedAt)
-                    val assets = targetRelease.getJSONArray("assets")
-
-                    var apkSizeInMB = ""
-                    var apkDownloadUrl = ""
-                    val expectedApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
-                    for (j in 0 until assets.length()) {
-                        val asset = assets.getJSONObject(j)
-                        val assetName = asset.getString("name")
-                        if (assetName == expectedApkName) {
-                            val apkSizeInBytes = asset.getLong("size")
-                            apkSizeInMB = String.format("%.1f", apkSizeInBytes / (1024.0 * 1024.0))
-                            apkDownloadUrl = asset.getString("browser_download_url")
-                            break
-                        }
-                    }
-
-                    if (apkDownloadUrl.isNotEmpty()) {
-                        withContext(Dispatchers.Main) {
-                            onSuccess(displayTag, true, changelogList, apkSizeInMB, formattedReleaseDate, description, imageUrl, apkDownloadUrl)
-                        }
-                        return@withContext
-                    }
-                }
-            }
-
-            // No update found or APK missing
-            withContext(Dispatchers.Main) {
-                onSuccess(currentVersion, false, emptyList(), "", "", null, null, null)
-            }
-        } catch (e: Exception) {
-            Log.e("UpdateCheck", "Error checking for updates: ${e.message}", e)
-            withContext(Dispatchers.Main) { onError() }
-        }
+    withContext(Dispatchers.Main) {
+        onSuccess(com.music.vivi.BuildConfig.VERSION_NAME, false, emptyList(), "", "", null, null, null)
     }
 }
 fun String.extractUrls(): List<Pair<IntRange, String>> {

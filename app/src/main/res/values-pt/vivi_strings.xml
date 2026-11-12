@@ -235,14 +235,14 @@
     <string name="wrapped_total_artists_subtitle">artistas únicos</string>
     <string name="wrapped_total_songs_title">Tu ouviste a</string>
     <string name="wrapped_total_songs_subtitle">músicas únicas</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">está na hora de ver o que andaste a ouvir</string>
     <string name="wrapped_intro_button">vamos lá!</string>
-    <string name="wrapped_end_thanks">Obrigado por ouvires com o vivimusic!</string>
+    <string name="wrapped_end_thanks">Obrigado por ouvires com o Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Criar a tua lista de reprodução do Wrapped</string>
     <string name="wrapped_end_creating_playlist">A criar...</string>
     <string name="wrapped_end_playlist_saved">Lista de reprodução guardada</string>
-    <string name="wrapped_logo_content_description">Logo do vivimusic</string>
+    <string name="wrapped_logo_content_description">Logo do Ctrl Music</string>
     <string name="wrapped_year">2026</string>
     <string name="wrapped_ready_title">O TEU WRAPPED ESTÁ PRONTO!</string>
     <string name="wrapped_ready_subtitle">Está na hora de ver o que amaste este ano.</string>
@@ -284,7 +284,7 @@
     <string name="enable_scrobbling">Habilitar \"scrobbling\"</string>
     <string name="lastfm_now_playing">Enviar a Tocar Agora</string>
     <string name="last_fm_send_likes">Enviar Gostos/Não Gostos</string>
-    <string name="last_fm_send_likes_description">Músicas curtidas/descurtidas no Last.fm quando são curtidas/descurtidas no vivimusic</string>
+    <string name="last_fm_send_likes_description">Músicas curtidas/descurtidas no Last.fm quando são curtidas/descurtidas no Ctrl Music</string>
     <string name="logging_in">A iniciar sessão…</string>
     <string name="scrobbling_configuration">Configuração do \"Scrobbling\"</string>
     <string name="scrobble_min_track_duration">\"Scrobblar\" músicas com duração superior a</string>
@@ -332,9 +332,9 @@
     <string name="import_error_title">Erro de importação</string>
     <string name="casting_to">Transmitir para %s</string>
     <string name="progress_percent">Progresso %s%%</string>
-    <string name="listening_to_vivimusic">Ouvir no vivimusic</string>
+    <string name="listening_to_vivimusic">Ouvir no Ctrl Music</string>
     <string name="listen_on_youtube_music">Ouvir no YouTube Music</string>
-    <string name="visit_vivimusic">Visitar vivimusic</string>
+    <string name="visit_vivimusic">Visitar Ctrl Music</string>
     <string name="open">Aberto</string>
     <string name="failed_to_create_image">Falha ao criar imagem: %s</string>
     <string name="copied_title">Título copiado</string>
@@ -375,7 +375,7 @@
     <string name="error_copy_hint">Copiar informação do erro para ajudar os desenvolvedores a depurar o problema</string>
     <string name="album_art">Arte do álbum</string>
     <string name="no_song_playing">Sem música a tocar</string>
-    <string name="tap_to_open">Toca para abrir o vivimusic</string>
+    <string name="tap_to_open">Toca para abrir o Ctrl Music</string>
     <string name="previous">Retroceder</string>
     <string name="play_pause">Reproduzir/Pausar</string>
     <string name="next">Próximo</string>

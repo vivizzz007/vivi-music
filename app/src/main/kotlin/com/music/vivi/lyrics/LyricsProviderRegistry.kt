@@ -17,7 +17,6 @@ object LyricsProviderRegistry {
         "YouLyPlus"       to YouLyPlusLyricsProvider,
         "Paxsenix"        to PaxSenixLyricsProvider,
         "BetterLyrics"    to BetterLyricsProvider,
-        "Musixmatch"      to MusixmatchLyricsProvider,
         "LrcLib"          to LrcLibLyricsProvider,
         "Kugou"           to KuGouLyricsProvider,
         "Unison"          to UnisonLyricsProvider,
@@ -41,7 +40,6 @@ object LyricsProviderRegistry {
         providers.filter { it in providerNames }.joinToString(",")
 
     fun getDefaultProviderOrder(): List<String> = listOf(
-        "Musixmatch",
         "YouLyPlus",
         "Paxsenix",
         "BetterLyrics",
@@ -63,7 +61,7 @@ object LyricsProviderRegistry {
         PreferredLyricsProvider.LRCLIB           -> "LrcLib"
         PreferredLyricsProvider.KUGOU            -> "Kugou"
         PreferredLyricsProvider.BETTER_LYRICS    -> "BetterLyrics"
-        PreferredLyricsProvider.MUSIXMATCH       -> "Musixmatch"
+        PreferredLyricsProvider.MUSIXMATCH       -> "LrcLib"
         PreferredLyricsProvider.YOULYPLUS        -> "YouLyPlus"
         PreferredLyricsProvider.PAXSENIX         -> "Paxsenix"
         PreferredLyricsProvider.UNISON           -> "Unison"
@@ -79,7 +77,6 @@ object LyricsProviderRegistry {
         "YouLyPlus"       -> "YouLyPlus"
         "Paxsenix"        -> "PaxSenix"
         "BetterLyrics"    -> "Better Lyrics"
-        "Musixmatch"      -> "Musixmatch"
         "LrcLib"          -> "LrcLib"
         "Kugou"           -> "KuGou"
         "Unison"          -> "Unison"

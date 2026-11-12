@@ -368,7 +368,7 @@
     <string name="restore_failed">Misslyckades med att återställa backup</string>
 
     <string name="discord_integration">Discord‑integration</string>
-    <string name="discord_information">vivimusic använder KizzyRPC‑biblioteket för att sätta din Discord‑status. Detta innebär användning av Discord Gateway‑anslutningen, vilket kan anses bryta mot Discords TOS. Det finns dock inga kända fall där användarkonton har stängts av av denna anledning. Använd på egen risk.\n\vivimusic kommer endast att extrahera din token, och allt annat lagras lokalt.</string>
+    <string name="discord_information">Ctrl Music använder KizzyRPC‑biblioteket för att sätta din Discord‑status. Detta innebär användning av Discord Gateway‑anslutningen, vilket kan anses bryta mot Discords TOS. Det finns dock inga kända fall där användarkonton har stängts av av denna anledning. Använd på egen risk.\nCtrl Music kommer endast att extrahera din token, och allt annat lagras lokalt.</string>
     <string name="dismiss">Stäng</string>
     <string name="options">Alternativ</string>
     <string name="preview">Förhandsvisning</string>
@@ -439,7 +439,7 @@
     <string name="new_release_notifications_subtitle">Meddela när bokmärkta artister släpper nya låtar eller album (beta)</string>
     <string name="new_release_channel_name">Nya släpp</string>
     <string name="new_release_channel_desc">Aviseringar om nya släpp från dina bokmärkta artister</string>
-    <string name="new_release_notifications_info">På vissa enheter (Samsung, Xiaomi, etc.) kan batterioptimering fördröja eller blockera bakgrundsaviseringar. För att säkerställa snabba aviseringar, ställ in Vivi Music på Obegränsad batterianvändning i enhetens inställningar.</string>
+    <string name="new_release_notifications_info">På vissa enheter (Samsung, Xiaomi, etc.) kan batterioptimering fördröja eller blockera bakgrundsaviseringar. För att säkerställa snabba aviseringar, ställ in Ctrl Music på Obegränsad batterianvändning i enhetens inställningar.</string>
     <string name="taste_based_release_notifications">Smakbaserade släppaviseringar</string>
     <string name="taste_based_release_notifications_subtitle">Meddela när artister du ofta lyssnar på släpper nya låtar eller album</string>
 

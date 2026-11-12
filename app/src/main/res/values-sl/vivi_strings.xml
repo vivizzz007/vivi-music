@@ -319,6 +319,6 @@
     <string name="wrapped_total_artists_subtitle">različnih izvajalcev</string>
     <string name="casting_to">Predvajanje na %s</string>
     <string name="progress_percent">Napredek: %s%%</string>
-    <string name="listening_to_vivimusic">Poslušaš vivimusic</string>
+    <string name="listening_to_vivimusic">Poslušaš Ctrl Music</string>
     <string name="listen_on_youtube_music">Poslušaj v YouTube Music</string>
 </resources>

@@ -50,7 +50,6 @@ import com.music.vivi.viewmodels.SpotifyViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.music.vivi.ui.screens.settings.ContentSettings
 import com.music.vivi.ui.screens.settings.DarkMode
-import com.music.vivi.ui.screens.settings.DiscordLoginScreen
 import com.music.vivi.ui.screens.settings.PlayerSettings
 import com.music.vivi.ui.screens.settings.JioSettings
 import com.music.vivi.ui.screens.settings.SponsorBlockSettings
@@ -62,10 +61,7 @@ import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.ThemeSettings
-import com.music.vivi.ui.screens.settings.AiSettings
-import com.music.vivi.ui.screens.settings.integrations.DiscordSettings
 import com.music.vivi.ui.screens.settings.integrations.IntegrationScreen
-import com.music.vivi.ui.screens.settings.integrations.LastFMSettings
 import com.music.vivi.ui.screens.settings.integrations.ListenTogetherSettings
 import com.music.vivi.ui.screens.recognition.RecognitionScreen
 import com.music.vivi.ui.screens.recognition.RecognitionHistoryScreen
@@ -391,9 +387,6 @@ fun NavGraphBuilder.navigationBuilder(
         RomanizationSettings(navController, scrollBehavior)
     }
 
-    composable("settings/ai") {
-        AiSettings(navController, scrollBehavior)
-    }
     
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
@@ -437,13 +430,7 @@ fun NavGraphBuilder.navigationBuilder(
         IntegrationScreen(navController, scrollBehavior)
     }
 
-    composable("settings/integrations/discord") {
-        DiscordSettings(navController, scrollBehavior, snackbarHostState)
-    }
 
-    composable("settings/integrations/lastfm") {
-        LastFMSettings(navController, scrollBehavior)
-    }
 
     composable("settings/integrations/spotify") {
         val rootEntry = remember(it) { navController.getBackStackEntry(navController.graph.id) }
@@ -472,9 +459,6 @@ fun NavGraphBuilder.navigationBuilder(
         ListenTogetherSettings(navController, scrollBehavior)
     }
 
-    composable("settings/discord/login") {
-        DiscordLoginScreen(navController)
-    }
 
     composable("settings/about") {
         AboutScreen(navController, scrollBehavior)

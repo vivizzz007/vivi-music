@@ -241,7 +241,7 @@
     <string name="show_artist_description">Hiển thị mô tả nghệ sĩ</string>
     <string name="show_artist_subscriber_count">Hiện số lượng người đăng ký</string>
     <string name="show_artist_monthly_listeners">Hiển thị số lượt nghe hằng tháng</string>
-    <string name="wrapped_logo_content_description">vivimusic Logo</string>
+    <string name="wrapped_logo_content_description">Ctrl Music Logo</string>
     <string name="wrapped_year">2025</string>
     <string name="listen_together_join_room">Tham gia phòng</string>
     <string name="listen_together_create_room_desc">Tạo phòng và chia sẽ mã cho bạn bè</string>
@@ -271,7 +271,7 @@
     <string name="error_copy_hint">Sao chép thông tin lỗi để giúp nhà phát triển gỡ lỗi</string>
     <string name="album_art">Cài đặt widget</string>
     <string name="no_song_playing">Không có bài hát đang phát</string>
-    <string name="tap_to_open">Chạm để mở vivimusic</string>
+    <string name="tap_to_open">Chạm để mở Ctrl Music</string>
     <string name="previous">Bài trước</string>
     <string name="play_pause">Phát/Tạm dừng</string>
     <string name="next">Bài tiếp</string>
@@ -351,7 +351,7 @@
     <string name="crash_description">Đã xảy ra lỗi không mong muốn. Vui lòng chia sẻ báo cáo sự cố để giúp chúng tôi khắc phục lỗi.</string>
     <string name="crash_share_logs">Chia sẻ nhật ký</string>
     <string name="crash_share_title">Chia sẻ báo cáo sự cố</string>
-    <string name="crash_report_subject">Báo cáo sự cố vivimusic</string>
+    <string name="crash_report_subject">Báo cáo sự cố Ctrl Music</string>
     <string name="crash_close">Đóng</string>
     <string name="crash_no_log">Không có nhật ký sự cố</string>
     <string name="palette_crimson">Đỏ thẫm</string>
@@ -388,7 +388,7 @@
     <string name="remember_shuffle_and_repeat_desc">Nhớ chế độ ngẫu nhiên &amp; lặp khi mở lại ứng dụng</string>
     <string name="pause_music_when_media_is_muted">Tạm dừng nhạc khi tắt tiếng media</string>
     <string name="keep_screen_on_when_player_is_expanded">Giữ màn hình bật khi mở trình phát</string>
-    <string name="last_fm_send_likes_description">Đánh dấu yêu thích/bỏ yêu thích bài hát trên Last.fm khi chúng được thích/bỏ thích trong vivimusic</string>
+    <string name="last_fm_send_likes_description">Đánh dấu yêu thích/bỏ yêu thích bài hát trên Last.fm khi chúng được thích/bỏ thích trong Ctrl Music</string>
     <string name="logging_in">Đang đăng nhập…</string>
     <string name="hide_video_songs">Ẩn bài hát video</string>
     <string name="details_desc">Xem thông tin bài hát</string>

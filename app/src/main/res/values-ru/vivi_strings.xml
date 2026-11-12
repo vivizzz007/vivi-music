@@ -229,7 +229,7 @@
     <string name="scrobble_delay_minutes">Задержка скробблинга (в минутах)</string>
     <string name="swipe_song_to_remove">Свайп по песне, чтобы удалить её из плейлиста</string>
     <string name="last_fm_send_likes">Отправлять лайки/дизлайки</string>
-    <string name="last_fm_send_likes_description">Добавлять/убирать отметку «любимая» на Last.fm, когда ставится/снимается отметка «Нравится» в vivimusic</string>
+    <string name="last_fm_send_likes_description">Добавлять/убирать отметку «любимая» на Last.fm, когда ставится/снимается отметка «Нравится» в Ctrl Music</string>
     <string name="lyrics_romanize_chinese">Романизировать тексты на китайском</string>
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Включить трансляцию звука на Chromecast и другие устройства с поддержкой Cast</string>
@@ -305,14 +305,14 @@
     <string name="wrapped_total_artists_subtitle">уникальных исполнителей</string>
     <string name="wrapped_total_songs_title">Вы слушали</string>
     <string name="wrapped_total_songs_subtitle">уникальных треков</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">пришло время узнать, что вы слушали</string>
     <string name="wrapped_intro_button">поехали!</string>
-    <string name="wrapped_end_thanks">Спасибо, что слушали с vivimusic!</string>
+    <string name="wrapped_end_thanks">Спасибо, что слушали с Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Создайте ваш Wrapped-плейлист</string>
     <string name="wrapped_end_creating_playlist">Создание…</string>
     <string name="wrapped_end_playlist_saved">Плейлист сохранён</string>
-    <string name="wrapped_logo_content_description">Логотип vivimusic</string>
+    <string name="wrapped_logo_content_description">Логотип Ctrl Music</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">ВАШ WRAPPED ГОТОВ!</string>
     <string name="wrapped_ready_subtitle">Время узнать, что вам понравилось в этом году.</string>
@@ -324,9 +324,9 @@
     <string name="wrapped_playlist_saved">Плейлист сохранён</string>
     <string name="casting_to">Трансляция на %s</string>
     <string name="progress_percent">Прогресс %s%%</string>
-    <string name="listening_to_vivimusic">Вы слушаете vivimusic</string>
+    <string name="listening_to_vivimusic">Вы слушаете Ctrl Music</string>
     <string name="listen_on_youtube_music">Слушать в YouTube Music</string>
-    <string name="visit_vivimusic">Посетить vivimusic</string>
+    <string name="visit_vivimusic">Посетить Ctrl Music</string>
     <string name="open">Открыть</string>
     <string name="failed_to_create_image">Не удалось создать изображение: %s</string>
     <string name="copied_title">Название скопировано</string>
@@ -359,7 +359,7 @@
     <string name="pause_music_when_media_is_muted">Останавливать воспроизведение при отключении звука</string>
     <string name="no_song_playing">Сейчас ничего не играет</string>
     <string name="album_art">Обложка альбома</string>
-    <string name="tap_to_open">Нажмите, чтобы открыть vivimusic</string>
+    <string name="tap_to_open">Нажмите, чтобы открыть Ctrl Music</string>
     <string name="previous">Предыдущий</string>
     <string name="play_pause">Играть/Пауза</string>
     <string name="next">Следующий</string>
@@ -473,7 +473,7 @@
     <string name="crash_description">Произошла непредвиденная ошибка. Пожалуйста, отправьте отчет о сбое, чтобы помочь нам устранить проблему.</string>
     <string name="crash_share_logs">Поделиться логами</string>
     <string name="crash_share_title">Поделиться отчетом о сбое</string>
-    <string name="crash_report_subject">Отчет о сбое vivimusic</string>
+    <string name="crash_report_subject">Отчет о сбое Ctrl Music</string>
     <string name="crash_close">Закрыть</string>
     <string name="crash_no_log">Лог сбоя недоступен</string>
     <string name="palette_dynamic">Динамическая</string>
@@ -523,7 +523,7 @@
     <string name="unblock">Разблокировать</string>
     <string name="user_blocked_by_host">Пользователь заблокирован хостом</string>
     <string name="not_playing">Ничего не играет</string>
-    <string name="tap_to_play">Нажмите, чтобы открыть vivimusic</string>
+    <string name="tap_to_play">Нажмите, чтобы открыть Ctrl Music</string>
     <string name="widget_music_player">Музыкальный плеер</string>
     <string name="widget_turntable">Виниловый проигрыватель</string>
     <string name="together">Вместе</string>
@@ -576,7 +576,7 @@
     <string name="recently_converted">Недавно конвертированные</string>
     <string name="csv_import_failed">Не удалось импортировать CSV-файл</string>
     <string name="importing_csv">Импорт CSV</string>
-    <string name="play_on_app">Играть в vivimusic</string>
+    <string name="play_on_app">Играть в Ctrl Music</string>
     <string name="listening">Слушаем…</string>
     <string name="continue_action">Продолжить</string>
     <string name="hold_to_recognize">Удерживайте значок поиска для распознавания музыки</string>
@@ -602,7 +602,7 @@
     <string name="discord_rpc_preview">Предпросмотр Rich Presence</string>
     <string name="discord_presence">Присутствие</string>
     <string name="discord_connect_description">Войдите через Discord, чтобы поделиться тем, что вы слушаете</string>
-    <string name="discord_playing_vivimusic">Играет в vivimusic</string>
+    <string name="discord_playing_vivimusic">Играет в Ctrl Music</string>
     <string name="prevent_duplicate_tracks_in_queue">Исключать дубликаты в очереди</string>
     <string name="prevent_duplicate_tracks_in_queue_desc">При добавлении трека в очередь удалять его из предыдущей позиции, если он уже присутствует</string>
     <string name="ai_translation_literal_desc">Перевести смысл на язык перевода</string>
@@ -632,8 +632,8 @@
     <string name="login_successful">Вход выполнен успешно!</string>
     <string name="discord_information_warning">Эта функция использует библиотеку KizzyRPC для подключения к шлюзу Discord и установки статуса Rich Presence. Хотя случаев блокировки аккаунтов при подобном использовании не зафиксировано, данный метод официально не поддерживается Discord и может считаться нарушением Условий использования. Ваш токен извлекается локально и никогда не отправляется на сторонние серверы. Используйте на свой страх и риск.</string>
     <string name="discord_activity_type">Тип активности</string>
-    <string name="discord_watching_vivimusic">Смотрит vivimusic</string>
-    <string name="discord_competing_vivimusic">Соревнуется в vivimusic</string>
+    <string name="discord_watching_vivimusic">Смотрит Ctrl Music</string>
+    <string name="discord_competing_vivimusic">Соревнуется в Ctrl Music</string>
     <string name="discord_activity_name">Название активности</string>
     <string name="discord_activity_name_description">Пользовательское название активности (оставьте пустым для значения по умолчанию)</string>
     <string name="discord_advanced_mode">Расширенный режим</string>

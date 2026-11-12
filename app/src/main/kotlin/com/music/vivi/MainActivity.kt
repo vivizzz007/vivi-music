@@ -360,8 +360,7 @@ class MainActivity : ComponentActivity() {
         window.decorView.layoutDirection = View.LAYOUT_DIRECTION_LTR
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // Initialize Listen Together manager
-        listenTogetherManager.initialize()
+        // Listen Together is not part of Ctrl Music, so it is never initialized.
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
             val locale = dataStore[AppLanguageKey]
@@ -585,13 +584,13 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
-            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
+            if (false && lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
                 ActionPromptDialog(
                     title = "Support ViviMusic \u2B50",
                     onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
                     onConfirm = {
                         setLastSeenStarPromptVersion(currentVersion)
-                        uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
+                        uriHandler.openUri("https://github.com/ctrlfxx/ctrlmusic")
                     },
                     onCancel = { setLastSeenStarPromptVersion(currentVersion) },
                     content = {
@@ -1047,7 +1046,7 @@ class MainActivity : ComponentActivity() {
                                                     contentDescription = stringResource(R.string.stats)
                                                 )
                                             }
-                                            if (listenTogetherInTopBar) {
+                                            if (false && listenTogetherInTopBar) {
                                                 IconButton(onClick = { navController.navigate("listen_together_from_topbar") }) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.group_outlined),

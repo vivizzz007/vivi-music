@@ -107,7 +107,8 @@ fun LyricsMenu(
     val openRouterModel by rememberPreference(OpenRouterModelKey, "google/gemini-2.5-flash-lite")
     val deeplFormality by rememberPreference(DeeplFormalityKey, "default")
 
-    val hasApiKey = if (aiProvider == "DeepL") deeplApiKey.isNotBlank() else openRouterApiKey.isNotBlank()
+    // AI lyrics translation is not part of Ctrl Music; keeps the translate menu hidden.
+    val hasApiKey = false
 
     // Observe the authoritative translation-active state from the singleton; this persists
     // correctly across menu open/close cycles and avoids the lyricsProvider() race condition.

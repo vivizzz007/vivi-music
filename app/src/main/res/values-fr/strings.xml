@@ -376,7 +376,7 @@
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
 
     <string name="discord_integration">Discord</string>
-    <string name="discord_information">Vivi Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \n\Vivi Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
+    <string name="discord_information">Ctrl Music utilise la bibliothèque KizzyRPC pour définir le statut de votre compte Discord. Cela implique l\'utilisation de la passerelle Discord, ce qui peut être considéré comme une violation des conditions d\'utilisation de Discord. Cependant, aucun cas de suspension de compte utilisateur pour cette raison n\'a été recensé. Utilisez ce service à vos risques et périls. \nCtrl Music extraira uniquement votre jeton ; toutes les autres données sont stockées localement.</string>
     <string name="dismiss">Rejeter</string>
     <string name="options">Options</string>
     <string name="preview">Aperçu</string>
@@ -447,7 +447,7 @@
     <string name="new_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous avez ajoutés à vos favoris sortent de nouveaux titres ou de nouveaux albums (version bêta)</string>
     <string name="new_release_channel_name">Nouveautés</string>
     <string name="new_release_channel_desc">Notifications concernant les nouvelles sorties de vos artistes favoris</string>
-    <string name="new_release_notifications_info">Sur certains appareils (Samsung, Xiaomi, etc.), l\'optimisation de la batterie peut retarder ou bloquer les notifications en arrière-plan. Pour vous assurer de recevoir vos alertes en temps voulu, configurez Vivi Music sur « Utilisation de la batterie sans restriction » dans les paramètres de votre appareil.</string>
+    <string name="new_release_notifications_info">Sur certains appareils (Samsung, Xiaomi, etc.), l\'optimisation de la batterie peut retarder ou bloquer les notifications en arrière-plan. Pour vous assurer de recevoir vos alertes en temps voulu, configurez Ctrl Music sur « Utilisation de la batterie sans restriction » dans les paramètres de votre appareil.</string>
     <string name="taste_based_release_notifications">Alertes de sortie basées sur les goûts</string>
     <string name="taste_based_release_notifications_subtitle">Recevoir une notification lorsque les artistes que vous écoutez régulièrement sortent de nouveaux titres ou de nouveaux albums</string>
 

@@ -117,7 +117,7 @@
     <string name="vivimusic_canvas_desc">Ersätter statiskt albumomslag med en loopande video när tillgänglig</string>
     <string name="canvas_source">Canvas‑källa</string>
     <string name="canvas_source_auto">Auto</string>
-    <string name="canvas_source_auto_desc">Försöker Apple Music först, sedan ViviMusic och Tidal</string>
+    <string name="canvas_source_auto_desc">Försöker Apple Music först, sedan Ctrl Music och Tidal</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Använder endast Apple Musics canvas</string>
     <string name="canvas_source_vivimusic">ViviMusic</string>
@@ -430,7 +430,7 @@
     <string name="enable_scrobbling">Aktivera scrobbling</string>
     <string name="lastfm_now_playing">Skicka ”Spelas nu”</string>
     <string name="last_fm_send_likes">Skicka gilla/ogilla</string>
-    <string name="last_fm_send_likes_description">Gilla/ogilla låtar i Last.fm när de gillas/ogillas i vivimusic</string>
+    <string name="last_fm_send_likes_description">Gilla/ogilla låtar i Last.fm när de gillas/ogillas i Ctrl Music</string>
     <string name="logging_in">Loggar in…</string>
 
     <string name="scrobbling_configuration">Scrobbling‑konfiguration</string>
@@ -471,7 +471,7 @@
     <string name="karaoke">Karaoke</string>
     <string name="apple_music_style">Apple Music</string>
     <string name="apple_music_style_letter">Apple Music V2 (bokstav för bokstav)</string>
-    <string name="vivimusic_1">Vivimusic (Fluid)</string>
+    <string name="vivimusic_1">Ctrl Music (Fluid)</string>
     <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
     <string name="apple_music_lyrics_blur_desc">Applicera suddighet på inaktiva textrader för en premiumfokuseffekt</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
@@ -501,14 +501,14 @@
     <string name="wrapped_total_artists_subtitle">unika artister</string>
     <string name="wrapped_total_songs_title">Du lyssnade på</string>
     <string name="wrapped_total_songs_subtitle">unika låtar</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">dags att se vad du har lyssnat på</string>
     <string name="wrapped_intro_button">nu kör vi!</string>
-    <string name="wrapped_end_thanks">Tack för att du lyssnar med vivimusic!</string>
+    <string name="wrapped_end_thanks">Tack för att du lyssnar med Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Skapa din Wrapped‑spellista</string>
     <string name="wrapped_end_creating_playlist">Skapar...</string>
     <string name="wrapped_end_playlist_saved">Spellista sparad</string>
-    <string name="wrapped_logo_content_description">vivimusic‑logotyp</string>
+    <string name="wrapped_logo_content_description">Ctrl Music‑logotyp</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">DIN WRAPPED ÄR KLAR!</string>
     <string name="wrapped_ready_subtitle">Dags att se vad du älskade i år.</string>
@@ -544,7 +544,7 @@
     <string name="error_eq_apply_failed">Kunde inte tillämpa EQ‑profil: %1$s</string>
 
     <!-- ViviEqualizer Strings -->
-    <string name="vivi_equalizer">ViviEqualizer</string>
+    <string name="vivi_equalizer">Equalizer</string>
     <string name="vivi_equalizer_desc">Pro‑klass akustisk tuning &amp; effekter</string>
     <string name="eq_simple">Enkel</string>
     <string name="eq_advanced">Avancerad</string>
@@ -552,7 +552,7 @@
     <string name="eq_label_mid">Mellanregister</string>
     <string name="eq_label_treble">Diskant</string>
     <string name="eq_preset_flat">Platt</string>
-    <string name="eq_preset_vivi_signature">Vivi‑signatur</string>
+    <string name="eq_preset_vivi_signature">Ctrl Music‑signatur</string>
     <string name="eq_preset_acoustic">Akustisk</string>
     <string name="eq_preset_spatial">3D‑scen</string>
     <string name="eq_preset_bass_boost">Basförstärkning</string>
@@ -569,9 +569,9 @@
     <string name="eq_preset_dirac_music">Dirac Music</string>
     <string name="eq_preset_dirac_movie">Dirac Movie</string>
     <string name="eq_preset_dirac_game">Dirac Game</string>
-    <string name="eq_enable_title">ViviEqualizer</string>
+    <string name="eq_enable_title">Equalizer</string>
     <string name="eq_enable_summary">Aktivera professionell ljudbearbetning</string>
-    <string name="eq_label_vivi">Vivi‑signatur</string>
+    <string name="eq_label_vivi">Ctrl Music‑signatur</string>
     <string name="eq_label_dolby">Dolby Atmos</string>
     <string name="eq_label_dirac">Dirac Audio</string>
     <string name="eq_reset">Återställ</string>
@@ -589,9 +589,9 @@
     <string name="plays">spelningar</string>
     <string name="casting_to">Castar till %s</string>
     <string name="progress_percent">Förlopp %s%%</string>
-    <string name="listening_to_vivimusic">Lyssnar på vivimusic</string>
+    <string name="listening_to_vivimusic">Lyssnar på Ctrl Music</string>
     <string name="listen_on_youtube_music">Lyssna på YouTube Music</string>
-    <string name="visit_vivimusic">Besök vivimusic</string>
+    <string name="visit_vivimusic">Besök Ctrl Music</string>
     <string name="open">Öppna</string>
     <string name="failed_to_create_image">Kunde inte skapa bild: %s</string>
     <string name="copied_title">Titel kopierad</string>
@@ -608,13 +608,13 @@
     <!-- Widget strings -->
     <string name="album_art">Albumomslag</string>
     <string name="no_song_playing">Ingen låt spelas</string>
-    <string name="tap_to_open">Tryck för att öppna vivimusic</string>
+    <string name="tap_to_open">Tryck för att öppna Ctrl Music</string>
     <string name="previous">Föregående</string>
     <string name="play_pause">Spela/Pausa</string>
     <string name="next">Nästa</string>
     <string name="like">Gilla</string>
     <string name="not_playing">Ingen låt spelas</string>
-    <string name="tap_to_play">Tryck för att öppna vivimusic</string>
+    <string name="tap_to_play">Tryck för att öppna Ctrl Music</string>
     <string name="widget_description">Musikspelarwidget med uppspelningskontroller</string>
     <string name="queue_widget_description">Musikspelare med köförhandsvisning</string>
     <string name="turntable_widget_description">Cirkulär musikwidget med spela‑ och gilla‑kontroller</string>
@@ -773,7 +773,7 @@
     <string name="crash_share_logs">Dela loggar</string>
     <string name="copy_logs">Kopiera loggar</string>
     <string name="crash_share_title">Dela krastrapport</string>
-    <string name="crash_report_subject">vivimusic krastrapport</string>
+    <string name="crash_report_subject">Ctrl Music krastrapport</string>
     <string name="crash_close">Stäng</string>
     <string name="crash_no_log">Ingen kraslogg tillgänglig</string>
 
@@ -826,7 +826,7 @@
     <string name="delete_from_history">Ta bort från historik</string>
     <string name="re_listen">Lyssna igen</string>
     <string name="hold_to_recognize">Håll ned sökikonen för att identifiera musik</string>
-    <string name="play_on_app">Spela i vivimusic</string>
+    <string name="play_on_app">Spela i Ctrl Music</string>
     <string name="recognized_track">Identifierad låt</string>
 
     <!-- CSV Import Strings -->
@@ -865,9 +865,9 @@
     <string name="discord_rpc_preview">Rich Presence‑förhandsvisning</string>
     <string name="discord_presence">Närvaro</string>
     <string name="discord_connect_description">Logga in med Discord för att dela vad du lyssnar på</string>
-    <string name="discord_playing_vivimusic">Spelar vivimusic</string>
-    <string name="discord_watching_vivimusic">Tittar på vivimusic</string>
-    <string name="discord_competing_vivimusic">Tävlar i vivimusic</string>
+    <string name="discord_playing_vivimusic">Spelar Ctrl Music</string>
+    <string name="discord_watching_vivimusic">Tittar på Ctrl Music</string>
+    <string name="discord_competing_vivimusic">Tävlar i Ctrl Music</string>
     <string name="discord_activity_name">Aktivitetsnamn</string>
     <string name="discord_activity_name_description">Anpassat namn för aktiviteten (lämna tomt för standard)</string>
     <string name="discord_advanced_mode">Avancerat läge</string>
@@ -922,14 +922,14 @@
 
     <!-- Onboarding -->
     <string name="welcome_to">Välkommen till</string>
-    <string name="welcome_to_vivi">Välkommen till Vivi</string>
+    <string name="welcome_to_vivi">Välkommen till Ctrl Music</string>
     <string name="accessibility">Tillgänglighet</string>
     <string name="welcome_preparing_subtitle">Vi förbereder allt åt dig.</string>
     <string name="get_started">Kom igång</string>
 
     <string name="perm_required">Krävs</string>
     <string name="perm_permissions">Behörigheter</string>
-    <string name="perm_intro_text">Dessa behörigheter krävs för att ViviMusic ska fungera korrekt. Ge dem för att fortsätta.</string>
+    <string name="perm_intro_text">Dessa behörigheter krävs för att Ctrl Music ska fungera korrekt. Ge dem för att fortsätta.</string>
 
     <string name="perm_notif_title">Aviseringar</string>
     <string name="perm_notif_desc">Få direkt kontroll över musiken från aviseringar.</string>
@@ -939,7 +939,7 @@
 
     <string name="feat_discover">Upptäck</string>
     <string name="feat_features">Funktioner</string>
-    <string name="feat_intro">Utforska allt ViviMusic erbjuder för din musikresa.</string>
+    <string name="feat_intro">Utforska allt Ctrl Music erbjuder för din musikresa.</string>
 
     <string name="feat_lyrics_title">Smarta låttexter</string>
     <string name="feat_lyrics_desc">Njut av synkroniserade, ord‑för‑ord‑texter för miljontals låtar.</string>
@@ -963,7 +963,7 @@
     <string name="welcome_update_status">Uppdaterad</string>
     <string name="welcome_update_intro">Vi säkerställer att du har de senaste funktionerna och förbättringarna.</string>
     <string name="welcome_checking_updates">Söker efter uppdateringar…</string>
-    <string name="welcome_up_to_date">ViviMusic är uppdaterad!</string>
+    <string name="welcome_up_to_date">Ctrl Music är uppdaterad!</string>
     <string name="welcome_update_available">Ny version tillgänglig: %s</string>
     <string name="welcome_everything_ready">Allt är nu uppdaterat</string>
 
@@ -1053,9 +1053,9 @@
     <string name="error_invalid_font">Ogiltig typsnittsfil vald.</string>
 
     <!-- YouTube Decryption / Cipher Settings -->
-    <string name="youtube_decryption_settings">Vivi‑Extractor</string>
+    <string name="youtube_decryption_settings">Ctrl Music‑Extractor</string>
     <string name="youtube_decryption_desc">Konfigurera extractor‑inställningar</string>
-    <string name="youtube_decryption_support">Vivi‑Extractor</string>
+    <string name="youtube_decryption_support">Ctrl Music‑Extractor</string>
     <string name="youtube_decryption_support_desc">Extraherar automatiskt YouTube‑uppspelningskonfigurationer. Låst till aktivt läge.</string>
     <string name="auto_cipher_fetching">Automatiska uppdateringar</string>
     <string name="auto_cipher_fetching_desc">Hämta nya extractor‑mappningar i bakgrunden när problem upptäcks.</string>
@@ -1080,7 +1080,7 @@
     <string name="disabled">Inaktiverad</string>
 
     <!-- Setup Wizard / Onboarding -->
-    <string name="setting_up_vivimusic">Konfigurerar ViviMusic…</string>
+    <string name="setting_up_vivimusic">Konfigurerar Ctrl Music…</string>
     <string name="skip">Hoppa över</string>
 
     <!-- Data Saver -->
@@ -1095,7 +1095,7 @@
 
     <string name="tab_recommended">Rekommenderat</string>
     <string name="tab_all_services">Alla tjänster</string>
-    <string name="whats_new_title">Nyheter i ViviMusic</string>
+    <string name="whats_new_title">Nyheter i Ctrl Music</string>
     <string name="whats_new_desc">Upptäck nya funktioner, UI‑förbättringar och uppdateringar</string>
     <string name="account_sync_desc_off">Logga in för att synkronisera ditt YouTube Music‑bibliotek, spellistor och rekommendationer</string>
     <string name="settings_for_account">Kontoinställningar</string>

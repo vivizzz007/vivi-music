@@ -118,7 +118,7 @@ fun SettingsDropdownMenu(
             IconButton(
                 onClick = { 
                     gitHubViewModel.toggleStar(context) {
-                        uriHandler.openUri("https://github.com/vivizzz007/vivi-music")
+                        uriHandler.openUri("https://github.com/ctrlfxx/ctrlmusic")
                     }
                 }, 
                 modifier = iconButtonModifier,
@@ -166,8 +166,8 @@ fun SettingsDropdownMenu(
             IconButton(
                 onClick = { 
                     onDismissRequest()
-                    val targetApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "izzydroid-universal-foss-release.apk" else "vivi.apk"
-                    val shareUrl = "https://github.com/vivizzz007/vivi-music/releases/latest/download/$targetApkName"
+                    val targetApkName = if (BuildConfig.FLAVOR.contains("foss", ignoreCase = true)) "CtrlMusic.apk" else "CtrlMusic.apk"
+                    val shareUrl = "https://github.com/ctrlfxx/ctrlmusic/releases/latest/download/$targetApkName"
                     val sendIntent = Intent(Intent.ACTION_SEND).apply {
                         putExtra(Intent.EXTRA_TEXT, shareUrl)
                         type = "text/plain"

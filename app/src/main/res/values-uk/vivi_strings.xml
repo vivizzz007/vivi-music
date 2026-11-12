@@ -229,7 +229,7 @@
     <string name="scrobble_delay_minutes">Затримка Scrobble у хвилинах</string>
     <string name="swipe_song_to_remove">Проведіть пальцем по пісні, щоб вилучити її зі списку відтворення</string>
     <string name="last_fm_send_likes">Надіслати вподобання/не вподобання</string>
-    <string name="last_fm_send_likes_description">Пісні, які подобається/не подобається, на Last.fm, коли вони вподобані/зняті з vivimusic</string>
+    <string name="last_fm_send_likes_description">Пісні, які подобається/не подобається, на Last.fm, коли вони вподобані/зняті з Ctrl Music</string>
     <string name="lyrics_romanize_chinese">Романізація китайських текстів</string>
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Увімкнути трансляцію аудіо на Chromecast та інші пристрої з підтримкою Cast</string>
@@ -305,14 +305,14 @@
     <string name="wrapped_total_artists_subtitle">унікальні митці</string>
     <string name="wrapped_total_songs_title">Ти слухав/слухала</string>
     <string name="wrapped_total_songs_subtitle">унікальні пісні</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">час подивитися, що ви слухали</string>
     <string name="wrapped_intro_button">Ходімо!</string>
-    <string name="wrapped_end_thanks">Дякую, що вислухали vivimusic!</string>
+    <string name="wrapped_end_thanks">Дякую, що вислухали Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Створіть свій підсумковий список відтворення</string>
     <string name="wrapped_end_creating_playlist">Створення...</string>
     <string name="wrapped_end_playlist_saved">Список відтворення збережено</string>
-    <string name="wrapped_logo_content_description">Логотип vivimusic</string>
+    <string name="wrapped_logo_content_description">Логотип Ctrl Music</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">ВАШ АУДІОПІДСУМОК ЗА РІК ГОТОВИЙ!</string>
     <string name="wrapped_ready_subtitle">Час подивитися, що вам сподобалося цього року.</string>
@@ -324,9 +324,9 @@
     <string name="wrapped_playlist_saved">Список відтворення збережено</string>
     <string name="casting_to">Трансляція на %s</string>
     <string name="progress_percent">Прогрес %s%%</string>
-    <string name="listening_to_vivimusic">Слухаючи vivimusic</string>
+    <string name="listening_to_vivimusic">Слухаючи Ctrl Music</string>
     <string name="listen_on_youtube_music">Слухайте далі YouTube Music</string>
-    <string name="visit_vivimusic">Відвідайте vivimusic</string>
+    <string name="visit_vivimusic">Відвідайте Ctrl Music</string>
     <string name="open">Відкрити</string>
     <string name="failed_to_create_image">Не вдалося створити зображення: %s</string>
     <string name="copied_title">Скопійована назва</string>
@@ -360,7 +360,7 @@
     <string name="system_equalizer">Системний еквалайзер</string>
     <string name="album_art">Обкладинка альбому</string>
     <string name="no_song_playing">Пісня не відтворюється</string>
-    <string name="tap_to_open">Натисніть, щоб відкрити vivimusic</string>
+    <string name="tap_to_open">Натисніть, щоб відкрити Ctrl Music</string>
     <string name="previous">Попередній</string>
     <string name="play_pause">Відтворення/Пауза</string>
     <string name="next">Далі</string>

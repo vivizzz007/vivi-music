@@ -464,7 +464,7 @@ fun AccountSettingsScreen(
             ) {
                 Surface(
                     onClick = {
-                        uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/issues")
+                        uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx/ctrlmusic/issues")
                     },
                     shape = CircleShape,
                     color = MaterialTheme.colorScheme.surfaceContainerHigh,

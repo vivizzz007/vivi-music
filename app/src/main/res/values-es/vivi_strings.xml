@@ -226,7 +226,7 @@
     <string name="scrobble_delay_minutes">Minutos de retraso de Scrobble</string>
     <string name="swipe_song_to_remove">Deslizar la canción para quitarla de la lista de reproducción</string>
     <string name="last_fm_send_likes">Enviar Me gusta/No me gusta</string>
-    <string name="last_fm_send_likes_description">Marcar como Me gusta o No me gusta las canciones en Last.fm cuando aparecen marcadas como Me gusta o No me gusta en vivimusic</string>
+    <string name="last_fm_send_likes_description">Marcar como Me gusta o No me gusta las canciones en Last.fm cuando aparecen marcadas como Me gusta o No me gusta en Ctrl Music</string>
     <string name="primary_color_style">Color primario</string>
     <string name="tertiary_color_style">Color terciario</string>
     <string name="auto_scroll">Volver a sincronizar</string>
@@ -297,7 +297,7 @@
     <string name="wrapped_total_songs_subtitle">canciones únicas</string>
     <string name="wrapped_intro_subtitle">Es hora de ver lo que has estado escuchando</string>
     <string name="wrapped_intro_button">¡vamos!</string>
-    <string name="wrapped_end_thanks">¡Gracias por escuchar con vivimusic!</string>
+    <string name="wrapped_end_thanks">¡Gracias por escuchar con Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Crea tu lista de reproducción Recap</string>
     <string name="wrapped_end_creating_playlist">Creando...</string>
     <string name="wrapped_end_playlist_saved">Lista de reproducción guardada</string>
@@ -311,9 +311,9 @@
     <string name="wrapped_playlist_saved">Lista de reproducción guardada</string>
     <string name="casting_to">Transmitiendo a %s</string>
     <string name="progress_percent">Progreso %s%%</string>
-    <string name="listening_to_vivimusic">Escuchando vivimusic</string>
+    <string name="listening_to_vivimusic">Escuchando Ctrl Music</string>
     <string name="listen_on_youtube_music">Escuchar en YouTube Music</string>
-    <string name="visit_vivimusic">Visita vivimusic</string>
+    <string name="visit_vivimusic">Visita Ctrl Music</string>
     <string name="open">Abrir</string>
     <string name="failed_to_create_image">No se pudo crear la imagen: %s</string>
     <string name="copied_title">Título copiado</string>
@@ -327,8 +327,8 @@
     <string name="slide">Deslizar</string>
     <string name="karaoke">Karaoke</string>
     <string name="apple_music_style">Estilo Apple Music</string>
-    <string name="wrapped_intro_title">vivimusic</string>
-    <string name="wrapped_logo_content_description">Logo de vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
+    <string name="wrapped_logo_content_description">Logo de Ctrl Music</string>
     <string name="wrapped_year">2025</string>
     <string name="show_artist_description">Mostrar descripción del artista</string>
     <string name="show_artist_subscriber_count">Ver numero de suscriptores</string>
@@ -358,7 +358,7 @@
     <string name="import_error_title">Error de Importación</string>
     <string name="album_art">Portada del álbum</string>
     <string name="no_song_playing">No se reproduce ninguna canción</string>
-    <string name="tap_to_open">Toca para abrir vivimusic</string>
+    <string name="tap_to_open">Toca para abrir Ctrl Music</string>
     <string name="previous">Anterior</string>
     <string name="play_pause">Reproducir/Pausar</string>
     <string name="next">Siguiente</string>
@@ -468,7 +468,7 @@
     <string name="crash_description">Ocurrió un error inesperado. Por favor comparte el informe de fallos para ayudarnos a solucionar el problema.</string>
     <string name="crash_share_logs">Compartir registros</string>
     <string name="crash_share_title">Compartir informe de fallos</string>
-    <string name="crash_report_subject">Informe de fallos de vivimusic</string>
+    <string name="crash_report_subject">Informe de fallos de Ctrl Music</string>
     <string name="crash_close">Cerrar</string>
     <string name="crash_no_log">No hay registro de fallos disponible</string>
     <string name="palette_dynamic">Dinámico</string>
@@ -498,7 +498,7 @@
     <string name="cd_system_mode">Modo del sistema</string>
     <string name="cd_palette_item">Paleta %1$s</string>
     <string name="not_playing">No hay canción en reproducción</string>
-    <string name="tap_to_play">Toca para abrir vivimusic</string>
+    <string name="tap_to_play">Toca para abrir Ctrl Music</string>
     <string name="widget_music_player">Reproductor de música</string>
     <string name="widget_turntable">Tocadiscos</string>
     <string name="listen_together_choose_server">Elegir servidor</string>
@@ -571,7 +571,7 @@
     <string name="recently_converted">Recientemente convertidos</string>
     <string name="csv_import_failed">Error al importar el archivo CSV</string>
     <string name="importing_csv">Importar CSV</string>
-    <string name="play_on_app">Reproducir en vivimusic</string>
+    <string name="play_on_app">Reproducir en Ctrl Music</string>
     <string name="listening">Escuchando…</string>
     <string name="continue_action">Continuar</string>
     <string name="hold_to_recognize">Mantén presionado el ícono de búsqueda para reconocer música</string>
@@ -630,9 +630,9 @@
     <string name="discord_button_text_variables">Variables: {song_name}, {artist_name}, {album_name}</string>
     <string name="discord_rpc_preview">Vista previa de Rich Presence</string>
     <string name="discord_connect_description">Inicia sesión con Discord para compartir lo que estás escuchando</string>
-    <string name="discord_playing_vivimusic">Reproduciendo vivimusic</string>
-    <string name="discord_watching_vivimusic">Viendo vivimusic</string>
-    <string name="discord_competing_vivimusic">Compitiendo en vivimusic</string>
+    <string name="discord_playing_vivimusic">Reproduciendo Ctrl Music</string>
+    <string name="discord_watching_vivimusic">Viendo Ctrl Music</string>
+    <string name="discord_competing_vivimusic">Compitiendo en Ctrl Music</string>
     <string name="discord_activity_name">Nombre de la actividad</string>
     <string name="discord_activity_name_description">Nombre personalizado para la actividad (dejar vacío para el valor predeterminado)</string>
     <string name="discord_advanced_mode">Modo avanzado</string>

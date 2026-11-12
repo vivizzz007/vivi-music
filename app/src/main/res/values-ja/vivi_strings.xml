@@ -265,7 +265,7 @@
     <string name="lyrics_offset">歌詞のタイミングを調整</string>
     <string name="google_cast_description">Chromecastなどのキャスト対応のデバイスに音声をキャストできます</string>
     <string name="last_fm_send_likes">高評価/低評価を反映する</string>
-    <string name="last_fm_send_likes_description">vivimusicで曲に高評価/低評価をつけると、Last.fmでもラブ/アンラブされます</string>
+    <string name="last_fm_send_likes_description">Ctrl Musicで曲に高評価/低評価をつけると、Last.fmでもラブ/アンラブされます</string>
     <string name="edit_desc">タイトルやアーティスト名を変更します</string>
     <string name="start_radio_desc">この曲をもとに似た曲を再生します</string>
     <string name="play_next_desc">キューの先頭に追加します</string>
@@ -286,7 +286,7 @@
     <string name="listen_together">Listen Together</string>
     <string name="decryption_library_pipepipe_api">PipePipe API</string>
     <string name="play_pause">再生/停止</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="apple_music_style">Apple Music</string>
     <string name="karaoke">カラオケ</string>
     <string name="none">なし</string>
@@ -302,7 +302,7 @@
     <string name="eq_disabled">無効</string>
     <string name="error_title">エラー</string>
     <string name="listen_on_youtube_music">YouTube Musicで聴く</string>
-    <string name="visit_vivimusic">vivimusicに移動</string>
+    <string name="visit_vivimusic">Ctrl Musicに移動</string>
     <string name="open">開く</string>
     <string name="copied_title">タイトルをコピーしました</string>
     <string name="copied_artist">アーティスト名をコピーしました</string>
@@ -356,7 +356,7 @@
     <string name="crash_title">アプリがクラッシュしました</string>
     <string name="crash_share_logs">クラッシュログを共有</string>
     <string name="crash_share_title">クラッシュレポートを共有</string>
-    <string name="crash_report_subject">vivimusicのクラッシュレポート</string>
+    <string name="crash_report_subject">Ctrl Musicのクラッシュレポート</string>
     <string name="crash_close">閉じる</string>
     <string name="crash_no_log">クラッシュログがありません</string>
     <string name="palette_dynamic">ダイナミック</string>
@@ -440,8 +440,8 @@
     <string name="wrapped_total_songs_subtitle">ユニークな曲数</string>
     <string name="wrapped_intro_subtitle">これまでに聴いてきた音楽を振り返りましょう</string>
     <string name="wrapped_intro_button">さあ、始めよう！</string>
-    <string name="wrapped_end_thanks">vivimusicで聴いてくれてありがとう！</string>
-    <string name="wrapped_logo_content_description">vivimusicロゴ</string>
+    <string name="wrapped_end_thanks">Ctrl Musicで聴いてくれてありがとう！</string>
+    <string name="wrapped_logo_content_description">Ctrl Musicロゴ</string>
     <string name="wrapped_ready_title">あなたのWrappedが完成しました！</string>
     <string name="wrapped_ready_subtitle">今年あなたが夢中になった音楽を見てみましょう。</string>
     <string name="wrapped_thank_you">聴いてくれてありがとう</string>
@@ -460,7 +460,7 @@
     <string name="error_eq_apply_failed">イコライザープロファイルを適用できません：%1$s</string>
     <string name="casting_to">%sにキャスト中</string>
     <string name="progress_percent">進行状況：%s%%</string>
-    <string name="listening_to_vivimusic">vivimusicで再生中</string>
+    <string name="listening_to_vivimusic">Ctrl Musicで再生中</string>
     <string name="failed_to_create_image">画像の作成に失敗しました：%s</string>
     <string name="error_playing">再生中にエラーが発生しました</string>
     <string name="failed_to_parse_proxy">プロキシURLを解析できません。</string>
@@ -468,9 +468,9 @@
     <string name="error_copied">エラー情報をクリップボードにコピーしました</string>
     <string name="error_copy_hint">エラー情報をコピーして、開発者が問題を特定できるようにします</string>
     <string name="no_song_playing">再生中の曲はありません</string>
-    <string name="tap_to_open">タップしてvivimusicを開く</string>
+    <string name="tap_to_open">タップしてCtrl Musicを開く</string>
     <string name="previous">前へ</string>
-    <string name="tap_to_play">タップしてvivimusicを開く</string>
+    <string name="tap_to_play">タップしてCtrl Musicを開く</string>
     <string name="queue_widget_description">再生キューを確認できる音楽プレーヤー</string>
     <string name="listen_together_you_are_host">あなたはホストです</string>
     <string name="listen_together_you_are_guest">あなたはゲストです</string>
@@ -560,7 +560,7 @@
     <string name="delete_from_history">履歴から削除</string>
     <string name="re_listen">もう一度聴く</string>
     <string name="hold_to_recognize">検索タブを長押しして音楽を認識</string>
-    <string name="play_on_app">vivimusicで再生</string>
+    <string name="play_on_app">Ctrl Musicで再生</string>
     <string name="recognized_track">認識された曲</string>
     <string name="map_csv_columns">CSV列の対応設定</string>
     <string name="first_row_is_header">1行目をヘッダーとして扱う</string>
@@ -615,9 +615,9 @@
     <string name="discord_rpc_preview">リッチプレゼンスのプレビュー</string>
     <string name="discord_presence">プレゼンス</string>
     <string name="discord_connect_description">Discordにサインインして、再生中の内容を共有しよう</string>
-    <string name="discord_playing_vivimusic">vivimusicで再生中</string>
-    <string name="discord_watching_vivimusic">vivimusicで視聴中</string>
-    <string name="discord_competing_vivimusic">vivimusicで大会に参加中</string>
+    <string name="discord_playing_vivimusic">Ctrl Musicで再生中</string>
+    <string name="discord_watching_vivimusic">Ctrl Musicで視聴中</string>
+    <string name="discord_competing_vivimusic">Ctrl Musicで大会に参加中</string>
     <string name="discord_activity_name">アクティビティ名</string>
     <string name="discord_activity_name_description">アクティビティのカスタム名（空欄の場合はデフォルトを使用）</string>
     <string name="discord_advanced_mode">詳細設定</string>

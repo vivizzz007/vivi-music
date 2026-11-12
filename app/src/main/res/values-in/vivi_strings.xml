@@ -275,14 +275,14 @@
     <string name="wrapped_total_artists_subtitle">artis unik</string>
     <string name="wrapped_total_songs_title">Anda telah mendengarkan</string>
     <string name="wrapped_total_songs_subtitle">lagu unik</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">saatnya melihat apa yang telah Anda dengarkan</string>
     <string name="wrapped_intro_button">ayo mulai!</string>
-    <string name="wrapped_end_thanks">Terima kasih telah mendengarkan bersama vivimusic!</string>
+    <string name="wrapped_end_thanks">Terima kasih telah mendengarkan bersama Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Buat Playlist Wrapped Anda</string>
     <string name="wrapped_end_creating_playlist">Membuat...</string>
     <string name="wrapped_end_playlist_saved">Playlist Tersimpan</string>
-    <string name="wrapped_logo_content_description">Logo vivimusic</string>
+    <string name="wrapped_logo_content_description">Logo Ctrl Music</string>
     <string name="wrapped_year">2025</string>
     <string name="wrapped_ready_title">WRAPPED ANDA SUDAH SIAP!</string>
     <string name="wrapped_ready_subtitle">Saatnya melihat apa yang Anda sukai sepanjang tahun ini.</string>
@@ -294,9 +294,9 @@
     <string name="wrapped_playlist_saved">Playlist tersimpan</string>
     <string name="casting_to">Casting ke %s</string>
     <string name="progress_percent">Progres %s%%</string>
-    <string name="listening_to_vivimusic">Mendengarkan vivimusic</string>
+    <string name="listening_to_vivimusic">Mendengarkan Ctrl Music</string>
     <string name="listen_on_youtube_music">Dengarkan di YouTube Music</string>
-    <string name="visit_vivimusic">Kunjungi vivimusic</string>
+    <string name="visit_vivimusic">Kunjungi Ctrl Music</string>
     <string name="open">Buka</string>
     <string name="failed_to_create_image">Gagal membuat gambar: %s</string>
     <string name="copied_title">Judul Disalin</string>
@@ -308,7 +308,7 @@
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Aktifkan casting audio ke Chromecast dan perangkat Cast lainnya</string>
     <string name="last_fm_send_likes">Kirim Likes/Unlikes</string>
-    <string name="last_fm_send_likes_description">Love/Unlove lagu di Last.fm saat di-Like/Unlike di vivimusic</string>
+    <string name="last_fm_send_likes_description">Love/Unlove lagu di Last.fm saat di-Like/Unlike di Ctrl Music</string>
     <string name="logging_in">Sedang login…</string>
     <string name="hide_video_songs">Sembunyikan video musik</string>
     <string name="details_desc">Lihat informasi lagu</string>
@@ -344,7 +344,7 @@
     <string name="pause_music_when_media_is_muted">Jeda musik saat media dibisukan</string>
     <string name="album_art">Sampul album</string>
     <string name="no_song_playing">Tidak ada lagu yang sedang diputar</string>
-    <string name="tap_to_open">Ketuk untuk membuka vivimusic</string>
+    <string name="tap_to_open">Ketuk untuk membuka Ctrl Music</string>
     <string name="previous">Sebelumnya</string>
     <string name="play_pause">Putar/Jeda</string>
     <string name="next">Selanjutnya</string>
@@ -458,7 +458,7 @@
     <string name="crash_description">Terjadi kesalahan yang tidak terduga. Silakan bagikan laporan crash untuk membantu kami memperbaiki masalah ini.</string>
     <string name="crash_share_logs">Bagikan log</string>
     <string name="crash_share_title">Bagikan laporan crash</string>
-    <string name="crash_report_subject">Laporan Crash vivimusic</string>
+    <string name="crash_report_subject">Laporan Crash Ctrl Music</string>
     <string name="crash_close">Tutup</string>
     <string name="crash_no_log">Tidak ada log crash yang tersedia</string>
     <string name="palette_dynamic">Dinamis</string>
@@ -488,7 +488,7 @@
     <string name="cd_system_mode">Mode sistem</string>
     <string name="cd_palette_item">palet %1$s</string>
     <string name="not_playing">Tidak ada lagu yang diputar</string>
-    <string name="tap_to_play">Ketuk untuk membuka vivimusic</string>
+    <string name="tap_to_play">Ketuk untuk membuka Ctrl Music</string>
     <string name="widget_music_player">Pemutar Musik</string>
     <string name="widget_turntable">Meja putar</string>
     <string name="together">Bersama</string>
@@ -577,7 +577,7 @@
     <string name="delete_from_history">Hapus dari riwayat</string>
     <string name="re_listen">Dengarkan ulang</string>
     <string name="hold_to_recognize">Tahan ikon pencarian untuk mengenali musik</string>
-    <string name="play_on_app">Putar di vivimusic</string>
+    <string name="play_on_app">Putar di Ctrl Music</string>
     <string name="recognized_track">Trek yang Dikenali</string>
     <string name="map_csv_columns">Petakan Kolom CSV</string>
     <string name="first_row_is_header">Baris pertama adalah header</string>
@@ -612,9 +612,9 @@
     <string name="discord_rpc_preview">Pratinjau Rich Presence</string>
     <string name="discord_presence">Kehadiran</string>
     <string name="discord_connect_description">Masuk dengan Discord untuk membagikan apa yang Anda dengarkan</string>
-    <string name="discord_playing_vivimusic">Bermain vivimusic</string>
-    <string name="discord_watching_vivimusic">Menonton vivimusic</string>
-    <string name="discord_competing_vivimusic">Berkompetisi di vivimusic</string>
+    <string name="discord_playing_vivimusic">Bermain Ctrl Music</string>
+    <string name="discord_watching_vivimusic">Menonton Ctrl Music</string>
+    <string name="discord_competing_vivimusic">Berkompetisi di Ctrl Music</string>
     <string name="discord_activity_name">Nama aktivitas</string>
     <string name="discord_activity_name_description">Nama kustom untuk aktivitas (biarkan kosong untuk default)</string>
     <string name="discord_advanced_mode">Mode lanjutan</string>

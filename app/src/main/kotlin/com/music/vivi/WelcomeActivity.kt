@@ -601,7 +601,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                                 )
                             },
                             onClick = {
-                                uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music")
+                                uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx/ctrlmusic")
                             }
                         )
 
@@ -1136,7 +1136,7 @@ fun RotatingShapeContainer(modifier: Modifier = Modifier, rotate: Boolean = true
         )
 
         Icon(
-            painter = painterResource(com.music.vivi.R.mipmap.ic_launcher_monochrome),
+            painter = painterResource(com.music.vivi.R.drawable.ic_launcher_monochrome),
             contentDescription = null,
             modifier = Modifier.size(220.dp),
             tint = backgroundColor

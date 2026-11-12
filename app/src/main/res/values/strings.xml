@@ -376,7 +376,7 @@
     <string name="restore_failed">Failed to restore backup</string>
 
     <string name="discord_integration">Discord</string>
-    <string name="discord_information">vivimusic uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\vivimusic will only extract your token, and everything else is stored locally.</string>
+    <string name="discord_information">Ctrl Music uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\nCtrl Music will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>
@@ -447,7 +447,7 @@
     <string name="new_release_notifications_subtitle">Notify when bookmarked artists release new songs or albums (beta)</string>
     <string name="new_release_channel_name">New Releases</string>
     <string name="new_release_channel_desc">Notifications for new releases from your bookmarked artists</string>
-    <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Vivi Music to Unrestricted battery usage in your device settings.</string>
+    <string name="new_release_notifications_info">On some devices (Samsung, Xiaomi, etc.), battery optimization may delay or block background notifications. To ensure timely alerts, set Ctrl Music to Unrestricted battery usage in your device settings.</string>
     <string name="taste_based_release_notifications">Taste-based release alerts</string>
     <string name="taste_based_release_notifications_subtitle">Notify when artists you frequently listen to release new songs or albums</string>
 

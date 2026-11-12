@@ -368,7 +368,7 @@
     <string name="restore_failed">Yedekleme geri yüklenemedi</string>
 
     <string name="discord_integration">Discord Entegrasyonu</string>
-    <string name="discord_information">vivimusic, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord\'un Hizmet Şartları\'nın ihlali olarak kabul edilebilecek Discord Geçit bağlantısının kullanılmasını gerektirir. Fakat kullanıcı hesaplarının bu nedenle askıya alındığı bilinen bir örnek yoktur. Riski size ait olmak üzere kullanın. \n \nvivimusic yalnızca belirtecinizi çıkarır ve diğer her şey yerel olarak saklanır.</string>
+    <string name="discord_information">Ctrl Music, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord\'un Hizmet Şartları\'nın ihlali olarak kabul edilebilecek Discord Geçit bağlantısının kullanılmasını gerektirir. Fakat kullanıcı hesaplarının bu nedenle askıya alındığı bilinen bir örnek yoktur. Riski size ait olmak üzere kullanın. \n \nvivimusic yalnızca belirtecinizi çıkarır ve diğer her şey yerel olarak saklanır.</string>
     <string name="dismiss">İptal</string>
     <string name="options">Seçenekler</string>
     <string name="preview">Ön izleme</string>
@@ -439,7 +439,7 @@
     <string name="new_release_notifications_subtitle">Favorilere eklenen sanatçılar yeni şarkı veya albüm çıkardığında bildir (beta)</string>
     <string name="new_release_channel_name">Yeni Çıkanlar</string>
     <string name="new_release_channel_desc">Favori sanatçılarınızın yeni çıkan içerikleri için bildirimler</string>
-    <string name="new_release_notifications_info">Bazı cihazlarda (Samsung, Xiaomi vb.) pil optimizasyonu arka plan bildirimlerini geciktirebilir veya engelleyebilir. Zamanında uyarı alabilmek için cihaz ayarlarınızdan Vivi Music\'in pil kullanımını Kısıtlanmamış olarak ayarlayın.</string>
+    <string name="new_release_notifications_info">Bazı cihazlarda (Samsung, Xiaomi vb.) pil optimizasyonu arka plan bildirimlerini geciktirebilir veya engelleyebilir. Zamanında uyarı alabilmek için cihaz ayarlarınızdan Ctrl Music\'in pil kullanımını Kısıtlanmamış olarak ayarlayın.</string>
     <string name="taste_based_release_notifications">Zevke dayalı yeni çıkan uyarıları</string>
     <string name="taste_based_release_notifications_subtitle">Sık dinlediğiniz sanatçılar yeni şarkı veya albüm çıkardığında bildir</string>
 </resources>

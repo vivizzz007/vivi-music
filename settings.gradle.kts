@@ -24,12 +24,10 @@ dependencyResolutionManagement {
 //     id("org.gradle.toolchains.foojay-resolver-convention") version("1.0.0")
 // }
 
-rootProject.name = "vivimusic"
+rootProject.name = "ctrlmusic"
 include(":app")
 // Previous canvas included below
 include(":innertube")
-include(":kizzy")
-include(":lastfm")
 include(":shazamkit")
 include(":artistvideo")
 include(":Motionartwork")

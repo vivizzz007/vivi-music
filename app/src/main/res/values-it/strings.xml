@@ -278,7 +278,7 @@
     <string name="disable_screenshot_desc">Quando questa opzione è attiva, gli screenshot e la visualizzazione dell\'app nei Recenti sono disabilitati.</string>
     <string name="hide_explicit">"Nascondi contenuti espliciti (18+)"</string>
     <string name="discord_integration">Integrazione Discord</string>
-    <string name="discord_information">vivimusic usa la libreria KizzyRPC per impostare lo stato del tuo account Discord. Ciò comporta l\'uso della connessione Discord Gateway, che può essere considerata una violazione dei TOS di Discord. Tuttavia, non ci sono casi noti di account utente sospesi per questo motivo. Usalo a tuo rischio e pericolo.\n\nvivimusic estrarrà solo il tuo token e tutto il resto verrà archiviato localmente.</string>
+    <string name="discord_information">Ctrl Music usa la libreria KizzyRPC per impostare lo stato del tuo account Discord. Ciò comporta l\'uso della connessione Discord Gateway, che può essere considerata una violazione dei TOS di Discord. Tuttavia, non ci sono casi noti di account utente sospesi per questo motivo. Usalo a tuo rischio e pericolo.\n\nvivimusic estrarrà solo il tuo token e tutto il resto verrà archiviato localmente.</string>
     <string name="options">Opzioni</string>
     <string name="use_login_for_browse">Effettua il Login per visualizzzare questi contenuti</string>
     <string name="preview">Anteprima</string>
@@ -381,7 +381,7 @@
     <string name="new_release_notifications_subtitle">Notifica quando gli artisti aggiunti ai segnalibri pubblicano nuovi brani o album (beta)</string>
     <string name="new_release_channel_name">Nuove uscite</string>
     <string name="new_release_channel_desc">Notifiche per le nuove uscite dei tuoi artisti aggiunti ai segnalibri</string>
-    <string name="new_release_notifications_info">Su alcuni dispositivi (Samsung, Xiaomi, ecc.), l\'ottimizzazione della batteria potrebbe ritardare o bloccare le notifiche in background. Per ricevere avvisi tempestivi, imposta l\'uso della batteria di Vivi Music su Non limitato nelle impostazioni di sistema.</string>
+    <string name="new_release_notifications_info">Su alcuni dispositivi (Samsung, Xiaomi, ecc.), l\'ottimizzazione della batteria potrebbe ritardare o bloccare le notifiche in background. Per ricevere avvisi tempestivi, imposta l\'uso della batteria di Ctrl Music su Non limitato nelle impostazioni di sistema.</string>
     <string name="taste_based_release_notifications">Avvisi uscite in base ai tuoi gusti</string>
     <string name="taste_based_release_notifications_subtitle">Notifica quando gli artisti che ascolti frequentemente pubblicano nuovi brani o album</string>
     <string name="switch_to_grid_view">Passa alla visualizzazione a griglia</string>
