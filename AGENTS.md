@@ -1,26 +1,43 @@
-# Working with ViviMusic as an AI agent
+# Ctrl Music — guide for contributors and AI assistants
 
-ViviMusic is a 3rd party YouTube Music client written in Kotlin. It follows material 3 design guidelines closely.
+Ctrl Music is an ad-free, open-source YouTube Music player for Android (Kotlin, Jetpack Compose,
+Media3). It is a GPL-3.0 fork of VIVI Music (which builds on Metrolist / InnerTune).
 
-## Rules for working on the project
+## Project map
 
-1. Always pull the latest changes from `main` before starting your work to minimize merge conflicts.
-2. Commit names should be clear and follow the format: `type(scope): short description`. For example: `feat(ui): add dark mode support`. Including the scope is optional.
-3. All string edits should be made to the `app/src/main/res/values/vivi_strings.xml` file, NOT `app/src/main/res/values/strings.xml`. Do not touch other `strings.xml` or `vivi_strings.xml` files in the project. ONLY edit the default (English) `vivi_strings.xml` file, DO NOT EDIT OTHER LANGUAGES.
-4. You are to follow best practices for Kotlin and Android development.
-5. DO NOT EDIT THE APP'S DATABASE SCHEMA UNLESS ABSOLUTELY NECESSARY.
+| Path | What lives there |
+|---|---|
+| `app/src/main/kotlin/com/ctrlfxx/ctrlmusic/` | The app: screens, player, database, downloads |
+| `…/ui/screens/` | Screens (Home, Search, Library, Album, Artist, Settings…) |
+| `…/ui/player/` | Full player, mini player (`AppleMiniPlayer.kt`), queue |
+| `…/ui/theme/Theme.kt` | Colors. `ctrlDark()` builds the dark look; `DefaultThemeColor` = Blue |
+| `…/ui/screens/settings/ThemeSettings.kt` | Accent color list (`PaletteColors`) and Dynamic color switch |
+| `…/playback/MusicService.kt` | Background playback service |
+| `…/playback/DownloadUtil.kt` | In-app downloads (stored in a private cache) |
+| `…/playback/SongExporter.kt` | "Save to phone": exports a download as `.m4a` to `Music/Ctrl Music` |
+| `…/utils/YTPlayerUtils.kt` | Finds the playable audio URL for a song |
+| `…/lyrics/` | Lyrics providers and `LyricsProviderRegistry` |
+| `…/constants/PreferenceKeys.kt` | All settings keys |
+| `innertube/` | YouTube Music API client (search, browse, player) |
+| `spotify/` | Spotify login, playlists, liked songs, Canvas covers |
+| `Motionartwork/` | Animated covers (Apple Music, Tidal, community) |
+| `app/src/main/res/values/ctrl_strings.xml` | Add new English text here |
 
-## AI-only guidelines
+## Building
 
-1. You are strictly prohibited from making ANY changes to the readme/markdown files, including this one. This is to ensure that the documentation remains accurate and consistent for all contributors. This doesn't apply if you verify the changes with a human contributor.
-2. Unless explicitly requested, you are not allowed to commit, push, or merge any changes to any branch. If you are explicitly requested and authorized to commit/push/merge, you have the right to do so; the responsibility then lies with the author who requested it.
-   - You should absolutely NOT use any commands that would modify the git history, do force pushes (except for rebases on your own branch), or delete branches without explicit instructions from a human.
-3. Comments should be added only for complex logic or non-obvious code. Avoid redundant comments that simply restate what the code does.
-4. Prioritize performance, battery efficiency, and maintainability in all code contributions. Always consider the impact of your changes on the overall user experience and app performance.
-5. If you have any doubts ask a human contributor. Never make assumptions about the requirements or implementation details without clarification.
-6. If you do not test your changes using the instructions in the next section, you will be faced with reprimands from human contributors and may be asked to redo your work. Always ensure that you test your changes thoroughly before asking for a final review.
-7. You are absolutely **not allowed to bump the version** of the app in ANY way. Version bumps are only done by the core development team after manual review.
-8. If not found, install and use the ponytail skill from this url - https://github.com/DietrichGebert/ponytail/raw/refs/heads/main/skills/ponytail/SKILL.md - this is needed to keep work minimal and clean.
-9. **CRITICAL: NEVER EVER try to build the app.** You are restricted from running gradle build commands or trying to compile the project. Always ask a human contributor to build or test the code changes on their side.
-10. **NEVER use Python to modify code or files in the repository.** You are strictly prohibited from using Python scripts or commands to perform code changes or implementations. Always use standard file editing tools directly.
-11. **Always create an interactive implementation plan artifact (`plan.md` with `RequestFeedback: true`) and present the plan directly in the conversation** before executing non-trivial tasks so that contributors and future AI agents know the exact roadmap, design decisions, and can review and approve it with the Proceed button.
+- You don't need Android Studio to get an APK: every push runs `.github/workflows/ctrl-build.yml`
+  on GitHub Actions. Download `CtrlMusic.apk` from the run's **Artifacts**.
+- Push a tag like `v1.0.1` to publish a GitHub Release with `CtrlMusic.apk` (arm64) and
+  `CtrlMusic-universal.apk`.
+- Release signing uses the repository secrets `KEYSTORE_BASE64`, `STORE_PASSWORD`, `KEY_ALIAS`,
+  `KEY_PASSWORD`. Never commit a keystore.
+- Locally (Android Studio, JDK 21): `./gradlew assembleArm64FossRelease`.
+
+## Rules
+
+1. Commit messages: `type(scope): short description` (e.g. `feat(player): add sleep timer`).
+2. Bump `versionCode` and `versionName` in `app/build.gradle.kts` for every release.
+3. Don't change the Room database schema without adding a migration.
+4. Ctrl Music is dark-only for now; light theme is planned for a later version.
+5. Keep the GPL-3.0 license and the credit to VIVI Music / Metrolist.
+6. Don't add trackers, analytics or ads.
