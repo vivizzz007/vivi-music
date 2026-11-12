@@ -512,9 +512,8 @@ class MainActivity : ComponentActivity() {
 
 
         val isSystemInDarkTheme = isSystemInDarkTheme()
-        val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
-            if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
-        }
+        // Ctrl Music is dark-only in this version.
+        val useDarkTheme = true
 
         LaunchedEffect(useDarkTheme) {
             setSystemBarAppearance(useDarkTheme)
@@ -583,6 +582,7 @@ class MainActivity : ComponentActivity() {
             darkTheme = useDarkTheme,
             pureBlack = pureBlack,
             themeColor = themeColor,
+            tintSurfaces = enableDynamicTheme,
         ) {
             if (false && lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
                 ActionPromptDialog(

@@ -105,27 +105,17 @@ data class ThemePalette(
 )
 
 val PaletteColors = listOf(
-    ThemePalette(R.string.palette_dynamic, Color.Transparent), // Sentinel for System/Dynamic colors
-    ThemePalette(R.string.palette_crimson, Color(0xFFEC5464)), // Slightly shifted from DefaultThemeColor (0xFFED5564) to avoid conflict
-    ThemePalette(R.string.palette_rose, Color(0xFFD81B60)),
-    ThemePalette(R.string.palette_purple, Color(0xFF8E24AA)),
-    ThemePalette(R.string.palette_monochrome, Color(0xFF000000)),
-    ThemePalette(R.string.palette_deep_purple, Color(0xFF5E35B1)),
-    ThemePalette(R.string.palette_indigo, Color(0xFF3949AB)),
-    ThemePalette(R.string.palette_blue, Color(0xFF1E88E5)),
-    ThemePalette(R.string.palette_sky_blue, Color(0xFF039BE5)),
-    ThemePalette(R.string.palette_cyan, Color(0xFF00ACC1)),
-    ThemePalette(R.string.palette_teal, Color(0xFF00897B)),
-    ThemePalette(R.string.palette_green, Color(0xFF43A047)),
-    ThemePalette(R.string.palette_light_green, Color(0xFF7CB342)),
-    ThemePalette(R.string.palette_lime, Color(0xFFC0CA33)),
-    ThemePalette(R.string.palette_yellow, Color(0xFFFDD835)),
-    ThemePalette(R.string.palette_amber, Color(0xFFFFB300)),
-    ThemePalette(R.string.palette_orange, Color(0xFFFB8C00)),
-    ThemePalette(R.string.palette_deep_orange, Color(0xFFF4511E)),
-    ThemePalette(R.string.palette_brown, Color(0xFF6D4C41)),
-    ThemePalette(R.string.palette_grey, Color(0xFF757575)),
-    ThemePalette(R.string.palette_blue_grey, Color(0xFF546E7A)),
+    ThemePalette(R.string.palette_blue, Color(0xFF0A84FF)),
+    ThemePalette(R.string.palette_red, Color(0xFFFF453A)),
+    ThemePalette(R.string.palette_green, Color(0xFF30D158)),
+    ThemePalette(R.string.palette_purple, Color(0xFFBF5AF2)),
+    ThemePalette(R.string.palette_orange, Color(0xFFFF9F0A)),
+    ThemePalette(R.string.palette_pink, Color(0xFFFF375F)),
+    ThemePalette(R.string.palette_teal, Color(0xFF40C8E0)),
+    ThemePalette(R.string.palette_yellow, Color(0xFFFFD60A)),
+    ThemePalette(R.string.palette_indigo, Color(0xFF5E5CE6)),
+    ThemePalette(R.string.palette_rose_gold, Color(0xFFB5928D)),
+    ThemePalette(R.string.palette_graphite, Color(0xFF8E8E93)),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -157,10 +147,6 @@ fun ThemeSettings(
     // Helper function to handle color selection with dynamic theme toggle
     val handleColorSelection: (Color) -> Unit = { color ->
         onSelectedThemeColorChange(color.toArgb())
-        // Enable dynamic theme only when selecting the default/dynamic color
-        // Disable it when selecting any other color
-        val isDynamicColor = color == DefaultThemeColor
-        onDynamicThemeChange(isDynamicColor)
     }
 
     Scaffold(
@@ -323,47 +309,6 @@ fun ThemeControls(
             items = buildList {
                 add(
                     Material3SettingsItem(
-                        icon = painterResource(R.drawable.routine_theme),
-                        title = { Text(stringResource(R.string.theme_mode)) },
-                        descriptionBelow = true,
-                        description = {
-                            val themeOptions = listOf(
-                                DarkMode.AUTO to stringResource(R.string.cd_system_mode),
-                                DarkMode.OFF to stringResource(R.string.cd_light_mode),
-                                DarkMode.ON to stringResource(R.string.cd_dark_mode)
-                            )
-                
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 8.dp, bottom = 4.dp),
-                                horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
-                            ) {
-                                themeOptions.forEachIndexed { index, (value, label) ->
-                                    ToggleButton(
-                                        checked = darkMode == value,
-                                        onCheckedChange = { onDarkModeChange(value) },
-                                        modifier = Modifier.weight(1f),
-                                        shapes = when (index) {
-                                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                                            themeOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                                        }
-                                    ) {
-                                        Text(
-                                            text = label,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    )
-                )
-
-                add(
-                    Material3SettingsItem(
                         icon = painterResource(R.drawable.palette),
                         title = { Text(stringResource(R.string.color_palette)) },
                         descriptionBelow = true,
@@ -376,20 +321,12 @@ fun ThemeControls(
                                 contentPadding = PaddingValues(horizontal = 4.dp)
                             ) {
                                 items(PaletteColors) { palette ->
-                                    val isDynamicPalette = palette.seedColor == Color.Transparent
-                                    val isSelected = if (isDynamicPalette) {
-                                        selectedThemeColor == DefaultThemeColor
-                                    } else {
-                                        selectedThemeColor == palette.seedColor
-                                    }
+                                    val isSelected = selectedThemeColor.toArgb() == palette.seedColor.toArgb()
                                     
                                     PaletteItem(
                                         palette = palette,
                                         isSelected = isSelected,
-                                        onClick = { 
-                                            val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
-                                            onSelectedThemeColorChange(colorToSave) 
-                                        }
+                                        onClick = { onSelectedThemeColorChange(palette.seedColor) }
                                     )
                                 }
                             }
@@ -420,11 +357,12 @@ fun ThemeControls(
                     )
                 )
 
-                if (!isUsingCustomColor) {
+                run {
                     add(
                         Material3SettingsItem(
                             icon = painterResource(R.drawable.dynamic),
-                            title = { Text(stringResource(R.string.enable_dynamic_theme)) },
+                            title = { Text(stringResource(R.string.dynamic_color_title)) },
+                            description = { Text(stringResource(R.string.dynamic_color_desc)) },
                             trailingContent = {
                                 Switch(
                                     checked = dynamicTheme,

@@ -878,7 +878,7 @@ fun AppearanceSettings(
             val sliderPreviewColors = PlayerSliderColors.getSliderColors(
                 MaterialTheme.colorScheme.primary,
                 PlayerBackgroundStyle.DEFAULT,
-                isSystemInDarkTheme()
+                true /* Ctrl Music: dark only */
             )
 
             Column(

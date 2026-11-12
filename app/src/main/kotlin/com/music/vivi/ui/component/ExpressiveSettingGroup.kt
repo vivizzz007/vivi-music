@@ -65,7 +65,7 @@ fun ExpressiveSettingGroup(
                     .fillMaxWidth()
                     .animateContentSize(),
                 shape = shape,
-                color = if (androidx.compose.foundation.isSystemInDarkTheme()) {
+                color = if (true /* Ctrl Music: dark only */) {
                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                 } else {
                     MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)

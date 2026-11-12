@@ -301,7 +301,7 @@ fun AudioDeviceBottomSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier)
         }
     }
 
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = true /* Ctrl Music: dark only */
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,

@@ -181,7 +181,7 @@ fun ActionPromptDialog(
                         .clip(shape)
                         .clickable { action() },
                     shape = shape,
-                    color = if (isSystemInDarkTheme()) {
+                    color = if (true /* Ctrl Music: dark only */) {
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     } else {
                         MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)

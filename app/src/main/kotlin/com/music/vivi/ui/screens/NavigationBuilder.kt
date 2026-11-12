@@ -96,7 +96,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable(Screens.Search.route) {
         val pureBlackEnabled by rememberPreference(PureBlackKey, defaultValue = false)
         val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
-        val isSystemInDarkTheme = isSystemInDarkTheme()
+        val isSystemInDarkTheme = true /* Ctrl Music: dark only */
         val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
             if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         }

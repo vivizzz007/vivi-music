@@ -1216,4 +1216,11 @@
     <string name="saving_to_phone">Saving to phone…</string>
     <string name="saved_to_phone">Saved to Music/Ctrl Music</string>
     <string name="save_to_phone_failed">Couldn\'t save: %1$s</string>
+    <string name="palette_red">Red</string>
+    <string name="palette_pink">Pink</string>
+    <string name="palette_rose_gold">Rose Gold</string>
+    <string name="palette_graphite">Graphite</string>
+    <string name="dynamic_color_title">Dynamic color</string>
+    <string name="dynamic_color_desc">Use colors from the song cover across the app</string>
+    <string name="dark_theme_only_note">Ctrl Music uses a dark theme. Pick an accent color below.</string>
 </resources>

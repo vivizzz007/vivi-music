@@ -76,7 +76,7 @@ fun AppleMiniPlayer(
     // Theme settings
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, defaultValue = false)
-    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val isSystemInDarkTheme = true /* Ctrl Music: dark only */
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON

@@ -87,7 +87,7 @@ fun SettingsDropdownMenu(
     val syncState by accountSettingsViewModel.syncState.collectAsState()
     val isSyncing = syncState.overallStatus is SyncStatus.Syncing
     
-    val itemContainerColor = if (isSystemInDarkTheme()) {
+    val itemContainerColor = if (true /* Ctrl Music: dark only */) {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
     } else {
         MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)

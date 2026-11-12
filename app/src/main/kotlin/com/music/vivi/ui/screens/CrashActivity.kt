@@ -59,7 +59,7 @@ class CrashActivity : ComponentActivity() {
         val crashLog = intent.getStringExtra(CrashHandler.EXTRA_CRASH_LOG) ?: getString(R.string.crash_no_log)
         
         setContent {
-            val darkTheme = isSystemInDarkTheme()
+            val darkTheme = true /* Ctrl Music: dark only */
             vivimusicTheme(darkTheme = darkTheme) {
                 CrashScreen(
                     crashLog = crashLog,

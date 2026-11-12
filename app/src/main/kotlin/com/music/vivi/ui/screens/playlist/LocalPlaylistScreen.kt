@@ -907,7 +907,7 @@ fun LocalPlaylistHeader(
     )
 
     val cropColor = MaterialTheme.colorScheme
-    val darkTheme = darkMode == DarkMode.ON || (darkMode == DarkMode.AUTO && isSystemInDarkTheme())
+    val darkTheme = darkMode == DarkMode.ON || (darkMode == DarkMode.AUTO && true /* Ctrl Music: dark only */)
 
     val pickLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()

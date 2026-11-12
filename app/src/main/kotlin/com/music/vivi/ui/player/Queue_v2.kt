@@ -128,7 +128,7 @@ fun QueueV2(
         key = PlayerButtonsStyleKey,
         defaultValue = PlayerButtonsStyle.DEFAULT
     )
-    val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val isSystemInDarkTheme = true /* Ctrl Music: dark only */
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON

@@ -209,7 +209,7 @@ private fun NewMiniPlayer(
     
     // Theme settings - these rarely change
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
-    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val isSystemInDarkTheme = true /* Ctrl Music: dark only */
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -695,7 +695,7 @@ private fun LegacyMiniPlayer(
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
             .background(
-                if (pureBlack && isSystemInDarkTheme()) Color.Black
+                if (pureBlack && true /* Ctrl Music: dark only */) Color.Black
                 else MaterialTheme.colorScheme.surfaceContainer
             )
             .let { baseModifier ->
