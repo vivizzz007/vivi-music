@@ -94,6 +94,7 @@ media3-session = { module = "androidx.media3:media3-session", version.ref = "med
 media3-hls = { module = "androidx.media3:media3-exoplayer-hls", version.ref = "media3" }
 media3-cast = { module = "androidx.media3:media3-cast", version.ref = "media3" }
 media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3" }
+media3-transformer = { module = "androidx.media3:media3-transformer", version.ref = "media3" }
 
 mediarouter = { module = "androidx.mediarouter:mediarouter", version.ref = "mediarouter" }
 cast-framework = { module = "com.google.android.gms:play-services-cast-framework", version.ref = "castFramework" }

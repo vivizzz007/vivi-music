@@ -1211,4 +1211,9 @@
     <string name="album">Album</string>
     <string name="genre">Genre</string>
     <string name="audio_quality_high_desc">256+ kbps with Premium</string>
+    <string name="save_to_phone">Save to phone</string>
+    <string name="save_to_phone_desc">Save as an M4A file in Music/Ctrl Music</string>
+    <string name="saving_to_phone">Saving to phone…</string>
+    <string name="saved_to_phone">Saved to Music/Ctrl Music</string>
+    <string name="save_to_phone_failed">Couldn\'t save: %1$s</string>
 </resources>

@@ -99,6 +99,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun SongMenu(
     originalSong: Song,
@@ -116,6 +117,8 @@ fun SongMenu(
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id)
         .collectAsState(initial = null)
+    val downloadUtil = LocalDownloadUtil.current
+    var isSavingToPhone by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val syncUtils = LocalSyncUtils.current
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -631,7 +634,8 @@ fun SongMenu(
         item {
             Material3MenuGroup(
                 expressive = true,
-                items = listOf(
+                items = buildList {
+add(
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
                             Material3MenuItemData(
@@ -702,7 +706,63 @@ fun SongMenu(
                             )
                         }
                     }
-                )
+                    )
+                    if (download?.state == Download.STATE_COMPLETED) {
+                        add(
+                            Material3MenuItemData(
+                                title = {
+                                    Text(
+                                        text = stringResource(
+                                            if (isSavingToPhone) R.string.saving_to_phone else R.string.save_to_phone
+                                        )
+                                    )
+                                },
+                                description = { Text(text = stringResource(R.string.save_to_phone_desc)) },
+                                icon = {
+                                    if (isSavingToPhone) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier.size(24.dp),
+                                            strokeWidth = 2.dp
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = painterResource(R.drawable.download),
+                                            contentDescription = null,
+                                        )
+                                    }
+                                },
+                                onClick = {
+                                    if (!isSavingToPhone) {
+                                        isSavingToPhone = true
+                                        val appContext = context.applicationContext
+                                        @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+                                        kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                                            val result = com.music.vivi.playback.SongExporter.exportToMusic(
+                                                context = appContext,
+                                                downloadCache = downloadUtil.downloadCache,
+                                                mediaId = song.id,
+                                                title = song.song.title,
+                                                artist = song.artists.joinToString { it.name },
+                                                album = song.album?.title,
+                                            )
+                                            isSavingToPhone = false
+                                            val message = result.fold(
+                                                onSuccess = { appContext.getString(R.string.saved_to_phone) },
+                                                onFailure = {
+                                                    appContext.getString(
+                                                        R.string.save_to_phone_failed,
+                                                        it.message ?: it.javaClass.simpleName
+                                                    )
+                                                }
+                                            )
+                                            android.widget.Toast.makeText(appContext, message, android.widget.Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            )
+                        )
+                    }
+                }
             )
         }
 
