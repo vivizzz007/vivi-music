@@ -1,0 +1,27 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.ctrlfxx.ctrlmusic.playback.queues
+
+import androidx.media3.common.MediaItem
+import com.ctrlfxx.ctrlmusic.extensions.metadata
+import com.ctrlfxx.ctrlmusic.models.MediaMetadata
+
+class ListQueue(
+    val title: String? = null,
+    val items: List<MediaItem>,
+    val startIndex: Int = 0,
+    val position: Long = 0L,
+    val isRadio: Boolean = false,
+) : Queue {
+    override val preloadItem: MediaMetadata?
+        get() = items.getOrNull(startIndex)?.metadata
+
+    override suspend fun getInitialStatus() = Queue.Status(title, items, startIndex, position)
+
+    override fun hasNextPage(): Boolean = false
+
+    override suspend fun nextPage() = throw UnsupportedOperationException()
+}

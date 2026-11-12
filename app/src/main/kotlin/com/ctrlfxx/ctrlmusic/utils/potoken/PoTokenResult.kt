@@ -1,0 +1,10 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+package com.ctrlfxx.ctrlmusic.utils.potoken
+
+class PoTokenResult(
+    val playerRequestPoToken: String,
+    val streamingDataPoToken: String,
+)

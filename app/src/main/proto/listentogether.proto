@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package com.music.vivi.listentogether.proto;
+package com.ctrlfxx.ctrlmusic.listentogether.proto;
 
-option java_package = "com.music.vivi.listentogether.proto";
+option java_package = "com.ctrlfxx.ctrlmusic.listentogether.proto";
 option java_multiple_files = false;
 option java_outer_classname = "Listentogether";
 

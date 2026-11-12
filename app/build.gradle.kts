@@ -17,7 +17,7 @@ plugins {
 }
 
 android {
-    namespace = "com.music.vivi"
+    namespace = "com.ctrlfxx.ctrlmusic"
     compileSdk = 37
     ndkVersion = "27.0.12077973"
 

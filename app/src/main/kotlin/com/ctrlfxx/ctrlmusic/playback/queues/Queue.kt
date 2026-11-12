@@ -1,0 +1,65 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+package com.ctrlfxx.ctrlmusic.playback.queues
+
+import androidx.media3.common.MediaItem
+import com.ctrlfxx.ctrlmusic.extensions.metadata
+import com.ctrlfxx.ctrlmusic.models.MediaMetadata
+import com.music.innertube.pages.RadioChip
+import kotlinx.coroutines.flow.StateFlow
+
+interface Queue {
+    val preloadItem: MediaMetadata?
+    val radioChips: StateFlow<List<RadioChip>>? get() = null
+
+
+    suspend fun getInitialStatus(): Status
+
+    fun hasNextPage(): Boolean
+
+    suspend fun nextPage(): List<MediaItem>
+
+    data class Status(
+        val title: String?,
+        val items: List<MediaItem>,
+        val mediaItemIndex: Int,
+        val position: Long = 0L,
+    ) {
+        fun filterExplicit(enabled: Boolean = true) =
+            if (enabled) {
+                copy(
+                    items = items.filterExplicit(),
+                )
+            } else {
+                this
+            }
+
+        fun filterVideoSongs(disableVideos: Boolean = false) =
+            if (disableVideos) {
+                copy(
+                    items = items.filterVideoSongs(true),
+                )
+            } else {
+                this
+            }
+    }
+}
+
+fun List<MediaItem>.filterExplicit(enabled: Boolean = true) =
+    if (enabled) {
+        filterNot {
+            it.metadata?.explicit == true
+        }
+    } else {
+        this
+    }
+
+fun List<MediaItem>.filterVideoSongs(disableVideos: Boolean = false) =
+    if (disableVideos) {
+        filterNot { it.metadata?.isVideoSong == true }
+    } else {
+        this
+    }

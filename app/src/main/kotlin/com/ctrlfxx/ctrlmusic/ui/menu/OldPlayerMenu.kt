@@ -1,0 +1,640 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+package com.ctrlfxx.ctrlmusic.ui.menu
+
+import android.content.Intent
+import android.widget.Toast
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
+import com.music.innertube.YouTube
+import com.ctrlfxx.ctrlmusic.LocalDatabase
+import com.ctrlfxx.ctrlmusic.LocalDownloadUtil
+import com.ctrlfxx.ctrlmusic.LocalListenTogetherManager
+import com.ctrlfxx.ctrlmusic.LocalPlayerConnection
+import com.ctrlfxx.ctrlmusic.R
+import com.ctrlfxx.ctrlmusic.constants.ListItemHeight
+import com.ctrlfxx.ctrlmusic.extensions.toggleRepeatMode
+import com.ctrlfxx.ctrlmusic.listentogether.RoomRole
+import com.ctrlfxx.ctrlmusic.models.MediaMetadata
+import com.ctrlfxx.ctrlmusic.playback.ExoDownloadService
+import com.ctrlfxx.ctrlmusic.ui.component.BottomSheetState
+import com.ctrlfxx.ctrlmusic.ui.component.ListDialog
+import com.ctrlfxx.ctrlmusic.ui.component.Material3MenuGroup
+import com.ctrlfxx.ctrlmusic.ui.component.Material3MenuItemData
+import com.ctrlfxx.ctrlmusic.ui.component.NewAction
+import com.ctrlfxx.ctrlmusic.ui.component.NewActionGrid
+import com.ctrlfxx.ctrlmusic.ui.component.VolumeSlider
+import com.ctrlfxx.ctrlmusic.constants.EnableSaavnStreamingKey
+import com.ctrlfxx.ctrlmusic.utils.rememberPreference
+import com.ctrlfxx.ctrlmusic.ui.screens.CommentSheet
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+@Composable
+fun OldPlayerMenu(
+    mediaMetadata: MediaMetadata?,
+    navController: NavController,
+    playerBottomSheetState: BottomSheetState,
+    onShowDetailsDialog: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    mediaMetadata ?: return
+    val context = LocalContext.current
+    val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val coroutineScope = rememberCoroutineScope()
+    val playerVolume = playerConnection.service.playerVolume.collectAsState()
+
+    // Cast state for volume control
+    val castHandler = remember(playerConnection) {
+        try {
+            playerConnection.service.castConnectionHandler
+        } catch (e: Exception) {
+            null
+        }
+    }
+    val isCasting by castHandler?.isCasting?.collectAsState() ?: remember { mutableStateOf(false) }
+    val castVolume by castHandler?.castVolume?.collectAsState() ?: remember { mutableFloatStateOf(1f) }
+    val castDeviceName by castHandler?.castDeviceName?.collectAsState() ?: remember { mutableStateOf<String?>(null) }
+
+    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+
+    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
+    val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
+    val repeatMode by playerConnection.repeatMode.collectAsState()
+    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
+    val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
+
+    val artists = remember(mediaMetadata.artists) {
+        mediaMetadata.artists.filter { it.id != null }
+    }
+
+    var showChoosePlaylistDialog by rememberSaveable { mutableStateOf(false) }
+    var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
+    var showPitchTempoDialog by rememberSaveable { mutableStateOf(false) }
+    var showCommentSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (showCommentSheet) {
+        CommentSheet(
+            videoId = mediaMetadata.id,
+            onDismiss = { showCommentSheet = false }
+        )
+    }
+
+    AddToPlaylistDialog(
+        isVisible = showChoosePlaylistDialog,
+        onGetSong = { playlist ->
+            database.transaction { insert(mediaMetadata) }
+            coroutineScope.launch(Dispatchers.IO) {
+                playlist.playlist.browseId?.let { YouTube.addToPlaylist(it, mediaMetadata.id) }
+            }
+            listOf(mediaMetadata.id)
+        },
+        onDismiss = { showChoosePlaylistDialog = false }
+    )
+
+    if (showSelectArtistDialog) {
+        ListDialog(onDismiss = { showSelectArtistDialog = false }) {
+            items(artists) { artist ->
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillParentMaxWidth()
+                        .height(ListItemHeight)
+                        .clickable {
+                            navController.navigate("artist/${artist.id}")
+                            showSelectArtistDialog = false
+                            playerBottomSheetState.collapseSoft()
+                            onDismiss()
+                        }
+                        .padding(horizontal = 24.dp),
+                ) {
+                    Text(
+                        text = artist.name,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
+    }
+
+    if (showPitchTempoDialog) {
+        TempoPitchDialog(onDismiss = { showPitchTempoDialog = false })
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(top = 24.dp, bottom = 6.dp),
+    ) {
+        // Show Cast indicator when casting
+        if (isCasting && castDeviceName != null) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.cast),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Text(
+                    text = stringResource(R.string.casting_to, castDeviceName ?: ""),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+
+        VolumeSlider(
+            value = if (isCasting) castVolume else playerVolume.value,
+            onValueChange = { volume ->
+                if (isCasting) {
+                    castHandler?.setVolume(volume)
+                } else {
+                    playerConnection.service.playerVolume.value = volume
+                }
+            },
+            modifier = Modifier.fillMaxWidth(),
+            accentColor = MaterialTheme.colorScheme.primary
+        )
+    }
+
+    Spacer(modifier = Modifier.height(20.dp))
+
+    HorizontalDivider()
+
+    Spacer(modifier = Modifier.height(12.dp))
+
+    LazyColumn(
+        contentPadding = PaddingValues(
+            start = 0.dp,
+            top = 0.dp,
+            end = 0.dp,
+            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
+        ),
+    ) {
+        // Share & Playlist Add
+        item {
+            val startingRadioText = stringResource(R.string.starting_radio)
+            NewActionGrid(
+                actions = listOfNotNull(
+                    if (!isListenTogetherGuest) {
+                        NewAction(
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.radio),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            text = stringResource(R.string.start_an_radio),
+                            onClick = {
+                                Toast.makeText(context, startingRadioText, Toast.LENGTH_SHORT).show()
+                                playerConnection.startRadioSeamlessly()
+                                onDismiss()
+                            }
+                        )
+                    } else null,
+                    NewAction(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.playlist_add),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        text = stringResource(R.string.add_to_an_playlist),
+                        onClick = { showChoosePlaylistDialog = true }
+                    ),
+                    NewAction(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.share),
+                                contentDescription = null,
+                                modifier = Modifier.size(32.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        text = stringResource(R.string.share),
+                        onClick = {
+                            val intent = android.content.Intent().apply {
+                                action = android.content.Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    android.content.Intent.EXTRA_TEXT,
+                                    "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                                )
+                            }
+                            context.startActivity(android.content.Intent.createChooser(intent, null))
+                            onDismiss()
+                        }
+                    )
+                ),
+                columns = if (isListenTogetherGuest) 2 else 3,
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(8.dp)) }
+
+        // Core Old Player Items
+        item {
+            Material3MenuGroup(
+                expressive = true,
+                items = buildList {
+                    // Shuffle
+                    if (!isListenTogetherGuest) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(stringResource(R.string.shuffle)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.shuffle),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = if (shuffleModeEnabled) MaterialTheme.colorScheme.primary else androidx.compose.material3.LocalContentColor.current
+                                    )
+                                },
+                                onClick = {
+                                    playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
+                                    onDismiss()
+                                }
+                            )
+                        )
+                    }
+
+                    // Download
+                    when (download?.state) {
+                        Download.STATE_COMPLETED -> {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(stringResource(R.string.remove_download)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.offline),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    },
+                                    onClick = {
+                                        DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, mediaMetadata.id, false)
+                                        onDismiss()
+                                    }
+                                )
+                            )
+                        }
+                        Download.STATE_QUEUED, Download.STATE_DOWNLOADING -> {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(stringResource(R.string.downloading)) },
+                                    icon = {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                                    },
+                                    onClick = {
+                                        DownloadService.sendRemoveDownload(context, ExoDownloadService::class.java, mediaMetadata.id, false)
+                                        onDismiss()
+                                    }
+                                )
+                            )
+                        }
+                        else -> {
+                            add(
+                                Material3MenuItemData(
+                                    title = { Text(stringResource(R.string.action_download)) },
+                                    icon = {
+                                        Icon(
+                                            painter = painterResource(R.drawable.download),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    },
+                                    onClick = {
+                                        database.transaction { insert(mediaMetadata) }
+                                        val downloadRequest = DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                            .setCustomCacheKey(mediaMetadata.id)
+                                            .setData(mediaMetadata.title.toByteArray())
+                                            .build()
+                                        DownloadService.sendAddDownload(context, ExoDownloadService::class.java, downloadRequest, false)
+                                        onDismiss()
+                                    }
+                                )
+                            )
+                        }
+                    }
+
+                    // Like
+                    val isLiked = currentSong?.song?.liked == true
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(stringResource(if (isLiked) R.string.liked else R.string.like)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (isLiked) MaterialTheme.colorScheme.error else androidx.compose.material3.LocalContentColor.current
+                                )
+                            },
+                            onClick = {
+                                playerConnection.toggleLike()
+                                onDismiss()
+                            }
+                        )
+                    )
+
+                    // Comments
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(stringResource(R.string.comments_header)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.chat_msg),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                showCommentSheet = true
+                            }
+                        )
+                    )
+
+                    // Repeat
+                    if (!isListenTogetherGuest) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(stringResource(R.string.repeat)) },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(
+                                            when (repeatMode) {
+                                                Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
+                                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                                else -> R.drawable.repeat
+                                            }
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else androidx.compose.material3.LocalContentColor.current
+                                    )
+                                },
+                                onClick = {
+                                    playerConnection.player.toggleRepeatMode()
+                                }
+                            )
+                        )
+                    }
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(12.dp)) }
+
+        // Artist & Add to library
+        item {
+            Material3MenuGroup(
+                expressive = true,
+                items = buildList {
+                    // ── Single smart Retry button ────────────────────────────
+                    // Always visible. Re-triggers the full resolution chain.
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.retry_stream)) },
+                            description = {
+                                Text(
+                                    text = if (saavnEnabled)
+                                        stringResource(R.string.retry_stream_desc_saavn)
+                                    else
+                                        stringResource(R.string.retry_stream_desc_yt)
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.replay),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                playerConnection.service.retryCurrentStream()
+                                onDismiss()
+                            }
+                        )
+                    )
+
+                    if (artists.isNotEmpty()) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.view_artist)) },
+                                description = {
+                                    Text(
+                                        text = mediaMetadata.artists.joinToString { it.name },
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.artist),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                onClick = {
+                                    if (mediaMetadata.artists.size == 1) {
+                                        navController.navigate("artist/${mediaMetadata.artists[0].id}")
+                                        playerBottomSheetState.collapseSoft()
+                                        onDismiss()
+                                    } else {
+                                        showSelectArtistDialog = true
+                                    }
+                                }
+                            )
+                        )
+                    }
+
+                    if (mediaMetadata.album != null) {
+                        add(
+                            Material3MenuItemData(
+                                title = { Text(text = stringResource(R.string.view_album)) },
+                                description = {
+                                    Text(
+                                        text = mediaMetadata.album.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                icon = {
+                                    Icon(
+                                        painter = painterResource(R.drawable.album),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                },
+                                onClick = {
+                                    navController.navigate("album/${mediaMetadata.album.id}")
+                                    playerBottomSheetState.collapseSoft()
+                                    onDismiss()
+                                }
+                            )
+                        )
+                    }
+
+                    // Add to Library option
+                    val isInLibrary = librarySong?.song?.inLibrary != null
+                    add(
+                        Material3MenuItemData(
+                            title = { 
+                                Text(
+                                    text = stringResource(
+                                        if (isInLibrary) R.string.remove_from_library
+                                        else R.string.add_to_library
+                                    )
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (isInLibrary) R.drawable.library_add_check
+                                        else R.drawable.library_add
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                playerConnection.toggleLibrary()
+                                onDismiss()
+                            }
+                        )
+                    )
+                }
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(12.dp)) }
+
+        // details, eq, adv
+        item {
+            Material3MenuGroup(
+                expressive = true,
+                items = buildList {
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.details)) },
+                            description = { Text(text = stringResource(R.string.details_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.info),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                onShowDetailsDialog()
+                                onDismiss()
+                            }
+                        )
+                    )
+
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.equalizer)) },
+                            description = { Text(text = stringResource(R.string.equalizer_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.equalizer),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                navController.navigate("equalizer")
+                                onDismiss()
+                            }
+                        )
+                    )
+
+                    add(
+                        Material3MenuItemData(
+                            title = { Text(text = stringResource(R.string.advanced)) },
+                            description = { Text(text = stringResource(R.string.advanced_desc)) },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.tune),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            onClick = {
+                                showPitchTempoDialog = true
+                            }
+                        )
+                    )
+                }
+            )
+        }
+    }
+}

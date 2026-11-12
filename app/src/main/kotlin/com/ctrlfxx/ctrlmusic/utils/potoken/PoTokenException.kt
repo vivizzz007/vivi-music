@@ -1,0 +1,17 @@
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+package com.ctrlfxx.ctrlmusic.utils.potoken
+
+class PoTokenException(message: String) : Exception(message)
+
+// to be thrown if the WebView provided by the system is broken
+class BadWebViewException(message: String) : Exception(message)
+
+fun buildExceptionForJsError(error: String): Exception {
+    return if (error.contains("SyntaxError"))
+        BadWebViewException(error)
+    else
+        PoTokenException(error)
+}

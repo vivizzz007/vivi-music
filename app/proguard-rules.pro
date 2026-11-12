@@ -10,10 +10,10 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 1. PoToken / WebView JS Interface
 ##──────────────────────────────────────────────────────────────────────────────
--keepclassmembers class com.music.vivi.utils.potoken.PoTokenWebView {
+-keepclassmembers class com.ctrlfxx.ctrlmusic.utils.potoken.PoTokenWebView {
     @android.webkit.JavascriptInterface public *;
 }
--keep class com.music.vivi.utils.potoken.** { *; }
+-keep class com.ctrlfxx.ctrlmusic.utils.potoken.** { *; }
 
 
 
@@ -101,11 +101,11 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 10. Queue / Playback Persistence
 ##──────────────────────────────────────────────────────────────────────────────
--keep class com.music.vivi.models.PersistQueue { *; }
--keep class com.music.vivi.models.PersistPlayerState { *; }
--keep class com.music.vivi.models.QueueData { *; }
--keep class com.music.vivi.models.QueueType { *; }
--keep class com.music.vivi.playback.queues.** { *; }
+-keep class com.ctrlfxx.ctrlmusic.models.PersistQueue { *; }
+-keep class com.ctrlfxx.ctrlmusic.models.PersistPlayerState { *; }
+-keep class com.ctrlfxx.ctrlmusic.models.QueueData { *; }
+-keep class com.ctrlfxx.ctrlmusic.models.QueueType { *; }
+-keep class com.ctrlfxx.ctrlmusic.playback.queues.** { *; }
 -keepclassmembers class * implements java.io.Serializable {
     private void writeObject(java.io.ObjectOutputStream);
     private void readObject(java.io.ObjectInputStream);
@@ -121,7 +121,7 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 12. Google Cast
 ##──────────────────────────────────────────────────────────────────────────────
--keep class com.music.vivi.cast.** { *; }
+-keep class com.ctrlfxx.ctrlmusic.cast.** { *; }
 -keep class com.google.android.gms.cast.** { *; }
 -keep class androidx.mediarouter.** { *; }
 -dontwarn com.google.re2j.**
@@ -129,8 +129,8 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 13. Vibra Fingerprint (native JNI)
 ##──────────────────────────────────────────────────────────────────────────────
--keep class com.music.vivi.recognition.VibraSignature { *; }
--keepclassmembers class com.music.vivi.recognition.VibraSignature {
+-keep class com.ctrlfxx.ctrlmusic.recognition.VibraSignature { *; }
+-keepclassmembers class com.ctrlfxx.ctrlmusic.recognition.VibraSignature {
     native <methods>;
 }
 
@@ -156,12 +156,12 @@
 ##──────────────────────────────────────────────────────────────────────────────
 ## 16. Listen Together
 ##──────────────────────────────────────────────────────────────────────────────
--keep class com.music.vivi.listentogether.** { *; }
--keepclassmembers class com.music.vivi.listentogether.** { *; }
--keepclassmembers class com.music.vivi.listentogether.** {
+-keep class com.ctrlfxx.ctrlmusic.listentogether.** { *; }
+-keepclassmembers class com.ctrlfxx.ctrlmusic.listentogether.** { *; }
+-keepclassmembers class com.ctrlfxx.ctrlmusic.listentogether.** {
     *** Companion;
 }
--keepclasseswithmembers class com.music.vivi.listentogether.** {
+-keepclasseswithmembers class com.ctrlfxx.ctrlmusic.listentogether.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

@@ -286,9 +286,9 @@
             android:label="@string/widget_music_player">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.music.vivi.widget.PLAY_PAUSE" />
-                <action android:name="com.music.vivi.widget.LIKE" />
-                <action android:name="com.music.vivi.widget.UPDATE_WIDGET" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.PLAY_PAUSE" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.LIKE" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.UPDATE_WIDGET" />
             </intent-filter>
 
             <meta-data
@@ -303,9 +303,9 @@
             android:label="@string/widget_turntable">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.music.vivi.widget.TURNTABLE_PLAY_PAUSE" />
-                <action android:name="com.music.vivi.widget.TURNTABLE_LIKE" />
-                <action android:name="com.music.vivi.widget.UPDATE_TURNTABLE_WIDGET" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.TURNTABLE_PLAY_PAUSE" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.TURNTABLE_LIKE" />
+                <action android:name="com.ctrlfxx.ctrlmusic.widget.UPDATE_TURNTABLE_WIDGET" />
             </intent-filter>
 
             <meta-data

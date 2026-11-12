@@ -1,0 +1,368 @@
+package com.ctrlfxx.ctrlmusic.ui.screens.settings
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import android.content.Intent
+import android.net.Uri
+import androidx.navigation.NavController
+import com.ctrlfxx.ctrlmusic.LocalPlayerAwareWindowInsets
+import com.ctrlfxx.ctrlmusic.R
+import com.ctrlfxx.ctrlmusic.ui.component.IconButton
+import com.ctrlfxx.ctrlmusic.ui.component.ExpressiveSettingGroup
+import com.ctrlfxx.ctrlmusic.ui.component.Material3SettingsItem
+import com.ctrlfxx.ctrlmusic.extras.component.UpdateInfoDialog
+import com.ctrlfxx.ctrlmusic.ui.utils.backToMain
+import com.ctrlfxx.ctrlmusic.extras.updater.getAutoUpdateCheckSetting
+import com.ctrlfxx.ctrlmusic.extras.updater.saveAutoUpdateCheckSetting
+import com.ctrlfxx.ctrlmusic.extras.updater.getUpdateAvailableState
+import com.ctrlfxx.ctrlmusic.extras.updater.saveUpdateAvailableState
+import android.widget.Toast
+import androidx.compose.ui.res.pluralStringResource
+import com.ctrlfxx.ctrlmusic.extras.updater.getDownloadedApkCount
+import com.ctrlfxx.ctrlmusic.extras.updater.clearDownloadedApks
+import com.ctrlfxx.ctrlmusic.extras.updater.getBetaUpdatesSetting
+import com.ctrlfxx.ctrlmusic.extras.updater.saveBetaUpdatesSetting
+import com.ctrlfxx.ctrlmusic.extras.updater.autoClearOldApks
+import androidx.compose.material3.MaterialTheme
+import com.ctrlfxx.ctrlmusic.BuildConfig
+import com.ctrlfxx.ctrlmusic.utils.rememberPreference
+import com.ctrlfxx.ctrlmusic.constants.EnableNotificationsKey
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import android.Manifest
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.Lifecycle
+import com.ctrlfxx.ctrlmusic.extras.updater.checkForUpdate
+
+//here b5.0.1 must be used for the beta tag
+
+/**
+ * vivimusic Project (C) 2026
+ * Licensed under GPL-3.0 | See git history for contributors
+ */
+
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun UpdateSettings(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior
+) {
+    val context = LocalContext.current
+    var autoUpdateEnabled by remember { mutableStateOf(getAutoUpdateCheckSetting(context)) }
+    var betaUpdatesEnabled by remember { mutableStateOf(getBetaUpdatesSetting(context)) }
+    var isUpdateAvailable by remember { mutableStateOf(getUpdateAvailableState(context)) }
+    var apkCount by remember { mutableStateOf(getDownloadedApkCount(context)) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+
+    // Detect system permission state dynamically
+    var hasSystemPermission by remember {
+        mutableStateOf(
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            } else true
+        )
+    }
+
+    // Refresh system permission state when screen is resumed
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                hasSystemPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) == PackageManager.PERMISSION_GRANTED
+                } else true
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    val (notificationsEnabled, _) = rememberPreference(
+        EnableNotificationsKey,
+        defaultValue = true
+    )
+
+    val isNotificationsActive = hasSystemPermission && notificationsEnabled
+
+    DisposableEffect(context) {
+        val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == "update_available") {
+                isUpdateAvailable = getUpdateAvailableState(context)
+            }
+        }
+        sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
+        // Sync initial state
+        isUpdateAvailable = getUpdateAvailableState(context)
+        onDispose {
+            sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        autoClearOldApks(context)
+        apkCount = getDownloadedApkCount(context)
+        if (autoUpdateEnabled) {
+            checkForUpdate(
+                context = context,
+                onSuccess = { _, isAvailable, _, _, _, _, _, _ ->
+                    saveUpdateAvailableState(context, isAvailable)
+                },
+                onError = {}
+            )
+        }
+    }
+
+    if (showInfoDialog) {
+        UpdateInfoDialog(onDismiss = { showInfoDialog = false })
+    }
+
+    Column(
+        Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = stringResource(R.string.update_settings_title),
+            style = MaterialTheme.typography.displaySmall,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Spacer(modifier = Modifier.height(10.dp))
+        ExpressiveSettingGroup(
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.network_update),
+                    title = { Text(stringResource(R.string.system_update)) },
+                    trailingContent = {
+                        if (isUpdateAvailable) {
+                            Text(
+                                text = stringResource(R.string.update_available),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        } else {
+                            Text(stringResource(R.string.app_update_uptodate))
+                        }
+                    },
+                    onClick = {
+                        navController.navigate("update")
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.info),
+                    title = { Text(stringResource(R.string.app_version)) },
+                    trailingContent = { Text(BuildConfig.VERSION_NAME) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.stockpot_flavour),
+                    title = { Text(stringResource(R.string.flavour)) },
+                    trailingContent = {
+                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
+                        Text(variant)
+                    }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+        
+        ExpressiveSettingGroup(
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.update),
+                    title = { Text(stringResource(R.string.auto_update_check)) },
+                    trailingContent = {
+                        Switch(
+                            checked = autoUpdateEnabled,
+                            onCheckedChange = { enabled ->
+                                autoUpdateEnabled = enabled
+                                saveAutoUpdateCheckSetting(context, enabled)
+                                if (!enabled) {
+                                    saveUpdateAvailableState(context, false)
+                                }
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (autoUpdateEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        autoUpdateEnabled = !autoUpdateEnabled
+                        saveAutoUpdateCheckSetting(context, autoUpdateEnabled)
+                        if (!autoUpdateEnabled) {
+                            saveUpdateAvailableState(context, false)
+                        }
+                    }
+                ),
+
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.biotech),
+                    title = { Text(stringResource(R.string.beta_updates)) },
+                    trailingContent = {
+                        Switch(
+                            checked = betaUpdatesEnabled,
+                            onCheckedChange = { enabled ->
+                                betaUpdatesEnabled = enabled
+                                saveBetaUpdatesSetting(context, enabled)
+                            },
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (betaUpdatesEnabled) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = {
+                        betaUpdatesEnabled = !betaUpdatesEnabled
+                        saveBetaUpdatesSetting(context, betaUpdatesEnabled)
+                    }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.notification),
+                    title = { Text(stringResource(R.string.notification_settings)) },
+                    trailingContent = {
+                        val status = if (isNotificationsActive) {
+                            stringResource(R.string.enabled)
+                        } else {
+                            stringResource(R.string.disabled)
+                        }
+                        Text(status)
+                    },
+                    onClick = {
+                        navController.navigate("settings/update/notification_permission")
+                    }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExpressiveSettingGroup(
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.delete),
+                    title = { Text(stringResource(R.string.clear_downloaded_updates)) },
+                    description = if (apkCount > 0) {
+                        {
+                            Text(
+                                text = pluralStringResource(R.plurals.n_apk_found, apkCount, apkCount),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else null,
+                    trailingContent = {
+                        IconButton(
+                            onClick = { showInfoDialog = true },
+                            onLongClick = {}
+                        ) {
+                            Icon(
+                                painterResource(R.drawable.info),
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    },
+                    onClick = {
+                        if (apkCount > 0) {
+                            if (clearDownloadedApks(context)) {
+                                apkCount = 0
+                                Toast.makeText(context, "Deleted successfully", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(context, "Failed to delete some files", Toast.LENGTH_SHORT).show()
+                                apkCount = getDownloadedApkCount(context)
+                            }
+                        }
+                    }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExpressiveSettingGroup(
+            items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.history),
+                    title = { Text(stringResource(R.string.changelog)) },
+                    description = { Text(stringResource(R.string.view_version_history)) },
+                    onClick = { navController.navigate("settings/changelog") }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.commit),
+                    title = { Text(stringResource(R.string.commits)) },
+                    description = { Text(stringResource(R.string.view_commit_history)) },
+                    onClick = { navController.navigate("settings/commits") }
+                )
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+
+    TopAppBar(
+        title = {
+//            Text(stringResource(R.string.update_settings_title))
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        }
+    )
+}
