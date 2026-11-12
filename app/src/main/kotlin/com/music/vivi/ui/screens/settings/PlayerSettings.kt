@@ -235,7 +235,7 @@ fun PlayerSettings(
     )
     val (spotifyCanvasEnabled, onSpotifyCanvasEnabledChange) = rememberPreference(
         SpotifyCanvasEnabledKey,
-        defaultValue = false
+        defaultValue = true
     )
     val isSpotifyLoggedIn = Spotify.accessToken != null
 

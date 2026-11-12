@@ -133,7 +133,7 @@ val PaletteColors = listOf(
 fun ThemeSettings(
     navController: NavController,
 ) {
-    val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, DarkMode.AUTO)
+    val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, DarkMode.ON)
     val (pureBlack, onPureBlackChangeRaw) = rememberPreference(PureBlackKey, defaultValue = false)
     val (_, onPureBlackMiniPlayerChange) = rememberPreference(
         PureBlackMiniPlayerKey,
@@ -148,7 +148,7 @@ fun ThemeSettings(
         SelectedThemeColorKey,
         DefaultThemeColor.toArgb()
     )
-    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = false)
 
     val selectedThemeColor = Color(selectedThemeColorInt)
     val configuration = LocalConfiguration.current
@@ -310,7 +310,7 @@ fun ThemeControls(
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit
 ) {
-    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = false)
     val isUsingCustomColor = selectedThemeColor != DefaultThemeColor
 
     Column(

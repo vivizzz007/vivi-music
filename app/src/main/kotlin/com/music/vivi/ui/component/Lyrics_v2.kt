@@ -227,7 +227,7 @@ fun LyricsV2(
 
     val playerBackground by com.music.vivi.utils.rememberEnumPreference(
         key = com.music.vivi.constants.PlayerBackgroundStyleKey,
-        defaultValue = com.music.vivi.constants.PlayerBackgroundStyle.LIVE_MESH
+        defaultValue = com.music.vivi.constants.PlayerBackgroundStyle.APPLE_MUSIC
     )
 
     val adaptivePrimary =

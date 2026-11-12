@@ -149,7 +149,7 @@ fun AppearanceSettings(
 
     val (selectedFontValue) = rememberPreference(
         SelectedFontKey,
-        defaultValue = AppFont.SYSTEM.value
+        defaultValue = AppFont.SF_PRO.value
     )
     val (enableDynamicIcon, onEnableDynamicIconChange) = rememberPreference(
         EnableDynamicIconKey,
@@ -227,7 +227,7 @@ fun AppearanceSettings(
     )
     val (useAppleMiniPlayer, onUseAppleMiniPlayerChange) = rememberPreference(
         UseAppleMiniPlayerKey,
-        defaultValue = false
+        defaultValue = true
     )
     val currentMiniPlayerDesign = remember(useNewMiniPlayerDesign, useAppleMiniPlayer) {
         when {
@@ -256,12 +256,12 @@ fun AppearanceSettings(
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
             PlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.LIVE_MESH,
+            defaultValue = PlayerBackgroundStyle.APPLE_MUSIC,
         )
     val (miniPlayerBackground, onMiniPlayerBackgroundChange) =
         rememberEnumPreference(
             MiniPlayerBackgroundStyleKey,
-            defaultValue = PlayerBackgroundStyle.DEFAULT,
+            defaultValue = PlayerBackgroundStyle.BLUR,
         )
 
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(
@@ -283,7 +283,7 @@ fun AppearanceSettings(
     )
     val (lyricsAnimationStyle, onLyricsAnimationStyleChange) = rememberEnumPreference(
         LyricsAnimationStyleKey,
-        defaultValue = LyricsAnimationStyle.VIVIMUSIC_1
+        defaultValue = LyricsAnimationStyle.APPLE_V2
     )
     val (lyricsTextSize, onLyricsTextSizeChange) = rememberPreference(LyricsTextSizeKey, defaultValue = 24f)
     val (lyricsLineSpacing, onLyricsLineSpacingChange) = rememberPreference(LyricsLineSpacingKey, defaultValue = 1.3f)
@@ -325,7 +325,7 @@ fun AppearanceSettings(
     )
     val (floatingNavBar, onFloatingNavBarChange) = rememberPreference(
         FloatingNavBarKey,
-        defaultValue = false
+        defaultValue = true
     )
 
     // Density scale preferences

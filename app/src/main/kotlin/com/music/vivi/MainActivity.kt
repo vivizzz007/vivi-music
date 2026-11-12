@@ -405,7 +405,7 @@ class MainActivity : ComponentActivity() {
         downloadUtil: DownloadUtil,
         syncUtils: SyncUtils,
     ) {
-        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
+        val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = false)
         val enableHighRefreshRate by rememberPreference(EnableHighRefreshRateKey, defaultValue = true)
         val context = LocalContext.current
         val snackbarHostState = remember { SnackbarHostState() }
@@ -503,7 +503,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+        val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
 
         val (lastSeenStarPromptVersion, setLastSeenStarPromptVersion) = rememberPreference(LastSeenStarPromptVersionKey, "")
         val (hasStarredRepo) = rememberPreference(HasStarredRepoKey, false)
@@ -714,9 +714,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
-                val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = false)
+                val (floatingNav) = rememberPreference(FloatingNavBarKey, defaultValue = true)
                 val (useNewMiniPlayerDesign) = rememberPreference(UseNewMiniPlayerDesignKey, defaultValue = true)
-                val (useAppleMiniPlayer) = rememberPreference(UseAppleMiniPlayerKey, defaultValue = false)
+                val (useAppleMiniPlayer) = rememberPreference(UseAppleMiniPlayerKey, defaultValue = true)
                 val defaultOpenTab = remember {
                     dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                 }

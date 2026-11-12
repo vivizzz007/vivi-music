@@ -310,7 +310,7 @@ fun Thumbnail(
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.LIVE_MESH
+        defaultValue = PlayerBackgroundStyle.APPLE_MUSIC
     )
     val thumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
     

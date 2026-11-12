@@ -65,7 +65,7 @@ fun FontSelectionScreen(
 ) {
     val (selectedFont, onSelectedFontChange) = rememberPreference(
         SelectedFontKey,
-        defaultValue = AppFont.SYSTEM.value
+        defaultValue = AppFont.SF_PRO.value
     )
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()

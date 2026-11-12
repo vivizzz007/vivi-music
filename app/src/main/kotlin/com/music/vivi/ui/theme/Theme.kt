@@ -37,7 +37,10 @@ import androidx.compose.ui.text.font.FontFamily
 import android.graphics.Typeface as AndroidTypeface
 import androidx.compose.ui.text.font.Typeface as ComposeTypeface
 
-val DefaultThemeColor = Color(0xFFED5564)
+// Ctrl Music brand colors
+val CtrlAccent = Color(0xFFB5928D)
+val CtrlBackground = Color(0xFF1F1F1F)
+val DefaultThemeColor = CtrlAccent
 
 @Composable
 fun vivimusicTheme(
@@ -47,7 +50,7 @@ fun vivimusicTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
+    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SF_PRO.value)
     val customFontPath by rememberPreference(CustomFontPathKey, "")
 
     val brandFont = remember(selectedFontValue, customFontPath) {
@@ -77,8 +80,8 @@ fun vivimusicTheme(
     }
 
 
-    // Determine if system dynamic colors should be used (Android S+ and default theme color)
-    val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+    // Ctrl Music always uses its own palette instead of wallpaper colors.
+    val useSystemDynamicColor = false
 
     // Select the appropriate color scheme generation method
     val baseColorScheme = if (useSystemDynamicColor) {
@@ -98,6 +101,8 @@ fun vivimusicTheme(
     val colorScheme = remember(baseColorScheme, pureBlack, darkTheme) {
         if (darkTheme && pureBlack) {
             baseColorScheme.pureBlack(true)
+        } else if (darkTheme && themeColor == DefaultThemeColor) {
+            baseColorScheme.ctrlDark()
         } else {
             baseColorScheme
         }
@@ -136,6 +141,38 @@ fun Bitmap.extractGradientColors(): List<Color> {
     else
         listOf(Color(0xFF595959), Color(0xFF0D0D0D))
 }
+
+// Apple Music-style dark look in Ctrl Music colors: charcoal surfaces, rose-gold accent.
+fun ColorScheme.ctrlDark() = copy(
+    primary = CtrlAccent,
+    onPrimary = CtrlBackground,
+    primaryContainer = Color(0xFF4A3A37),
+    onPrimaryContainer = Color(0xFFF3DDD8),
+    secondary = Color(0xFFD9BDB7),
+    onSecondary = CtrlBackground,
+    secondaryContainer = Color(0xFF3A3130),
+    onSecondaryContainer = Color(0xFFF3DDD8),
+    tertiary = CtrlAccent,
+    background = CtrlBackground,
+    onBackground = Color(0xFFF5F5F5),
+    surface = CtrlBackground,
+    onSurface = Color(0xFFF5F5F5),
+    surfaceVariant = Color(0xFF2C2C2E),
+    onSurfaceVariant = Color(0xFFA1A1A6),
+    surfaceDim = Color(0xFF1A1A1A),
+    surfaceBright = Color(0xFF3A3A3C),
+    surfaceContainerLowest = Color(0xFF181818),
+    surfaceContainerLow = Color(0xFF232323),
+    surfaceContainer = Color(0xFF282828),
+    surfaceContainerHigh = Color(0xFF2C2C2E),
+    surfaceContainerHighest = Color(0xFF363638),
+    outline = Color(0xFF5A5A5E),
+    outlineVariant = Color(0xFF3A3A3C),
+    inverseSurface = Color(0xFFF5F5F5),
+    inverseOnSurface = CtrlBackground,
+    inversePrimary = Color(0xFF7A5E59),
+    surfaceTint = CtrlAccent,
+)
 
 fun ColorScheme.pureBlack(apply: Boolean) =
     if (apply) copy(

@@ -187,7 +187,7 @@ fun PlayerV2Landscape(
 
     val storedPlayerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.LIVE_MESH
+        defaultValue = PlayerBackgroundStyle.APPLE_MUSIC
     )
     val playerBackground = if (storedPlayerBackground == PlayerBackgroundStyle.APPLE_MUSIC) {
         PlayerBackgroundStyle.BLUR
@@ -209,7 +209,7 @@ fun PlayerV2Landscape(
         defaultValue = false
     )
     val isSystemInDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }

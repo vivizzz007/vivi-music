@@ -77,12 +77,12 @@ fun AppleMiniPlayer(
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, defaultValue = false)
     val isSystemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
     
-    val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+    val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.BLUR)
     
     // Player states
     val playbackState by playerConnection.playbackState.collectAsState()

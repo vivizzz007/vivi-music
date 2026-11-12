@@ -297,7 +297,7 @@ fun BottomSheetPlayer(
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
-        defaultValue = PlayerBackgroundStyle.LIVE_MESH
+        defaultValue = PlayerBackgroundStyle.APPLE_MUSIC
     )
     val playerButtonsStyle by rememberEnumPreference(
         key = PlayerButtonsStyleKey,
@@ -305,7 +305,7 @@ fun BottomSheetPlayer(
     )
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
@@ -313,7 +313,7 @@ fun BottomSheetPlayer(
     val enableCanvas by rememberPreference(CanvasThumbnailAnimationKey, true)
     val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
-    val spotifyCanvasEnabled by rememberPreference(SpotifyCanvasEnabledKey, false)
+    val spotifyCanvasEnabled by rememberPreference(SpotifyCanvasEnabledKey, true)
     val usePlayerV2 by rememberPreference(UsePlayerV2Key, true)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {

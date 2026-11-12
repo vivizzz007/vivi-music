@@ -171,7 +171,7 @@ fun MiniPlayer(
     modifier: Modifier = Modifier
 ) {
     val useNewMiniPlayerDesign by rememberPreference(UseNewMiniPlayerDesignKey, true)
-    val useAppleMiniPlayer by rememberPreference(UseAppleMiniPlayerKey, false)
+    val useAppleMiniPlayer by rememberPreference(UseAppleMiniPlayerKey, true)
     
     // Create stable progress state - doesn't cause recomposition on position changes
     val progressState = remember { ProgressState(positionState, durationState) }
@@ -210,12 +210,12 @@ private fun NewMiniPlayer(
     // Theme settings - these rarely change
     val pureBlack by rememberPreference(PureBlackMiniPlayerKey, defaultValue = false)
     val isSystemInDarkTheme = isSystemInDarkTheme()
-    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.ON)
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
     
-    val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+    val miniPlayerBackground by rememberEnumPreference(MiniPlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.BLUR)
     
     // Player states - only collect what's needed at this level
     val playbackState by playerConnection.playbackState.collectAsState()
