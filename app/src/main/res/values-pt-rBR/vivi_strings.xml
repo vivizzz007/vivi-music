@@ -671,8 +671,8 @@
     <string name="canvas_source_auto_desc">Primeiro tenta a Apple Music, depois volta para a Ctrl Music e Tidal. Escolhe a melhor correspondência para a música atual automaticamente</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Usa exclusivamente os visuais animados da Apple Music. Só mostra uma tela se a Apple Music tiver uma para a música de reprodução</string>
-    <string name="canvas_source_vivimusic">ViviMusic</string>
-    <string name="canvas_source_vivimusic_desc">Usa exclusivamente a biblioteca de telas da ViviMusic. Só mostra uma tela se tiver sido adicionada para a música tocada</string>
+    <string name="canvas_source_vivimusic">Community</string>
+    <string name="canvas_source_vivimusic_desc">Uses the community-curated motion artwork library. Only shows a motion artwork if one has been added for the playing song</string>
     <string name="canvas_source_tidal">Tidal</string>
     <string name="canvas_source_tidal_desc">Usa exclusivamente os visuais animados da Tidal. Só mostra uma tela se o Tidal tiver uma para a música tocada</string>
     <string name="show_album_canvas">Mostrar a Tela do Álbum</string>

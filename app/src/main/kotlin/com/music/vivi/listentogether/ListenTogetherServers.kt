@@ -26,7 +26,7 @@ object ListenTogetherServers {
             "operator": "VIVIDH"
           },
           {
-            "name": "ViviMusic Sync Server",
+            "name": "Ctrl Music Sync Server",
             "url": "wss://vivimusic-listen-together.onrender.com",
             "location": "USA",
             "operator": "Vividh"

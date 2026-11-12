@@ -20,7 +20,7 @@
     <string name="installing_system_update">Installazione aggiornamento\ndi sistema…</string>
     <string name="making_update_ready">Preparazione dell\'aggiornamento in corso, potrebbe richiedere del tempo</string>
     <string name="your_app_getting_better">La tua app sta migliorando…</string>
-    <string name="update_includes_features">Questo aggiornamento include nuove funzionalità e le novità più recenti di vivi-music %1$s, rendendo l\'app ancora più completa. Scopri di più su %2$s.</string>
+    <string name="update_includes_features">Questo aggiornamento include nuove funzionalità e le novità più recenti di Ctrl Music %1$s, rendendo l\'app ancora più completa. Scopri di più su %2$s.</string>
     <string name="whats_new">Novità</string>
     <string name="update_available">Aggiorna</string>
     <string name="checking_for_updates">Controllo aggiornamenti…</string>
@@ -35,7 +35,7 @@
     <string name="mobile_network_warning">Il download degli aggiornamenti su rete mobile o in roaming potrebbe comportare costi aggiuntivi.</string>
     <string name="update_size">Dimensione aggiornamento: %1$s MB</string>
     <string name="check_internet_connection">Verifica la connessione internet e riprova.</string>
-    <string name="vivi_music_version">Versione VIVI MUSIC %1$s</string>
+    <string name="vivi_music_version">Versione CTRL MUSIC %1$s</string>
     <string name="last_checked">Ultimo controllo: %1$s</string>
     <string name="install">Installa</string>
     <string name="check_for_update">Controlla aggiornamenti</string>
@@ -52,12 +52,12 @@
     <string name="settings_check_updates_title">Controlla aggiornamenti</string>
     <string name="later">Più tardi</string>
 
-    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="vivi_music_title">CTRL MUSIC</string>
     <string name="developer_section">SVILUPPATORE</string>
     <string name="collaborator_section">COLLABORATORE</string>
     <string name="app_info_section">INFO APP</string>
     <string name="community_section">COMMUNITY</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Sviluppatore principale</string>
     <string name="website">Sito web</string>
     <string name="collaborator_tboyke">T-Boyke</string>

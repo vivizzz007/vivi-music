@@ -657,7 +657,7 @@ fun PlayerV2(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    painter = painterResource(R.drawable.ctrl_logo),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(72.dp),
                                                     tint = adaptivePrimary.copy(alpha = 0.5f)
@@ -926,7 +926,7 @@ fun PlayerV2(
                                                 contentAlignment = Alignment.Center
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.vivi_music_small_icon),
+                                                    painter = painterResource(R.drawable.ctrl_logo),
                                                     contentDescription = null,
                                                     modifier = Modifier.size(32.dp),
                                                     tint = adaptivePrimary.copy(alpha = 0.5f)

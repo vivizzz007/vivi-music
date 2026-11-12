@@ -21,7 +21,7 @@
 ...</string>
     <string name="making_update_ready">Tornando a atualização pronta, isso pode demorar um pouco</string>
     <string name="your_app_getting_better">Seu aplicativo está ficando ainda melhor...</string>
-    <string name="update_includes_features">Esta atualização inclui novos recursos e os mais recentes de vivi-music %1$s , tornando seu aplicativo ainda mais útil. Saiba mais em %2$s .</string>
+    <string name="update_includes_features">Esta atualização inclui novos recursos e os mais recentes de Ctrl Music %1$s , tornando seu aplicativo ainda mais útil. Saiba mais em %2$s .</string>
     <string name="whats_new">O que há de novo?</string>
     <string name="update_available">Actualizar</string>
     <string name="checking_for_updates">Verificando as atualizações...</string>
@@ -37,7 +37,7 @@
     <string name="mobile_network_warning">O download de atualizações através de uma rede móvel ou durante o roaming pode causar custos adicionais.</string>
     <string name="update_size">Tamanho da atualização: %1$s MB</string>
     <string name="check_internet_connection">Verifique sua conexão com a internet e tente novamente.</string>
-    <string name="vivi_music_version">VIVI MUSIC versão %1$s</string>
+    <string name="vivi_music_version">CTRL MUSIC versão %1$s</string>
     <string name="last_checked">Última opção: %1$s</string>
     <string name="install">Instalar</string>
     <string name="check_for_update">Verificar a atualização</string>
@@ -53,12 +53,12 @@
     <string name="update_notifications_subtitle">Notifique quando as atualizações estiverem disponíveis.</string>
     <string name="settings_check_updates_title">Verificar as atualizações</string>
     <string name="later">Mais tarde.</string>
-    <string name="vivi_music_title">MÚSICA VIVI</string>
+    <string name="vivi_music_title">MÚSICA CTRL</string>
     <string name="developer_section">DESENVOLVIMENTO</string>
     <string name="collaborator_section">COLABORADOR</string>
     <string name="app_info_section">APP INFO</string>
     <string name="community_section">COMUNIDADE</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Desenvolvimento Principal</string>
     <string name="website">Site</string>
     <string name="collaborator_tboyke">T-Boyke</string>

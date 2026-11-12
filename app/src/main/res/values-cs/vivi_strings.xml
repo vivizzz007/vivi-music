@@ -229,7 +229,7 @@
     <string name="scrobble_delay_minutes">Minuty zpoždění scrobblování</string>
     <string name="swipe_song_to_remove">Posuňte skladbu pro odstranění z playlistu</string>
     <string name="last_fm_send_likes">Odesílat stav oblíbení</string>
-    <string name="last_fm_send_likes_description">Přidat/odebrat srdíčko u skladby v Last.fm, když ji přidáte/odeberete z oblíbených v vivimusicu</string>
+    <string name="last_fm_send_likes_description">Přidat/odebrat srdíčko u skladby v Last.fm, když ji přidáte/odeberete z oblíbených v Ctrl Music</string>
     <string name="lyrics_romanize_chinese">Přepsat čínské texty do latinky</string>
     <string name="google_cast">Google Cast</string>
     <string name="google_cast_description">Povolit streamování zvuku do Chromecastu a dalších zařízení kompatibilních s protokolem Cast</string>
@@ -523,7 +523,7 @@
     <string name="unblock">Odblokovat</string>
     <string name="user_blocked_by_host">Uživatel zablokován hostitelem</string>
     <string name="not_playing">Nehraje žádná skladba</string>
-    <string name="tap_to_play">Klepněte pro otevření vivimusicu</string>
+    <string name="tap_to_play">Klepněte pro otevření Ctrl Music</string>
     <string name="widget_music_player">Hudební přehrávač</string>
     <string name="widget_turntable">Gramofon</string>
     <string name="enter_room_code">Vložte kód místnosti</string>
@@ -572,7 +572,7 @@
     <string name="recently_converted">Nedávno převedeno</string>
     <string name="csv_import_failed">Nepodařilo se importovat soubor CSV</string>
     <string name="importing_csv">Import CSV</string>
-    <string name="play_on_app">Přehrát v vivimusicu</string>
+    <string name="play_on_app">Přehrát v Ctrl Music</string>
     <string name="listening">Poslouchám…</string>
     <string name="ai_api_key_required">Vyžadován klíč API</string>
     <string name="ai_error_unexpected">Neočekávaný výsledek překladu</string>

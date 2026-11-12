@@ -20,7 +20,7 @@
     <string name="installing_system_update">Sistem\ngüncellemesi yükleniyor…</string>
     <string name="making_update_ready">Güncelleme hazırlanıyor, bu biraz zaman alabilir</string>
     <string name="your_app_getting_better">Uygulamanız daha da iyiye gidiyor…</string>
-    <string name="update_includes_features">Bu güncelleme, vivi-music %1$s\'den yeni özellikler ve en son güncellemeleri içeriyor, bu da uygulamanızı daha da kullanışlı hale getiriyor. Daha fazla bilgi için %2$s adresini ziyaret edin.</string>
+    <string name="update_includes_features">Bu güncelleme, Ctrl Music %1$s\'den yeni özellikler ve en son güncellemeleri içeriyor, bu da uygulamanızı daha da kullanışlı hale getiriyor. Daha fazla bilgi için %2$s adresini ziyaret edin.</string>
     <string name="whats_new">Yeni neler var?</string>
     <string name="update_available">Güncelleme mevcut</string>
     <string name="checking_for_updates">Güncellemeler kontrol ediliyor…</string>
@@ -35,7 +35,7 @@
     <string name="mobile_network_warning">Mobil ağ üzerinden veya dolaşımdayken güncelleme indirmek ek ücretlere neden olabilir.</string>
     <string name="update_size">Güncelleme boyutu: %1$s MB</string>
     <string name="check_internet_connection">İnternet bağlantınızı kontrol edin ve tekrar deneyin.</string>
-    <string name="vivi_music_version">VIVI MUSIC versiyon %1$s</string>
+    <string name="vivi_music_version">CTRL MUSIC versiyon %1$s</string>
     <string name="last_checked">Son kontrol: %1$s</string>
     <string name="install">Yükle</string>
     <string name="check_for_update">Güncelleme kontrol et</string>
@@ -51,12 +51,12 @@
     <string name="update_notifications_subtitle">Yeni bir güncelleme bulunduğunda bir bildirim göster</string>
 
 
-    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="vivi_music_title">CTRL MUSIC</string>
     <string name="developer_section">GELİŞTİRİCİ</string>
     <string name="collaborator_section">İŞBİRLİKÇİ</string>
     <string name="app_info_section">UYGULAMA BİLGİSİ</string>
     <string name="community_section">TOPLULUK</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Uygulama Geliştiricisi</string>
     <string name="website">Web sitesi</string>
     <string name="collaborator_tboyke">T-Boyke</string>

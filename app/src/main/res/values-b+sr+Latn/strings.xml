@@ -220,7 +220,7 @@
     <string name="backup_create_failed">Nije moguće napraviti rezervnu kopiju</string>
     <string name="restore_failed">Neuspešno vraćanje rezervne kopije</string>
     <string name="discord_integration">Discord integracija</string>
-    <string name="discord_information">Ctrl Music koristi KizzyRPC biblioteku kako bi stavio tvoj Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gde su korisnički nalozi bili suspendovani zbog ovog razloga. Korisite na svoj rizik.\n\nvivimusic će samo izvesti tvoj žeton, i sve drugo je sklađeno lokalno.</string>
+    <string name="discord_information">Ctrl Music koristi KizzyRPC biblioteku kako bi stavio tvoj Discord status. Ovo uključuje korištenje Discord Gateway spajanja, što bi se moglo smatrati prekršajem Discord-ovog TOS-a. Međutim nema poznatih slučajeva gde su korisnički nalozi bili suspendovani zbog ovog razloga. Korisite na svoj rizik.\n\nCtrl Music će samo izvesti tvoj žeton, i sve drugo je sklađeno lokalno.</string>
     <string name="dismiss">Odbaci</string>
     <string name="options">Opcije</string>
     <string name="enable_discord_rpc">Omogući Bogatu Prisutnost</string>

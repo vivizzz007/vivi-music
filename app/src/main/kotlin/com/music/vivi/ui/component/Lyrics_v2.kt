@@ -1502,7 +1502,7 @@ fun LyricsShareBottomSheet(
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(
                                         context,
-                                        "Image saved to Pictures/vivimusic",
+                                        "Image saved to Pictures/Ctrl Music",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

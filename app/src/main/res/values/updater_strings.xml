@@ -20,7 +20,7 @@
     <string name="installing_system_update">Installing system\nupdate…</string>
     <string name="making_update_ready">Making Update ready, this may take a while</string>
     <string name="your_app_getting_better">Your App is getting even better…</string>
-    <string name="update_includes_features">This update includes new features and the latest from vivi-music %1$s, making your app even more helpful. Learn more at %2$s.</string>
+    <string name="update_includes_features">This update includes new features and the latest from Ctrl Music %1$s, making your app even more helpful. Learn more at %2$s.</string>
     <string name="whats_new">What\'s new?</string>
     <string name="update_available">Update</string>
     <string name="checking_for_updates">Checking for updates…</string>
@@ -35,7 +35,7 @@
     <string name="mobile_network_warning">Downloading updates over a mobile network or while roaming may cause additional charges.</string>
     <string name="update_size">Update size: %1$s MB</string>
     <string name="check_internet_connection">Check your internet connection and try again.</string>
-    <string name="vivi_music_version">VIVI MUSIC version %1$s</string>
+    <string name="vivi_music_version">CTRL MUSIC version %1$s</string>
     <string name="last_checked">Last checked: %1$s</string>
     <string name="install">Install</string>
     <string name="check_for_update">Check for update</string>
@@ -53,12 +53,12 @@
     <string name="later">Later</string>
 
 
-    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="vivi_music_title">CTRL MUSIC</string>
     <string name="developer_section">DEVELOPER</string>
     <string name="collaborator_section">COLLABORATOR</string>
     <string name="app_info_section">APP INFO</string>
     <string name="community_section">COMMUNITY</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Lead Developer</string>
     <string name="website">Website</string>
     <string name="collaborator_tboyke">T-Boyke</string>

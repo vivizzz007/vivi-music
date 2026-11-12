@@ -119,8 +119,8 @@
     <string name="canvas_source_auto_desc">Essaie d\'abord Apple Music, puis Tidal et Ctrl Music. Sélectionne automatiquement la meilleure application pour le titre en cours.</string>
     <string name="canvas_source_apple_music">Apple Music</string>
     <string name="canvas_source_apple_music_desc">Utilise exclusivement les visuels animés d\'Apple Music. N\'affiche une illustration animée que si Apple Music en propose une pour le morceau en cours de lecture.</string>
-    <string name="canvas_source_vivimusic">Vivi Music</string>
-    <string name="canvas_source_vivimusic_desc">Utilise exclusivement la bibliothèque d\'illustrations animées sélectionnées par Vivi Music. N\'affiche une illustration animée que si celle-ci a été ajoutée pour le morceau en cours de lecture.</string>
+    <string name="canvas_source_vivimusic">Community</string>
+    <string name="canvas_source_vivimusic_desc">Uses the community-curated motion artwork library. Only shows a motion artwork if one has been added for the playing song</string>
     <string name="canvas_source_tidal">Tidal</string>
     <string name="canvas_source_tidal_desc">Utilise exclusivement les visuels animés de Tidal. N\'affiche une illustration animée que si Tidal en propose une pour le morceau en cours de lecture.</string>
 	<string name="enable_spotify_canvas">Activer Spotify Canvas</string>

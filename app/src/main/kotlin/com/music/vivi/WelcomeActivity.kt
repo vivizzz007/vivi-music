@@ -336,7 +336,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                     val welcomeString = stringResource(id = com.music.vivi.R.string.welcome_to_vivi)
                     val annotatedWelcome = remember(welcomeString, primaryColor) {
                         buildAnnotatedString {
-                            val target = "Vivi"
+                            val target = "Ctrl Music"
                             val index = welcomeString.indexOf(target)
                             if (index != -1) {
                                 val prefix = welcomeString.substring(0, index).trim()
@@ -397,7 +397,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         onClick = {},
                         label = {
                             Text(
-                                text = "By vividh p ashokan",
+                                text = "By ctrlfxx",
                                 fontFamily = GoogleSansFlex
                             )
                         },
@@ -572,7 +572,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = "ViviMusic is open-source and depends on community support to grow. Your help makes a difference!",
+                        text = "Ctrl Music is open-source and depends on community support to grow. Your help makes a difference!",
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = GoogleSansFlex
                         ),
@@ -980,7 +980,7 @@ fun WelcomePagerScreen(onFinished: () -> Unit) {
                         color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
-                        text = "ViviMusic…",
+                        text = "Ctrl Music…",
                         fontFamily = GoogleSansFlex,
                         fontWeight = FontWeight.Bold,
                         fontSize = 48.sp,

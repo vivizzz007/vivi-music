@@ -155,7 +155,7 @@ fun AboutScreen(
                 },
                 trailingContent = {
                     androidx.compose.material3.IconButton(
-                        onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") },
+                        onClick = { uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx/ctrlmusic") },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = MaterialTheme.colorScheme.primaryContainer
                         )
@@ -227,14 +227,8 @@ fun AboutScreen(
                             contentScale = ContentScale.Crop
                         )
                     },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx") },
                     isExternalLink = true
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.favorite),
-                    title = { Text(stringResource(R.string.support)) },
-                    description = { Text(stringResource(R.string.support_desc)) },
-                    onClick = { showSupportDialog = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.star),
@@ -257,19 +251,14 @@ fun AboutScreen(
                             Text("...")
                         }
                     },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx/ctrlmusic") },
                     isExternalLink = true
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.web_link),
-                    title = { Text(stringResource(R.string.website)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://vivimusic.mkmdevilmi.workers.dev/") },
-                    isExternalLink = true
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.telegram),
-                    title = { Text(stringResource(R.string.telegram_channel)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://t.me/vivimusicapp") },
+                    title = { Text(stringResource(R.string.based_on_vivi)) },
+                    description = { Text(stringResource(R.string.based_on_vivi_desc)) },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music") },
                     isExternalLink = true
                 )
             )
@@ -308,9 +297,9 @@ fun AboutScreen(
                     trailingContent = { Text(BuildConfig.VERSION_CODE.toString()) }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.license_vivi),
+                    icon = painterResource(R.drawable.license_icon),
                     title = { Text(stringResource(R.string.license)) },
-                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/vivizzz007/vivi-music/blob/main/LICENSE") },
+                    onClick = { uriHandler.safeOpenUri(context, "https://github.com/ctrlfxx/ctrlmusic/blob/main/LICENSE") },
                     isExternalLink = true
                 ),
             )

@@ -203,7 +203,7 @@ fun ChangelogScreen(
                 } else {
                     val changelogUrl = URL("https://github.com/ctrlfxx/ctrlmusic/releases/download/$tag/changelog.json")
                     val connection = changelogUrl.openConnection() as HttpURLConnection
-                    connection.setRequestProperty("User-Agent", "ViviMusic-Changelog-App")
+                    connection.setRequestProperty("User-Agent", "CtrlMusic-Changelog-App")
                     connection.setRequestProperty("Accept", "application/json")
                     
                     if (connection.responseCode == 200) {
@@ -245,7 +245,7 @@ fun ChangelogScreen(
             try {
                 val releasesUrl = URL("https://api.github.com/repos/ctrlfxx/ctrlmusic/releases")
                 val connection = releasesUrl.openConnection() as HttpURLConnection
-                connection.setRequestProperty("User-Agent", "ViviMusic-Changelog-App")
+                connection.setRequestProperty("User-Agent", "CtrlMusic-Changelog-App")
                 connection.setRequestProperty("Accept", "application/vnd.github+json")
                 
                 if (connection.responseCode == 200) {

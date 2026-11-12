@@ -368,7 +368,7 @@
     <string name="restore_failed">Yedekleme geri yüklenemedi</string>
 
     <string name="discord_integration">Discord Entegrasyonu</string>
-    <string name="discord_information">Ctrl Music, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord\'un Hizmet Şartları\'nın ihlali olarak kabul edilebilecek Discord Geçit bağlantısının kullanılmasını gerektirir. Fakat kullanıcı hesaplarının bu nedenle askıya alındığı bilinen bir örnek yoktur. Riski size ait olmak üzere kullanın. \n \nvivimusic yalnızca belirtecinizi çıkarır ve diğer her şey yerel olarak saklanır.</string>
+    <string name="discord_information">Ctrl Music, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord\'un Hizmet Şartları\'nın ihlali olarak kabul edilebilecek Discord Geçit bağlantısının kullanılmasını gerektirir. Fakat kullanıcı hesaplarının bu nedenle askıya alındığı bilinen bir örnek yoktur. Riski size ait olmak üzere kullanın. \n \nCtrl Music yalnızca belirtecinizi çıkarır ve diğer her şey yerel olarak saklanır.</string>
     <string name="dismiss">İptal</string>
     <string name="options">Seçenekler</string>
     <string name="preview">Ön izleme</string>

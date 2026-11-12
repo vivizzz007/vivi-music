@@ -1387,7 +1387,7 @@ fun BottomSheetPlayer(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.vivi_music_small_icon),
+                                        painter = painterResource(R.drawable.ctrl_logo),
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(32.dp),

@@ -20,7 +20,7 @@
     <string name="installing_system_update">Installing system\nupdate…</string>
     <string name="making_update_ready">Préparation de la mise à jour, cela peut prendre un certain temps.</string>
     <string name="your_app_getting_better">Votre application s\'améliore encore…</string>
-    <string name="update_includes_features">Cette mise à jour comprend de nouvelles fonctionnalités et les dernières nouveautés de Vivi Music %1$s, pour rendre votre application encore plus utile. Pour en savoir plus, rendez-vous sur %2$s.</string>
+    <string name="update_includes_features">Cette mise à jour comprend de nouvelles fonctionnalités et les dernières nouveautés de Ctrl Music %1$s, pour rendre votre application encore plus utile. Pour en savoir plus, rendez-vous sur %2$s.</string>
     <string name="whats_new">Quoi de neuf ?</string>
     <string name="update_available">Mise à jour</string>
     <string name="checking_for_updates">Recherche de mises à jour…</string>
@@ -35,7 +35,7 @@
     <string name="mobile_network_warning">Le téléchargement de mises à jour via un réseau mobile ou en itinérance peut entraîner des frais supplémentaires.</string>
     <string name="update_size">Taille de la mise à jour : %1$s Mo</string>
     <string name="check_internet_connection">Vérifiez votre connexion Internet et réessayez.</string>
-    <string name="vivi_music_version">Vivi Music version %1$s</string>
+    <string name="vivi_music_version">Ctrl Music version %1$s</string>
     <string name="last_checked">Dernière vérification : %1$s</string>
     <string name="install">Installer</string>
     <string name="check_for_update">Vérifier les mises à jour</string>
@@ -53,12 +53,12 @@
     <string name="later">Plus tard</string>
 
 
-    <string name="vivi_music_title">VIVI MUSIC</string>
+    <string name="vivi_music_title">CTRL MUSIC</string>
     <string name="developer_section">DÉVELOPPEUR</string>
     <string name="collaborator_section">COLLABORATEUR</string>
     <string name="app_info_section">INFORMATIONS SUR L\'APPLICATION</string>
     <string name="community_section">COMMUNAUTÉ</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Développeur d\'applications</string>
     <string name="website">Site web</string>
     <string name="collaborator_tboyke">T-Boyke</string>

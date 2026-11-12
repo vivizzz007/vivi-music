@@ -82,7 +82,7 @@ class CrashActivity : ComponentActivity() {
         try {
             // Create crash log file
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val fileName = "vivimusic_crash_$timestamp.txt"
+            val fileName = "ctrlmusic_crash_$timestamp.txt"
             val crashFile = File(cacheDir, fileName)
             crashFile.writeText(crashLog)
             

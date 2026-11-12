@@ -225,7 +225,7 @@
     <string name="scrobble_delay_percent">Odstotek zakasnitve beleženja</string>
     <string name="scrobble_delay_minutes">Zakasnitev beleženja v minutah</string>
     <string name="last_fm_send_likes">Pošlji všečke/nevšečke</string>
-    <string name="last_fm_send_likes_description">Dodaj/odstrani pesmi med priljubljenimi na Last.fm, ko jih všečkaš/odvšečkaš v vivimusicu</string>
+    <string name="last_fm_send_likes_description">Dodaj/odstrani pesmi med priljubljenimi na Last.fm, ko jih všečkaš/odvšečkaš v Ctrl Music</string>
     <string name="lyrics_romanize_chinese">Romaniziraj kitajska besedila</string>
     <string name="edit_playlist_cover_note">Opomba: Vaš račun mora biti povezan s telefonsko številko in preverjen na YouTube Music, da lahko spremenite naslovnico seznama predvajanja.</string>
     <string name="settings_section_player">Predvajalnik in predstavnost</string>

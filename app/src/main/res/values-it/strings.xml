@@ -278,7 +278,7 @@
     <string name="disable_screenshot_desc">Quando questa opzione è attiva, gli screenshot e la visualizzazione dell\'app nei Recenti sono disabilitati.</string>
     <string name="hide_explicit">"Nascondi contenuti espliciti (18+)"</string>
     <string name="discord_integration">Integrazione Discord</string>
-    <string name="discord_information">Ctrl Music usa la libreria KizzyRPC per impostare lo stato del tuo account Discord. Ciò comporta l\'uso della connessione Discord Gateway, che può essere considerata una violazione dei TOS di Discord. Tuttavia, non ci sono casi noti di account utente sospesi per questo motivo. Usalo a tuo rischio e pericolo.\n\nvivimusic estrarrà solo il tuo token e tutto il resto verrà archiviato localmente.</string>
+    <string name="discord_information">Ctrl Music usa la libreria KizzyRPC per impostare lo stato del tuo account Discord. Ciò comporta l\'uso della connessione Discord Gateway, che può essere considerata una violazione dei TOS di Discord. Tuttavia, non ci sono casi noti di account utente sospesi per questo motivo. Usalo a tuo rischio e pericolo.\n\nCtrl Music estrarrà solo il tuo token e tutto il resto verrà archiviato localmente.</string>
     <string name="options">Opzioni</string>
     <string name="use_login_for_browse">Effettua il Login per visualizzzare questi contenuti</string>
     <string name="preview">Anteprima</string>

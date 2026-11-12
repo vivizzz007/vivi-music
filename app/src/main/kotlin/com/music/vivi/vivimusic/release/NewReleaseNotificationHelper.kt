@@ -80,7 +80,7 @@ object NewReleaseNotificationHelper {
         }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.vivimusicnotification)
+            .setSmallIcon(R.drawable.ctrl_notification)
             .setContentTitle(title)
             .setContentText(releaseTitle)
             .setContentIntent(pendingIntent)

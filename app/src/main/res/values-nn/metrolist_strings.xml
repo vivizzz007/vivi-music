@@ -256,7 +256,7 @@
     <string name="enable_scrobbling">Slå på scrobbling</string>
     <string name="lastfm_now_playing">Send «Spelar no»</string>
     <string name="last_fm_send_likes">Send likar/mislikar</string>
-    <string name="last_fm_send_likes_description">Elska/avelska songar i Last.fm når dei vert lika/mislika i vivimusic</string>
+    <string name="last_fm_send_likes_description">Elska/avelska songar i Last.fm når dei vert lika/mislika i Ctrl Music</string>
     <string name="logging_in">Loggar inn…</string>
     <string name="scrobbling_configuration">Scrobblingsoppset</string>
     <string name="scrobble_min_track_duration">Scrobbla songar lengre en</string>
@@ -315,14 +315,14 @@
     <string name="wrapped_total_artists_subtitle">ulike artistar</string>
     <string name="wrapped_total_songs_title">Du høyrde på</string>
     <string name="wrapped_total_songs_subtitle">ulike songar</string>
-    <string name="wrapped_intro_title">vivimusic</string>
+    <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">Det er på tide å sjå på kva du har høyrt på i år!</string>
     <string name="wrapped_intro_button">Set i gang!</string>
-    <string name="wrapped_end_thanks">Takk for at du høyrde på med vivimusic!</string>
+    <string name="wrapped_end_thanks">Takk for at du høyrde på med Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Oppretta Wrapped-spelelista di</string>
     <string name="wrapped_end_creating_playlist">Opprettar…</string>
     <string name="wrapped_end_playlist_saved">Speleliste lagra</string>
-    <string name="wrapped_logo_content_description">vivimusic-merket</string>
+    <string name="wrapped_logo_content_description">Ctrl Music-merket</string>
     <string name="wrapped_year">2026</string>
     <string name="wrapped_ready_title">DIN WRAPPED ER KLAR!</string>
     <string name="wrapped_ready_subtitle">På tide å sjå på kva du elska i år.</string>
@@ -352,9 +352,9 @@
     <string name="import_error_title">Importeringslyte</string>
     <string name="casting_to">Kastar til %s</string>
     <string name="progress_percent">Framsteg %s %%</string>
-    <string name="listening_to_vivimusic">Høyrer på vivimusic</string>
+    <string name="listening_to_vivimusic">Høyrer på Ctrl Music</string>
     <string name="listen_on_youtube_music">Høyr på på YouTube Music</string>
-    <string name="visit_vivimusic">Vitja vivimusic</string>
+    <string name="visit_vivimusic">Vitja Ctrl Music</string>
     <string name="open">Opna</string>
     <string name="failed_to_create_image">Mislukkast i å skapa bilete: %s</string>
     <string name="copied_title">Kopierte tittel</string>
@@ -363,7 +363,7 @@
     <string name="failed_to_parse_proxy">Mislukkast i å tolka mellomtenar-URL</string>
     <string name="album_art">Albumkunst</string>
     <string name="no_song_playing">Ingen song vert spela av</string>
-    <string name="tap_to_open">Trykk for å opna vivimusic</string>
+    <string name="tap_to_open">Trykk for å opna Ctrl Music</string>
     <string name="previous">Førre</string>
     <string name="play_pause">Spela av/Pausa</string>
     <string name="next">Neste</string>

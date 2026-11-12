@@ -272,7 +272,7 @@
     <string name="backup_create_failed">Varukoopia tegemine ei õnnestunud</string>
     <string name="restore_failed">Varukoopiast taastamine ei õnnestunud</string>
     <string name="discord_integration">Lõiming Discordiga</string>
-    <string name="discord_information">Ctrl Music kasutab Discordi kasutajakonto oleku kuvamiseks KizzyRPC teeki. See eeldab Discord Gateway ühenduse kasutamist ja seda loetakse Discordi kasutustingimuste rikkumiseks. Aga pole teada ühtegi juhust, kus kasutajakonto oleks sel põhjusel keelatud. Kasuta seda teenust omal vastutsusel.\n\nvivimusic kasutab ainult sinu tunnusluba, kõike muud hoitakse kohalikus seadmes.</string>
+    <string name="discord_information">Ctrl Music kasutab Discordi kasutajakonto oleku kuvamiseks KizzyRPC teeki. See eeldab Discord Gateway ühenduse kasutamist ja seda loetakse Discordi kasutustingimuste rikkumiseks. Aga pole teada ühtegi juhust, kus kasutajakonto oleks sel põhjusel keelatud. Kasuta seda teenust omal vastutsusel.\n\nCtrl Music kasutab ainult sinu tunnusluba, kõike muud hoitakse kohalikus seadmes.</string>
     <string name="options">Valikud</string>
     <string name="action_logout">Logi välja</string>
     <string name="login_failed">Sisselogimine ei õnnestunud</string>

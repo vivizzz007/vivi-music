@@ -20,7 +20,7 @@
     <string name="installing_system_update">Quraşdıring sistem\nyeniləmə…</string>
     <string name="making_update_ready">Making Yeniləmə hazırdır, bu may take bir while</string>
     <string name="your_app_getting_better">Sizin Tətbiq dır getting even better…</string>
-    <string name="update_includes_features">Bu yeniləmə includes yeni funksiyalar və latest -dan vivi-musiqi %1$s, making sizin tətbiq even daha çox helpful. Learn daha çox at %2$s.</string>
+    <string name="update_includes_features">Bu yeniləmə includes yeni funksiyalar və latest -dan Ctrl Music %1$s, making sizin tətbiq even daha çox helpful. Learn daha çox at %2$s.</string>
     <string name="whats_new">What\'s yeni?</string>
     <string name="update_available">Yeniləmə</string>
     <string name="checking_for_updates">Checking üçün updates…</string>
@@ -35,7 +35,7 @@
     <string name="mobile_network_warning">Yüklənir updates over bir mobil şəbəkə və ya while roaming may cause additional charges.</string>
     <string name="update_size">Yeniləmə ölçü: %1$s MB</string>
     <string name="check_internet_connection">Check sizin internet bağlantı və try yenidən.</string>
-    <string name="vivi_music_version">VIVI Musiqi versiya %1$s</string>
+    <string name="vivi_music_version">CTRL Musiqi versiya %1$s</string>
     <string name="last_checked">Last checked: %1$s</string>
     <string name="install">Quraşdır</string>
     <string name="check_for_update">Yeniləməni yoxla</string>
@@ -51,12 +51,12 @@
     <string name="update_notifications_subtitle">Notify when updates dır mövcuddur.</string>
     <string name="settings_check_updates_title">Yeniləməni yoxlas</string>
     <string name="later">Sonra</string>
-    <string name="vivi_music_title">VIVI Musiqi</string>
+    <string name="vivi_music_title">CTRL Musiqi</string>
     <string name="developer_section">Tərtibatçı</string>
     <string name="collaborator_section">COLLABORATOR</string>
     <string name="app_info_section">Tətbiq INFO</string>
     <string name="community_section">Icma</string>
-    <string name="developer_name">VIVIDH P ASHOKAN</string>
+    <string name="developer_name">ctrlfxx</string>
     <string name="app_developer">Baş tərtibatçı</string>
     <string name="website">Vebsayt</string>
     <string name="collaborator_tboyke">T-Boyke</string>

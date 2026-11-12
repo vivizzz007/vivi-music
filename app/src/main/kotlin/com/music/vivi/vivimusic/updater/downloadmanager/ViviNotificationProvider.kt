@@ -94,7 +94,7 @@ class ViviNotificationProvider(
             builder.setColorized(false)
 
             // Ensure we have a small icon (required for chip)
-            builder.setSmallIcon(R.drawable.icon)
+            builder.setSmallIcon(R.drawable.ctrl_notification)
 
             // Promote to Live Update
             setRequestPromotedOngoingSafely(builder, true)

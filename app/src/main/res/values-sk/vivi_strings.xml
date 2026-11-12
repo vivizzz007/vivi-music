@@ -229,7 +229,7 @@
     <string name="scrobble_delay_percent">Percentuálne oneskorenie Scrobble</string>
     <string name="scrobble_delay_minutes">Minúty oneskorenia Scrobble</string>
     <string name="last_fm_send_likes">Odoslať označenia Páči sa mi to/Nepáči sa mi to</string>
-    <string name="last_fm_send_likes_description">Piesne, ktoré sa mi páčia/nepáčia, sa mi páčia na Last.fm, keď sa mi páčia/nepáčia na vivimusice</string>
+    <string name="last_fm_send_likes_description">Piesne, ktoré sa mi páčia/nepáčia, sa mi páčia na Last.fm, keď sa mi páčia/nepáčia na Ctrl Music</string>
     <string name="top_result">Top výsledok</string>
     <string name="other_results">Ďalšie</string>
     <string name="download_playlist_desc">Stiahnuť všetky skladby na počúvanie offline</string>
@@ -307,7 +307,7 @@
     <string name="wrapped_intro_title">Ctrl Music</string>
     <string name="wrapped_intro_subtitle">Je čas zistiť, čo ste počúvali</string>
     <string name="wrapped_intro_button">poďme!</string>
-    <string name="wrapped_end_thanks">Ďakujeme za počúvanie s vivimusicom!</string>
+    <string name="wrapped_end_thanks">Ďakujeme za počúvanie s Ctrl Music!</string>
     <string name="wrapped_end_create_playlist">Vytvorte si svoj Wrapped zoznam skladieb</string>
     <string name="wrapped_end_creating_playlist">Vytvára sa...</string>
     <string name="wrapped_end_playlist_saved">Zoznam skladieb bol uložený</string>
