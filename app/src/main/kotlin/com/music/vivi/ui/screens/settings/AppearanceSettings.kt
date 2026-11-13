@@ -199,17 +199,9 @@ fun AppearanceSettings(
         UseNewPlayerDesignKey,
         defaultValue = false
     )
-    val (usePlayerV2, onUsePlayerV2Change) = rememberPreference(
-        com.music.vivi.constants.UsePlayerV2Key,
-        defaultValue = true
-    )
     
-    val currentPlayerDesign = remember(useNewPlayerDesign, usePlayerV2) {
-        when {
-            usePlayerV2 -> PlayerDesignOption.V2
-            useNewPlayerDesign -> PlayerDesignOption.NEW
-            else -> PlayerDesignOption.CLASSIC
-        }
+    val currentPlayerDesign = remember(useNewPlayerDesign) {
+        if (useNewPlayerDesign) PlayerDesignOption.NEW else PlayerDesignOption.CLASSIC
     }
     var showPlayerDesignDialog by rememberSaveable { mutableStateOf(false) }
     
@@ -405,16 +397,10 @@ fun AppearanceSettings(
             onSelect = { option ->
                 when (option) {
                     PlayerDesignOption.CLASSIC -> {
-                        onUsePlayerV2Change(false)
                         onUseNewPlayerDesignChange(false)
                     }
                     PlayerDesignOption.NEW -> {
-                        onUsePlayerV2Change(false)
                         onUseNewPlayerDesignChange(true)
-                    }
-                    PlayerDesignOption.V2 -> {
-                        onUsePlayerV2Change(true)
-                        onUseNewPlayerDesignChange(false)
                     }
                 }
                 showPlayerDesignDialog = false
@@ -426,7 +412,6 @@ fun AppearanceSettings(
                 when (it) {
                     PlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
                     PlayerDesignOption.NEW -> stringResource(R.string.new_player_design)
-                    PlayerDesignOption.V2 -> stringResource(R.string.player_v2)
                 }
             }
         )
@@ -1286,7 +1271,6 @@ fun AppearanceSettings(
                             when (currentPlayerDesign) {
                                 PlayerDesignOption.CLASSIC -> stringResource(R.string.classic_player)
                                 PlayerDesignOption.NEW -> stringResource(R.string.new_player_design)
-                                PlayerDesignOption.V2 -> stringResource(R.string.player_v2)
                             }
                         )
                     },
@@ -1309,7 +1293,7 @@ fun AppearanceSettings(
                     },
                     onClick = { showPlayerBackgroundDialog = true }
                 ),
-                if (!useNewPlayerDesign && !usePlayerV2) {
+                if (!useNewPlayerDesign) {
                     Material3SettingsItem(
                         icon = painterResource(R.drawable.tune),
                         title = { Text(stringResource(R.string.show_audio_quality_badge)) },
@@ -2148,9 +2132,8 @@ enum class PlayerTextAlignment {
 
 
 enum class PlayerDesignOption {
-    CLASSIC
-    ,NEW
-    ,V2
+    CLASSIC,
+    NEW
 }
 
 enum class MiniPlayerDesignOption {

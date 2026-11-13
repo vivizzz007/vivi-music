@@ -181,7 +181,6 @@ import com.music.vivi.constants.SquigglySliderKey
 import com.music.vivi.constants.SwipeLyricsKey
 import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.UseNewPlayerDesignKey
-import com.music.vivi.constants.UsePlayerV2Key
 import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
@@ -314,7 +313,6 @@ fun BottomSheetPlayer(
     val (motionartworkSource) = rememberEnumPreference(MotionartworkSourceKey, defaultValue = MotionartworkSource.AUTO)
     val canvasLoadOnlyWifi by rememberPreference(CanvasLoadOnlyWifiKey, defaultValue = false)
     val spotifyCanvasEnabled by rememberPreference(SpotifyCanvasEnabledKey, false)
-    val usePlayerV2 by rememberPreference(UsePlayerV2Key, true)
 
     val shouldUseDarkButtonColors = remember(playerBackground, useDarkTheme) {
         when (playerBackground) {
@@ -979,7 +977,7 @@ fun BottomSheetPlayer(
                     .fillMaxSize()
                     .background(bottomSheetBackgroundColor)
             ) {
-                if (spotifyCanvasUrl != null && !usePlayerV2) {
+                if (spotifyCanvasUrl != null) {
                     val overlayAlpha by animateFloatAsState(
                         targetValue = if (showInlineLyrics) 0.85f else 0.4f,
                         label = "canvasDimmer"
@@ -1354,10 +1352,7 @@ fun BottomSheetPlayer(
             )
         },
     ) {
-        if (usePlayerV2) {
-             PlayerV2(state, navController, modifier)
-        } else {
-            val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
+        val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
                 animationSpec = tween(durationMillis = 90, easing = LinearEasing),
@@ -2785,7 +2780,6 @@ fun BottomSheetPlayer(
                 showInlineLyrics = !showInlineLyrics
             },
             )
-        }
     }
     }
 }
