@@ -95,10 +95,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -1074,21 +1070,10 @@ class MainActivity : ComponentActivity() {
                                                                     .clip(CircleShape)
                                                             )
                                                         } else {
-                                                            val composition by rememberLottieComposition(
-                                                                LottieCompositionSpec.RawRes(R.raw.setting)
-                                                            )
-                                                            val progress by animateLottieCompositionAsState(
-                                                                composition = composition,
-                                                                isPlaying = true,
-                                                                iterations = 1,
-                                                                speed = 1.5f
-                                                            )
-    
-                                                            LottieAnimation(
-                                                                composition = composition,
-                                                                progress = { progress },
-                                                                modifier = Modifier.size(50.dp),
-                                                                contentScale = ContentScale.Fit
+                                                            Icon(
+                                                                painter = painterResource(R.drawable.settings),
+                                                                contentDescription = stringResource(R.string.settings),
+                                                                modifier = Modifier.size(32.dp)
                                                             )
                                                         }
                                                     }

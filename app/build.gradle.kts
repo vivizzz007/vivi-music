@@ -279,7 +279,6 @@ dependencies {
     implementation(libs.apache.lang3)
 
     implementation(libs.hilt)
-    implementation(libs.jsoup)
     ksp(libs.hilt.compiler)
 
     implementation(project(":innertube"))
@@ -310,8 +309,6 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.timber)
     implementation(libs.smoothCorner)
-    implementation(libs.lottie.compose)
-    implementation(libs.haze)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 

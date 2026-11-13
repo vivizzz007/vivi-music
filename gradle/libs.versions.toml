@@ -1,7 +1,6 @@
 [versions]
 vico = "3.1.0-alpha.3"
 androidGradlePlugin = "9.1.1"
-json = "20260522"
 kotlin = "2.3.10"
 compose = "1.11.4"
 lifecycle = "2.10.0"
@@ -15,7 +14,6 @@ room = "2.8.4"
 hilt = "2.60.1"
 ktor = "3.4.0"
 ksp = "2.3.6"
-jsoup = "1.22.1"
 coil = "3.3.0"
 ucrop = "2.2.11"
 guava = "33.5.0-jre"
@@ -28,7 +26,6 @@ composeReorderable = "3.0.0"
 shimmer = "1.5.0"
 palette = "1.0.0"
 apacheLang3 = "3.20.0"
-brotli = "0.1.2"
 desugaring = "2.1.5"
 junit = "4.13.2"
 timber = "5.0.1"
@@ -39,15 +36,12 @@ tinypinyin = "2.0.3"
 protobuf = "4.33.5"
 protobufPlugin = "0.9.6"
 smoothCorner = "v1.0.0"
-lottie = "6.7.1"
 work = "2.12.0"
 coreSplashscreen = "1.2.0"
-haze = "2.1.0"
 innertubex = "v0.11.6"
 expressivelab = "v1.0.0"
 
 [libraries]
-haze = { group = "dev.chrisbanes.haze", name = "haze", version.ref = "haze" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 coroutines-guava = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-guava", version.ref = "coroutinesGuava" }
 concurrent-futures = { module = "androidx.concurrent:concurrent-futures-ktx", version.ref = "concurrentFutures" }
@@ -115,12 +109,6 @@ vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", ve
 ktor-client-encoding = { module = "io.ktor:ktor-client-encoding", version.ref = "ktor" }
 ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
-jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
-
-json = { module = "org.json:json", version.ref = "json" }
-
-brotli = { module = "org.brotli:dec", version.ref = "brotli" }
-
 desugaring = { module = "com.android.tools:desugar_jdk_libs_nio", version.ref = "desugaring" }
 
 junit = { module = "junit:junit", version.ref = "junit" }
@@ -135,7 +123,6 @@ tinypinyin = { module = "com.github.promeG:tinypinyin", version.ref = "tinypinyi
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
 smoothCorner = { module = "com.github.racra:smooth-corner-rect-android-compose", version.ref = "smoothCorner" }
-lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottie" }
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "coreSplashscreen" }
 innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex-android", version.ref = "innertubex" }
