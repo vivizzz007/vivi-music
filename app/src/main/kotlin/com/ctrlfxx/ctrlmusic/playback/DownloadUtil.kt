@@ -50,7 +50,12 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.ctrlfxx.ctrlmusic.db.entities.LyricsEntity
+import com.ctrlfxx.ctrlmusic.lyrics.LyricsHelper
+import com.ctrlfxx.ctrlmusic.models.toMediaMetadata
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import timber.log.Timber
@@ -68,6 +73,7 @@ constructor(
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: SimpleCache,
     @PlayerCache val playerCache: SimpleCache,
+    private val lyricsHelper: LyricsHelper,
 ) {
     private val connectivityManager = context.getSystemService<ConnectivityManager>()!!
     private val audioQuality by enumPreference(context, AudioQualityKey, AudioQuality.AUTO)
@@ -272,6 +278,7 @@ constructor(
                             when (download.state) {
                                 Download.STATE_COMPLETED -> {
                                     database.updateDownloadedInfo(download.request.id, true, LocalDateTime.now())
+                                    saveLyricsForOffline(download.request.id)
                                 }
                                 Download.STATE_FAILED,
                                 Download.STATE_STOPPED,
@@ -321,6 +328,37 @@ constructor(
     }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+
+    /**
+     * Saves a downloaded song's lyrics on the phone so they show without internet.
+     * "Not found" results aren't stored, so the song is tried again later.
+     */
+    private suspend fun saveLyricsForOffline(songId: String) {
+        runCatching {
+            if (database.lyrics(songId).first() != null) return
+            val song = database.song(songId).first() ?: return
+            val result = lyricsHelper.getLyrics(song.toMediaMetadata(), cancelOtherJobs = false)
+            if (result.lyrics == LyricsEntity.LYRICS_NOT_FOUND) return
+            database.query {
+                upsert(LyricsEntity(id = songId, lyrics = result.lyrics, provider = result.provider))
+            }
+        }.onFailure { Timber.tag("DownloadLyrics").w(it, "Couldn't save lyrics for %s", songId) }
+    }
+
+    init {
+        // Fill in lyrics for songs that were downloaded before lyrics were saved with downloads.
+        scope.launch {
+            delay(20_000)
+            runCatching {
+                database.downloadedSongsByCreateDateAsc().first()
+                    .filter { database.lyrics(it.id).first() == null }
+                    .forEach { song ->
+                        saveLyricsForOffline(song.id)
+                        delay(1_500)
+                    }
+            }
+        }
+    }
 
     fun release() {
         scope.cancel()

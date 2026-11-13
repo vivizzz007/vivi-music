@@ -791,6 +791,8 @@ class MusicService :
                     .first() == null
             ) {
                 val lyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
+                // Offline "not found" isn't saved, so lyrics are fetched once internet is back.
+                if (lyricsWithProvider.provider == LyricsHelper.OFFLINE_PROVIDER) return@collectLatest
                 database.query {
                     upsert(
                         LyricsEntity(

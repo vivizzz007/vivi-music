@@ -94,11 +94,13 @@ constructor(
         lyricsEntity: LyricsEntity?,
     ) {
         database.query {
-            lyricsEntity?.let(::delete)
             val lyricsWithProvider =
                 runBlocking {
                     lyricsHelper.getLyrics(mediaMetadata)
                 }
+            // Offline: keep the saved lyrics instead of replacing them with "not found"
+            if (lyricsWithProvider.provider == LyricsHelper.OFFLINE_PROVIDER) return@query
+            lyricsEntity?.let(::delete)
             upsert(LyricsEntity(mediaMetadata.id, lyricsWithProvider.lyrics, lyricsWithProvider.provider))
         }
     }

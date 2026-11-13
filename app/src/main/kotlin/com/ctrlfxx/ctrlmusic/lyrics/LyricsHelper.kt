@@ -72,8 +72,13 @@ constructor(
     private val activeFetches = mutableMapOf<String, Deferred<LyricsWithProvider>>()
     private val fetchesMutex = Mutex()
 
-    suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
-        currentLyricsJob?.cancel()
+    // Background callers (saving lyrics for downloads) pass cancelOtherJobs = false so they never
+    // interrupt a lyrics search the user started.
+    suspend fun getLyrics(
+        mediaMetadata: MediaMetadata,
+        cancelOtherJobs: Boolean = true,
+    ): LyricsWithProvider {
+        if (cancelOtherJobs) currentLyricsJob?.cancel()
 
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
         if (cached != null) {
@@ -90,8 +95,8 @@ constructor(
         }
         
         if (!isNetworkAvailable) {
-            // Still proceed but return not found to avoid hanging
-            return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+            // No internet: callers must not save this, so lyrics are fetched once online again
+            return LyricsWithProvider(LYRICS_NOT_FOUND, OFFLINE_PROVIDER)
         }
 
         val cacheKey = mediaMetadata.id
@@ -300,6 +305,9 @@ constructor(
 
     companion object {
         private const val MAX_CACHE_SIZE = 50
+
+        /** Provider name on results made while offline; such results are never saved. */
+        const val OFFLINE_PROVIDER = "Offline"
     }
 }
 

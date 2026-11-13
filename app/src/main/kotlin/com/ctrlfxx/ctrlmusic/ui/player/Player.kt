@@ -2815,6 +2815,7 @@ fun InlineLyricsView(
                     )
                     val lyricsHelper = entryPoint.lyricsHelper()
                     val fetchedLyricsWithProvider = lyricsHelper.getLyrics(mediaMetadata)
+                    if (fetchedLyricsWithProvider.provider == com.ctrlfxx.ctrlmusic.lyrics.LyricsHelper.OFFLINE_PROVIDER) return@launch
                     database.query {
                         upsert(LyricsEntity(mediaMetadata.id, fetchedLyricsWithProvider.lyrics, fetchedLyricsWithProvider.provider))
                     }
