@@ -393,7 +393,7 @@ object YTPlayerUtils {
             audioQuality = audioQuality,
             connectivityManager = connectivityManager,
             contentHints = mappedHints,
-            allowBoundedRange = true
+            allowBoundedRange = false
         )
     }
 

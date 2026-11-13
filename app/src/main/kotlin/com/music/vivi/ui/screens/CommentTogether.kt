@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.music.vivi.LocalListenTogetherManager
-import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.listentogether.ChatMessagePayload
 import com.music.vivi.listentogether.RepliedMessage
@@ -54,7 +53,6 @@ fun CommentTogetherScreen(navController: NavController) {
     val messages by manager.chatMessages.collectAsState()
     val userId by manager.userId.collectAsState()
     val roomState by manager.roomState.collectAsState()
-    val windowInsets = LocalPlayerAwareWindowInsets.current
     
     var textInput by remember { mutableStateOf("") }
     var replyingTo by remember { mutableStateOf<ChatMessagePayload?>(null) }
@@ -101,12 +99,19 @@ fun CommentTogetherScreen(navController: NavController) {
             )
         },
         bottomBar = {
-            Column(
+            Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()
-                    .padding(16.dp)
+                    .imePadding(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
             ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                ) {
                 // Reply Preview
                 AnimatedVisibility(
                     visible = replyingTo != null,
@@ -164,24 +169,24 @@ fun CommentTogetherScreen(navController: NavController) {
                     }
                 }
 
-                ChatInputArea(
-                    text = textInput,
-                    onTextChange = { textInput = it },
-                    onSend = {
-                        if (textInput.isNotBlank()) {
-                            val replyData = replyingTo?.let { 
-                                RepliedMessage(it.username, it.message)
+                    ChatInputArea(
+                        text = textInput,
+                        onTextChange = { textInput = it },
+                        onSend = {
+                            if (textInput.isNotBlank()) {
+                                val replyData = replyingTo?.let { 
+                                    RepliedMessage(it.username, it.message)
+                                }
+                                manager.sendChatMessage(textInput, replyData)
+                                textInput = ""
+                                replyingTo = null
+                                focusManager.clearFocus()
                             }
-                            manager.sendChatMessage(textInput, replyData)
-                            textInput = ""
-                            replyingTo = null
-                            focusManager.clearFocus()
                         }
-                    }
-                )
+                    )
+                }
             }
-        },
-        contentWindowInsets = windowInsets
+        }
     ) { padding ->
         Box(
             modifier = Modifier
