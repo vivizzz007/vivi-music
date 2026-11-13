@@ -92,6 +92,8 @@ import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
 import com.music.vivi.constants.AudioTrackPlaybackParamsKey
+import com.music.vivi.constants.PlaybackPitchKey
+import com.music.vivi.constants.PlaybackTempoKey
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
@@ -243,6 +245,7 @@ import java.io.ObjectOutputStream
 import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
 private const val INSTANT_SILENCE_SKIP_STEP_MS = 15_000L
@@ -1337,6 +1340,9 @@ class MusicService :
                     val crossfade = dataStore.get(CrossfadeEnabledKey, false)
                     setOffloadEnabled(if (crossfade) false else offload)
                     skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
+                    val tempo = dataStore.get(PlaybackTempoKey, 1.0f)
+                    val pitchSemitones = dataStore.get(PlaybackPitchKey, 0)
+                    playbackParameters = PlaybackParameters(tempo, 2f.pow(pitchSemitones.toFloat() / 12))
                 }
                 addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
