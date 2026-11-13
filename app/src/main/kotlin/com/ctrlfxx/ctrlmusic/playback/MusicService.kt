@@ -51,6 +51,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.ContentMetadata
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.datasource.okhttp.OkHttpDataSource
@@ -1361,6 +1362,73 @@ class MusicService :
         player.pause()
     }
 
+    /** True when [cache] holds the rest of the song from [position], judged by the cache's own length. */
+    private fun isFullyCachedFrom(cache: SimpleCache, mediaId: String, position: Long): Boolean =
+        runCatching {
+            val length = ContentMetadata.getContentLength(cache.getContentMetadata(mediaId))
+            length > 0 && position < length && cache.isCached(mediaId, position, length - position)
+        }.getOrDefault(false)
+
+    /** Asks Android directly, so a not-yet-updated connectivity flag never causes false skips. */
+    private fun isOffline(): Boolean = runCatching {
+        val network = connectivityManager.activeNetwork ?: return@runCatching true
+        val caps = connectivityManager.getNetworkCapabilities(network) ?: return@runCatching true
+        !caps.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }.getOrDefault(false)
+
+    /** True when the whole song can play without internet (downloaded, or fully in the stream cache). */
+    private fun isAvailableOffline(mediaId: String): Boolean =
+        isFullyCachedFrom(downloadCache, mediaId, 0) || isFullyCachedFrom(playerCache, mediaId, 0)
+
+    /**
+     * Offline: moves to the next song in the queue that can play without internet, so one
+     * missing song doesn't stop the whole queue. Returns false when nothing playable is left.
+     */
+    private fun skipToNextOfflineSong(): Boolean {
+        val timeline = player.currentTimeline
+        if (timeline.isEmpty) return false
+        val repeat = if (player.repeatMode == REPEAT_MODE_ONE) REPEAT_MODE_OFF else player.repeatMode
+        val shuffle = player.shuffleModeEnabled
+        var index = timeline.getNextWindowIndex(player.currentMediaItemIndex, repeat, shuffle)
+        var checked = 0
+        while (index != C.INDEX_UNSET && checked < timeline.windowCount) {
+            if (isAvailableOffline(player.getMediaItemAt(index).mediaId)) {
+                player.seekTo(index, 0L)
+                player.prepare()
+                if (castConnectionHandler?.isCasting?.value != true) player.play()
+                return true
+            }
+            index = timeline.getNextWindowIndex(index, repeat, shuffle)
+            checked++
+        }
+        return false
+    }
+
+    /**
+     * When a queue can't load because there's no internet (for example a song radio), play the
+     * tapped song followed by the user's downloaded songs in random order.
+     */
+    private suspend fun offlineQueueStatus(queue: Queue): Queue.Status? {
+        if (!isOffline()) return null
+        val first = queue.preloadItem ?: return null
+        val downloaded = database.downloadedSongsByCreateDateAsc().first()
+            .filter { it.id != first.id }
+            .shuffled()
+        return Queue.Status(
+            title = getString(R.string.offline_mix),
+            items = listOf(first.toMediaItem()) + downloaded.map { it.toMediaItem() },
+            mediaItemIndex = 0,
+        )
+    }
+
+    private fun handleOfflineUnavailable(mediaId: String) {
+        Timber.tag(TAG).d("Offline and $mediaId isn't downloaded, moving to the next offline song")
+        if (!skipToNextOfflineSong()) {
+            player.pause()
+            Toast.makeText(this, getString(R.string.no_offline_songs_left), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun updateNotification() {
         mediaSession.setCustomLayout(
             listOf(
@@ -1562,7 +1630,9 @@ class MusicService :
         playQueueJob = scope.launch(SilentHandler) {
             val initialStatus =
                 withContext(Dispatchers.IO) {
-                    queue.getInitialStatus()
+                    runCatching { queue.getInitialStatus() }
+                        .recoverCatching { error -> offlineQueueStatus(queue) ?: throw error }
+                        .getOrThrow()
                         .filterExplicit(dataStore.get(HideExplicitKey, false))
                         .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
                 }
@@ -2412,6 +2482,11 @@ class MusicService :
         mediaItem: MediaItem?,
         reason: Int,
     ) {
+        val transitionedId = mediaItem?.mediaId
+        if (transitionedId != null && isOffline() && !isAvailableOffline(transitionedId)) {
+            scope.launch { if (player.currentMediaItem?.mediaId == transitionedId) handleOfflineUnavailable(transitionedId) }
+        }
+
         // Force Repeat One if the player ignored it and auto-advanced
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
             if (previousMediaItemIndex != C.INDEX_UNSET && previousMediaItemIndex < player.mediaItemCount) {
@@ -2945,6 +3020,11 @@ class MusicService :
         Timber.tag(TAG).w(error, "Player error occurred for $mediaId: errorCode=${error.errorCode}, message=${error.message}")
         reportException(error)
 
+        if (mediaId != null && isOffline() && !isAvailableOffline(mediaId)) {
+            handleOfflineUnavailable(mediaId)
+            return
+        }
+
         // Check if this song has failed too many times
         if (mediaId != null && hasExceededRetryLimit(mediaId)) {
             Timber.tag(TAG).w("Song $mediaId has exceeded retry limit, skipping")
@@ -3428,6 +3508,7 @@ class MusicService :
                 }
 
                 if (downloadCache.isCached(mediaId, dataSpec.position, requiredLength) ||
+                    isFullyCachedFrom(downloadCache, mediaId, dataSpec.position) ||
                     playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
                 ) {
                     scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
