@@ -375,9 +375,7 @@ fun AppearanceSettings(
         defaultValue = true
     )
 
-    val availableBackgroundStyles = PlayerBackgroundStyle.entries.filter {
-        it != PlayerBackgroundStyle.BLUR || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-    }
+    val availableBackgroundStyles = PlayerBackgroundStyle.entries
 
     val availableMiniPlayerBackgroundStyles = availableBackgroundStyles.filter { 
         it != PlayerBackgroundStyle.APPLE_MUSIC 

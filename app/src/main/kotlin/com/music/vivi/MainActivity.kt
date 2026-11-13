@@ -1066,14 +1066,13 @@ class MainActivity : ComponentActivity() {
                                                                 model = accountImageUrl,
                                                                 contentDescription = stringResource(R.string.account),
                                                                 modifier = Modifier
-                                                                    .size(32.dp)
+                                                                    .size(24.dp)
                                                                     .clip(CircleShape)
                                                             )
                                                         } else {
                                                             Icon(
                                                                 painter = painterResource(R.drawable.settings),
-                                                                contentDescription = stringResource(R.string.settings),
-                                                                modifier = Modifier.size(32.dp)
+                                                                contentDescription = stringResource(R.string.settings)
                                                             )
                                                         }
                                                     }

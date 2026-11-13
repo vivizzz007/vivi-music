@@ -194,6 +194,7 @@ import com.music.vivi.vivimusic.isSpeaker
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
+import com.music.vivi.ui.player.backdrop.PlayerBlurBackdrop
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.Lyrics
@@ -1005,41 +1006,12 @@ fun BottomSheetPlayer(
                     }
                 } else when (playerBackground) {
                     PlayerBackgroundStyle.BLUR -> {
-                        AnimatedContent(
-                            targetState = mediaMetadata?.thumbnailUrl,
-                            transitionSpec = {
-                                fadeIn(tween(800)).togetherWith(fadeOut(tween(800)))
-                            },
-                            label = "blurBackground"
-                        ) { thumbnailUrl ->
-                            if (thumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .alpha(backgroundAlpha)
-                                ) {
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(100, 100) // Lower resolution for better performance
-                                            .crossfade(600)
-                                            .allowHardware(false)
-                                            .build(),
-                                        contentDescription = null,
-                                        contentScale = ContentScale.FillBounds,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(120.dp) // hardware-efficient native Compose blur on small image
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(Color.Black.copy(alpha = 0.30f))
-                                    )
-                                }
-                            }
-                        }
+                        PlayerBlurBackdrop(
+                            artworkUri = mediaMetadata?.thumbnailUrl?.toUri(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(backgroundAlpha)
+                        )
                     }
                     PlayerBackgroundStyle.GRADIENT -> {
                         AnimatedContent(
