@@ -18,7 +18,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.lerp
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -27,7 +26,6 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.music.vivi.ui.theme.PlayerSliderColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,10 +33,7 @@ fun PlayerSliderTrack(
     sliderState: SliderState,
     modifier: Modifier = Modifier,
     colors: SliderColors = SliderDefaults.colors(),
-    trackHeight: Dp = 7.25.dp,
-    useOverlay: Boolean = false,
-    activeOverlayColor: Color = PlayerSliderColors.ActiveOverlayColor,
-    inactiveOverlayColor: Color = PlayerSliderColors.InactiveOverlayColor
+    trackHeight: Dp = 7.25.dp
 ) {
     val inactiveTrackColor = colors.inactiveTrackColor
     val activeTrackColor = colors.activeTrackColor
@@ -62,10 +57,7 @@ fun PlayerSliderTrack(
             activeTrackColor,
             inactiveTickColor,
             activeTickColor,
-            trackHeight,
-            useOverlay,
-            activeOverlayColor,
-            inactiveOverlayColor
+            trackHeight
         )
     }
 }
@@ -78,10 +70,7 @@ private fun DrawScope.drawTrack(
     activeTrackColor: Color,
     inactiveTickColor: Color,
     activeTickColor: Color,
-    trackHeight: Dp = 7.25.dp,
-    useOverlay: Boolean = false,
-    activeOverlayColor: Color = PlayerSliderColors.ActiveOverlayColor,
-    inactiveOverlayColor: Color = PlayerSliderColors.InactiveOverlayColor
+    trackHeight: Dp = 7.25.dp
 ) {
     val isRtl = layoutDirection == LayoutDirection.Rtl
     val sliderLeft = Offset(0f, center.y)
@@ -104,18 +93,7 @@ private fun DrawScope.drawTrack(
         )
     }
     clipPath(trackPath) {
-        if (useOverlay) {
-            // 1. Inactive underlay (BlendMode.Overlay)
-            drawLine(
-                color = inactiveOverlayColor,
-                start = sliderStart,
-                end = sliderEnd,
-                strokeWidth = trackStrokeWidth,
-                cap = StrokeCap.Butt,
-                blendMode = BlendMode.Overlay
-            )
-        }
-        // 2. Inactive track / shade
+        // 1. Inactive track
         drawLine(
             color = inactiveTrackColor,
             start = sliderStart,
@@ -123,7 +101,7 @@ private fun DrawScope.drawTrack(
             strokeWidth = trackStrokeWidth,
             cap = StrokeCap.Butt
         )
-        // 3. Active track
+        // 2. Active track
         if (activeRangeEnd > activeRangeStart) {
             val sliderValueEnd = Offset(
                 sliderStart.x + (sliderEnd.x - sliderStart.x) * activeRangeEnd,
@@ -133,16 +111,6 @@ private fun DrawScope.drawTrack(
                 sliderStart.x + (sliderEnd.x - sliderStart.x) * activeRangeStart,
                 center.y
             )
-            if (useOverlay) {
-                drawLine(
-                    color = activeOverlayColor,
-                    start = sliderValueStart,
-                    end = sliderValueEnd,
-                    strokeWidth = trackStrokeWidth,
-                    cap = StrokeCap.Butt,
-                    blendMode = BlendMode.Overlay
-                )
-            }
             drawLine(
                 color = activeTrackColor,
                 start = sliderValueStart,
