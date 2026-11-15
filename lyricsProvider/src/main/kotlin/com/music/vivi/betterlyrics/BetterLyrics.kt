@@ -66,6 +66,59 @@ object BetterLyrics {
         }
     }.getOrNull()
 
+    private suspend fun fetchPortatoTTML(
+        artist: String,
+        title: String,
+        duration: Int = -1,
+        album: String? = null,
+    ): String? = runCatching {
+        val response = client.get("/qq/getLyrics") {
+            parameter("s", title)
+            parameter("a", artist)
+            if (duration > 0) {
+                parameter("d", duration)
+            }
+            if (!album.isNullOrBlank()) {
+                parameter("al", album)
+            }
+        }
+        if (response.status == HttpStatusCode.OK) {
+            response.body<TTMLResponse>().ttml
+        } else {
+            null
+        }
+    }.getOrNull()
+
+    suspend fun getPortatoLyrics(
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String? = null,
+    ) = runCatching {
+        val ttml = fetchPortatoTTML(artist, title, duration, album)
+            ?: throw IllegalStateException("Portato lyrics unavailable")
+        
+        val parsedLines = TTMLParser.parseTTML(ttml)
+        if (parsedLines.isEmpty()) {
+            throw IllegalStateException("Failed to parse portato lyrics")
+        }
+        
+        TTMLParser.toLRC(parsedLines)
+    }
+
+    suspend fun getAllPortatoLyrics(
+        title: String,
+        artist: String,
+        duration: Int,
+        album: String? = null,
+        callback: (String) -> Unit,
+    ) {
+        getPortatoLyrics(title, artist, duration, album)
+            .onSuccess { lrcString ->
+                callback(lrcString)
+            }
+    }
+
     suspend fun getLyrics(
         title: String,
         artist: String,

@@ -202,6 +202,10 @@
     <string name="lyrics_glow_effect_desc">Add glowing animation and bounce effect to active lyrics</string>
     <string name="enable_better_lyrics">Enable Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Use Better Lyrics provider for word-by-word synced lyrics</string>
+    <string name="enable_better_lyrics_portato">Enable Better Lyrics (Portato)</string>
+    <string name="enable_better_lyrics_portato_desc">QQ Music rich karaoke timings via BetterLyrics</string>
+    <string name="enable_genius_lyrics">Enable Genius</string>
+    <string name="enable_genius_lyrics_desc">Fallback plain-text scraper when all synced lyrics providers miss</string>
     <string name="auto_scroll">Re-sync</string>
     <string name="slim">Slim</string>
     <string name="slim_navbar">Slim bottom navigation bar</string>

@@ -175,6 +175,7 @@ import coil3.size.Size as CoilSize
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -298,6 +299,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -1416,6 +1418,10 @@ fun BottomSheetPlayer(
             )
         },
     ) {
+        val density = LocalDensity.current
+        var trackInfoHeightDp by remember { mutableStateOf(56.dp) }
+        val trackInfoSpacerHeight = 20.dp
+
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val trackInfoContent: @Composable () -> Unit = {
                 val controlsHeaderAlpha by animateFloatAsState(
@@ -1430,6 +1436,11 @@ fun BottomSheetPlayer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
+                    .onSizeChanged { size ->
+                        if (size.height > 0) {
+                            trackInfoHeightDp = with(density) { size.height.toDp() }
+                        }
+                    }
                     .graphicsLayer { alpha = controlsHeaderAlpha },
             ) {
                 AnimatedContent(
@@ -1537,7 +1548,7 @@ fun BottomSheetPlayer(
                             Modifier
                                 .basicMarquee(iterations = 1, initialDelayMillis = 3000, velocity = 30.dp)
                                 .combinedClickable(
-                                    enabled = true,
+                                    enabled = controlsHeaderAlpha > 0.5f,
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() },
                                     onClick = {
@@ -1616,7 +1627,7 @@ fun BottomSheetPlayer(
                                             }
                                         }
                                         .combinedClickable(
-                                            enabled = true,
+                                            enabled = controlsHeaderAlpha > 0.5f,
                                             indication = null,
                                             interactionSource = remember { MutableInteractionSource() },
                                             onClick = {
@@ -2673,8 +2684,11 @@ fun BottomSheetPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    trackInfoContent()
-                    Spacer(Modifier.height(20.dp))
+                    val isCompact = !useNewPlayerDesign && (showInlineLyrics || showInlineQueue)
+                    if (!isCompact) {
+                        trackInfoContent()
+                        Spacer(Modifier.height(trackInfoSpacerHeight))
+                    }
                     sliderContent()
                 }
 
@@ -3101,7 +3115,10 @@ fun BottomSheetPlayer(
 
                         val lyricsTop = collapsedY + collapsedArtworkSize + 16.dp
                         val lyricsHeight = (maxHeight - lyricsTop - 16.dp).coerceAtLeast(120.dp)
-                        val controlsMaskThresholdY = controlsTop + 60.dp
+                        val compactControlsOffset = if (isCompactHeader) trackInfoHeightDp + trackInfoSpacerHeight else 0.dp
+                        val effectiveControlsTop = controlsTop + compactControlsOffset
+                        val effectiveControlsHeight = (maxHeight - effectiveControlsTop).coerceAtLeast(120.dp)
+                        val controlsMaskThresholdY = effectiveControlsTop
 
                         val lyricsClipEnd =
                             ((controlsMaskThresholdY - lyricsTop) / lyricsHeight).coerceIn(0.35f, 0.85f)
@@ -3159,7 +3176,6 @@ fun BottomSheetPlayer(
                                 .offset(y = lyricsTop)
                                 .fillMaxWidth()
                                 .height(lyricsHeight)
-                                .bottomControlsMask(lyricsRevealFraction)
                                 .compactPanelGestures(
                                     key1 = showInlineLyrics,
                                     key2 = effectiveIsPlaying,
@@ -3181,10 +3197,17 @@ fun BottomSheetPlayer(
                                     }
                                 )
                         ) {
+                            val controlsOverlap = if (showCompactControls) {
+                                (lyricsTop + lyricsHeight - effectiveControlsTop).coerceAtLeast(0.dp)
+                            } else {
+                                0.dp
+                            }
                             InlineLyricsView(
                                 mediaMetadata = mediaMetadata,
                                 showLyrics = showInlineLyrics,
-                                positionProvider = { sliderPosition ?: effectivePosition }
+                                positionProvider = { sliderPosition ?: effectivePosition },
+                                controlsOverlap = controlsOverlap,
+                                lyricsRevealFraction = lyricsRevealFraction
                             )
                         }
 
@@ -3242,9 +3265,9 @@ fun BottomSheetPlayer(
                                 targetOffsetY = { it }
                             ) + fadeOut(tween(durationMillis = 220)),
                             modifier = Modifier
-                                .offset(y = controlsTop)
+                                .offset(y = effectiveControlsTop)
                                 .fillMaxWidth()
-                                .height(bottomControlsHeight)
+                                .height(effectiveControlsHeight)
                                 .let {
                                     if (isCompactHeader) {
                                         it.pointerInput(Unit) {
@@ -3545,7 +3568,9 @@ fun BottomSheetPlayer(
 fun InlineLyricsView(
     mediaMetadata: MediaMetadata?,
     showLyrics: Boolean,
-    positionProvider: () -> Long
+    positionProvider: () -> Long,
+    controlsOverlap: Dp = 0.dp,
+    lyricsRevealFraction: Float = 1.15f
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
@@ -3696,7 +3721,9 @@ fun InlineLyricsView(
                     Lyrics(
                         sliderPositionProvider = positionProvider,
                         modifier = Modifier.padding(horizontal = 24.dp),
-                        showLyrics = showLyrics
+                        showLyrics = showLyrics,
+                        extraBottomPadding = controlsOverlap,
+                        lyricsRevealFraction = lyricsRevealFraction
                     )
                 }
                 ProvideTextStyle(
@@ -4631,7 +4658,7 @@ private fun BackgroundVideoView(
     )
 }
 
-private fun Modifier.bottomControlsMask(revealFraction: Float): Modifier =
+internal fun Modifier.bottomControlsMask(revealFraction: Float): Modifier =
     graphicsLayer(alpha = 0.99f).drawWithContent {
         drawContent()
         if (revealFraction < 1.1f) {

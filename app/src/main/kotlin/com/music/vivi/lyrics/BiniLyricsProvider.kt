@@ -41,6 +41,43 @@ object BiniLyricsProvider : LyricsProvider {
     override fun isEnabled(context: Context): Boolean =
         context.dataStore[EnableBiniLyricsKey] ?: true
 
+    suspend fun identify(
+        title: String,
+        artist: String,
+        duration: Int = -1,
+        album: String? = null,
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            val urlBuilder = "$BASE_URL/getLyrics".toHttpUrlOrNull()?.newBuilder()
+                ?.addQueryParameter("track", title)
+                ?.addQueryParameter("artist", artist)
+            if (duration > 0) urlBuilder?.addQueryParameter("duration", duration.toString())
+            if (!album.isNullOrBlank()) urlBuilder?.addQueryParameter("album", album)
+            val url = urlBuilder?.build()?.toString() ?: return@withContext null
+
+            val request = Request.Builder().url(url).build()
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                response.close()
+                return@withContext null
+            }
+
+            val body = response.body?.string() ?: run {
+                response.close()
+                return@withContext null
+            }
+            response.close()
+
+            val json = JSONObject(body)
+            val results = json.optJSONArray("results") ?: return@withContext null
+            if (results.length() == 0) return@withContext null
+            val first = results.getJSONObject(0)
+            first.optString("isrc").takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     override suspend fun getLyrics(
         id: String,
         title: String,

@@ -16,6 +16,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -115,10 +116,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.music.vivi.ui.player.bottomControlsMask
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -237,7 +240,9 @@ private const val LYRICS_STAGGER_DELAY_MAX_MS = 200
 fun Lyrics(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
-    showLyrics: Boolean
+    showLyrics: Boolean,
+    extraBottomPadding: Dp = 0.dp,
+    lyricsRevealFraction: Float = 1.15f
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val database = LocalDatabase.current
@@ -954,6 +959,7 @@ fun Lyrics(
             .fillMaxSize()
             .padding(bottom = 12.dp)
     ) {
+        val totalMaxHeight = maxHeight
         // Status UI for translation
         Box(
             modifier = Modifier
@@ -1055,7 +1061,12 @@ fun Lyrics(
             if (isSeeking || isSelectionModeActive) deferredCurrentLineIndex else currentLineIndex
         }
 
-        if (lyrics == LYRICS_NOT_FOUND) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .bottomControlsMask(lyricsRevealFraction)
+        ) {
+            if (lyrics == LYRICS_NOT_FOUND) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -1401,7 +1412,7 @@ fun Lyrics(
             state = lazyListState,
             contentPadding = WindowInsets.systemBars
                 .only(WindowInsetsSides.Top)
-                .add(WindowInsets(top = maxHeight / 3, bottom = maxHeight / 2))
+                .add(WindowInsets(top = totalMaxHeight / 3, bottom = totalMaxHeight / 2))
                 .asPaddingValues(),
             modifier = Modifier
                 .fadingEdge(vertical = 64.dp)
@@ -2425,9 +2436,19 @@ fun Lyrics(
         // Action buttons are now in the bottom bar
         // Removed the more button from bottom - it's now in the top header
     }
+    }
+
+    val actionBottomPadding by animateDpAsState(
+        targetValue = 16.dp + extraBottomPadding,
+        animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
+        label = "lyricsActionsBottomPadding"
+    )
 
     Box(
-        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 16.dp)
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .padding(bottom = actionBottomPadding)
+            .zIndex(2f)
     ) {
         AnimatedVisibility(
             visible = !isAutoScrollEnabled && isSynced && !isSelectionModeActive,

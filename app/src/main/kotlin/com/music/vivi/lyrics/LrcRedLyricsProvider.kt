@@ -85,6 +85,12 @@ object LrcRedLyricsProvider : LyricsProvider {
         parseTtmlToLrc(ttml)
     }
 
+    suspend fun getLyricsByIsrc(isrc: String): Result<String> = runCatching {
+        val cleanIsrc = isrc.trim().uppercase(Locale.ROOT)
+        val ttml = client.get("s/$cleanIsrc.ttml").bodyAsText()
+        parseTtmlToLrc(ttml)
+    }
+
     override suspend fun getAllLyrics(
         id: String,
         title: String,
