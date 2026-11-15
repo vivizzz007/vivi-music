@@ -120,7 +120,6 @@ fun OldPlayerMenu(
     }
 
     var showChoosePlaylistDialog by rememberSaveable { mutableStateOf(false) }
-    var showListenTogetherDialog by rememberSaveable { mutableStateOf(false) }
     var showSelectArtistDialog by rememberSaveable { mutableStateOf(false) }
     var showPitchTempoDialog by rememberSaveable { mutableStateOf(false) }
     var showCommentSheet by rememberSaveable { mutableStateOf(false) }
@@ -142,12 +141,6 @@ fun OldPlayerMenu(
             listOf(mediaMetadata.id)
         },
         onDismiss = { showChoosePlaylistDialog = false }
-    )
-
-    ListenTogetherDialog(
-        visible = showListenTogetherDialog,
-        mediaMetadata = mediaMetadata,
-        onDismiss = { showListenTogetherDialog = false }
     )
 
     if (showSelectArtistDialog) {
@@ -577,48 +570,6 @@ fun OldPlayerMenu(
                             }
                         )
                     )
-                }
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(12.dp)) }
-
-        // Listen together
-        item {
-            Material3MenuGroup(
-                expressive = true,
-                items = buildList {
-                    add(
-                        Material3MenuItemData(
-                            title = { Text(text = stringResource(R.string.listen_together)) },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.group),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            },
-                            onClick = { showListenTogetherDialog = true }
-                        )
-                    )
-                    if (isListenTogetherGuest) {
-                        add(
-                            Material3MenuItemData(
-                                title = { Text(text = stringResource(R.string.resync)) },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.replay),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                },
-                                onClick = {
-                                    listenTogetherManager?.requestSync()
-                                    onDismiss()
-                                }
-                            )
-                        )
-                    }
                 }
             )
         }

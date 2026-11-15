@@ -52,7 +52,7 @@ import kotlin.time.Clock
 /** The sole stream extraction entry point for the Android app using innertubex back-end. */
 object InnerTubeXPlayer {
     private const val TAG = "InnerTubeXPlayer"
-    private const val WEB_REMIX_FAILURE_TTL_MS = 5 * 60 * 1000L
+    private const val STREAM_CLIENT_FAILURE_TTL_MS = 5 * 60 * 1000L
     private const val DEFAULT_STREAM_TTL_SECONDS = 5 * 60
     private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
 
@@ -62,7 +62,12 @@ object InnerTubeXPlayer {
     @Volatile
     private var currentBundle: ExtractionBundle? = null
     private val bundleMutex = Mutex()
-    private val webRemixFailures = java.util.concurrent.ConcurrentHashMap<String, Long>()
+    private val streamClientFailures = java.util.concurrent.ConcurrentHashMap<String, FailedStreamClients>()
+
+    private data class FailedStreamClients(
+        val clientNames: Set<String>,
+        val failedAtMs: Long,
+    )
 
     @Volatile
     var disabledStreamClients: Set<String> = emptySet()
@@ -118,8 +123,15 @@ object InnerTubeXPlayer {
     }
 
     suspend fun prewarm() {
+        val youtube = com.music.innertube.YouTube
+        innerTubeX.cookie = youtube.cookie
+        innerTubeX.visitorData = youtube.visitorData
+        innerTubeX.locale = com.metrolist.innertubex.models.YouTubeLocale(
+            gl = youtube.locale.gl,
+            hl = youtube.locale.hl
+        )
         bundle().extractor.prewarm()
-        tokenProvider.prewarm()
+        tokenProvider.prewarm(youtube.cookie)
     }
 
     suspend fun playerResponseForPlayback(
@@ -131,7 +143,7 @@ object InnerTubeXPlayer {
         allowBoundedRange: Boolean = true,
     ): Result<PlaybackData> =
         try {
-            // 🔥 Inject NewPipe's YouTube auth & network context before extraction
+            // 🔥 Inject YouTube auth & network context before extraction
             val youtube = com.music.innertube.YouTube
             innerTubeX.cookie = youtube.cookie
             innerTubeX.visitorData = youtube.visitorData
@@ -142,81 +154,79 @@ object InnerTubeXPlayer {
 
             val isHighQualityWanted = audioQuality == AudioQuality.HIGH ||
                 (audioQuality == AudioQuality.AUTO && !connectivityManager.isActiveNetworkMetered)
-            val isPremiumUser = !youtube.cookie.isNullOrBlank()
-            val shouldPrioritizePremium = isHighQualityWanted && isPremiumUser && !hasRecentWebRemixFailure(videoId)
+            val isUserLoggedIn = !youtube.cookie.isNullOrBlank()
+            val failedClients = failedStreamClients(videoId)
+            val shouldTryPremium = isHighQualityWanted && isUserLoggedIn && "WEB_REMIX" !in failedClients
 
-            val baseHints =
-                contentHints.copy(
-                    isUploaded =
-                        contentHints.isUploaded == true ||
-                            playlistId == "MLPT" ||
-                            playlistId?.contains("MLPT") == true,
-                    playbackClientOverrideId = if (shouldPrioritizePremium) "WEB_REMIX" else null,
-                ).withStreamCapabilities(
-                    allowHls = false,
-                    allowSabr = false,
-                    allowBoundedRange = allowBoundedRange,
-                ).let {
-                    if (shouldPrioritizePremium) it.withPremium(true) else it
+            var stream: ExtractedStream? = null
+
+            if (shouldTryPremium) {
+                val premiumHints =
+                    contentHints.copy(
+                        isUploaded =
+                            contentHints.isUploaded == true ||
+                                playlistId == "MLPT" ||
+                                playlistId?.contains("MLPT") == true,
+                        playbackClientOverrideId = "WEB_REMIX",
+                    ).withStreamCapabilities(
+                        allowHls = false,
+                        allowSabr = false,
+                        allowBoundedRange = allowBoundedRange,
+                    ).withPremium(true)
+
+                try {
+                    val candidate =
+                        bundle().extractor.extract(
+                            videoId = videoId,
+                            hints = premiumHints,
+                            excludedClients = failedClients + disabledStreamClients,
+                            audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                            clientPlaybackNonce = generateClientPlaybackNonce(),
+                        )
+                    // Only accept WEB_REMIX if it actually returned a Premium 256+ kbps stream (itag 141 or >= 250kbps)
+                    // Free accounts or videos lacking 256k return itag 251/140 on WEB_REMIX, which fail with 403 on Google Video CDN
+                    if (candidate != null && (candidate.itag == 141 || (candidate.bitrate ?: 0) >= 250_000)) {
+                        stream = candidate
+                        Timber.tag(TAG).i("Extracted YouTube Premium 256+ kbps stream for $videoId (client=${candidate.clientName}, itag=${candidate.itag}, bitrate=${candidate.bitrate})")
+                    } else {
+                        if (candidate != null) {
+                            Timber.tag(TAG).d("WEB_REMIX returned non-premium stream (itag=${candidate.itag}, bitrate=${candidate.bitrate}); falling back to standard extraction")
+                        }
+                        markStreamClientFailed(videoId, "WEB_REMIX")
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.tag(TAG).w(e, "WEB_REMIX extraction failed for $videoId; falling back to standard extraction")
+                    markStreamClientFailed(videoId, "WEB_REMIX")
                 }
-            val excludedClients =
-                buildSet {
-                    addAll(disabledStreamClients)
-                    if (hasRecentWebRemixFailure(videoId)) add("WEB_REMIX")
-                }
-            val stream = try {
-                bundle().extractor.extract(
-                    videoId = videoId,
-                    hints = baseHints,
-                    excludedClients = excludedClients,
-                    audioQuality = audioQuality.toInnerTubeX(connectivityManager),
-                    clientPlaybackNonce = generateClientPlaybackNonce(),
-                )
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                if (shouldPrioritizePremium) {
-                    Timber.tag(TAG).w(e, "WEB_REMIX Premium extraction failed for $videoId; falling back to standard extraction")
-                    markWebRemixFailed(videoId)
-                    val fallbackHints = contentHints.copy(
-                        isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
+            }
+
+            if (stream == null) {
+                val standardHints =
+                    contentHints.copy(
+                        isUploaded =
+                            contentHints.isUploaded == true ||
+                                playlistId == "MLPT" ||
+                                playlistId?.contains("MLPT") == true,
                     ).withStreamCapabilities(
                         allowHls = false,
                         allowSabr = false,
                         allowBoundedRange = allowBoundedRange,
                     )
-                    bundle().extractor.extract(
-                        videoId = videoId,
-                        hints = fallbackHints,
-                        excludedClients = excludedClients + "WEB_REMIX",
-                        audioQuality = audioQuality.toInnerTubeX(connectivityManager),
-                        clientPlaybackNonce = generateClientPlaybackNonce(),
-                    )
-                } else {
-                    throw e
-                }
-            } ?: if (shouldPrioritizePremium) {
-                Timber.tag(TAG).w("WEB_REMIX Premium extraction returned null for $videoId; falling back to standard extraction")
-                markWebRemixFailed(videoId)
-                val fallbackHints = contentHints.copy(
-                    isUploaded = contentHints.isUploaded == true || playlistId == "MLPT" || playlistId?.contains("MLPT") == true,
-                ).withStreamCapabilities(
-                    allowHls = false,
-                    allowSabr = false,
-                    allowBoundedRange = allowBoundedRange,
-                )
-                requireNotNull(
-                    bundle().extractor.extract(
-                        videoId = videoId,
-                        hints = fallbackHints,
-                        excludedClients = excludedClients + "WEB_REMIX",
-                        audioQuality = audioQuality.toInnerTubeX(connectivityManager),
-                        clientPlaybackNonce = generateClientPlaybackNonce(),
-                    )
-                ) { "InnerTubeX returned no playable stream" }
-            } else {
-                error("InnerTubeX returned no playable stream")
+                val standardExcludedClients = failedStreamClients(videoId) + disabledStreamClients + "WEB_REMIX"
+                stream =
+                    requireNotNull(
+                        bundle().extractor.extract(
+                            videoId = videoId,
+                            hints = standardHints,
+                            excludedClients = standardExcludedClients,
+                            audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                            clientPlaybackNonce = generateClientPlaybackNonce(),
+                        ),
+                    ) { "InnerTubeX returned no playable stream" }
             }
+
             check(stream.sabrBootstrap == null) { "SABR is not supported by this playback engine" }
             Result.success(stream.toPlaybackData())
         } catch (error: CancellationException) {
@@ -234,27 +244,32 @@ object InnerTubeXPlayer {
             Result.failure(error)
         }
 
-    fun markWebRemixFailed(videoId: String) {
-        webRemixFailures[videoId] = System.currentTimeMillis()
-    }
-
-    fun clearWebRemixFailures() {
-        webRemixFailures.clear()
-    }
-
-    suspend fun refreshAfterStreamRejection(): Boolean {
-        val changed = bundle().cipherService.refreshAfterStreamRejection()
-        if (changed) clearWebRemixFailures()
-        return changed
-    }
-
-    private fun hasRecentWebRemixFailure(videoId: String): Boolean {
-        val failedAt = webRemixFailures[videoId] ?: return false
-        if ((System.currentTimeMillis() - failedAt) !in 0 until WEB_REMIX_FAILURE_TTL_MS) {
-            webRemixFailures.remove(videoId, failedAt)
-            return false
+    fun markStreamClientFailed(
+        videoId: String,
+        clientName: String,
+        nowMs: Long = System.currentTimeMillis(),
+    ) {
+        streamClientFailures.compute(videoId) { _, failures ->
+            FailedStreamClients(failures?.clientNames.orEmpty() + clientName, nowMs)
         }
-        return true
+    }
+
+    fun clearStreamClientFailures() {
+        streamClientFailures.clear()
+    }
+
+    suspend fun refreshAfterStreamRejection(): Boolean = bundle().cipherService.refreshAfterStreamRejection()
+
+    fun failedStreamClients(
+        videoId: String,
+        nowMs: Long = System.currentTimeMillis(),
+    ): Set<String> {
+        val failures = streamClientFailures[videoId] ?: return emptySet()
+        if ((nowMs - failures.failedAtMs) !in 0 until STREAM_CLIENT_FAILURE_TTL_MS) {
+            streamClientFailures.remove(videoId, failures)
+            return emptySet()
+        }
+        return failures.clientNames
     }
 
     private suspend fun bundle(): ExtractionBundle {
@@ -318,21 +333,23 @@ object InnerTubeXPlayer {
                 visitorData: String,
                 cookie: String?,
             ): PoTokenResult? {
-                if (!cookie.isNullOrBlank()) {
-                    // Authenticated sessions bypass BotGuard PO token on YouTube Music (WEB_REMIX)
-                    return null
+                val effectiveVisitorData = visitorData.ifBlank {
+                    innerTubeX.visitorData ?: com.music.innertube.YouTube.visitorData.orEmpty()
                 }
-                return poTokenGenerator.getWebClientPoToken(videoId, visitorData)?.let { token ->
+                return poTokenGenerator.getWebClientPoToken(videoId, effectiveVisitorData)?.let { token ->
                     PoTokenResult(
                         playerRequestToken = token.playerRequestPoToken,
                         streamingDataToken = token.streamingDataPoToken,
-                        visitorData = visitorData,
+                        visitorData = effectiveVisitorData,
                     )
                 }
             }
 
             override suspend fun prewarm(cookie: String?) {
-                innerTubeX.visitorData?.let { poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, it) }
+                val visitorData = innerTubeX.visitorData ?: com.music.innertube.YouTube.visitorData
+                if (!visitorData.isNullOrBlank()) {
+                    poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, visitorData)
+                }
             }
 
             override suspend fun close() {

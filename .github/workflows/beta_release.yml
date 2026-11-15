@@ -1,21 +1,81 @@
 name: Beta Release Build
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'app/build.gradle.kts'
   workflow_dispatch:
+    inputs:
+      custom_tag:
+        description: 'Custom Beta Tag (leave blank for automatic b<version>-r<run_number>)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
-  check_and_release:
-    name: Check Version & Publish Release
+  check_version:
+    name: Check Version & Release Status
     runs-on: ubuntu-latest
     if: github.actor != 'dependabot[bot]'
+    outputs:
+      should_release: ${{ steps.check_release.outputs.exists == 'false' }}
+      version_code: ${{ steps.version_info.outputs.version_code }}
+      version_name: ${{ steps.version_info.outputs.version_name }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Version Info
+        id: version_info
+        run: |
+          VERSION_CODE=$(grep "versionCode =" app/build.gradle.kts | tr -d ' ' | cut -d= -f2)
+          RAW_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
+          CUSTOM_TAG="${{ inputs.custom_tag }}"
+          if [ -n "$CUSTOM_TAG" ]; then
+            VERSION_NAME="${CUSTOM_TAG#b}"
+          else
+            VERSION_NAME="$RAW_VERSION-r${{ github.run_number }}"
+          fi
+          echo "Extracted Version Code: $VERSION_CODE"
+          echo "Extracted Version Name: $VERSION_NAME"
+          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+
+      - name: Check If Release Already Exists
+        id: check_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Workflow manually triggered via workflow_dispatch. Proceeding with release."
+          elif gh release view "b$VERSION_NAME" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Release b$VERSION_NAME already exists. Skipping release steps."
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Release b$VERSION_NAME does not exist. Proceeding with release."
+          fi
+
+  build_apks:
+    name: Build & Sign (${{ matrix.name }})
+    needs: check_version
+    if: needs.check_version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - flavor: foss
+            name: Universal FOSS
+            task: assembleUniversalFossRelease
+            releaseDir: app/build/outputs/apk/universalFoss/release/
+            artifactFile: izzydroid-universal-foss-release.apk
+          - flavor: gms
+            name: Universal GMS
+            task: assembleUniversalGmsRelease
+            releaseDir: app/build/outputs/apk/universalGms/release/
+            artifactFile: vivi.apk
 
     steps:
       - name: Checkout Code
@@ -40,32 +100,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Extract Version Info
-        id: version_info
-        run: |
-          VERSION_CODE=$(grep "versionCode =" app/build.gradle.kts | tr -d ' ' | cut -d= -f2)
-          RAW_VERSION=$(grep "versionName =" app/build.gradle.kts | sed 's/.*"\(.*\)".*/\1/')
-          VERSION_NAME="$RAW_VERSION-r${{ github.run_number }}"
-          echo "Extracted Version Code: $VERSION_CODE"
-          echo "Extracted Version Name: $VERSION_NAME"
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
-
-      - name: Check If Release Already Exists
-        id: check_release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
-          if gh release view "b$VERSION_NAME" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "Release b$VERSION_NAME already exists. Skipping release steps."
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "Release b$VERSION_NAME does not exist. Proceeding with release."
-          fi
       - name: Generate debug.keystore
-        if: steps.check_release.outputs.exists == 'false'
         run: |
           mkdir -p ~/.android
           keytool -genkey -v \
@@ -78,60 +113,67 @@ jobs:
             -validity 10000 \
             -dname "CN=Android Debug,O=Android,C=US"
 
-      - name: Build GMS Release APK
-        if: steps.check_release.outputs.exists == 'false'
+      - name: Build Release APK
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
           VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
           VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
-        run: ./gradlew assembleUniversalGmsRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
+        run: ./gradlew ${{ matrix.task }} -PbetaVersionName="b${{ needs.check_version.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint --max-workers=4
 
-      - name: Build FOSS Release APK
-        if: steps.check_release.outputs.exists == 'false'
-        env:
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
-          VIVI_GITHUB_CLIENT_ID: ${{ secrets.VIVI_GITHUB_CLIENT_ID }}
-          VIVI_GITHUB_CLIENT_SECRET: ${{ secrets.VIVI_GITHUB_CLIENT_SECRET }}
-        run: ./gradlew assembleUniversalFossRelease -PbetaVersionName="b${{ steps.version_info.outputs.version_name }}" --no-configuration-cache --console=plain --warning-mode summary -x lint
-
-      - name: Sign GMS APK
-        if: steps.check_release.outputs.exists == 'false'
-        id: sign_gms
+      - name: Sign APK
+        id: sign_apk
         uses: ilharp/sign-android-release@v2.0.0
         with:
-          releaseDir: app/build/outputs/apk/universalGms/release/
+          releaseDir: ${{ matrix.releaseDir }}
           signingKey: ${{ secrets.KEYSTORE }}
           keyAlias: ${{ secrets.KEY_ALIAS }}
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
           buildToolsVersion: 35.0.0
 
-      - name: Sign FOSS APK
-        if: steps.check_release.outputs.exists == 'false'
-        id: sign_foss
-        uses: ilharp/sign-android-release@v2.0.0
-        with:
-          releaseDir: app/build/outputs/apk/universalFoss/release/
-          signingKey: ${{ secrets.KEYSTORE }}
-          keyAlias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-          buildToolsVersion: 35.0.0
-
-      - name: Prepare Release Assets
-        if: steps.check_release.outputs.exists == 'false'
+      - name: Stage Artifact
         run: |
-          mkdir -p release_assets
-          cp "${{ steps.sign_gms.outputs.signedFile }}" release_assets/vivi.apk
-          cp "${{ steps.sign_foss.outputs.signedFile }}" release_assets/izzydroid-universal-foss-release.apk
+          mkdir -p staged_artifact
+          cp "${{ steps.sign_apk.outputs.signedFile }}" staged_artifact/${{ matrix.artifactFile }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.flavor }}
+          path: staged_artifact/${{ matrix.artifactFile }}
+          retention-days: 1
+
+  publish_release:
+    name: Publish Beta Release
+    needs: [check_version, build_apks]
+    if: needs.check_version.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Download FOSS APK
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-foss
+          path: release_assets
+
+      - name: Download GMS APK
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-gms
+          path: release_assets
 
       - name: Generate changelog.json
-        if: steps.check_release.outputs.exists == 'false'
         env:
-          VERSION_CODE: ${{ steps.version_info.outputs.version_code }}
-          VERSION_NAME: ${{ steps.version_info.outputs.version_name }}
+          VERSION_CODE: ${{ needs.check_version.outputs.version_code }}
+          VERSION_NAME: ${{ needs.check_version.outputs.version_name }}
         shell: python
         run: |
           import os, json
@@ -145,7 +187,7 @@ jobs:
           image_url = "https://raw.githubusercontent.com/vivizzz007/vivi-music/main/assets/banner.png"
           for ext in ["png", "jpg"]:
               found = False
-              for prefix in ["v", ""]:
+              for prefix in ["b", "v", ""]:
                   potential_file = f"NEW-UI/update/{prefix}{version_name}.{ext}"
                   if os.path.exists(potential_file):
                       image_url = f"https://raw.githubusercontent.com/vivizzz007/vivi-music/main/NEW-UI/update/{prefix}{version_name}.{ext}"
@@ -193,9 +235,9 @@ jobs:
                       desc_text += "."
                   if fixes:
                       desc_text += " It also includes several bug fixes."
-                  description = f"VIVI MUSIC v{version_name} {desc_text}"
+                  description = f"VIVI MUSIC b{version_name} {desc_text}"
               else:
-                  description = f"VIVI MUSIC v{version_name} brings new updates, features, and bug fixes."
+                  description = f"VIVI MUSIC b{version_name} brings new updates, features, and bug fixes."
                   
           changelog_sections = []
           if features:
@@ -229,12 +271,11 @@ jobs:
               json.dump(data, f, indent=2)
 
       - name: Create GitHub Release & Upload Assets
-        if: steps.check_release.outputs.exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION_CODE="${{ steps.version_info.outputs.version_code }}"
-          VERSION_NAME="${{ steps.version_info.outputs.version_name }}"
+          VERSION_CODE="${{ needs.check_version.outputs.version_code }}"
+          VERSION_NAME="${{ needs.check_version.outputs.version_name }}"
           NOTES_FILE="Changelog/Betamd/${VERSION_CODE}.md"
           
           if [ -f "$NOTES_FILE" ]; then
@@ -248,4 +289,4 @@ jobs:
             --title "VIVI-GITHUB-DROID b$VERSION_NAME" \
             --notes-file release_notes.txt \
             --prerelease \
-            --target main
+            --target "${{ github.ref_name }}"
