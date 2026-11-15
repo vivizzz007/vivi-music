@@ -724,10 +724,10 @@ fun BottomSheetPlayer(
     
     val isNetworkConnected by (LocalPlayerConnection.current?.service?.connectivityObserver?.networkStatus ?: MutableStateFlow(false)).collectAsState(initial = false)
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected, enableCanvas) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected, enableCanvas, useNewPlayerDesign) {
         val item = mediaMetadata ?: return@LaunchedEffect
         
-        if (!spotifyCanvasEnabled) {
+        if (!spotifyCanvasEnabled || !useNewPlayerDesign) {
             spotifyCanvasUrl = null
         } else {
             val prefs = context.getSharedPreferences("spotify_canvas_url_map", Context.MODE_PRIVATE)
@@ -1070,7 +1070,7 @@ fun BottomSheetPlayer(
                     .fillMaxSize()
                     .background(bottomSheetBackgroundColor)
             ) {
-                if (spotifyCanvasUrl != null) {
+                if (useNewPlayerDesign && spotifyCanvasUrl != null) {
                     val overlayAlpha by animateFloatAsState(
                         targetValue = if (showInlineLyrics || showInlineQueue) 0.85f else 0.4f,
                         label = "canvasDimmer"
