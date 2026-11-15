@@ -2959,6 +2959,48 @@ fun BottomSheetPlayer(
                                         showLyrics = true,
                                         positionProvider = { sliderPosition ?: effectivePosition }
                                     )
+
+                                    val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
+                                    val metaForLyrics = mediaMetadata
+                                    if (metaForLyrics != null) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .align(Alignment.BottomEnd)
+                                                .padding(bottom = 12.dp, end = 12.dp)
+                                                .size(30.dp)
+                                                .clip(CircleShape)
+                                                .background(TextBackgroundColor.copy(alpha = 0.14f))
+                                                .clickable(
+                                                    interactionSource = remember { MutableInteractionSource() },
+                                                    indication = null,
+                                                    onClick = {
+                                                        menuState.show {
+                                                            LyricsMenu(
+                                                                lyricsProvider = { currentLyrics },
+                                                                songProvider = { currentSong?.song },
+                                                                mediaMetadataProvider = { metaForLyrics },
+                                                                onDismiss = menuState::dismiss,
+                                                                onShowOffsetDialog = {
+                                                                    bottomSheetPageState.show {
+                                                                        ShowOffsetDialog(
+                                                                            songProvider = { currentSong?.song }
+                                                                        )
+                                                                    }
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+                                                )
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = stringResource(R.string.lyrics),
+                                                tint = TextBackgroundColor,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
                                 }
                             }
                             showQueue -> {
