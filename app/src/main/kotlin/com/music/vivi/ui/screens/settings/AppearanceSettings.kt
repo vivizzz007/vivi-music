@@ -118,6 +118,7 @@ import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
 import com.music.vivi.ui.component.PlayerSliderTrack
 import com.music.vivi.ui.component.SquigglySlider
+import com.music.vivi.ui.component.ThinSlider
 import com.music.vivi.ui.component.WavySlider
 import com.ermohdamaan.justforpixel.justforpixelexpressivelab.core.components.sliders.ExpressiveWavySlider
 import com.music.vivi.ui.theme.DefaultThemeColor
@@ -134,7 +135,6 @@ import com.music.vivi.constants.LyricsGlowEffectKey
 import com.music.vivi.constants.LyricsLineSpacingKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.MiniPlayerBackgroundStyleKey
-import com.music.vivi.constants.ShowAudioQualityBadgeKey
 import com.music.vivi.constants.ShowCommentButtonKey
 import com.music.vivi.constants.EnableSettingsPopupKey
 
@@ -162,10 +162,6 @@ fun AppearanceSettings(
     val (enableHighRefreshRate, onEnableHighRefreshRateChange) = rememberPreference(
         EnableHighRefreshRateKey,
         defaultValue = true
-    )
-    val (showAudioQualityBadge, onShowAudioQualityBadgeChange) = rememberPreference(
-        ShowAudioQualityBadgeKey,
-        defaultValue = false
     )
     val (selectedThemeColorInt) = rememberPreference(
         SelectedThemeColorKey,
@@ -1065,7 +1061,41 @@ fun AppearanceSettings(
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Spacer(modifier = Modifier.weight(1f))
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .weight(1f)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(
+                                1.dp,
+                                if (sliderStyle == SliderStyle.THIN) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                                RoundedCornerShape(16.dp)
+                            )
+                            .clickable {
+                                onSliderStyleChange(SliderStyle.THIN)
+                                onSquigglySliderChange(false)
+                                showSliderOptionDialog = false
+                            }
+                            .padding(12.dp)
+                    ) {
+                        val sliderValue = 0.5f
+                        ThinSlider(
+                            value = sliderValue,
+                            valueRange = 0f..1f,
+                            onValueChange = { /* preview only */ },
+                            colors = sliderPreviewColors,
+                            enabled = false,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = stringResource(R.string.thin_slider),
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }
@@ -1291,28 +1321,6 @@ fun AppearanceSettings(
                     },
                     onClick = { showPlayerBackgroundDialog = true }
                 ),
-                if (!useNewPlayerDesign) {
-                    Material3SettingsItem(
-                        icon = painterResource(R.drawable.tune),
-                        title = { Text(stringResource(R.string.show_audio_quality_badge)) },
-                        trailingContent = {
-                            Switch(
-                                checked = showAudioQualityBadge,
-                                onCheckedChange = onShowAudioQualityBadgeChange,
-                                thumbContent = {
-                                    Icon(
-                                        painter = painterResource(
-                                            id = if (showAudioQualityBadge) R.drawable.check else R.drawable.close
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(SwitchDefaults.IconSize)
-                                    )
-                                }
-                            )
-                        },
-                        onClick = { onShowAudioQualityBadgeChange(!showAudioQualityBadge) }
-                    )
-                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.hide_image),
                     title = { Text(stringResource(R.string.hide_player_thumbnail)) },
@@ -1433,17 +1441,23 @@ fun AppearanceSettings(
                     title = { Text(stringResource(R.string.player_slider_style)) },
                     description = {
                         Text(
-                            when (sliderStyle) {
-                                SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                                SliderStyle.WAVY -> if (squigglySlider) stringResource(R.string.squiggly) else stringResource(
-                                    R.string.wavy
-                                )
-                                SliderStyle.SLIM -> stringResource(R.string.slim)
-                                SliderStyle.EXPRESSIVE -> stringResource(R.string.expressive_wavy)
+                            if (useNewPlayerDesign) {
+                                when (sliderStyle) {
+                                    SliderStyle.DEFAULT -> stringResource(R.string.default_)
+                                    SliderStyle.WAVY -> if (squigglySlider) stringResource(R.string.squiggly) else stringResource(
+                                        R.string.wavy
+                                    )
+                                    SliderStyle.SLIM -> stringResource(R.string.slim)
+                                    SliderStyle.EXPRESSIVE -> stringResource(R.string.expressive_wavy)
+                                    SliderStyle.THIN -> stringResource(R.string.thin_slider)
+                                }
+                            } else {
+                                stringResource(R.string.thin_slider)
                             }
                         )
                     },
-                    onClick = { showSliderOptionDialog = true }
+                    enabled = useNewPlayerDesign,
+                    onClick = if (useNewPlayerDesign) ({ showSliderOptionDialog = true }) else null
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.swipe),
@@ -1466,27 +1480,29 @@ fun AppearanceSettings(
                     onClick = { onSwipeThumbnailChange(!swipeThumbnail) }
                 ),
 
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.image),
-                    title = { Text(stringResource(R.string.rotating_thumbnail)) },
-                    description = { Text(stringResource(R.string.rotating_thumbnail_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = rotatingThumbnail,
-                            onCheckedChange = onRotatingThumbnailChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (rotatingThumbnail) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
-                ),
+                if (useNewPlayerDesign) {
+                    Material3SettingsItem(
+                        icon = painterResource(R.drawable.image),
+                        title = { Text(stringResource(R.string.rotating_thumbnail)) },
+                        description = { Text(stringResource(R.string.rotating_thumbnail_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = rotatingThumbnail,
+                                onCheckedChange = onRotatingThumbnailChange,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (rotatingThumbnail) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { onRotatingThumbnailChange(!rotatingThumbnail) }
+                    )
+                } else null,
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.chat_msg),
                     title = { Text(stringResource(R.string.show_comment_button)) },

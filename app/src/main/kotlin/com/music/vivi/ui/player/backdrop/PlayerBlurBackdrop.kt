@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 
 /**
- * High-performance blurred artwork backdrop modeled after BitChord.
+ * High-performance blurred artwork backdrop.
  * Crossfades smoothly on track changes and applies a dark contrast scrim
  * so all player controls, typography, and lyrics maintain sharp legibility.
  */

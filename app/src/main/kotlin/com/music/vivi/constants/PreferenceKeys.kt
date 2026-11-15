@@ -89,7 +89,8 @@ enum class SliderStyle {
     DEFAULT,
     WAVY,
     SLIM,
-    EXPRESSIVE
+    EXPRESSIVE,
+    THIN
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
