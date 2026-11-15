@@ -2722,13 +2722,8 @@ fun BottomSheetPlayer(
                         newPlaybackControlsContent()
                     } else {
                         oldPlaybackControlsContent()
-                    }
-
-                    Spacer(modifier = Modifier.height(if (useNewPlayerDesign) 16.dp else 28.dp))
-
-                    volumeBarContent()
-
-                    if (!useNewPlayerDesign) {
+                        Spacer(modifier = Modifier.height(28.dp))
+                        volumeBarContent()
                         if (!isLandscape) {
                             Spacer(Modifier.height(42.dp))
                             oldBottomActionsContent()
