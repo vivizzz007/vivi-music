@@ -149,7 +149,7 @@ fun AppearanceSettings(
 
     val (selectedFontValue) = rememberPreference(
         SelectedFontKey,
-        defaultValue = AppFont.SYSTEM.value
+        defaultValue = AppFont.POPPINS.value
     )
     val (enableDynamicIcon, onEnableDynamicIconChange) = rememberPreference(
         EnableDynamicIconKey,
@@ -1145,8 +1145,8 @@ fun AppearanceSettings(
                         title = { Text(stringResource(R.string.app_font)) },
                         description = {
                             val fontLabel = when (AppFont.fromValue(selectedFontValue)) {
+                                AppFont.POPPINS -> stringResource(R.string.font_poppins)
                                 AppFont.SYSTEM -> stringResource(R.string.font_system)
-                                AppFont.SF_PRO -> stringResource(R.string.font_sf_pro)
                                 AppFont.OUTFIT -> stringResource(R.string.font_outfit)
                                 AppFont.PLUS_JAKARTA_SANS -> stringResource(R.string.font_plus_jakarta_sans)
                                 AppFont.CUSTOM -> stringResource(R.string.font_custom)

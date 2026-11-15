@@ -66,12 +66,12 @@ val PlusJakartaSansFontFamily = FontFamily(
     )
 )
 
-val SfProDisplayFontFamily = FontFamily(
-    Font(com.music.vivi.R.font.sf_pro_display_regular, FontWeight.Normal),
-    Font(com.music.vivi.R.font.sf_pro_display_medium, FontWeight.Medium),
-    Font(com.music.vivi.R.font.sf_pro_display_semibold, FontWeight.SemiBold),
-    Font(com.music.vivi.R.font.sf_pro_display_bold, FontWeight.Bold),
-    Font(com.music.vivi.R.font.sf_pro_display_heavy, FontWeight.Black)
+val PoppinsFontFamily = FontFamily(
+    Font(com.music.vivi.R.font.poppins_w300, FontWeight.Light),
+    Font(com.music.vivi.R.font.poppins_w400, FontWeight.Normal),
+    Font(com.music.vivi.R.font.poppins_w500, FontWeight.Medium),
+    Font(com.music.vivi.R.font.poppins_w600, FontWeight.SemiBold),
+    Font(com.music.vivi.R.font.poppins_w700, FontWeight.Bold)
 )
 
 // Define M3 Expressive Typography based on Material Design guidelines

@@ -32,14 +32,14 @@ val SelectedFontKey = stringPreferencesKey("selected_font")
 val CustomFontPathKey = stringPreferencesKey("custom_font_path")
 
 enum class AppFont(val value: String) {
+    POPPINS("poppins"),
     SYSTEM("system"),
-    SF_PRO("sf_pro"),
     OUTFIT("outfit"),
     PLUS_JAKARTA_SANS("plus_jakarta_sans"),
     CUSTOM("custom");
 
     companion object {
-        fun fromValue(value: String): AppFont = entries.find { it.value == value } ?: SYSTEM
+        fun fromValue(value: String): AppFont = entries.find { it.value == value } ?: POPPINS
     }
 }
 
