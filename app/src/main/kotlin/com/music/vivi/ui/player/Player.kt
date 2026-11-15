@@ -3051,7 +3051,7 @@ fun BottomSheetPlayer(
                             label = "lyricsProgress"
                         ) { showing -> if (showing) 1f else 0f }
 
-                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 8.dp
+                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 24.dp
                         val topSectionHeight = (maxHeight - normalTopPadding) * (1.25f / 2.25f)
 
                         val expandedArtworkSize = minOf(maxWidth - (PlayerHorizontalPadding * 2), topSectionHeight - 16.dp).coerceAtLeast(120.dp)
@@ -3120,6 +3120,35 @@ fun BottomSheetPlayer(
                             animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                             label = "queueRevealFraction"
                         )
+
+                        // Apple Music Top Drag Handle / Grabber Pill
+                        AnimatedVisibility(
+                            visible = !isFullScreen,
+                            enter = fadeIn(tween(200)),
+                            exit = fadeOut(tween(200)),
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 4.dp)
+                                .zIndex(2f)
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .size(width = 64.dp, height = 20.dp)
+                                    .clickable(
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        indication = null,
+                                        onClick = { state.collapseSoft() }
+                                    )
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(width = 36.dp, height = 5.dp)
+                                        .clip(CircleShape)
+                                        .background(TextBackgroundColor.copy(alpha = 0.45f))
+                                )
+                            }
+                        }
 
                         // 1a. Synchronized Lyrics View
                         AnimatedVisibility(
