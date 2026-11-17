@@ -186,7 +186,7 @@ object GeniusLyricsProvider : LyricsProvider {
     private fun httpGet(url: String): String? = runCatching {
         val req = Request.Builder()
             .url(url)
-            .header("User-Agent", "BitChord")
+            .header("User-Agent", "ViviMusic")
             .build()
         httpClient.newCall(req).execute().use { res ->
             if (res.isSuccessful) res.body?.string() else null

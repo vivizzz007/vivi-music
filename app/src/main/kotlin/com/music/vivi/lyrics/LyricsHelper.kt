@@ -77,6 +77,16 @@ constructor(
     private val activeFetches = mutableMapOf<String, Deferred<LyricsWithProvider>>()
     private val fetchesMutex = Mutex()
 
+    fun clearCache(mediaId: String) {
+        cache.remove(mediaId)
+        isrcs.remove(mediaId)
+        helperScope.launch {
+            fetchesMutex.withLock {
+                activeFetches.remove(mediaId)?.cancel()
+            }
+        }
+    }
+
     suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         currentLyricsJob?.cancel()
 

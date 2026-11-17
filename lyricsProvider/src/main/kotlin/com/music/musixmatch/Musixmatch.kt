@@ -479,9 +479,15 @@ object Musixmatch {
                     sb.append(word.c)
                 }
             }
+
+            // Append line end timestamp tag so word sync animation and instrumental gaps know the exact line end
+            val lineEndMs = (entry.te * 1000).toLong()
+            if (lineEndMs > lineTimeMs) {
+                sb.append(formatTime(lineEndMs, isSyllable = true))
+            }
             sb.append("\n")
         }
-        return sb.toString()
+        return sb.toString().trimEnd()
     }
 
     internal fun convertSubtitleJsonToLrc(body: String): String {
