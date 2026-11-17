@@ -20,8 +20,10 @@ import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -1900,14 +1902,26 @@ fun Lyrics(
 
                         val lineTextColor = if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) Color.White else textColor
 
-                        Column(
-                            modifier = itemModifier,
-                            horizontalAlignment = when (agentTextAlign) {
-                                TextAlign.Center -> Alignment.CenterHorizontally
-                                TextAlign.End, TextAlign.Right -> Alignment.End
-                                else -> Alignment.Start
-                            }
+                        val pairedMainIndex = remember(displayLines, index) {
+                            (index - 1 downTo 0).firstOrNull { !displayLines[it].isBackground && !displayLines[it].isInstrumental } ?: -1
+                        }
+                        val bgVisible = !item.isBackground || isSelectionModeActive ||
+                            (index in activeRows || index == focusLine || isLineAnimating) ||
+                            (pairedMainIndex != -1 && (pairedMainIndex in activeRows || pairedMainIndex == focusLine))
+
+                        AnimatedVisibility(
+                            visible = bgVisible,
+                            enter = fadeIn(tween(280)) + expandVertically(tween(320, easing = LYRIC_EASING)),
+                            exit = fadeOut(tween(280)) + shrinkVertically(tween(320, easing = LYRIC_EASING))
                         ) {
+                            Column(
+                                modifier = itemModifier,
+                                horizontalAlignment = when (agentTextAlign) {
+                                    TextAlign.Center -> Alignment.CenterHorizontally
+                                    TextAlign.End, TextAlign.Right -> Alignment.End
+                                    else -> Alignment.Start
+                                }
+                            ) {
                             if (lyricLine.isWordSynced) {
                                 var layout by remember(lyricLine.text) { mutableStateOf<TextLayoutResult?>(null) }
                                 val growth = remember { CharGrowth() }
@@ -2002,13 +2016,39 @@ fun Lyrics(
                                     }
                                 }
 
+                                val styledUnlitAnnotatedText = remember(lyricLine.text, isPureBacking, effectiveColor, tail) {
+                                    if (isPureBacking) {
+                                        AnnotatedString(lyricLine.text)
+                                    } else {
+                                        val parenRegex = Regex("\\([^)]+\\)")
+                                        if (!parenRegex.containsMatchIn(lyricLine.text)) {
+                                            AnnotatedString(lyricLine.text)
+                                        } else {
+                                            buildAnnotatedString {
+                                                append(lyricLine.text)
+                                                parenRegex.findAll(lyricLine.text).forEach { match ->
+                                                    addStyle(
+                                                        SpanStyle(
+                                                            fontSize = BACKING_FONT_SIZE,
+                                                            fontStyle = FontStyle.Italic,
+                                                            color = effectiveColor.copy(alpha = tail * 0.45f)
+                                                        ),
+                                                        match.range.first,
+                                                        match.range.last + 1
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
                                 Box(
                                     modifier = Modifier.fillMaxWidth(),
                                     contentAlignment = boxAlignment,
                                 ) {
                                     // 1. Dim background unlit layer
                                     Text(
-                                        text = styledAnnotatedText,
+                                        text = styledUnlitAnnotatedText,
                                         style = lyricStyle,
                                         color = effectiveColor.copy(alpha = tail),
                                         textAlign = agentTextAlign,
@@ -2088,7 +2128,7 @@ fun Lyrics(
                                     } else null
                                 )
 
-                                val styledAnnotatedMainText = remember(mainText, isPureBacking, lineTextColor, sentenceAlpha) {
+                                val styledAnnotatedMainText = remember(mainText, isPureBacking, lineTextColor, sentenceAlpha, isActive) {
                                     if (isPureBacking) {
                                         AnnotatedString(mainText)
                                     } else {
@@ -2096,6 +2136,7 @@ fun Lyrics(
                                         if (!parenRegex.containsMatchIn(mainText)) {
                                             AnnotatedString(mainText)
                                         } else {
+                                            val adLibAlpha = if (isActive) sentenceAlpha * BACKING_ALPHA else sentenceAlpha * 0.45f
                                             buildAnnotatedString {
                                                 append(mainText)
                                                 parenRegex.findAll(mainText).forEach { match ->
@@ -2103,7 +2144,7 @@ fun Lyrics(
                                                         SpanStyle(
                                                             fontSize = BACKING_FONT_SIZE,
                                                             fontStyle = FontStyle.Italic,
-                                                            color = lineTextColor.copy(alpha = sentenceAlpha * BACKING_ALPHA)
+                                                            color = lineTextColor.copy(alpha = adLibAlpha)
                                                         ),
                                                         match.range.first,
                                                         match.range.last + 1
@@ -2163,7 +2204,8 @@ fun Lyrics(
                                 }
                             }
                         }
-                        return@itemsIndexed
+                    }
+                    return@itemsIndexed
                     } else if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS) {
                         val currentLineTime = if (displayedCurrentLineIndex >= 0 && displayedCurrentLineIndex < lines.size) {
                             lines[displayedCurrentLineIndex].time
