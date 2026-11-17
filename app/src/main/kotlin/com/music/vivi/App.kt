@@ -285,16 +285,25 @@ class App : Application(), SingletonImageLoader.Factory {
                         ?.let { Locale.forLanguageTag(it) }
                         ?: systemLocale
 
-                    YouTube.locale = YouTubeLocale(
-                        gl = contentCountry?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
-                            ?: effectiveAppLocale.country.takeIf { it in CountryCodeToName }
-                            ?: systemLocale.country.takeIf { it in CountryCodeToName }
-                            ?: "US",
-                        hl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
-                            ?: effectiveAppLocale.toLanguageTag().takeIf { it in LanguageCodeToName }
-                            ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
-                            ?: "en"
-                    )
+                    val previousGl = YouTube.locale.gl
+                    val newGl = contentCountry?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
+                        ?: effectiveAppLocale.country.takeIf { it in CountryCodeToName }
+                        ?: systemLocale.country.takeIf { it in CountryCodeToName }
+                        ?: "US"
+                    val newHl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
+                        ?: effectiveAppLocale.toLanguageTag().takeIf { it in LanguageCodeToName }
+                        ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
+                        ?: "en"
+
+                    YouTube.locale = YouTubeLocale(gl = newGl, hl = newHl)
+
+                    if (previousGl != newGl) {
+                        YouTube.refreshVisitorData().onSuccess { newVisitorData ->
+                            dataStore.edit { prefs ->
+                                prefs[VisitorDataKey] = newVisitorData
+                            }
+                        }
+                    }
                 }
         }
 

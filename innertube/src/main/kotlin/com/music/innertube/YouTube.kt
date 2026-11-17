@@ -221,35 +221,28 @@ object YouTube {
             .mapNotNull { it.musicResponsiveListItemRenderer }
             .mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
 
-        val groupedSummaries = mutableListOf<SearchSummary>()
+        val songsSummary = flatItems.filterIsInstance<SongItem>().filter { !it.isVideoSong }
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Songs", items = it) }
+        val albumsSummary = flatItems.filterIsInstance<AlbumItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Albums", items = it) }
+        val artistsSummary = flatItems.filterIsInstance<ArtistItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Artists", items = it) }
+        val playlistsSummary = flatItems.filterIsInstance<PlaylistItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Playlists", items = it) }
+        val videosSummary = flatItems.filterIsInstance<SongItem>().filter { it.isVideoSong }
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Videos", items = it) }
 
-        val flatSongs = flatItems.filterIsInstance<SongItem>().filter { !it.isVideoSong }
-        if (flatSongs.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Songs", items = flatSongs))
-        }
-
-        val flatVideos = flatItems.filterIsInstance<SongItem>().filter { it.isVideoSong }
-        if (flatVideos.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Videos", items = flatVideos))
-        }
-
-        val flatAlbums = flatItems.filterIsInstance<AlbumItem>()
-        if (flatAlbums.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Albums", items = flatAlbums))
-        }
-
-        val flatArtists = flatItems.filterIsInstance<ArtistItem>()
-        if (flatArtists.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Artists", items = flatArtists))
-        }
-
-        val flatPlaylists = flatItems.filterIsInstance<PlaylistItem>()
-        if (flatPlaylists.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Playlists", items = flatPlaylists))
+        // Preserve YouTube's relevance ranking: dynamically prioritize the category of the top-ranked flat item
+        val firstItem = flatItems.firstOrNull()
+        val orderedCategories = when (firstItem) {
+            is ArtistItem -> listOfNotNull(artistsSummary, songsSummary, albumsSummary, playlistsSummary, videosSummary)
+            is AlbumItem -> listOfNotNull(albumsSummary, songsSummary, artistsSummary, playlistsSummary, videosSummary)
+            is PlaylistItem -> listOfNotNull(playlistsSummary, songsSummary, albumsSummary, artistsSummary, videosSummary)
+            else -> listOfNotNull(songsSummary, albumsSummary, artistsSummary, playlistsSummary, videosSummary)
         }
 
         SearchSummaryPage(
-            summaries = shelfSummaries + groupedSummaries
+            summaries = shelfSummaries + orderedCategories
         )
     }
 
