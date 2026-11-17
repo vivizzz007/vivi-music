@@ -441,17 +441,40 @@
 
     <!-- Last.fm -->
     <string name="lastfm_integration">Last.fm</string>
+    <string name="lastfm_login_info">Sign in with your Last.fm username and password. Your password is only used to sign in. Only a session key is saved on this device.</string>
     <string name="enable_scrobbling">Enable scrobbling</string>
+    <string name="lastfm_enable_scrobbling_desc">Send what you play to Last.fm</string>
     <string name="lastfm_now_playing">Send Now Playing</string>
+    <string name="lastfm_now_playing_desc">Show your current song on Last.fm</string>
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
     <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in vivimusic</string>
     <string name="logging_in">Logging in…</string>
     <string name="view_listening_history">View listening history</string>
+    <string name="lastfm_scrobbles_count">%1$s scrobbles</string>
+
+    <string name="lastfm_open">Open</string>
+    <string name="lastfm_got_it">Got it</string>
+
+    <string name="lastfm_about_title">About Last.fm</string>
+    <string name="lastfm_about_subtitle">Scrobble what you listen to</string>
+    <string name="lastfm_about_tip">You can change when songs are scrobbled in Scrobbling configuration.</string>
+
+    <string name="lastfm_about_history_title">Listening history</string>
+    <string name="lastfm_about_history_desc">Songs you play are sent to Last.fm and added to your history.</string>
+    <string name="lastfm_about_scrobbling_title">Scrobbling</string>
+    <string name="lastfm_about_scrobbling_desc">A song counts once you have listened to enough of it.</string>
+    <string name="lastfm_about_now_playing_title">Now playing</string>
+    <string name="lastfm_about_now_playing_desc">Your current song shows on your Last.fm profile.</string>
+    <string name="lastfm_about_likes_title">Send likes</string>
+    <string name="lastfm_about_likes_desc">Liked songs are marked as loved tracks.</string>
 
     <string name="scrobbling_configuration">Scrobbling Configuration</string>
     <string name="scrobble_min_track_duration">Scrobble songs longer than</string>
+    <string name="lastfm_min_duration_desc">Shorter songs are not scrobbled</string>
     <string name="scrobble_delay_percent">Scrobble delay percent</string>
+    <string name="lastfm_delay_percent_desc">How much of a song must play first</string>
     <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
+    <string name="lastfm_delay_time_desc">Longest wait before a song is scrobbled</string>
     <string name="hide_video_songs">Hide video songs</string>
     <string name="hide_youtube_shorts">Hide YouTube Shorts</string>
 
