@@ -61,7 +61,7 @@ Because ViviMusic is open-source, any updates to this policy will be committed d
 
 ## 6. Community & Contact
 
-- **GitHub**: [https://github.com/vivizzz007/vivi-music](https://github.com/vivizzz007/vivi-music)
-- **Telegram**: [https://t.me/vivimusicapp](https://t.me/vivimusicapp)
+- **GitHub**: [GitHub](https://github.com/vivizzz007/vivi-music)
+- **Telegram**: [Telegram](https://t.me/vivimusicapp)
 - **License**: [GNU GPL-3.0](https://github.com/vivizzz007/vivi-music/blob/main/LICENSE)
 - **Author**: Vividh P Ashokan
