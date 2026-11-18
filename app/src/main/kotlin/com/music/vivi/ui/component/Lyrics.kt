@@ -945,9 +945,9 @@ fun Lyrics(
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                     val offset = if (useNewPlayerDesign) {
                         val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                        val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                        val anchor = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight * LYRICS_ANCHOR_RATIO).toInt()
                         val itemCenter = itemInfo.offset + itemInfo.size / 2
-                        itemCenter - center
+                        itemCenter - anchor
                     } else {
                         itemInfo.offset
                     }
@@ -1532,9 +1532,9 @@ fun Lyrics(
                         val span = scrollLead(displayLines, lyricClock.longValue).toInt()
                         val distance = if (useNewPlayerDesign) {
                             val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                            val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                            val anchor = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight * LYRICS_ANCHOR_RATIO).toInt()
                             val itemCenter = visible.offset + visible.size / 2
-                            (itemCenter - center).toFloat()
+                            (itemCenter - anchor).toFloat()
                         } else {
                             visible.offset.toFloat()
                         }
@@ -1547,8 +1547,7 @@ fun Lyrics(
                         }
                     } else {
                         if (useNewPlayerDesign) {
-                            val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                            lazyListState.animateScrollToItem(focusLine, scrollOffset = -(viewportHeight / 2))
+                            lazyListState.animateScrollToItem(focusLine, scrollOffset = 0)
                         } else {
                             lazyListState.animateScrollToItem(focusLine, scrollOffset = 0)
                         }
@@ -1561,8 +1560,8 @@ fun Lyrics(
             contentPadding = if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                 if (useNewPlayerDesign) {
                     PaddingValues(
-                        top = totalMaxHeight / 2,
-                        bottom = totalMaxHeight * 0.8f,
+                        top = totalMaxHeight * LYRICS_ANCHOR_RATIO,
+                        bottom = totalMaxHeight * (1f - LYRICS_ANCHOR_RATIO),
                         start = 0.dp,
                         end = 0.dp,
                     )
@@ -1798,8 +1797,7 @@ fun Lyrics(
                                         playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
                                         scope.launch {
                                             if (useNewPlayerDesign) {
-                                                val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                                lazyListState.animateScrollToItem(index, scrollOffset = -(viewportHeight / 2))
+                                                lazyListState.animateScrollToItem(index, scrollOffset = 0)
                                             } else {
                                                 lazyListState.scrollToItem(index = index)
                                             }
@@ -1852,9 +1850,9 @@ fun Lyrics(
                                             if (itemInfo != null) {
                                                 val offset = if (useNewPlayerDesign) {
                                                     val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                                    val center = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight / 2)
+                                                    val anchor = lazyListState.layoutInfo.viewportStartOffset + (viewportHeight * LYRICS_ANCHOR_RATIO).toInt()
                                                     val itemCenter = itemInfo.offset + itemInfo.size / 2
-                                                    (itemCenter - center).toFloat()
+                                                    (itemCenter - anchor).toFloat()
                                                 } else {
                                                     itemInfo.offset.toFloat()
                                                 }
@@ -1866,8 +1864,7 @@ fun Lyrics(
                                                 }
                                             } else {
                                                 if (useNewPlayerDesign) {
-                                                    val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
-                                                    lazyListState.animateScrollToItem(index, scrollOffset = -(viewportHeight / 2))
+                                                    lazyListState.animateScrollToItem(index, scrollOffset = 0)
                                                 } else {
                                                     lazyListState.scrollToItem(index = index)
                                                 }
