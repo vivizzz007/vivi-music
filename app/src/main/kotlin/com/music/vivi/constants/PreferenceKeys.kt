@@ -18,7 +18,7 @@ import kotlin.math.sin
 
 import com.music.innertube.models.IpVersion
 
-val IsFirstRunKey = booleanPreferencesKey("isFirstRun")
+val SetupWizardCompletedKey = booleanPreferencesKey("setup_wizard_completed")
 val EnableDynamicIconKey = booleanPreferencesKey("enableDynamicIcon")
 val EnableHighRefreshRateKey = booleanPreferencesKey("enableHighRefreshRate")
 val GitHubAccessTokenKey = stringPreferencesKey("gitHubAccessToken")

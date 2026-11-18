@@ -169,6 +169,8 @@ import com.music.vivi.constants.PauseSearchHistoryKey
 import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.SelectedThemeColorKey
+import com.music.vivi.constants.SetupWizardCompletedKey
+import com.music.vivi.ui.screens.setup.SetupWizardScreen
 import com.music.vivi.constants.SlimNavBarHeight
 import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.FloatingNavBarKey
@@ -296,8 +298,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // Request notification permission on Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Request notification permission on Android 13+ only if setup wizard is already completed
+        val isSetupDone = dataStore.get(SetupWizardCompletedKey, false)
+        if (isSetupDone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1000)
             }
@@ -501,6 +504,8 @@ class MainActivity : ComponentActivity() {
         }
 
         val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+        val initialSetupCompleted = remember { dataStore.get(SetupWizardCompletedKey, false) }
+        val (isSetupCompleted, onSetupCompletedChange) = rememberPreference(SetupWizardCompletedKey, defaultValue = initialSetupCompleted)
 
         val (lastSeenStarPromptVersion, setLastSeenStarPromptVersion) = rememberPreference(LastSeenStarPromptVersionKey, "")
         val (hasStarredRepo) = rememberPreference(HasStarredRepoKey, false)
@@ -581,7 +586,7 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
-            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
+            if (isSetupCompleted && lastSeenStarPromptVersion.isNotEmpty() && lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
                 ActionPromptDialog(
                     title = "Support ViviMusic \u2B50",
                     onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
@@ -614,7 +619,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            if (showThankYouDialog) {
+            if (isSetupCompleted && showThankYouDialog) {
                 ActionPromptDialog(
                     title = "Thank You!",
                     onDismiss = { gitHubViewModel.dismissThankYouDialog() },
@@ -1402,6 +1407,19 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                }
+
+                AnimatedVisibility(
+                    visible = !isSetupCompleted,
+                    enter = fadeIn(tween(300)),
+                    exit = fadeOut(tween(300))
+                ) {
+                    SetupWizardScreen(
+                        onFinished = {
+                            setLastSeenStarPromptVersion(currentVersion)
+                            onSetupCompletedChange(true)
+                        }
+                    )
                 }
             }
         }

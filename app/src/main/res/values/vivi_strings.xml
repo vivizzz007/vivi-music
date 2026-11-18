@@ -997,52 +997,6 @@
     <string name="flavour">Flavour</string>
     <string name="version_title">Version</string>
 
-    <!-- Onboarding -->
-    <string name="welcome_to">Welcome to</string>
-    <string name="welcome_to_vivi">Welcome to Vivi</string>
-    <string name="accessibility">Accessibility</string>
-    <string name="welcome_preparing_subtitle">Let\'s get everything ready for you.</string>
-    <string name="get_started">Get Started</string>
-
-    <string name="perm_required">Required</string>
-    <string name="perm_permissions">Permissions</string>
-    <string name="perm_intro_text">These permissions are required for ViviMusic to function correctly. Please grant them to proceed.</string>
-
-    <string name="perm_notif_title">Notifications</string>
-    <string name="perm_notif_desc">Know immediately when your music is playing and control it from the notification bar.</string>
-
-    <string name="perm_install_title">App Installation</string>
-    <string name="perm_install_desc">Required to download and install app updates seamlessly.</string>
-
-    <string name="feat_discover">Discover</string>
-    <string name="feat_features">Features</string>
-    <string name="feat_intro">Explore everything ViviMusic has to offer for your music journey.</string>
-
-    <string name="feat_lyrics_title">Smart Lyrics</string>
-    <string name="feat_lyrics_desc">Enjoy synchronized, word-by-word lyrics for millions of songs.</string>
-
-    <string name="feat_download_title">Offline Playback</string>
-    <string name="feat_download_desc">Download your favorite tracks and listen anywhere, anytime.</string>
-
-    <string name="feat_quality_title">Premium Quality</string>
-    <string name="feat_quality_desc">Stream and download.</string>
-
-    <string name="feat_update_title">Dynamic Updates</string>
-    <string name="feat_update_desc">Always stay updated with our built-in updater.</string>
-
-    <string name="feat_license_title">License</string>
-    <string name="feat_license_desc">General Public License v3.0</string>
-    <string name="feat_github_title">GitHub</string>
-    <string name="feat_github_desc">Open source project</string>
-
-    <string name="join_telegram">Join our Telegram channel</string>
-    <string name="welcome_update_check">Stay</string>
-    <string name="welcome_update_status">Updated</string>
-    <string name="welcome_update_intro">Ensuring you have the latest features and security improvements.</string>
-    <string name="welcome_checking_updates">Checking for updates…</string>
-    <string name="welcome_up_to_date">ViviMusic is up to date!</string>
-    <string name="welcome_update_available">New version is available: %s</string>
-    <string name="welcome_everything_ready">Everything is now up to date</string>
     <string name="commits_title">Commits</string>
     <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
     <string name="commits">Commits</string>
@@ -1253,4 +1207,38 @@
     <string name="audio_quality_high_desc">256+ kbps with Premium</string>
     <string name="player_audio_this_phone">This Phone</string>
     <string name="thin_slider">Thin</string>
+
+    <!-- Setup Wizard -->
+    <string name="setup_welcome_hi_there">Hi there</string>
+    <string name="setup_welcome_title">Welcome to</string>
+    <string name="setup_welcome_app_name">ViviMusic</string>
+    <string name="setup_welcome_tagline">Stream, download and play your favourite music with zero ads.</string>
+    <string name="setup_btn_get_started">Get started</string>
+    <string name="setup_btn_apply">Apply</string>
+    <string name="setup_choose_language">Choose language</string>
+    <string name="setup_choose_language_desc">You can change this later in settings.</string>
+    <string name="setup_permissions_title">Permissions</string>
+    <string name="setup_permissions_highlight">required</string>
+    <string name="setup_permissions_desc">ViviMusic needs these to keep you updated. You can change them any time in system settings.</string>
+    <string name="setup_permission_notifications_title">Notifications</string>
+    <string name="setup_permission_notifications_desc">Release alerts and app news.</string>
+    <string name="setup_permission_install_title">Install unknown apps</string>
+    <string name="setup_permission_install_desc">So updates can install directly.</string>
+    <string name="setup_privacy_title">Privacy &amp; Terms</string>
+    <string name="setup_btn_agree_continue">Agree &amp; continue</string>
+    <string name="setup_community_title">Join our community</string>
+    <string name="setup_community_desc">Connect with us, discuss releases, get announcements, or explore the open source code.</string>
+    <string name="setup_community_telegram_desc">Chat with the community and get instant updates</string>
+    <string name="setup_community_website_desc">Learn more about ViviMusic features and releases</string>
+    <string name="setup_btn_start_listening">Start listening</string>
+    <string name="setup_all_set_title">You\'re all set!</string>
+    <string name="setup_all_set_desc">Everything is configured and ready. Enjoy pure, uninterrupted music.</string>
+    <string name="setup_feature_seamless_title">Seamless streaming</string>
+    <string name="setup_feature_seamless_desc">Background playback with lock screen and notification controls.</string>
+    <string name="setup_feature_adfree_title">Ad-free listening</string>
+    <string name="setup_feature_adfree_desc">Zero interruptions with built-in SponsorBlock segment skipping.</string>
+    <string name="setup_feature_offline_title">Offline downloads</string>
+    <string name="setup_feature_offline_desc">Cache and download your favourite songs for listening anytime.</string>
+    <string name="relaunch_setup_wizard">Setup wizard</string>
+    <string name="relaunch_setup_wizard_desc">Revisit permissions, terms and feature overview</string>
 </resources>

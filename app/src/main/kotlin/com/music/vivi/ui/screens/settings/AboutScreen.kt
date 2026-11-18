@@ -63,6 +63,8 @@ import androidx.navigation.NavController
 import com.music.vivi.BuildConfig
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.SetupWizardCompletedKey
+import com.music.vivi.utils.rememberPreference
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
@@ -90,6 +92,7 @@ fun AboutScreen(
     }
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val (_, onSetupCompletedChange) = rememberPreference(SetupWizardCompletedKey, defaultValue = true)
     var showSupportDialog by remember { mutableStateOf(false) }
     val unknownString = stringResource(R.string.unknown)
 
@@ -306,6 +309,14 @@ fun AboutScreen(
                     icon = painterResource(R.drawable.info),
                     title = { Text(stringResource(R.string.version_code)) },
                     trailingContent = { Text(BuildConfig.VERSION_CODE.toString()) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.replay),
+                    title = { Text(stringResource(R.string.relaunch_setup_wizard)) },
+                    description = { Text(stringResource(R.string.relaunch_setup_wizard_desc)) },
+                    onClick = {
+                        onSetupCompletedChange(false)
+                    }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.license_vivi),
