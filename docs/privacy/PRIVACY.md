@@ -47,7 +47,7 @@ ViviMusic requests only minimal system permissions required to operate:
 
 ## 4. Terms of Service
 
-1. **Free & Open Source**: ViviMusic is distributed free of charge under the **GNU General Public License v3.0 (GPL-3.0)**. You are free to inspect, modify, and redistribute the source code in accordance with the license terms.
+1. **Free & Open Source**: ViviMusic is distributed free of charge under the [GNU General Public License v3.0 (GPL-3.0)](https://github.com/vivizzz007/vivi-music/blob/main/LICENSE). You are free to inspect, modify, and redistribute the source code in accordance with the license terms.
 2. **As-Is Disclaimer**: ViviMusic is provided "as is", without warranty of any kind, express or implied. The developers are not liable for any damages or data loss resulting from the use of this software.
 3. **Third-Party Services**: ViviMusic is an independent third-party client and is not affiliated with, endorsed by, or sponsored by Google LLC, YouTube, or any other media provider. Your use of third-party platforms remains subject to their respective terms and policies.
 
@@ -59,9 +59,9 @@ Because ViviMusic is open-source, any updates to this policy will be committed d
 
 ---
 
-## 6. Contact & Source Code
+## 6. Community & Contact
 
-- **GitHub Repository**: [https://github.com/vivizzz007/vivi-music](https://github.com/vivizzz007/vivi-music)
-- **Telegram Community**: [https://t.me/vivimusicapp](https://t.me/vivimusicapp)
+- **GitHub**: [https://github.com/vivizzz007/vivi-music](https://github.com/vivizzz007/vivi-music)
+- **Telegram**: [https://t.me/vivimusicapp](https://t.me/vivimusicapp)
+- **License**: [GNU GPL-3.0](https://github.com/vivizzz007/vivi-music/blob/main/LICENSE)
 - **Author**: Vividh P Ashokan
-
