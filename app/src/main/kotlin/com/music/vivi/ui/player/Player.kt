@@ -135,7 +135,6 @@ import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.runtime.produceState
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -2167,149 +2166,147 @@ fun BottomSheetPlayer(
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
-                val backInteractionSource = remember { MutableInteractionSource() }
-                val nextInteractionSource = remember { MutableInteractionSource() }
-                val playPauseInteractionSource = remember { MutableInteractionSource() }
+                            val backInteractionSource = remember { MutableInteractionSource() }
+                            val nextInteractionSource = remember { MutableInteractionSource() }
+                            val playPauseInteractionSource = remember { MutableInteractionSource() }
 
-                val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
-                val isBackPressed by backInteractionSource.collectIsPressedAsState()
-                val isNextPressed by nextInteractionSource.collectIsPressedAsState()
+                            val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
+                            val isBackPressed by backInteractionSource.collectIsPressedAsState()
+                            val isNextPressed by nextInteractionSource.collectIsPressedAsState()
 
-                val expressiveSpatialSpec = MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
+                            val playPauseWeight by animateFloatAsState(
+                                targetValue = if (isPlayPausePressed) 1.9f else if (isBackPressed || isNextPressed) 1.1f else 1.3f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = 500f
+                                ),
+                                label = "playPauseWeight"
+                            )
 
-                val playPauseWeight by animateFloatAsState(
-                    targetValue = if (isPlayPausePressed) 1.60f else if (isBackPressed || isNextPressed) 1.10f else 1.20f,
-                    animationSpec = expressiveSpatialSpec,
-                    label = "playPauseWeight"
-                )
+                            val backButtonWeight by animateFloatAsState(
+                                targetValue = if (isBackPressed) 0.65f else if (isPlayPausePressed) 0.35f else 0.45f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = 500f
+                                ),
+                                label = "backButtonWeight"
+                            )
 
-                val backButtonWeight by animateFloatAsState(
-                    targetValue = if (isBackPressed) 0.85f else if (isPlayPausePressed) 0.48f else 0.55f,
-                    animationSpec = expressiveSpatialSpec,
-                    label = "backButtonWeight"
-                )
+                            val nextButtonWeight by animateFloatAsState(
+                                targetValue = if (isNextPressed) 0.65f else if (isPlayPausePressed) 0.35f else 0.45f,
+                                animationSpec = spring(
+                                    dampingRatio = 0.6f,
+                                    stiffness = 500f
+                                ),
+                                label = "nextButtonWeight"
+                            )
 
-                val nextButtonWeight by animateFloatAsState(
-                    targetValue = if (isNextPressed) 0.85f else if (isPlayPausePressed) 0.48f else 0.55f,
-                    animationSpec = expressiveSpatialSpec,
-                    label = "nextButtonWeight"
-                )
-
-                val isBackEnabled = canSkipPrevious && !isListenTogetherGuest
-                Surface(
-                    onClick = playerConnection::seekToPrevious,
-                    enabled = isBackEnabled,
-                    shape = CircleShape,
-                    color = if (isBackEnabled) sideButtonContainerColor else sideButtonContainerColor.copy(alpha = 0.38f),
-                    contentColor = if (isBackEnabled) sideButtonContentColor else sideButtonContentColor.copy(alpha = 0.38f),
-                    interactionSource = backInteractionSource,
-                    modifier = Modifier
-                        .height(68.dp)
-                        .widthIn(min = 68.dp)
-                        .weight(backButtonWeight)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.skip_previous),
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Surface(
-                    onClick = {
-                        if (isListenTogetherGuest) {
-                            playerConnection.toggleMute()
-                            return@Surface
-                        }
-                        if (isCasting) {
-                            if (castIsPlaying) {
-                                castHandler?.pause()
-                            } else {
-                                castHandler?.play()
+                            FilledIconButton(
+                                onClick = playerConnection::seekToPrevious,
+                                enabled = canSkipPrevious && !isListenTogetherGuest,
+                                shape = RoundedCornerShape(50),
+                                interactionSource = backInteractionSource,
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = sideButtonContainerColor,
+                                    contentColor = sideButtonContentColor,
+                                ),
+                                modifier = Modifier
+                                    .height(68.dp)
+                                    .weight(backButtonWeight)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.skip_previous),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
                             }
-                        } else if (playbackState == STATE_ENDED) {
-                            playerConnection.player.seekTo(0, 0)
-                            playerConnection.player.playWhenReady = true
-                        } else {
-                            playerConnection.togglePlayPause()
-                        }
-                    },
-                    shape = CircleShape,
-                    color = textButtonColor,
-                    contentColor = iconButtonColor,
-                    interactionSource = playPauseInteractionSource,
-                    modifier = Modifier
-                        .height(68.dp)
-                        .weight(playPauseWeight)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (isListenTogetherGuest) {
-                                    if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                                } else {
-                                    if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            FilledIconButton(
+                                onClick = {
+                                    if (isListenTogetherGuest) {
+                                        playerConnection.toggleMute()
+                                        return@FilledIconButton
+                                    }
+                                    if (isCasting) {
+                                        if (castIsPlaying) {
+                                            castHandler?.pause()
+                                        } else {
+                                            castHandler?.play()
+                                        }
+                                    } else if (playbackState == STATE_ENDED) {
+                                        playerConnection.player.seekTo(0, 0)
+                                        playerConnection.player.playWhenReady = true
+                                    } else {
+                                        playerConnection.togglePlayPause()
+                                    }
+                                },
+                                shape = RoundedCornerShape(50),
+                                interactionSource = playPauseInteractionSource,
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = textButtonColor,
+                                    contentColor = iconButtonColor,
+                                ),
+                                modifier = Modifier
+                                    .height(68.dp)
+                                    .weight(playPauseWeight)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Icon(
+                                        painter = painterResource(
+                                            if (isListenTogetherGuest) {
+                                                if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                                            } else {
+                                                if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
+                                            }
+                                        ),
+                                        contentDescription = if (isListenTogetherGuest) {
+                                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                                        } else {
+                                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                                        },
+                                        modifier = Modifier.size(32.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (isListenTogetherGuest) {
+                                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                                        } else {
+                                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                                        },
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
                                 }
-                            ),
-                            contentDescription = if (isListenTogetherGuest) {
-                                if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
-                            } else {
-                                if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
-                            },
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isListenTogetherGuest) {
-                                if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
-                            } else {
-                                if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1
-                        )
-                    }
-                }
+                            }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
 
-                val isNextEnabled = canSkipNext && !isListenTogetherGuest
-                Surface(
-                    onClick = playerConnection::seekToNext,
-                    enabled = isNextEnabled,
-                    shape = CircleShape,
-                    color = if (isNextEnabled) sideButtonContainerColor else sideButtonContainerColor.copy(alpha = 0.38f),
-                    contentColor = if (isNextEnabled) sideButtonContentColor else sideButtonContentColor.copy(alpha = 0.38f),
-                    interactionSource = nextInteractionSource,
-                    modifier = Modifier
-                        .height(68.dp)
-                        .widthIn(min = 68.dp)
-                        .weight(nextButtonWeight)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.skip_next),
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp)
-                        )
+                            FilledIconButton(
+                                onClick = playerConnection::seekToNext,
+                                enabled = canSkipNext && !isListenTogetherGuest,
+                                shape = RoundedCornerShape(50),
+                                interactionSource = nextInteractionSource,
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = sideButtonContainerColor,
+                                    contentColor = sideButtonContentColor,
+                                ),
+                                modifier = Modifier
+                                    .height(68.dp)
+                                    .weight(nextButtonWeight
+                                    )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.skip_next),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                            }
+                        }
                     }
-                }
-            }
-        }
 
         val oldPlaybackControlsContent: @Composable () -> Unit = {
             Row(
