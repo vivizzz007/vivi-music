@@ -1241,4 +1241,18 @@
     <string name="setup_feature_offline_desc">Cache and download your favourite songs for listening anytime.</string>
     <string name="relaunch_setup_wizard">Setup wizard</string>
     <string name="relaunch_setup_wizard_desc">Revisit permissions, terms and feature overview</string>
+
+    <!-- Repair Mode -->
+    <string name="repair">Repair</string>
+    <string name="setting_repair_desc">Troubleshoot streaming, playback, and cache issues</string>
+    <string name="repair_mode_title">Repair mode</string>
+    <string name="repair_mode_desc1">Repair mode helps resolve streaming failures, audio buffering, playback errors, and display issues by resetting stale stream URLs, corrupted audio chunks, and temporary caches.</string>
+    <string name="repair_mode_desc2">When repair is complete, a log is saved to vivimusic/repairtool for troubleshooting, and the app will return to its normal state.</string>
+    <string name="repair_mode_info_note">Your music library, playlists, offline downloads, and account settings are safe and will not be erased. Only broken stream caches, expired playback links, audio format data, image thumbnails, and lyrics are refreshed to fix streaming and playback problems.</string>
+    <string name="repair_mode_info_note_extra">After running repair, fresh stream connections, audio data, and artwork will automatically reload smoothly in the background as you listen.</string>
+    <string name="repair_enter_btn">Enter repair mode</string>
+    <string name="repairing_in_progress">Fixing issues, please wait…</string>
+    <string name="repair_complete">Repair completed</string>
+    <string name="repair_log_saved">Repair completed. Log saved to vivimusic/repairtool</string>
+    <string name="crash_saved_note">The crash report has been automatically saved to vivimusic/crashlog</string>
 </resources>

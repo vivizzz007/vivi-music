@@ -515,6 +515,14 @@ class MusicService :
     private val recentlyFailedSongs = mutableSetOf<String>()
     private var failedSongsClearJob: Job? = null
 
+    fun clearStreamCache() {
+        synchronized(songUrlCache) {
+            songUrlCache.clear()
+        }
+        recentlyFailedSongs.clear()
+        currentMediaIdRetryCount.clear()
+    }
+
     // Google Cast support
     var castConnectionHandler: CastConnectionHandler? = null
         private set

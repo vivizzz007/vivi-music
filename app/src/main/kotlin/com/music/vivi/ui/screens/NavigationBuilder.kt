@@ -60,6 +60,7 @@ import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.AccountSettingsScreen
 import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
+import com.music.vivi.ui.screens.settings.RepairScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.ThemeSettings
 import com.music.vivi.ui.screens.settings.AiSettings
@@ -409,6 +410,10 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)
+    }
+
+    composable("settings/repair") {
+        RepairScreen(navController, scrollBehavior)
     }
 
     composable("settings/equalizer") {
