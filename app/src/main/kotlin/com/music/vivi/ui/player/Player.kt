@@ -66,6 +66,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.expandVertically
@@ -126,6 +128,7 @@ import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -2166,147 +2169,181 @@ fun BottomSheetPlayer(
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
-                            val backInteractionSource = remember { MutableInteractionSource() }
-                            val nextInteractionSource = remember { MutableInteractionSource() }
-                            val playPauseInteractionSource = remember { MutableInteractionSource() }
+                val backInteractionSource = remember { MutableInteractionSource() }
+                val nextInteractionSource = remember { MutableInteractionSource() }
+                val playPauseInteractionSource = remember { MutableInteractionSource() }
 
-                            val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
-                            val isBackPressed by backInteractionSource.collectIsPressedAsState()
-                            val isNextPressed by nextInteractionSource.collectIsPressedAsState()
+                val isPlayPausePressed by playPauseInteractionSource.collectIsPressedAsState()
 
-                            val playPauseWeight by animateFloatAsState(
-                                targetValue = if (isPlayPausePressed) 1.9f else if (isBackPressed || isNextPressed) 1.1f else 1.3f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = 500f
-                                ),
-                                label = "playPauseWeight"
-                            )
+                val playPauseWeight by animateFloatAsState(
+                    targetValue = if (isPlayPausePressed) 2.0f else 1.7f,
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = 400f
+                    ),
+                    label = "playPauseWeight"
+                )
 
-                            val backButtonWeight by animateFloatAsState(
-                                targetValue = if (isBackPressed) 0.65f else if (isPlayPausePressed) 0.35f else 0.45f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = 500f
-                                ),
-                                label = "backButtonWeight"
-                            )
+                val backButtonWeight by animateFloatAsState(
+                    targetValue = if (isPlayPausePressed) 0.45f else 0.6f,
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = 400f
+                    ),
+                    label = "backButtonWeight"
+                )
 
-                            val nextButtonWeight by animateFloatAsState(
-                                targetValue = if (isNextPressed) 0.65f else if (isPlayPausePressed) 0.35f else 0.45f,
-                                animationSpec = spring(
-                                    dampingRatio = 0.6f,
-                                    stiffness = 500f
-                                ),
-                                label = "nextButtonWeight"
-                            )
+                val nextButtonWeight by animateFloatAsState(
+                    targetValue = if (isPlayPausePressed) 0.45f else 0.6f,
+                    animationSpec = spring(
+                        dampingRatio = 0.8f,
+                        stiffness = 400f
+                    ),
+                    label = "nextButtonWeight"
+                )
 
-                            FilledIconButton(
-                                onClick = playerConnection::seekToPrevious,
-                                enabled = canSkipPrevious && !isListenTogetherGuest,
-                                shape = RoundedCornerShape(50),
-                                interactionSource = backInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = sideButtonContainerColor,
-                                    contentColor = sideButtonContentColor,
-                                ),
-                                modifier = Modifier
-                                    .height(68.dp)
-                                    .weight(backButtonWeight)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_previous),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
-                                )
+                val controlHeight = 68.dp
+                val sideShape = remember { RoundedCornerShape(controlHeight / 2) }
+                val playCornerRadius by animateDpAsState(
+                    targetValue = if (effectiveIsPlaying) 20.dp else controlHeight / 2,
+                    animationSpec = spring(
+                        dampingRatio = 0.55f,
+                        stiffness = 380f
+                    ),
+                    label = "playCornerRadius"
+                )
+                val playShape = RoundedCornerShape(playCornerRadius)
+
+                val sideColors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = sideButtonContainerColor,
+                    contentColor = sideButtonContentColor,
+                )
+                val centerColors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = textButtonColor,
+                    contentColor = iconButtonColor,
+                )
+
+                FilledTonalButton(
+                    onClick = playerConnection::seekToPrevious,
+                    enabled = canSkipPrevious && !isListenTogetherGuest,
+                    shape = sideShape,
+                    interactionSource = backInteractionSource,
+                    colors = sideColors,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .height(controlHeight)
+                        .weight(backButtonWeight)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_previous),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                FilledTonalButton(
+                    onClick = {
+                        if (isListenTogetherGuest) {
+                            playerConnection.toggleMute()
+                            return@FilledTonalButton
+                        }
+                        if (isCasting) {
+                            if (castIsPlaying) {
+                                castHandler?.pause()
+                            } else {
+                                castHandler?.play()
                             }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            FilledIconButton(
-                                onClick = {
-                                    if (isListenTogetherGuest) {
-                                        playerConnection.toggleMute()
-                                        return@FilledIconButton
-                                    }
-                                    if (isCasting) {
-                                        if (castIsPlaying) {
-                                            castHandler?.pause()
-                                        } else {
-                                            castHandler?.play()
-                                        }
-                                    } else if (playbackState == STATE_ENDED) {
-                                        playerConnection.player.seekTo(0, 0)
-                                        playerConnection.player.playWhenReady = true
-                                    } else {
-                                        playerConnection.togglePlayPause()
-                                    }
+                        } else if (playbackState == STATE_ENDED) {
+                            playerConnection.player.seekTo(0, 0)
+                            playerConnection.player.playWhenReady = true
+                        } else {
+                            playerConnection.togglePlayPause()
+                        }
+                    },
+                    shape = playShape,
+                    interactionSource = playPauseInteractionSource,
+                    colors = centerColors,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .height(controlHeight)
+                        .weight(playPauseWeight)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        val playIconRes = if (isListenTogetherGuest) {
+                            if (isMuted) R.drawable.volume_off else R.drawable.volume_up
+                        } else {
+                            if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
+                        }
+                        AnimatedContent(
+                            targetState = playIconRes,
+                            transitionSpec = {
+                                (fadeIn(animationSpec = tween(180)) + scaleIn(initialScale = 0.72f, animationSpec = spring(dampingRatio = 0.55f, stiffness = 400f)))
+                                    .togetherWith(fadeOut(animationSpec = tween(120)) + scaleOut(targetScale = 0.72f, animationSpec = tween(120)))
+                            },
+                            contentAlignment = Alignment.Center,
+                            label = "playIconAnimation"
+                        ) { iconRes ->
+                            Icon(
+                                painter = painterResource(iconRes),
+                                contentDescription = if (isListenTogetherGuest) {
+                                    if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                                } else {
+                                    if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
                                 },
-                                shape = RoundedCornerShape(50),
-                                interactionSource = playPauseInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = textButtonColor,
-                                    contentColor = iconButtonColor,
-                                ),
-                                modifier = Modifier
-                                    .height(68.dp)
-                                    .weight(playPauseWeight)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Icon(
-                                        painter = painterResource(
-                                            if (isListenTogetherGuest) {
-                                                if (isMuted) R.drawable.volume_off else R.drawable.volume_up
-                                            } else {
-                                                if (effectiveIsPlaying) R.drawable.pause else R.drawable.play
-                                            }
-                                        ),
-                                        contentDescription = if (isListenTogetherGuest) {
-                                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
-                                        } else {
-                                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
-                                        },
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = if (isListenTogetherGuest) {
-                                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
-                                        } else {
-                                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
-                                        },
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(8.dp))
-
-                            FilledIconButton(
-                                onClick = playerConnection::seekToNext,
-                                enabled = canSkipNext && !isListenTogetherGuest,
-                                shape = RoundedCornerShape(50),
-                                interactionSource = nextInteractionSource,
-                                colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = sideButtonContainerColor,
-                                    contentColor = sideButtonContentColor,
-                                ),
-                                modifier = Modifier
-                                    .height(68.dp)
-                                    .weight(nextButtonWeight
-                                    )
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_next),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            }
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        val playPauseText = if (isListenTogetherGuest) {
+                            if (isMuted) stringResource(R.string.unmute) else stringResource(R.string.mute)
+                        } else {
+                            if (effectiveIsPlaying) stringResource(R.string.pause) else stringResource(R.string.play)
+                        }
+                        AnimatedContent(
+                            targetState = playPauseText,
+                            transitionSpec = {
+                                (fadeIn(animationSpec = tween(180)) + scaleIn(initialScale = 0.85f, animationSpec = spring(dampingRatio = 0.6f, stiffness = 400f)))
+                                    .togetherWith(fadeOut(animationSpec = tween(120)) + scaleOut(targetScale = 0.85f, animationSpec = tween(120)))
+                            },
+                            contentAlignment = Alignment.Center,
+                            label = "playPauseLabel"
+                        ) { labelText ->
+                            Text(
+                                text = labelText,
+                                style = MaterialTheme.typography.titleMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                FilledTonalButton(
+                    onClick = playerConnection::seekToNext,
+                    enabled = canSkipNext && !isListenTogetherGuest,
+                    shape = sideShape,
+                    interactionSource = nextInteractionSource,
+                    colors = sideColors,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier
+                        .height(controlHeight)
+                        .weight(nextButtonWeight)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_next),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+        }
 
         val oldPlaybackControlsContent: @Composable () -> Unit = {
             Row(
