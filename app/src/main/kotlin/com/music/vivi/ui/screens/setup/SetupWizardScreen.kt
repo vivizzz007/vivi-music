@@ -18,16 +18,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -83,6 +88,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
@@ -137,6 +149,39 @@ val GoogleSansFlex = FontFamily(
         )
     )
 )
+
+private fun buildWavyRingPath(
+    cx: Float,
+    cy: Float,
+    radius: Float,
+    amplitude: Float,
+    ripples: Int,
+    startAngleDeg: Float = 0f,
+    sweepAngleDeg: Float = 360f,
+    isClosed: Boolean = true
+): Path {
+    val path = Path()
+    val steps = (sweepAngleDeg * 1.5f).toInt().coerceAtLeast(30)
+    val degToRad = (Math.PI / 180.0).toFloat()
+    val startRad = startAngleDeg * degToRad
+    val sweepRad = sweepAngleDeg * degToRad
+    for (i in 0..steps) {
+        val fraction = i.toFloat() / steps.toFloat()
+        val theta = startRad + fraction * sweepRad
+        val r = radius + amplitude * kotlin.math.sin(ripples * theta)
+        val x = cx + r * kotlin.math.cos(theta)
+        val y = cy + r * kotlin.math.sin(theta)
+        if (i == 0) {
+            path.moveTo(x, y)
+        } else {
+            path.lineTo(x, y)
+        }
+    }
+    if (isClosed) {
+        path.close()
+    }
+    return path
+}
 
 @Composable
 fun SetupWizardScreen(
@@ -232,28 +277,101 @@ fun SetupWizardScreen(
         currentStep--
     }
 
-    Column(
+    val bounceAnim = remember { Animatable(0f) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+
+    Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .navigationBarsPadding()
     ) {
-        TopAppBar(
-            title = {},
-            navigationIcon = {
-                if (currentStep > 0) {
-                    IconButton(onClick = { currentStep-- }) {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_back),
-                            contentDescription = stringResource(R.string.back_button_desc)
-                        )
+        AnimatedVisibility(
+            visible = currentStep == 0,
+            enter = fadeIn(tween(250)),
+            exit = fadeOut(tween(250))
+        ) {
+            Canvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures {
+                            scope.launch {
+                                bounceAnim.animateTo(
+                                    targetValue = 1f,
+                                    animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing)
+                                )
+                                bounceAnim.animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessLow
+                                    )
+                                )
+                            }
+                        }
                     }
+            ) {
+                val baseWidth = 390f
+                val scale = if (size.width > size.height) {
+                    size.height / baseWidth
+                } else {
+                    size.width / baseWidth
                 }
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+
+                val bounceOffset = 45f * scale * bounceAnim.value
+
+                val topRing = buildWavyRingPath(
+                    cx = size.width - (65f * scale),
+                    cy = (106f * scale) - bounceOffset,
+                    radius = 160f * scale,
+                    amplitude = (8f + 3f * bounceAnim.value) * scale,
+                    ripples = 12
+                )
+
+                val bottomRing = buildWavyRingPath(
+                    cx = 139f * scale,
+                    cy = size.height - (215f * scale) + bounceOffset,
+                    radius = 276f * scale,
+                    amplitude = (12f + 4f * bounceAnim.value) * scale,
+                    ripples = 14,
+                    startAngleDeg = 180f,
+                    sweepAngleDeg = 180f,
+                    isClosed = false
+                )
+
+                val stroke = Stroke(
+                    width = 1.5.dp.toPx(),
+                    join = StrokeJoin.Round,
+                    cap = StrokeCap.Round
+                )
+
+                val ringColor = primaryColor.copy(alpha = 0.5f)
+
+                drawPath(path = topRing, color = ringColor, style = stroke)
+                drawPath(path = bottomRing, color = ringColor, style = stroke)
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            TopAppBar(
+                title = {},
+                navigationIcon = {
+                    if (currentStep > 0) {
+                        IconButton(onClick = { currentStep-- }) {
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_back),
+                                contentDescription = stringResource(R.string.back_button_desc)
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                )
             )
-        )
 
         val targetProgress = when (currentStep) {
             1 -> 0.25f
@@ -292,28 +410,30 @@ fun SetupWizardScreen(
             targetState = currentStep,
             transitionSpec = {
                 if (targetState > initialState) {
-                    slideInHorizontally { width -> width } togetherWith slideOutHorizontally { width -> -width }
+                    (slideInHorizontally { width -> width } + fadeIn(tween(250))) togetherWith
+                        (slideOutHorizontally { width -> -width } + fadeOut(tween(200)))
                 } else {
-                    slideInHorizontally { width -> -width } togetherWith slideOutHorizontally { width -> width }
+                    (slideInHorizontally { width -> -width } + fadeIn(tween(250))) togetherWith
+                        (slideOutHorizontally { width -> width } + fadeOut(tween(200)))
                 }.using(null)
             },
             label = "SetupWizardStepTransition",
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
+                .clipToBounds()
         ) { step ->
             when (step) {
                 0 -> {
                     BoxWithConstraints(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 24.dp)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         val screenHeight = maxHeight
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .verticalScroll(rememberScrollState())
+                                .padding(horizontal = 24.dp)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -1284,9 +1404,10 @@ fun SetupWizardScreen(
                     }
                 }
             }
+            }
+        }
         }
     }
-}
 
     if (showLanguage) {
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
