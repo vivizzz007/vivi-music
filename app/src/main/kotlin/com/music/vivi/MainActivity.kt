@@ -1288,6 +1288,7 @@ class MainActivity : ComponentActivity() {
                                     currentRoute = currentRoute,
                                     onItemClick = onRailItemClick,
                                     pureBlack = pureBlack,
+                                    slimNav = slimNav,
                                     onSearchLongClick = onRailSearchLongClick
                                 )
                             }
