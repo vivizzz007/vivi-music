@@ -27,6 +27,7 @@ import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -125,6 +126,7 @@ import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
+import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
@@ -4043,6 +4045,24 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+            if (!::player.isInitialized) {
+                stopSelf()
+                return
+            }
+            runCatching {
+                if (castConnectionHandler?.isCasting?.value == true) {
+                    castConnectionHandler?.disconnect()
+                }
+                player.stop()
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                pauseAllPlayersAndStopSelf()
+            }.onFailure { e ->
+                Timber.tag(TAG).e(e, "Failed to stop playback on task clear")
+                runCatching { pauseAllPlayersAndStopSelf() }.onFailure { stopSelf() }
+            }
+            return
+        }
         super.onTaskRemoved(rootIntent)
     }
 
