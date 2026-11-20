@@ -71,6 +71,11 @@ class App : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         context = this
 
+        if (isCrashProcess()) {
+            Timber.plant(Timber.DebugTree())
+            return
+        }
+
         // Install crash handler first
         CrashHandler.install(this)
 
@@ -92,6 +97,21 @@ class App : Application(), SingletonImageLoader.Factory {
         applicationScope.launch(Dispatchers.IO) {
             runCatching { InnerTubeXPlayer.prewarm() }
         }
+    }
+
+    private fun isCrashProcess(): Boolean {
+        val processName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getProcessName()
+        } else {
+            try {
+                val pid = android.os.Process.myPid()
+                val am = getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+                am?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
+            } catch (_: Exception) {
+                null
+            }
+        }
+        return processName?.endsWith(":crash") == true
     }
 
     private suspend fun initializeSettings() {
