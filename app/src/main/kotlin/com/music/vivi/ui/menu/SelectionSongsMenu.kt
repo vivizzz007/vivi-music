@@ -51,6 +51,7 @@ import com.music.vivi.LocalSyncUtils
 import com.music.vivi.R
 import com.music.vivi.db.entities.PlaylistSongMap
 import com.music.vivi.db.entities.Song
+import com.music.vivi.extensions.removeWindows
 import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.models.toMediaMetadata
@@ -657,15 +658,7 @@ fun SelectionMediaMetadataMenu(
                                 },
                                 onClick = {
                                     onDismiss()
-                                    var i = 0
-                                    currentItems.forEach { cur ->
-                                        if (playerConnection.player.availableCommands.contains(
-                                                Player.COMMAND_CHANGE_MEDIA_ITEMS
-                                            )
-                                        ) {
-                                            playerConnection.player.removeMediaItem(cur.firstPeriodIndex - i++)
-                                        }
-                                    }
+                                    playerConnection.player.removeWindows(currentItems)
                                     clearAction()
                                 }
                             )

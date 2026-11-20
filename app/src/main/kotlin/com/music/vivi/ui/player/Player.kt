@@ -324,6 +324,7 @@ import com.music.spotify.Spotify
 import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
+import com.music.vivi.extensions.removeWindow
 import com.music.vivi.ui.player.MotionartworkPlaybackCache
 import com.music.vivi.utils.isWifiConnected
 import com.music.vivi.utils.SpotifySessionManager
@@ -4206,7 +4207,7 @@ fun InlineQueueView(
                                     dv == SwipeToDismissBoxValue.StartToEnd || dv == SwipeToDismissBoxValue.EndToStart
                                 )) {
                                     processedDismiss = true
-                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                    playerConnection.player.removeWindow(currentItem)
                                     dismissJob?.cancel()
                                     dismissJob = coroutineScope.launch {
                                         val snackbarResult = snackbarHostState.showSnackbar(
@@ -4220,8 +4221,8 @@ fun InlineQueueView(
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                                             playerConnection.player.addMediaItem(currentItem.mediaItem)
                                             playerConnection.player.moveMediaItem(
-                                                mutableQueueWindows.size,
-                                                currentItem.firstPeriodIndex
+                                                mutableQueueWindows.size.coerceIn(0, playerConnection.player.mediaItemCount - 1),
+                                                currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount)
                                             )
                                         }
                                     }

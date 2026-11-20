@@ -131,6 +131,7 @@ import com.music.vivi.constants.ShowCommentButtonKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
+import com.music.vivi.extensions.removeWindow
 import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
@@ -1112,7 +1113,7 @@ fun Queue(
                                             )
                                 ) {
                                     processedDismiss = true
-                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                    playerConnection.player.removeWindow(currentItem)
                                     dismissJob?.cancel()
                                     dismissJob = coroutineScope.launch {
                                         val snackbarResult = snackbarHostState.showSnackbar(
@@ -1126,8 +1127,8 @@ fun Queue(
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                                             playerConnection.player.addMediaItem(currentItem.mediaItem)
                                             playerConnection.player.moveMediaItem(
-                                                mutableQueueWindows.size,
-                                                currentItem.firstPeriodIndex,
+                                                mutableQueueWindows.size.coerceIn(0, playerConnection.player.mediaItemCount - 1),
+                                                currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount),
                                             )
                                         }
                                     }
