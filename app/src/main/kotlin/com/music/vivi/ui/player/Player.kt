@@ -1056,10 +1056,13 @@ fun BottomSheetPlayer(
         initialAnchor = if (useNewPlayerDesign) 1 else 0
     )
 
-    val bottomSheetBackgroundColor = when (playerBackground) {
-        PlayerBackgroundStyle.BLUR, PlayerBackgroundStyle.GRADIENT, PlayerBackgroundStyle.GLOW_ANIMATED, PlayerBackgroundStyle.APPLE_MUSIC ->
-            Color.Black
-        PlayerBackgroundStyle.LIVE_MESH ->
+    val bottomSheetBackgroundColor = when {
+        useNewPlayerDesign && spotifyCanvasUrl != null -> Color.Black
+        playerBackground == PlayerBackgroundStyle.BLUR ||
+        playerBackground == PlayerBackgroundStyle.GRADIENT ||
+        playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED ||
+        playerBackground == PlayerBackgroundStyle.APPLE_MUSIC -> Color.Black
+        playerBackground == PlayerBackgroundStyle.LIVE_MESH ->
             if (useDarkTheme) Color(0xFF191919) else Color(0xFFE6E6E6)
         else ->
             if (useBlackBackground) Color.Black
@@ -1078,9 +1081,10 @@ fun BottomSheetPlayer(
                     .background(bottomSheetBackgroundColor)
             ) {
                 if (useNewPlayerDesign && spotifyCanvasUrl != null) {
-                    val overlayAlpha by animateFloatAsState(
-                        targetValue = if (showInlineLyrics || showInlineQueue) 0.85f else 0.4f,
-                        label = "canvasDimmer"
+                    val lyricsBlurAlpha by animateFloatAsState(
+                        targetValue = if (showInlineLyrics || showInlineQueue) 1f else 0f,
+                        animationSpec = tween(400),
+                        label = "canvasLyricsBlur"
                     )
                     AnimatedContent(
                         targetState = spotifyCanvasUrl,
@@ -1097,11 +1101,14 @@ fun BottomSheetPlayer(
                                         modifier = Modifier.fillMaxSize()
                                     )
                                 }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .background(Color.Black.copy(alpha = overlayAlpha))
-                                )
+                                if (lyricsBlurAlpha > 0.01f) {
+                                    PlayerBlurBackdrop(
+                                        artworkUri = mediaMetadata?.thumbnailUrl?.toUri(),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .alpha(lyricsBlurAlpha)
+                                    )
+                                }
                             }
                         }
                     }
