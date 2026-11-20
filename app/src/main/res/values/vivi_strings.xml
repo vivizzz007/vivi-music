@@ -1180,9 +1180,12 @@
     <string name="export_as_m3u">M3U (Media Player format)</string>
     <string name="add_a_comment">Add a comment…</string>
     <string name="reply_to_comment">Reply to @%s…</string>
+    <string name="replying_to">Replying to %s</string>
+    <string name="you">You</string>
     <string name="delete_comment">Delete comment</string>
     <string name="delete_comment_confirm">Are you sure you want to delete this comment? This action cannot be undone.</string>
     <string name="sign_in_to_comment">Sign in to add a comment</string>
+    <string name="sign_in_to_like">Sign in to like comments</string>
     <string name="reply">Reply</string>
     <string name="top_comments">Top</string>
     <string name="newest_comments">Newest</string>
