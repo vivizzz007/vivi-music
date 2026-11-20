@@ -133,6 +133,7 @@ import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
 import com.music.vivi.extensions.removeWindow
 import com.music.vivi.extensions.toggleRepeatMode
+import timber.log.Timber
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.ActionPromptDialog
@@ -633,6 +634,7 @@ fun Queue(
                 dragInfo?.let { (from, to) ->
                     val safeFrom = (from - headerItems).coerceIn(0, queueWindows.lastIndex)
                     val safeTo = (to - headerItems).coerceIn(0, queueWindows.lastIndex)
+                    Timber.tag("Queue").d("reorder: moving item from $safeFrom to $safeTo (shuffle=${playerConnection.player.shuffleModeEnabled})")
 
                     if (!playerConnection.player.shuffleModeEnabled) {
                         playerConnection.player.moveMediaItem(safeFrom, safeTo)
@@ -1126,9 +1128,11 @@ fun Queue(
                                         )
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                                             playerConnection.player.addMediaItem(currentItem.mediaItem)
+                                            val targetIndex = currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount)
+                                            Timber.tag("Queue").d("undo: restored '${currentItem.mediaItem.metadata?.title}' at index $targetIndex")
                                             playerConnection.player.moveMediaItem(
                                                 mutableQueueWindows.size.coerceIn(0, playerConnection.player.mediaItemCount - 1),
-                                                currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount),
+                                                targetIndex,
                                             )
                                         }
                                     }

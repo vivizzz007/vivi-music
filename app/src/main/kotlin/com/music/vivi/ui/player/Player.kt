@@ -325,6 +325,7 @@ import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.removeWindow
+import timber.log.Timber
 import com.music.vivi.ui.player.MotionartworkPlaybackCache
 import com.music.vivi.utils.isWifiConnected
 import com.music.vivi.utils.SpotifySessionManager
@@ -4220,9 +4221,11 @@ fun InlineQueueView(
                                         )
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                                             playerConnection.player.addMediaItem(currentItem.mediaItem)
+                                            val targetIndex = currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount)
+                                            Timber.tag("Queue").d("undo: restored '${currentItem.mediaItem.metadata?.title}' at index $targetIndex")
                                             playerConnection.player.moveMediaItem(
                                                 mutableQueueWindows.size.coerceIn(0, playerConnection.player.mediaItemCount - 1),
-                                                currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount)
+                                                targetIndex
                                             )
                                         }
                                     }

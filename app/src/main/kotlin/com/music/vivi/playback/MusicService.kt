@@ -1709,6 +1709,7 @@ class MusicService :
         radioChipsJob?.cancel()
         radioChipsJob = null
         radioChips.value = emptyList()
+        automixItems.value = emptyList()
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
         if (!canAttemptQueueCrossfade) {
@@ -1787,28 +1788,17 @@ class MusicService :
 
             if (queue.preloadItem != null) {
                 val actualIndex = initialStatus.items.indexOfFirst { it.mediaId == queue.preloadItem!!.id }
-                val targetIndex = if (actualIndex != -1) {
-                    actualIndex
-                } else {
-                    initialStatus.mediaItemIndex.coerceIn(0, initialStatus.items.size)
+                val targetIndex = if (actualIndex != -1) actualIndex else initialStatus.mediaItemIndex.coerceIn(0, initialStatus.items.size)
+
+                if (player.mediaItemCount > 1) {
+                    player.removeMediaItems(1, player.mediaItemCount)
                 }
 
                 if (targetIndex < initialStatus.items.size) {
-                    player.addMediaItems(
-                        0,
-                        initialStatus.items.subList(0, targetIndex)
-                    )
-                    player.addMediaItems(
-                        initialStatus.items.subList(
-                            targetIndex + 1,
-                            initialStatus.items.size
-                        )
-                    )
+                    player.addMediaItems(0, initialStatus.items.subList(0, targetIndex))
+                    player.addMediaItems(initialStatus.items.subList(targetIndex + 1, initialStatus.items.size))
                     if (actualIndex != -1) {
-                        player.replaceMediaItem(
-                            targetIndex,
-                            initialStatus.items[targetIndex]
-                        )
+                        player.replaceMediaItem(targetIndex, initialStatus.items[targetIndex])
                     }
                 } else {
                     player.addMediaItems(0, initialStatus.items)

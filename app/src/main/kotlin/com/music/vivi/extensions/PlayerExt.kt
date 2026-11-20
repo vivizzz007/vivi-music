@@ -14,6 +14,7 @@ import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import com.music.vivi.models.MediaMetadata
+import timber.log.Timber
 import java.util.ArrayDeque
 
 fun Player.togglePlayPause() {
