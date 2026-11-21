@@ -368,6 +368,8 @@
     <!-- Romanization Settings -->
     <string name="lyrics_romanization_cyrillic">Cyrillic</string>
     <string name="lyrics_romanize_title">Romanization</string>
+    <string name="lyrics_romanize_all">Romanize all languages</string>
+    <string name="lyrics_romanize_all_desc">Automatically romanize any supported non-Latin language</string>
     <string name="lyrics_romanization">Lyrics romanization</string>
     <string name="romanization">Romanization</string>
     <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
@@ -375,6 +377,7 @@
     <string name="lyrics_romanize_chinese">Romanize Chinese lyrics</string>
     <string name="lyrics_romanize_hindi">Romanize Hindi lyrics</string>
     <string name="lyrics_romanize_punjabi">Romanize Punjabi lyrics</string>
+    <string name="lyrics_romanize_malayalam">Romanize Malayalam lyrics</string>
     <string name="lyrics_romanize_russian">Romanize Russian lyrics</string>
     <string name="lyrics_romanize_ukrainian">Romanize Ukrainian lyrics</string>
     <string name="lyrics_romanize_belarusian">Romanize Belarusian lyrics</string>

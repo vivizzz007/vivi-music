@@ -31,12 +31,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
+import com.music.vivi.constants.LyricsRomanizeAllKey
 import com.music.vivi.constants.LyricsRomanizeAsMainKey
 import com.music.vivi.constants.LyricsRomanizeBelarusianKey
 import com.music.vivi.constants.LyricsRomanizeBulgarianKey
 import com.music.vivi.constants.LyricsRomanizeChineseKey
 import com.music.vivi.constants.LyricsRomanizeHindiKey
 import com.music.vivi.constants.LyricsRomanizePunjabiKey
+import com.music.vivi.constants.LyricsRomanizeMalayalamKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
@@ -60,12 +62,14 @@ fun RomanizationSettings(
 ) {
     val context = LocalContext.current
 
+    val (lyricsRomanizeAll, onLyricsRomanizeAllChange) = rememberPreference(LyricsRomanizeAllKey, defaultValue = false)
     val (lyricsRomanizeAsMain, onLyricsRomanizeAsMainChange) = rememberPreference(LyricsRomanizeAsMainKey, defaultValue = false)
     val (lyricsRomanizeJapanese, onLyricsRomanizeJapaneseChange) = rememberPreference(LyricsRomanizeJapaneseKey, defaultValue = true)
     val (lyricsRomanizeKorean, onLyricsRomanizeKoreanChange) = rememberPreference(LyricsRomanizeKoreanKey, defaultValue = true)
     val (lyricsRomanizeChinese, onLyricsRomanizeChineseChange) = rememberPreference(LyricsRomanizeChineseKey, defaultValue = true)
     val (lyricsRomanizeHindi, onLyricsRomanizeHindiChange) = rememberPreference(LyricsRomanizeHindiKey, defaultValue = true)
     val (lyricsRomanizePunjabi, onLyricsRomanizePunjabiChange) = rememberPreference(LyricsRomanizePunjabiKey, defaultValue = true)
+    val (lyricsRomanizeMalayalam, onLyricsRomanizeMalayalamChange) = rememberPreference(LyricsRomanizeMalayalamKey, defaultValue = true)
     val (lyricsRomanizeRussian, onLyricsRomanizeRussianChange) = rememberPreference(LyricsRomanizeRussianKey, defaultValue = true)
     val (lyricsRomanizeUkrainian, onLyricsRomanizeUkrainianChange) = rememberPreference(LyricsRomanizeUkrainianKey, defaultValue = true)
     val (lyricsRomanizeSerbian, onLyricsRomanizeSerbianChange) = rememberPreference(LyricsRomanizeSerbianKey, defaultValue = true)
@@ -85,6 +89,29 @@ fun RomanizationSettings(
         Material3SettingsGroup(
             title = stringResource(R.string.general),
             items = listOf(
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.translate),
+                    title = { Text(stringResource(R.string.lyrics_romanize_all)) },
+                    description = { Text(stringResource(R.string.lyrics_romanize_all_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsRomanizeAll,
+                            onCheckedChange = onLyricsRomanizeAllChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsRomanizeAll) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsRomanizeAllChange(!lyricsRomanizeAll) },
+                    isExpressive = true,
+                    descriptionBelow = true
+                ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text(stringResource(R.string.lyrics_romanize_as_main)) },
@@ -209,6 +236,27 @@ fun RomanizationSettings(
                         )
                     },
                     onClick = { onLyricsRomanizePunjabiChange(!lyricsRomanizePunjabi) },
+                    isExpressive = true
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.language),
+                    title = { Text(stringResource(R.string.lyrics_romanize_malayalam)) },
+                    trailingContent = {
+                        Switch(
+                            checked = lyricsRomanizeMalayalam,
+                            onCheckedChange = onLyricsRomanizeMalayalamChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (lyricsRomanizeMalayalam) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onLyricsRomanizeMalayalamChange(!lyricsRomanizeMalayalam) },
                     isExpressive = true
                 )
             )

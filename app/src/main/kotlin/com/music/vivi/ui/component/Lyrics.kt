@@ -181,6 +181,7 @@ import com.music.vivi.constants.DarkModeKey
 import com.music.vivi.constants.LyricsAnimationStyle
 import com.music.vivi.constants.LyricsAnimationStyleKey
 import com.music.vivi.constants.LyricsClickKey
+import com.music.vivi.constants.LyricsRomanizeAllKey
 import com.music.vivi.constants.LyricsRomanizeAsMainKey
 import com.music.vivi.constants.LyricsRomanizeBelarusianKey
 import com.music.vivi.constants.LyricsRomanizeBulgarianKey
@@ -188,6 +189,7 @@ import com.music.vivi.constants.LyricsRomanizeChineseKey
 import com.music.vivi.constants.LyricsRomanizeCyrillicByLineKey
 import com.music.vivi.constants.LyricsRomanizeHindiKey
 import com.music.vivi.constants.LyricsRomanizePunjabiKey
+import com.music.vivi.constants.LyricsRomanizeMalayalamKey
 import com.music.vivi.constants.LyricsRomanizeJapaneseKey
 import com.music.vivi.constants.LyricsRomanizeKoreanKey
 import com.music.vivi.constants.LyricsRomanizeKyrgyzKey
@@ -240,12 +242,7 @@ import com.music.vivi.lyrics.LyricsUtils.isRussian
 import com.music.vivi.lyrics.LyricsUtils.isSerbian
 import com.music.vivi.lyrics.LyricsUtils.isUkrainian
 import com.music.vivi.lyrics.LyricsUtils.parseLyrics
-import com.music.vivi.lyrics.LyricsUtils.romanizeChinese
-import com.music.vivi.lyrics.LyricsUtils.romanizeHindi
-import com.music.vivi.lyrics.LyricsUtils.romanizePunjabi
-import com.music.vivi.lyrics.LyricsUtils.romanizeCyrillic
-import com.music.vivi.lyrics.LyricsUtils.romanizeJapanese
-import com.music.vivi.lyrics.LyricsUtils.romanizeKorean
+import com.music.vivi.lyrics.LyricsRomanizationHelper
 import com.music.vivi.lyrics.LyricsTranslationHelper
 import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
@@ -306,10 +303,12 @@ fun Lyrics(
     val romanizeKyrgyzLyrics by rememberPreference(LyricsRomanizeKyrgyzKey, true)
     val romanizeMacedonianLyrics by rememberPreference(LyricsRomanizeMacedonianKey, true)
     val romanizeCyrillicByLine by rememberPreference(LyricsRomanizeCyrillicByLineKey, false)
+    val romanizeAllLyrics by rememberPreference(LyricsRomanizeAllKey, false)
     val romanizeAsMain by rememberPreference(LyricsRomanizeAsMainKey, false)
     val romanizeChineseLyrics by rememberPreference(LyricsRomanizeChineseKey, true)
     val romanizeHindiLyrics by rememberPreference(LyricsRomanizeHindiKey, true)
     val romanizePunjabiLyrics by rememberPreference(LyricsRomanizePunjabiKey, true)
+    val romanizeMalayalamLyrics by rememberPreference(LyricsRomanizeMalayalamKey, true)
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.VIVIMUSIC_1)
     val lyricsTextSize = 24f
     val lyricsLineSpacing = 1.3f
@@ -343,191 +342,56 @@ fun Lyrics(
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
 
-    val lines = remember(
-        lyrics, scope,
-        romanizeJapaneseLyrics, romanizeKoreanLyrics, romanizeRussianLyrics,
-        romanizeUkrainianLyrics, romanizeSerbianLyrics, romanizeBulgarianLyrics,
-        romanizeBelarusianLyrics, romanizeKyrgyzLyrics, romanizeMacedonianLyrics,
-        romanizeCyrillicByLine, romanizeChineseLyrics, romanizeHindiLyrics, romanizePunjabiLyrics
-    ) {
+    val lines = remember(lyrics) {
         if (lyrics == null || lyrics == LYRICS_NOT_FOUND) {
             emptyList()
         } else if (lyrics.startsWith("[")) {
             val parsedLines = parseLyrics(lyrics)
-
-            val isRussianLyrics = romanizeRussianLyrics && !romanizeCyrillicByLine && isRussian(lyrics)
-            val isUkrainianLyrics = romanizeUkrainianLyrics && !romanizeCyrillicByLine && isUkrainian(lyrics)
-            val isSerbianLyrics = romanizeSerbianLyrics && !romanizeCyrillicByLine && isSerbian(lyrics)
-            val isBulgarianLyrics = romanizeBulgarianLyrics && !romanizeCyrillicByLine && isBulgarian(lyrics)
-            val isBelarusianLyrics = romanizeBelarusianLyrics && !romanizeCyrillicByLine && isBelarusian(lyrics)
-            val isKyrgyzLyrics = romanizeKyrgyzLyrics && !romanizeCyrillicByLine && isKyrgyz(lyrics)
-            val isMacedonianLyrics = romanizeMacedonianLyrics && !romanizeCyrillicByLine && isMacedonian(lyrics)
-
             parsedLines.map { entry ->
-                val newEntry = LyricsEntry(entry.time, entry.text, entry.words, agent = entry.agent, isBackground = entry.isBackground)
-                
-                if (romanizeJapaneseLyrics && isJapanese(entry.text) && !isChinese(entry.text)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeJapanese(entry.text)
-                    }
-                }
-
-                if (romanizeKoreanLyrics && isKorean(entry.text)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeKorean(entry.text)
-                    }
-                }
-
-                if (romanizeRussianLyrics && (if (romanizeCyrillicByLine) isRussian(entry.text) else isRussianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeUkrainianLyrics && (if (romanizeCyrillicByLine) isUkrainian(entry.text) else isUkrainianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeSerbianLyrics && (if (romanizeCyrillicByLine) isSerbian(entry.text) else isSerbianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeBulgarianLyrics && (if (romanizeCyrillicByLine) isBulgarian(entry.text) else isBulgarianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeBelarusianLyrics && (if (romanizeCyrillicByLine) isBelarusian(entry.text) else isBelarusianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeKyrgyzLyrics && (if (romanizeCyrillicByLine) isKyrgyz(entry.text) else isKyrgyzLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeMacedonianLyrics && (if (romanizeCyrillicByLine) isMacedonian(entry.text) else isMacedonianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(entry.text)
-                    }
-                }
-
-                else if (romanizeChineseLyrics && isChinese(entry.text)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeChinese(entry.text)
-                    }
-                }
-
-                else if (romanizeHindiLyrics && isHindi(entry.text)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeHindi(entry.text)
-                    }
-                }
-
-                else if (romanizePunjabiLyrics && isPunjabi(entry.text)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizePunjabi(entry.text)
-                    }
-                }
-
-                newEntry
+                LyricsEntry(entry.time, entry.text, entry.words, agent = entry.agent, isBackground = entry.isBackground)
             }.let {
                 listOf(LyricsEntry.HEAD_LYRICS_ENTRY) + it
             }
         } else {
-            val isRussianLyrics = romanizeRussianLyrics && !romanizeCyrillicByLine && isRussian(lyrics)
-            val isUkrainianLyrics = romanizeUkrainianLyrics && !romanizeCyrillicByLine && isUkrainian(lyrics)
-            val isSerbianLyrics = romanizeSerbianLyrics && !romanizeCyrillicByLine && isSerbian(lyrics)
-            val isBulgarianLyrics = romanizeBulgarianLyrics && !romanizeCyrillicByLine && isBulgarian(lyrics)
-            val isBelarusianLyrics = romanizeBelarusianLyrics && !romanizeCyrillicByLine && isBelarusian(lyrics)
-            val isKyrgyzLyrics = romanizeKyrgyzLyrics && !romanizeCyrillicByLine && isKyrgyz(lyrics)
-            val isMacedonianLyrics = romanizeMacedonianLyrics && !romanizeCyrillicByLine && isMacedonian(lyrics)
-
             lyrics.lines().mapIndexed { index, line ->
-                val newEntry = LyricsEntry(index * 100L, line)
-
-                if (romanizeJapaneseLyrics && isJapanese(line) && !isChinese(line)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeJapanese(line)
-                    }
-                }
-
-                if (romanizeKoreanLyrics && isKorean(line)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeKorean(line)
-                    }
-                }
-
-                if (romanizeRussianLyrics && (if (romanizeCyrillicByLine) isRussian(line) else isRussianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeUkrainianLyrics && (if (romanizeCyrillicByLine) isUkrainian(line) else isUkrainianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeSerbianLyrics && (if (romanizeCyrillicByLine) isSerbian(line) else isSerbianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeBulgarianLyrics && (if (romanizeCyrillicByLine) isBulgarian(line) else isBulgarianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeBelarusianLyrics && (if (romanizeCyrillicByLine) isBelarusian(line) else isBelarusianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeKyrgyzLyrics && (if (romanizeCyrillicByLine) isKyrgyz(line) else isKyrgyzLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeMacedonianLyrics && (if (romanizeCyrillicByLine) isMacedonian(line) else isMacedonianLyrics)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeCyrillic(line)
-                    }
-                }
-
-                else if (romanizeChineseLyrics && isChinese(line)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeChinese(line)
-                    }
-                }
-
-                else if (romanizeHindiLyrics && isHindi(line)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizeHindi(line)
-                    }
-                }
-
-                else if (romanizePunjabiLyrics && isPunjabi(line)) {
-                    scope.launch {
-                        newEntry.romanizedTextFlow.value = romanizePunjabi(line)
-                    }
-                }
-
-                newEntry
+                LyricsEntry(index * 100L, line)
             }
+        }
+    }
+
+    LaunchedEffect(
+        lines, currentSong?.id, currentSong?.romanizeLyrics, romanizeAllLyrics,
+        romanizeJapaneseLyrics, romanizeKoreanLyrics, romanizeRussianLyrics,
+        romanizeUkrainianLyrics, romanizeSerbianLyrics, romanizeBulgarianLyrics,
+        romanizeBelarusianLyrics, romanizeKyrgyzLyrics, romanizeMacedonianLyrics,
+        romanizeChineseLyrics, romanizeHindiLyrics, romanizePunjabiLyrics, romanizeMalayalamLyrics
+    ) {
+        if (lines.isNotEmpty() && currentSong?.romanizeLyrics != false) {
+            val enabledLanguages: Set<String>? = if (romanizeAllLyrics) {
+                null
+            } else {
+                buildSet<String> {
+                    if (romanizeJapaneseLyrics) add("ja")
+                    if (romanizeKoreanLyrics) add("ko")
+                    if (romanizeChineseLyrics) add("zh-CN")
+                    if (romanizeHindiLyrics) add("hi")
+                    if (romanizePunjabiLyrics) add("pa")
+                    if (romanizeMalayalamLyrics) add("ml")
+                    if (romanizeRussianLyrics) add("ru")
+                    if (romanizeUkrainianLyrics) add("uk")
+                    if (romanizeSerbianLyrics) add("sr")
+                    if (romanizeBulgarianLyrics) add("bg")
+                    if (romanizeBelarusianLyrics) add("be")
+                    if (romanizeKyrgyzLyrics) add("ky")
+                    if (romanizeMacedonianLyrics) add("mk")
+                }
+            }
+            LyricsRomanizationHelper.romanizeLyrics(
+                lyrics = lines,
+                songId = currentSong?.id ?: lyricsEntity?.id ?: "",
+                context = context,
+                enabledLanguages = enabledLanguages
+            )
         }
     }
     val isSynced =
@@ -1170,7 +1034,8 @@ fun Lyrics(
                     lyricsTextPosition = lyricsTextPosition,
                     textColor = textColor,
                     showRomanized = currentSong?.romanizeLyrics == true && (
-                            romanizeJapaneseLyrics ||
+                            romanizeAllLyrics ||
+                                    romanizeJapaneseLyrics ||
                                     romanizeKoreanLyrics ||
                                     romanizeRussianLyrics ||
                                     romanizeUkrainianLyrics ||
@@ -1181,7 +1046,8 @@ fun Lyrics(
                                     romanizeMacedonianLyrics ||
                                     romanizeChineseLyrics ||
                                     romanizeHindiLyrics ||
-                                    romanizePunjabiLyrics),
+                                    romanizePunjabiLyrics ||
+                                    romanizeMalayalamLyrics),
                     showTranslated = hasActiveTranslations,
                     isAutoScrollActive = isAutoScrollEnabled,
                     isSelectionModeActive = isSelectionModeActive,
@@ -1656,7 +1522,8 @@ fun Lyrics(
                     val isSelected = selectedIndices.contains(index)
                     if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                         val showRomanized = (currentSong?.romanizeLyrics != false) && (
-                                romanizeJapaneseLyrics ||
+                                romanizeAllLyrics ||
+                                        romanizeJapaneseLyrics ||
                                         romanizeKoreanLyrics ||
                                         romanizeRussianLyrics ||
                                         romanizeUkrainianLyrics ||
@@ -1667,7 +1534,8 @@ fun Lyrics(
                                         romanizeMacedonianLyrics ||
                                         romanizeChineseLyrics ||
                                         romanizeHindiLyrics ||
-                                        romanizePunjabiLyrics)
+                                        romanizePunjabiLyrics ||
+                                        romanizeMalayalamLyrics)
 
                         val romanizedText by item.romanizedTextFlow.collectAsState()
                         val isRomanizedAvailable = showRomanized && romanizedText != null
@@ -2229,7 +2097,8 @@ fun Lyrics(
                             lyricsTextPosition = lyricsTextPosition,
                             textColor = textColor,
                             showRomanized = currentSong?.romanizeLyrics == true && (
-                                    romanizeJapaneseLyrics ||
+                                    romanizeAllLyrics ||
+                                            romanizeJapaneseLyrics ||
                                             romanizeKoreanLyrics ||
                                             romanizeRussianLyrics ||
                                             romanizeUkrainianLyrics ||
@@ -2240,7 +2109,8 @@ fun Lyrics(
                                             romanizeMacedonianLyrics ||
                                             romanizeChineseLyrics ||
                                             romanizeHindiLyrics ||
-                                            romanizePunjabiLyrics),
+                                            romanizePunjabiLyrics ||
+                                            romanizeMalayalamLyrics),
                             showTranslated = hasActiveTranslations,
                             isAutoScrollActive = isAutoScrollEnabled,
                             isSelectionModeActive = isSelectionModeActive,
@@ -2520,7 +2390,8 @@ fun Lyrics(
                             )
                         }
                         if (currentSong?.romanizeLyrics == true
-                            && (romanizeJapaneseLyrics ||
+                            && (romanizeAllLyrics ||
+                                    romanizeJapaneseLyrics ||
                                     romanizeKoreanLyrics ||
                                     romanizeRussianLyrics ||
                                     romanizeUkrainianLyrics ||
@@ -2531,7 +2402,8 @@ fun Lyrics(
                                     romanizeMacedonianLyrics ||
                                     romanizeChineseLyrics ||
                                     romanizeHindiLyrics ||
-                                    romanizePunjabiLyrics)) {
+                                    romanizePunjabiLyrics ||
+                                    romanizeMalayalamLyrics)) {
                             // Show secondary text (romanized or original) if available
                             subText?.let { text ->
                                 Text(

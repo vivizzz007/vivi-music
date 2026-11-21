@@ -6,8 +6,6 @@
 package com.music.vivi.lyrics
 
 import android.text.format.DateUtils
-import com.atilika.kuromoji.ipadic.Tokenizer
-import com.github.promeg.pinyinhelper.Pinyin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -315,11 +313,6 @@ object LyricsUtils {
     private val MACEDONIAN_SPECIFIC_CYRILLIC_LETTERS = setOf(
         "Ѓ", "ѓ", "Ѕ", "ѕ", "Ќ", "ќ"
     )
-
-    // Lazy initialized Tokenizer
-    private val kuromojiTokenizer: Tokenizer by lazy {
-        Tokenizer()
-    }
 
     private val HEX_ENTITY_REGEX = "&#x([0-9a-fA-F]+);".toRegex()
     private val DEC_ENTITY_REGEX = "&#(\\d+);".toRegex()
@@ -733,23 +726,8 @@ object LyricsUtils {
         return romajiBuilder.toString().lowercase()
     }
 
-    suspend fun romanizeJapanese(text: String): String = withContext(Dispatchers.Default) {
-        val tokens = kuromojiTokenizer.tokenize(text)
-        val romanizedTokens = tokens.mapIndexed { index, token ->
-            val currentReading = if (token.reading.isNullOrEmpty() || token.reading == "*") {
-                token.surface
-            } else {
-                token.reading
-            }
-            val nextTokenReading = if (index + 1 < tokens.size) {
-                tokens[index + 1].reading?.takeIf { it.isNotEmpty() && it != "*" } ?: tokens[index + 1].surface
-            } else {
-                null
-            }
-            katakanaToRomaji(currentReading, nextTokenReading)
-        }
-        romanizedTokens.joinToString(" ")
-    }
+    suspend fun romanizeJapanese(text: String): String =
+        LyricsRomanizationHelper.romanizeText(text, languageHint = "ja")
 
     fun katakanaToRomaji(katakana: String?, nextKatakana: String? = null): String {
         if (katakana.isNullOrEmpty()) return ""
@@ -840,23 +818,8 @@ object LyricsUtils {
         romajaBuilder.toString()
     }
 
-    suspend fun romanizeChinese(text: String): String = withContext(Dispatchers.Default) {
-        if (text.isEmpty()) return@withContext ""
-        val builder = StringBuilder(text.length * 2)
-        for (ch in text) {
-            if (ch in '\u4E00'..'\u9FFF') {
-                val py = Pinyin.toPinyin(ch).lowercase(Locale.getDefault())
-                builder.append(py).append(' ')
-            } else {
-                builder.append(ch)
-            }
-        }
-        // Remove whitespaces before ASCII and CJK punctuations
-        builder.toString()
-            .replace(Regex("\\s+([,.!?;:])"), "$1")
-            .replace(Regex("\\s+([，。！？；：、（）《》〈〉【】『』「」])"), "$1")
-            .trim()
-    }
+    suspend fun romanizeChinese(text: String): String =
+        LyricsRomanizationHelper.romanizeText(text, languageHint = "zh-CN")
 
     suspend fun romanizeCyrillic(text: String): String? = withContext(Dispatchers.Default) {
         if (text.isEmpty()) return@withContext null
