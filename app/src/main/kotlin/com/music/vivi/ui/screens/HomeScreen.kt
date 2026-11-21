@@ -75,7 +75,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -429,16 +428,6 @@ fun HomeScreen(
             lazylistState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
-    }
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { lazylistState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .collect { lastVisibleIndex ->
-                val len = lazylistState.layoutInfo.totalItemsCount
-                if (lastVisibleIndex != null && lastVisibleIndex >= len - 3) {
-                    viewModel.loadMoreYouTubeItems(homePage?.continuation)
-                }
-            }
     }
 
     NetworkReload(
@@ -1806,52 +1795,6 @@ fun HomeScreen(
                                 }
                             }
 
-                        }
-                    }
-                }
-
-                if (isLoading || homePage?.continuation != null && homePage?.sections?.isNotEmpty() == true) {
-                    item(key = "loading_shimmer") {
-                        ShimmerHost(
-                            modifier = Modifier.animateItem()
-                        ) {
-                            repeat(2) {
-                                TextPlaceholder(
-                                    height = 36.dp,
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                        .width(250.dp),
-                                )
-                                LazyRow(
-                                    contentPadding = WindowInsets.systemBars
-                                        .only(WindowInsetsSides.Horizontal)
-                                        .asPaddingValues(),
-                                ) {
-                                    items(4) {
-                                        GridItemPlaceHolder()
-                                    }
-                                }
-                            }
-
-                            TextPlaceholder(
-                                height = 36.dp,
-                                modifier = Modifier
-                                    .padding(vertical = 12.dp, horizontal = 12.dp)
-                                    .width(250.dp),
-                            )
-                            repeat(4) {
-                                Row {
-                                    repeat(2) {
-                                        TextPlaceholder(
-                                            height = MoodAndGenresButtonHeight,
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier
-                                                .padding(horizontal = 12.dp)
-                                                .width(200.dp)
-                                        )
-                                    }
-                                }
-                            }
                         }
                     }
                 }

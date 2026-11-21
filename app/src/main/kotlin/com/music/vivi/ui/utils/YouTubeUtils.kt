@@ -6,7 +6,6 @@
 package com.music.vivi.ui.utils
 
 import com.music.vivi.constants.DataSaverKey
-import timber.log.Timber
 
 /**
  * Global flag indicating whether Data Saver is active.
@@ -14,6 +13,11 @@ import timber.log.Timber
  */
 @Volatile
 var isDataSaverEnabled: Boolean = false
+
+private val GoogleParamRegex = Regex("=[wshd]\\d+")
+private val GooglePathDimRegex = Regex("w\\d+-h\\d+")
+private val GoogleBaseSplitRegex = Regex("=[wshd]")
+private val YtVideoIdRegex = Regex("/vi(?:_webp)?/([^/]+)/")
 
 /**
  * Resizes a Google CDN or YouTube thumbnail URL to the requested dimensions.
@@ -27,7 +31,7 @@ fun String.resize(
     // Detect Google CDN URLs (including googleusercontent.com, ggpht.com, or any domain using Google parameter format like '=w120')
     val isGoogleCdn = this.contains("googleusercontent.com") || 
                       this.contains("ggpht.com") || 
-                      this.contains(Regex("=[wshd]\\d+"))
+                      GoogleParamRegex.containsMatchIn(this)
 
     // Detect YouTube video thumbnails (containing i.ytimg.com, img.youtube.com, or path segment /vi/)
     val isYtimg = this.contains("ytimg") || this.contains("youtube.com") || this.contains("/vi/")
@@ -57,12 +61,12 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
     }
 
     // Handle wNNN-hNNN path segment style parameters
-    if (this.contains(Regex("w\\d+-h\\d+"))) {
-        return this.replace(Regex("w\\d+-h\\d+"), "w$w-h$h")
+    if (GooglePathDimRegex.containsMatchIn(this)) {
+        return GooglePathDimRegex.replace(this, "w$w-h$h")
     }
 
     // Safely extract base URL by stripping any parameters like =w120, =s120, =h120, etc.
-    val baseUrl = this.split(Regex("=[wshd]"), limit = 2)[0]
+    val baseUrl = this.split(GoogleBaseSplitRegex, limit = 2)[0]
     return "$baseUrl=w$w-h$h-p-l90-rj"
 }
 
@@ -81,30 +85,22 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
  */
 private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
     // Extract video ID using regex that matches any standard YouTube thumbnail path
-    val videoId = Regex("/vi(?:_webp)?/([^/]+)/").find(this)?.groupValues?.get(1)
-    if (videoId == null) {
-        Timber.w("[Thumbnail] resizeYtimg: could not extract videoId from: $this")
-        return this
-    }
+    val videoId = YtVideoIdRegex.find(this)?.groupValues?.get(1) ?: return this
 
     if (isDataSaverEnabled) {
         val w = width ?: height ?: 150
-        val result = when {
+        return when {
             w >= 800 -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
             else     -> "https://i.ytimg.com/vi/$videoId/default.jpg"
         }
-        Timber.d("[Thumbnail] resizeYtimg (dataSaver): id=$videoId w=$w → $result")
-        return result
     }
 
     val w = width ?: height ?: 1200
-    val result = when {
+    return when {
         w >= 800  -> "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
         w >= 320  -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
         else      -> "https://i.ytimg.com/vi/$videoId/default.jpg"
     }
-    Timber.d("[Thumbnail] resizeYtimg: id=$videoId w=$w → $result")
-    return result
 }
 
 
