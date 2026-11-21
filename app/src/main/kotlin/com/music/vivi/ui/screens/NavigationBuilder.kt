@@ -42,6 +42,8 @@ import com.music.vivi.ui.screens.settings.AboutScreen
 import com.music.vivi.ui.screens.settings.AppearanceSettings
 import com.music.vivi.ui.screens.settings.MotionartworkSelection
 import com.music.vivi.ui.screens.settings.FontSelectionScreen
+import com.music.vivi.ui.screens.settings.LiveMeshMotionScreen
+import com.music.vivi.ui.screens.settings.LiveMeshPresetsScreen
 import com.music.vivi.ui.screens.settings.BackupAndRestore
 import com.music.vivi.ui.screens.settings.AutoBackupSettings
 import com.music.vivi.ui.screens.settings.SpotifyLoginScreen
@@ -381,6 +383,13 @@ fun NavGraphBuilder.navigationBuilder(
 
     composable("settings/appearance/font") {
         FontSelectionScreen(navController, scrollBehavior)
+    }
+
+    composable("settings/appearance/live_mesh_presets") {
+        LiveMeshPresetsScreen(navController)
+    }
+    composable("settings/appearance/live_mesh_motion") {
+        LiveMeshMotionScreen(navController)
     }
 
     composable("settings/content") {

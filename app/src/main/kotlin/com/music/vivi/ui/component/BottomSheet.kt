@@ -314,6 +314,10 @@ const val expandedAnchor = 2
 const val collapsedAnchor = 1
 const val dismissedAnchor = 0
 
+// A new track brings the mini player back only when the user had swiped it away.
+internal fun shouldRevealPlayerForTrack(hasTrack: Boolean, isDismissed: Boolean): Boolean =
+    hasTrack && isDismissed
+
 @Composable
 fun rememberBottomSheetState(
     dismissedBound: Dp,

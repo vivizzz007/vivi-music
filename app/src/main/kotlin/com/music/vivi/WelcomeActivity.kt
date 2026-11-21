@@ -89,7 +89,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.runtime.State
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
@@ -125,6 +126,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.music.vivi.constants.IsFirstRunKey
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import com.music.vivi.ui.utils.safeOpenUri
 import com.music.vivi.utils.dataStore
 import com.music.vivi.utils.get
@@ -1075,7 +1077,7 @@ fun BlobClusterLoading(modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.primaryContainer,
             modifier = Modifier
                 .size(140.dp)
-                .rotate(rotation1)
+                .graphicsLayer { rotationZ = rotation1 }
         )
         // Blob 2 (medium, secondary, offset)
         Icon(
@@ -1084,7 +1086,7 @@ fun BlobClusterLoading(modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.secondaryContainer,
             modifier = Modifier
                 .size(100.dp)
-                .rotate(rotation2)
+                .graphicsLayer { rotationZ = rotation2 }
                 .align(Alignment.TopStart)
                 .padding(top = 16.dp, start = 16.dp)
         )
@@ -1095,7 +1097,7 @@ fun BlobClusterLoading(modifier: Modifier = Modifier) {
             tint = MaterialTheme.colorScheme.tertiaryContainer,
             modifier = Modifier
                 .size(80.dp)
-                .rotate(rotation3)
+                .graphicsLayer { rotationZ = rotation3 }
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 8.dp, end = 8.dp)
         )
@@ -1104,7 +1106,8 @@ fun BlobClusterLoading(modifier: Modifier = Modifier) {
 
 @Composable
 fun RotatingShapeContainer(modifier: Modifier = Modifier, rotate: Boolean = true) {
-    val rotation = if (rotate) {
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+    val rotation: State<Float>? = if (rotate && !reduceBackgroundEffects) {
         val infiniteTransition = rememberInfiniteTransition(label = "shapeRotation")
         infiniteTransition.animateFloat(
             initialValue = 0f,
@@ -1114,9 +1117,9 @@ fun RotatingShapeContainer(modifier: Modifier = Modifier, rotate: Boolean = true
                 repeatMode = RepeatMode.Restart
             ),
             label = "rotation"
-        ).value
+        )
     } else {
-        0f
+        null
     }
 
     val primaryColor = MaterialTheme.colorScheme.primary
@@ -1132,7 +1135,7 @@ fun RotatingShapeContainer(modifier: Modifier = Modifier, rotate: Boolean = true
             tint = primaryColor,
             modifier = Modifier
                 .fillMaxSize()
-                .rotate(rotation)
+                .graphicsLayer { rotationZ = rotation?.value ?: 0f }
         )
 
         Icon(

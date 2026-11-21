@@ -19,10 +19,12 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.Spring
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.graphicsLayer
+import com.music.vivi.ui.utils.rememberReduceBackgroundEffects
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
@@ -42,8 +44,12 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -247,6 +253,26 @@ fun ChangelogItem(
     }
 }
 
+// The spring follows the live angle without reading it during composition, so the blobs redraw in the layer phase only.
+@Composable
+private fun rememberSmoothedAngle(
+    staticAngle: Float,
+    animate: Boolean,
+    liveAngle: State<Float>,
+): Animatable<Float, AnimationVector1D> {
+    val angle = remember { Animatable(staticAngle) }
+    LaunchedEffect(Unit) {
+        angle.snapTo(if (animate) liveAngle.value else staticAngle)
+    }
+    LaunchedEffect(animate) {
+        snapshotFlow { if (animate) liveAngle.value else staticAngle }
+            .collectLatest { target ->
+                angle.animateTo(target, spring(stiffness = Spring.StiffnessLow))
+            }
+    }
+    return angle
+}
+
 @Composable
 fun UpdaterBlobCluster(
     modifier: Modifier = Modifier,
@@ -285,22 +311,13 @@ fun UpdaterBlobCluster(
         label = "r3"
     )
 
+    val reduceBackgroundEffects = rememberReduceBackgroundEffects()
+    val animateRotation = rotate && !reduceBackgroundEffects
+
     // Smoothly follow the rotation state when rotating, and spring back to static starting angle when stopped!
-    val rotation1 by animateFloatAsState(
-        targetValue = if (rotate) rotation1State.value else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "smoothR1"
-    )
-    val rotation2 by animateFloatAsState(
-        targetValue = if (rotate) rotation2State.value else 45f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "smoothR2"
-    )
-    val rotation3 by animateFloatAsState(
-        targetValue = if (rotate) rotation3State.value else 90f,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
-        label = "smoothR3"
-    )
+    val rotation1 = rememberSmoothedAngle(staticAngle = 0f, animate = animateRotation, liveAngle = rotation1State)
+    val rotation2 = rememberSmoothedAngle(staticAngle = 45f, animate = animateRotation, liveAngle = rotation2State)
+    val rotation3 = rememberSmoothedAngle(staticAngle = 90f, animate = animateRotation, liveAngle = rotation3State)
 
     val primaryColorTarget = if (isError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
     val secondaryColorTarget = if (isError) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f) else MaterialTheme.colorScheme.secondaryContainer
@@ -333,7 +350,7 @@ fun UpdaterBlobCluster(
             tint = primaryContainer,
             modifier = Modifier
                 .size(140.dp)
-                .rotate(rotation1)
+                .graphicsLayer { rotationZ = rotation1.value }
         )
         // Blob 2 (medium)
         Icon(
@@ -342,7 +359,7 @@ fun UpdaterBlobCluster(
             tint = secondaryContainer,
             modifier = Modifier
                 .size(100.dp)
-                .rotate(rotation2)
+                .graphicsLayer { rotationZ = rotation2.value }
                 .align(Alignment.TopStart)
                 .padding(top = 16.dp, start = 16.dp)
         )
@@ -353,7 +370,7 @@ fun UpdaterBlobCluster(
             tint = tertiaryContainer,
             modifier = Modifier
                 .size(80.dp)
-                .rotate(rotation3)
+                .graphicsLayer { rotationZ = rotation3.value }
                 .align(Alignment.BottomEnd)
                 .padding(bottom = 8.dp, end = 8.dp)
         )

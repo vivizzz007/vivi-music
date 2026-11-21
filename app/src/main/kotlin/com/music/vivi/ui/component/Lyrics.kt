@@ -97,7 +97,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradientShader
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -151,6 +150,9 @@ import com.music.vivi.constants.LyricsRomanizeMacedonianKey
 import com.music.vivi.constants.LyricsRomanizeRussianKey
 import com.music.vivi.constants.LyricsRomanizeSerbianKey
 import com.music.vivi.constants.LyricsRomanizeUkrainianKey
+import com.music.vivi.constants.LyricsBlurDurationKey
+import com.music.vivi.constants.LyricsBlurLeadKey
+import com.music.vivi.constants.LyricsBlurStrengthKey
 import com.music.vivi.constants.LyricsStandardBlurKey
 import com.music.vivi.constants.LyricsScrollKey
 import com.music.vivi.constants.LyricsTextPositionKey
@@ -208,7 +210,15 @@ import com.music.vivi.ui.component.shimmer.ShimmerHost
 import com.music.vivi.ui.component.shimmer.TextPlaceholder
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.screens.settings.LyricsPosition
+import com.music.vivi.ui.utils.LYRICS_BLUR_DURATION_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_LEAD_DEFAULT_MS
+import com.music.vivi.ui.utils.LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT
 import com.music.vivi.ui.utils.fadingEdge
+import com.music.vivi.ui.utils.animatedLyricsBlur
+import com.music.vivi.ui.utils.lyricsBlurRadiusDp
+import com.music.vivi.ui.utils.layerBlur
+import com.music.vivi.ui.utils.lyricsLineBlurTarget
+import com.music.vivi.ui.utils.rememberWindowedLyricsPosition
 import com.music.vivi.utils.ComposeToImage
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
@@ -269,7 +279,10 @@ fun Lyrics(
     val lyricsAnimationStyle by rememberEnumPreference(LyricsAnimationStyleKey, LyricsAnimationStyle.VIVIMUSIC_1)
     val lyricsTextSize by rememberPreference(LyricsTextSizeKey, 24f)
     val lyricsLineSpacing by rememberPreference(LyricsLineSpacingKey, 1.3f)
-    val lyricsStandardBlur by rememberPreference(LyricsStandardBlurKey, false)
+    val lyricsStandardBlur by rememberPreference(LyricsStandardBlurKey, true)
+    val lyricsBlurDuration by rememberPreference(LyricsBlurDurationKey, LYRICS_BLUR_DURATION_DEFAULT_MS)
+    val lyricsBlurLead by rememberPreference(LyricsBlurLeadKey, LYRICS_BLUR_LEAD_DEFAULT_MS)
+    val lyricsBlurStrength by rememberPreference(LyricsBlurStrengthKey, LYRICS_BLUR_STRENGTH_DEFAULT_PERCENT)
     
     val openRouterApiKey by rememberPreference(OpenRouterApiKey, "")
     val deeplApiKey by rememberPreference(DeeplApiKey, "")
@@ -561,9 +574,9 @@ fun Lyrics(
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
     }
-    var currentPlaybackPosition by remember {
-        mutableLongStateOf(0L)
-    }
+    // Written every frame; lines read it through rememberWindowedLyricsPosition so only lines near the current one recompose.
+    val playbackPositionState = remember { mutableLongStateOf(0L) }
+    var currentPlaybackPosition by playbackPositionState
     // Because LaunchedEffect has delay, which leads to inconsistent with current line color and scroll animation,
     // we use deferredCurrentLineIndex when user is scrolling
     var deferredCurrentLineIndex by rememberSaveable {
@@ -1074,9 +1087,17 @@ fun Lyrics(
                 val isSelected = selectedIndices.contains(index)
 
                 val lyricsOffset = currentSong?.song?.lyricsOffset?.toLong() ?: 0L
-                val effectivePlaybackPosition = currentPlaybackPosition + lyricsOffset
-
                 val pairedMainLineIndex = if (item.isBackground) (index - 1 downTo 0).firstOrNull { lines.getOrNull(it)?.isBackground == false } ?: -1 else -1
+                // A background line also reacts while its main line plays, so its window opens at the main line.
+                val windowStart = lines.getOrNull(pairedMainLineIndex)?.time?.coerceAtMost(item.time) ?: item.time
+                val effectivePlaybackPosition = rememberWindowedLyricsPosition(
+                    position = playbackPositionState,
+                    offsetMs = lyricsOffset,
+                    entryTime = windowStart,
+                    nextEntryTime = lines.getOrNull(index + 1)?.time,
+                    lastWordEndMs = item.words?.lastOrNull()?.let { (it.endTime * 1000).toLong() },
+                )
+
                 val isInGapWithMain = if (item.isBackground && pairedMainLineIndex != -1) {
                     val pairedMainLine = lines[pairedMainLineIndex]
                     effectivePlaybackPosition >= pairedMainLine.time && effectivePlaybackPosition <= item.time
@@ -1112,6 +1133,10 @@ fun Lyrics(
                     isSelected = isSelected,
                     expressiveAccent = expressiveAccent,
                     bgVisible = bgVisible,
+                    blurEnabled = lyricsStandardBlur,
+                    blurDurationMs = lyricsBlurDuration,
+                    blurLeadMs = lyricsBlurLead,
+                    blurStrengthPercent = lyricsBlurStrength,
                     onClick = {
                         if (isSelectionModeActive) {
                             if (isSelected) {
@@ -1375,13 +1400,19 @@ fun Lyrics(
                                         metroLyricsLineWrapper(listItem.index, listItem.entry)
                                     }
                                     is LyricsListItem.Indicator -> {
+                                        val gapEndMs = listItem.gapEndMs - 650L
+                                        val indicatorPosition by remember(listItem) {
+                                            derivedStateOf {
+                                                playbackPositionState.longValue.coerceIn(listItem.gapStartMs - 1L, gapEndMs + 1L)
+                                            }
+                                        }
                                         val indicatorVisible = isAutoScrollEnabled &&
-                                            currentPlaybackPosition >= listItem.gapStartMs &&
-                                            currentPlaybackPosition <= listItem.gapEndMs - 650L
+                                            indicatorPosition >= listItem.gapStartMs &&
+                                            indicatorPosition <= gapEndMs
                                         IntervalIndicator(
                                             gapStartMs = listItem.gapStartMs,
-                                            gapEndMs = listItem.gapEndMs - 650L,
-                                            currentPositionMs = currentPlaybackPosition,
+                                            gapEndMs = gapEndMs,
+                                            currentPositionMs = indicatorPosition,
                                             visible = indicatorVisible,
                                             color = expressiveAccent,
                                             modifier = Modifier
@@ -1471,12 +1502,21 @@ fun Lyrics(
                 }
             } else {
                 val lyricsOffset = currentSong?.song?.lyricsOffset?.toLong() ?: 0L
-                val effectivePlaybackPosition = currentPlaybackPosition + lyricsOffset
 
                 itemsIndexed(
                     items = lines,
                     key = { index, item -> "$index-${item.time}" } // Add stable key
                 ) { index, item ->
+                    val pairedMainTime = if (item.isBackground) {
+                        (index - 1 downTo 0).firstOrNull { lines.getOrNull(it)?.isBackground == false }?.let { lines[it].time }
+                    } else null
+                    val effectivePlaybackPosition = rememberWindowedLyricsPosition(
+                        position = playbackPositionState,
+                        offsetMs = lyricsOffset,
+                        entryTime = pairedMainTime?.coerceAtMost(item.time) ?: item.time,
+                        nextEntryTime = lines.getOrNull(index + 1)?.time,
+                        lastWordEndMs = item.words?.lastOrNull()?.let { (it.endTime * 1000).toLong() },
+                    )
                     val isSelected = selectedIndices.contains(index)
                     if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1) {
                         val currentLineTime = if (displayedCurrentLineIndex >= 0 && displayedCurrentLineIndex < lines.size) {
@@ -1602,6 +1642,10 @@ fun Lyrics(
                             isSelected = isSelected,
                             expressiveAccent = expressiveAccent,
                             bgVisible = bgVisible,
+                            blurEnabled = lyricsStandardBlur,
+                            blurDurationMs = lyricsBlurDuration,
+                            blurLeadMs = lyricsBlurLead,
+                            blurStrengthPercent = lyricsBlurStrength,
                             onClick = {
                                 if (isSelectionModeActive) {
                                     if (isSelected) {
@@ -1743,22 +1787,25 @@ fun Lyrics(
 
                     // Progressive blur logic for Standard / non-word-by-word lyrics
                     // mirrored from Apple Music animation style for a premium feel
-                    val targetBlur = if (!lyricsStandardBlur || !isAutoScrollEnabled || (isSelectionModeActive && isSelected) || isActiveByIndex || isActiveByTime) {
-                        0f
-                    } else {
-                        val distance = kotlin.math.abs(index - (if (displayedCurrentLineIndex >= 0) displayedCurrentLineIndex else currentLineIndex))
-                        when (distance) {
-                            1 -> 0f
-                            2 -> 0f
-                            3 -> 2f
-                            4 -> 4f
-                            else -> 6f
-                        }
-                    }
+                    val targetBlur = lyricsLineBlurTarget(
+                        enabled = lyricsStandardBlur,
+                        autoScrollActive = isAutoScrollEnabled,
+                        isActive = isActiveByIndex || isActiveByTime,
+                        isBackground = item.isBackground,
+                        isSynced = isSynced,
+                        selectionActive = isSelectionModeActive,
+                        isSelected = isSelected,
+                        distance = kotlin.math.abs(index - (if (displayedCurrentLineIndex >= 0) displayedCurrentLineIndex else currentLineIndex)),
+                        entryTime = item.time,
+                        nextEntryTime = lines.getOrNull(index + 1)?.time,
+                        position = effectivePlaybackPosition,
+                        leadMs = lyricsBlurLead,
+                        strengthPercent = lyricsBlurStrength,
+                    )
 
-                    val blurRadius by animateFloatAsState(
+                    val blurRadius = animateFloatAsState(
                         targetValue = targetBlur,
-                        animationSpec = tween(durationMillis = 1000),
+                        animationSpec = tween(durationMillis = lyricsBlurDuration),
                         label = "standard_blur"
                     )
 
@@ -1797,7 +1844,7 @@ fun Lyrics(
                                 this.scaleX = scale * bgScale
                                 this.scaleY = scale * bgScale
                             }
-                            .blur(blurRadius.dp),
+                            .layerBlur { blurRadius.value },
                         horizontalAlignment = agentAlignment
                     ) {
                         // Use time-based active check to sync both main and background lines with same timestamp
@@ -2250,10 +2297,29 @@ fun Lyrics(
                                 }
                             }
                         } else if (lyricsAnimationStyle == LyricsAnimationStyle.LYRICS_V2) {
+                            val lyricsV2BlurTarget = lyricsLineBlurTarget(
+                                enabled = lyricsStandardBlur,
+                                autoScrollActive = isAutoScrollEnabled,
+                                isActive = isActiveLine,
+                                isBackground = item.isBackground,
+                                isSynced = isSynced,
+                                selectionActive = isSelectionModeActive,
+                                isSelected = isSelected,
+                                distance = kotlin.math.abs(index - displayedCurrentLineIndex),
+                                entryTime = item.time,
+                                nextEntryTime = lines.getOrNull(index + 1)?.time,
+                                position = effectivePlaybackPosition,
+                                leadMs = lyricsBlurLead,
+                                strengthPercent = lyricsBlurStrength,
+                            )
+                            val lineStarted by remember(item.time) {
+                                derivedStateOf { item.time < playbackPositionState.longValue }
+                            }
+                            Box(modifier = Modifier.fillMaxWidth().animatedLyricsBlur(lyricsV2BlurTarget, lyricsBlurDuration)) {
                             LyricsLineV2(
                                 entry = item,
                                 isActive = isActiveLine,
-                                isPast = !isActiveLine && item.time < currentPlaybackPosition,
+                                isPast = !isActiveLine && lineStarted,
                                 effectivePlaybackPosition = effectivePlaybackPosition + 150L, // Visual tuning offset for land-on-beat feel
                                 expressiveAccent = expressiveAccent,
                                 inactiveAlpha = 0.35f, // Sync with ArchiveTune inactive alpha
@@ -2263,6 +2329,7 @@ fun Lyrics(
                                 agentAlignment = agentAlignment,
                                 agentTextAlign = agentTextAlign
                             )
+                            }
                         } else if (isActiveLine && lyricsGlowEffect) {
                             // Initial animation for glow fill from left to right
                             val fillProgress = remember { Animatable(0f) }
