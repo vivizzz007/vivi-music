@@ -65,9 +65,6 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
-import com.music.vivi.constants.SuggestionRegionKey
-import com.music.vivi.constants.SuggestionRegionSlugToName
-import com.music.vivi.ui.screens.search.suggestions.SuggestionRegionSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableBetterLyricsPortatoKey
@@ -179,7 +176,6 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = SYSTEM_DEFAULT)
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = SYSTEM_DEFAULT)
-    val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
 
@@ -227,7 +223,6 @@ fun ContentSettings(
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
-    var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     var showProxyConfigurationDialog by rememberSaveable {
@@ -657,14 +652,6 @@ fun ContentSettings(
         )
     }
 
-    if (showSuggestionSheet) {
-        SuggestionRegionSheet(
-            currentRegionSlug = suggestionRegion,
-            onRegionSelected = { onSuggestionRegionChange(it) },
-            onDismiss = { showSuggestionSheet = false }
-        )
-    }
-
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -695,16 +682,6 @@ fun ContentSettings(
                         )
                     },
                     onClick = { showContentCountryDialog = true }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.globe_location_pin),
-                    title = { Text("Suggestions Region") },
-                    description = {
-                        Text(
-                            SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
-                        )
-                    },
-                    onClick = { showSuggestionSheet = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
