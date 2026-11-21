@@ -165,6 +165,7 @@ buildTypes {
         warningsAsErrors = false
         abortOnError = false
         checkDependencies = false
+        disable += "ExtraTranslation"
     }
 
     androidResources {
