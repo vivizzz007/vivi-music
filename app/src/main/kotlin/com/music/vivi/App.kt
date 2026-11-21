@@ -413,6 +413,9 @@ Configuration.Provider {
         lateinit var context: Context
             private set
 
+        val applicationScope: CoroutineScope
+            get() = (context as App).applicationScope
+
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")
 

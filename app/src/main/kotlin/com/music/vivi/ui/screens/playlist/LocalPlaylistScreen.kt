@@ -158,6 +158,7 @@ import com.music.vivi.utils.listItemShape
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
+import timber.log.Timber
 import com.music.vivi.utils.reportException
 import com.music.vivi.viewmodels.LocalPlaylistViewModel
 import com.yalantis.ucrop.UCrop
@@ -269,6 +270,7 @@ fun LocalPlaylistScreen(
     }
 
     LaunchedEffect(songs) {
+        Timber.tag("PlaylistAdd").d("LocalPlaylistScreen: Rendered ${songs.size} songs in UI for playlist ${playlist?.playlist?.name} (id=${viewModel.playlistId}, browseId=${playlist?.playlist?.browseId})")
         mutableSongs.apply {
             clear()
             addAll(songs)
