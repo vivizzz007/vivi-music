@@ -12,6 +12,7 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import androidx.work.Configuration
 import org.json.JSONObject
 import com.music.spotify.Spotify
 import com.music.spotify.SpotifyAuth
@@ -60,7 +61,13 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App : Application(), SingletonImageLoader.Factory, 
+Configuration.Provider {
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setMinimumLoggingLevel(if (BuildConfig.DEBUG) android.util.Log.DEBUG else android.util.Log.ERROR)
+            .build()
 
 
     @Inject
@@ -354,10 +361,14 @@ class App : Application(), SingletonImageLoader.Factory {
                 }
                 .distinctUntilChanged()
                 .collect { enabled ->
-                    if (enabled) {
-                        NewReleaseCheckWorker.schedule(this@App)
-                    } else {
-                        NewReleaseCheckWorker.cancel(this@App)
+                    runCatching {
+                        if (enabled) {
+                            NewReleaseCheckWorker.schedule(this@App)
+                        } else {
+                            NewReleaseCheckWorker.cancel(this@App)
+                        }
+                    }.onFailure {
+                        Timber.e(it, "Failed to update NewReleaseCheckWorker schedule")
                     }
                 }
         }
