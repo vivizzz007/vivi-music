@@ -13,6 +13,8 @@
 
 package com.music.musixmatch
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.music.musixmatch.models.*
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -43,10 +45,26 @@ object Musixmatch {
     private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     private const val BASE_URL = "https://apic.musixmatch.com/ws/1.1/"
     private const val APP_ID = "android-player-v1.0"
+    private const val DEFAULT_SECRET = "e9966b7e2aff48cb090d7c1bebd9d7a2"
+    private const val DEFAULT_TOKEN = "261121ec82ec7d9d2ad3ed06fd03c885dbc17f413644f257c18973"
 
-    private val secretCache = AtomicReference<String?>(null)
-    private val tokenCache = AtomicReference<String?>(null)
+    private val tokenCache = AtomicReference<String?>(DEFAULT_TOKEN)
     private val processGuid = java.util.UUID.randomUUID().toString()
+    private var prefs: SharedPreferences? = null
+
+    fun init(context: Context) {
+        if (prefs == null) {
+            try {
+                prefs = context.applicationContext.getSharedPreferences("musixmatch_lyrics", Context.MODE_PRIVATE)
+                val savedToken = prefs?.getString("user_token", null)
+                if (!savedToken.isNullOrBlank()) {
+                    tokenCache.set(savedToken)
+                }
+            } catch (e: Exception) {
+                logDebug("Failed to initialize Musixmatch SharedPreferences: ${e.message}")
+            }
+        }
+    }
 
     private val client by lazy {
         HttpClient(OkHttp) {
@@ -67,8 +85,6 @@ object Musixmatch {
             }
         }
     }
-
-    private const val DEFAULT_SECRET = "e9966b7e2aff48cb090d7c1bebd9d7a2"
 
     private fun getSecret(): String = DEFAULT_SECRET
 
@@ -119,6 +135,11 @@ object Musixmatch {
         }
 
         tokenCache.set(userToken)
+        try {
+            prefs?.edit()?.putString("user_token", userToken)?.apply()
+        } catch (e: Exception) {
+            logDebug("Failed to persist user_token: ${e.message}")
+        }
         return userToken
     }
 
@@ -127,7 +148,11 @@ object Musixmatch {
     private fun checkStatusCode(statusCode: Int) {
         if (statusCode == 401 || statusCode == 402) {
             tokenCache.set(null)
-            secretCache.set(null)
+            try {
+                prefs?.edit()?.remove("user_token")?.apply()
+            } catch (e: Exception) {
+                // Ignore persistence errors
+            }
             throw TokenExpiredException("Token expired or unauthorized (status: $statusCode)")
         }
     }
@@ -137,18 +162,16 @@ object Musixmatch {
             block()
         } catch (e: TokenExpiredException) {
             tokenCache.set(null)
-            secretCache.set(null)
+            try {
+                prefs?.edit()?.remove("user_token")?.apply()
+            } catch (pe: Exception) {
+                // Ignore persistence errors
+            }
             try {
                 block()
             } catch (retryException: Exception) {
-                tokenCache.set(null)
-                secretCache.set(null)
                 throw retryException
             }
-        } catch (e: Exception) {
-            tokenCache.set(null)
-            secretCache.set(null)
-            throw e
         }
     }
 
