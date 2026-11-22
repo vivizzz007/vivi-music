@@ -296,5 +296,21 @@ data class YouTubeClient(
             useSignatureTimestamp = false,
             packageName = "com.google.ios.youtube"
         )
+
+        /**
+         * YouTube Music Android client — used specifically for fetching structured and timed lyrics.
+         */
+        val ANDROID_MUSIC = YouTubeClient(
+            clientName = "ANDROID_MUSIC",
+            clientVersion = "7.02.51",
+            clientId = "21",
+            userAgent = "com.google.android.apps.youtube.music/7.02.51 (Linux; U; Android 14; en_US) gzip",
+            osName = "Android",
+            osVersion = "14",
+            androidSdkVersion = "34",
+            packageName = "com.google.android.apps.youtube.music",
+            friendlyName = "YouTube Music Android",
+            loginSupported = true,
+        )
     }
 }

@@ -70,6 +70,7 @@ import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableBetterLyricsPortatoKey
 import com.music.vivi.constants.EnableGeniusLyricsKey
 import com.music.vivi.constants.EnableMusixmatchKey
+import com.music.vivi.constants.EnableYouTubeLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.EnableLrcRedKey
@@ -197,6 +198,7 @@ fun ContentSettings(
     val (enableBetterLyricsPortato, onEnableBetterLyricsPortatoChange) = rememberPreference(key = EnableBetterLyricsPortatoKey, defaultValue = true)
     val (enableGenius, onEnableGeniusChange) = rememberPreference(key = EnableGeniusLyricsKey, defaultValue = true)
     val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
+    val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
@@ -414,9 +416,10 @@ fun ContentSettings(
 
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
-        // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "BetterLyricsPortato", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify", "Genius")
+        // User-toggleable provider names
+        val userToggleable = setOf("YouTubeMusic", "YouLyPlus", "Paxsenix", "BetterLyrics", "BetterLyricsPortato", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify", "Genius")
         val enabledProviders = setOfNotNull(
+            "YouTubeMusic".takeIf { enableYouTubeLyrics },
             "LrcLib".takeIf { enableLrclib },
             "LrcRed".takeIf { enableLrcRed },
             "Kugou".takeIf { enableKugou },
@@ -1258,6 +1261,27 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableGeniusChange(!enableGenius) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_youtube_lyrics)) },
+                    description = { Text(stringResource(R.string.enable_youtube_lyrics_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableYouTubeLyrics,
+                            onCheckedChange = onEnableYouTubeLyricsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableYouTubeLyrics) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableYouTubeLyricsChange(!enableYouTubeLyrics) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
