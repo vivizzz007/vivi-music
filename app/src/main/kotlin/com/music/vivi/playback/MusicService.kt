@@ -27,6 +27,7 @@ import android.net.ConnectivityManager
 import android.os.Binder
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -92,6 +93,8 @@ import com.music.vivi.R
 import com.music.vivi.constants.AudioNormalizationKey
 import com.music.vivi.constants.AudioOffload
 import com.music.vivi.constants.AudioTrackPlaybackParamsKey
+import com.music.vivi.constants.PlaybackPitchKey
+import com.music.vivi.constants.PlaybackTempoKey
 import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
@@ -123,6 +126,7 @@ import com.music.vivi.constants.HideVideoSongsKey
 import com.music.vivi.constants.HistoryDuration
 import com.music.vivi.constants.LastFMSessionKey
 import com.music.vivi.constants.LastFMUseNowPlaying
+import com.music.vivi.constants.StopMusicOnTaskClearKey
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleLike
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.music.vivi.constants.MediaSessionConstants.CommandToggleShuffle
@@ -243,6 +247,7 @@ import java.io.ObjectOutputStream
 import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
 private const val INSTANT_SILENCE_SKIP_STEP_MS = 15_000L
@@ -511,6 +516,14 @@ class MusicService :
     // Track failed songs to prevent infinite retry loops
     private val recentlyFailedSongs = mutableSetOf<String>()
     private var failedSongsClearJob: Job? = null
+
+    fun clearStreamCache() {
+        synchronized(songUrlCache) {
+            songUrlCache.clear()
+        }
+        recentlyFailedSongs.clear()
+        currentMediaIdRetryCount.clear()
+    }
 
     // Google Cast support
     var castConnectionHandler: CastConnectionHandler? = null
@@ -1337,6 +1350,9 @@ class MusicService :
                     val crossfade = dataStore.get(CrossfadeEnabledKey, false)
                     setOffloadEnabled(if (crossfade) false else offload)
                     skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
+                    val tempo = dataStore.get(PlaybackTempoKey, 1.0f)
+                    val pitchSemitones = dataStore.get(PlaybackPitchKey, 0)
+                    playbackParameters = PlaybackParameters(tempo, 2f.pow(pitchSemitones.toFloat() / 12))
                 }
                 addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
 
@@ -1695,6 +1711,7 @@ class MusicService :
         radioChipsJob?.cancel()
         radioChipsJob = null
         radioChips.value = emptyList()
+        automixItems.value = emptyList()
         val persistShuffleAcrossQueues = dataStore.get(PersistentShuffleAcrossQueuesKey, false)
         val previousShuffleEnabled = player.shuffleModeEnabled
         if (!canAttemptQueueCrossfade) {
@@ -1773,28 +1790,17 @@ class MusicService :
 
             if (queue.preloadItem != null) {
                 val actualIndex = initialStatus.items.indexOfFirst { it.mediaId == queue.preloadItem!!.id }
-                val targetIndex = if (actualIndex != -1) {
-                    actualIndex
-                } else {
-                    initialStatus.mediaItemIndex.coerceIn(0, initialStatus.items.size)
+                val targetIndex = if (actualIndex != -1) actualIndex else initialStatus.mediaItemIndex.coerceIn(0, initialStatus.items.size)
+
+                if (player.mediaItemCount > 1) {
+                    player.removeMediaItems(1, player.mediaItemCount)
                 }
 
                 if (targetIndex < initialStatus.items.size) {
-                    player.addMediaItems(
-                        0,
-                        initialStatus.items.subList(0, targetIndex)
-                    )
-                    player.addMediaItems(
-                        initialStatus.items.subList(
-                            targetIndex + 1,
-                            initialStatus.items.size
-                        )
-                    )
+                    player.addMediaItems(0, initialStatus.items.subList(0, targetIndex))
+                    player.addMediaItems(initialStatus.items.subList(targetIndex + 1, initialStatus.items.size))
                     if (actualIndex != -1) {
-                        player.replaceMediaItem(
-                            targetIndex,
-                            initialStatus.items[targetIndex]
-                        )
+                        player.replaceMediaItem(targetIndex, initialStatus.items[targetIndex])
                     }
                 } else {
                     player.addMediaItems(0, initialStatus.items)
@@ -3925,40 +3931,42 @@ class MusicService :
                 playbackState = player.playbackState
             )
 
-            runCatching {
-                filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
-                    ObjectOutputStream(fos).use { oos ->
-                        oos.writeObject(persistQueue)
+            scope.launch(Dispatchers.IO) {
+                runCatching {
+                    filesDir.resolve(PERSISTENT_QUEUE_FILE).outputStream().use { fos ->
+                        ObjectOutputStream(fos).use { oos ->
+                            oos.writeObject(persistQueue)
+                        }
                     }
+                    Timber.tag(TAG).d("Queue saved successfully")
+                }.onFailure {
+                    Timber.tag(TAG).e(it, "Failed to save queue")
+                    reportException(it)
                 }
-                Timber.tag(TAG).d("Queue saved successfully")
-            }.onFailure {
-                Timber.tag(TAG).e(it, "Failed to save queue")
-                reportException(it)
-            }
 
-            runCatching {
-            filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
-                ObjectOutputStream(fos).use { oos ->
-                        oos.writeObject(persistAutomix)
+                runCatching {
+                    filesDir.resolve(PERSISTENT_AUTOMIX_FILE).outputStream().use { fos ->
+                        ObjectOutputStream(fos).use { oos ->
+                            oos.writeObject(persistAutomix)
+                        }
                     }
+                    Timber.tag(TAG).d("Automix saved successfully")
+                }.onFailure {
+                    Timber.tag(TAG).e(it, "Failed to save automix")
+                    reportException(it)
                 }
-                Timber.tag(TAG).d("Automix saved successfully")
-            }.onFailure {
-                Timber.tag(TAG).e(it, "Failed to save automix")
-                reportException(it)
-            }
 
-            runCatching {
-                filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).outputStream().use { fos ->
-                    ObjectOutputStream(fos).use { oos ->
-                        oos.writeObject(persistPlayerState)
+                runCatching {
+                    filesDir.resolve(PERSISTENT_PLAYER_STATE_FILE).outputStream().use { fos ->
+                        ObjectOutputStream(fos).use { oos ->
+                            oos.writeObject(persistPlayerState)
+                        }
                     }
+                    Timber.tag(TAG).d("Player state saved successfully")
+                }.onFailure {
+                    Timber.tag(TAG).e(it, "Failed to save player state")
+                    reportException(it)
                 }
-                Timber.tag(TAG).d("Player state saved successfully")
-            }.onFailure {
-                Timber.tag(TAG).e(it, "Failed to save player state")
-                reportException(it)
             }
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "Error during queue save operation")
@@ -4039,6 +4047,24 @@ class MusicService :
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+            if (!::player.isInitialized) {
+                stopSelf()
+                return
+            }
+            runCatching {
+                if (castConnectionHandler?.isCasting?.value == true) {
+                    castConnectionHandler?.disconnect()
+                }
+                player.stop()
+                ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                pauseAllPlayersAndStopSelf()
+            }.onFailure { e ->
+                Timber.tag(TAG).e(e, "Failed to stop playback on task clear")
+                runCatching { pauseAllPlayersAndStopSelf() }.onFailure { stopSelf() }
+            }
+            return
+        }
         super.onTaskRemoved(rootIntent)
     }
 

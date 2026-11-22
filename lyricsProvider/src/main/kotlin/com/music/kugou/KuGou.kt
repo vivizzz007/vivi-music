@@ -21,7 +21,10 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 import java.lang.Integer.min
+import java.util.Locale
+import java.util.zip.Inflater
 import kotlin.math.abs
 
 @OptIn(ExperimentalSerializationApi::class, ExperimentalEncodingApi::class)
@@ -58,27 +61,51 @@ object KuGou {
     suspend fun getLyrics(title: String, artist: String, duration: Int, album: String? = null): Result<String> =
         runCatching {
             val keyword = generateKeyword(title, artist, album)
-            getLyricsCandidate(keyword, duration)?.let { candidate ->
-                Base64.Default.decode(downloadLyrics(candidate.id, candidate.accesskey).content).decodeToString()
-                    .normalize()
-            } ?: throw IllegalStateException("No lyrics candidate")
+            val candidate = getLyricsCandidate(keyword, duration)
+                ?: run {
+                    val primary = extractPrimaryArtist(keyword.artist)
+                    if (primary != keyword.artist) {
+                        getLyricsCandidate(keyword.copy(artist = primary), duration)
+                    } else null
+                }
+                ?: throw IllegalStateException("No lyrics candidate")
+
+            fetchLyricsFromCandidate(candidate)
+                ?: throw IllegalStateException("Failed to download or parse lyrics")
         }
 
     suspend fun getAllPossibleLyricsOptions(
         title: String, artist: String, duration: Int, album: String? = null, callback: (String) -> Unit
     ) {
         val keyword = generateKeyword(title, artist, album)
-        searchSongs(keyword).data.info.forEach {
+        val infoList = searchSongs(keyword).data.info.ifEmpty {
+            val primary = extractPrimaryArtist(keyword.artist)
+            if (primary != keyword.artist) {
+                searchSongs(keyword.copy(artist = primary)).data.info
+            } else emptyList()
+        }
+
+        infoList.forEach {
             if (duration == -1 || abs(it.duration - duration) <= DURATION_TOLERANCE) {
-                searchLyricsByHash(it.hash).candidates.firstOrNull()?.let { candidate ->
-                    Base64.Default.decode(downloadLyrics(candidate.id, candidate.accesskey).content).decodeToString()
-                        .normalize().let(callback)
+                val candidate = searchLyricsByHash(it.hash).candidates.let { list ->
+                    list.firstOrNull { (it.krctype ?: 0) > 0 } ?: list.firstOrNull()
+                }
+                candidate?.let { c ->
+                    fetchLyricsFromCandidate(c)?.let(callback)
                 }
             }
         }
-        searchLyricsByKeyword(keyword, duration).candidates.forEach { candidate ->
-            Base64.Default.decode(downloadLyrics(candidate.id, candidate.accesskey).content).decodeToString()
-                .normalize().let(callback)
+
+        val keywordCandidates = searchLyricsByKeyword(keyword, duration).candidates.ifEmpty {
+            val primary = extractPrimaryArtist(keyword.artist)
+            if (primary != keyword.artist) {
+                searchLyricsByKeyword(keyword.copy(artist = primary), duration).candidates
+            } else emptyList()
+        }
+
+        val sortedCandidates = keywordCandidates.sortedByDescending { it.krctype ?: 0 }
+        sortedCandidates.forEach { candidate ->
+            fetchLyricsFromCandidate(candidate)?.let(callback)
         }
     }
 
@@ -86,12 +113,37 @@ object KuGou {
         keyword: Keyword, duration: Int
     ): SearchLyricsResponse.Candidate? {
         searchSongs(keyword).data.info.forEach { song ->
-            if (duration == -1 || abs(song.duration - duration) <= DURATION_TOLERANCE) { // if duration == -1, we don't care duration
-                val candidate = searchLyricsByHash(song.hash).candidates.firstOrNull()
+            if (duration == -1 || abs(song.duration - duration) <= DURATION_TOLERANCE) {
+                val candidate = searchLyricsByHash(song.hash).candidates.let { list ->
+                    list.firstOrNull { (it.krctype ?: 0) > 0 } ?: list.firstOrNull()
+                }
                 if (candidate != null) return candidate
             }
         }
-        return searchLyricsByKeyword(keyword, duration).candidates.firstOrNull()
+        return searchLyricsByKeyword(keyword, duration).candidates.let { list ->
+            list.firstOrNull { (it.krctype ?: 0) > 0 } ?: list.firstOrNull()
+        }
+    }
+
+    private suspend fun fetchLyricsFromCandidate(candidate: SearchLyricsResponse.Candidate): String? {
+        if ((candidate.krctype ?: 0) > 0) {
+            val krcResult = runCatching {
+                val resp = downloadLyrics(candidate.id, candidate.accesskey, fmt = "krc")
+                val decoded = decodeKrc(resp.content)
+                if (!decoded.isNullOrBlank()) {
+                    krcToWordSyncLrc(decoded)
+                } else null
+            }.getOrNull()
+
+            if (!krcResult.isNullOrBlank()) {
+                return krcResult
+            }
+        }
+
+        return runCatching {
+            val resp = downloadLyrics(candidate.id, candidate.accesskey, fmt = "lrc")
+            Base64.Default.decode(resp.content).decodeToString().normalize()
+        }.getOrNull()
     }
 
     suspend fun searchSongs(keyword: Keyword) =
@@ -146,15 +198,110 @@ object KuGou {
             parameter("hash", hash)
         }.body<SearchLyricsResponse>()
 
-    private suspend fun downloadLyrics(id: Long, accessKey: String) =
+    private suspend fun downloadLyrics(id: Long, accessKey: String, fmt: String = "lrc") =
         client.get("https://lyrics.kugou.com/download") {
-            parameter("fmt", "lrc")
+            parameter("fmt", fmt)
             parameter("charset", "utf8")
             parameter("client", "pc")
             parameter("ver", 1)
             parameter("id", id)
             parameter("accesskey", accessKey)
         }.body<DownloadLyricsResponse>()
+
+    private val KRC_KEY = intArrayOf(
+        0x40, 0x47, 0x61, 0x77, 0x5E, 0x32, 0x74, 0x47,
+        0x51, 0x36, 0x31, 0x2D, 0xCE, 0xD2, 0x6E, 0x69
+    )
+
+    private val KRC_LINE_REGEX = """^\[(\d+),(\d+)\](.*)$""".toRegex()
+    private val KRC_WORD_REGEX = """<(\d+),(\d+),\d+>([^<]*)""".toRegex()
+
+    internal fun decodeKrc(base64Payload: String): String? = runCatching {
+        if (base64Payload.isBlank()) return null
+        val raw = Base64.Default.decode(base64Payload)
+        if (raw.size < 4) return null
+        if (raw[0] != 0x6B.toByte() || raw[1] != 0x72.toByte() || raw[2] != 0x63.toByte() || raw[3] != 0x31.toByte()) {
+            return null
+        }
+
+        val encrypted = raw.copyOfRange(4, raw.size)
+        val decrypted = ByteArray(encrypted.size)
+        for (i in encrypted.indices) {
+            val b = (encrypted[i].toInt() and 0xFF) xor KRC_KEY[i % KRC_KEY.size]
+            decrypted[i] = b.toByte()
+        }
+
+        val inflater = Inflater()
+        inflater.setInput(decrypted)
+        val outputStream = ByteArrayOutputStream(decrypted.size * 2)
+        val buffer = ByteArray(1024)
+        while (!inflater.finished()) {
+            val count = inflater.inflate(buffer)
+            if (count == 0 && inflater.needsInput()) break
+            outputStream.write(buffer, 0, count)
+        }
+        inflater.end()
+        outputStream.toString("UTF-8")
+    }.getOrNull()
+
+    internal fun krcToWordSyncLrc(krcText: String): String? = runCatching {
+        if (krcText.isBlank()) return null
+        val lines = krcText.lines()
+        val result = mutableListOf<String>()
+
+        for (line in lines) {
+            val trimmed = line.trim()
+            if (trimmed.isEmpty()) continue
+
+            val match = KRC_LINE_REGEX.matchEntire(trimmed) ?: continue
+            val lineStartMs = match.groupValues[1].toLongOrNull() ?: continue
+            val content = match.groupValues[3]
+
+            val wordMatches = KRC_WORD_REGEX.findAll(content).toList()
+            if (wordMatches.isEmpty()) continue
+
+            val lineText = buildString {
+                for (w in wordMatches) {
+                    append(w.groupValues[3])
+                }
+            }.trim()
+
+            if (lineText.isBlank() || lineText.matches(BANNED_REGEX)) continue
+
+            val minutes = lineStartMs / 60000
+            val seconds = (lineStartMs % 60000) / 1000
+            val centiseconds = (lineStartMs % 1000) / 10
+            val lineTag = String.format(Locale.US, "[%02d:%02d.%02d]%s", minutes, seconds, centiseconds, lineText)
+
+            val wordsData = wordMatches.map { wMatch ->
+                val offsetMs = wMatch.groupValues[1].toLongOrNull() ?: 0L
+                val durMs = wMatch.groupValues[2].toLongOrNull() ?: 0L
+                val rawWord = wMatch.groupValues[3]
+                val safeWord = rawWord.replace("|", " ").replace(":", " ")
+                val startSec = (lineStartMs + offsetMs) / 1000.0
+                val endSec = (lineStartMs + offsetMs + maxOf(50L, durMs)) / 1000.0
+                String.format(Locale.US, "%s:%.3f:%.3f", safeWord, startSec, endSec)
+            }.joinToString("|")
+
+            result.add(lineTag)
+            result.add("<$wordsData>")
+        }
+
+        if (result.isEmpty()) null else result.joinToString("\n")
+    }.getOrNull()
+
+    private val artistSeparators = listOf("、", " feat. ", " feat ", " ft. ", " ft ", " featuring ", " with ")
+
+    private fun extractPrimaryArtist(artist: String): String {
+        var cleaned = artist.trim()
+        for (sep in artistSeparators) {
+            if (cleaned.contains(sep, ignoreCase = true)) {
+                cleaned = cleaned.split(sep, ignoreCase = true, limit = 2)[0]
+                break
+            }
+        }
+        return cleaned.trim()
+    }
 
     private fun normalizeTitle(title: String) =
         title.replace("\\(.*\\)".toRegex(), "").replace("（.*）".toRegex(), "")

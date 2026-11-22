@@ -57,12 +57,25 @@ class CrashActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         val crashLog = intent.getStringExtra(CrashHandler.EXTRA_CRASH_LOG) ?: getString(R.string.crash_no_log)
+        val initialCrashFile = intent.getStringExtra(CrashHandler.EXTRA_CRASH_FILE)
+
+        // Ensure crash report is saved to vivimusic/crashlog even if uncaughtException was interrupted
+        val crashFile = initialCrashFile ?: run {
+            if (crashLog.isNotBlank() && crashLog != getString(R.string.crash_no_log)) {
+                val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
+                val timestamp = java.time.LocalDateTime.now().format(formatter)
+                val fileName = "crashlog-$timestamp.txt"
+                val saved = com.music.vivi.utils.DiagnosticLogCollector.saveToVivimusicFolder(this, "crashlog", fileName, crashLog)
+                if (saved != null) fileName else null
+            } else null
+        }
         
         setContent {
             val darkTheme = isSystemInDarkTheme()
             vivimusicTheme(darkTheme = darkTheme) {
                 CrashScreen(
                     crashLog = crashLog,
+                    crashFile = crashFile,
                     onClose = { finishAffinity() },
                     onShare = { shareCrashLog(crashLog) },
                     onCopy = { copyToClipboard(crashLog) }
@@ -118,6 +131,7 @@ class CrashActivity : ComponentActivity() {
 @Composable
 fun CrashScreen(
     crashLog: String,
+    crashFile: String? = null,
     onClose: () -> Unit,
     onShare: () -> Unit,
     onCopy: () -> Unit
@@ -179,6 +193,19 @@ fun CrashScreen(
                 text = stringResource(R.string.crash_description),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            val noteText = if (!crashFile.isNullOrBlank()) {
+                "${stringResource(R.string.crash_saved_note)}\n($crashFile)"
+            } else {
+                stringResource(R.string.crash_saved_note)
+            }
+            Text(
+                text = noteText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
             )
             
             Spacer(modifier = Modifier.height(16.dp))

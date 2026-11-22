@@ -1214,6 +1214,14 @@ interface DatabaseDao {
     @Query("DELETE FROM search_history")
     fun clearSearchHistory()
 
+    @Transaction
+    @Query("DELETE FROM lyrics")
+    fun clearLyricsCache()
+
+    @Transaction
+    @Query("DELETE FROM format")
+    fun clearFormatCache()
+
     // Recognition History
     @Transaction
     @Query("SELECT * FROM recognition_history ORDER BY recognizedAt DESC")

@@ -6,7 +6,7 @@ ViviMusic is a 3rd party YouTube Music client written in Kotlin. It follows mate
 
 1. Always pull the latest changes from `main` before starting your work to minimize merge conflicts.
 2. Commit names should be clear and follow the format: `type(scope): short description`. For example: `feat(ui): add dark mode support`. Including the scope is optional.
-3. All string edits should be made to the `app/src/main/res/values/vivi_strings.xml` file, NOT `app/src/main/res/values/strings.xml`. Do not touch other `strings.xml` or `vivi_strings.xml` files in the project. ONLY edit the default (English) `vivi_strings.xml` file, DO NOT EDIT OTHER LANGUAGES.
+3. **CRITICAL: NEVER TOUCH NON-ENGLISH RESOURCE FILES.** All string edits should be made ONLY to the `app/src/main/res/values/vivi_strings.xml` file, NOT `app/src/main/res/values/strings.xml`. Do not touch, edit, format, or overwrite other `strings.xml` or `vivi_strings.xml` files in the project (e.g., `values-*/vivi_strings_*.xml`). ONLY edit the default (English) `vivi_strings.xml` file. DO NOT TOUCH OR EDIT OTHER LANGUAGES UNDER ANY CIRCUMSTANCES. Localization is handled separately.
 4. You are to follow best practices for Kotlin and Android development.
 5. DO NOT EDIT THE APP'S DATABASE SCHEMA UNLESS ABSOLUTELY NECESSARY.
 
@@ -24,3 +24,4 @@ ViviMusic is a 3rd party YouTube Music client written in Kotlin. It follows mate
 9. **CRITICAL: NEVER EVER try to build the app.** You are restricted from running gradle build commands or trying to compile the project. Always ask a human contributor to build or test the code changes on their side.
 10. **NEVER use Python to modify code or files in the repository.** You are strictly prohibited from using Python scripts or commands to perform code changes or implementations. Always use standard file editing tools directly.
 11. **Always create an interactive implementation plan artifact (`plan.md` with `RequestFeedback: true`) and present the plan directly in the conversation** before executing non-trivial tasks so that contributors and future AI agents know the exact roadmap, design decisions, and can review and approve it with the Proceed button.
+12. **STRICTLY PROHIBITED: Touching non-English localization files.** Under no circumstances should you edit, rewrite, touch, format, or run scripts against files in `values-*/` (such as `values-az`, `values-es`, etc.). Any string modifications must strictly be confined to the default English `app/src/main/res/values/vivi_strings.xml`.

@@ -6,8 +6,6 @@
 package com.music.vivi.lyrics
 
 import android.text.format.DateUtils
-import com.atilika.kuromoji.ipadic.Tokenizer
-import com.github.promeg.pinyinhelper.Pinyin
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -20,6 +18,7 @@ object LyricsUtils {
     // Regex for rich sync format: [MM:SS.mm]<MM:SS.mm> word <MM:SS.mm> word ...
     private val RICH_SYNC_LINE_REGEX = "\\[(\\d{1,2}):(\\d{2})\\.(\\d{2,3})\\](.+)".toRegex()
     private val RICH_SYNC_WORD_REGEX = "<(\\d{1,2}):(\\d{2})\\.(\\d{2,3})>\\s*([^<]+)".toRegex()
+    private val TRAILING_TIMESTAMP_REGEX = "<(\\d{1,2}):(\\d{2})\\.(\\d{2,3})>\\s*$".toRegex()
     
     // Regex for agent and background markers
     private val AGENT_REGEX = "\\{agent:([^}]+)\\}".toRegex()
@@ -315,11 +314,6 @@ object LyricsUtils {
         "Ѓ", "ѓ", "Ѕ", "ѕ", "Ќ", "ќ"
     )
 
-    // Lazy initialized Tokenizer
-    private val kuromojiTokenizer: Tokenizer by lazy {
-        Tokenizer()
-    }
-
     private val HEX_ENTITY_REGEX = "&#x([0-9a-fA-F]+);".toRegex()
     private val DEC_ENTITY_REGEX = "&#(\\d+);".toRegex()
 
@@ -507,9 +501,25 @@ object LyricsUtils {
                 val nextFractionPart = if (nextMatch.groupValues[3].length == 3) nextFraction / 1000.0 else nextFraction / 100.0
                 nextMinutes * 60.0 + nextSeconds + nextFractionPart
             } else {
-                // For last word, try to get next line's start time or add a default duration
-                val nextLineTime = getNextLineStartTime(currentIndex, allLines)
-                nextLineTime ?: (startTimeSeconds + 0.5) // Default 500ms duration for last word
+                val trailingTag = TRAILING_TIMESTAMP_REGEX.find(content)
+                val explicitEnd = trailingTag?.let { tMatch ->
+                    val m = tMatch.groupValues[1].toLongOrNull() ?: 0L
+                    val s = tMatch.groupValues[2].toLongOrNull() ?: 0L
+                    val f = tMatch.groupValues[3].toLongOrNull() ?: 0L
+                    val fPart = if (tMatch.groupValues[3].length == 3) f / 1000.0 else f / 100.0
+                    m * 60.0 + s + fPart
+                }
+
+                if (explicitEnd != null && explicitEnd > startTimeSeconds) {
+                    explicitEnd
+                } else {
+                    val nextLineTime = getNextLineStartTime(currentIndex, allLines)
+                    if (nextLineTime != null && (nextLineTime - startTimeSeconds) < 4.0) {
+                        nextLineTime
+                    } else {
+                        startTimeSeconds + (wordText.length * 0.15).coerceIn(0.6, 2.5)
+                    }
+                }
             }
             
             if (wordText.isNotBlank()) {
@@ -716,23 +726,8 @@ object LyricsUtils {
         return romajiBuilder.toString().lowercase()
     }
 
-    suspend fun romanizeJapanese(text: String): String = withContext(Dispatchers.Default) {
-        val tokens = kuromojiTokenizer.tokenize(text)
-        val romanizedTokens = tokens.mapIndexed { index, token ->
-            val currentReading = if (token.reading.isNullOrEmpty() || token.reading == "*") {
-                token.surface
-            } else {
-                token.reading
-            }
-            val nextTokenReading = if (index + 1 < tokens.size) {
-                tokens[index + 1].reading?.takeIf { it.isNotEmpty() && it != "*" } ?: tokens[index + 1].surface
-            } else {
-                null
-            }
-            katakanaToRomaji(currentReading, nextTokenReading)
-        }
-        romanizedTokens.joinToString(" ")
-    }
+    suspend fun romanizeJapanese(text: String): String =
+        LyricsRomanizationHelper.romanizeText(text, languageHint = "ja")
 
     fun katakanaToRomaji(katakana: String?, nextKatakana: String? = null): String {
         if (katakana.isNullOrEmpty()) return ""
@@ -823,23 +818,8 @@ object LyricsUtils {
         romajaBuilder.toString()
     }
 
-    suspend fun romanizeChinese(text: String): String = withContext(Dispatchers.Default) {
-        if (text.isEmpty()) return@withContext ""
-        val builder = StringBuilder(text.length * 2)
-        for (ch in text) {
-            if (ch in '\u4E00'..'\u9FFF') {
-                val py = Pinyin.toPinyin(ch).lowercase(Locale.getDefault())
-                builder.append(py).append(' ')
-            } else {
-                builder.append(ch)
-            }
-        }
-        // Remove whitespaces before ASCII and CJK punctuations
-        builder.toString()
-            .replace(Regex("\\s+([,.!?;:])"), "$1")
-            .replace(Regex("\\s+([，。！？；：、（）《》〈〉【】『』「」])"), "$1")
-            .trim()
-    }
+    suspend fun romanizeChinese(text: String): String =
+        LyricsRomanizationHelper.romanizeText(text, languageHint = "zh-CN")
 
     suspend fun romanizeCyrillic(text: String): String? = withContext(Dispatchers.Default) {
         if (text.isEmpty()) return@withContext null

@@ -13,6 +13,8 @@
 
 package com.music.musixmatch
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.music.musixmatch.models.*
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -43,10 +45,26 @@ object Musixmatch {
     private const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
     private const val BASE_URL = "https://apic.musixmatch.com/ws/1.1/"
     private const val APP_ID = "android-player-v1.0"
+    private const val DEFAULT_SECRET = "e9966b7e2aff48cb090d7c1bebd9d7a2"
+    private const val DEFAULT_TOKEN = "261121ec82ec7d9d2ad3ed06fd03c885dbc17f413644f257c18973"
 
-    private val secretCache = AtomicReference<String?>(null)
-    private val tokenCache = AtomicReference<String?>(null)
+    private val tokenCache = AtomicReference<String?>(DEFAULT_TOKEN)
     private val processGuid = java.util.UUID.randomUUID().toString()
+    private var prefs: SharedPreferences? = null
+
+    fun init(context: Context) {
+        if (prefs == null) {
+            try {
+                prefs = context.applicationContext.getSharedPreferences("musixmatch_lyrics", Context.MODE_PRIVATE)
+                val savedToken = prefs?.getString("user_token", null)
+                if (!savedToken.isNullOrBlank()) {
+                    tokenCache.set(savedToken)
+                }
+            } catch (e: Exception) {
+                logDebug("Failed to initialize Musixmatch SharedPreferences: ${e.message}")
+            }
+        }
+    }
 
     private val client by lazy {
         HttpClient(OkHttp) {
@@ -68,54 +86,7 @@ object Musixmatch {
         }
     }
 
-    private suspend fun getSecret(): String {
-        val cached = secretCache.get()
-        if (cached != null) return cached
-
-        val secret = try {
-            val searchPage = client.get("https://www.musixmatch.com/explore") {
-                header("User-Agent", USER_AGENT)
-                header("Cookie", "mxm_bab=AB")
-                header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
-                header("Accept-Language", "en-US,en;q=0.9")
-                header("Sec-Fetch-Dest", "document")
-                header("Sec-Fetch-Mode", "navigate")
-                header("Sec-Fetch-Site", "none")
-                header("Sec-Fetch-User", "?1")
-                header("Upgrade-Insecure-Requests", "1")
-            }.body<String>()
-
-            val regex = """src="([^"]*/_next/static/chunks/pages/_app-[^"]+\.js)"""".toRegex()
-            val match = regex.find(searchPage) ?: throw IllegalStateException("Could not find _app JS in Musixmatch page")
-            val rawAppJsUrl = match.groupValues[1]
-            val appJsUrl = if (rawAppJsUrl.startsWith("http")) rawAppJsUrl else {
-                "https://www.musixmatch.com" + if (rawAppJsUrl.startsWith("/")) rawAppJsUrl else "/$rawAppJsUrl"
-            }
-
-            val jsContent = client.get(appJsUrl) {
-                header("User-Agent", USER_AGENT)
-                header("Accept", "*/*")
-                header("Accept-Language", "en-US,en;q=0.9")
-                header("Sec-Fetch-Dest", "script")
-                header("Sec-Fetch-Mode", "no-cors")
-                header("Sec-Fetch-Site", "cross-site")
-            }.body<String>()
-
-            val secretRegex = """from\(\s*"(.*?)"\s*\.split""".toRegex()
-            val secretMatch = secretRegex.find(jsContent) ?: throw IllegalStateException("Could not find secret in Musixmatch JS")
-            val encodedSecret = secretMatch.groupValues[1]
-            
-            val reversed = encodedSecret.reversed()
-            val decodedBytes = Base64.getDecoder().decode(reversed)
-            String(decodedBytes, StandardCharsets.UTF_8)
-        } catch (e: Exception) {
-            logDebug("Failed to fetch secret dynamically, falling back to static secret: ${e.message}")
-            "e9966b7e2aff48cb090d7c1bebd9d7a2"
-        }
-        
-        secretCache.set(secret)
-        return secret
-    }
+    private fun getSecret(): String = DEFAULT_SECRET
 
     private fun sign(url: String, secret: String): String {
         val normalizedUrl = url.replace("%20", "+").replace(" ", "+")
@@ -164,6 +135,11 @@ object Musixmatch {
         }
 
         tokenCache.set(userToken)
+        try {
+            prefs?.edit()?.putString("user_token", userToken)?.apply()
+        } catch (e: Exception) {
+            logDebug("Failed to persist user_token: ${e.message}")
+        }
         return userToken
     }
 
@@ -172,7 +148,11 @@ object Musixmatch {
     private fun checkStatusCode(statusCode: Int) {
         if (statusCode == 401 || statusCode == 402) {
             tokenCache.set(null)
-            secretCache.set(null)
+            try {
+                prefs?.edit()?.remove("user_token")?.apply()
+            } catch (e: Exception) {
+                // Ignore persistence errors
+            }
             throw TokenExpiredException("Token expired or unauthorized (status: $statusCode)")
         }
     }
@@ -182,19 +162,161 @@ object Musixmatch {
             block()
         } catch (e: TokenExpiredException) {
             tokenCache.set(null)
-            secretCache.set(null)
+            try {
+                prefs?.edit()?.remove("user_token")?.apply()
+            } catch (pe: Exception) {
+                // Ignore persistence errors
+            }
             try {
                 block()
             } catch (retryException: Exception) {
-                tokenCache.set(null)
-                secretCache.set(null)
                 throw retryException
             }
-        } catch (e: Exception) {
-            tokenCache.set(null)
-            secretCache.set(null)
-            throw e
         }
+    }
+
+    private val titleCleanupPatterns = listOf(
+        Regex("""\s*\(.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\[.*?(official|video|audio|lyrics|lyric|visualizer|hd|hq|4k|remaster|remix|live|acoustic|version|edit|extended|radio|clean|explicit).*?\]""", RegexOption.IGNORE_CASE),
+        Regex("""\s*【.*?】"""),
+        Regex("""\s*\|.*$"""),
+        Regex("""\s*-\s*(official|video|audio|lyrics|lyric|visualizer).*$""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\(feat\..*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*\(ft\..*?\)""", RegexOption.IGNORE_CASE),
+        Regex("""\s*feat\..*$""", RegexOption.IGNORE_CASE),
+        Regex("""\s*ft\..*$""", RegexOption.IGNORE_CASE),
+    )
+
+    internal fun cleanTitle(title: String): String {
+        var cleaned = title.trim()
+        for (pattern in titleCleanupPatterns) {
+            cleaned = cleaned.replace(pattern, "")
+        }
+        return cleaned.trim()
+    }
+
+    private val artistSeparators = listOf(
+        " feat. ", " feat ", " ft. ", " ft ",
+        " & ", " / ", " x ", " X ",
+        ", ", " with ", " With ",
+    )
+
+    internal fun cleanArtist(artist: String): String {
+        var cleaned = artist.trim()
+        for (separator in artistSeparators) {
+            if (cleaned.contains(separator, ignoreCase = true)) {
+                cleaned = cleaned.split(separator, ignoreCase = true, limit = 2)[0]
+            }
+        }
+        return cleaned.trim()
+    }
+
+    private suspend fun searchTracks(
+        trackParam: String?,
+        artistParam: String?,
+        queryParam: String?,
+        token: String,
+        secret: String
+    ): List<TrackContainer> {
+        val params = mutableListOf("app_id=$APP_ID", "format=json", "f_has_lyrics=true", "page_size=10", "usertoken=$token")
+        if (!trackParam.isNullOrBlank()) {
+            params.add("q_track=${URLEncoder.encode(trackParam, StandardCharsets.UTF_8.name())}")
+        }
+        if (!artistParam.isNullOrBlank()) {
+            params.add("q_artist=${URLEncoder.encode(artistParam, StandardCharsets.UTF_8.name())}")
+        }
+        if (!queryParam.isNullOrBlank()) {
+            params.add("q=${URLEncoder.encode(queryParam, StandardCharsets.UTF_8.name())}")
+        }
+
+        val searchUrl = "${BASE_URL}track.search?" + params.joinToString("&")
+        val signedSearch = sign(searchUrl, secret)
+
+        val searchResponse = client.get(signedSearch) {
+            header("User-Agent", USER_AGENT)
+            header("Accept", "application/json, text/plain, */*")
+            header("Accept-Language", "en-US,en;q=0.9")
+        }.body<SearchTrackResponse>()
+
+        val searchHeader = searchResponse.message.header
+        checkStatusCode(searchHeader.statusCode)
+
+        val bodyElement = searchResponse.message.body
+        return if (bodyElement is kotlinx.serialization.json.JsonObject) {
+            val json = Json { ignoreUnknownKeys = true }
+            val bodyObj = json.decodeFromJsonElement<SearchTrackResponseBody>(bodyElement)
+            bodyObj.trackList
+        } else {
+            emptyList()
+        }
+    }
+
+    private suspend fun findTracks(
+        title: String,
+        artist: String,
+        token: String,
+        secret: String
+    ): List<TrackContainer> {
+        val cleanedTitle = cleanTitle(title).ifBlank { title.trim() }
+        val cleanedArtist = cleanArtist(artist).ifBlank { artist.trim() }
+
+        // Tier 1: Cleaned title + full artist string
+        var tracks = searchTracks(trackParam = cleanedTitle, artistParam = artist.trim(), queryParam = null, token, secret)
+        if (tracks.isNotEmpty()) return tracks
+
+        // Tier 2: Cleaned title + primary collaborator/artist (if different)
+        if (!cleanedArtist.equals(artist.trim(), ignoreCase = true)) {
+            tracks = searchTracks(trackParam = cleanedTitle, artistParam = cleanedArtist, queryParam = null, token, secret)
+            if (tracks.isNotEmpty()) return tracks
+        }
+
+        // Tier 3: Unified query search q="Artist Title"
+        val queryStr = "$cleanedArtist $cleanedTitle".trim()
+        if (queryStr.isNotBlank()) {
+            tracks = searchTracks(trackParam = null, artistParam = null, queryParam = queryStr, token, secret)
+            if (tracks.isNotEmpty()) return tracks
+        }
+
+        // Tier 4: Fallback to original raw title if cleaned was different
+        if (cleanedTitle != title.trim()) {
+            tracks = searchTracks(trackParam = title.trim(), artistParam = artist.trim(), queryParam = null, token, secret)
+            if (tracks.isNotEmpty()) return tracks
+        }
+
+        return emptyList()
+    }
+
+    internal fun selectBestTrack(
+        tracks: List<TrackContainer>,
+        queryTitle: String,
+        duration: Int
+    ): Track? {
+        if (tracks.isEmpty()) return null
+        val normalizedQueryTitle = cleanText(queryTitle)
+
+        return tracks.map { it.track }.minByOrNull { track ->
+            val trackTitleCleaned = cleanText(track.trackName)
+            val textScore = when {
+                trackTitleCleaned == normalizedQueryTitle -> 0
+                trackTitleCleaned.contains(normalizedQueryTitle) || normalizedQueryTitle.contains(trackTitleCleaned) -> 1
+                else -> 2
+            }
+
+            // Sync score: prioritize word-sync (RichSync) -> line-sync (Subtitles) -> plain lyrics
+            val syncScore = when {
+                track.hasRichSync == 1 -> 0
+                track.hasSubtitles == 1 -> 1
+                track.hasLyrics == 1 -> 2
+                else -> 3
+            }
+
+            val trackDur = track.trackLength ?: 0
+            val durDelta = if (duration > 0 && trackDur > 0) abs(trackDur - duration) else if (trackDur == 0) 999 else Int.MAX_VALUE
+
+            logDebug("Track option: '${track.trackName}' by '${track.artistName}' (id=${track.trackId}, dur=${trackDur}s, richSync=${track.hasRichSync}, sub=${track.hasSubtitles}) -> textScore=$textScore, syncScore=$syncScore, durDelta=$durDelta")
+
+            (textScore.toLong() shl 36) + (syncScore.toLong() shl 32) + durDelta.toLong().coerceAtMost(0xFFFFFFFFL)
+        } ?: tracks[0].track
     }
 
     suspend fun getLyrics(
@@ -207,60 +329,19 @@ object Musixmatch {
             val secret = getSecret()
             val token = getUserToken(secret)
 
-            // 1. Search for the track using separate track/artist params for accurate version matching
-            val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.name())
-            val encodedArtist = URLEncoder.encode(artist, StandardCharsets.UTF_8.name())
-            val searchUrl = "${BASE_URL}track.search?app_id=$APP_ID&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
-            val signedSearch = sign(searchUrl, secret)
-
-            val searchResponse = client.get(signedSearch) {
-                header("User-Agent", USER_AGENT)
-                header("Accept", "application/json, text/plain, */*")
-                header("Accept-Language", "en-US,en;q=0.9")
-            }.body<SearchTrackResponse>()
-
-            val searchHeader = searchResponse.message.header
-            checkStatusCode(searchHeader.statusCode)
-
-            val bodyElement = searchResponse.message.body
-            val trackList = if (bodyElement is kotlinx.serialization.json.JsonObject) {
-                val json = Json { ignoreUnknownKeys = true }
-                val bodyObj = json.decodeFromJsonElement<SearchTrackResponseBody>(bodyElement)
-                bodyObj.trackList
-            } else {
-                emptyList()
-            }
-
-            if (trackList.isEmpty()) {
-                val code = searchResponse.message.header.statusCode
-                throw IllegalStateException("Track not found on Musixmatch (status: $code)")
-            }
-
-            val normalizedQueryTitle = cleanText(title)
             logDebug("Searching for track: Title='$title', Artist='$artist', Duration=$duration")
+            val trackList = findTracks(title, artist, token, secret)
+            if (trackList.isEmpty()) {
+                throw IllegalStateException("Track not found on Musixmatch")
+            }
 
-            // Score each track using title match as primary criteria, duration as secondary
-            val bestTrack = trackList.map { it.track }.minByOrNull { track ->
-                val trackTitleCleaned = cleanText(track.trackName)
-                val textScore = when {
-                    trackTitleCleaned == normalizedQueryTitle -> 0
-                    trackTitleCleaned.contains(normalizedQueryTitle) || normalizedQueryTitle.contains(trackTitleCleaned) -> 1
-                    else -> 2
-                }
+            val bestTrack = selectBestTrack(trackList, title, duration)
+                ?: throw IllegalStateException("No matching track found on Musixmatch")
 
-                val trackDur = track.trackLength ?: 0
-                val durDelta = if (duration > 0 && trackDur > 0) abs(trackDur - duration) else if (trackDur == 0) 999 else Int.MAX_VALUE
-                
-                logDebug("Track option: '${track.trackName}' by '${track.artistName}' (id=${track.trackId}, dur=${trackDur}s) -> textScore=$textScore, durDelta=$durDelta")
-                
-                (textScore.toLong() shl 32) + durDelta
-            } ?: trackList[0].track
-
-            logDebug("Selected best track: '${bestTrack.trackName}' by '${bestTrack.artistName}' (id=${bestTrack.trackId})")
+            logDebug("Selected best track: '${bestTrack.trackName}' by '${bestTrack.artistName}' (id=${bestTrack.trackId}, richSync=${bestTrack.hasRichSync}, sub=${bestTrack.hasSubtitles})")
             val trackId = bestTrack.trackId
-            val trackLength = bestTrack.trackLength ?: duration
 
-            // 2. Fetch tiers concurrently but yield in strict priority order (Synced first)
+            // Fetch tiers concurrently but yield in strict priority order (Synced first)
             return@runWithTokenRetry kotlinx.coroutines.coroutineScope {
                 val richSyncJob = if (bestTrack.hasRichSync == 1 || bestTrack.hasRichSync == null) {
                     async { getRichSyncLyrics(trackId, token, secret) }
@@ -295,49 +376,11 @@ object Musixmatch {
                 val secret = getSecret()
                 val token = getUserToken(secret)
 
-                val encodedTitle = URLEncoder.encode(title, StandardCharsets.UTF_8.name())
-                val encodedArtist = URLEncoder.encode(artist, StandardCharsets.UTF_8.name())
-                val searchUrl = "${BASE_URL}track.search?app_id=$APP_ID&format=json&q_track=$encodedTitle&q_artist=$encodedArtist&f_has_lyrics=true&page_size=10&usertoken=$token"
-                val signedSearch = sign(searchUrl, secret)
-
-                val searchResponse = client.get(signedSearch) {
-                    header("User-Agent", USER_AGENT)
-                    header("Accept", "application/json, text/plain, */*")
-                    header("Accept-Language", "en-US,en;q=0.9")
-                }.body<SearchTrackResponse>()
-
-                val searchHeader = searchResponse.message.header
-                checkStatusCode(searchHeader.statusCode)
-
-                val bodyElement = searchResponse.message.body
-                val trackList = if (bodyElement is kotlinx.serialization.json.JsonObject) {
-                    val json = Json { ignoreUnknownKeys = true }
-                    val bodyObj = json.decodeFromJsonElement<SearchTrackResponseBody>(bodyElement)
-                    bodyObj.trackList
-                } else {
-                    emptyList()
-                }
-
+                val trackList = findTracks(title, artist, token, secret)
                 if (trackList.isEmpty()) return@runWithTokenRetry
 
-                val normalizedQueryTitle = cleanText(title)
-
-                val bestTrack = trackList.map { it.track }.minByOrNull { track ->
-                    val trackTitleCleaned = cleanText(track.trackName)
-                    val textScore = when {
-                        trackTitleCleaned == normalizedQueryTitle -> 0
-                        trackTitleCleaned.contains(normalizedQueryTitle) || normalizedQueryTitle.contains(trackTitleCleaned) -> 1
-                        else -> 2
-                    }
-
-                    val trackDur = track.trackLength ?: 0
-                    val durDelta = if (duration > 0 && trackDur > 0) abs(trackDur - duration) else if (trackDur == 0) 999 else Int.MAX_VALUE
-                    
-                    (textScore.toLong() shl 32) + durDelta
-                } ?: trackList[0].track
-
+                val bestTrack = selectBestTrack(trackList, title, duration) ?: return@runWithTokenRetry
                 val trackId = bestTrack.trackId
-                val trackLength = bestTrack.trackLength ?: duration
 
                 // Fetch tiers concurrently but yield in strict priority order (Synced first)
                 kotlinx.coroutines.coroutineScope {
@@ -479,9 +522,15 @@ object Musixmatch {
                     sb.append(word.c)
                 }
             }
+
+            // Append line end timestamp tag so word sync animation and instrumental gaps know the exact line end
+            val lineEndMs = (entry.te * 1000).toLong()
+            if (lineEndMs > lineTimeMs) {
+                sb.append(formatTime(lineEndMs, isSyllable = true))
+            }
             sb.append("\n")
         }
-        return sb.toString()
+        return sb.toString().trimEnd()
     }
 
     internal fun convertSubtitleJsonToLrc(body: String): String {

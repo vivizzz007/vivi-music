@@ -10,6 +10,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.lazy.LazyListState
+import kotlin.math.abs
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -84,6 +89,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -125,7 +131,9 @@ import com.music.vivi.constants.ShowCommentButtonKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.move
+import com.music.vivi.extensions.removeWindow
 import com.music.vivi.extensions.toggleRepeatMode
+import timber.log.Timber
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.ui.component.ActionPromptDialog
@@ -166,6 +174,31 @@ import androidx.compose.foundation.layout.PaddingValues
 import coil3.compose.AsyncImage
 import kotlinx.coroutines.coroutineScope
 import kotlin.math.roundToInt
+
+val AppleScrollEasing = CubicBezierEasing(0.22f, 1.0f, 0.36f, 1.0f)
+
+suspend fun LazyListState.smoothScrollToTrack(
+    index: Int,
+    key: Any? = null,
+    scrollOffset: Int = 0
+) {
+    val visibleItem = if (key != null) {
+        layoutInfo.visibleItemsInfo.firstOrNull { it.key == key }
+    } else {
+        layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+    }
+    if (visibleItem != null) {
+        val delta = (visibleItem.offset - scrollOffset).toFloat()
+        if (abs(delta) > 1f) {
+            animateScrollBy(
+                value = delta,
+                animationSpec = tween(durationMillis = 420, easing = AppleScrollEasing)
+            )
+        }
+    } else {
+        animateScrollToItem(index, scrollOffset)
+    }
+}
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -237,7 +270,7 @@ fun Queue(
 
     // Listen Together state (reactive)
     val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = com.music.vivi.listentogether.RoomRole.NONE)
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -367,7 +400,7 @@ fun Queue(
                     )
 
                     PlayerQueueButton(
-                        icon = R.drawable.bedtime,
+                        icon = R.drawable.timer,
                         onClick = {
                             if (sleepTimerEnabled) {
                                 playerConnection.service.sleepTimer.clear()
@@ -487,146 +520,6 @@ fun Queue(
                         )
                     }
                 }
-            } else {
-                // Old design
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 30.dp, vertical = 12.dp)
-                        .windowInsetsPadding(
-                            WindowInsets.systemBars
-                                .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
-                        ),
-                ) {
-                    TextButton(
-                        onClick = { state.expandSoft() },
-                        modifier = Modifier.wrapContentWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.apple_queue),
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp),
-                                tint = TextBackgroundColor
-                            )
-//                            Spacer(modifier = Modifier.width(6.dp))
-//                            Text(
-//                                text = stringResource(id = R.string.queue),
-//                                color = TextBackgroundColor,
-//                                maxLines = 1,
-//                                overflow = TextOverflow.Ellipsis,
-//                                textAlign = TextAlign.Center,
-//                                modifier = Modifier.basicMarquee()
-//                            )
-                        }
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-                        modifier = Modifier.width(120.dp)
-                    ) {
-                        ToggleButton(
-                            checked = false,
-                            onCheckedChange = {
-                                showAudioDeviceBottomSheet = true
-                            },
-                            shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-                            modifier = Modifier
-                                .height(56.dp)
-                                .weight(1f),
-                            colors = ToggleButtonDefaults.colors(
-                                containerColor = TextBackgroundColor.copy(alpha = 0.2f),
-                                contentColor = TextBackgroundColor,
-                                checkedContainerColor = TextBackgroundColor.copy(alpha = 0.4f),
-                                checkedContentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    if (isBluetoothConnected) R.drawable.headset_applemusic else R.drawable.speaker_apple
-                                ),
-                                contentDescription = null,
-                                modifier = Modifier.size(30.dp)
-                            )
-                        }
-
-                        ToggleButton(
-                            checked = sleepTimerEnabled,
-                            onCheckedChange = {
-                                if (!isListenTogetherGuest) {
-                                    if (sleepTimerEnabled) {
-                                        playerConnection.service.sleepTimer.clear()
-                                    } else {
-                                        showSleepTimerDialog = true
-                                    }
-                                }
-                            },
-                            shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-                            modifier = Modifier
-                                .height(56.dp)
-                                .weight(1f),
-                            colors = ToggleButtonDefaults.colors(
-                                containerColor = TextBackgroundColor.copy(alpha = 0.2f),
-                                contentColor = TextBackgroundColor,
-                                checkedContainerColor = TextBackgroundColor.copy(alpha = 0.4f),
-                                checkedContentColor = TextBackgroundColor
-                            )
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.sleep_timer),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(30.dp)
-                                )
-                                if (sleepTimerEnabled) {
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text(
-                                        text = makeTimeString(sleepTimerTimeLeft),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = TextBackgroundColor,
-                                        maxLines = 1
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    TextButton(
-                        onClick = {
-                            onToggleLyrics()
-                        },
-                        modifier = Modifier.wrapContentWidth()
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.apple_music_me),
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp),
-                                tint = TextBackgroundColor
-                            )
-//                            Spacer(modifier = Modifier.width(6.dp))
-//                            Text(
-//                                text = stringResource(R.string.lyrics),
-//                                color = TextBackgroundColor,
-//                                maxLines = 1,
-//                                overflow = TextOverflow.Ellipsis,
-//                                textAlign = TextAlign.Center,
-//                                modifier = Modifier.basicMarquee()
-//                            )
-                        }
-                    }
-                }
             }
             if (showAudioDeviceBottomSheet) {
                 AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
@@ -741,6 +634,7 @@ fun Queue(
                 dragInfo?.let { (from, to) ->
                     val safeFrom = (from - headerItems).coerceIn(0, queueWindows.lastIndex)
                     val safeTo = (to - headerItems).coerceIn(0, queueWindows.lastIndex)
+                    Timber.tag("Queue").d("reorder: moving item from $safeFrom to $safeTo (shuffle=${playerConnection.player.shuffleModeEnabled})")
 
                     if (!playerConnection.player.shuffleModeEnabled) {
                         playerConnection.player.moveMediaItem(safeFrom, safeTo)
@@ -761,15 +655,31 @@ fun Queue(
         }
 
         LaunchedEffect(queueWindows) {
-            mutableQueueWindows.apply {
-                clear()
-                addAll(queueWindows)
+            val sameItems = queueWindows.size == mutableQueueWindows.size &&
+                queueWindows.indices.all { i -> queueWindows[i].mediaItem.mediaId == mutableQueueWindows[i].mediaItem.mediaId }
+            if (!sameItems) {
+                mutableQueueWindows.clear()
+                mutableQueueWindows.addAll(queueWindows)
             }
         }
 
-        LaunchedEffect(mutableQueueWindows, currentWindowIndex) {
+        var previousWindowIndex by remember { mutableIntStateOf(-1) }
+
+        LaunchedEffect(currentWindowIndex) {
             if (currentWindowIndex != -1) {
-                lazyListState.scrollToItem(currentWindowIndex)
+                if (previousWindowIndex == -1) {
+                    previousWindowIndex = currentWindowIndex
+                    lazyListState.scrollToItem((currentWindowIndex + headerItems).coerceAtLeast(0))
+                } else if (currentWindowIndex != previousWindowIndex) {
+                    previousWindowIndex = currentWindowIndex
+                    if (currentWindowIndex in mutableQueueWindows.indices && !reorderableState.isAnyItemDragging) {
+                        val targetUid = if (currentWindowIndex in queueWindows.indices) queueWindows[currentWindowIndex].uid else null
+                        lazyListState.smoothScrollToTrack(
+                            index = currentWindowIndex + headerItems,
+                            key = targetUid?.hashCode()
+                        )
+                    }
+                }
             }
         }
 
@@ -1205,7 +1115,7 @@ fun Queue(
                                             )
                                 ) {
                                     processedDismiss = true
-                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                    playerConnection.player.removeWindow(currentItem)
                                     dismissJob?.cancel()
                                     dismissJob = coroutineScope.launch {
                                         val snackbarResult = snackbarHostState.showSnackbar(
@@ -1218,9 +1128,11 @@ fun Queue(
                                         )
                                         if (snackbarResult == SnackbarResult.ActionPerformed) {
                                             playerConnection.player.addMediaItem(currentItem.mediaItem)
+                                            val targetIndex = currentItem.firstPeriodIndex.coerceIn(0, playerConnection.player.mediaItemCount)
+                                            Timber.tag("Queue").d("undo: restored '${currentItem.mediaItem.metadata?.title}' at index $targetIndex")
                                             playerConnection.player.moveMediaItem(
-                                                mutableQueueWindows.size,
-                                                currentItem.firstPeriodIndex,
+                                                mutableQueueWindows.size.coerceIn(0, playerConnection.player.mediaItemCount - 1),
+                                                targetIndex,
                                             )
                                         }
                                     }
@@ -1241,7 +1153,6 @@ fun Queue(
                             val content: @Composable () -> Unit = {
                                 Row(
                                     horizontalArrangement = Arrangement.Center,
-                                    modifier = Modifier.animateItem(),
                                 ) {
                                     MediaMetadataListItem(
                                         mediaMetadata = window.mediaItem.metadata!!,
@@ -1432,7 +1343,6 @@ fun Queue(
                                                     }
                                                 },
                                             )
-                                            .animateItem(),
                                 )
                             }
                         }

@@ -17,9 +17,12 @@ import com.music.innertube.models.comment.CommentRenderer
 import com.music.innertube.models.comment.CommentThreadRenderer
 import com.music.vivi.ui.screens.CommentSort
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,12 +53,74 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
     private val _isSubmitting = MutableStateFlow(false)
     val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
 
-    // Continuation Tokens
+    private val _likedCommentIds = MutableStateFlow<Map<String, Boolean>>(emptyMap())
+    val likedCommentIds: StateFlow<Map<String, Boolean>> = _likedCommentIds.asStateFlow()
+
+    fun toggleLikeComment(commentId: String, initialLiked: Boolean = false) {
+        val current = _likedCommentIds.value[commentId] ?: initialLiked
+        _likedCommentIds.value = _likedCommentIds.value + (commentId to !current)
+    }
+
+    /**
+     * Calculates the accurate live reply count for a comment thread.
+     * Checks renderer replyCount, parsed viewReplies button text, and replies contents.
+     */
+    fun getLiveReplyCount(thread: CommentThreadRenderer): Int {
+        val rendererCount = thread.comment?.commentRenderer?.replyCount ?: 0
+        if (rendererCount > 0) return rendererCount
+
+        val viewRepliesText = thread.replies?.commentRepliesRenderer?.viewReplies
+            ?.buttonRenderer?.text?.runs?.firstOrNull()?.text
+        if (!viewRepliesText.isNullOrBlank()) {
+            val parsed = viewRepliesText.filter { it.isDigit() }.toIntOrNull()
+            if (parsed != null && parsed > 0) return parsed
+        }
+
+        return thread.replies?.commentRepliesRenderer?.contents?.size ?: 0
+    }
+
+    /**
+     * Determines whether a comment was authored by the current logged-in user.
+     */
+    fun checkIsOwnComment(
+        renderer: CommentRenderer,
+        userName: String,
+        userChannelHandle: String,
+        isLoggedIn: Boolean
+    ): Boolean {
+        if (!isLoggedIn) return false
+        if (renderer.commentId?.startsWith("local-") == true || renderer.commentId?.startsWith("temp-") == true) return true
+        val author = renderer.authorText?.runs?.firstOrNull()?.text?.trim().orEmpty()
+        val cleanUserHandle = userChannelHandle.trim().removePrefix("@")
+        val cleanAuthor = author.removePrefix("@")
+        val matchesUser = author.isNotBlank() && (
+            (userName.isNotBlank() && author.equals(userName.trim(), ignoreCase = true)) ||
+            (cleanUserHandle.isNotBlank() && cleanAuthor.equals(cleanUserHandle, ignoreCase = true))
+        )
+        if (matchesUser) return true
+        if (renderer.isAuthor) return true
+        if (author.isBlank() && renderer.getDeleteActionToken() != null) return true
+        return false
+    }
+
+    // Continuation & Pagination Tokens
     private var currentVideoId: String? = null
     private var nextToken: String? = null
     private var topToken: String? = null
     private var newestToken: String? = null
     private val deletedCommentIds = mutableSetOf<String>()
+
+    // In-Memory Dual-Sort Cache
+    private var topComments = listOf<CommentThreadRenderer>()
+    private var topNextToken: String? = null
+    private var newestComments = listOf<CommentThreadRenderer>()
+    private var newestNextToken: String? = null
+
+    private val _hasNextPage = MutableStateFlow(false)
+    val hasNextPage: StateFlow<Boolean> = _hasNextPage.asStateFlow()
+
+    private val _hasNextRepliesPage = MutableStateFlow(false)
+    val hasNextRepliesPage: StateFlow<Boolean> = _hasNextRepliesPage.asStateFlow()
 
     // --- State: Replies & Detail View ---
     private val _selectedThread = MutableStateFlow<CommentThreadRenderer?>(null)
@@ -68,28 +133,57 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
     val isLoadingReplies: StateFlow<Boolean> = _isLoadingReplies.asStateFlow()
 
     private var nextRepliesToken: String? = null
+    private var liveSyncJob: Job? = null
 
     /**
      * Load initial comments for a video.
-     * Always fetches fresh, dynamic comments directly from YouTube.
-     * Set [forceRefresh] to true to reload when user logs in or switches accounts.
+     * Restores from in-memory cache if available, preventing unnecessary refetches.
      */
     fun loadComments(videoId: String, forceRefresh: Boolean = false) {
-        if (!forceRefresh && currentVideoId == videoId && _comments.value.isNotEmpty()) return
+        val sameVideo = currentVideoId == videoId
+        if (!forceRefresh && sameVideo && (topComments.isNotEmpty() || newestComments.isNotEmpty())) {
+            val cached = if (_selectedSort.value == CommentSort.NEWEST) newestComments else topComments
+            if (cached.isNotEmpty()) {
+                _comments.value = cached
+                nextToken = if (_selectedSort.value == CommentSort.NEWEST) newestNextToken else topNextToken
+                _hasNextPage.value = nextToken != null
+                _isLoading.value = false
+                return
+            }
+        }
+
+        if (!sameVideo) {
+            _likedCommentIds.value = emptyMap()
+            topComments = emptyList()
+            topNextToken = null
+            newestComments = emptyList()
+            newestNextToken = null
+            _selectedSort.value = CommentSort.TOP
+            deletedCommentIds.clear()
+        }
+
         currentVideoId = videoId
         _isLoading.value = true
         _isError.value = false
-        _comments.value = emptyList()
+        if (!sameVideo || forceRefresh) {
+            _comments.value = emptyList()
+        }
 
         viewModelScope.launch {
             YouTube.comments(videoId).onSuccess { result ->
-                _comments.value = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
-                nextToken = result.nextToken
+                val filtered = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                topComments = filtered
+                topNextToken = result.nextToken
+                if (_selectedSort.value == CommentSort.TOP) {
+                    _comments.value = filtered
+                    nextToken = result.nextToken
+                    _hasNextPage.value = nextToken != null
+                }
                 _totalComments.value = result.totalComments
                 topToken = result.topToken
                 newestToken = result.newestToken
                 _isLoading.value = false
-                Log.d(TAG, "Loaded ${result.comments.size} comments for video $videoId (filtered ${_comments.value.size})")
+                Log.d(TAG, "Loaded ${result.comments.size} comments for video $videoId (filtered ${filtered.size})")
             }.onFailure { ex ->
                 Log.e(TAG, "Failed to load comments for video $videoId", ex)
                 _isLoading.value = false
@@ -108,10 +202,22 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
         _isLoadingMore.value = true
         viewModelScope.launch {
             YouTube.commentContinuation(token).onSuccess { result ->
-                _comments.value = (_comments.value + result.comments).distinctBy {
+                val newItems = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                val merged = (_comments.value + newItems).distinctBy {
                     it.comment?.commentRenderer?.commentId ?: it.hashCode()
-                }.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                }
+                _comments.value = merged
                 nextToken = result.nextToken
+                _hasNextPage.value = nextToken != null
+
+                if (_selectedSort.value == CommentSort.TOP) {
+                    topComments = merged
+                    topNextToken = result.nextToken
+                } else {
+                    newestComments = merged
+                    newestNextToken = result.nextToken
+                }
+
                 if (result.totalComments != null) _totalComments.value = result.totalComments
                 _isLoadingMore.value = false
             }.onFailure { ex ->
@@ -123,29 +229,63 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
 
     /**
      * Switch sort order between Top and Newest comments.
+     * Uses in-memory caching for instant switching without full network refetching or list wiping.
      */
     fun switchSort(sort: CommentSort) {
         if (_selectedSort.value == sort) return
         _selectedSort.value = sort
 
-        val videoId = currentVideoId
-        val sortIndex = if (sort == CommentSort.NEWEST) 1 else 0
-        val targetToken = (if (sort == CommentSort.NEWEST) newestToken else topToken)
-            ?: if (videoId != null) YouTube.createCommentsContinuationToken(videoId, sortIndex) else null
+        val videoId = currentVideoId ?: return
 
-        if (targetToken != null) {
+        if (sort == CommentSort.TOP) {
+            if (topComments.isNotEmpty()) {
+                // Instant switch from memory
+                _comments.value = topComments
+                nextToken = topNextToken
+                _hasNextPage.value = nextToken != null
+                return
+            }
+            val targetToken = topToken ?: YouTube.createCommentsContinuationToken(videoId, 0)
             _isLoading.value = true
-            _comments.value = emptyList() // Clear old comments immediately so user sees progress feedback
             viewModelScope.launch {
                 YouTube.commentContinuation(targetToken).onSuccess { result ->
-                    _comments.value = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                    val filtered = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                    topComments = filtered
+                    topNextToken = result.nextToken
+                    _comments.value = filtered
                     nextToken = result.nextToken
+                    _hasNextPage.value = nextToken != null
                     if (result.totalComments != null) _totalComments.value = result.totalComments
-                    if (result.topToken != null) topToken = result.topToken
-                    if (result.newestToken != null) newestToken = result.newestToken
                     _isLoading.value = false
                 }.onFailure { ex ->
-                    Log.e(TAG, "Failed to load sorted comments", ex)
+                    Log.e(TAG, "Failed to load top comments", ex)
+                    _isLoading.value = false
+                    _isError.value = true
+                }
+            }
+        } else {
+            // NEWEST
+            if (newestComments.isNotEmpty()) {
+                // Instant switch from memory
+                _comments.value = newestComments
+                nextToken = newestNextToken
+                _hasNextPage.value = nextToken != null
+                return
+            }
+            val targetToken = newestToken ?: YouTube.createCommentsContinuationToken(videoId, 1)
+            _isLoading.value = true
+            viewModelScope.launch {
+                YouTube.commentContinuation(targetToken).onSuccess { result ->
+                    val filtered = result.comments.filterNot { it.comment?.commentRenderer?.commentId in deletedCommentIds }
+                    newestComments = filtered
+                    newestNextToken = result.nextToken
+                    _comments.value = filtered
+                    nextToken = result.nextToken
+                    _hasNextPage.value = nextToken != null
+                    if (result.totalComments != null) _totalComments.value = result.totalComments
+                    _isLoading.value = false
+                }.onFailure { ex ->
+                    Log.e(TAG, "Failed to load newest comments", ex)
                     _isLoading.value = false
                     _isError.value = true
                 }
@@ -163,6 +303,7 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
         } else {
             _replies.value = emptyList()
             nextRepliesToken = null
+            _hasNextRepliesPage.value = false
         }
     }
 
@@ -178,17 +319,21 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
 
         if (token == null) {
             _replies.value = emptyList()
+            nextRepliesToken = null
+            _hasNextRepliesPage.value = false
             return
         }
 
         _isLoadingReplies.value = true
         _replies.value = emptyList()
         nextRepliesToken = token
+        _hasNextRepliesPage.value = true
 
         viewModelScope.launch {
             YouTube.commentReplies(token).onSuccess { (repliesList, next) ->
                 _replies.value = repliesList
                 nextRepliesToken = next
+                _hasNextRepliesPage.value = next != null
                 _isLoadingReplies.value = false
             }.onFailure { ex ->
                 Log.e(TAG, "Failed to load replies", ex)
@@ -211,6 +356,7 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
                     it.commentId ?: it.hashCode()
                 }
                 nextRepliesToken = next
+                _hasNextRepliesPage.value = next != null
                 _isLoadingReplies.value = false
             }.onFailure { ex ->
                 Log.e(TAG, "Failed to load more replies", ex)
@@ -253,16 +399,21 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
             )
         )
 
-        // Optimistically prepend to the top of list
+        // Optimistically prepend to active comments and in-memory caches
         _comments.value = listOf(optimisticThread) + _comments.value
+        if (topComments.isNotEmpty()) {
+            topComments = listOf(optimisticThread) + topComments
+        }
+        if (newestComments.isNotEmpty()) {
+            newestComments = listOf(optimisticThread) + newestComments
+        }
 
         viewModelScope.launch {
             YouTube.createComment(videoId, text, createParams)
                 .onSuccess {
                     _isSubmitting.value = false
                     onSuccess()
-                    Log.i(TAG, "Comment successfully posted, reloading comments to replace temp placeholder...")
-                    loadComments(videoId, forceRefresh = true)
+                    Log.i(TAG, "Comment successfully posted and retained in memory")
                 }
                 .onFailure { ex ->
                     _isSubmitting.value = false
@@ -343,8 +494,14 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
             ?: currentVideoId?.let { YouTube.buildDeleteActionToken(commentId, it) }
         android.util.Log.d("CommentDelete", "deleteComment() called: commentId=$commentId, foundThread=${threadToDelete != null}, isTemp=${commentId.startsWith("temp-")}, hasActionToken=${actionToken != null}, tokenLen=${actionToken?.length}")
 
-        // 1. Optimistic removal
+        // 1. Optimistic removal from active list and caches
         _comments.value = _comments.value.filterNot {
+            it.comment?.commentRenderer?.commentId == commentId
+        }
+        topComments = topComments.filterNot {
+            it.comment?.commentRenderer?.commentId == commentId
+        }
+        newestComments = newestComments.filterNot {
             it.comment?.commentRenderer?.commentId == commentId
         }
         if (_selectedThread.value?.comment?.commentRenderer?.commentId == commentId) {
@@ -405,5 +562,79 @@ class YTMusicCommentViewModel @Inject constructor() : ViewModel() {
             Log.d("CommentDelete", "Reply $commentId deleted locally (no action token present, isTemp=${commentId.startsWith("temp-")})")
             onSuccess()
         }
+    }
+
+    /**
+     * Start background live synchronization of comments while the comments sheet is open.
+     * Polls periodically without triggering full-screen loading spinners or list wiping.
+     */
+    fun startLiveSync(videoId: String) {
+        liveSyncJob?.cancel()
+        liveSyncJob = viewModelScope.launch {
+            while (isActive) {
+                delay(15_000)
+                val currentThread = _selectedThread.value
+                if (currentThread != null) {
+                    // In thread replies view: sync incoming replies
+                    val replyToken = currentThread.replies?.commentRepliesRenderer?.contents
+                        ?.firstOrNull()?.continuationItemRenderer?.continuationEndpoint
+                        ?.continuationCommand?.token
+                        ?: currentThread.replies?.commentRepliesRenderer?.viewReplies?.buttonRenderer
+                            ?.command?.continuationCommand?.token
+                    if (replyToken != null) {
+                        YouTube.commentReplies(replyToken).onSuccess { (freshReplies, _) ->
+                            val existingReplyIds = _replies.value.mapNotNull { it.commentId }.toSet()
+                            val newReplies = freshReplies.filter {
+                                val cid = it.commentId
+                                cid != null && cid !in existingReplyIds && cid !in deletedCommentIds
+                            }
+                            if (newReplies.isNotEmpty()) {
+                                _replies.value = (_replies.value + newReplies).distinctBy {
+                                    it.commentId ?: it.hashCode()
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // In main comments list: sync incoming top-level comments
+                    val targetToken = if (_selectedSort.value == CommentSort.NEWEST) {
+                        newestToken ?: YouTube.createCommentsContinuationToken(videoId, 1)
+                    } else {
+                        topToken ?: YouTube.createCommentsContinuationToken(videoId, 0)
+                    }
+                    YouTube.commentContinuation(targetToken).onSuccess { result ->
+                        val existingIds = _comments.value.mapNotNull { it.comment?.commentRenderer?.commentId }.toSet()
+                        val newArrivals = result.comments.filter { thread ->
+                            val id = thread.comment?.commentRenderer?.commentId
+                            id != null && id !in existingIds && id !in deletedCommentIds
+                        }
+                        if (newArrivals.isNotEmpty()) {
+                            _comments.value = newArrivals + _comments.value
+                            if (_selectedSort.value == CommentSort.TOP) {
+                                topComments = newArrivals + topComments
+                            } else {
+                                newestComments = newArrivals + newestComments
+                            }
+                        }
+                        if (result.totalComments != null && result.totalComments != _totalComments.value) {
+                            _totalComments.value = result.totalComments
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Stop background live synchronization immediately when comments sheet closes.
+     */
+    fun stopLiveSync() {
+        liveSyncJob?.cancel()
+        liveSyncJob = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopLiveSync()
     }
 }

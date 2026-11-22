@@ -888,17 +888,23 @@ class SyncUtils @Inject constructor(
                         return@onSuccess
                     }
 
+                    val localSongs = database.playlistSongs(playlistId).first()
                     val remoteIds = songs.map { it.id }
-                    val localIds = database.playlistSongs(playlistId).first()
+                    val localIds = localSongs
                         .sortedBy { it.map.position }
                         .map { it.song.id }
 
+                    Timber.tag("PlaylistAdd").d("SyncUtils.syncPlaylist: Comparing remote (${remoteIds.size}) vs local (${localIds.size}) for playlistId=$playlistId, browseId=$browseId")
                     if (remoteIds == localIds) {
-                        Timber.d("syncPlaylist: Local and remote are in sync, no changes needed")
+                        Timber.tag("PlaylistAdd").d("SyncUtils.syncPlaylist: Local and remote are in sync, no changes needed")
                         return@onSuccess
                     }
 
-                    Timber.d("syncPlaylist: Updating local playlist (remote: ${remoteIds.size}, local: ${localIds.size})")
+                    val missingFromRemote = localSongs.filter { it.song.id !in remoteIds.toSet() }
+                    if (missingFromRemote.isNotEmpty()) {
+                        Timber.tag("PlaylistAdd").w("SyncUtils.syncPlaylist: ${missingFromRemote.size} local song(s) missing from remote, preserving them at end of playlist: ${missingFromRemote.map { it.song.id }}")
+                    }
+                    Timber.tag("PlaylistAdd").d("SyncUtils.syncPlaylist: Updating local playlist (remote: ${remoteIds.size}, local: ${localIds.size})")
 
                     database.withTransaction {
                         database.clearPlaylist(playlistId)
@@ -912,6 +918,16 @@ class SyncUtils @Inject constructor(
                                     playlistId = playlistId,
                                     position = idx,
                                     setVideoId = song.setVideoId
+                                )
+                            )
+                        }
+                        missingFromRemote.forEachIndexed { idx, localSong ->
+                            database.insert(
+                                PlaylistSongMap(
+                                    songId = localSong.song.id,
+                                    playlistId = playlistId,
+                                    position = songs.size + idx,
+                                    setVideoId = localSong.map.setVideoId
                                 )
                             )
                         }

@@ -8,13 +8,16 @@ package com.music.vivi.ui.screens.settings.integrations
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
@@ -28,20 +31,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton as MaterialIconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -56,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -89,14 +98,18 @@ import com.music.vivi.constants.DiscordUsernameKey
 import com.music.vivi.constants.EnableDiscordRPCKey
 import com.music.vivi.db.entities.Song
 import com.music.vivi.ui.component.EnumDialog
+import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.InfoLabel
-import com.music.vivi.ui.component.Material3SettingsGroup
 import com.music.vivi.ui.component.Material3SettingsItem
+import com.music.vivi.ui.component.ModernSwitch
 import com.music.vivi.ui.component.TextFieldDialog
+import com.music.vivi.ui.component.TitlePill
+import com.music.vivi.ui.component.SquigglySlider
 import com.music.vivi.ui.utils.backToMain
-import com.music.vivi.utils.DiscordRPC
 import com.music.vivi.utils.SuperProperties
+import com.music.vivi.utils.dataStore
+import com.music.vivi.utils.get
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberPreference
 import com.my.kizzy.rpc.KizzyRPC
@@ -127,11 +140,13 @@ fun DiscordSettings(
     val context = LocalContext.current
 
     // Preferences
-    var discordToken by rememberPreference(DiscordTokenKey, "")
+    val initialToken = remember { context.dataStore.get(DiscordTokenKey, "") }
+    var discordToken by rememberPreference(DiscordTokenKey, initialToken)
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
     var discordAvatar by rememberPreference(DiscordAvatarKey, "")
-    var infoDismissed by rememberPreference(DiscordInfoDismissedKey, false)
+    val initialDismissed = remember { context.dataStore.get(DiscordInfoDismissedKey, false) }
+    var infoDismissed by rememberPreference(DiscordInfoDismissedKey, initialDismissed)
 
     val (discordRPC, onDiscordRPCChange) = rememberPreference(EnableDiscordRPCKey, true)
     val (useDetails, onUseDetailsChange) = rememberPreference(DiscordUseDetailsKey, false)
@@ -148,6 +163,7 @@ fun DiscordSettings(
     val isLoggedIn = remember(discordToken) { discordToken.isNotEmpty() }
 
     var showTokenDialog by rememberSaveable { mutableStateOf(false) }
+    var showInfoSheet by rememberSaveable { mutableStateOf(false) }
     var showStatusDialog by rememberSaveable { mutableStateOf(false) }
     var showActivityTypeDialog by rememberSaveable { mutableStateOf(false) }
     var showButton1TextDialog by rememberSaveable { mutableStateOf(false) }
@@ -203,54 +219,239 @@ fun DiscordSettings(
         }
     }
 
-    // Dialogs
+    // Dialogs / Sheets
     if (showTokenDialog) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        var tokenInput by rememberSaveable { mutableStateOf("") }
         var isVerifying by remember { mutableStateOf(false) }
         var error by remember { mutableStateOf<String?>(null) }
 
-        TextFieldDialog(
-            onDismiss = { showTokenDialog = false },
-            icon = { Icon(painterResource(R.drawable.token), null) },
-            autoDismiss = false,
-            onDone = { token ->
-                isVerifying = true
-                error = null
-                coroutineScope.launch(Dispatchers.IO) {
-                    KizzyRPC.getUserInfo(
-                        token,
-                        SuperProperties.userAgent,
-                        SuperProperties.superPropertiesBase64
-                    ).onSuccess {
-                        discordToken = token
-                        showTokenDialog = false
-                        snackbarHostState.showSnackbar(context.getString(R.string.login_successful))
-                    }.onFailure {
-                        error = "Invalid token"
-                        isVerifying = false
+        ModalBottomSheet(
+            onDismissRequest = { if (!isVerifying) showTokenDialog = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.advanced_login),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    // Top Box: Token input field
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = RoundedCornerShape(
+                            topStart = 22.dp, topEnd = 22.dp,
+                            bottomEnd = 5.dp, bottomStart = 5.dp,
+                        ),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                            OutlinedTextField(
+                                value = tokenInput,
+                                onValueChange = {
+                                    tokenInput = it
+                                    error = null
+                                },
+                                placeholder = { Text(stringResource(R.string.advanced_login)) },
+                                singleLine = false,
+                                minLines = 3,
+                                maxLines = 6,
+                                enabled = !isVerifying,
+                                shape = RoundedCornerShape(12.dp),
+                                trailingIcon = if (tokenInput.isNotEmpty()) {
+                                    {
+                                        MaterialIconButton(onClick = { tokenInput = ""; error = null }) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.close),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp),
+                                            )
+                                        }
+                                    }
+                                } else null,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                            if (isVerifying) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 10.dp)
+                                )
+                            }
+                            if (error != null) {
+                                Text(
+                                    text = error!!,
+                                    color = MaterialTheme.colorScheme.error,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    modifier = Modifier.padding(top = 8.dp),
+                                )
+                            }
+                        }
                     }
-                }
-            },
-            singleLine = true,
-            isInputValid = { it.isNotEmpty() },
-            extraContent = {
-                if (isVerifying) {
-                    LinearProgressIndicator(
+
+                    // Middle Box: Description info
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = RoundedCornerShape(5.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.info),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            Text(
+                                text = stringResource(R.string.token_adv_login_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    // Bottom Box: Connect / Login button
+                    Surface(
+                        onClick = {
+                            val token = tokenInput.trim()
+                            if (token.isNotEmpty()) {
+                                isVerifying = true
+                                error = null
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    KizzyRPC.getUserInfo(
+                                        token,
+                                        SuperProperties.userAgent,
+                                        SuperProperties.superPropertiesBase64
+                                    ).onSuccess {
+                                        discordToken = token
+                                        sheetState.hide()
+                                        showTokenDialog = false
+                                        snackbarHostState.showSnackbar(context.getString(R.string.login_successful))
+                                    }.onFailure {
+                                        error = "Invalid token"
+                                        isVerifying = false
+                                    }
+                                }
+                            }
+                        },
+                        enabled = tokenInput.trim().isNotEmpty() && !isVerifying,
+                        shape = RoundedCornerShape(
+                            topStart = 5.dp, topEnd = 5.dp,
+                            bottomEnd = 22.dp, bottomStart = 22.dp,
+                        ),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp)
-                    )
+                            .height(52.dp),
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = stringResource(R.string.login),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
                 }
-                if (error != null) {
-                    Text(
-                        text = error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
-                InfoLabel(text = stringResource(R.string.token_adv_login_description))
             }
+        }
+    }
+
+    if (showInfoSheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        val items = listOf(
+            stringResource(R.string.discord_about_what_title) to stringResource(R.string.discord_about_what_desc),
+            stringResource(R.string.discord_about_login_title) to stringResource(R.string.discord_about_login_desc),
+            stringResource(R.string.discord_about_custom_title) to stringResource(R.string.discord_about_custom_desc),
+            stringResource(R.string.discord_about_risk_title) to stringResource(R.string.discord_about_risk_desc),
         )
+
+        ModalBottomSheet(
+            onDismissRequest = { showInfoSheet = false },
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 0.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 20.dp)
+                    .padding(bottom = 24.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.discord_about_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                )
+
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    items.forEachIndexed { index, (title, desc) ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            shape = RoundedCornerShape(
+                                topStart = if (index == 0) 22.dp else 5.dp,
+                                topEnd = if (index == 0) 22.dp else 5.dp,
+                                bottomEnd = 5.dp,
+                                bottomStart = 5.dp,
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                                Text(
+                                    text = title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                                Text(
+                                    text = desc,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+
+                    Surface(
+                        onClick = {
+                            coroutineScope.launch { sheetState.hide() }.invokeOnCompletion { showInfoSheet = false }
+                        },
+                        shape = RoundedCornerShape(
+                            topStart = 5.dp, topEnd = 5.dp,
+                            bottomEnd = 22.dp, bottomStart = 22.dp,
+                        ),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = stringResource(R.string.discord_got_it),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 
     if (showStatusDialog) {
@@ -364,179 +565,223 @@ fun DiscordSettings(
             )
         )
 
-        // Warning Card
         AnimatedVisibility(visible = !infoDismissed) {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                ),
+            Surface(
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                shape = RoundedCornerShape(18.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = 10.dp),
             ) {
                 Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.Top,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.warning),
+                        painter = painterResource(R.drawable.info),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { showInfoSheet = true },
                     )
-                    Spacer(Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.discord_information_warning),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.weight(1f),
+                    )
+                    TextButton(onClick = { infoDismissed = true }) {
                         Text(
-                            text = stringResource(R.string.discord_information_warning),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            text = stringResource(R.string.dismiss),
+                            fontWeight = FontWeight.SemiBold,
                         )
-                        Spacer(Modifier.height(8.dp))
-                        TextButton(
-                            onClick = { infoDismissed = true },
-                            modifier = Modifier.align(Alignment.End),
-                        ) {
-                            Text(stringResource(R.string.dismiss))
-                        }
                     }
                 }
             }
         }
 
-        // Profile Card (fully rounded)
-        Card(
-            shape = RoundedCornerShape(28.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-        ) {
-            Row(
-                modifier = Modifier
-                    .padding(start = 20.dp, end = 20.dp, top = 20.dp,
-                             bottom = if (isLoggedIn) 20.dp else 8.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+
+        // Account Section
+        Text(
+            text = stringResource(R.string.discord_account),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 6.dp, top = 6.dp, bottom = 6.dp),
+        )
+
+        val cookie = MaterialShapes.Cookie12Sided.toShape()
+
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            // Top box: avatar + name
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(
+                    topStart = 28.dp, topEnd = 28.dp,
+                    bottomEnd = 5.dp, bottomStart = 5.dp,
+                ),
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                // Avatar with status dot
-                Box(modifier = Modifier.size(56.dp)) {
-                    if (isLoggedIn && discordAvatar.isNotEmpty()) {
-                        AsyncImage(
-                            model = discordAvatar,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(CircleShape),
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(R.drawable.discord),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .align(Alignment.Center)
-                                .alpha(0.4f),
-                        )
-                    }
-                    if (isLoggedIn) {
-                        val statusColor = when (discordStatus) {
-                            "idle" -> MaterialTheme.colorScheme.tertiary
-                            "dnd" -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.primary
+                Row(
+                    modifier = Modifier.padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Surface(
+                        shape = cookie,
+                        color = if (isLoggedIn) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier
+                            .size(68.dp)
+                            .clip(cookie),
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            when {
+                                isLoggedIn && discordAvatar.isNotEmpty() -> AsyncImage(
+                                    model = discordAvatar,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(cookie),
+                                )
+                                isLoggedIn -> Text(
+                                    text = discordName.firstOrNull()?.uppercase() ?: "D",
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                )
+                                else -> Icon(
+                                    painter = painterResource(R.drawable.discord),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(32.dp),
+                                )
+                            }
                         }
-                        Surface(
-                            color = statusColor,
-                            shape = CircleShape,
-                            modifier = Modifier
-                                .size(16.dp)
-                                .align(Alignment.BottomEnd)
-                                .border(
-                                    2.dp,
-                                    MaterialTheme.colorScheme.surfaceContainerHigh,
-                                    CircleShape
-                                ),
-                            content = {},
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (isLoggedIn) discordName else stringResource(R.string.not_logged_in),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
+                        if (isLoggedIn && discordUsername.isNotEmpty()) {
+                            Text(
+                                text = "@$discordUsername",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (!isLoggedIn) {
+                            Text(
+                                text = stringResource(R.string.discord_connect_description),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
+            }
 
-                Spacer(Modifier.width(16.dp))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (isLoggedIn) discordName
-                               else stringResource(R.string.not_logged_in),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.alpha(if (isLoggedIn) 1f else 0.5f),
-                    )
-                    if (discordUsername.isNotEmpty()) {
-                        Text(
-                            text = "@$discordUsername",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (!isLoggedIn) {
-                        Text(
-                            text = stringResource(R.string.discord_connect_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                // Only show logout inline when logged in
-                if (isLoggedIn) {
-                    OutlinedButton(onClick = {
+            // Bottom box(es)
+            if (isLoggedIn) {
+                Surface(
+                    onClick = {
                         discordName = ""
                         discordToken = ""
                         discordUsername = ""
                         discordAvatar = ""
-                    }) {
-                        Text(stringResource(R.string.action_logout))
-                    }
-                }
-            }
-
-            // Login buttons below when not logged in
-            if (!isLoggedIn) {
-                Row(
+                    },
+                    shape = RoundedCornerShape(
+                        topStart = 5.dp, topEnd = 5.dp,
+                        bottomEnd = 28.dp, bottomStart = 28.dp,
+                    ),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 20.dp, end = 20.dp, bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        .height(56.dp),
                 ) {
-                    OutlinedButton(
-                        onClick = { navController.navigate("settings/discord/login") },
-                    ) {
-                        Text(stringResource(R.string.action_login))
-                    }
-                    OutlinedButton(
-                        onClick = { showTokenDialog = true },
-                    ) {
-                        Icon(
-                            painterResource(R.drawable.token),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = stringResource(R.string.action_logout),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 12.dp),
                         )
-                        Spacer(Modifier.width(6.dp))
-                        Text(stringResource(R.string.advanced_login))
+                    }
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Surface(
+                        onClick = { navController.navigate("settings/discord/login") },
+                        shape = RoundedCornerShape(
+                            topStart = 5.dp, topEnd = 5.dp,
+                            bottomEnd = 5.dp, bottomStart = 28.dp,
+                        ),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = stringResource(R.string.action_login),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                            )
+                        }
+                    }
+                    Surface(
+                        onClick = { showTokenDialog = true },
+                        shape = RoundedCornerShape(
+                            topStart = 5.dp, topEnd = 5.dp,
+                            bottomEnd = 28.dp, bottomStart = 5.dp,
+                        ),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(56.dp),
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                text = stringResource(R.string.advanced_login),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                            )
+                        }
                     }
                 }
             }
         }
 
-        // Options section (card-based)
-        Material3SettingsGroup(
+        Spacer(Modifier.height(10.dp))
+
+        // Options section
+        ExpressiveSettingGroup(
             title = stringResource(R.string.options),
             items = listOf(
                 Material3SettingsItem(
                     title = { Text(stringResource(R.string.enable_discord_rpc)) },
                     trailingContent = {
-                        Switch(
+                        ModernSwitch(
                             checked = discordRPC,
                             onCheckedChange = onDiscordRPCChange,
                             enabled = isLoggedIn,
@@ -551,7 +796,7 @@ fun DiscordSettings(
                         Text(stringResource(R.string.discord_use_details_description))
                     },
                     trailingContent = {
-                        Switch(
+                        ModernSwitch(
                             checked = useDetails,
                             onCheckedChange = onUseDetailsChange,
                             enabled = isLoggedIn && discordRPC,
@@ -568,7 +813,7 @@ fun DiscordSettings(
                         Text(stringResource(R.string.discord_advanced_mode_description))
                     },
                     trailingContent = {
-                        Switch(
+                        ModernSwitch(
                             checked = advancedMode,
                             onCheckedChange = onAdvancedModeChange,
                             enabled = isLoggedIn && discordRPC,
@@ -584,125 +829,104 @@ fun DiscordSettings(
 
         Spacer(Modifier.height(8.dp))
 
-        // Advanced customization section
+        // Presence section
         AnimatedVisibility(visible = isLoggedIn && discordRPC && advancedMode) {
-            Column(modifier = Modifier.animateContentSize()) {
-                // Presence settings
-                Material3SettingsGroup(
-                    title = stringResource(R.string.discord_presence),
-                    items = listOf(
-                        Material3SettingsItem(
-                            title = { Text(stringResource(R.string.discord_status)) },
-                            description = {
-                                Text(
-                                    when (currentStatus) {
-                                        DiscordStatus.ONLINE ->
-                                            stringResource(R.string.discord_status_online)
-                                        DiscordStatus.IDLE ->
-                                            stringResource(R.string.discord_status_idle)
-                                        DiscordStatus.DND ->
-                                            stringResource(R.string.discord_status_dnd)
-                                    }
-                                )
-                            },
-                            onClick = { showStatusDialog = true },
-                        ),
-                        Material3SettingsItem(
-                            title = { Text(stringResource(R.string.discord_activity_type)) },
-                            description = {
-                                Text(
-                                    when (currentActivityType) {
-                                        DiscordActivityType.LISTENING ->
-                                            stringResource(R.string.discord_activity_listening)
-                                        DiscordActivityType.PLAYING ->
-                                            stringResource(R.string.discord_activity_playing)
-                                        DiscordActivityType.WATCHING ->
-                                            stringResource(R.string.discord_activity_watching)
-                                        DiscordActivityType.COMPETING ->
-                                            stringResource(R.string.discord_activity_competing)
-                                    }
-                                )
-                            },
-                            onClick = { showActivityTypeDialog = true },
-                        ),
-                        Material3SettingsItem(
-                            title = { Text(stringResource(R.string.discord_activity_name)) },
-                            description = {
-                                Text(
-                                    activityName.ifEmpty {
-                                        stringResource(R.string.discord_activity_name_description)
-                                    }
-                                )
-                            },
-                            onClick = { showActivityNameDialog = true },
-                        ),
-                    ),
+            Column {
+                Text(
+                    text = stringResource(R.string.discord_presence),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 6.dp, top = 10.dp, bottom = 6.dp),
                 )
 
-                Spacer(Modifier.height(8.dp))
-
-                // Button customization
-                Material3SettingsGroup(
-                    title = stringResource(R.string.discord_buttons),
-                    items = listOf(
-                        Material3SettingsItem(
-                            title = { Text(stringResource(R.string.discord_button_1)) },
-                            description = {
-                                Text(button1Text.ifEmpty { "Listen on YouTube Music" })
-                            },
-                            trailingContent = {
-                                Switch(
-                                    checked = button1Visible,
-                                    onCheckedChange = { button1Visible = it },
-                                )
-                            },
-                            onClick = { showButton1TextDialog = true },
-                        ),
-                        Material3SettingsItem(
-                            title = { Text(stringResource(R.string.discord_button_2)) },
-                            description = {
-                                Text(button2Text.ifEmpty { "Visit vivimusic" })
-                            },
-                            trailingContent = {
-                                Switch(
-                                    checked = button2Visible,
-                                    onCheckedChange = { button2Visible = it },
-                                )
-                            },
-                            onClick = { showButton2TextDialog = true },
-                        ),
-                    ),
+                val options = listOf(
+                    "online" to stringResource(R.string.discord_status_online),
+                    "idle" to stringResource(R.string.discord_status_idle),
+                    "dnd" to stringResource(R.string.discord_status_dnd),
                 )
 
-                // Variable hint
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shape = RoundedCornerShape(20.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Column(
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 16.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.discord_status),
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = stringResource(R.string.discord_status_subtitle),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Spacer(Modifier.height(12.dp))
+
+                        // Connected button row. Selection only changes color – never size or shape.
+                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            options.forEachIndexed { index, (key, label) ->
+                                val selected = discordStatus == key
+                                val shape = RoundedCornerShape(
+                                    topStart = if (index == 0) 18.dp else 6.dp,
+                                    bottomStart = if (index == 0) 18.dp else 6.dp,
+                                    topEnd = if (index == options.lastIndex) 18.dp else 6.dp,
+                                    bottomEnd = if (index == options.lastIndex) 18.dp else 6.dp,
+                                )
+                                Surface(
+                                    onClick = { discordStatus = key },
+                                    shape = shape,
+                                    color = if (selected) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceContainer,
+                                    contentColor = if (selected) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(52.dp),
+                                ) {
+                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelLarge,
+                                            fontWeight = FontWeight.Medium,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier.padding(horizontal = 4.dp),
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                // Info box under Presence
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    shape = RoundedCornerShape(18.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.info),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.size(20.dp),
+                            modifier = Modifier.size(18.dp),
                         )
-                        Spacer(Modifier.width(8.dp))
                         Text(
-                            text = stringResource(R.string.discord_button_text_variables),
+                            text = stringResource(R.string.discord_presence_info),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
-
-                Spacer(Modifier.height(8.dp))
             }
         }
 
@@ -713,26 +937,180 @@ fun DiscordSettings(
             text = stringResource(R.string.discord_rpc_preview),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
+            modifier = Modifier.padding(start = 6.dp, top = 6.dp, bottom = 6.dp),
         )
 
-        RichPresence(
-            song = song,
-            currentPlaybackTimeMillis = position,
-            activityType = activityType,
-            activityName = activityName,
-            button1Text = button1Text,
-            button1Visible = button1Visible,
-            button2Text = button2Text,
-            button2Visible = button2Visible,
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            // Box 1: cookie art + title/artist + wavy slider
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = RoundedCornerShape(
+                    topStart = 28.dp, topEnd = 28.dp,
+                    bottomEnd = 5.dp, bottomStart = 5.dp,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Box(Modifier.size(84.dp)) {
+                        Surface(
+                            shape = cookie,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(cookie),
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                val thumb = song?.song?.thumbnailUrl
+                                if (thumb != null) {
+                                    AsyncImage(
+                                        model = thumb,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(cookie),
+                                    )
+                                } else {
+                                    Text(
+                                        text = "\u266A",
+                                        fontSize = 32.sp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            }
+                        }
+
+                        song?.artists?.firstOrNull()?.thumbnailUrl?.let {
+                            Box(
+                                modifier = Modifier
+                                    .border(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.surfaceContainerHigh,
+                                        CircleShape
+                                    )
+                                    .padding(2.dp)
+                                    .align(Alignment.BottomEnd),
+                            ) {
+                                AsyncImage(
+                                    model = it,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape),
+                                )
+                            }
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = song?.song?.title ?: "Song Title",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = song?.artists?.joinToString { it.name } ?: "Artist",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (useDetails) {
+                            song?.album?.title?.let {
+                                Text(
+                                    text = it,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(8.dp))
+                        SquigglySlider(
+                            value = song?.song?.duration?.takeIf { it > 0 }?.let { position.toFloat() / (it * 1000L) } ?: 0f,
+                            onValueChange = {},
+                            enabled = false,
+                            isPlaying = playbackState == STATE_READY,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
+
+            // Box 2: Listen on YouTube Music
+            Surface(
+                onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, "https://music.youtube.com/watch?v=${song?.id}".toUri())
+                    )
+                },
+                enabled = song != null,
+                shape = RoundedCornerShape(5.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.listen_on_youtube_music),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                }
+            }
+
+            // Box 3: Visit vivimusic
+            Surface(
+                onClick = {
+                    context.startActivity(
+                        Intent(Intent.ACTION_VIEW, "https://github.com/vivizzz007/vivi-music".toUri())
+                    )
+                },
+                shape = RoundedCornerShape(
+                    topStart = 5.dp, topEnd = 5.dp,
+                    bottomEnd = 28.dp, bottomStart = 28.dp,
+                ),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+            ) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = stringResource(R.string.visit_vivimusic),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                    )
+                }
+            }
+        }
 
         // Bottom padding for mini player
         Spacer(Modifier.height(24.dp))
     }
 
-    TopAppBar(
-        title = { Text(stringResource(R.string.discord_integration)) },
+    CenterAlignedTopAppBar(
+        title = { TitlePill(stringResource(R.string.discord_integration)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,
@@ -743,218 +1121,19 @@ fun DiscordSettings(
                     contentDescription = null,
                 )
             }
-        }
+        },
+        actions = {
+            MaterialIconButton(
+                onClick = { showInfoSheet = true },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.info),
+                    contentDescription = stringResource(R.string.information),
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+        ),
     )
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun RichPresence(
-    song: Song?,
-    currentPlaybackTimeMillis: Long = 0L,
-    activityType: String = "listening",
-    activityName: String = "",
-    button1Text: String = "",
-    button1Visible: Boolean = true,
-    button2Text: String = "",
-    button2Visible: Boolean = true,
-) {
-    val context = LocalContext.current
-
-    val activityLabel = when (activityType) {
-        "playing" -> stringResource(R.string.discord_playing_vivimusic)
-        "watching" -> stringResource(R.string.discord_watching_vivimusic)
-        "competing" -> stringResource(R.string.discord_competing_vivimusic)
-        else -> stringResource(R.string.listening_to_vivimusic)
-    }
-
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        shape = MaterialTheme.shapes.medium,
-        shadowElevation = 6.dp,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Text(
-                text = if (activityName.isNotEmpty()) activityName else activityLabel,
-                style = MaterialTheme.typography.labelLarge,
-                textAlign = TextAlign.Start,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            Row(verticalAlignment = Alignment.Top) {
-                Box(Modifier.size(108.dp)) {
-                    AsyncImage(
-                        model = song?.song?.thumbnailUrl,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(RoundedCornerShape(3.dp))
-                            .align(Alignment.TopStart)
-                            .run {
-                                if (song == null) {
-                                    border(
-                                        2.dp,
-                                        MaterialTheme.colorScheme.onSurface,
-                                        RoundedCornerShape(3.dp)
-                                    )
-                                } else {
-                                    this
-                                }
-                            },
-                    )
-
-                    song?.artists?.firstOrNull()?.thumbnailUrl?.let {
-                        Box(
-                            modifier = Modifier
-                                .border(
-                                    2.dp,
-                                    MaterialTheme.colorScheme.surfaceContainer,
-                                    CircleShape
-                                )
-                                .padding(2.dp)
-                                .align(Alignment.BottomEnd),
-                        ) {
-                            AsyncImage(
-                                model = it,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .clip(CircleShape),
-                            )
-                        }
-                    }
-                }
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = 6.dp),
-                ) {
-                    Text(
-                        text = song?.song?.title ?: "Song Title",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-
-                    Text(
-                        text = song?.artists?.joinToString { it.name } ?: "Artist",
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontSize = 16.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-
-                    song?.album?.title?.let {
-                        Text(
-                            text = it,
-                            color = MaterialTheme.colorScheme.secondary,
-                            fontSize = 16.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-
-                    if (song != null) {
-                        SongProgressBar(
-                            currentTimeMillis = currentPlaybackTimeMillis,
-                            durationMillis = song.song.duration.times(1000L),
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (button1Visible) {
-                val resolvedButton1 = if (song != null) {
-                    DiscordRPC.resolveVariables(
-                        button1Text.ifEmpty { "Listen on YouTube Music" }, song
-                    )
-                } else {
-                    button1Text.ifEmpty { "Listen on YouTube Music" }
-                }
-                OutlinedButton(
-                    enabled = song != null,
-                    onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            "https://music.youtube.com/watch?v=${song?.id}".toUri()
-                        )
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(resolvedButton1)
-                }
-            }
-
-            if (button2Visible) {
-                val resolvedButton2 = if (song != null) {
-                    DiscordRPC.resolveVariables(
-                        button2Text.ifEmpty { "Visit vivimusic" }, song
-                    )
-                } else {
-                    button2Text.ifEmpty { "Visit vivimusic" }
-                }
-                OutlinedButton(
-                    onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            "https://github.com/vivizzz007/vivi-music".toUri()
-                        )
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(resolvedButton2)
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun SongProgressBar(currentTimeMillis: Long, durationMillis: Long) {
-    val progress = if (durationMillis > 0) currentTimeMillis.toFloat() / durationMillis else 0f
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.height(16.dp))
-
-        LinearWavyProgressIndicator(
-            progress = { progress },
-            amplitude = { 1f },
-            wavelength = 16.dp,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(6.dp),
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = makeTimeString(currentTimeMillis),
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.Start,
-                fontSize = 12.sp
-            )
-            Text(
-                text = makeTimeString(durationMillis),
-                modifier = Modifier.weight(1f),
-                textAlign = TextAlign.End,
-                fontSize = 12.sp
-            )
-        }
-    }
 }

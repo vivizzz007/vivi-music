@@ -59,6 +59,7 @@ fun AppNavigationRail(
     onItemClick: (Screens, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     pureBlack: Boolean = false,
+    slimNav: Boolean = false,
     onSearchLongClick: (() -> Unit)? = null
 ) {
     val containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer
@@ -124,13 +125,15 @@ fun AppNavigationRail(
                         contentDescription = stringResource(screen.titleId)
                     )
                 },
-                label = {
-                    Text(
-                        text = stringResource(screen.titleId),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                label = if (!slimNav) {
+                    {
+                        Text(
+                            text = stringResource(screen.titleId),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                } else null
             )
         }
         

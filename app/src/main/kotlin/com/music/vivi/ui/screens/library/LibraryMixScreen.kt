@@ -43,6 +43,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
@@ -58,10 +61,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.layout.ContentScale
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -340,28 +345,32 @@ fun LibraryMixScreen(
                         }
 
                         item(
-                            key = "filter_chips",
+                            key = "filter_tabs",
                             span = { GridItemSpan(maxLineSpan) },
                             contentType = CONTENT_TYPE_HEADER,
                         ) {
-                            androidx.compose.foundation.lazy.LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            SecondaryTabRow(
+                                selectedTabIndex = activeFilter.ordinal,
+                                containerColor = Color.Transparent,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                divider = {}
                             ) {
-                                items(LibraryFilterType.entries.toTypedArray()) { filterType ->
-                                    androidx.compose.material3.FilterChip(
+                                LibraryFilterType.entries.forEach { filterType ->
+                                    Tab(
                                         selected = activeFilter == filterType,
                                         onClick = { activeFilter = filterType },
-                                        label = {
-                                            androidx.compose.material3.Text(
+                                        text = {
+                                            Text(
                                                 text = when (filterType) {
-                                                    LibraryFilterType.ALL -> stringResource(R.string.all) 
+                                                    LibraryFilterType.ALL -> stringResource(R.string.all)
                                                     LibraryFilterType.ARTIST -> stringResource(R.string.artists)
                                                     LibraryFilterType.ALBUM -> stringResource(R.string.albums)
                                                     LibraryFilterType.PLAYLIST -> stringResource(R.string.playlists)
-                                                }
+                                                },
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
                                             )
                                         }
                                     )

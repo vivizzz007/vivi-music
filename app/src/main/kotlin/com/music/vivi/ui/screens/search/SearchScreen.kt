@@ -16,22 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,6 +31,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +54,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
@@ -85,7 +73,7 @@ import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.NavigationTitle
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
-import com.music.vivi.ui.screens.search.suggestions.SuggestionsTabContent
+import com.music.vivi.viewmodels.MoodAndGenresViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
@@ -93,7 +81,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
+import androidx.compose.ui.text.font.FontWeight
+import com.music.vivi.ui.component.ExpressiveBox
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
@@ -101,7 +94,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 @Composable
 fun SearchScreen(
     navController: NavController,
-    pureBlack: Boolean
+    pureBlack: Boolean,
+    moodAndGenresViewModel: MoodAndGenresViewModel = hiltViewModel()
 ) {
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
@@ -111,6 +105,9 @@ fun SearchScreen(
     val isPlayerExpanded = LocalIsPlayerExpanded.current
     val playerConnection = LocalPlayerConnection.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    val moodAndGenresList by moodAndGenresViewModel.moodAndGenres.collectAsState()
+    val thumbnails by moodAndGenresViewModel.thumbnails.collectAsState()
 
     var searchSource by rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -305,15 +302,89 @@ fun SearchScreen(
         },
         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        val bottomPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateBottomPadding()
-        
         Box(
             modifier = Modifier
                 .padding(top = paddingValues.calculateTopPadding())
                 .fillMaxSize()
         ) {
-            val tabPadding = PaddingValues(bottom = bottomPadding)
-            SuggestionsTabContent(navController = navController, contentPadding = tabPadding)
+            if (!searchActive) {
+                val shapes = listOf(
+                    MaterialShapes.Cookie6Sided.toShape(),
+                    MaterialShapes.Cookie7Sided.toShape(),
+                    MaterialShapes.Cookie9Sided.toShape(),
+                    MaterialShapes.Cookie12Sided.toShape()
+                )
+
+                val bottomPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateBottomPadding()
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = bottomPadding)
+                ) {
+                    moodAndGenresList?.forEachIndexed { sectionIndex, section ->
+                        item(key = "mood_section_$sectionIndex") {
+                            Text(
+                                text = section.title,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(top = 16.dp, bottom = 12.dp, start = 4.dp)
+                            )
+                        }
+
+                        val rows = section.items.chunked(2)
+                        items(rows.size, key = { "mood_section_${sectionIndex}_row_$it" }) { rowIndex ->
+                            val row = rows[rowIndex]
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                row.forEachIndexed { colIndex, item ->
+                                    val itemIndex = rowIndex * 2 + colIndex
+                                    val shape = shapes[itemIndex % shapes.size]
+                                    val itemKey = if (!item.endpoint.params.isNullOrEmpty()) "${item.endpoint.browseId}_${item.endpoint.params}" else item.endpoint.browseId
+                                    val thumbnail = thumbnails[itemKey]
+
+                                    val colorScheme = MaterialTheme.colorScheme
+                                    val containerColor = when (itemIndex % 3) {
+                                        0 -> colorScheme.primaryContainer
+                                        1 -> colorScheme.secondaryContainer
+                                        else -> colorScheme.surfaceVariant
+                                    }
+                                    val contentColor = when (itemIndex % 3) {
+                                        0 -> colorScheme.onPrimaryContainer
+                                        1 -> colorScheme.onSecondaryContainer
+                                        else -> colorScheme.onSurfaceVariant
+                                    }
+                                    val cookieColor = when (itemIndex % 3) {
+                                        0 -> colorScheme.primary
+                                        1 -> colorScheme.secondary
+                                        else -> colorScheme.onSurfaceVariant
+                                    }
+
+                                    ExpressiveBox(
+                                        title = item.title,
+                                        containerColor = containerColor,
+                                        contentColor = contentColor,
+                                        accentShapeColor = cookieColor.copy(alpha = 0.35f),
+                                        shape = shape,
+                                        imageModel = thumbnail,
+                                        onClick = {
+                                            navController.navigate("youtube_browse/${item.endpoint.browseId}?params=${item.endpoint.params}")
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (row.size < 2) {
+                                    Spacer(Modifier.weight(1f))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -95,10 +95,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -173,6 +169,8 @@ import com.music.vivi.constants.PauseSearchHistoryKey
 import com.music.vivi.constants.PureBlackKey
 import com.music.vivi.constants.SYSTEM_DEFAULT
 import com.music.vivi.constants.SelectedThemeColorKey
+import com.music.vivi.constants.SetupWizardCompletedKey
+import com.music.vivi.ui.screens.setup.SetupWizardScreen
 import com.music.vivi.constants.SlimNavBarHeight
 import com.music.vivi.constants.SlimNavBarKey
 import com.music.vivi.constants.FloatingNavBarKey
@@ -218,7 +216,6 @@ import com.music.vivi.utils.reportException
 import com.music.vivi.utils.setAppLocale
 import com.music.vivi.viewmodels.HistoryViewModel
 import com.music.vivi.viewmodels.HomeViewModel
-import com.music.vivi.ui.screens.search.suggestions.SuggestionsViewModel
 import com.valentinilk.shimmer.LocalShimmerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -300,8 +297,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onStart() {
         super.onStart()
-        // Request notification permission on Android 13+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        // Request notification permission on Android 13+ only if setup wizard is already completed
+        val isSetupDone = dataStore.get(SetupWizardCompletedKey, false)
+        if (isSetupDone && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1000)
             }
@@ -505,6 +503,8 @@ class MainActivity : ComponentActivity() {
         }
 
         val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+        val initialSetupCompleted = remember { dataStore.get(SetupWizardCompletedKey, false) }
+        val (isSetupCompleted, onSetupCompletedChange) = rememberPreference(SetupWizardCompletedKey, defaultValue = initialSetupCompleted)
 
         val (lastSeenStarPromptVersion, setLastSeenStarPromptVersion) = rememberPreference(LastSeenStarPromptVersionKey, "")
         val (hasStarredRepo) = rememberPreference(HasStarredRepoKey, false)
@@ -585,7 +585,7 @@ class MainActivity : ComponentActivity() {
             pureBlack = pureBlack,
             themeColor = themeColor,
         ) {
-            if (lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
+            if (isSetupCompleted && lastSeenStarPromptVersion.isNotEmpty() && lastSeenStarPromptVersion != currentVersion && !hasStarredRepo && !isStarred) {
                 ActionPromptDialog(
                     title = "Support ViviMusic \u2B50",
                     onDismiss = { setLastSeenStarPromptVersion(currentVersion) },
@@ -618,7 +618,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            if (showThankYouDialog) {
+            if (isSetupCompleted && showThankYouDialog) {
                 ActionPromptDialog(
                     title = "Thank You!",
                     onDismiss = { gitHubViewModel.dismissThankYouDialog() },
@@ -699,9 +699,6 @@ class MainActivity : ComponentActivity() {
                 // Pre-warm HistoryViewModel at Activity scope so history data loads
                 // in background immediately — zero lag when user taps the history icon
                 hiltViewModel<HistoryViewModel>()
-                // Pre-warm SuggestionsViewModel at Activity scope so suggestions data loads
-                // in background immediately — zero lag when user opens the Search screen
-                hiltViewModel<SuggestionsViewModel>()
                 val accountImageUrl by homeViewModel.accountImageUrl.collectAsState()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val (previousTab, setPreviousTab) = rememberSaveable { mutableStateOf("home") }
@@ -1070,25 +1067,13 @@ class MainActivity : ComponentActivity() {
                                                                 model = accountImageUrl,
                                                                 contentDescription = stringResource(R.string.account),
                                                                 modifier = Modifier
-                                                                    .size(32.dp)
+                                                                    .size(24.dp)
                                                                     .clip(CircleShape)
                                                             )
                                                         } else {
-                                                            val composition by rememberLottieComposition(
-                                                                LottieCompositionSpec.RawRes(R.raw.setting)
-                                                            )
-                                                            val progress by animateLottieCompositionAsState(
-                                                                composition = composition,
-                                                                isPlaying = true,
-                                                                iterations = 1,
-                                                                speed = 1.5f
-                                                            )
-    
-                                                            LottieAnimation(
-                                                                composition = composition,
-                                                                progress = { progress },
-                                                                modifier = Modifier.size(50.dp),
-                                                                contentScale = ContentScale.Fit
+                                                            Icon(
+                                                                painter = painterResource(R.drawable.settings),
+                                                                contentDescription = stringResource(R.string.settings)
                                                             )
                                                         }
                                                     }
@@ -1299,6 +1284,7 @@ class MainActivity : ComponentActivity() {
                                     currentRoute = currentRoute,
                                     onItemClick = onRailItemClick,
                                     pureBlack = pureBlack,
+                                    slimNav = slimNav,
                                     onSearchLongClick = onRailSearchLongClick
                                 )
                             }
@@ -1418,6 +1404,19 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                }
+
+                AnimatedVisibility(
+                    visible = !isSetupCompleted,
+                    enter = fadeIn(tween(300)),
+                    exit = fadeOut(tween(300))
+                ) {
+                    SetupWizardScreen(
+                        onFinished = {
+                            setLastSeenStarPromptVersion(currentVersion)
+                            onSetupCompletedChange(true)
+                        }
+                    )
                 }
             }
         }

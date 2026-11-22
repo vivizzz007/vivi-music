@@ -12,6 +12,7 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.datastore.preferences.core.edit
+import androidx.work.Configuration
 import org.json.JSONObject
 import com.music.spotify.Spotify
 import com.music.spotify.SpotifyAuth
@@ -60,7 +61,13 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory {
+class App : Application(), SingletonImageLoader.Factory, 
+Configuration.Provider {
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setMinimumLoggingLevel(if (BuildConfig.DEBUG) android.util.Log.DEBUG else android.util.Log.ERROR)
+            .build()
 
 
     @Inject
@@ -70,6 +77,11 @@ class App : Application(), SingletonImageLoader.Factory {
     override fun onCreate() {
         super.onCreate()
         context = this
+
+        if (isCrashProcess()) {
+            Timber.plant(Timber.DebugTree())
+            return
+        }
 
         // Install crash handler first
         CrashHandler.install(this)
@@ -92,6 +104,21 @@ class App : Application(), SingletonImageLoader.Factory {
         applicationScope.launch(Dispatchers.IO) {
             runCatching { InnerTubeXPlayer.prewarm() }
         }
+    }
+
+    private fun isCrashProcess(): Boolean {
+        val processName = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            getProcessName()
+        } else {
+            try {
+                val pid = android.os.Process.myPid()
+                val am = getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+                am?.runningAppProcesses?.firstOrNull { it.pid == pid }?.processName
+            } catch (_: Exception) {
+                null
+            }
+        }
+        return processName?.endsWith(":crash") == true
     }
 
     private suspend fun initializeSettings() {
@@ -285,16 +312,25 @@ class App : Application(), SingletonImageLoader.Factory {
                         ?.let { Locale.forLanguageTag(it) }
                         ?: systemLocale
 
-                    YouTube.locale = YouTubeLocale(
-                        gl = contentCountry?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
-                            ?: effectiveAppLocale.country.takeIf { it in CountryCodeToName }
-                            ?: systemLocale.country.takeIf { it in CountryCodeToName }
-                            ?: "US",
-                        hl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
-                            ?: effectiveAppLocale.toLanguageTag().takeIf { it in LanguageCodeToName }
-                            ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
-                            ?: "en"
-                    )
+                    val previousGl = YouTube.locale.gl
+                    val newGl = contentCountry?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
+                        ?: effectiveAppLocale.country.takeIf { it in CountryCodeToName }
+                        ?: systemLocale.country.takeIf { it in CountryCodeToName }
+                        ?: "US"
+                    val newHl = contentLanguage?.takeIf { it != SYSTEM_DEFAULT && it != "system" }
+                        ?: effectiveAppLocale.toLanguageTag().takeIf { it in LanguageCodeToName }
+                        ?: effectiveAppLocale.language.takeIf { it in LanguageCodeToName }
+                        ?: "en"
+
+                    YouTube.locale = YouTubeLocale(gl = newGl, hl = newHl)
+
+                    if (previousGl != newGl) {
+                        YouTube.refreshVisitorData().onSuccess { newVisitorData ->
+                            dataStore.edit { prefs ->
+                                prefs[VisitorDataKey] = newVisitorData
+                            }
+                        }
+                    }
                 }
         }
 
@@ -325,10 +361,14 @@ class App : Application(), SingletonImageLoader.Factory {
                 }
                 .distinctUntilChanged()
                 .collect { enabled ->
-                    if (enabled) {
-                        NewReleaseCheckWorker.schedule(this@App)
-                    } else {
-                        NewReleaseCheckWorker.cancel(this@App)
+                    runCatching {
+                        if (enabled) {
+                            NewReleaseCheckWorker.schedule(this@App)
+                        } else {
+                            NewReleaseCheckWorker.cancel(this@App)
+                        }
+                    }.onFailure {
+                        Timber.e(it, "Failed to update NewReleaseCheckWorker schedule")
                     }
                 }
         }
@@ -372,6 +412,9 @@ class App : Application(), SingletonImageLoader.Factory {
     companion object {
         lateinit var context: Context
             private set
+
+        val applicationScope: CoroutineScope
+            get() = (context as App).applicationScope
 
         suspend fun forgetAccount(context: Context) {
             Timber.d("forgetAccount: Starting logout process")

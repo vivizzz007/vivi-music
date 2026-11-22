@@ -60,6 +60,7 @@ import com.music.vivi.ui.screens.settings.SettingsScreen
 import com.music.vivi.ui.screens.settings.AccountSettingsScreen
 import com.music.vivi.ui.screens.ListeningSummaryScreen
 import com.music.vivi.ui.screens.DetailedListeningHistoryScreen
+import com.music.vivi.ui.screens.settings.RepairScreen
 import com.music.vivi.ui.screens.settings.StorageSettings
 import com.music.vivi.ui.screens.settings.ThemeSettings
 import com.music.vivi.ui.screens.settings.AiSettings
@@ -76,7 +77,6 @@ import com.music.vivi.vivimusic.updater.UpdateScreen
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.changelog.ChangelogScreen
-import com.music.vivi.vivimusic.commitscreen.CommitScreen
 import com.music.vivi.ui.screens.equalizer.axion.AxionEqScreen
 import com.music.vivi.ui.screens.settings.SpotifyScreen
 import com.music.vivi.viewmodels.HomeViewModel
@@ -411,6 +411,10 @@ fun NavGraphBuilder.navigationBuilder(
         StorageSettings(navController, scrollBehavior)
     }
 
+    composable("settings/repair") {
+        RepairScreen(navController, scrollBehavior)
+    }
+
     composable("settings/equalizer") {
         AxionEqScreen(onBackClick = { navController.navigateUp() })
     }
@@ -505,8 +509,5 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/changelog") {
         ChangelogScreen(navController,scrollBehavior)
-    }
-    composable("settings/commits") {
-        CommitScreen(navController, scrollBehavior)
     }
 }
