@@ -108,6 +108,14 @@ body:
   - type: textarea
     id: logs
     attributes:
-      label: 📄 Logs / Screenshots
-      description: Paste logs or drag & drop screenshots here.
+      label: 📄 Logs
+      description: Paste logs here. A log is strictly required to submit a bug report.
       render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 🖼️ Screenshots (Optional)
+      description: Drag & drop any screenshots or screen recordings here.
