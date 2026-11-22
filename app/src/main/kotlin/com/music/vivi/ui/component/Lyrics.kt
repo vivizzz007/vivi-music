@@ -131,7 +131,6 @@ import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.music.vivi.ui.player.bottomControlsMask
 import com.music.vivi.ui.player.lyricsanimation.rememberLyricClock
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.runtime.State
@@ -278,8 +277,7 @@ fun Lyrics(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
     showLyrics: Boolean,
-    extraBottomPadding: Dp = 0.dp,
-    lyricsRevealFraction: Float = 1.15f
+    extraBottomPadding: Dp = 0.dp
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val database = LocalDatabase.current
@@ -991,9 +989,7 @@ fun Lyrics(
         }
 
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .bottomControlsMask(lyricsRevealFraction)
+            modifier = Modifier.fillMaxSize()
         ) {
             if (lyrics == LYRICS_NOT_FOUND) {
             Box(

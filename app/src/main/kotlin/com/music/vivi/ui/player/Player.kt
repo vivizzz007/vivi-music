@@ -261,6 +261,7 @@ import com.music.vivi.vivimusic.AudioDeviceBottomSheet
 import com.music.vivi.ui.component.BottomSheet
 import com.music.vivi.ui.component.BottomSheetState
 import com.music.vivi.ui.player.backdrop.PlayerBlurBackdrop
+import com.music.vivi.ui.player.backdrop.rememberArtworkBlurBitmap
 import com.music.vivi.ui.component.LocalBottomSheetPageState
 import com.music.vivi.ui.component.LocalMenuState
 import com.music.vivi.ui.component.Lyrics
@@ -1310,98 +1311,98 @@ fun BottomSheetPlayer(
                         }
                     }
                     PlayerBackgroundStyle.APPLE_MUSIC -> {
-                        AnimatedContent(
-                            targetState = mediaMetadata?.thumbnailUrl,
-                            transitionSpec = {
-                                fadeIn(tween(1200)).togetherWith(fadeOut(tween(1200)))
-                            },
-                            label = "appleMusicBackground"
-                        ) { thumbnailUrl ->
-                            if (thumbnailUrl != null) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .alpha(backgroundAlpha)
-                                ) {
-                                    // Layer 1: Full-Screen Blurred Backdrop
-                                    AsyncImage(
-                                        model = ImageRequest.Builder(context)
-                                            .data(thumbnailUrl)
-                                            .size(128, 128)
-                                            .crossfade(600)
-                                            .allowHardware(false)
-                                            .build(),
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .alpha(backgroundAlpha)
+                        ) {
+                            // Layer 1: Full-Screen Blurred Backdrop (Cached & persistent across song changes - zero flicker)
+                            val blurBitmap = rememberArtworkBlurBitmap(mediaMetadata?.thumbnailUrl?.toUri())
+                            Crossfade(
+                                targetState = blurBitmap,
+                                animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                                label = "appleMusicBlurCrossfade"
+                            ) { bitmap ->
+                                if (bitmap != null) {
+                                    Image(
+                                        bitmap = bitmap,
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .blur(100.dp)
+                                        modifier = Modifier.fillMaxSize()
                                     )
+                                }
+                            }
 
-                                    // Layer 1.5: Artwork Depth Scrim
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(
-                                                Brush.verticalGradient(
-                                                    0.00f to Color.Black.copy(alpha = 0.34f),
-                                                    0.55f to Color.Black.copy(alpha = 0.48f),
-                                                    1.00f to Color.Black.copy(alpha = 0.64f)
-                                                )
-                                            )
-                                    )
-
-                                    // Layer 2: Clear Artwork (Dissolves along smootherStep into backdrop)
-                                    val clearArtworkAlpha by animateFloatAsState(
-                                        targetValue = if (showInlineLyrics || showInlineQueue) 0f else 1f,
-                                        animationSpec = tween(500),
-                                        label = "clearArtworkAlpha"
-                                    )
-                                    
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .fillMaxHeight(0.65f) // Occupies top 65%
-                                            .alpha(clearArtworkAlpha)
-                                            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-                                            .drawWithContent {
-                                                drawContent()
-                                                // Along smootherstep, so neither end of the dissolve shows as a line
-                                                drawRect(
-                                                    brush = Brush.verticalGradient(
-                                                        colorStops = Array(17) { i ->
-                                                            val t = i / 16f
-                                                            t to Color.Black.copy(alpha = 1f - smootherStep(t))
-                                                        },
-                                                        startY = size.height * (1f - 0.42f),
-                                                        endY = size.height,
-                                                    ),
-                                                    blendMode = BlendMode.DstIn
-                                                )
-                                            }
-                                    ) {
-                                        AsyncImage(
-                                            model = ImageRequest.Builder(context)
-                                                .data(thumbnailUrl)
-                                                .size(CoilSize.ORIGINAL)
-                                                .crossfade(600)
-                                                .build(),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier.fillMaxSize()
+                            // Layer 1.5: Artwork Depth Scrim
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            0.00f to Color.Black.copy(alpha = 0.34f),
+                                            0.55f to Color.Black.copy(alpha = 0.48f),
+                                            1.00f to Color.Black.copy(alpha = 0.64f)
                                         )
+                                    )
+                            )
 
-                                        if (enableCanvas && canvasArtwork != null && backgroundAlpha > 0.01f) {
-                                            BackgroundVideoView(
-                                                videoUrl = canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
-                                                isPlaying = isPlaying,
-                                                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                            // Layer 2: Clear Artwork (Dissolves along smootherStep into backdrop)
+                            // Only drawn in background for new player; old player uses the foreground morphing sleeve.
+                            if (useNewPlayerDesign) {
+                                val clearArtworkAlpha by animateFloatAsState(
+                                    targetValue = if (showInlineLyrics || showInlineQueue) 0f else 1f,
+                                    animationSpec = tween(500),
+                                    label = "clearArtworkAlpha"
+                                )
+                                Crossfade(
+                                    targetState = mediaMetadata?.thumbnailUrl,
+                                    animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+                                    label = "appleMusicClearArtworkCrossfade"
+                                ) { thumbnailUrl ->
+                                    if (thumbnailUrl != null) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(0.65f) // Occupies top 65%
+                                                .alpha(clearArtworkAlpha)
+                                                .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+                                                .drawWithContent {
+                                                    drawContent()
+                                                    // Along smootherstep, so neither end of the dissolve shows as a line
+                                                    drawRect(
+                                                        brush = Brush.verticalGradient(
+                                                            colorStops = Array(17) { i ->
+                                                                val t = i / 16f
+                                                                t to Color.Black.copy(alpha = 1f - smootherStep(t))
+                                                            },
+                                                            startY = size.height * (1f - 0.42f),
+                                                            endY = size.height,
+                                                        ),
+                                                        blendMode = BlendMode.DstIn
+                                                    )
+                                                }
+                                        ) {
+                                            AsyncImage(
+                                                model = ImageRequest.Builder(context)
+                                                    .data(thumbnailUrl)
+                                                    .size(CoilSize.ORIGINAL)
+                                                    .crossfade(600)
+                                                    .build(),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
                                                 modifier = Modifier.fillMaxSize()
                                             )
+
+                                            if (enableCanvas && canvasArtwork != null && backgroundAlpha > 0.01f) {
+                                                BackgroundVideoView(
+                                                    videoUrl = canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl ?: "",
+                                                    isPlaying = isPlaying,
+                                                    resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                                    modifier = Modifier.fillMaxSize()
+                                                )
+                                            }
                                         }
                                     }
-                                    
-
                                 }
                             }
                         }
@@ -3166,9 +3167,18 @@ fun BottomSheetPlayer(
                         val collapsedX = PlayerHorizontalPadding
                         val collapsedY = normalTopPadding
 
-                        val artworkSize = dpLerp(expandedArtworkSize, collapsedArtworkSize, lyricsProgress)
-                        val artworkX = dpLerp(expandedX, collapsedX, lyricsProgress)
-                        val artworkY = dpLerp(expandedY, collapsedY, lyricsProgress)
+                        val isAppleMusic = playerBackground == PlayerBackgroundStyle.APPLE_MUSIC
+
+                        val bannerHeight = (maxHeight * 0.65f).coerceAtMost(controlsTop + 16.dp)
+                        val targetExpandedWidth = if (isAppleMusic) maxWidth else expandedArtworkSize
+                        val targetExpandedHeight = if (isAppleMusic) bannerHeight else expandedArtworkSize
+                        val targetExpandedX = if (isAppleMusic) 0.dp else expandedX
+                        val targetExpandedY = if (isAppleMusic) 0.dp else expandedY
+
+                        val artworkWidth = dpLerp(targetExpandedWidth, collapsedArtworkSize, lyricsProgress)
+                        val artworkHeight = dpLerp(targetExpandedHeight, collapsedArtworkSize, lyricsProgress)
+                        val artworkX = dpLerp(targetExpandedX, collapsedX, lyricsProgress)
+                        val artworkY = dpLerp(targetExpandedY, collapsedY, lyricsProgress)
 
                         var showCompactControls by remember(showInlineLyrics, showInlineQueue) {
                             mutableStateOf(true)
@@ -3264,6 +3274,7 @@ fun BottomSheetPlayer(
                                 .offset(y = lyricsTop)
                                 .fillMaxWidth()
                                 .height(lyricsHeight)
+                                .bottomControlsMask { lyricsRevealFraction }
                                 .compactPanelGestures(
                                     key1 = showInlineLyrics,
                                     key2 = effectiveIsPlaying,
@@ -3294,8 +3305,7 @@ fun BottomSheetPlayer(
                                 mediaMetadata = mediaMetadata,
                                 showLyrics = showInlineLyrics,
                                 positionProvider = { sliderPosition ?: effectivePosition },
-                                controlsOverlap = controlsOverlap,
-                                lyricsRevealFraction = lyricsRevealFraction
+                                controlsOverlap = controlsOverlap
                             )
                         }
 
@@ -3308,7 +3318,7 @@ fun BottomSheetPlayer(
                                 .offset(y = queueTop)
                                 .fillMaxWidth()
                                 .height(queueHeight)
-                                .bottomControlsMask(queueRevealFraction)
+                                .bottomControlsMask { queueRevealFraction }
                                 .compactPanelGestures(
                                     key1 = showInlineQueue,
                                     key2 = effectiveIsPlaying,
@@ -3536,15 +3546,47 @@ fun BottomSheetPlayer(
                         }
 
                         // 4. Artwork: Unified single morphing component matching ViviLite architecture
-                        val artworkShape = RoundedCornerShape(dpLerp(thumbnailCornerRadius.dp, 0.dp, lyricsProgress))
+                        val artworkShape = if (isAppleMusic) {
+                            RoundedCornerShape(dpLerp(0.dp, 8.dp, lyricsProgress))
+                        } else {
+                            RoundedCornerShape(dpLerp(thumbnailCornerRadius.dp, 0.dp, lyricsProgress))
+                        }
+                        val maskAlpha = if (isAppleMusic) (1f - lyricsProgress).coerceIn(0f, 1f) else 0f
+                        val showDissolveMask = isAppleMusic && maskAlpha > 0.01f
+
                         Box(
                             modifier = Modifier
                                 .offset(x = artworkX, y = artworkY)
-                                .size(artworkSize)
+                                .width(artworkWidth)
+                                .height(artworkHeight)
                                 .zIndex(1f)
                                 .nestedScroll(state.preUpPostDownNestedScrollConnection)
-                                .clip(artworkShape)
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .graphicsLayer {
+                                    shape = artworkShape
+                                    clip = true
+                                    compositingStrategy = if (showDissolveMask) {
+                                        CompositingStrategy.Offscreen
+                                    } else {
+                                        CompositingStrategy.Auto
+                                    }
+                                }
+                                .drawWithContent {
+                                    drawContent()
+                                    if (showDissolveMask) {
+                                        drawRect(
+                                            brush = Brush.verticalGradient(
+                                                colorStops = Array(17) { i ->
+                                                    val t = i / 16f
+                                                    t to Color.Black.copy(alpha = 1f - maskAlpha * smootherStep(t))
+                                                },
+                                                startY = size.height * (1f - 0.42f),
+                                                endY = size.height,
+                                            ),
+                                            blendMode = BlendMode.DstIn
+                                        )
+                                    }
+                                }
+                                .background(if (isAppleMusic) Color.Transparent else MaterialTheme.colorScheme.surfaceVariant)
                         ) {
                             Crossfade(
                                 targetState = mediaMetadata?.id to (mediaMetadata?.thumbnailUrl ?: currentSong?.song?.thumbnailUrl),
@@ -3572,19 +3614,32 @@ fun BottomSheetPlayer(
                                         }
                                     },
                                     contentDescription = null,
-                                    contentScale = if (cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
+                                    contentScale = if (isAppleMusic || cropAlbumArt) ContentScale.Crop else ContentScale.Fit,
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
 
-                            val motionVideoUrl = canvasArtwork?.animated ?: canvasArtwork?.videoUrl
+                            val motionVideoUrl = if (isAppleMusic) {
+                                canvasArtwork?.animatedTall ?: canvasArtwork?.animated ?: canvasArtwork?.videoUrl
+                            } else {
+                                canvasArtwork?.animated ?: canvasArtwork?.videoUrl
+                            }
                             if (enableCanvas && !isCompactHeader && motionVideoUrl != null) {
-                                MotionartworkPlayer(
-                                    primaryUrl = motionVideoUrl,
-                                    fallbackUrl = canvasArtwork?.videoUrl,
-                                    isPlaying = isPlaying,
-                                    modifier = Modifier.fillMaxSize()
-                                )
+                                if (isAppleMusic) {
+                                    BackgroundVideoView(
+                                        videoUrl = motionVideoUrl,
+                                        isPlaying = isPlaying,
+                                        resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    MotionartworkPlayer(
+                                        primaryUrl = motionVideoUrl,
+                                        fallbackUrl = canvasArtwork?.videoUrl,
+                                        isPlaying = isPlaying,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
 
                             Box(
@@ -3657,8 +3712,7 @@ fun InlineLyricsView(
     mediaMetadata: MediaMetadata?,
     showLyrics: Boolean,
     positionProvider: () -> Long,
-    controlsOverlap: Dp = 0.dp,
-    lyricsRevealFraction: Float = 1.15f
+    controlsOverlap: Dp = 0.dp
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentLyrics by playerConnection.currentLyrics.collectAsState(initial = null)
@@ -3810,8 +3864,7 @@ fun InlineLyricsView(
                         sliderPositionProvider = positionProvider,
                         modifier = Modifier.padding(horizontal = 24.dp),
                         showLyrics = showLyrics,
-                        extraBottomPadding = controlsOverlap,
-                        lyricsRevealFraction = lyricsRevealFraction
+                        extraBottomPadding = controlsOverlap
                     )
                 }
                 ProvideTextStyle(
@@ -4748,12 +4801,16 @@ private fun BackgroundVideoView(
     )
 }
 
-internal fun Modifier.bottomControlsMask(revealFraction: Float): Modifier =
-    graphicsLayer(alpha = 0.99f).drawWithContent {
+internal fun Modifier.bottomControlsMask(revealFraction: () -> Float): Modifier =
+    graphicsLayer {
+        val fraction = revealFraction()
+        compositingStrategy = if (fraction < 1.1f) CompositingStrategy.Offscreen else CompositingStrategy.Auto
+    }.drawWithContent {
         drawContent()
-        if (revealFraction < 1.1f) {
-            val fadeTop = (revealFraction - 0.12f).coerceIn(0f, 1f)
-            val fadeBottom = revealFraction.coerceIn(fadeTop + 0.01f, 1f)
+        val fraction = revealFraction()
+        if (fraction < 1.1f) {
+            val fadeTop = (fraction - 0.12f).coerceIn(0f, 1f)
+            val fadeBottom = fraction.coerceIn(fadeTop + 0.01f, 1f)
             drawRect(
                 brush = Brush.verticalGradient(
                     0f to Color.Black,
@@ -4765,6 +4822,9 @@ internal fun Modifier.bottomControlsMask(revealFraction: Float): Modifier =
             )
         }
     }
+
+internal fun Modifier.bottomControlsMask(revealFraction: Float): Modifier =
+    bottomControlsMask { revealFraction }
 
 
 private fun Modifier.compactPanelGestures(
