@@ -14,6 +14,8 @@
 package com.music.musixmatch
 
 import com.music.musixmatch.models.RichSyncEntry
+import com.music.musixmatch.models.Track
+import com.music.musixmatch.models.TrackContainer
 import com.music.musixmatch.models.WordEntry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -42,9 +44,8 @@ class MusixmatchTest {
 
         val lrc = Musixmatch.convertRichSyncToLrc(entries)
         
-        // Expected formatted LRC (inline RichSync):
-        // [00:32.240]<00:32.240>This <00:32.676>is <00:32.867>the <00:33.527>end
-        val expected = "[00:32.240]<00:32.240>This <00:32.676>is <00:32.867>the <00:33.527>end\n"
+        // Expected formatted LRC (inline RichSync with line-end tag):
+        val expected = "[00:32.240]<00:32.240>This <00:32.676>is <00:32.867>the <00:33.527>end<00:34.033>"
         assertEquals(expected, lrc)
     }
 
@@ -127,6 +128,63 @@ class MusixmatchTest {
         val input = "Song Title (feat. Artist) [Live Version]"
         val cleaned = Musixmatch.cleanText(input)
         assertEquals("song title", cleaned)
+    }
+
+    @Test
+    fun testCleanTitle() {
+        val input = "Blinding Lights (Official Music Video)"
+        val cleaned = Musixmatch.cleanTitle(input)
+        assertEquals("Blinding Lights", cleaned)
+
+        val input2 = "Song Name [Visualizer] (feat. Artist)"
+        val cleaned2 = Musixmatch.cleanTitle(input2)
+        assertEquals("Song Name", cleaned2)
+    }
+
+    @Test
+    fun testCleanArtist() {
+        val input = "The Kid LAROI, Justin Bieber"
+        val cleaned = Musixmatch.cleanArtist(input)
+        assertEquals("The Kid LAROI", cleaned)
+
+        val input2 = "Ariana Grande & The Weeknd"
+        val cleaned2 = Musixmatch.cleanArtist(input2)
+        assertEquals("Ariana Grande", cleaned2)
+    }
+
+    @Test
+    fun testSelectBestTrackPrefersRichSync() {
+        val candidatePlain = TrackContainer(
+            Track(
+                trackId = 1L,
+                trackName = "Test Song",
+                artistName = "Test Artist",
+                trackLength = 200,
+                hasLyrics = 1,
+                hasSubtitles = 0,
+                hasRichSync = 0
+            )
+        )
+        val candidateRichSync = TrackContainer(
+            Track(
+                trackId = 2L,
+                trackName = "Test Song",
+                artistName = "Test Artist",
+                trackLength = 204, // 4s diff vs 0s diff for plain
+                hasLyrics = 1,
+                hasSubtitles = 1,
+                hasRichSync = 1
+            )
+        )
+
+        val selected = Musixmatch.selectBestTrack(
+            listOf(candidatePlain, candidateRichSync),
+            queryTitle = "Test Song",
+            duration = 200
+        )
+
+        // Candidate with RichSync should be selected even if duration diff is slightly larger
+        assertEquals(2L, selected?.trackId)
     }
 
     @Test

@@ -9,6 +9,8 @@ package com.music.vivi.ui.player
 
 import android.content.res.Configuration
 import android.os.Build
+import androidx.core.net.toUri
+import com.music.vivi.ui.player.backdrop.PlayerBlurBackdrop
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -1076,25 +1078,10 @@ internal fun MiniPlayerBackgroundLayer(
     
     when (style) {
         PlayerBackgroundStyle.BLUR -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(mediaMetadata?.thumbnailUrl)
-                        .size(128, 128)
-                        .allowHardware(false)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(30.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.45f))
-                )
-            }
+            PlayerBlurBackdrop(
+                artworkUri = mediaMetadata?.thumbnailUrl?.toUri(),
+                modifier = Modifier.fillMaxSize()
+            )
         }
         PlayerBackgroundStyle.GRADIENT -> {
             if (gradientColors.isNotEmpty()) {

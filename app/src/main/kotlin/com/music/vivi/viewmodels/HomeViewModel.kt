@@ -787,7 +787,7 @@ class HomeViewModel @Inject constructor(
                         var currentContinuation = initialPage.continuation
                         var fetchCount = 0
                         
-                        while (!hasQuickPicks && currentContinuation != null && fetchCount < 2) {
+                        while (currentContinuation != null && fetchCount < 2) {
                             val nextSectionsResponse = YouTube.home(currentContinuation).getOrNull() ?: break
                             
                             val nextCnrSection = nextSectionsResponse.sections.find { it.title.contains("cover", true) && it.title.contains("remix", true) }

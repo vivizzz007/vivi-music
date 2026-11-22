@@ -14,6 +14,7 @@ import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import com.music.vivi.models.MediaMetadata
+import timber.log.Timber
 import java.util.ArrayDeque
 
 fun Player.togglePlayPause() {
@@ -107,6 +108,31 @@ fun Player.findNextMediaItemById(mediaId: String): MediaItem? {
         }
     }
     return null
+}
+
+fun Player.findWindowIndexByUid(uid: Any): Int {
+    val window = Timeline.Window()
+    return (0 until currentTimeline.windowCount).firstOrNull {
+        currentTimeline.getWindow(it, window).uid == uid
+    } ?: -1
+}
+
+fun Player.removeWindow(window: Timeline.Window) {
+    if (!availableCommands.contains(Player.COMMAND_CHANGE_MEDIA_ITEMS)) return
+    val index = findWindowIndexByUid(window.uid)
+    if (index in 0 until mediaItemCount) {
+        removeMediaItem(index)
+    }
+}
+
+fun Player.removeWindows(windows: Collection<Timeline.Window>) {
+    if (!availableCommands.contains(Player.COMMAND_CHANGE_MEDIA_ITEMS) || windows.isEmpty()) return
+    val targetUids = windows.map { it.uid }.toSet()
+    val window = Timeline.Window()
+    (0 until currentTimeline.windowCount)
+        .filter { currentTimeline.getWindow(it, window).uid in targetUids }
+        .sortedDescending()
+        .forEach { removeMediaItem(it) }
 }
 
 fun Player.setOffloadEnabled(enabled: Boolean) {

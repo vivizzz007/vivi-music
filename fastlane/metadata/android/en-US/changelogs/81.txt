@@ -1,0 +1,8 @@
+We are constantly working to improve your Vivi Music experience!
+
+This update includes:
+• Optimisation of the APK for faster app performance, smoother UI navigation, and better load times.
+• Various bug fixes to ensure app stability and uninterrupted music playback.
+
+For further details on all the new changes and additional release information, please check out our official changelog here:
+https://github.com/vivizzz007/vivi-music/releases

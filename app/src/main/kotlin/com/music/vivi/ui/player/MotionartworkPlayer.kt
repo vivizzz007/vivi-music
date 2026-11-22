@@ -32,6 +32,8 @@ import com.music.innertube.YouTube
 import com.music.innertube.models.YouTubeClient
 import okhttp3.OkHttpClient
 import java.util.Locale
+import android.graphics.Color as AndroidColor
+import androidx.media3.common.PlaybackException
 import android.view.ViewGroup
 import android.view.TextureView
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -139,7 +141,7 @@ fun MotionartworkPlayer(
     DisposableEffect(exoPlayer, primary, fallback) {
         val listener =
             object : Player.Listener {
-                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                override fun onPlayerError(error: PlaybackException) {
                     val next =
                         when (currentUrl) {
                             primary -> fallback
@@ -215,7 +217,7 @@ fun MotionartworkPlayer(
                 }
                 addView(textureView)
                 exoPlayer.setVideoTextureView(textureView)
-                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                setBackgroundColor(AndroidColor.TRANSPARENT)
             }
         },
         update = { view ->

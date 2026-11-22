@@ -21,6 +21,7 @@ import com.music.vivi.utils.SyncUtils
 import com.music.vivi.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -60,10 +61,15 @@ constructor(
                 }.distinctUntilChanged(),
         ) { songs, (sortType, sortDescending, hideVideoSongs) ->
             val filteredSongs = if (hideVideoSongs) {
-                songs.filter { !it.song.song.isVideo }
+                val (videos, nonVideos) = songs.partition { it.song.song.isVideo }
+                if (videos.isNotEmpty()) {
+                    Timber.tag("PlaylistAdd").d("LocalPlaylistViewModel: hideVideoSongs is ON, filtered out ${videos.size} video songs: ${videos.map { it.song.song.title }}")
+                }
+                nonVideos
             } else {
                 songs
             }
+            Timber.tag("PlaylistAdd").d("LocalPlaylistViewModel: playlistSongs emitted ${songs.size} songs (after filter: ${filteredSongs.size}) for playlistId=$playlistId")
             when (sortType) {
                 PlaylistSongSortType.CUSTOM -> filteredSongs
                 PlaylistSongSortType.CREATE_DATE -> filteredSongs.sortedBy { it.map.id }
@@ -95,6 +101,7 @@ constructor(
         viewModelScope.launch {
             // Trigger sync in background if it's a YouTube synced playlist
             playlist.first { it != null }?.playlist?.browseId?.let { browseId ->
+                Timber.tag("PlaylistAdd").d("LocalPlaylistViewModel: Triggering background sync for playlistId=$playlistId, browseId=$browseId")
                 syncUtils.syncPlaylist(browseId, playlistId)
             }
         }

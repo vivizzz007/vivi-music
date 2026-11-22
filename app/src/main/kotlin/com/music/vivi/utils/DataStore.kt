@@ -22,17 +22,22 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.properties.ReadOnlyProperty
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+@Volatile
+@PublishedApi
+internal var cachedPreferences: Preferences? = null
+
 operator fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>): T? =
-    runBlocking(Dispatchers.IO) {
+    cachedPreferences?.get(key) ?: runBlocking(Dispatchers.IO) {
         try {
             kotlinx.coroutines.withTimeoutOrNull(1500) {
-                data.first()[key]
+                data.first().also { cachedPreferences = it }[key]
             }
         } catch (e: Exception) {
             null
@@ -43,10 +48,10 @@ fun <T> DataStore<Preferences>.get(
     key: Preferences.Key<T>,
     defaultValue: T,
 ): T =
-    runBlocking(Dispatchers.IO) {
+    cachedPreferences?.get(key) ?: runBlocking(Dispatchers.IO) {
         try {
             kotlinx.coroutines.withTimeoutOrNull(1500) {
-                data.first()[key]
+                data.first().also { cachedPreferences = it }[key]
             } ?: defaultValue
         } catch (e: Exception) {
             defaultValue
@@ -54,13 +59,13 @@ fun <T> DataStore<Preferences>.get(
     }
 
 suspend fun <T> DataStore<Preferences>.getAsync(key: Preferences.Key<T>): T? =
-    data.first()[key]
+    cachedPreferences?.get(key) ?: data.first().also { cachedPreferences = it }[key]
 
 suspend fun <T> DataStore<Preferences>.getAsync(
     key: Preferences.Key<T>,
     defaultValue: T,
 ): T =
-    data.first()[key] ?: defaultValue
+    cachedPreferences?.get(key) ?: data.first().also { cachedPreferences = it }[key] ?: defaultValue
 
 fun <T> preference(
     context: Context,
@@ -82,12 +87,17 @@ fun <T> rememberPreference(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    val initialValue = remember {
+        cachedPreferences?.get(key) ?: defaultValue
+    }
+
     val state =
         remember {
             context.dataStore.data
+                .onEach { cachedPreferences = it }
                 .map { it[key] ?: defaultValue }
                 .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
+        }.collectAsStateWithLifecycle(initialValue)
 
     return remember {
         object : MutableState<T> {
@@ -116,12 +126,17 @@ inline fun <reified T : Enum<T>> rememberEnumPreference(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
+    val initialValue = remember {
+        cachedPreferences?.get(key)?.toEnum(defaultValue) ?: defaultValue
+    }
+
     val state =
         remember {
             context.dataStore.data
+                .onEach { cachedPreferences = it }
                 .map { it[key].toEnum(defaultValue = defaultValue) }
                 .distinctUntilChanged()
-        }.collectAsStateWithLifecycle(defaultValue)
+        }.collectAsStateWithLifecycle(initialValue)
 
     return remember {
         object : MutableState<T> {

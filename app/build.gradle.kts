@@ -25,9 +25,9 @@ android {
         applicationId = "com.vivi.vivimusic"
         minSdk = 26
         targetSdk = 37
-        versionCode = 80
+        versionCode = 81
         val betaVersionName = project.findProperty("betaVersionName") as String?
-        versionName = betaVersionName ?: "7.0.1"
+        versionName = betaVersionName ?: "7.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -165,6 +165,7 @@ buildTypes {
         warningsAsErrors = false
         abortOnError = false
         checkDependencies = false
+        disable += "ExtraTranslation"
     }
 
     androidResources {
@@ -271,15 +272,12 @@ dependencies {
     "gmsImplementation"(libs.cast.framework)
 
     implementation(libs.room.runtime)
-    implementation(libs.kuromoji.ipadic)
-    implementation(libs.tinypinyin)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
     implementation(libs.apache.lang3)
 
     implementation(libs.hilt)
-    implementation(libs.jsoup)
     ksp(libs.hilt.compiler)
 
     implementation(project(":innertube"))
@@ -310,8 +308,6 @@ dependencies {
     coreLibraryDesugaring(libs.desugaring)
     implementation(libs.timber)
     implementation(libs.smoothCorner)
-    implementation(libs.lottie.compose)
-    implementation(libs.haze)
     implementation(libs.work.runtime.ktx)
     implementation(libs.androidx.core.splashscreen)
 

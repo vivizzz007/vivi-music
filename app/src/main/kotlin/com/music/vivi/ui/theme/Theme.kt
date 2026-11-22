@@ -47,13 +47,13 @@ fun vivimusicTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.SYSTEM.value)
+    val selectedFontValue by rememberPreference(SelectedFontKey, AppFont.POPPINS.value)
     val customFontPath by rememberPreference(CustomFontPathKey, "")
 
     val brandFont = remember(selectedFontValue, customFontPath) {
         when (AppFont.fromValue(selectedFontValue)) {
+            AppFont.POPPINS -> PoppinsFontFamily
             AppFont.SYSTEM -> FontFamily.Default
-            AppFont.SF_PRO -> SfProDisplayFontFamily
             AppFont.OUTFIT -> OutfitFontFamily
             AppFont.PLUS_JAKARTA_SANS -> PlusJakartaSansFontFamily
             AppFont.CUSTOM -> {

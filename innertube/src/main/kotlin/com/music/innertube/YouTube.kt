@@ -25,6 +25,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.music.innertube.models.YouTubeClient
+import com.music.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.music.innertube.models.YouTubeClient.Companion.WEB
 import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.YouTubeLocale
@@ -221,35 +222,28 @@ object YouTube {
             .mapNotNull { it.musicResponsiveListItemRenderer }
             .mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
 
-        val groupedSummaries = mutableListOf<SearchSummary>()
+        val songsSummary = flatItems.filterIsInstance<SongItem>().filter { !it.isVideoSong }
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Songs", items = it) }
+        val albumsSummary = flatItems.filterIsInstance<AlbumItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Albums", items = it) }
+        val artistsSummary = flatItems.filterIsInstance<ArtistItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Artists", items = it) }
+        val playlistsSummary = flatItems.filterIsInstance<PlaylistItem>()
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Playlists", items = it) }
+        val videosSummary = flatItems.filterIsInstance<SongItem>().filter { it.isVideoSong }
+            .takeIf { it.isNotEmpty() }?.let { SearchSummary(title = "Videos", items = it) }
 
-        val flatSongs = flatItems.filterIsInstance<SongItem>().filter { !it.isVideoSong }
-        if (flatSongs.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Songs", items = flatSongs))
-        }
-
-        val flatVideos = flatItems.filterIsInstance<SongItem>().filter { it.isVideoSong }
-        if (flatVideos.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Videos", items = flatVideos))
-        }
-
-        val flatAlbums = flatItems.filterIsInstance<AlbumItem>()
-        if (flatAlbums.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Albums", items = flatAlbums))
-        }
-
-        val flatArtists = flatItems.filterIsInstance<ArtistItem>()
-        if (flatArtists.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Artists", items = flatArtists))
-        }
-
-        val flatPlaylists = flatItems.filterIsInstance<PlaylistItem>()
-        if (flatPlaylists.isNotEmpty()) {
-            groupedSummaries.add(SearchSummary(title = "Playlists", items = flatPlaylists))
+        // Preserve YouTube's relevance ranking: dynamically prioritize the category of the top-ranked flat item
+        val firstItem = flatItems.firstOrNull()
+        val orderedCategories = when (firstItem) {
+            is ArtistItem -> listOfNotNull(artistsSummary, songsSummary, albumsSummary, playlistsSummary, videosSummary)
+            is AlbumItem -> listOfNotNull(albumsSummary, songsSummary, artistsSummary, playlistsSummary, videosSummary)
+            is PlaylistItem -> listOfNotNull(playlistsSummary, songsSummary, albumsSummary, artistsSummary, videosSummary)
+            else -> listOfNotNull(songsSummary, albumsSummary, artistsSummary, playlistsSummary, videosSummary)
         }
 
         SearchSummaryPage(
-            summaries = shelfSummaries + groupedSummaries
+            summaries = shelfSummaries + orderedCategories
         )
     }
 
@@ -1558,7 +1552,61 @@ object YouTube {
     }
 
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> = runCatching {
-        val response = innerTube.browse(WEB_REMIX, endpoint.browseId, endpoint.params).body<BrowseResponse>()
+        // Try ANDROID_MUSIC client first for structured and timed lyrics
+        val mobileResponse = runCatching {
+            innerTube.browse(
+                client = ANDROID_MUSIC,
+                browseId = endpoint.browseId,
+                params = endpoint.params,
+                setLogin = true,
+            ).body<BrowseResponse>()
+        }.getOrNull()
+
+        val timedLyrics = mobileResponse?.contents?.elementRenderer
+            ?.newElement?.type?.componentType?.model?.timedLyricsModel?.lyricsData?.timedLyricsData
+
+        if (!timedLyrics.isNullOrEmpty()) {
+            val hasTimestamps = timedLyrics.any { item ->
+                item.cueRange?.startTimeMilliseconds?.let {
+                    if (it is kotlinx.serialization.json.JsonNull) null else it.content.toLongOrNull()
+                } != null
+            }
+
+            val formatted = if (hasTimestamps) {
+                timedLyrics.joinToString("\n") { item ->
+                    val line = item.lyricLine.orEmpty()
+                    val ms = item.cueRange?.startTimeMilliseconds?.let {
+                        if (it is kotlinx.serialization.json.JsonNull) null else it.content.toLongOrNull()
+                    }
+                    if (ms != null) {
+                        val minutes = (ms / 1000) / 60
+                        val seconds = (ms / 1000) % 60
+                        val hundredths = (ms % 1000) / 10
+                        if (line.isEmpty()) {
+                            String.format(java.util.Locale.ROOT, "[%02d:%02d.%02d]", minutes, seconds, hundredths)
+                        } else {
+                            String.format(java.util.Locale.ROOT, "[%02d:%02d.%02d] %s", minutes, seconds, hundredths, line)
+                        }
+                    } else {
+                        line
+                    }
+                }
+            } else {
+                timedLyrics.joinToString("\n") { it.lyricLine.orEmpty() }
+            }
+
+            if (formatted.isNotBlank()) {
+                return@runCatching formatted
+            }
+        }
+
+        // Fallback to WEB_REMIX description shelf renderer
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseId = endpoint.browseId,
+            params = endpoint.params,
+            setLogin = true,
+        ).body<BrowseResponse>()
         response.contents?.sectionListRenderer?.contents
             ?.firstOrNull { it.musicDescriptionShelfRenderer != null }
             ?.musicDescriptionShelfRenderer?.description?.runs

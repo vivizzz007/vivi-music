@@ -98,6 +98,7 @@ import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
 import com.music.vivi.constants.PlayerBackgroundStyle
 import com.music.vivi.constants.PlayerBackgroundStyleKey
 import com.music.vivi.constants.PlayerHorizontalPadding
+import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.RotatingThumbnailKey
 import com.music.vivi.constants.SeekExtraSeconds
 import com.music.vivi.constants.SwipeThumbnailKey
@@ -122,6 +123,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
 import com.music.vivi.Motionartwork.apple.AppleMusicMotionartworkProvider
 import com.music.vivi.Motionartwork.vivimusic.ViviMusicMotionartworkProvider
+import android.content.Context
+import com.music.vivi.playback.PlayerConnection
 import timber.log.Timber
 import java.util.Locale
 
@@ -163,7 +166,7 @@ private fun calculateThumbnailDimensions(
     val effectiveSize = if (isLandscape) {
         minOf(containerWidth, containerHeight) - (horizontalPadding * 2)
     } else {
-        containerWidth - (horizontalPadding * 2)
+        minOf(containerWidth - (horizontalPadding * 2), containerHeight - 16.dp).coerceAtLeast(120.dp)
     }
     return ThumbnailDimensions(
         itemWidth = containerWidth,
@@ -304,6 +307,7 @@ fun Thumbnail(
 
     // Preferences - computed once
     // Disable swipe for Listen Together guests
+    val (useNewPlayerDesign) = rememberPreference(UseNewPlayerDesignKey, false)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     val swipeThumbnail = swipeThumbnailPref && !isListenTogetherGuest
     val hidePlayerThumbnail by rememberPreference(HidePlayerThumbnailKey, false)
@@ -432,15 +436,15 @@ fun Thumbnail(
             exit = fadeOut(),
             modifier = Modifier
                 .fillMaxSize()
-                .then(if (!isLandscape) Modifier.statusBarsPadding() else Modifier),
+                .then(if (!isLandscape && useNewPlayerDesign) Modifier.statusBarsPadding() else Modifier),
         ) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = if (isLandscape) Arrangement.Center else Arrangement.Top
             ) {
-                // Now Playing header - hide in landscape mode
-                if (!isLandscape) {
+                // Now Playing header - hide in landscape mode and in old player
+                if (!isLandscape && useNewPlayerDesign) {
                     ThumbnailHeader(
                         queueTitle = queueTitle,
                         albumTitle = mediaMetadata?.album?.title,
@@ -511,7 +515,8 @@ fun Thumbnail(
                                 isListenTogetherGuest = isListenTogetherGuest,
                                 currentMediaId = mediaMetadata?.id,
                                 currentMediaThumbnail = mediaMetadata?.thumbnailUrl,
-                                playerBackground = playerBackground
+                                playerBackground = playerBackground,
+                                useNewPlayerDesign = useNewPlayerDesign
                             )
                         }
                     }
@@ -617,16 +622,18 @@ private fun ThumbnailItem(
     textBackgroundColor: Color,
     layoutDirection: LayoutDirection,
     onSeek: (String, Boolean) -> Unit,
-    playerConnection: com.music.vivi.playback.PlayerConnection,
-    context: android.content.Context,
+    playerConnection: PlayerConnection,
+    context: Context,
     isLandscape: Boolean = false,
     isListenTogetherGuest: Boolean = false,
     currentMediaId: String? = null,
     currentMediaThumbnail: String? = null,
     playerBackground: PlayerBackgroundStyle = PlayerBackgroundStyle.DEFAULT,
+    useNewPlayerDesign: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val rotatingThumbnail by rememberPreference(RotatingThumbnailKey, defaultValue = false)
+    val rotatingThumbnailPref by rememberPreference(RotatingThumbnailKey, defaultValue = false)
+    val rotatingThumbnail = useNewPlayerDesign && rotatingThumbnailPref
     val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
     val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -989,7 +996,7 @@ private fun SeekEffectOverlay(
  * Returns true only if ALL three pass. Any one failing returns false.
  */
 internal fun validateMotionartworkMatch(
-    artwork: com.music.vivi.Motionartwork.Motionartwork,
+    artwork: Motionartwork,
     requestedTitle: String,
     requestedArtist: String,
     requestedAlbum: String

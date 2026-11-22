@@ -202,6 +202,10 @@
     <string name="lyrics_glow_effect_desc">Add glowing animation and bounce effect to active lyrics</string>
     <string name="enable_better_lyrics">Enable Better Lyrics</string>
     <string name="enable_better_lyrics_desc">Use Better Lyrics provider for word-by-word synced lyrics</string>
+    <string name="enable_better_lyrics_portato">Enable Better Lyrics (Portato)</string>
+    <string name="enable_better_lyrics_portato_desc">QQ Music rich karaoke timings via BetterLyrics</string>
+    <string name="enable_genius_lyrics">Enable Genius</string>
+    <string name="enable_genius_lyrics_desc">Fallback plain-text scraper when all synced lyrics providers miss</string>
     <string name="auto_scroll">Re-sync</string>
     <string name="slim">Slim</string>
     <string name="slim_navbar">Slim bottom navigation bar</string>
@@ -364,6 +368,8 @@
     <!-- Romanization Settings -->
     <string name="lyrics_romanization_cyrillic">Cyrillic</string>
     <string name="lyrics_romanize_title">Romanization</string>
+    <string name="lyrics_romanize_all">Romanize all languages</string>
+    <string name="lyrics_romanize_all_desc">Automatically romanize any supported non-Latin language</string>
     <string name="lyrics_romanization">Lyrics romanization</string>
     <string name="romanization">Romanization</string>
     <string name="lyrics_romanize_japanese">Romanize Japanese lyrics</string>
@@ -371,6 +377,7 @@
     <string name="lyrics_romanize_chinese">Romanize Chinese lyrics</string>
     <string name="lyrics_romanize_hindi">Romanize Hindi lyrics</string>
     <string name="lyrics_romanize_punjabi">Romanize Punjabi lyrics</string>
+    <string name="lyrics_romanize_malayalam">Romanize Malayalam lyrics</string>
     <string name="lyrics_romanize_russian">Romanize Russian lyrics</string>
     <string name="lyrics_romanize_ukrainian">Romanize Ukrainian lyrics</string>
     <string name="lyrics_romanize_belarusian">Romanize Belarusian lyrics</string>
@@ -437,17 +444,40 @@
 
     <!-- Last.fm -->
     <string name="lastfm_integration">Last.fm</string>
+    <string name="lastfm_login_info">Sign in with your Last.fm username and password. Your password is only used to sign in. Only a session key is saved on this device.</string>
     <string name="enable_scrobbling">Enable scrobbling</string>
+    <string name="lastfm_enable_scrobbling_desc">Send what you play to Last.fm</string>
     <string name="lastfm_now_playing">Send Now Playing</string>
+    <string name="lastfm_now_playing_desc">Show your current song on Last.fm</string>
     <string name="last_fm_send_likes">Send Likes/Unlikes</string>
     <string name="last_fm_send_likes_description">Love/Unlove songs in Last.fm when they are Liked/Unliked in vivimusic</string>
     <string name="logging_in">Logging in…</string>
     <string name="view_listening_history">View listening history</string>
+    <string name="lastfm_scrobbles_count">%1$s scrobbles</string>
+
+    <string name="lastfm_open">Open</string>
+    <string name="lastfm_got_it">Got it</string>
+
+    <string name="lastfm_about_title">About Last.fm</string>
+    <string name="lastfm_about_subtitle">Scrobble what you listen to</string>
+    <string name="lastfm_about_tip">You can change when songs are scrobbled in Scrobbling configuration.</string>
+
+    <string name="lastfm_about_history_title">Listening history</string>
+    <string name="lastfm_about_history_desc">Songs you play are sent to Last.fm and added to your history.</string>
+    <string name="lastfm_about_scrobbling_title">Scrobbling</string>
+    <string name="lastfm_about_scrobbling_desc">A song counts once you have listened to enough of it.</string>
+    <string name="lastfm_about_now_playing_title">Now playing</string>
+    <string name="lastfm_about_now_playing_desc">Your current song shows on your Last.fm profile.</string>
+    <string name="lastfm_about_likes_title">Send likes</string>
+    <string name="lastfm_about_likes_desc">Liked songs are marked as loved tracks.</string>
 
     <string name="scrobbling_configuration">Scrobbling Configuration</string>
     <string name="scrobble_min_track_duration">Scrobble songs longer than</string>
+    <string name="lastfm_min_duration_desc">Shorter songs are not scrobbled</string>
     <string name="scrobble_delay_percent">Scrobble delay percent</string>
+    <string name="lastfm_delay_percent_desc">How much of a song must play first</string>
     <string name="scrobble_delay_minutes">Scrobble delay minutes</string>
+    <string name="lastfm_delay_time_desc">Longest wait before a song is scrobbled</string>
     <string name="hide_video_songs">Hide video songs</string>
     <string name="hide_youtube_shorts">Hide YouTube Shorts</string>
 
@@ -482,7 +512,7 @@
     <string name="karaoke">Karaoke</string>
     <string name="apple_music_style">Apple Music</string>
     <string name="apple_music_style_letter">Apple Music V2 (Letter by Letter)</string>
-    <string name="vivimusic_1">Vivimusic (Fluid)</string>
+    <string name="vivimusic_1">ViviMusic</string>
     <string name="apple_music_lyrics_blur">Apple Music Lyrics Blur</string>
     <string name="apple_music_lyrics_blur_desc">Apply blur to inactive lyrics lines for a premium focus effect</string>
     <string name="lyrics_v2_fluid">Lyrics V2 (Fluid)</string>
@@ -879,18 +909,31 @@
     <string name="csv_preview_failed">Failed to preview CSV file</string>
 
     <!-- Discord Integration Redesign -->
+    <string name="discord_account">Account</string>
     <string name="discord_integration_settings">Discord</string>
     <string name="discord_status">Status</string>
+    <string name="discord_status_subtitle">Shown on your Discord profile</string>
     <string name="discord_status_online">Online</string>
     <string name="discord_status_idle">Idle</string>
     <string name="discord_status_dnd">Do Not Disturb</string>
+    <string name="discord_presence_info">Your friends can see your music and status on your Discord profile while a song is playing.</string>
     <string name="discord_buttons">Buttons</string>
     <string name="discord_button_1">Button 1</string>
     <string name="discord_button_2">Button 2</string>
     <string name="button_text">Button text</string>
     <string name="button_visible">Visible</string>
     <string name="login_successful">Login successful!</string>
-    <string name="discord_information_warning">This feature uses the KizzyRPC library to connect to Discord\'s Gateway and set your Rich Presence status. While no known account suspensions have occurred from similar usage, this method is not officially supported by Discord and may be considered a Terms of Service violation. Your token is extracted locally and never sent to third-party servers. Proceed at your own discretion.</string>
+    <string name="discord_information_warning">Discord integration may violate Discord’s terms of service. Use it at your own risk.</string>
+    <string name="discord_about_title">About Discord integration</string>
+    <string name="discord_about_what_title">What it does</string>
+    <string name="discord_about_what_desc">Shows the song you’re listening to on your Discord profile, like a game activity.</string>
+    <string name="discord_about_login_title">Logging in</string>
+    <string name="discord_about_login_desc">Use Login to sign in with Discord, or Advanced login to paste a token.</string>
+    <string name="discord_about_custom_title">Customizing</string>
+    <string name="discord_about_custom_desc">Turn on Advanced mode to change your status.</string>
+    <string name="discord_about_risk_title">Use at your own risk</string>
+    <string name="discord_about_risk_desc">Connecting your account this way may go against Discord’s terms of service.</string>
+    <string name="discord_got_it">Got it</string>
     <string name="discord_activity_type">Activity type</string>
     <string name="discord_activity_playing">Playing</string>
     <string name="discord_activity_listening">Listening</string>
@@ -957,56 +1000,6 @@
     <string name="flavour">Flavour</string>
     <string name="version_title">Version</string>
 
-    <!-- Onboarding -->
-    <string name="welcome_to">Welcome to</string>
-    <string name="welcome_to_vivi">Welcome to Vivi</string>
-    <string name="accessibility">Accessibility</string>
-    <string name="welcome_preparing_subtitle">Let\'s get everything ready for you.</string>
-    <string name="get_started">Get Started</string>
-
-    <string name="perm_required">Required</string>
-    <string name="perm_permissions">Permissions</string>
-    <string name="perm_intro_text">These permissions are required for ViviMusic to function correctly. Please grant them to proceed.</string>
-
-    <string name="perm_notif_title">Notifications</string>
-    <string name="perm_notif_desc">Know immediately when your music is playing and control it from the notification bar.</string>
-
-    <string name="perm_install_title">App Installation</string>
-    <string name="perm_install_desc">Required to download and install app updates seamlessly.</string>
-
-    <string name="feat_discover">Discover</string>
-    <string name="feat_features">Features</string>
-    <string name="feat_intro">Explore everything ViviMusic has to offer for your music journey.</string>
-
-    <string name="feat_lyrics_title">Smart Lyrics</string>
-    <string name="feat_lyrics_desc">Enjoy synchronized, word-by-word lyrics for millions of songs.</string>
-
-    <string name="feat_download_title">Offline Playback</string>
-    <string name="feat_download_desc">Download your favorite tracks and listen anywhere, anytime.</string>
-
-    <string name="feat_quality_title">Premium Quality</string>
-    <string name="feat_quality_desc">Stream and download.</string>
-
-    <string name="feat_update_title">Dynamic Updates</string>
-    <string name="feat_update_desc">Always stay updated with our built-in updater.</string>
-
-    <string name="feat_license_title">License</string>
-    <string name="feat_license_desc">General Public License v3.0</string>
-    <string name="feat_github_title">GitHub</string>
-    <string name="feat_github_desc">Open source project</string>
-
-    <string name="join_telegram">Join our Telegram channel</string>
-    <string name="welcome_update_check">Stay</string>
-    <string name="welcome_update_status">Updated</string>
-    <string name="welcome_update_intro">Ensuring you have the latest features and security improvements.</string>
-    <string name="welcome_checking_updates">Checking for updates…</string>
-    <string name="welcome_up_to_date">ViviMusic is up to date!</string>
-    <string name="welcome_update_available">New version is available: %s</string>
-    <string name="welcome_everything_ready">Everything is now up to date</string>
-    <string name="commits_title">Commits</string>
-    <string name="error_loading_commits">Failed to load commits becoz you didnt pay me ?</string>
-    <string name="commits">Commits</string>
-    <string name="view_commit_history">Browse recent changes on main branch</string>
     <string name="suggestions">Suggestions</string>
     <string name="comments">Chat</string>
     <string name="comments_header">Comments</string>
@@ -1069,16 +1062,16 @@
 
     <string name="app_font">App Font</string>
     <string name="font_selection">Font Selection</string>
-    <string name="font_system">System Default</string>
+    <string name="font_poppins">Poppins (Default)</string>
+    <string name="font_system">Device Font</string>
     <string name="font_google_sans">Google Sans</string>
     <string name="font_sans_flex">Sans Flex</string>
     <string name="font_outfit">Outfit</string>
     <string name="font_plus_jakarta_sans">Plus Jakarta Sans</string>
-    <string name="font_sf_pro">SF Pro Display</string>
     <string name="typography_preview">Typography Preview</string>
     <string name="preview_text_quote">\"Where words fail, music speaks.\"</string>
-    <string name="font_system_desc">Use the default system typeface.</string>
-    <string name="font_sf_pro_desc">Apple\'s signature typography for Apple Music.</string>
+    <string name="font_poppins_desc">Clean, geometric sans-serif typeface.</string>
+    <string name="font_system_desc">Use your device\'s system font.</string>
     <string name="font_google_sans_desc">Google\'s signature geometric sans-serif.</string>
     <string name="font_sans_flex_desc">A modern versatile flexible sans-serif.</string>
     <string name="font_outfit_desc">A clean and modern geometric sans-serif.</string>
@@ -1190,9 +1183,12 @@
     <string name="export_as_m3u">M3U (Media Player format)</string>
     <string name="add_a_comment">Add a comment…</string>
     <string name="reply_to_comment">Reply to @%s…</string>
+    <string name="replying_to">Replying to %s</string>
+    <string name="you">You</string>
     <string name="delete_comment">Delete comment</string>
     <string name="delete_comment_confirm">Are you sure you want to delete this comment? This action cannot be undone.</string>
     <string name="sign_in_to_comment">Sign in to add a comment</string>
+    <string name="sign_in_to_like">Sign in to like comments</string>
     <string name="reply">Reply</string>
     <string name="top_comments">Top</string>
     <string name="newest_comments">Newest</string>
@@ -1211,4 +1207,58 @@
     <string name="album">Album</string>
     <string name="genre">Genre</string>
     <string name="audio_quality_high_desc">256+ kbps with Premium</string>
+    <string name="player_audio_this_phone">This Phone</string>
+    <string name="thin_slider">Thin</string>
+
+    <!-- Setup Wizard -->
+    <string name="setup_welcome_hi_there">Hi there</string>
+    <string name="setup_welcome_title">Welcome to</string>
+    <string name="setup_welcome_app_name">ViviMusic</string>
+    <string name="setup_welcome_tagline">Stream, download and play your favourite music with zero ads.</string>
+    <string name="setup_btn_get_started">Get started</string>
+    <string name="setup_btn_apply">Apply</string>
+    <string name="setup_choose_language">Choose language</string>
+    <string name="setup_choose_language_desc">You can change this later in settings.</string>
+    <string name="setup_permissions_title">Permissions</string>
+    <string name="setup_permissions_highlight">required</string>
+    <string name="setup_permissions_desc">ViviMusic needs these to keep you updated. You can change them any time in system settings.</string>
+    <string name="setup_permission_notifications_title">Notifications</string>
+    <string name="setup_permission_notifications_desc">Release alerts and app news.</string>
+    <string name="setup_permission_install_title">Install unknown apps</string>
+    <string name="setup_permission_install_desc">So updates can install directly.</string>
+    <string name="setup_privacy_title">Privacy &amp; Terms</string>
+    <string name="setup_btn_agree_continue">Agree &amp; continue</string>
+    <string name="setup_community_title">Join our community</string>
+    <string name="setup_community_desc">Connect with us, discuss releases, get announcements, or explore the open source code.</string>
+    <string name="setup_community_telegram_desc">Chat with the community and get instant updates</string>
+    <string name="setup_community_website_desc">Learn more about ViviMusic features and releases</string>
+    <string name="setup_btn_start_listening">Start listening</string>
+    <string name="setup_all_set_title">You\'re all set!</string>
+    <string name="setup_all_set_desc">Everything is configured and ready. Enjoy pure, uninterrupted music.</string>
+    <string name="setup_feature_seamless_title">Seamless streaming</string>
+    <string name="setup_feature_seamless_desc">Background playback with lock screen and notification controls.</string>
+    <string name="setup_feature_adfree_title">Ad-free listening</string>
+    <string name="setup_feature_adfree_desc">Zero interruptions with built-in SponsorBlock segment skipping.</string>
+    <string name="setup_feature_offline_title">Offline downloads</string>
+    <string name="setup_feature_offline_desc">Cache and download your favourite songs for listening anytime.</string>
+    <string name="relaunch_setup_wizard">Setup wizard</string>
+    <string name="relaunch_setup_wizard_desc">Revisit permissions, terms and feature overview</string>
+
+    <!-- Repair Mode -->
+    <string name="repair">Repair</string>
+    <string name="setting_repair_desc">Troubleshoot streaming, playback, and cache issues</string>
+    <string name="repair_mode_title">Repair mode</string>
+    <string name="repair_mode_desc1">Repair mode helps resolve streaming failures, audio buffering, playback errors, and display issues by resetting stale stream URLs, corrupted audio chunks, and temporary caches.</string>
+    <string name="repair_mode_desc2">When repair is complete, a log is saved to vivimusic/repairtool for troubleshooting, and the app will return to its normal state.</string>
+    <string name="repair_mode_info_note">Your music library, playlists, offline downloads, and account settings are safe and will not be erased. Only broken stream caches, expired playback links, audio format data, image thumbnails, and lyrics are refreshed to fix streaming and playback problems.</string>
+    <string name="repair_mode_info_note_extra">After running repair, fresh stream connections, audio data, and artwork will automatically reload smoothly in the background as you listen.</string>
+    <string name="repair_enter_btn">Enter repair mode</string>
+    <string name="repairing_in_progress">Fixing issues, please wait…</string>
+    <string name="repair_complete">Repair completed</string>
+    <string name="repair_log_saved">Repair completed. Log saved to vivimusic/repairtool</string>
+    <string name="crash_saved_note">The crash report has been automatically saved to vivimusic/crashlog</string>
+
+    <!-- YouTube Music Lyrics -->
+    <string name="enable_youtube_lyrics">YouTube Music</string>
+    <string name="enable_youtube_lyrics_desc">Fetch official lyrics from YouTube Music (supports synced lyrics when available)</string>
 </resources>

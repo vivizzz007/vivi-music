@@ -69,7 +69,7 @@ data class YouTubeClient(
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
-            clientVersion = "1.20260828.01.00",
+            clientVersion = "1.20261115.14.00",
             clientId = "67",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
@@ -295,6 +295,22 @@ data class YouTubeClient(
             loginSupported = false,
             useSignatureTimestamp = false,
             packageName = "com.google.ios.youtube"
+        )
+
+        /**
+         * YouTube Music Android client — used specifically for fetching structured and timed lyrics.
+         */
+        val ANDROID_MUSIC = YouTubeClient(
+            clientName = "ANDROID_MUSIC",
+            clientVersion = "7.02.51",
+            clientId = "21",
+            userAgent = "com.google.android.apps.youtube.music/7.02.51 (Linux; U; Android 14; en_US) gzip",
+            osName = "Android",
+            osVersion = "14",
+            androidSdkVersion = "34",
+            packageName = "com.google.android.apps.youtube.music",
+            friendlyName = "YouTube Music Android",
+            loginSupported = true,
         )
     }
 }

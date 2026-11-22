@@ -14,8 +14,10 @@ import com.music.vivi.utils.get
 object MusixmatchLyricsProvider : LyricsProvider {
     override val name = "Musixmatch"
 
-    override fun isEnabled(context: Context): Boolean =
-        context.dataStore[EnableMusixmatchKey] ?: true
+    override fun isEnabled(context: Context): Boolean {
+        Musixmatch.init(context)
+        return context.dataStore[EnableMusixmatchKey] ?: true
+    }
 
     override suspend fun getLyrics(
         id: String,

@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.music.innertube.YouTube
 import com.music.innertube.utils.parseCookieString
+import io.ktor.client.statement.bodyAsText
+import timber.log.Timber
+import com.music.vivi.App
 import com.music.vivi.LocalDatabase
 import com.music.vivi.R
 import com.music.vivi.constants.AddToPlaylistSortDescendingKey
@@ -226,21 +229,37 @@ fun AddToPlaylistDialog(
                     shape = listItemShape(index = index + 1, count = totalItemsCount),
                     modifier = Modifier.clickable {
                         selectedPlaylist = playlist
+                        Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Selected playlist: id=${playlist.id}, name=${playlist.playlist.name}, browseId=${playlist.playlist.browseId}, isLoggedIn=$isLoggedIn")
                         coroutineScope.launch(Dispatchers.IO) {
                             if (songIds == null) {
                                 songIds = onGetSong(playlist)
                             }
+                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: onGetSong returned ${songIds?.size ?: 0} songs: $songIds")
                             duplicates = database.playlistDuplicates(playlist.id, songIds!!)
+                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: duplicates check returned ${duplicates.size} songs: $duplicates")
                             if (duplicates.isNotEmpty()) {
                                 showDuplicateDialog = true
                             } else {
                                 onDismiss()
                                 database.addSongToPlaylist(playlist, songIds!!)
+                                Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Added ${songIds?.size ?: 0} songs to local DB")
 
                                 playlist.playlist.browseId?.let { plist ->
-                                    songIds?.forEach {
-                                        YouTube.addToPlaylist(plist, it)
+                                    val idsToSync = songIds!!.toList()
+                                    App.applicationScope.launch(Dispatchers.IO) {
+                                        Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Logged in - syncing ${idsToSync.size} songs to YouTube browseId=$plist")
+                                        idsToSync.forEach { songId ->
+                                            val result = YouTube.addToPlaylist(plist, songId)
+                                            result.onSuccess { response ->
+                                                val body = runCatching { response.bodyAsText() }.getOrDefault("")
+                                                Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: YouTube.addToPlaylist success for song=$songId, status=${response.status}, body=$body")
+                                            }.onFailure { e ->
+                                                Timber.tag("PlaylistAdd").e(e, "AddToPlaylistDialog: YouTube.addToPlaylist failed for song=$songId")
+                                            }
+                                        }
                                     }
+                                } ?: run {
+                                    Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: playlist has no browseId (local only)")
                                 }
                             }
                         }
@@ -267,13 +286,24 @@ fun AddToPlaylistDialog(
                         onClick = {
                             showDuplicateDialog = false
                             onDismiss()
+                            val filteredIds = songIds!!.filter { !duplicates.contains(it) }
+                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Skip duplicates selected, adding ${filteredIds.size} songs to DB: $filteredIds")
                             database.transaction {
-                                addSongToPlaylist(
-                                    selectedPlaylist!!,
-                                    songIds!!.filter {
-                                        !duplicates.contains(it)
+                                addSongToPlaylist(selectedPlaylist!!, filteredIds)
+                            }
+                            selectedPlaylist?.playlist?.browseId?.let { plist ->
+                                Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Logged in - syncing ${filteredIds.size} filtered songs to YouTube browseId=$plist")
+                                App.applicationScope.launch(Dispatchers.IO) {
+                                    filteredIds.forEach { songId ->
+                                        val result = YouTube.addToPlaylist(plist, songId)
+                                        result.onSuccess { response ->
+                                            val body = runCatching { response.bodyAsText() }.getOrDefault("")
+                                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: YouTube.addToPlaylist (skip duplicates) success for song=$songId, status=${response.status}, body=$body")
+                                        }.onFailure { e ->
+                                            Timber.tag("PlaylistAdd").e(e, "AddToPlaylistDialog: YouTube.addToPlaylist (skip duplicates) failed for song=$songId")
+                                        }
                                     }
-                                )
+                                }
                             }
                         }
                     ) {
@@ -284,8 +314,24 @@ fun AddToPlaylistDialog(
                         onClick = {
                             showDuplicateDialog = false
                             onDismiss()
+                            val idsToSync = songIds!!.toList()
+                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Add anyway selected, adding ${idsToSync.size} songs to DB: $idsToSync")
                             database.transaction {
-                                addSongToPlaylist(selectedPlaylist!!, songIds!!)
+                                addSongToPlaylist(selectedPlaylist!!, idsToSync)
+                            }
+                            selectedPlaylist?.playlist?.browseId?.let { plist ->
+                                Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: Logged in - syncing all ${idsToSync.size} songs to YouTube browseId=$plist")
+                                App.applicationScope.launch(Dispatchers.IO) {
+                                    idsToSync.forEach { songId ->
+                                        val result = YouTube.addToPlaylist(plist, songId)
+                                        result.onSuccess { response ->
+                                            val body = runCatching { response.bodyAsText() }.getOrDefault("")
+                                            Timber.tag("PlaylistAdd").d("AddToPlaylistDialog: YouTube.addToPlaylist (add anyway) success for song=$songId, status=${response.status}, body=$body")
+                                        }.onFailure { e ->
+                                            Timber.tag("PlaylistAdd").e(e, "AddToPlaylistDialog: YouTube.addToPlaylist (add anyway) failed for song=$songId")
+                                        }
+                                    }
+                                }
                             }
                         }
                     ) {

@@ -15,17 +15,24 @@ data class Track(
     val duration: Double,
     val plainLyrics: String?,
     val syncedLyrics: String?,
+    val hasWordSync: Boolean? = false,
+    val lyricsfile: String? = null,
 )
 
 internal fun List<Track>.bestMatchingFor(duration: Int): Track? {
     if (isEmpty()) return null
 
     if (duration == -1) {
-        return firstOrNull { it.syncedLyrics != null } ?: firstOrNull()
+        return firstOrNull { it.hasWordSync == true && !it.lyricsfile.isNullOrBlank() }
+            ?: firstOrNull { it.syncedLyrics != null }
+            ?: firstOrNull()
     }
 
-    return minByOrNull { abs(it.duration.toInt() - duration) }
+    return filter { it.hasWordSync == true && !it.lyricsfile.isNullOrBlank() }
+        .minByOrNull { abs(it.duration.toInt() - duration) }
         ?.takeIf { abs(it.duration.toInt() - duration) <= 2 }
+        ?: minByOrNull { abs(it.duration.toInt() - duration) }
+            ?.takeIf { abs(it.duration.toInt() - duration) <= 2 }
 }
 
 // Relaxed matching with ±5 seconds tolerance
@@ -33,10 +40,19 @@ internal fun List<Track>.bestMatchingForRelaxed(duration: Int): Track? {
     if (isEmpty()) return null
 
     if (duration == -1) {
-        return firstOrNull { it.syncedLyrics != null } ?: firstOrNull()
+        return firstOrNull { it.hasWordSync == true && !it.lyricsfile.isNullOrBlank() }
+            ?: firstOrNull { it.syncedLyrics != null }
+            ?: firstOrNull()
     }
 
-    // First try to find synced lyrics within tolerance
+    // First try to find word-synced lyrics within tolerance
+    val wordSyncMatch = filter { it.hasWordSync == true && !it.lyricsfile.isNullOrBlank() }
+        .minByOrNull { abs(it.duration.toInt() - duration) }
+        ?.takeIf { abs(it.duration.toInt() - duration) <= 5 }
+
+    if (wordSyncMatch != null) return wordSyncMatch
+
+    // Next try to find synced lyrics within tolerance
     val syncedMatch = filter { it.syncedLyrics != null }
         .minByOrNull { abs(it.duration.toInt() - duration) }
         ?.takeIf { abs(it.duration.toInt() - duration) <= 5 }
@@ -85,7 +101,8 @@ private fun List<Track>.findBestMatch(trackName: String, artistName: String): Tr
         
         score = (trackNameSimilarity + artistNameSimilarity) / 2.0
 
-        if (track.syncedLyrics != null) score += 0.1
+        if (track.hasWordSync == true && !track.lyricsfile.isNullOrBlank()) score += 0.2
+        else if (track.syncedLyrics != null) score += 0.1
         
         score
     }?.takeIf { track ->

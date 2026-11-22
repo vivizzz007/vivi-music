@@ -65,12 +65,12 @@ import com.music.vivi.R
 import com.music.vivi.constants.AppLanguageKey
 import com.music.vivi.constants.ContentCountryKey
 import com.music.vivi.constants.ContentLanguageKey
-import com.music.vivi.constants.SuggestionRegionKey
-import com.music.vivi.constants.SuggestionRegionSlugToName
-import com.music.vivi.ui.screens.search.suggestions.SuggestionRegionSheet
 import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
+import com.music.vivi.constants.EnableBetterLyricsPortatoKey
+import com.music.vivi.constants.EnableGeniusLyricsKey
 import com.music.vivi.constants.EnableMusixmatchKey
+import com.music.vivi.constants.EnableYouTubeLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
 import com.music.vivi.constants.EnableLrcRedKey
@@ -177,7 +177,6 @@ fun ContentSettings(
 
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = SYSTEM_DEFAULT)
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = SYSTEM_DEFAULT)
-    val (suggestionRegion, onSuggestionRegionChange) = rememberPreference(key = SuggestionRegionKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (hideVideoSongs, onHideVideoSongsChange) = rememberPreference(key = HideVideoSongsKey, defaultValue = false)
 
@@ -196,7 +195,10 @@ fun ContentSettings(
     val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (enableLrcRed, onEnableLrcRedChange) = rememberPreference(key = EnableLrcRedKey, defaultValue = true)
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
+    val (enableBetterLyricsPortato, onEnableBetterLyricsPortatoChange) = rememberPreference(key = EnableBetterLyricsPortatoKey, defaultValue = true)
+    val (enableGenius, onEnableGeniusChange) = rememberPreference(key = EnableGeniusLyricsKey, defaultValue = true)
     val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
+    val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
     val (enableUnison, onEnableUnisonChange) = rememberPreference(key = EnableUnisonKey, defaultValue = true)
@@ -223,7 +225,6 @@ fun ContentSettings(
     val (albumCanvasEnabled, onAlbumCanvasEnabledChange) = rememberPreference(key = AlbumCanvasEnabledKey, defaultValue = false)
 
     var showPlaybackLogsDialog by rememberSaveable { mutableStateOf(false) }
-    var showSuggestionSheet by rememberSaveable { mutableStateOf(false) }
     val playbackLogs by PlaybackLogManager.logs.collectAsState()
 
     var showProxyConfigurationDialog by rememberSaveable {
@@ -415,19 +416,22 @@ fun ContentSettings(
 
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
-        // User-toggleable provider names (excludes always-on YouTube providers)
-        val userToggleable = setOf("YouLyPlus", "Paxsenix", "BetterLyrics", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify")
+        // User-toggleable provider names
+        val userToggleable = setOf("YouTubeMusic", "YouLyPlus", "Paxsenix", "BetterLyrics", "BetterLyricsPortato", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify", "Genius")
         val enabledProviders = setOfNotNull(
+            "YouTubeMusic".takeIf { enableYouTubeLyrics },
             "LrcLib".takeIf { enableLrclib },
             "LrcRed".takeIf { enableLrcRed },
             "Kugou".takeIf { enableKugou },
             "BetterLyrics".takeIf { enableBetterLyrics },
+            "BetterLyricsPortato".takeIf { enableBetterLyricsPortato },
             "Musixmatch".takeIf { enableMusixmatch },
             "YouLyPlus".takeIf { enableYouLyPlus },
             "Paxsenix".takeIf { enablePaxsenix },
             "Unison".takeIf { enableUnison },
             "BiniLyrics".takeIf { enableBiniLyrics },
             "Spotify".takeIf { enableSpotifyLyrics },
+            "Genius".takeIf { enableGenius },
         )
 
         // Build a normalized order: saved order first (only known providers), then any missing ones
@@ -651,14 +655,6 @@ fun ContentSettings(
         )
     }
 
-    if (showSuggestionSheet) {
-        SuggestionRegionSheet(
-            currentRegionSlug = suggestionRegion,
-            onRegionSelected = { onSuggestionRegionChange(it) },
-            onDismiss = { showSuggestionSheet = false }
-        )
-    }
-
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -689,16 +685,6 @@ fun ContentSettings(
                         )
                     },
                     onClick = { showContentCountryDialog = true }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.globe_location_pin),
-                    title = { Text("Suggestions Region") },
-                    description = {
-                        Text(
-                            SuggestionRegionSlugToName.getOrElse(suggestionRegion) { "Global Charts" }
-                        )
-                    },
-                    onClick = { showSuggestionSheet = true }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.explicit),
@@ -1108,6 +1094,27 @@ fun ContentSettings(
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_better_lyrics_portato)) },
+                    description = { Text(stringResource(R.string.enable_better_lyrics_portato_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableBetterLyricsPortato,
+                            onCheckedChange = onEnableBetterLyricsPortatoChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableBetterLyricsPortato) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableBetterLyricsPortatoChange(!enableBetterLyricsPortato) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
                     title = { Text("Musixmatch") },
                     description = { Text("World's largest lyrics database (supports word-level and line-level sync)") },
                     trailingContent = {
@@ -1233,6 +1240,48 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableBiniLyricsChange(!enableBiniLyrics) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_genius_lyrics)) },
+                    description = { Text(stringResource(R.string.enable_genius_lyrics_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableGenius,
+                            onCheckedChange = onEnableGeniusChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableGenius) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableGeniusChange(!enableGenius) }
+                ),
+                Material3SettingsItem(
+                    icon = painterResource(R.drawable.lyrics),
+                    title = { Text(stringResource(R.string.enable_youtube_lyrics)) },
+                    description = { Text(stringResource(R.string.enable_youtube_lyrics_desc)) },
+                    trailingContent = {
+                        Switch(
+                            checked = enableYouTubeLyrics,
+                            onCheckedChange = onEnableYouTubeLyricsChange,
+                            thumbContent = {
+                                Icon(
+                                    painter = painterResource(
+                                        id = if (enableYouTubeLyrics) R.drawable.check else R.drawable.close
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(SwitchDefaults.IconSize)
+                                )
+                            }
+                        )
+                    },
+                    onClick = { onEnableYouTubeLyricsChange(!enableYouTubeLyrics) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),

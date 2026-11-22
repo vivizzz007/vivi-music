@@ -210,29 +210,37 @@ class NewReleaseCheckWorker(
         const val UNIQUE_WORK_NAME = "NewReleaseCheckWork"
 
         fun schedule(context: Context) {
-            Timber.tag(TAG).d("Enqueuing periodic release check worker")
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
+            try {
+                Timber.tag(TAG).d("Enqueuing periodic release check worker")
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
 
-            val workRequest = PeriodicWorkRequestBuilder<NewReleaseCheckWorker>(
-                15, TimeUnit.MINUTES
-            )
-                .setConstraints(constraints)
-                .addTag(UNIQUE_WORK_NAME)
-                .build()
+                val workRequest = PeriodicWorkRequestBuilder<NewReleaseCheckWorker>(
+                    15, TimeUnit.MINUTES
+                )
+                    .setConstraints(constraints)
+                    .addTag(UNIQUE_WORK_NAME)
+                    .build()
 
-            // UPDATE replaces any previously-stuck/misconfigured periodic work and resets the timer.
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                UNIQUE_WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                workRequest
-            )
+                // UPDATE replaces any previously-stuck/misconfigured periodic work and resets the timer.
+                WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                    UNIQUE_WORK_NAME,
+                    ExistingPeriodicWorkPolicy.UPDATE,
+                    workRequest
+                )
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to schedule release check worker")
+            }
         }
 
         fun cancel(context: Context) {
-            Timber.tag(TAG).d("Cancelling periodic release check worker")
-            WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+            try {
+                Timber.tag(TAG).d("Cancelling periodic release check worker")
+                WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "Failed to cancel release check worker")
+            }
         }
 
         /**

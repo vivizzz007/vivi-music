@@ -41,6 +41,43 @@ object BiniLyricsProvider : LyricsProvider {
     override fun isEnabled(context: Context): Boolean =
         context.dataStore[EnableBiniLyricsKey] ?: true
 
+    suspend fun identify(
+        title: String,
+        artist: String,
+        duration: Int = -1,
+        album: String? = null,
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            val urlBuilder = "$BASE_URL/getLyrics".toHttpUrlOrNull()?.newBuilder()
+                ?.addQueryParameter("track", title)
+                ?.addQueryParameter("artist", artist)
+            if (duration > 0) urlBuilder?.addQueryParameter("duration", duration.toString())
+            if (!album.isNullOrBlank()) urlBuilder?.addQueryParameter("album", album)
+            val url = urlBuilder?.build()?.toString() ?: return@withContext null
+
+            val request = Request.Builder().url(url).build()
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                response.close()
+                return@withContext null
+            }
+
+            val body = response.body?.string() ?: run {
+                response.close()
+                return@withContext null
+            }
+            response.close()
+
+            val json = JSONObject(body)
+            val results = json.optJSONArray("results") ?: return@withContext null
+            if (results.length() == 0) return@withContext null
+            val first = results.getJSONObject(0)
+            first.optString("isrc").takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     override suspend fun getLyrics(
         id: String,
         title: String,
@@ -108,8 +145,11 @@ object BiniLyricsProvider : LyricsProvider {
     // Parsing Logic
     // ──────────────────────────────────────────────────────────────────────
 
-    private val pRegex = """<p\s+[^>]*?begin=["']([\w:.]+)["'][^>]*>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-    private val spanRegex = """<span\s+[^>]*?begin=["']([\w:.]+)["'][^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val pRegex = """<p([^>]*)>(.*?)</p>""".toRegex(RegexOption.DOT_MATCHES_ALL)
+    private val beginRegex = """begin=["']([\w:.]+)["']""".toRegex()
+    private val endRegex = """end=["']([\w:.]+)["']""".toRegex()
+    private val agentRegex = """(?:ttm:agent|agent)=["']([^"']+)["']""".toRegex()
+    private val spanRegex = """<span\s+([^>]*?)>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
 
     /**
      * Parse Apple Music TTML format and convert to standard LRC or RichSync LRC.
@@ -119,22 +159,43 @@ object BiniLyricsProvider : LyricsProvider {
         val lrcBuilder = java.lang.StringBuilder()
 
         for (pMatch in pRegex.findAll(ttml)) {
-            val pBeginSec = parseTtmlTimeToSeconds(pMatch.groupValues[1]) ?: continue
+            val pAttrs = pMatch.groupValues[1]
+            val pBeginStr = beginRegex.find(pAttrs)?.groupValues?.get(1) ?: continue
+            val pBeginSec = parseTtmlTimeToSeconds(pBeginStr) ?: continue
+            val pEndStr = endRegex.find(pAttrs)?.groupValues?.get(1)
+            val pEndSec = pEndStr?.let { parseTtmlTimeToSeconds(it) }
+            val agent = agentRegex.find(pAttrs)?.groupValues?.get(1)
             val innerHtml = pMatch.groupValues[2]
 
             val mainTime = formatLrcTime(pBeginSec)
             lrcBuilder.append("[$mainTime]")
+            if (agent != null) {
+                lrcBuilder.append("{agent:$agent}")
+            }
 
             val spanMatches = spanRegex.findAll(innerHtml).toList()
             if (spanMatches.isNotEmpty()) {
+                var lastSpanEndSec: Float? = null
                 for (spanMatch in spanMatches) {
-                    val spanBeginSec = parseTtmlTimeToSeconds(spanMatch.groupValues[1]) ?: continue
+                    val spanAttrs = spanMatch.groupValues[1]
+                    val spanBeginStr = beginRegex.find(spanAttrs)?.groupValues?.get(1) ?: continue
+                    val spanBeginSec = parseTtmlTimeToSeconds(spanBeginStr) ?: continue
+                    val spanEndStr = endRegex.find(spanAttrs)?.groupValues?.get(1)
+                    val spanEndSec = spanEndStr?.let { parseTtmlTimeToSeconds(it) }
+                    if (spanEndSec != null) {
+                        lastSpanEndSec = spanEndSec
+                    }
                     // Clean HTML entities or nested tags from the word just in case
                     val word = spanMatch.groupValues[2].replace(Regex("<[^>]*>"), "").trim()
                     if (word.isNotEmpty()) {
                         val spanTime = formatLrcTime(spanBeginSec)
                         lrcBuilder.append("<$spanTime> $word ")
                     }
+                }
+                val finalEndSec = lastSpanEndSec ?: pEndSec
+                if (finalEndSec != null && finalEndSec > pBeginSec) {
+                    val endTime = formatLrcTime(finalEndSec)
+                    lrcBuilder.append("<$endTime>")
                 }
             } else {
                 // Unsynced spans or just plain text inside <p>

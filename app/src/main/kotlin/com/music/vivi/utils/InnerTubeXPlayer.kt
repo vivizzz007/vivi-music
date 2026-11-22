@@ -72,6 +72,12 @@ object InnerTubeXPlayer {
     @Volatile
     var disabledStreamClients: Set<String> = emptySet()
 
+    @Volatile
+    private var lastKnownCookie: String? = null
+
+    @Volatile
+    private var isAccountPremiumConfirmed: Boolean? = null
+
     // Isolated Streaming HttpClient & InnerTube instance
     private val httpClient = HttpClient(OkHttp) {
         engine {

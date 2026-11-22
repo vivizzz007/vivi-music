@@ -189,16 +189,11 @@ fun UpdateSettings(
                     }
                 ),
                 Material3SettingsItem(
-                    icon = painterResource(R.drawable.info),
-                    title = { Text(stringResource(R.string.app_version)) },
-                    trailingContent = { Text(BuildConfig.VERSION_NAME) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.stockpot_flavour),
-                    title = { Text(stringResource(R.string.flavour)) },
-                    trailingContent = {
-                        val variant = if (BuildConfig.CAST_AVAILABLE) "GMS" else "FOSS"
-                        Text(variant)
+                    icon = painterResource(R.drawable.handyman),
+                    title = { Text(stringResource(R.string.repair_mode_title)) },
+                    description = { Text(stringResource(R.string.setting_repair_desc)) },
+                    onClick = {
+                        navController.navigate("settings/repair")
                     }
                 )
             )
@@ -336,12 +331,6 @@ fun UpdateSettings(
                     title = { Text(stringResource(R.string.changelog)) },
                     description = { Text(stringResource(R.string.view_version_history)) },
                     onClick = { navController.navigate("settings/changelog") }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.commit),
-                    title = { Text(stringResource(R.string.commits)) },
-                    description = { Text(stringResource(R.string.view_commit_history)) },
-                    onClick = { navController.navigate("settings/commits") }
                 )
             )
         )

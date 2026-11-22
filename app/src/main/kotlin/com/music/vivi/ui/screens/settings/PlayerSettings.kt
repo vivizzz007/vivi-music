@@ -52,6 +52,7 @@ import com.music.vivi.constants.CrossfadeCurve
 import com.music.vivi.constants.CrossfadeCurveKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.SpotifyCanvasEnabledKey
+import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.spotify.Spotify
 import com.music.vivi.constants.MotionartworkSource
@@ -237,6 +238,7 @@ fun PlayerSettings(
         SpotifyCanvasEnabledKey,
         defaultValue = false
     )
+    val (useNewPlayerDesign) = rememberPreference(UseNewPlayerDesignKey, false)
     val isSpotifyLoggedIn = Spotify.accessToken != null
 
     // Auto-disable if user logs out of Spotify
@@ -393,28 +395,30 @@ fun PlayerSettings(
                     },
                     onClick = { navController.navigate("settings/player/motionartwork") }
                 ))
-                add(Material3SettingsItem(
-                    icon = painterResource(R.drawable.canvas_art),
-                    title = { Text(stringResource(R.string.enable_spotify_canvas)) },
-                    description = { Text(stringResource(R.string.enable_spotify_canvas_desc)) },
-                    trailingContent = {
-                        Switch(
-                            checked = spotifyCanvasEnabled,
-                            onCheckedChange = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(it) },
-                            enabled = isSpotifyLoggedIn,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (spotifyCanvasEnabled) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(!spotifyCanvasEnabled) }
-                ))
+                if (useNewPlayerDesign) {
+                    add(Material3SettingsItem(
+                        icon = painterResource(R.drawable.canvas_art),
+                        title = { Text(stringResource(R.string.enable_spotify_canvas)) },
+                        description = { Text(stringResource(R.string.enable_spotify_canvas_desc)) },
+                        trailingContent = {
+                            Switch(
+                                checked = spotifyCanvasEnabled,
+                                onCheckedChange = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(it) },
+                                enabled = isSpotifyLoggedIn,
+                                thumbContent = {
+                                    Icon(
+                                        painter = painterResource(
+                                            id = if (spotifyCanvasEnabled) R.drawable.check else R.drawable.close
+                                        ),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                                    )
+                                }
+                            )
+                        },
+                        onClick = { if (isSpotifyLoggedIn) onSpotifyCanvasEnabledChange(!spotifyCanvasEnabled) }
+                    ))
+                }
                 add(Material3SettingsItem(
                     icon = painterResource(R.drawable.linear_scale),
                     title = { Text(stringResource(R.string.crossfade)) },

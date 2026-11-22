@@ -5,14 +5,21 @@
 
 package com.music.vivi.utils
 
+import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import com.music.vivi.BuildConfig
 import com.music.vivi.ui.screens.CrashActivity
 import timber.log.Timber
+import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
+import java.time.LocalDateTime
 import kotlin.system.exitProcess
 
 class CrashHandler private constructor(
@@ -24,16 +31,20 @@ class CrashHandler private constructor(
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {
-            val crashLog = buildCrashLog(throwable)
-            Timber.e(throwable, "App crashed")
-            
+            val crashLog = buildCrashLog(thread, throwable)
+            Timber.e(throwable, "App crashed on thread: ${thread.name}")
+
+            // Automatically register and save crash log to Download/vivimusic/repairtool/crashlog-<date>.txt
+            val savedFile = saveCrashLogToFile(applicationContext, crashLog)
+
             // Launch crash activity
             val intent = Intent(applicationContext, CrashActivity::class.java).apply {
                 putExtra(EXTRA_CRASH_LOG, crashLog)
+                putExtra(EXTRA_CRASH_FILE, savedFile)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             }
             applicationContext.startActivity(intent)
-            
+
             // Kill the current process
             android.os.Process.killProcess(android.os.Process.myPid())
             exitProcess(1)
@@ -44,30 +55,50 @@ class CrashHandler private constructor(
         }
     }
 
-    private fun buildCrashLog(throwable: Throwable): String {
+    private fun buildCrashLog(thread: Thread, throwable: Throwable): String {
         val stackTrace = StringWriter().apply {
             throwable.printStackTrace(PrintWriter(this))
         }.toString()
 
         return buildString {
-            appendLine("vivimusic Crash Report")
-            appendLine("=".repeat(50))
+            appendLine("==================================================")
+            appendLine("             VIVIMUSIC CRASH REPORT               ")
+            appendLine("==================================================")
+            appendLine("Timestamp: ${LocalDateTime.now()}")
+            appendLine("Thread: ${thread.name} (ID: ${thread.id})")
+            appendLine("App Version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            appendLine("Flavor: ${BuildConfig.FLAVOR}")
             appendLine()
+            appendLine("----------------- DEVICE & OS -----------------")
             appendLine("Manufacturer: ${Build.MANUFACTURER}")
-            appendLine("Device: ${Build.MODEL}")
-            appendLine("Android version: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
-            appendLine("App version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+            appendLine("Brand: ${Build.BRAND}")
+            appendLine("Model: ${Build.MODEL} (${Build.DEVICE})")
+            appendLine("Android Version: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+            appendLine("Supported ABIs: ${Build.SUPPORTED_ABIS.joinToString(", ")}")
             appendLine()
-            appendLine("=".repeat(50))
-            appendLine("Stacktrace:")
-            appendLine("=".repeat(50))
-            appendLine()
+            appendLine("----------------- STACKTRACE -------------------")
             append(stackTrace)
+            appendLine()
+            appendLine("================== END OF REPORT =================")
+        }
+    }
+
+    private fun saveCrashLogToFile(context: Context, crashLog: String): String? {
+        return try {
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")
+            val timestamp = java.time.LocalDateTime.now().format(formatter)
+            val fileName = "crashlog-$timestamp.txt"
+            val savedPath = DiagnosticLogCollector.saveToVivimusicFolder(context, "crashlog", fileName, crashLog)
+            if (savedPath != null) fileName else null
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save crash log to vivimusic folder")
+            null
         }
     }
 
     companion object {
         const val EXTRA_CRASH_LOG = "crash_log"
+        const val EXTRA_CRASH_FILE = "crash_file"
 
         fun install(context: Context) {
             val handler = CrashHandler(context.applicationContext)

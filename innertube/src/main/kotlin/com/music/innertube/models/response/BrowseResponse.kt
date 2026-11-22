@@ -6,6 +6,7 @@ package com.music.innertube.models.response
 
 import com.music.innertube.models.Button
 import com.music.innertube.models.Continuation
+import com.music.innertube.models.ElementRenderer
 import com.music.innertube.models.GridRenderer
 import com.music.innertube.models.Menu
 import com.music.innertube.models.MusicDetailHeaderRenderer
@@ -34,6 +35,7 @@ data class BrowseResponse(
         val singleColumnBrowseResultsRenderer: Tabs?,
         val sectionListRenderer: SectionListRenderer?,
         val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer?,
+        val elementRenderer: ElementRenderer? = null,
     )
 
     @Serializable
