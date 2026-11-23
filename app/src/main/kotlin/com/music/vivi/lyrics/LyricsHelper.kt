@@ -56,7 +56,7 @@ constructor(
 
         // Migration path: place the old preferred provider first in the default order
         val preferredEnum = preferences[PreferredLyricsProviderKey]
-            .toEnum(PreferredLyricsProvider.MUSIXMATCH)
+            .toEnum(PreferredLyricsProvider.YOULYPLUS)
         val preferredName = LyricsProviderRegistry.getProviderNameForEnum(preferredEnum)
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         val migratedOrder = listOf(preferredName) + defaultOrder.filter { it != preferredName }
