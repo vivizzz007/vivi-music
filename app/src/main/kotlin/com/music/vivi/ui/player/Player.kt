@@ -2819,11 +2819,16 @@ fun BottomSheetPlayer(
                     WindowInsets.systemBars.getBottom(density)
                 )
                 val verticalPaddingDp = with(density) { verticalPadding.toDp() }
-                val verticalWindowInsets = WindowInsets(left = 0.dp, top = verticalPaddingDp, right = 0.dp, bottom = verticalPaddingDp)
+                val verticalWindowInsets = WindowInsets(left = 0.dp, top = verticalPaddingDp, right = 0.dp, bottom = if (useNewPlayerDesign) 0.dp else verticalPaddingDp)
 
                 val currentSliderPosition by rememberUpdatedState(sliderPosition)
                 val sliderPositionProvider = remember { { currentSliderPosition } }
                 val isExpandedProvider = remember(state) { { state.isExpanded } }
+
+                val landscapeBottomPadding by animateDpAsState(
+                    targetValue = if (isFullScreen) 0.dp else if (useNewPlayerDesign) queueSheetState.collapsedBound else 16.dp,
+                    label = "landscapeBottomPadding"
+                )
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -2831,7 +2836,7 @@ fun BottomSheetPlayer(
                         .windowInsetsPadding(
                             WindowInsets.systemBars.only(WindowInsetsSides.Horizontal).add(verticalWindowInsets)
                         )
-                        .padding(bottom = 16.dp, top = 8.dp)
+                        .padding(bottom = landscapeBottomPadding, top = 8.dp)
                         .fillMaxSize()
                 ) {
                     // Left Column: Artwork Box + Action Buttons below it
@@ -2904,97 +2909,99 @@ fun BottomSheetPlayer(
                             }
                         }
 
-                        Spacer(Modifier.height(12.dp))
+                        if (!useNewPlayerDesign) {
+                            Spacer(Modifier.height(12.dp))
 
-                        // Action buttons below the image showing box
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 24.dp)
-                        ) {
-                            // Left: Lyrics
-                            Box(
-                                contentAlignment = Alignment.Center,
+                            // Action buttons below the image showing box
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = {
-                                            val next = !showInlineLyrics
-                                            showInlineLyrics = next
-                                            if (next) showInlineQueue = false
-                                        }
-                                    )
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 24.dp)
                             ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.lyrics_apple),
-                                    contentDescription = stringResource(R.string.lyrics),
-                                    tint = if (showInlineLyrics) textButtonColor else textButtonColor.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-
-                            // Center: Audio Device / Routing
-                            val isConnected = bluetoothDeviceName != null
-                            val tintColor = if (isConnected) textButtonColor else textButtonColor.copy(alpha = 0.5f)
-                            val label = if (isConnected) {
-                                nameToShow ?: "Bluetooth"
-                            } else {
-                                stringResource(R.string.player_audio_this_phone)
-                            }
-
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = { showAudioDeviceBottomSheet = true }
-                                    )
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        if (isConnected) {
-                                            when {
-                                                isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
-                                                isBuds(nameToShow) -> R.drawable.headphones_apple
-                                                else -> R.drawable.headphones_apple
+                                // Left: Lyrics
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = {
+                                                val next = !showInlineLyrics
+                                                showInlineLyrics = next
+                                                if (next) showInlineQueue = false
                                             }
-                                        } else {
-                                            R.drawable.airplay_audio
-                                        }
-                                    ),
-                                    contentDescription = label,
-                                    tint = tintColor,
-                                    modifier = Modifier.size(28.dp)
-                                )
-                            }
-
-                            // Right: Queue
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .clickable(
-                                        interactionSource = remember { MutableInteractionSource() },
-                                        indication = null,
-                                        onClick = {
-                                            val next = !showInlineQueue
-                                            showInlineQueue = next
-                                            if (next) showInlineLyrics = false
-                                        }
+                                        )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.lyrics_apple),
+                                        contentDescription = stringResource(R.string.lyrics),
+                                        tint = if (showInlineLyrics) textButtonColor else textButtonColor.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(28.dp)
                                     )
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.apple_queue),
-                                    contentDescription = stringResource(R.string.queue),
-                                    tint = if (showInlineQueue) textButtonColor else textButtonColor.copy(alpha = 0.5f),
-                                    modifier = Modifier.size(28.dp)
-                                )
+                                }
+
+                                // Center: Audio Device / Routing
+                                val isConnected = bluetoothDeviceName != null
+                                val tintColor = if (isConnected) textButtonColor else textButtonColor.copy(alpha = 0.5f)
+                                val label = if (isConnected) {
+                                    nameToShow ?: "Bluetooth"
+                                } else {
+                                    stringResource(R.string.player_audio_this_phone)
+                                }
+
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = { showAudioDeviceBottomSheet = true }
+                                        )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(
+                                            if (isConnected) {
+                                                when {
+                                                    isSpeaker(nameToShow) -> R.drawable.speaker_applemusic
+                                                    isBuds(nameToShow) -> R.drawable.headphones_apple
+                                                    else -> R.drawable.headphones_apple
+                                                }
+                                            } else {
+                                                R.drawable.airplay_audio
+                                            }
+                                        ),
+                                        contentDescription = label,
+                                        tint = tintColor,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+
+                                // Right: Queue
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null,
+                                            onClick = {
+                                                val next = !showInlineQueue
+                                                showInlineQueue = next
+                                                if (next) showInlineLyrics = false
+                                            }
+                                        )
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.apple_queue),
+                                        contentDescription = stringResource(R.string.queue),
+                                        tint = if (showInlineQueue) textButtonColor else textButtonColor.copy(alpha = 0.5f),
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
                             }
                         }
                     }
