@@ -24,20 +24,30 @@ data class LibraryPage(
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
-                renderer.isAlbum -> AlbumItem(
-                    browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
-                    playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
+                renderer.isAlbum -> {
+                    val browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                    val playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                        ?.watchPlaylistEndpoint?.playlistId ?: return null,
-                    title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = parseArtists(renderer.subtitle?.runs),
-                    year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
-                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
-                        ?: return null,
-                    explicit = renderer.subtitleBadges?.find {
-                        it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                    } != null
-                )
+                        ?.watchPlaylistEndpoint?.playlistId
+                        ?: renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
+                            ?.musicPlayButtonRenderer?.playNavigationEndpoint
+                            ?.watchEndpoint?.playlistId
+                        ?: renderer.navigationEndpoint.watchPlaylistEndpoint?.playlistId
+                        ?: renderer.navigationEndpoint.watchEndpoint?.playlistId
+                        ?: ""
+                    AlbumItem(
+                        browseId = browseId,
+                        playlistId = playlistId,
+                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        artists = parseArtists(renderer.subtitle?.runs),
+                        year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
+                        explicit = renderer.subtitleBadges?.find {
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                        } != null
+                    )
+                }
 
                 renderer.isPlaylist -> PlaylistItem(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
@@ -169,8 +179,43 @@ data class LibraryPage(
                         ?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
                 )
 
+                renderer.isAlbum -> {
+                    val browseId = renderer.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                    val playlistId = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
+                        ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchPlaylistEndpoint?.playlistId
+                        ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
+                            ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.playlistId
+                        ?: renderer.navigationEndpoint?.watchPlaylistEndpoint?.playlistId
+                        ?: renderer.navigationEndpoint?.watchEndpoint?.playlistId
+                        ?: ""
+                    val title = renderer.flexColumns.firstOrNull()
+                        ?.musicResponsiveListItemFlexColumnRenderer?.text
+                        ?.runs?.firstOrNull()?.text ?: return null
+                    val artistRuns = renderer.flexColumns.getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
+                    val artists = artistRuns?.mapNotNull {
+                        val artistBrowseId = it.navigationEndpoint?.browseEndpoint?.browseId
+                        Artist(name = it.text, id = artistBrowseId)
+                    }
+                    val year = renderer.flexColumns.getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.lastOrNull()?.text?.toIntOrNull()
+                    val thumbnailUrl = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+                        ?: return null
+
+                    AlbumItem(
+                        browseId = browseId,
+                        playlistId = playlistId,
+                        title = title,
+                        artists = artists,
+                        year = year,
+                        thumbnail = thumbnailUrl,
+                        explicit = renderer.badges?.find {
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                        } != null
+                    )
+                }
+
                 else -> {
-                    println("[UPLOAD_DEBUG] LibraryPage.parse: Not a song or artist, isSong=${renderer.isSong}, isArtist=${renderer.isArtist}")
                     null
                 }
             }
@@ -181,10 +226,11 @@ data class LibraryPage(
 
             if (runs != null) {
                 for (run in runs) {
-                    if (run.navigationEndpoint != null) {
+                    val browseId = run.navigationEndpoint?.browseEndpoint?.browseId
+                    if (browseId != null) {
                         artists.add(
                             Artist(
-                                id = run.navigationEndpoint.browseEndpoint?.browseId!!,
+                                id = browseId,
                                 name = run.text
                             )
                         )

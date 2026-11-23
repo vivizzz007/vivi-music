@@ -642,6 +642,17 @@ class SyncUtils @Inject constructor(
                                     database.album(album.id).firstOrNull()?.let { newDbAlbum ->
                                         database.update(newDbAlbum.album.localToggleLike())
                                     }
+                                }.onFailure { e ->
+                                    Timber.w(e, "Failed to fetch full album details for ${album.id}, inserting basic album metadata")
+                                    val basicPage = com.music.innertube.pages.AlbumPage(
+                                        album = album,
+                                        songs = emptyList(),
+                                        otherVersions = emptyList()
+                                    )
+                                    database.insert(basicPage)
+                                    database.album(album.id).firstOrNull()?.let { newDbAlbum ->
+                                        database.update(newDbAlbum.album.localToggleLike())
+                                    }
                                 }
                             } else if (dbAlbum.album.bookmarkedAt == null) {
                                 // Already cached but not liked yet — just mark liked
