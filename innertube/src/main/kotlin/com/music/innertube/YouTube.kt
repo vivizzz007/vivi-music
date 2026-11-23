@@ -31,6 +31,7 @@ import com.music.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.music.innertube.models.YouTubeLocale
 import com.music.innertube.models.getContinuation
 import com.music.innertube.models.getItems
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.models.response.AccountMenuResponse
@@ -376,11 +377,12 @@ object YouTube {
                 explicit = false,
                 description = description
             )
+            val songs = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.contents?.getItems()?.mapNotNull {
+                AlbumPage.getSong(it, albumItem)
+            }?.toMutableList() ?: AlbumPage.getSongs(response, albumItem).toMutableList()
             return@runCatching AlbumPage(
-                album = albumItem,
-                songs = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.contents?.getItems()?.mapNotNull {
-                    AlbumPage.getSong(it, albumItem)
-                }?.toMutableList() ?: AlbumPage.getSongs(response, albumItem).toMutableList(),
+                album = albumItem.copy(isSingle = songs.size == 1),
+                songs = songs,
                 otherVersions = emptyList(),
                 description = description,
                 descriptionRuns = descriptionRuns
@@ -430,7 +432,7 @@ object YouTube {
             }
 
             return@runCatching AlbumPage(
-                album = albumItem,
+                album = albumItem.copy(isSingle = songs.size == 1),
                 songs = songs,
                 otherVersions = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents
                     ?.find { it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.any { it.text.contains("versions", ignoreCase = true) } == true }
@@ -1387,7 +1389,8 @@ object YouTube {
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         explicit = renderer.subtitleBadges?.any {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } == true
+                        } == true,
+                        isSingle = renderer.subtitle?.runs?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
                     )
                 }
                 else -> null

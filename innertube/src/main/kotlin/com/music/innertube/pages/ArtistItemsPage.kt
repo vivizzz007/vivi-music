@@ -12,6 +12,7 @@ import com.music.innertube.models.MusicTwoRowItemRenderer
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
@@ -89,7 +90,8 @@ data class ArtistItemsPage(
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     explicit = renderer.subtitleBadges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                    } != null
+                    } != null,
+                    isSingle = renderer.subtitle?.runs?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
                 )
                 // Video
                 renderer.isSong -> SongItem(

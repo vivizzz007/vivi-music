@@ -7,6 +7,7 @@ package com.music.innertube.pages
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.Artist
 import com.music.innertube.models.MusicTwoRowItemRenderer
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 
@@ -43,6 +44,7 @@ object NewReleaseAlbumPage {
                 renderer.subtitleBadges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
+            isSingle = renderer.subtitle.runs.splitBySeparator().firstOrNull()?.firstOrNull()?.text.isSingleReleaseType(),
         )
     }
 }

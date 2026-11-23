@@ -25,6 +25,7 @@
     <string name="other_results">Other</string>
     <string name="parsed_from_link">From link</string>
     <string name="album_text">Album</string>
+    <string name="single_text">Single</string>
 	<string name="by_text">By </string>
 	<string name="artist">Artist </string>
 	<string name="explicit">Explicit</string>

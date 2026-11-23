@@ -18,6 +18,7 @@ import com.music.innertube.models.filterExplicit
 import com.music.innertube.models.filterVideoSongs
 import com.music.innertube.models.filterYoutubeShorts
 import com.music.innertube.models.findViewCountText
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 import com.music.innertube.utils.parseTime
@@ -174,6 +175,7 @@ data class SearchSummaryPage(
                             renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
+                        isSingle = subtitle.firstOrNull()?.firstOrNull()?.text.isSingleReleaseType(),
                     )
                 }
 
@@ -352,6 +354,7 @@ data class SearchSummaryPage(
                             renderer.badges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
+                        isSingle = secondaryLine.firstOrNull()?.firstOrNull()?.text.isSingleReleaseType(),
                     )
                 }
 

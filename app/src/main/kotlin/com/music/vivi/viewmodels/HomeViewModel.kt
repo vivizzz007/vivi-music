@@ -141,7 +141,8 @@ class HomeViewModel @Inject constructor(
                                 title = item.title,
                                 artists = item.artists.map { Artist(name = it.name, id = it.id) },
                                 year = item.album.year,
-                                thumbnail = item.thumbnailUrl ?: ""
+                                thumbnail = item.thumbnailUrl ?: "",
+                                isSingle = item.album.songCount == 1
                             )
                             is com.music.vivi.db.entities.Artist -> ArtistItem(
                                 id = item.id,
@@ -220,7 +221,8 @@ class HomeViewModel @Inject constructor(
                             title = item.title,
                             artists = item.artists.map { Artist(name = it.name, id = it.id) },
                             year = item.album.year,
-                            thumbnail = item.thumbnailUrl ?: ""
+                            thumbnail = item.thumbnailUrl ?: "",
+                            isSingle = item.album.songCount == 1
                         ))
                         is com.music.vivi.db.entities.Artist -> otherSources.add(ArtistItem(
                             id = item.id,

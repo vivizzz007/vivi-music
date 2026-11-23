@@ -14,6 +14,7 @@ import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.Run
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.utils.parseTime
 
@@ -45,7 +46,8 @@ data class LibraryPage(
                             ?: return null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } != null
+                        } != null,
+                        isSingle = renderer.subtitle?.runs?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
                     )
                 }
 
@@ -211,7 +213,10 @@ data class LibraryPage(
                         thumbnail = thumbnailUrl,
                         explicit = renderer.badges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } != null
+                        } != null,
+                        isSingle = renderer.flexColumns.getOrNull(1)
+                            ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                            ?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
                     )
                 }
 
