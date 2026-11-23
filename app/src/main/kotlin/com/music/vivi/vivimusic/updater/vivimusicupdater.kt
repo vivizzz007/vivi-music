@@ -58,7 +58,6 @@ import androidx.work.workDataOf
 import com.music.vivi.BuildConfig
 import com.music.vivi.R
 import com.music.vivi.vivimusic.updater.downloadmanager.UpdateDownloadWorker
-import com.music.vivi.vivimusic.updater.downloadmanager.DownloadNotificationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -137,10 +136,6 @@ fun UpdateScreen(navController: NavHostController) {
 
     val currentVersion = BuildConfig.VERSION_NAME
     val autoUpdateCheckEnabled = getAutoUpdateCheckSetting(context)
-
-    LaunchedEffect(Unit) {
-        DownloadNotificationManager.initialize(context)
-    }
 
     // Observe WorkManager for download progress
     LaunchedEffect(Unit) {
@@ -688,18 +683,6 @@ fun getUpdateNotificationsSetting(context: Context): Boolean {
 fun saveUpdateNotificationsSetting(context: Context, enabled: Boolean) {
     val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     sharedPrefs.edit().putBoolean(KEY_UPDATE_NOTIFICATIONS, enabled).apply()
-}
-
-const val KEY_DOWNLOAD_NOTIFICATIONS = "download_notifications"
-
-fun getDownloadNotificationsSetting(context: Context): Boolean {
-    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    return sharedPrefs.getBoolean(KEY_DOWNLOAD_NOTIFICATIONS, true)
-}
-
-fun saveDownloadNotificationsSetting(context: Context, enabled: Boolean) {
-    val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    sharedPrefs.edit().putBoolean(KEY_DOWNLOAD_NOTIFICATIONS, enabled).apply()
 }
 
 fun saveLastCheckedTime(context: Context, timestamp: String) {

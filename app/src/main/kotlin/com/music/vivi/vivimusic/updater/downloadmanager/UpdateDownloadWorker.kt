@@ -9,7 +9,6 @@ import android.os.Environment
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.music.vivi.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -30,7 +29,6 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val apkUrl = inputData.getString("apk_url") ?: return@withContext Result.failure()
         val version = inputData.getString("version") ?: "unknown"
-        val fileSize = inputData.getString("file_size") ?: ""
 
         try {
             val autoBackupEnabled = context.dataStore[AutoBackupEnabledKey] ?: true
@@ -43,8 +41,6 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
             Timber.tag("UpdateDownloadWorker").e(e, "Failed to perform auto backup before update")
         }
 
-        DownloadNotificationManager.showDownloadStarting(version, fileSize)
-
         try {
             val url = URL(apkUrl)
             val connection = url.openConnection() as HttpURLConnection
@@ -54,10 +50,6 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
             connection.connect()
 
             if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                DownloadNotificationManager.showDownloadFailed(
-                    version,
-                    context.getString(R.string.server_error, connection.responseCode)
-                )
                 return@withContext Result.failure()
             }
 
@@ -96,8 +88,6 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
 
                 if (fileLength > 0) {
                     val progress = (totalBytesRead.toFloat() / fileLength.toFloat() * 100).toInt()
-                    // Update notification
-                    DownloadNotificationManager.updateDownloadProgress(progress, version)
                     // Update WorkManager progress for UI observation
                     setProgress(workDataOf("progress" to progress.toFloat() / 100f))
                 }
@@ -127,10 +117,7 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
                     }
                 } catch (e: Exception) {
                     if (downloadFile.exists()) downloadFile.delete()
-                    DownloadNotificationManager.showDownloadFailed(
-                        version,
-                        e.message ?: "Failed to extract zip file"
-                    )
+                    Timber.tag("UpdateDownloadWorker").e(e, "Failed to extract zip file")
                     return@withContext Result.failure()
                 } finally {
                     if (downloadFile.exists()) {
@@ -138,10 +125,7 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
                     }
                 }
                 if (!extracted) {
-                    DownloadNotificationManager.showDownloadFailed(
-                        version,
-                        "Could not find APK in zip"
-                    )
+                    Timber.tag("UpdateDownloadWorker").e("Could not find APK in zip")
                     return@withContext Result.failure()
                 }
                 targetApkFile
@@ -158,14 +142,9 @@ class UpdateDownloadWorker(private val context: Context, workerParams: WorkerPar
                 }
             }
 
-            DownloadNotificationManager.showDownloadComplete(version, finalFile.absolutePath)
-
             Result.success(workDataOf("file_path" to finalFile.absolutePath))
         } catch (e: Exception) {
-            DownloadNotificationManager.showDownloadFailed(
-                version,
-                e.message ?: context.getString(R.string.download_failed)
-            )
+            Timber.tag("UpdateDownloadWorker").e(e, "Download failed")
             Result.failure()
         }
     }
