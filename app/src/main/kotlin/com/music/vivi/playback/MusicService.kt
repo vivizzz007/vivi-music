@@ -1074,7 +1074,7 @@ class MusicService :
             }
 
         dataStore.data
-            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+            .map { (it[DiscordTokenKey] ?: "") to (it[EnableDiscordRPCKey] ?: true) }
             .debounce(300)
             .distinctUntilChanged()
             .collect(scope) { (key, enabled) ->
@@ -1082,7 +1082,7 @@ class MusicService :
                     discordRpc?.closeRPC()
                 }
                 discordRpc = null
-                if (key != null && enabled) {
+                if (key.isNotEmpty() && enabled) {
                     discordRpc = DiscordRPC(this, key)
                     if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                         currentSong.value?.let {
@@ -1742,14 +1742,31 @@ class MusicService :
             player.playWhenReady = playWhenReady
         }
         playQueueJob = scope.launch(SilentHandler) {
-            val initialStatus =
+            val initialStatusResult =
                 withContext(Dispatchers.IO) {
-                    queue.getInitialStatus()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    runCatching {
+                        queue.getInitialStatus()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    }
                 }
             if (!isActive || currentQueue != queue) return@launch
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
+
+            val initialStatus = initialStatusResult.getOrNull()
+            if (initialStatus == null || initialStatus.items.isEmpty()) {
+                Timber.tag(TAG).w(
+                    initialStatusResult.exceptionOrNull(),
+                    "playQueue: getInitialStatus() failed or returned 0 items — queue remaining items: %d",
+                    player.mediaItemCount,
+                )
+                if (queue.preloadItem != null && player.mediaItemCount <= 1) {
+                    Timber.tag(TAG).i("playQueue: Attempting seamless radio fallback for preload item")
+                    startRadioSeamlessly()
+                }
+                return@launch
+            }
+
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
             }
@@ -1761,10 +1778,6 @@ class MusicService :
                         radioChips.value = it
                     }
                 }
-            }
-            if (initialStatus.items.isEmpty()) {
-                Timber.tag(TAG).w("playQueue: getInitialStatus() returned 0 items — queue will be empty. Check YouTube.locale or network.")
-                return@launch
             }
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
@@ -2851,13 +2864,17 @@ class MusicService :
             }
             if (!player.isPlaying && !events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope.launch {
-                    discordRpc?.close()
+                    try {
+                        discordRpc?.close()
+                    } catch (e: Exception) {
+                        Timber.w(e, "Failed to close Discord RPC")
+                    }
                 }
             }
         }
 
         // Update Discord RPC when media item changes or playback starts
-        if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED) && player.isPlaying) {
+        if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_PLAYBACK_STATE_CHANGED) && player.isPlaying) {
             val mediaId = player.currentMetadata?.id
             if (mediaId != null) {
                 scope.launch {
@@ -3591,6 +3608,14 @@ class MusicService :
     }
 
     private fun updateDiscordRPC(song: Song, showFeedback: Boolean = false) {
+        val token = dataStore.get(DiscordTokenKey, "")
+        val enabled = dataStore.get(EnableDiscordRPCKey, true)
+        if (!enabled || token.isEmpty()) return
+
+        if (discordRpc == null) {
+            discordRpc = DiscordRPC(this, token)
+        }
+
         val useDetails = dataStore.get(DiscordUseDetailsKey, false)
         val advancedMode = dataStore.get(DiscordAdvancedModeKey, false)
 

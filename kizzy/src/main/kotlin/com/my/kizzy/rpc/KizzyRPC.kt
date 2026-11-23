@@ -51,13 +51,17 @@ open class KizzyRPC(
     }
 
     open suspend fun close() {
-        if (!isRpcRunning()) {
-            discordWebSocket.connect()
+        try {
+            if (!isRpcRunning()) {
+                discordWebSocket.connect()
+            }
+            val presence = Presence(
+                activities = emptyList()
+            )
+            discordWebSocket.sendActivity(presence)
+        } catch (e: Exception) {
+            // Ignore failure when clearing presence on close
         }
-        val presence = Presence(
-            activities = emptyList()
-        )
-        discordWebSocket.sendActivity(presence)
     }
 
     suspend fun setActivity(

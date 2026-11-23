@@ -28,12 +28,15 @@ import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
 import io.ktor.websocket.readText
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.isActive
@@ -79,13 +82,21 @@ open class DiscordWebSocket(
     private var reconnectionJob: Job? = null
     private var currentReconnectDelay = INITIAL_RECONNECT_DELAY
 
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        logger.log(Level.WARNING, "DiscordWebSocket unhandled error: ${throwable.message}", throwable)
+    }
+    private var scopeJob = SupervisorJob()
+
     override val coroutineContext: CoroutineContext
-        get() = SupervisorJob() + Dispatchers.Default
+        get() = scopeJob + Dispatchers.IO + coroutineExceptionHandler
 
     fun connect() {
         if (connected) {
             logger.info("Gateway already connected.")
             return
+        }
+        if (!scopeJob.isActive) {
+            scopeJob = SupervisorJob()
         }
         reconnectionJob?.cancel()
         reconnectionJob = launch {
@@ -114,24 +125,34 @@ open class DiscordWebSocket(
                         }
                     }
                 handleClose()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                logger.severe("Gateway connection error: ${e.stackTraceToString()}")
+                logger.log(Level.WARNING, "Gateway connection error: ${e.message}")
                 scheduleReconnection()
             }
         }
     }
 
     private fun scheduleReconnection() {
+        if (!scopeJob.isActive) {
+            return
+        }
         if (reconnectionJob?.isActive == true) {
             return
         }
         heartbeatJob?.cancel()
         connected = false
         reconnectionJob = launch {
-            delay(currentReconnectDelay)
-            logger.info("Attempting to reconnect...")
-            connect()
-            currentReconnectDelay = (currentReconnectDelay * 2).coerceAtMost(MAX_RECONNECT_DELAY)
+            try {
+                delay(currentReconnectDelay)
+                if (!scopeJob.isActive) return@launch
+                logger.info("Attempting to reconnect...")
+                connect()
+                currentReconnectDelay = (currentReconnectDelay * 2).coerceAtMost(MAX_RECONNECT_DELAY)
+            } catch (e: CancellationException) {
+                // Cancelled during reconnection delay
+            }
         }
     }
 
@@ -139,7 +160,11 @@ open class DiscordWebSocket(
     private suspend fun handleClose() {
         heartbeatJob?.cancel()
         connected = false
-        val close = websocket?.closeReason?.await()
+        val close = try {
+            websocket?.closeReason?.await()
+        } catch (e: Exception) {
+            null
+        }
         logger.warning("Gateway closed with code: ${close?.code}, reason: ${close?.message}, can_reconnect: ${close?.code?.toInt() == 4000}")
         if (close?.code?.toInt() == 4000) {
             delay(200.milliseconds)
@@ -208,12 +233,16 @@ open class DiscordWebSocket(
     }
 
     private suspend inline fun reconnectWebSocket() {
-        websocket?.close(
-            CloseReason(
-                code = 4000,
-                message = "Attempting to reconnect"
+        try {
+            websocket?.close(
+                CloseReason(
+                    code = 4000,
+                    message = "Attempting to reconnect"
+                )
             )
-        )
+        } catch (e: Exception) {
+            logger.log(Level.WARNING, "Error during websocket reconnect", e)
+        }
     }
 
     private suspend fun sendIdentify() {
@@ -243,9 +272,15 @@ open class DiscordWebSocket(
     private fun startHeartbeatJob(interval: Long) {
         heartbeatJob?.cancel()
         heartbeatJob = launch {
-            while (isActive) {
-                sendHeartBeat()
-                delay(interval)
+            try {
+                while (isActive) {
+                    sendHeartBeat()
+                    delay(interval)
+                }
+            } catch (e: CancellationException) {
+                // Heartbeat cancelled normally
+            } catch (e: Exception) {
+                logger.log(Level.WARNING, "Heartbeat error: ${e.message}")
             }
         }
     }
@@ -260,19 +295,23 @@ open class DiscordWebSocket(
     }
 
     private suspend inline fun <reified T> send(op: OpCode, d: T?) {
-        if (websocket?.isActive == true) {
-            val payload = json.encodeToString(
-                Payload(
-                    op = op,
-                    d = json.encodeToJsonElement(d),
+        try {
+            if (websocket?.isActive == true) {
+                val payload = json.encodeToString(
+                    Payload(
+                        op = op,
+                        d = json.encodeToJsonElement(d),
+                    )
                 )
-            )
-            if (op == IDENTIFY) {
-                logger.info("Gateway sending payload: [REDACTED IDENTIFY PAYLOAD]")
-            } else {
-                logger.info("Gateway sending payload: $payload")
+                if (op == IDENTIFY) {
+                    logger.info("Gateway sending payload: [REDACTED IDENTIFY PAYLOAD]")
+                } else {
+                    logger.info("Gateway sending payload: $payload")
+                }
+                websocket?.send(Frame.Text(payload))
             }
-            websocket?.send(Frame.Text(payload))
+        } catch (e: Exception) {
+            logger.log(Level.WARNING, "Gateway error sending payload $op: ${e.message}")
         }
     }
 
@@ -280,20 +319,30 @@ open class DiscordWebSocket(
         reconnectionJob?.cancel()
         heartbeatJob?.cancel()
         heartbeatJob = null
-        this.cancel()
         resumeGatewayUrl = null
         sessionId = null
         connected = false
-        runBlocking {
-            websocket?.close()
-            logger.severe("Gateway: Connection to gateway closed")
+        scopeJob.cancelChildren()
+        try {
+            runBlocking {
+                websocket?.close()
+                websocket = null
+                logger.info("Gateway: Connection to gateway closed")
+            }
+        } catch (e: Exception) {
+            logger.log(Level.WARNING, "Error closing websocket", e)
         }
     }
 
     suspend fun sendActivity(presence: Presence) {
-        // TODO : Figure out a better way to wait for socket to be connected to account
+        var attempts = 0
         while (!isSocketConnectedToAccount()) {
             delay(10.milliseconds)
+            attempts++
+            if (attempts > 500) { // 5-second timeout
+                logger.warning("Gateway: Timeout waiting for socket connection to send activity")
+                return
+            }
         }
         logger.info("Gateway: Sending $PRESENCE_UPDATE")
         send(

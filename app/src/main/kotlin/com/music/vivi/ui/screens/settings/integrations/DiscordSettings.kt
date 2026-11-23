@@ -927,6 +927,69 @@ fun DiscordSettings(
                         )
                     }
                 }
+
+                Spacer(Modifier.height(10.dp))
+
+                ExpressiveSettingGroup(
+                    title = stringResource(R.string.discord_customization),
+                    items = listOf(
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_activity_type)) },
+                            description = {
+                                Text(
+                                    when (currentActivityType) {
+                                        DiscordActivityType.LISTENING -> stringResource(R.string.discord_activity_listening)
+                                        DiscordActivityType.PLAYING -> stringResource(R.string.discord_activity_playing)
+                                        DiscordActivityType.WATCHING -> stringResource(R.string.discord_activity_watching)
+                                        DiscordActivityType.COMPETING -> stringResource(R.string.discord_activity_competing)
+                                    }
+                                )
+                            },
+                            onClick = { showActivityTypeDialog = true },
+                        ),
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_activity_name)) },
+                            description = {
+                                Text(activityName.ifEmpty { stringResource(R.string.discord_activity_name_description) })
+                            },
+                            onClick = { showActivityNameDialog = true },
+                        ),
+                    ),
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                ExpressiveSettingGroup(
+                    title = stringResource(R.string.discord_buttons),
+                    items = listOf(
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_button_1)) },
+                            description = {
+                                Text(button1Text.ifEmpty { "Listen on YouTube Music" })
+                            },
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = button1Visible,
+                                    onCheckedChange = { button1Visible = it },
+                                )
+                            },
+                            onClick = { showButton1TextDialog = true },
+                        ),
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_button_2)) },
+                            description = {
+                                Text(button2Text.ifEmpty { "GitHub Repository" })
+                            },
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = button2Visible,
+                                    onCheckedChange = { button2Visible = it },
+                                )
+                            },
+                            onClick = { showButton2TextDialog = true },
+                        ),
+                    ),
+                )
             }
         }
 
@@ -946,161 +1009,186 @@ fun DiscordSettings(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 shape = RoundedCornerShape(
                     topStart = 28.dp, topEnd = 28.dp,
-                    bottomEnd = 5.dp, bottomStart = 5.dp,
+                    bottomEnd = if (button1Visible || button2Visible) 5.dp else 28.dp,
+                    bottomStart = if (button1Visible || button2Visible) 5.dp else 28.dp,
                 ),
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                ) {
-                    Box(Modifier.size(84.dp)) {
-                        Surface(
-                            shape = cookie,
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(cookie),
-                        ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center,
+                Column(modifier = Modifier.padding(14.dp)) {
+                    Text(
+                        text = if (activityName.isNotEmpty()) activityName else when (activityType) {
+                            "playing" -> stringResource(R.string.discord_playing_vivimusic)
+                            "watching" -> stringResource(R.string.discord_watching_vivimusic)
+                            "competing" -> stringResource(R.string.discord_competing_vivimusic)
+                            else -> stringResource(R.string.listening_to_vivimusic)
+                        },
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(bottom = 10.dp),
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    ) {
+                        Box(Modifier.size(84.dp)) {
+                            Surface(
+                                shape = cookie,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(cookie),
                             ) {
-                                val thumb = song?.song?.thumbnailUrl
-                                if (thumb != null) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    val thumb = song?.song?.thumbnailUrl
+                                    if (thumb != null) {
+                                        AsyncImage(
+                                            model = thumb,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(cookie),
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "\u266A",
+                                            fontSize = 32.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+
+                            song?.artists?.firstOrNull()?.thumbnailUrl?.let {
+                                Box(
+                                    modifier = Modifier
+                                        .border(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.surfaceContainerHigh,
+                                            CircleShape
+                                        )
+                                        .padding(2.dp)
+                                        .align(Alignment.BottomEnd),
+                                ) {
                                     AsyncImage(
-                                        model = thumb,
+                                        model = it,
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(cookie),
-                                    )
-                                } else {
-                                    Text(
-                                        text = "\u266A",
-                                        fontSize = 32.sp,
-                                        color = MaterialTheme.colorScheme.primary,
+                                            .size(32.dp)
+                                            .clip(CircleShape),
                                     )
                                 }
                             }
                         }
 
-                        song?.artists?.firstOrNull()?.thumbnailUrl?.let {
-                            Box(
-                                modifier = Modifier
-                                    .border(
-                                        2.dp,
-                                        MaterialTheme.colorScheme.surfaceContainerHigh,
-                                        CircleShape
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = song?.song?.title ?: "Song Title",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = song?.artists?.joinToString { it.name } ?: "Artist",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            if (useDetails) {
+                                song?.album?.title?.let {
+                                    Text(
+                                        text = it,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
-                                    .padding(2.dp)
-                                    .align(Alignment.BottomEnd),
-                            ) {
-                                AsyncImage(
-                                    model = it,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .clip(CircleShape),
-                                )
+                                }
                             }
+                            Spacer(Modifier.height(8.dp))
+                            SquigglySlider(
+                                value = song?.song?.duration?.takeIf { it > 0 }?.let { position.toFloat() / (it * 1000L) } ?: 0f,
+                                onValueChange = {},
+                                enabled = false,
+                                isPlaying = playbackState == STATE_READY,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
                         }
                     }
+                }
+            }
 
-                    Column(modifier = Modifier.weight(1f)) {
+            // Box 2: Button 1
+            if (button1Visible) {
+                Surface(
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, "https://music.youtube.com/watch?v=${song?.id}".toUri())
+                        )
+                    },
+                    enabled = song != null,
+                    shape = RoundedCornerShape(
+                        topStart = 5.dp, topEnd = 5.dp,
+                        bottomEnd = if (button2Visible) 5.dp else 28.dp,
+                        bottomStart = if (button2Visible) 5.dp else 28.dp,
+                    ),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(
-                            text = song?.song?.title ?: "Song Title",
-                            style = MaterialTheme.typography.titleMedium,
+                            text = button1Text.ifEmpty { stringResource(R.string.listen_on_youtube_music) },
+                            style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = song?.artists?.joinToString { it.name } ?: "Artist",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        if (useDetails) {
-                            song?.album?.title?.let {
-                                Text(
-                                    text = it,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        SquigglySlider(
-                            value = song?.song?.duration?.takeIf { it > 0 }?.let { position.toFloat() / (it * 1000L) } ?: 0f,
-                            onValueChange = {},
-                            enabled = false,
-                            isPlaying = playbackState == STATE_READY,
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.padding(horizontal = 12.dp),
                         )
                     }
                 }
             }
 
-            // Box 2: Listen on YouTube Music
-            Surface(
-                onClick = {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, "https://music.youtube.com/watch?v=${song?.id}".toUri())
-                    )
-                },
-                enabled = song != null,
-                shape = RoundedCornerShape(5.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-            ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.listen_on_youtube_music),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                    )
-                }
-            }
-
-            // Box 3: Visit vivimusic
-            Surface(
-                onClick = {
-                    context.startActivity(
-                        Intent(Intent.ACTION_VIEW, "https://github.com/vivizzz007/vivi-music".toUri())
-                    )
-                },
-                shape = RoundedCornerShape(
-                    topStart = 5.dp, topEnd = 5.dp,
-                    bottomEnd = 28.dp, bottomStart = 28.dp,
-                ),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-            ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.visit_vivimusic),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(horizontal = 12.dp),
-                    )
+            // Box 3: Button 2
+            if (button2Visible) {
+                Surface(
+                    onClick = {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW, "https://github.com/vivizzz007/vivi-music".toUri())
+                        )
+                    },
+                    shape = RoundedCornerShape(
+                        topStart = 5.dp, topEnd = 5.dp,
+                        bottomEnd = 28.dp, bottomStart = 28.dp,
+                    ),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = button2Text.ifEmpty { stringResource(R.string.visit_vivimusic) },
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 12.dp),
+                        )
+                    }
                 }
             }
         }

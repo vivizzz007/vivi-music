@@ -67,6 +67,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
 import kotlin.random.Random
+import com.music.vivi.github.news.network.AnnouncementRepository
 import com.music.vivi.models.toMediaMetadata
 
 data class DailyDiscoverItem(
@@ -82,10 +83,12 @@ class HomeViewModel @Inject constructor(
     val syncUtils: SyncUtils,
     val wrappedManager: WrappedManager,
     private val wrappedAudioService: WrappedAudioService,
+    val announcementRepository: AnnouncementRepository,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
     val isRandomizing = MutableStateFlow(false)
+    val announcement = announcementRepository.currentAnnouncement
 
     private val quickPicksEnum = context.dataStore.data.map {
         it[QuickPicksKey].toEnum(QuickPicks.QUICK_PICKS)
@@ -965,9 +968,21 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             syncUtils.tryAutoSync()
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            announcementRepository.refreshAnnouncement(context, force = true)
+        }
+    }
+
+    fun dismissAnnouncement(id: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            announcementRepository.dismissAnnouncement(context, id)
+        }
     }
 
     init {
+        viewModelScope.launch(Dispatchers.IO) {
+            announcementRepository.refreshAnnouncement(context)
+        }
 
         viewModelScope.launch(Dispatchers.IO) {
             android.util.Log.d("QP_TIMING", "init: ViewModel created — waiting for cookie")

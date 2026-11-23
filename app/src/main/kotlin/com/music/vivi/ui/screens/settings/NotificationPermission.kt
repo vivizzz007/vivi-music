@@ -52,8 +52,6 @@ import androidx.navigation.NavController
 import com.music.vivi.LocalPlayerAwareWindowInsets
 import com.music.vivi.R
 import com.music.vivi.constants.EnableNotificationsKey
-import com.music.vivi.constants.NewReleaseNotificationsKey
-import com.music.vivi.constants.TasteBasedReleaseNotificationsKey
 import com.music.vivi.ui.component.IconButton
 import com.music.vivi.ui.component.ExpressiveSettingGroup
 import com.music.vivi.ui.component.Material3SettingsItem
@@ -62,8 +60,6 @@ import com.music.vivi.ui.utils.backToMain
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.updater.getUpdateNotificationsSetting
 import com.music.vivi.vivimusic.updater.saveUpdateNotificationsSetting
-import com.music.vivi.vivimusic.updater.getDownloadNotificationsSetting
-import com.music.vivi.vivimusic.updater.saveDownloadNotificationsSetting
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,33 +110,16 @@ fun NotificationPermission(
         mutableStateOf(getUpdateNotificationsSetting(context))
     }
 
-    var downloadNotificationsEnabled by remember {
-        mutableStateOf(getDownloadNotificationsSetting(context))
-    }
-
-    val (newReleaseNotificationsEnabled, onNewReleaseNotificationsChange) = rememberPreference(
-        NewReleaseNotificationsKey,
-        defaultValue = true
-    )
-
-    val (tasteBasedReleaseNotificationsEnabled, onTasteBasedReleaseNotificationsChange) = rememberPreference(
-        TasteBasedReleaseNotificationsKey,
-        defaultValue = false
-    )
-
     DisposableEffect(context) {
         val sharedPrefs = context.getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
         val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == "update_notifications") {
                 updateNotificationsEnabled = getUpdateNotificationsSetting(context)
-            } else if (key == "download_notifications") {
-                downloadNotificationsEnabled = getDownloadNotificationsSetting(context)
             }
         }
         sharedPrefs.registerOnSharedPreferenceChangeListener(listener)
         // Sync initial state
         updateNotificationsEnabled = getUpdateNotificationsSetting(context)
-        downloadNotificationsEnabled = getDownloadNotificationsSetting(context)
         onDispose {
             sharedPrefs.unregisterOnSharedPreferenceChangeListener(listener)
         }
@@ -227,7 +206,7 @@ fun NotificationPermission(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Checkbox settings group for updates and download notifications
+        // Checkbox settings group for updates
         ExpressiveSettingGroup(
             items = listOf(
                 Material3SettingsItem(
@@ -246,73 +225,9 @@ fun NotificationPermission(
                         updateNotificationsEnabled = newValue
                         saveUpdateNotificationsSetting(context, newValue)
                     }
-                ),
-                Material3SettingsItem(
-                    title = { Text(stringResource(R.string.download_notifications)) },
-                    description = { Text(stringResource(R.string.download_notifications_desc)) },
-                    trailingContent = {
-                        Checkbox(
-                            checked = downloadNotificationsEnabled,
-                            onCheckedChange = null,
-                            enabled = isNotificationsActive
-                        )
-                    },
-                    enabled = isNotificationsActive,
-                    onClick = {
-                        val newValue = !downloadNotificationsEnabled
-                        downloadNotificationsEnabled = newValue
-                        saveDownloadNotificationsSetting(context, newValue)
-                    }
-                ),
-                Material3SettingsItem(
-                    title = { Text(stringResource(R.string.new_release_notifications)) },
-                    description = { Text(stringResource(R.string.new_release_notifications_subtitle)) },
-                    trailingContent = {
-                        Checkbox(
-                            checked = newReleaseNotificationsEnabled,
-                            onCheckedChange = null,
-                            enabled = isNotificationsActive
-                        )
-                    },
-                    enabled = isNotificationsActive,
-                    onClick = {
-                        onNewReleaseNotificationsChange(!newReleaseNotificationsEnabled)
-                    }
-                ),
-                Material3SettingsItem(
-                    title = { Text(stringResource(R.string.taste_based_release_notifications)) },
-                    description = { Text(stringResource(R.string.taste_based_release_notifications_subtitle)) },
-                    trailingContent = {
-                        Checkbox(
-                            checked = tasteBasedReleaseNotificationsEnabled,
-                            onCheckedChange = null,
-                            enabled = isNotificationsActive
-                        )
-                    },
-                    enabled = isNotificationsActive,
-                    onClick = {
-                        onTasteBasedReleaseNotificationsChange(!tasteBasedReleaseNotificationsEnabled)
-                    }
                 )
             )
         )
-
-        Row(
-            modifier = Modifier.padding(top = 24.dp, start = 4.dp, end = 4.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.info),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(
-                text = stringResource(R.string.new_release_notifications_info),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
 
         Spacer(modifier = Modifier.height(36.dp))
     }

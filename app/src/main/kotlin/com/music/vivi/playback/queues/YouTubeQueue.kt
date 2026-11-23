@@ -72,6 +72,27 @@ class YouTubeQueue(
                     lastException = e
                 }
             }
+
+            // Fallback: if RDAMVM failed, attempt loading watch queue with videoId alone
+            if (endpoint.videoId != null && endpoint.playlistId?.startsWith("RDAMVM") == true) {
+                try {
+                    val fallbackResult = YouTube.next(WatchEndpoint(videoId = endpoint.videoId)).getOrThrow()
+                    if (fallbackResult.items.isNotEmpty()) {
+                        endpoint = fallbackResult.endpoint
+                        continuation = fallbackResult.continuation
+                        _radioChips.value = fallbackResult.radioChips
+                        retryCount = 0
+                        return@withContext Queue.Status(
+                            title = fallbackResult.title,
+                            items = fallbackResult.items.map { it.toMediaItem() },
+                            mediaItemIndex = fallbackResult.currentIndex ?: 0,
+                        )
+                    }
+                } catch (e: Exception) {
+                    lastException = e
+                }
+            }
+
             throw lastException ?: Exception("Failed to get initial status")
         }
     }
