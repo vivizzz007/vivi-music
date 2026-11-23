@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ vivimusic Project (C) 2026
+  ~ Licensed under GPL-3.0 | See git history for contributors
+  -->
+<androidx.media3.ui.PlayerView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/announcement_player_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:use_controller="false"
+    app:surface_type="texture_view"
+    app:resize_mode="zoom"
+    app:shutter_background_color="@android:color/transparent" />
+

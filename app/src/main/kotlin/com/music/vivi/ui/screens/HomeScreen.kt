@@ -7,8 +7,14 @@ package com.music.vivi.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.ui.util.lerp
 import androidx.compose.animation.AnimatedVisibility
+import com.music.vivi.github.news.ui.HomeAnnouncementBottomSheet
+import com.music.vivi.github.news.ui.HomeAnnouncementCard
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -382,6 +388,8 @@ fun HomeScreen(
     val (randomizeHomeOrder) = rememberPreference(RandomizeHomeOrderKey, true)
 
     val shouldShowWrappedCard by viewModel.showWrappedCard.collectAsState()
+    val announcement by viewModel.announcement.collectAsState()
+    var showAnnouncementBottomSheet by rememberSaveable { mutableStateOf(false) }
     val wrappedState by viewModel.wrappedManager.state.collectAsState()
     val isWrappedDataReady = wrappedState.isDataReady
 
@@ -814,6 +822,25 @@ fun HomeScreen(
                 }
 
                 if (selectedChip == null) {
+                    item(key = "announcement_card") {
+                        AnimatedVisibility(
+                            visible = announcement != null,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically(),
+                        ) {
+                            announcement?.let { currentAnnouncement ->
+                                HomeAnnouncementCard(
+                                    announcement = currentAnnouncement,
+                                    onClick = { showAnnouncementBottomSheet = true },
+                                    onDismiss = { viewModel.dismissAnnouncement(currentAnnouncement.id) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                )
+                            }
+                        }
+                    }
+
                     item(key = "wrapped_card") {
                         AnimatedVisibility(visible = shouldShowWrappedCard) {
                             Card(
@@ -1846,6 +1873,14 @@ fun HomeScreen(
                 onRecognitionClick = {
                     navController.navigate("recognition")
                 }
+            )
+        }
+
+        if (showAnnouncementBottomSheet && announcement != null) {
+            HomeAnnouncementBottomSheet(
+                announcement = announcement,
+                repository = viewModel.announcementRepository,
+                onDismissRequest = { showAnnouncementBottomSheet = false },
             )
         }
     }

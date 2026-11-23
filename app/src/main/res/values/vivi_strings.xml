@@ -1261,4 +1261,12 @@
     <!-- YouTube Music Lyrics -->
     <string name="enable_youtube_lyrics">YouTube Music</string>
     <string name="enable_youtube_lyrics_desc">Fetch official lyrics from YouTube Music (supports synced lyrics when available)</string>
+
+    <!-- Announcements & News -->
+    <string name="announcement_tag_news">News</string>
+    <string name="announcement_read_more">Tap to read more</string>
+    <string name="announcement_dismiss">Dismiss</string>
+    <string name="announcement_close">Close</string>
+    <string name="announcement_loading">Loading announcement…</string>
+    <string name="announcement_error">Unable to load details</string>
 </resources>
