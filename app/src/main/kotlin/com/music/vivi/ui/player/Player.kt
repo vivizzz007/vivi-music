@@ -1057,6 +1057,21 @@ fun BottomSheetPlayer(
         initialAnchor = if (useNewPlayerDesign) 1 else 0
     )
 
+    val isCanvasActive = useNewPlayerDesign && spotifyCanvasUrl != null
+    var showCanvasControls by rememberSaveable(mediaMetadata?.id, isCanvasActive) { mutableStateOf(true) }
+
+    LaunchedEffect(isCanvasActive, showCanvasControls, isPlaying, showInlineLyrics, sliderPosition) {
+        if (isCanvasActive && showCanvasControls && isPlaying && !showInlineLyrics && sliderPosition == null) {
+            delay(4000L)
+            showCanvasControls = false
+        }
+    }
+
+    val canvasControlsAlpha by animateFloatAsState(
+        targetValue = if (isCanvasActive && !showCanvasControls && !showInlineLyrics && !queueSheetState.isExpanded) 0f else 1f,
+        label = "canvasControlsAlpha"
+    )
+
     val bottomSheetBackgroundColor = when {
         useNewPlayerDesign && spotifyCanvasUrl != null -> Color.Black
         playerBackground == PlayerBackgroundStyle.BLUR ||
@@ -3104,7 +3119,19 @@ fun BottomSheetPlayer(
                     ) {
                         Box(
                             contentAlignment = Alignment.Center,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .then(
+                                    if (isCanvasActive && !showInlineLyrics) {
+                                        Modifier.clickable(
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            indication = null
+                                        ) {
+                                            showCanvasControls = !showCanvasControls
+                                        }
+                                    } else Modifier
+                                ),
                         ) {
                             val currentSliderPosition by rememberUpdatedState(sliderPosition)
                             val sliderPositionProvider = remember { { currentSliderPosition } }
@@ -3132,7 +3159,13 @@ fun BottomSheetPlayer(
                         }
 
                         mediaMetadata?.let {
-                            controlsContent(it)
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .graphicsLayer { alpha = canvasControlsAlpha }
+                            ) {
+                                controlsContent(it)
+                            }
                         }
 
                         Spacer(Modifier.height(30.dp))
@@ -3680,6 +3713,7 @@ fun BottomSheetPlayer(
             Queue(
                 state = queueSheetState,
                 playerBottomSheetState = state,
+                modifier = Modifier.graphicsLayer { alpha = canvasControlsAlpha },
             navController = navController,
             background =
             if (useBlackBackground) {
@@ -3702,6 +3736,19 @@ fun BottomSheetPlayer(
 
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
+        }
+
+        if (isCanvasActive && !showCanvasControls) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) {
+                        showCanvasControls = true
+                    }
+            )
         }
     }
 }
