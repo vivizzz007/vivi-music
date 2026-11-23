@@ -164,8 +164,6 @@ val CipherManualUpdate2Key = longPreferencesKey("cipher_manual_update_2")
 val CipherManualUpdate3Key = longPreferencesKey("cipher_manual_update_3")
 
 val EnableNotificationsKey = booleanPreferencesKey("enableNotifications")
-val NewReleaseNotificationsKey = booleanPreferencesKey("newReleaseNotifications")
-val TasteBasedReleaseNotificationsKey = booleanPreferencesKey("tasteBasedReleaseNotifications")
 
 
 val AutoBackupEnabledKey = booleanPreferencesKey("autoBackupEnabled")

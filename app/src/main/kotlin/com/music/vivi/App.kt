@@ -31,7 +31,6 @@ import com.music.innertube.models.YouTubeLocale
 import com.music.kugou.KuGou
 import com.music.lastfm.LastFM
 import com.music.vivi.constants.*
-import com.music.vivi.vivimusic.release.NewReleaseCheckWorker
 import com.music.vivi.di.ApplicationScope
 import com.music.vivi.extensions.toEnum
 import com.music.vivi.extensions.toInetSocketAddress
@@ -61,7 +60,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
-class App : Application(), SingletonImageLoader.Factory, 
+class App : Application(), SingletonImageLoader.Factory,
 Configuration.Provider {
 
     override val workManagerConfiguration: Configuration
@@ -215,7 +214,7 @@ Configuration.Provider {
                             val expiresAt = json.optLong("expiresAt", 0L)
                             val spDc = json.optString("spDc", "")
                             val spKey = json.optString("spKey", "")
-                            
+
                             if (token.isNotEmpty() && expiresAt > System.currentTimeMillis() + 60_000L) {
                                 Spotify.accessToken = token
                             } else if (spDc.isNotEmpty()) {
@@ -343,35 +342,7 @@ Configuration.Provider {
                 }
         }
 
-        // One-time migration: clear stale "seen releases" baseline from the buggy first run
-        // so the worker re-snapshots all artists correctly on next launch.
-        val migrationPrefs = getSharedPreferences("app_migrations", Context.MODE_PRIVATE)
-        val NEW_RELEASE_MIGRATION_V1 = "new_release_seen_reset_v1"
-        if (!migrationPrefs.getBoolean(NEW_RELEASE_MIGRATION_V1, false)) {
-            NewReleaseCheckWorker.clearSeenReleases(this)
-            migrationPrefs.edit().putBoolean(NEW_RELEASE_MIGRATION_V1, true).apply()
-        }
-
-        applicationScope.launch(Dispatchers.IO) {
-            dataStore.data
-                .map {
-                    val bookmarkedEnabled = it[NewReleaseNotificationsKey] ?: true
-                    val tasteBasedEnabled = it[TasteBasedReleaseNotificationsKey] ?: false
-                    bookmarkedEnabled || tasteBasedEnabled
-                }
-                .distinctUntilChanged()
-                .collect { enabled ->
-                    runCatching {
-                        if (enabled) {
-                            NewReleaseCheckWorker.schedule(this@App)
-                        } else {
-                            NewReleaseCheckWorker.cancel(this@App)
-                        }
-                    }.onFailure {
-                        Timber.e(it, "Failed to update NewReleaseCheckWorker schedule")
-                    }
-                }
-        }
+        androidx.work.WorkManager.getInstance(this).cancelUniqueWork("NewReleaseCheckWork")
 
         applicationScope.launch(Dispatchers.IO) {
             dataStore.data
