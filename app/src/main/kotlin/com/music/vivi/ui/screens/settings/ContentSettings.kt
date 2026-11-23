@@ -69,7 +69,6 @@ import com.music.vivi.constants.CountryCodeToName
 import com.music.vivi.constants.EnableBetterLyricsKey
 import com.music.vivi.constants.EnableBetterLyricsPortatoKey
 import com.music.vivi.constants.EnableGeniusLyricsKey
-import com.music.vivi.constants.EnableMusixmatchKey
 import com.music.vivi.constants.EnableYouTubeLyricsKey
 import com.music.vivi.constants.EnableKugouKey
 import com.music.vivi.constants.EnableLrcLibKey
@@ -197,7 +196,6 @@ fun ContentSettings(
     val (enableBetterLyrics, onEnableBetterLyricsChange) = rememberPreference(key = EnableBetterLyricsKey, defaultValue = true)
     val (enableBetterLyricsPortato, onEnableBetterLyricsPortatoChange) = rememberPreference(key = EnableBetterLyricsPortatoKey, defaultValue = true)
     val (enableGenius, onEnableGeniusChange) = rememberPreference(key = EnableGeniusLyricsKey, defaultValue = true)
-    val (enableMusixmatch, onEnableMusixmatchChange) = rememberPreference(key = EnableMusixmatchKey, defaultValue = true)
     val (enableYouTubeLyrics, onEnableYouTubeLyricsChange) = rememberPreference(key = EnableYouTubeLyricsKey, defaultValue = true)
     val (enableYouLyPlus, onEnableYouLyPlusChange) = rememberPreference(key = EnableYouLyPlusKey, defaultValue = true)
     val (enablePaxsenix, onEnablePaxsenixChange) = rememberPreference(key = EnablePaxsenixKey, defaultValue = true)
@@ -417,7 +415,7 @@ fun ContentSettings(
     if (showProviderPriorityDialog) {
         val defaultOrder = LyricsProviderRegistry.getDefaultProviderOrder()
         // User-toggleable provider names
-        val userToggleable = setOf("YouTubeMusic", "YouLyPlus", "Paxsenix", "BetterLyrics", "BetterLyricsPortato", "Musixmatch", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify", "Genius")
+        val userToggleable = setOf("YouTubeMusic", "YouLyPlus", "Paxsenix", "BetterLyrics", "BetterLyricsPortato", "LrcLib", "LrcRed", "Kugou", "Unison", "BiniLyrics", "Spotify", "Genius")
         val enabledProviders = setOfNotNull(
             "YouTubeMusic".takeIf { enableYouTubeLyrics },
             "LrcLib".takeIf { enableLrclib },
@@ -425,7 +423,6 @@ fun ContentSettings(
             "Kugou".takeIf { enableKugou },
             "BetterLyrics".takeIf { enableBetterLyrics },
             "BetterLyricsPortato".takeIf { enableBetterLyricsPortato },
-            "Musixmatch".takeIf { enableMusixmatch },
             "YouLyPlus".takeIf { enableYouLyPlus },
             "Paxsenix".takeIf { enablePaxsenix },
             "Unison".takeIf { enableUnison },
@@ -1112,27 +1109,6 @@ fun ContentSettings(
                         )
                     },
                     onClick = { onEnableBetterLyricsPortatoChange(!enableBetterLyricsPortato) }
-                ),
-                Material3SettingsItem(
-                    icon = painterResource(R.drawable.lyrics),
-                    title = { Text("Musixmatch") },
-                    description = { Text("World's largest lyrics database (supports word-level and line-level sync)") },
-                    trailingContent = {
-                        Switch(
-                            checked = enableMusixmatch,
-                            onCheckedChange = onEnableMusixmatchChange,
-                            thumbContent = {
-                                Icon(
-                                    painter = painterResource(
-                                        id = if (enableMusixmatch) R.drawable.check else R.drawable.close
-                                    ),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize)
-                                )
-                            }
-                        )
-                    },
-                    onClick = { onEnableMusixmatchChange(!enableMusixmatch) }
                 ),
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.spotify),
