@@ -84,6 +84,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -755,6 +756,23 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                val nextSearchFocusRequestId = remember { mutableIntStateOf(0) }
+                val pendingSearchFocusRequestId = remember { mutableIntStateOf(0) }
+                val requestSearchFocus: () -> Unit = remember(nextSearchFocusRequestId, pendingSearchFocusRequestId) {
+                    {
+                        val nextId = nextSearchFocusRequestId.intValue + 1
+                        nextSearchFocusRequestId.intValue = nextId
+                        pendingSearchFocusRequestId.intValue = nextId
+                    }
+                }
+                val onSearchFocusRequestConsumed: (Int) -> Unit = remember(pendingSearchFocusRequestId) {
+                    { requestId ->
+                        if (pendingSearchFocusRequestId.intValue == requestId) {
+                            pendingSearchFocusRequestId.intValue = 0
+                        }
+                    }
+                }
+
                 // Use derivedStateOf to avoid unnecessary recompositions
                 val currentRoute by remember {
                     derivedStateOf { navBackStackEntry?.destination?.route }
@@ -838,6 +856,11 @@ class MainActivity : ComponentActivity() {
 
                 // Navigation tracking
                 LaunchedEffect(navBackStackEntry) {
+                    val destinationRoute = navBackStackEntry?.destination?.route
+                    if (destinationRoute != Screens.Search.route && destinationRoute?.startsWith("search/") != true) {
+                        pendingSearchFocusRequestId.intValue = 0
+                    }
+
                     if (inSearchScreen) {
                         val searchQuery = withContext(Dispatchers.IO) {
                             val rawQuery = navBackStackEntry?.arguments?.getString("query")!!
@@ -995,7 +1018,63 @@ class MainActivity : ComponentActivity() {
                     LocalSyncUtils provides syncUtils,
                     LocalListenTogetherManager provides listenTogetherManager,
                     LocalSnackbarHostState provides snackbarHostState,
+                    LocalIsPlayerExpanded provides playerBottomSheetState.isExpanded,
                 ) {
+                    val onNavItemClick: (Screens, Boolean) -> Unit = remember(
+                        navController,
+                        coroutineScope,
+                        topAppBarScrollBehavior,
+                        playerBottomSheetState,
+                        requestSearchFocus,
+                        pendingSearchFocusRequestId,
+                    ) {
+                        { screen: Screens, isSelected: Boolean ->
+                            val wasPlayerExpanded = playerBottomSheetState.isExpanded
+                            if (wasPlayerExpanded) {
+                                playerBottomSheetState.collapseSoft()
+                            }
+
+                            if (screen != Screens.Search) {
+                                pendingSearchFocusRequestId.intValue = 0
+                            }
+
+                            if (isSelected) {
+                                if (screen == Screens.Search) {
+                                    if (!wasPlayerExpanded) {
+                                        requestSearchFocus()
+                                    }
+                                } else {
+                                    navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                    coroutineScope.launch {
+                                        topAppBarScrollBehavior.state.resetHeightOffset()
+                                    }
+                                }
+                            } else {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                                if (screen == Screens.Search && !wasPlayerExpanded) {
+                                    val destinationRoute = navController.currentDestination?.route
+                                    if (destinationRoute == Screens.Search.route || destinationRoute?.startsWith("search/") == true) {
+                                        requestSearchFocus()
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    val onSearchLongClick: () -> Unit = remember(navController) {
+                        {
+                            navController.navigate("recognition") {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
                     Scaffold(
                         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface,
                         topBar = {
@@ -1107,37 +1186,6 @@ class MainActivity : ComponentActivity() {
                             }
                         },
                         bottomBar = {
-                            val onNavItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState) {
-                                { screen: Screens, isSelected: Boolean ->
-                                    if (playerBottomSheetState.isExpanded) {
-                                        playerBottomSheetState.collapseSoft()
-                                    }
-
-                                    if (isSelected) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
-                                        coroutineScope.launch {
-                                            topAppBarScrollBehavior.state.resetHeightOffset()
-                                        }
-                                    } else {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                }
-                            }
-
-                            val onSearchLongClick: () -> Unit = remember(navController) {
-                                {
-                                    navController.navigate("recognition") {
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-
                             // Pre-calculate values for graphicsLayer to avoid reading state during composition
                             val navBarTotalHeight = bottomInset + NavigationBarHeight
 
@@ -1247,45 +1295,14 @@ class MainActivity : ComponentActivity() {
                             .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                     ) {
                         Row(Modifier.fillMaxSize()) {
-                            val onRailItemClick: (Screens, Boolean) -> Unit = remember(navController, coroutineScope, topAppBarScrollBehavior, playerBottomSheetState) {
-                                { screen: Screens, isSelected: Boolean ->
-                                    if (playerBottomSheetState.isExpanded) {
-                                        playerBottomSheetState.collapseSoft()
-                                    }
-
-                                    if (isSelected) {
-                                        navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
-                                        coroutineScope.launch {
-                                            topAppBarScrollBehavior.state.resetHeightOffset()
-                                        }
-                                    } else {
-                                        navController.navigate(screen.route) {
-                                            popUpTo(navController.graph.startDestinationId) {
-                                                saveState = true
-                                            }
-                                            launchSingleTop = true
-                                            restoreState = true
-                                        }
-                                    }
-                                }
-                            }
-
-                            val onRailSearchLongClick: () -> Unit = remember(navController) {
-                                {
-                                    navController.navigate("recognition") {
-                                        launchSingleTop = true
-                                    }
-                                }
-                            }
-
                             if (showRail && currentRoute != "wrapped" && currentRoute != "update") {
                                 AppNavigationRail(
                                     navigationItems = navigationItems,
                                     currentRoute = currentRoute,
-                                    onItemClick = onRailItemClick,
+                                    onItemClick = onNavItemClick,
                                     pureBlack = pureBlack,
                                     slimNav = slimNav,
-                                    onSearchLongClick = onRailSearchLongClick
+                                    onSearchLongClick = onSearchLongClick
                                 )
                             }
                             Box(Modifier.weight(1f)) {
@@ -1360,7 +1377,9 @@ class MainActivity : ComponentActivity() {
                                         scrollBehavior = topAppBarScrollBehavior,
                                         activity = this@MainActivity,
                                         snackbarHostState = snackbarHostState,
-                                        homeViewModel = homeViewModel
+                                        homeViewModel = homeViewModel,
+                                        searchFocusRequestIdState = pendingSearchFocusRequestId,
+                                        onSearchFocusRequestConsumed = onSearchFocusRequestConsumed,
                                     )
                                 }
                             }

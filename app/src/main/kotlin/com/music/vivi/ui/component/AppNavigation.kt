@@ -22,7 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -47,6 +49,7 @@ private data class NavItemState(
 private fun isRouteSelected(currentRoute: String?, screenRoute: String, navigationItems: List<Screens>): Boolean {
     if (currentRoute == null) return false
     if (currentRoute == screenRoute) return true
+    if (screenRoute == Screens.Search.route && currentRoute.startsWith("search/")) return true
     return navigationItems.any { it.route == screenRoute } && 
            currentRoute.startsWith("$screenRoute/")
 }
@@ -82,6 +85,9 @@ fun AppNavigationRail(
             
             val isSearchItem = screen == Screens.Search && onSearchLongClick != null
             val interactionSource = remember { MutableInteractionSource() }
+            val currentIsSelected by rememberUpdatedState(isSelected)
+            val currentOnItemClick by rememberUpdatedState(onItemClick)
+            val currentOnSearchLongClick by rememberUpdatedState(onSearchLongClick)
             
             // Long press detection using InteractionSource
             if (isSearchItem) {
@@ -94,11 +100,11 @@ fun AppNavigationRail(
                                 delay(viewConfiguration.longPressTimeoutMillis)
                                 isLongClick = true
                                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                onSearchLongClick.invoke()
+                                currentOnSearchLongClick?.invoke()
                             }
                             is PressInteraction.Release -> {
                                 if (!isLongClick) {
-                                    onItemClick(screen, isSelected)
+                                    currentOnItemClick(screen, currentIsSelected)
                                 }
                             }
                             is PressInteraction.Cancel -> {
@@ -185,6 +191,9 @@ fun AppNavigationBar(
                 
                 val isSearchItem = screen == Screens.Search && onSearchLongClick != null
                 val interactionSource = remember { MutableInteractionSource() }
+                val currentIsSelected by rememberUpdatedState(isSelected)
+                val currentOnItemClick by rememberUpdatedState(onItemClick)
+                val currentOnSearchLongClick by rememberUpdatedState(onSearchLongClick)
                 
                 // Long press detection using InteractionSource
                 if (isSearchItem) {
@@ -197,11 +206,11 @@ fun AppNavigationBar(
                                     delay(viewConfiguration.longPressTimeoutMillis)
                                     isLongClick = true
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onSearchLongClick.invoke()
+                                    currentOnSearchLongClick?.invoke()
                                 }
                                 is PressInteraction.Release -> {
                                     if (!isLongClick) {
-                                        onItemClick(screen, isSelected)
+                                        currentOnItemClick(screen, currentIsSelected)
                                     }
                                 }
                                 is PressInteraction.Cancel -> {
