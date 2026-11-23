@@ -672,6 +672,7 @@ fun Lyrics(
         selectedIndices.clear()
         previousScrollActiveIndices = emptySet()
         lastMainMaxSeen = -1
+        lazyListState.scrollToItem(0)
     }
 
     LaunchedEffect(lyrics, lines, lyricsAnimationStyle) {
@@ -1338,7 +1339,7 @@ fun Lyrics(
             val lyricsOffset = currentSong?.song?.lyricsOffset?.toLong() ?: 0L
             val lyricClock = rememberLyricClock(
                 trackKey = currentSong?.id,
-                positionProvider = { playerConnection.player.currentPosition.coerceAtLeast(0L) + lyricsOffset },
+                positionProvider = { (sliderPositionProvider() ?: playerConnection.player.currentPosition).coerceAtLeast(0L) + lyricsOffset },
                 isPlaying = isPlaying,
             )
 
@@ -1385,11 +1386,12 @@ fun Lyrics(
                 ) { value, _ -> since.floatValue = value }
             }
 
-            LaunchedEffect(focusLine, showLyrics, isAutoScrollEnabled, isPlaying, displayLines, useNewPlayerDesign) {
+            LaunchedEffect(focusLine, showLyrics, isAutoScrollEnabled, isPlaying, displayLines, useNewPlayerDesign, isLyricsProviderShown) {
                 if (lyricsAnimationStyle == LyricsAnimationStyle.VIVIMUSIC_1 &&
                     isSynced && isAutoScrollEnabled && showLyrics && focusLine >= 0 && focusLine in displayLines.indices
                 ) {
-                    val visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == focusLine }
+                    val targetIndex = if (isLyricsProviderShown) focusLine + 1 else focusLine
+                    val visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
                     if (visible != null) {
                         val span = scrollLead(displayLines, lyricClock.longValue).toInt()
                         val distance = if (useNewPlayerDesign) {
@@ -1409,9 +1411,9 @@ fun Lyrics(
                         }
                     } else {
                         if (useNewPlayerDesign) {
-                            lazyListState.animateScrollToItem(focusLine, scrollOffset = 0)
+                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
                         } else {
-                            lazyListState.animateScrollToItem(focusLine, scrollOffset = 0)
+                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
                         }
                     }
                 }
@@ -1659,13 +1661,16 @@ fun Lyrics(
                                     if (isSynced && changeLyrics && !isGuest) {
                                         val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
                                         playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
+                                        isAutoScrollEnabled = true
                                         scope.launch {
+                                            val targetIndex = if (isLyricsProviderShown) index + 1 else index
                                             if (useNewPlayerDesign) {
-                                                lazyListState.animateScrollToItem(index, scrollOffset = 0)
+                                                lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
                                             } else {
-                                                lazyListState.scrollToItem(index = index)
+                                                lazyListState.scrollToItem(index = targetIndex)
                                             }
                                         }
+                                        lastPreviewTime = 0L
                                     }
                                 }
                             )
@@ -1709,8 +1714,10 @@ fun Lyrics(
                                     } else if (isSynced && changeLyrics && !isGuest) {
                                         val lyricsOffsetVal = currentSong?.song?.lyricsOffset ?: 0
                                         playerConnection.seekTo((item.time - lyricsOffsetVal).coerceAtLeast(0))
+                                        isAutoScrollEnabled = true
                                         scope.launch {
-                                            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+                                            val targetIndex = if (isLyricsProviderShown) index + 1 else index
+                                            val itemInfo = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
                                             if (itemInfo != null) {
                                                 val offset = if (useNewPlayerDesign) {
                                                     val viewportHeight = lazyListState.layoutInfo.viewportEndOffset - lazyListState.layoutInfo.viewportStartOffset
@@ -1728,9 +1735,9 @@ fun Lyrics(
                                                 }
                                             } else {
                                                 if (useNewPlayerDesign) {
-                                                    lazyListState.animateScrollToItem(index, scrollOffset = 0)
+                                                    lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
                                                 } else {
-                                                    lazyListState.scrollToItem(index = index)
+                                                    lazyListState.scrollToItem(index = targetIndex)
                                                 }
                                             }
                                         }
@@ -2465,7 +2472,7 @@ fun Lyrics(
             FilledTonalButton(onClick = {
                 if (lyricsAnimationStyle == LyricsAnimationStyle.METRO_LYRICS) {
                     scrollTargetIndex = currentLineIndex
-                } else {
+                } else if (lyricsAnimationStyle != LyricsAnimationStyle.VIVIMUSIC_1) {
                     scope.launch {
                         performSmoothPageScroll(currentLineIndex, 1500)
                     }
