@@ -2864,7 +2864,11 @@ class MusicService :
             }
             if (!player.isPlaying && !events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope.launch {
-                    discordRpc?.close()
+                    try {
+                        discordRpc?.close()
+                    } catch (e: Exception) {
+                        Timber.w(e, "Failed to close Discord RPC")
+                    }
                 }
             }
         }
