@@ -1173,7 +1173,6 @@ est irréversible.
     <string name="enable_settings_dropdown_desc">Afficher un menu déroulant Material 3 en cliquant sur l\'icône des paramètres sur l\'écran d\'accueil</string>
     
     <!-- Lyrics Providers -->
-    <string name="musixmatch_desc">La plus grande base de données de paroles au monde (prend en charge la synchronisation mot à mot et ligne par ligne)</string>
     <string name="spotify_lyrics_desc">Nécessite une connexion à un compte Spotify (via le cookie sp_dc)</string>
     
     <!-- Listening Summary -->

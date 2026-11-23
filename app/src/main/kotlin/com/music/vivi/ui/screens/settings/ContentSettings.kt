@@ -1199,7 +1199,7 @@ fun ContentSettings(
                 Material3SettingsItem(
                     icon = painterResource(R.drawable.lyrics),
                     title = { Text("Bini Lyrics") },
-                    description = { Text("Binimum/KPoe LyricsPlus (Apple Music, Musixmatch, Spotify & more — word-synced)") },
+                    description = { Text("Binimum/KPoe LyricsPlus (Apple Music, Spotify & more — word-synced)") },
                     trailingContent = {
                         Switch(
                             checked = enableBiniLyrics,
