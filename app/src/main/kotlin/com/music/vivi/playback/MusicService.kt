@@ -1074,7 +1074,7 @@ class MusicService :
             }
 
         dataStore.data
-            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+            .map { (it[DiscordTokenKey] ?: "") to (it[EnableDiscordRPCKey] ?: true) }
             .debounce(300)
             .distinctUntilChanged()
             .collect(scope) { (key, enabled) ->
@@ -1082,7 +1082,7 @@ class MusicService :
                     discordRpc?.closeRPC()
                 }
                 discordRpc = null
-                if (key != null && enabled) {
+                if (key.isNotEmpty() && enabled) {
                     discordRpc = DiscordRPC(this, key)
                     if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                         currentSong.value?.let {
@@ -2870,7 +2870,7 @@ class MusicService :
         }
 
         // Update Discord RPC when media item changes or playback starts
-        if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED) && player.isPlaying) {
+        if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED, Player.EVENT_PLAYBACK_STATE_CHANGED) && player.isPlaying) {
             val mediaId = player.currentMetadata?.id
             if (mediaId != null) {
                 scope.launch {
@@ -3604,6 +3604,14 @@ class MusicService :
     }
 
     private fun updateDiscordRPC(song: Song, showFeedback: Boolean = false) {
+        val token = dataStore.get(DiscordTokenKey, "")
+        val enabled = dataStore.get(EnableDiscordRPCKey, true)
+        if (!enabled || token.isEmpty()) return
+
+        if (discordRpc == null) {
+            discordRpc = DiscordRPC(this, token)
+        }
+
         val useDetails = dataStore.get(DiscordUseDetailsKey, false)
         val advancedMode = dataStore.get(DiscordAdvancedModeKey, false)
 
