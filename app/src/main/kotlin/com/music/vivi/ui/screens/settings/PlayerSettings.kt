@@ -53,6 +53,7 @@ import com.music.vivi.constants.CrossfadeCurveKey
 import com.music.vivi.constants.CanvasThumbnailAnimationKey
 import com.music.vivi.constants.SpotifyCanvasEnabledKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.UsePlayerV2Key
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.spotify.Spotify
 import com.music.vivi.constants.MotionartworkSource
@@ -239,6 +240,7 @@ fun PlayerSettings(
         defaultValue = false
     )
     val (useNewPlayerDesign) = rememberPreference(UseNewPlayerDesignKey, false)
+    val (usePlayerV2) = rememberPreference(UsePlayerV2Key, true)
     val isSpotifyLoggedIn = Spotify.accessToken != null
 
     // Auto-disable if user logs out of Spotify
@@ -395,7 +397,7 @@ fun PlayerSettings(
                     },
                     onClick = { navController.navigate("settings/player/motionartwork") }
                 ))
-                if (useNewPlayerDesign) {
+                if (useNewPlayerDesign || usePlayerV2) {
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.canvas_art),
                         title = { Text(stringResource(R.string.enable_spotify_canvas)) },
