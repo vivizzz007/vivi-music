@@ -39,27 +39,38 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.music.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
@@ -76,6 +87,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.WatchEndpoint
 import com.music.innertube.models.YTItem
 import com.music.vivi.LocalDatabase
+import com.music.vivi.LocalIsPlayerExpanded
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.MiniPlayerBottomSpacing
@@ -114,12 +126,20 @@ import androidx.compose.material3.MaterialTheme
 fun OnlineSearchResult(
     navController: NavController,
     viewModel: OnlineSearchViewModel = hiltViewModel(),
-    pureBlack: Boolean = false
+    pureBlack: Boolean = false,
+    searchFocusRequestId: Int = 0,
+    onSearchFocusRequestConsumed: (Int) -> Unit = {},
 ) {
     val database = LocalDatabase.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
+    val focusManager = LocalFocusManager.current
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val isPlayerExpanded = LocalIsPlayerExpanded.current
+    val currentIsPlayerExpanded by rememberUpdatedState(isPlayerExpanded)
+    val lifecycleOwner = LocalLifecycleOwner.current
     val isPlaying by playerConnection.isEffectivelyPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
@@ -131,6 +151,31 @@ fun OnlineSearchResult(
 
     // Whether the SearchBar is in its "active/expanded" state (showing suggestions)
     var searchActive by rememberSaveable { mutableStateOf(false) }
+    var focusTrigger by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(searchFocusRequestId) {
+        if (searchFocusRequestId == 0) return@LaunchedEffect
+        if (navController.currentDestination?.route?.startsWith("search/") != true) return@LaunchedEffect
+        onSearchFocusRequestConsumed(searchFocusRequestId)
+        if (!currentIsPlayerExpanded) {
+            searchActive = true
+            focusTrigger++
+        }
+    }
+
+    LaunchedEffect(focusTrigger) {
+        if (focusTrigger > 0) {
+            withFrameNanos { }
+            if (!currentIsPlayerExpanded) {
+                try {
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                } catch (_: Exception) {
+                    // Ignore focus request failures
+                }
+            }
+        }
+    }
 
     // Same animated padding as SearchScreen — pill expands edge-to-edge on activation
     val searchBarHorizontalPadding by animateDpAsState(
@@ -187,6 +232,8 @@ fun OnlineSearchResult(
     // Hardware back when suggestions overlay is open — dismiss it first
     BackHandler(enabled = searchActive) {
         searchActive = false
+        focusManager.clearFocus()
+        keyboardController?.hide()
     }
 
     val searchFilter by viewModel.filter.collectAsState()
@@ -305,80 +352,96 @@ fun OnlineSearchResult(
     Scaffold(
         topBar = {
             SearchBar(
-                    query = query.text,
-                    onQueryChange = { newText ->
-                        query = TextFieldValue(newText, TextRange(newText.length))
-                    },
-                    onSearch = { searchQuery ->
-                        onSearch(searchQuery)
-                        searchActive = false
-                    },
-                    active = searchActive,
-                    onActiveChange = { searchActive = it },
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.search_yt_music),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    },
-                    leadingIcon = {
-                        IconButton(
-                            onClick = {
-                                if (searchActive) {
-                                    searchActive = false
-                                } else {
-                                    searchActive = true
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(
-                                    if (searchActive) R.drawable.arrow_back else R.drawable.search
-                                ),
-                                contentDescription = if (searchActive) stringResource(R.string.dismiss) else null,
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    trailingIcon = {
-                        if (query.text.isNotEmpty()) {
-                            IconButton(
-                                onClick = { query = TextFieldValue("") }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.close),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    },
-                    colors = SearchBarDefaults.colors(
-                        containerColor = if (pureBlack)
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                        else
-                            MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = searchBarHorizontalPadding)
-                        .padding(vertical = searchBarVerticalPadding)
-                ) {
-                    // Content shown inside the SearchBar when active (expanded):
-                    // reuses the same OnlineSearchScreen suggestion list
-                    OnlineSearchScreen(
+                inputField = {
+                    SearchBarDefaults.InputField(
                         query = query.text,
-                        onQueryChange = { query = it },
-                        navController = navController,
+                        onQueryChange = { newText ->
+                            query = TextFieldValue(newText, TextRange(newText.length))
+                        },
                         onSearch = { searchQuery ->
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
                             onSearch(searchQuery)
                             searchActive = false
                         },
-                        onDismiss = { searchActive = false },
-                        pureBlack = pureBlack
+                        expanded = searchActive,
+                        onExpandedChange = { searchActive = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search_yt_music),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        leadingIcon = {
+                            IconButton(
+                                onClick = {
+                                    if (searchActive) {
+                                        searchActive = false
+                                        focusManager.clearFocus()
+                                        keyboardController?.hide()
+                                    } else {
+                                        searchActive = true
+                                        focusTrigger++
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(
+                                        if (searchActive) R.drawable.arrow_back else R.drawable.search
+                                    ),
+                                    contentDescription = if (searchActive) stringResource(R.string.dismiss) else null,
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        },
+                        trailingIcon = {
+                            if (query.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { query = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
                     )
-                }
+                },
+                expanded = searchActive,
+                onExpandedChange = { searchActive = it },
+                colors = SearchBarDefaults.colors(
+                    containerColor = if (pureBlack)
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                    else
+                        MaterialTheme.colorScheme.surfaceVariant
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = searchBarHorizontalPadding)
+                    .padding(vertical = searchBarVerticalPadding)
+            ) {
+                // Content shown inside the SearchBar when active (expanded):
+                // reuses the same OnlineSearchScreen suggestion list
+                OnlineSearchScreen(
+                    query = query.text,
+                    onQueryChange = { query = it },
+                    navController = navController,
+                    onSearch = { searchQuery ->
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        onSearch(searchQuery)
+                        searchActive = false
+                    },
+                    onDismiss = { searchActive = false },
+                    pureBlack = pureBlack
+                )
+            }
         },
         containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.background
     ) { paddingValues ->
@@ -488,6 +551,34 @@ fun OnlineSearchResult(
                     Spacer(modifier = Modifier.height(MiniPlayerHeight + MiniPlayerBottomSpacing + NavigationBarHeight))
                 }
             }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner, isPlayerExpanded) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    if (isPlayerExpanded) {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }
+                }
+                Lifecycle.Event.ON_PAUSE -> {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+
+        if (isPlayerExpanded) {
+            keyboardController?.hide()
+            focusManager.clearFocus()
+        }
+
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation.NavGraphBuilder
@@ -87,7 +88,9 @@ fun NavGraphBuilder.navigationBuilder(
     scrollBehavior: TopAppBarScrollBehavior,
     activity: Activity,
     snackbarHostState: SnackbarHostState,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    searchFocusRequestIdState: State<Int>? = null,
+    onSearchFocusRequestConsumed: (Int) -> Unit = {},
 ) {
     composable(Screens.Home.route) {
         HomeScreen(
@@ -109,7 +112,9 @@ fun NavGraphBuilder.navigationBuilder(
         }
         SearchScreen(
             navController = navController,
-            pureBlack = pureBlack
+            pureBlack = pureBlack,
+            searchFocusRequestId = searchFocusRequestIdState?.value ?: 0,
+            onSearchFocusRequestConsumed = onSearchFocusRequestConsumed,
         )
     }
 
@@ -200,7 +205,11 @@ fun NavGraphBuilder.navigationBuilder(
             fadeOut(tween(200))
         },
     ) {
-        OnlineSearchResult(navController)
+        OnlineSearchResult(
+            navController = navController,
+            searchFocusRequestId = searchFocusRequestIdState?.value ?: 0,
+            onSearchFocusRequestConsumed = onSearchFocusRequestConsumed,
+        )
     }
 
     composable(

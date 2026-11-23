@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -140,6 +141,7 @@ fun FloatingNavigationBar(
 private fun isRouteSelected(currentRoute: String?, screenRoute: String, navigationItems: List<Screens>): Boolean {
     if (currentRoute == null) return false
     if (currentRoute == screenRoute) return true
+    if (screenRoute == Screens.Search.route && currentRoute.startsWith("search/")) return true
     return navigationItems.any { it.route == screenRoute } && 
            currentRoute.startsWith("$screenRoute/")
 }
@@ -156,6 +158,8 @@ private fun FloatingNavItem(
     val haptics = LocalHapticFeedback.current
     val viewConfiguration = LocalViewConfiguration.current
     val interactionSource = remember { MutableInteractionSource() }
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnSearchLongClick by rememberUpdatedState(onSearchLongClick)
 
     val isSearchItem = screen == Screens.Search && onSearchLongClick != null
     if (isSearchItem) {
@@ -168,11 +172,11 @@ private fun FloatingNavItem(
                         delay(viewConfiguration.longPressTimeoutMillis)
                         isLongClick = true
                         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onSearchLongClick?.invoke()
+                        currentOnSearchLongClick?.invoke()
                     }
                     is PressInteraction.Release -> {
                         if (!isLongClick) {
-                            onClick()
+                            currentOnClick()
                         }
                     }
                     is PressInteraction.Cancel -> {

@@ -33,11 +33,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +74,7 @@ import com.music.vivi.constants.SearchSourceKey
 import com.music.vivi.db.entities.SearchHistory
 import com.music.vivi.playback.queues.YouTubeQueue
 import com.music.vivi.ui.component.NavigationTitle
+import com.music.vivi.ui.screens.Screens
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.viewmodels.MoodAndGenresViewModel
@@ -95,6 +99,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 fun SearchScreen(
     navController: NavController,
     pureBlack: Boolean,
+    searchFocusRequestId: Int = 0,
+    onSearchFocusRequestConsumed: (Int) -> Unit = {},
     moodAndGenresViewModel: MoodAndGenresViewModel = hiltViewModel()
 ) {
     val database = LocalDatabase.current
@@ -103,6 +109,7 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val isPlayerExpanded = LocalIsPlayerExpanded.current
+    val currentIsPlayerExpanded by rememberUpdatedState(isPlayerExpanded)
     val playerConnection = LocalPlayerConnection.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
@@ -114,9 +121,33 @@ fun SearchScreen(
         mutableStateOf(TextFieldValue())
     }
     val pauseSearchHistory by rememberPreference(PauseSearchHistoryKey, defaultValue = false)
-    var isFirstLaunch by rememberSaveable { mutableStateOf(true) }
-    
+
     var searchActive by rememberSaveable { mutableStateOf(false) }
+    var focusTrigger by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(searchFocusRequestId) {
+        if (searchFocusRequestId == 0) return@LaunchedEffect
+        if (navController.currentDestination?.route != Screens.Search.route) return@LaunchedEffect
+        onSearchFocusRequestConsumed(searchFocusRequestId)
+        if (!currentIsPlayerExpanded) {
+            searchActive = true
+            focusTrigger++
+        }
+    }
+
+    LaunchedEffect(focusTrigger) {
+        if (focusTrigger > 0) {
+            withFrameNanos { }
+            if (!currentIsPlayerExpanded) {
+                try {
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                } catch (_: Exception) {
+                    // Ignore focus request failures
+                }
+            }
+        }
+    }
 
     val searchBarHorizontalPadding by animateDpAsState(
         targetValue = if (searchActive) 0.dp else 16.dp,
@@ -208,77 +239,89 @@ fun SearchScreen(
     Scaffold(
         topBar = {
             SearchBar(
-                    query = query.text,
-                    onQueryChange = { query = TextFieldValue(it) },
-                    onSearch = { 
-                        onSearch(it)
-                        searchActive = false
-                    },
-                    active = searchActive,
-                    onActiveChange = { searchActive = it },
-                    placeholder = {
-                        DynamicSearchPlaceholder(
-                            searchSource = searchSource,
-                            style = TextStyle(
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                fontSize = 16.sp
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = query.text,
+                        onQueryChange = { query = TextFieldValue(it) },
+                        onSearch = {
+                            onSearch(it)
+                            searchActive = false
+                        },
+                        expanded = searchActive,
+                        onExpandedChange = { searchActive = it },
+                        placeholder = {
+                            DynamicSearchPlaceholder(
+                                searchSource = searchSource,
+                                style = TextStyle(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                    fontSize = 16.sp
+                                )
                             )
-                        )
-                    },
-                    leadingIcon = {
-                        IconButton(onClick = {
-                            if (searchActive) {
-                                searchActive = false
-                                query = TextFieldValue("") // Clear text when dismissing search
-                            } else {
-                                searchActive = true // Focus search instead of navigating back
+                        },
+                        leadingIcon = {
+                            IconButton(onClick = {
+                                if (searchActive) {
+                                    searchActive = false
+                                    query = TextFieldValue("") // Clear text when dismissing search
+                                    focusManager.clearFocus()
+                                    keyboardController?.hide()
+                                } else {
+                                    searchActive = true // Focus search instead of navigating back
+                                    focusTrigger++
+                                }
+                            }) {
+                                Icon(
+                                    painter = painterResource(if (searchActive) R.drawable.arrow_back else R.drawable.search),
+                                    contentDescription = if (searchActive) stringResource(R.string.dismiss) else null,
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
                             }
-                        }) {
-                            Icon(
-                                painter = painterResource(if (searchActive) R.drawable.arrow_back else R.drawable.search),
-                                contentDescription = if (searchActive) stringResource(R.string.dismiss) else null,
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    },
-                    trailingIcon = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (query.text.isNotEmpty()) {
-                                IconButton(onClick = { query = TextFieldValue("") }) {
+                        },
+                        trailingIcon = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                if (query.text.isNotEmpty()) {
+                                    IconButton(onClick = { query = TextFieldValue("") }) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.close),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                                IconButton(
+                                    onClick = {
+                                        searchSource = if (searchSource == SearchSource.ONLINE)
+                                            SearchSource.LOCAL else SearchSource.ONLINE
+                                    }
+                                ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.close),
+                                        painter = painterResource(
+                                            when (searchSource) {
+                                                SearchSource.LOCAL -> R.drawable.library_music
+                                                SearchSource.ONLINE -> R.drawable.globe_search
+                                            }
+                                        ),
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                             }
-                            IconButton(
-                                onClick = {
-                                    searchSource = if (searchSource == SearchSource.ONLINE) 
-                                        SearchSource.LOCAL else SearchSource.ONLINE
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(
-                                        when (searchSource) {
-                                            SearchSource.LOCAL -> R.drawable.library_music
-                                            SearchSource.ONLINE -> R.drawable.globe_search
-                                        }
-                                    ),
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    },
-                    colors = SearchBarDefaults.colors(
-                        containerColor = if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = searchBarHorizontalPadding)
-                        .padding(vertical = searchBarVerticalPadding)
-                ) {
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                    )
+                },
+                expanded = searchActive,
+                onExpandedChange = { searchActive = it },
+                colors = SearchBarDefaults.colors(
+                    containerColor = if (pureBlack) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = searchBarHorizontalPadding)
+                    .padding(vertical = searchBarVerticalPadding)
+            ) {
                     when (searchSource) {
                         SearchSource.LOCAL -> LocalSearchScreen(
                             query = query.text,
@@ -397,14 +440,6 @@ fun SearchScreen(
                     if (isPlayerExpanded) {
                         keyboardController?.hide()
                         focusManager.clearFocus()
-                    } else if (isFirstLaunch) {
-                        // Only request focus on first launch when player is not expanded
-                        try {
-                            focusRequester.requestFocus()
-                        } catch (e: Exception) {
-                            // Ignore focus request failures
-                        }
-                        isFirstLaunch = false
                     }
                 }
                 Lifecycle.Event.ON_PAUSE -> {
@@ -416,13 +451,13 @@ fun SearchScreen(
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        
+
         // Initial check - hide keyboard if player is expanded
         if (isPlayerExpanded) {
             keyboardController?.hide()
             focusManager.clearFocus()
         }
-        
+
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
