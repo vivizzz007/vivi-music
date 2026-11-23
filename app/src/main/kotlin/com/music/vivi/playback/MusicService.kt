@@ -1742,14 +1742,31 @@ class MusicService :
             player.playWhenReady = playWhenReady
         }
         playQueueJob = scope.launch(SilentHandler) {
-            val initialStatus =
+            val initialStatusResult =
                 withContext(Dispatchers.IO) {
-                    queue.getInitialStatus()
-                        .filterExplicit(dataStore.get(HideExplicitKey, false))
-                        .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    runCatching {
+                        queue.getInitialStatus()
+                            .filterExplicit(dataStore.get(HideExplicitKey, false))
+                            .filterVideoSongs(dataStore.get(HideVideoSongsKey, false))
+                    }
                 }
             if (!isActive || currentQueue != queue) return@launch
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
+
+            val initialStatus = initialStatusResult.getOrNull()
+            if (initialStatus == null || initialStatus.items.isEmpty()) {
+                Timber.tag(TAG).w(
+                    initialStatusResult.exceptionOrNull(),
+                    "playQueue: getInitialStatus() failed or returned 0 items — queue remaining items: %d",
+                    player.mediaItemCount,
+                )
+                if (queue.preloadItem != null && player.mediaItemCount <= 1) {
+                    Timber.tag(TAG).i("playQueue: Attempting seamless radio fallback for preload item")
+                    startRadioSeamlessly()
+                }
+                return@launch
+            }
+
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
             }
@@ -1761,10 +1778,6 @@ class MusicService :
                         radioChips.value = it
                     }
                 }
-            }
-            if (initialStatus.items.isEmpty()) {
-                Timber.tag(TAG).w("playQueue: getInitialStatus() returned 0 items — queue will be empty. Check YouTube.locale or network.")
-                return@launch
             }
             // Track original queue size for shuffle playlist first feature
             originalQueueSize = initialStatus.items.size
