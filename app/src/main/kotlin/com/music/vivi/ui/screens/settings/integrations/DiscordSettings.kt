@@ -927,6 +927,69 @@ fun DiscordSettings(
                         )
                     }
                 }
+
+                Spacer(Modifier.height(10.dp))
+
+                ExpressiveSettingGroup(
+                    title = stringResource(R.string.discord_customization),
+                    items = listOf(
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_activity_type)) },
+                            description = {
+                                Text(
+                                    when (currentActivityType) {
+                                        DiscordActivityType.LISTENING -> stringResource(R.string.discord_activity_listening)
+                                        DiscordActivityType.PLAYING -> stringResource(R.string.discord_activity_playing)
+                                        DiscordActivityType.WATCHING -> stringResource(R.string.discord_activity_watching)
+                                        DiscordActivityType.COMPETING -> stringResource(R.string.discord_activity_competing)
+                                    }
+                                )
+                            },
+                            onClick = { showActivityTypeDialog = true },
+                        ),
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_activity_name)) },
+                            description = {
+                                Text(activityName.ifEmpty { stringResource(R.string.discord_activity_name_description) })
+                            },
+                            onClick = { showActivityNameDialog = true },
+                        ),
+                    ),
+                )
+
+                Spacer(Modifier.height(10.dp))
+
+                ExpressiveSettingGroup(
+                    title = stringResource(R.string.discord_buttons),
+                    items = listOf(
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_button_1)) },
+                            description = {
+                                Text(button1Text.ifEmpty { "Listen on YouTube Music" })
+                            },
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = button1Visible,
+                                    onCheckedChange = { button1Visible = it },
+                                )
+                            },
+                            onClick = { showButton1TextDialog = true },
+                        ),
+                        Material3SettingsItem(
+                            title = { Text(stringResource(R.string.discord_button_2)) },
+                            description = {
+                                Text(button2Text.ifEmpty { "GitHub Repository" })
+                            },
+                            trailingContent = {
+                                ModernSwitch(
+                                    checked = button2Visible,
+                                    onCheckedChange = { button2Visible = it },
+                                )
+                            },
+                            onClick = { showButton2TextDialog = true },
+                        ),
+                    ),
+                )
             }
         }
 
