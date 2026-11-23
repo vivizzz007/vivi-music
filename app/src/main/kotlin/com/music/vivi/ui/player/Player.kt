@@ -246,6 +246,7 @@ import com.music.vivi.constants.ThumbnailCornerRadius
 import com.music.vivi.constants.ThumbnailCornerRadiusKey
 import com.music.vivi.constants.SwipeThumbnailKey
 import com.music.vivi.constants.UseNewPlayerDesignKey
+import com.music.vivi.constants.UsePlayerV2Key
 import com.music.vivi.db.entities.LyricsEntity
 import com.music.vivi.extensions.SwipeGesture
 import com.music.vivi.extensions.togglePlayPause
@@ -364,6 +365,7 @@ fun BottomSheetPlayer(
         UseNewPlayerDesignKey,
         defaultValue = false
     )
+    val usePlayerV2 by rememberPreference(UsePlayerV2Key, true)
     val (hidePlayerThumbnail, onHidePlayerThumbnailChange) = rememberPreference(HidePlayerThumbnailKey, false)
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
@@ -732,10 +734,10 @@ fun BottomSheetPlayer(
     
     val isNetworkConnected by (LocalPlayerConnection.current?.service?.connectivityObserver?.networkStatus ?: MutableStateFlow(false)).collectAsState(initial = false)
 
-    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected, enableCanvas, useNewPlayerDesign) {
+    LaunchedEffect(mediaMetadata?.id, albumTitle, playerBackground, motionartworkSource, spotifyCanvasEnabled, Spotify.accessToken, isNetworkConnected, enableCanvas, useNewPlayerDesign, usePlayerV2) {
         val item = mediaMetadata ?: return@LaunchedEffect
-        
-        if (!spotifyCanvasEnabled || !useNewPlayerDesign) {
+
+        if (!spotifyCanvasEnabled || (!useNewPlayerDesign && !usePlayerV2)) {
             spotifyCanvasUrl = null
         } else {
             val prefs = context.getSharedPreferences("spotify_canvas_url_map", Context.MODE_PRIVATE)
@@ -785,7 +787,9 @@ fun BottomSheetPlayer(
         // Use cached artwork if available
         MotionartworkPlaybackCache.get(cacheKey)?.let { cached ->
             canvasArtwork = cached
-            spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
+            // Keep Spotify Canvas for the Apple v17 player; only the new player
+            // prefers Motionartwork over it.
+            if (useNewPlayerDesign) spotifyCanvasUrl = null
             return@LaunchedEffect
         }
 
@@ -860,7 +864,9 @@ fun BottomSheetPlayer(
                 canvasArtwork = validated
                 if (validated != null) {
                     MotionartworkPlaybackCache.put(cacheKey, validated)
-                    spotifyCanvasUrl = null // Prioritize Motionartwork, disable Spotify Canvas
+                    // Keep Spotify Canvas for the Apple v17 player; only the new player
+                    // prefers Motionartwork over it.
+                    if (useNewPlayerDesign) spotifyCanvasUrl = null
                 }
                 canvasFetchInFlight = false
             }
@@ -1058,7 +1064,7 @@ fun BottomSheetPlayer(
     )
 
     val bottomSheetBackgroundColor = when {
-        useNewPlayerDesign && spotifyCanvasUrl != null -> Color.Black
+        (useNewPlayerDesign || usePlayerV2) && spotifyCanvasUrl != null -> Color.Black
         playerBackground == PlayerBackgroundStyle.BLUR ||
         playerBackground == PlayerBackgroundStyle.GRADIENT ||
         playerBackground == PlayerBackgroundStyle.GLOW_ANIMATED ||
@@ -1431,6 +1437,16 @@ fun BottomSheetPlayer(
             )
         },
     ) {
+        if (usePlayerV2) {
+            PlayerV2(
+                state = state,
+                navController = navController,
+                modifier = modifier,
+                spotifyCanvasUrl = spotifyCanvasUrl,
+                canvasArtwork = canvasArtwork,
+                enableCanvas = enableCanvas
+            )
+        } else {
         val density = LocalDensity.current
         var trackInfoHeightDp by remember { mutableStateOf(56.dp) }
         val trackInfoSpacerHeight = 20.dp
@@ -3703,6 +3719,7 @@ fun BottomSheetPlayer(
         if (showAudioDeviceBottomSheet) {
             AudioDeviceBottomSheet(onDismiss = { showAudioDeviceBottomSheet = false })
         }
+        }
     }
 }
 
@@ -4663,13 +4680,13 @@ private fun PlayerMoreMenuButton(
     }
 }
 
-private fun smootherStep(t: Float): Float {
+internal fun smootherStep(t: Float): Float {
     val x = t.coerceIn(0f, 1f)
     return x * x * x * (x * (x * 6f - 15f) + 10f)
 }
 
 @Composable
-private fun BackgroundVideoView(
+internal fun BackgroundVideoView(
     videoUrl: String,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
