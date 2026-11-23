@@ -56,6 +56,9 @@ import com.music.vivi.constants.UseNewPlayerDesignKey
 import com.music.vivi.constants.MotionartworkSourceKey
 import com.music.spotify.Spotify
 import com.music.vivi.constants.MotionartworkSource
+import com.music.vivi.constants.CROSSFADE_DURATION_DEFAULT_SECONDS
+import com.music.vivi.constants.CROSSFADE_DURATION_MAX_SECONDS
+import com.music.vivi.constants.CROSSFADE_DURATION_MIN_SECONDS
 import com.music.vivi.constants.CrossfadeDurationKey
 import com.music.vivi.constants.CrossfadeEnabledKey
 import com.music.vivi.constants.CrossfadeGaplessKey
@@ -107,7 +110,7 @@ fun PlayerSettings(
     )
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(
         CrossfadeDurationKey,
-        defaultValue = 6f
+        defaultValue = CROSSFADE_DURATION_DEFAULT_SECONDS
     )
     val (crossfadeCurve, onCrossfadeCurveChange) = rememberEnumPreference(
         CrossfadeCurveKey,
@@ -454,17 +457,31 @@ fun PlayerSettings(
                     }
                 ))
                 if (crossfadeEnabled) {
+                    val crossfadeDurationSeconds = crossfadeDuration
+                        .roundToInt()
+                        .coerceIn(CROSSFADE_DURATION_MIN_SECONDS, CROSSFADE_DURATION_MAX_SECONDS)
                     add(Material3SettingsItem(
                         icon = painterResource(R.drawable.timer),
                         title = { Text(stringResource(R.string.crossfade_duration)) },
                         description = {
                             Column {
-                                Text(pluralStringResource(R.plurals.seconds, crossfadeDuration.toInt(), crossfadeDuration.toInt()))
+                                Text(
+                                    pluralStringResource(
+                                        R.plurals.seconds,
+                                        crossfadeDurationSeconds,
+                                        crossfadeDurationSeconds
+                                    )
+                                )
                                 Slider(
-                                    value = crossfadeDuration,
-                                    onValueChange = onCrossfadeDurationChange,
-                                    valueRange = 1f..15f,
-                                    steps = 14
+                                    value = crossfadeDurationSeconds.toFloat(),
+                                    onValueChange = { value ->
+                                        val snapped = value
+                                            .roundToInt()
+                                            .coerceIn(CROSSFADE_DURATION_MIN_SECONDS, CROSSFADE_DURATION_MAX_SECONDS)
+                                        onCrossfadeDurationChange(snapped.toFloat())
+                                    },
+                                    valueRange = CROSSFADE_DURATION_MIN_SECONDS.toFloat()..CROSSFADE_DURATION_MAX_SECONDS.toFloat(),
+                                    steps = CROSSFADE_DURATION_MAX_SECONDS - CROSSFADE_DURATION_MIN_SECONDS - 1
                                 )
                             }
                         }
@@ -485,7 +502,7 @@ fun PlayerSettings(
                                 Spacer(Modifier.height(8.dp))
                                 CrossfadeCurvePreview(
                                     curve = crossfadeCurve,
-                                    durationSeconds = crossfadeDuration,
+                                    durationSeconds = crossfadeDurationSeconds.toFloat(),
                                 )
                             }
                         },
