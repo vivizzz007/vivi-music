@@ -99,6 +99,9 @@ import com.music.vivi.constants.AudioQualityKey
 import com.music.vivi.constants.AutoDownloadOnLikeKey
 import com.music.vivi.constants.AutoLoadMoreKey
 import com.music.vivi.constants.AutoSkipNextOnErrorKey
+import com.music.vivi.constants.CROSSFADE_DURATION_DEFAULT_SECONDS
+import com.music.vivi.constants.CROSSFADE_DURATION_MAX_SECONDS
+import com.music.vivi.constants.CROSSFADE_DURATION_MIN_SECONDS
 import com.music.vivi.constants.CrossfadeCurve
 import com.music.vivi.constants.CrossfadeCurveKey
 import com.music.vivi.constants.CrossfadeDurationKey
@@ -248,6 +251,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlin.coroutines.coroutineContext
 import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.seconds
 
 private const val INSTANT_SILENCE_SKIP_STEP_MS = 15_000L
@@ -296,7 +300,7 @@ class MusicService :
         private set//improvement
 
     private var crossfadeEnabled = false
-    private var crossfadeDuration = 6000f
+    private var crossfadeDuration = CROSSFADE_DURATION_DEFAULT_SECONDS * 1000f
     private var crossfadeGapless = true
     private var crossfadeManualSkipEnabled = false
     private var crossfadeCurve = CrossfadeCurve.EASE_OUT_QUAD
@@ -1168,7 +1172,10 @@ class MusicService :
             dataStore.data.map { prefs ->
                 CrossfadeSettings(
                     enabled = prefs[CrossfadeEnabledKey] ?: false,
-                    durationSeconds = prefs[CrossfadeDurationKey] ?: 6f,
+                    durationSeconds = (prefs[CrossfadeDurationKey] ?: CROSSFADE_DURATION_DEFAULT_SECONDS)
+                        .roundToInt()
+                        .coerceIn(CROSSFADE_DURATION_MIN_SECONDS, CROSSFADE_DURATION_MAX_SECONDS)
+                        .toFloat(),
                     gapless = prefs[CrossfadeGaplessKey] ?: true,
                     manualSkip = prefs[CrossfadeManualSkipKey] ?: false,
                     curve = prefs[CrossfadeCurveKey].toEnum(CrossfadeCurve.EASE_OUT_QUAD),
@@ -1181,11 +1188,17 @@ class MusicService :
         }
             .distinctUntilChanged()
             .collect(scope) { settings ->
+                val newDurationMs = settings.durationSeconds * 1000f // Convert to ms
+                val needsReschedule =
+                    crossfadeEnabled != settings.enabled || crossfadeDuration != newDurationMs
                 crossfadeEnabled = settings.enabled
-                crossfadeDuration = settings.durationSeconds * 1000f // Convert to ms
+                crossfadeDuration = newDurationMs
                 crossfadeGapless = settings.gapless
                 crossfadeManualSkipEnabled = settings.manualSkip
                 crossfadeCurve = settings.curve
+                if (needsReschedule && playerInitialized.value && !isCrossfading) {
+                    scheduleCrossfade(allowImmediateStart = false)
+                }
             }
 
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -4233,18 +4246,60 @@ class MusicService :
         }
     }
 
-    private fun scheduleCrossfade() {
+    /**
+     * Computes the effective auto-crossfade duration in milliseconds so that a long
+     * configured fade (up to 30 s) never exceeds half of either the outgoing or incoming
+     * track, preventing fade-in/fade-out overlap or the incoming track ending mid-fade.
+     */
+    private fun calculateAutoCrossfadeDurationMs(
+        currentDurationMs: Long,
+        nextDurationMs: Long?,
+    ): Long {
+        if (currentDurationMs == C.TIME_UNSET || currentDurationMs <= 0L) return 0L
+        var effectiveMs = crossfadeDuration.toLong().coerceAtLeast(0L)
+        effectiveMs = minOf(effectiveMs, currentDurationMs / 2L)
+        if (nextDurationMs != null && nextDurationMs > 0L) {
+            effectiveMs = minOf(effectiveMs, nextDurationMs / 2L)
+        }
+        return if (effectiveMs >= MIN_EFFECTIVE_CROSSFADE_MS) effectiveMs else 0L
+    }
+
+    private fun scheduleCrossfade(allowImmediateStart: Boolean = true) {
         crossfadeTriggerJob?.cancel()
         crossfadeTriggerJob = null
         if (isCrossfading) return
-        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= crossfadeDuration) return
+        if (!crossfadeEnabled || player.duration == C.TIME_UNSET || player.duration <= 0L) return
         if (!player.hasNextMediaItem() && player.repeatMode != REPEAT_MODE_ONE) return
 
-        val triggerTime = player.duration - crossfadeDuration.toLong()
+        val nextIndex = player.nextMediaItemIndex
+        val nextDurationMs = when {
+            player.repeatMode == REPEAT_MODE_ONE -> player.duration
+            nextIndex != C.INDEX_UNSET -> {
+                player.getMediaItemAt(nextIndex)
+                    .metadata
+                    ?.duration
+                    ?.takeIf { it > 0 }
+                    ?.times(1000L)
+            }
+            else -> null
+        }
+
+        val effectiveCrossfadeMs = calculateAutoCrossfadeDurationMs(
+            currentDurationMs = player.duration,
+            nextDurationMs = nextDurationMs,
+        )
+        if (effectiveCrossfadeMs <= 0L) return
+
+        val triggerTime = player.duration - effectiveCrossfadeMs
         val delayMs = triggerTime - player.currentPosition
-        if (delayMs <= 0) {
-            if (player.isPlaying && player.currentPosition < player.duration && !sleepTimer.pauseWhenSongEnd) {
-                startCrossfade()
+        if (delayMs <= 0L) {
+            val remainingMs = player.duration - player.currentPosition
+            if (allowImmediateStart &&
+                player.isPlaying &&
+                remainingMs >= MIN_IMMEDIATE_CROSSFADE_REMAINING_MS &&
+                !sleepTimer.pauseWhenSongEnd
+            ) {
+                startCrossfade(effectiveDurationMs = effectiveCrossfadeMs)
             }
             return
         }
@@ -4253,8 +4308,13 @@ class MusicService :
 
         crossfadeTriggerJob = scope.launch {
             delay(delayMs)
-            if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId && !sleepTimer.pauseWhenSongEnd) {
-                startCrossfade()
+            if (isActive &&
+                crossfadeEnabled &&
+                player.isPlaying &&
+                player.currentMediaItem?.mediaId == targetMediaId &&
+                !sleepTimer.pauseWhenSongEnd
+            ) {
+                startCrossfade(effectiveDurationMs = effectiveCrossfadeMs)
             }
         }
     }
@@ -4267,7 +4327,10 @@ class MusicService :
         return current.albumTitle != null && current.albumTitle == next.albumTitle
     }
 
-    private fun startCrossfade(trigger: CrossfadeTrigger = CrossfadeTrigger.AUTO) {
+    private fun startCrossfade(
+        trigger: CrossfadeTrigger = CrossfadeTrigger.AUTO,
+        effectiveDurationMs: Long = crossfadeDuration.toLong(),
+    ) {
         if (isCrossfading) return
 
         // Preserve player state before creating the secondary player
@@ -4330,7 +4393,7 @@ class MusicService :
         secPlayer.prepare()
         secPlayer.playWhenReady = true
 
-        performCrossfadeSwap()
+        performCrossfadeSwap(effectiveDurationMs)
 
         // If we couldn't carry the order over (e.g. a size mismatch), build a
         // fresh shuffle order on the new primary player as a fallback.
@@ -4598,9 +4661,40 @@ class MusicService :
         return true
     }
 
-    private fun performCrossfadeSwap() {
+    private fun resolveCrossfadeDurationMs(
+        requestedDurationMs: Long,
+        currentPlayer: ExoPlayer,
+        nextPlayer: ExoPlayer,
+    ): Long {
+        var effectiveMs = requestedDurationMs.coerceAtLeast(MIN_CROSSFADE_STEP_MS)
+        val currentDurationMs = currentPlayer.duration
+        if (currentDurationMs != C.TIME_UNSET && currentDurationMs > 0L) {
+            val remainingMs = (currentDurationMs - currentPlayer.currentPosition.coerceAtLeast(0L)).coerceAtLeast(0L)
+            if (remainingMs > 0L) {
+                effectiveMs = minOf(effectiveMs, remainingMs)
+            }
+        }
+        val incomingDurationSec = nextPlayer.currentMetadata?.duration ?: -1
+        if (incomingDurationSec > 0) {
+            val incomingDurationMs = incomingDurationSec * 1000L
+            val incomingPosMs = nextPlayer.currentPosition.coerceAtLeast(0L)
+            val incomingRemainingMs = if (incomingPosMs < incomingDurationMs) {
+                incomingDurationMs - incomingPosMs
+            } else {
+                incomingDurationMs
+            }
+            val incomingMaxMs = incomingRemainingMs / 2L
+            if (incomingMaxMs > 0L) {
+                effectiveMs = minOf(effectiveMs, incomingMaxMs)
+            }
+        }
+        return effectiveMs.coerceAtLeast(MIN_CROSSFADE_STEP_MS)
+    }
+
+    private fun performCrossfadeSwap(requestedDurationMs: Long = crossfadeDuration.toLong()) {
         val nextPlayer = secondaryPlayer ?: return
         val currentPlayer = player
+        val incomingMediaId = nextPlayer.currentMediaItem?.mediaId
 
         // Immediately set up audio normalization for the incoming player before it fades in
         setupSecondaryLoudnessEnhancer(nextPlayer)
@@ -4627,9 +4721,18 @@ class MusicService :
 
         crossfadeJob?.cancel()
         crossfadeJob = scope.launch {
-            val duration = crossfadeDuration.toLong()
-            val steps = 50
-            val stepTime = (duration / steps).coerceAtLeast(20L)
+            val duration = resolveCrossfadeDurationMs(
+                requestedDurationMs = requestedDurationMs,
+                currentPlayer = currentPlayer,
+                nextPlayer = nextPlayer,
+            )
+            // Keep volume updates smooth (~20 Hz) even for long 30 s crossfades instead
+            // of stretching a fixed 50-step ramp to 600 ms per step.
+            val steps = (duration / CROSSFADE_TARGET_STEP_MS)
+                .coerceAtLeast(minOf(CROSSFADE_MIN_STEPS.toLong(), duration / MIN_CROSSFADE_STEP_MS))
+                .coerceAtLeast(1L)
+                .toInt()
+            val stepTime = (duration / steps).coerceAtLeast(MIN_CROSSFADE_STEP_MS)
             val startVolume = try { currentPlayer.volume } catch (_: Exception) { 1f }
             var secondaryEnhancerReady = secondaryLoudnessEnhancer != null
 
@@ -4655,6 +4758,16 @@ class MusicService :
                     break
                 }
 
+                // If incoming track finished or advanced before the fade completed (e.g. a very
+                // short track whose duration wasn't known upfront), finalize immediately.
+                val activeIncomingMediaId = nextPlayer.currentMediaItem?.mediaId
+                if (nextPlayer.playbackState == Player.STATE_ENDED ||
+                    (incomingMediaId != null && activeIncomingMediaId != null && activeIncomingMediaId != incomingMediaId)
+                ) {
+                    Timber.tag(TAG).d("Crossfade: Song B ended or advanced at step $i, finalizing immediately")
+                    break
+                }
+
                 val progress = (i / steps.toFloat()).coerceIn(0f, 1f)
                 crossfadeProgressFlow.value = progress
 
@@ -4666,7 +4779,9 @@ class MusicService :
                     currentPlayer.volume = startVolume * fadeOut
                 } catch (_: Exception) { break }
 
-                delay(stepTime)
+                if (i < steps) {
+                    delay(stepTime)
+                }
             }
 
             try {
@@ -4804,6 +4919,13 @@ class MusicService :
         // Constants for audio normalization
         private const val MAX_GAIN_MB = 300 // Maximum gain in millibels (3 dB)
         private const val MIN_GAIN_MB = -1500 // Minimum gain in millibels (-15 dB)
+
+        // Constants for crossfade scheduling and ramp smoothness
+        private const val MIN_EFFECTIVE_CROSSFADE_MS = 1_000L
+        private const val MIN_IMMEDIATE_CROSSFADE_REMAINING_MS = 500L
+        private const val CROSSFADE_TARGET_STEP_MS = 50L
+        private const val MIN_CROSSFADE_STEP_MS = 20L
+        private const val CROSSFADE_MIN_STEPS = 50
 
         private const val TAG = "MusicService"
 
