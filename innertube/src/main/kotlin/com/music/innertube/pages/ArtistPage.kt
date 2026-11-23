@@ -19,6 +19,7 @@ import com.music.innertube.models.SectionListRenderer
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.getItems
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 
@@ -163,7 +164,8 @@ data class ArtistPage(
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } != null
+                        } != null,
+                        isSingle = renderer.subtitle?.runs?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
                     )
                 }
 

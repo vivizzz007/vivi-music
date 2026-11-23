@@ -59,6 +59,7 @@ data class AlbumItem(
     override val thumbnail: String,
     override val explicit: Boolean = false,
     val description: String? = null,
+    val isSingle: Boolean = false,
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/playlist?list=$playlistId"

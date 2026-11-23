@@ -5,6 +5,7 @@
 package com.music.innertube.models
 
 import kotlinx.serialization.Serializable
+import java.util.Locale
 
 @Serializable
 data class Runs(
@@ -51,3 +52,32 @@ private val VIEW_COUNT_REGEX = Regex("""^[\d,.]+[KMB]?\s*(view|play)s?$""", Rege
 /** Returns the first run text that looks like a view/play count (e.g. "12M views", "1.2B plays"). */
 fun List<List<Run>>.findViewCountText(): String? =
     flatten().map { it.text.trim() }.firstOrNull { it.matches(VIEW_COUNT_REGEX) }
+
+private val SINGLE_RELEASE_LABELS = setOf(
+    "single",
+    "sencillo",
+    "singolo",
+    "singiel",
+    "singl",
+    "singel",
+    "singlas",
+    "singls",
+    "kislemez",
+    "сингл",
+    "сингъл",
+    "σινγκλ",
+    "シングル",
+    "싱글",
+    "单曲",
+    "單曲",
+    "सिंगल",
+    "ซิงเกิล",
+    "أغنية منفردة",
+    "تک‌آهنگ",
+)
+
+/** Returns true if a release type run text from YouTube Music indicates a Single. */
+fun String?.isSingleReleaseType(): Boolean {
+    val normalized = this?.trim()?.lowercase(Locale.ROOT) ?: return false
+    return normalized in SINGLE_RELEASE_LABELS
+}

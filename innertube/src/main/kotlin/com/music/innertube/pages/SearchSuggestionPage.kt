@@ -13,6 +13,7 @@ import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
 import com.music.innertube.models.clean
 import com.music.innertube.models.findViewCountText
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 
@@ -157,6 +158,7 @@ object SearchSuggestionPage {
                         renderer.badges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null,
+                    isSingle = secondaryLine.firstOrNull()?.firstOrNull()?.text.isSingleReleaseType(),
                 )
             }
             else -> null

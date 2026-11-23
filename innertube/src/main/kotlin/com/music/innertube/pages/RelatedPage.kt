@@ -13,6 +13,7 @@ import com.music.innertube.models.MusicTwoRowItemRenderer
 import com.music.innertube.models.PlaylistItem
 import com.music.innertube.models.SongItem
 import com.music.innertube.models.YTItem
+import com.music.innertube.models.isSingleReleaseType
 import com.music.innertube.models.oddElements
 import com.music.innertube.models.splitBySeparator
 
@@ -105,6 +106,7 @@ data class RelatedPage(
                             renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null,
+                        isSingle = renderer.subtitle?.runs?.splitBySeparator()?.firstOrNull()?.firstOrNull()?.text.isSingleReleaseType(),
                     )
                 renderer.isPlaylist -> {
                     val parts = renderer.subtitle?.runs?.splitBySeparator().orEmpty()

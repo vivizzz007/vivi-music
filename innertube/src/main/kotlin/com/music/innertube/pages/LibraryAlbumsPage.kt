@@ -7,6 +7,7 @@ package com.music.innertube.pages
 import com.music.innertube.models.AlbumItem
 import com.music.innertube.models.Artist
 import com.music.innertube.models.MusicTwoRowItemRenderer
+import com.music.innertube.models.isSingleReleaseType
 
 data class LibraryAlbumsPage(
     val albums: List<AlbumItem>,
@@ -38,7 +39,8 @@ data class LibraryAlbumsPage(
                 thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                 explicit = renderer.subtitleBadges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                } != null
+                } != null,
+                isSingle = renderer.subtitle?.runs?.firstOrNull()?.takeIf { it.navigationEndpoint == null }?.text.isSingleReleaseType()
             )
         }
     }

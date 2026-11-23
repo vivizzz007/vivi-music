@@ -353,12 +353,13 @@ fun AlbumScreen(
                             .padding(bottom = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        val isSingle = albumWithSongs.songs.size == 1
                         val albumInfoText = buildString {
-                            append(stringResource(R.string.album_text))
+                            append(stringResource(if (isSingle) R.string.single_text else R.string.album_text))
                             if (albumWithSongs.album.year != null) {
                                 append(" • ${albumWithSongs.album.year}")
                             }
-                            append(" • ${albumWithSongs.songs.size} Tracks")
+                            append(" • ${albumWithSongs.songs.size} ${if (isSingle) "Track" else "Tracks"}")
                             val totalDuration = albumWithSongs.songs.sumOf { it.song.duration }
                             val hours = totalDuration / 3600
                             val minutes = (totalDuration % 3600) / 60
@@ -669,9 +670,13 @@ fun AlbumScreen(
                     Spacer(Modifier.height(5.dp))
 
                     val staticDescription = remember(albumWithSongs) {
-                        "${albumWithSongs.album.title} is an album by ${albumWithSongs.artists.joinToString { it.name }}${
-                            if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
-                        }. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
+                        val artists = albumWithSongs.artists.joinToString { it.name }
+                        val releaseYear = if (albumWithSongs.album.year != null) ", released in ${albumWithSongs.album.year}" else ""
+                        if (albumWithSongs.songs.size == 1) {
+                            "${albumWithSongs.album.title} is a single by $artists$releaseYear. This single features 1 track showcasing their musical artistry."
+                        } else {
+                            "${albumWithSongs.album.title} is an album by $artists$releaseYear. This collection features ${albumWithSongs.songs.size} tracks showcasing their musical artistry."
+                        }
                     }
 
                     Column(

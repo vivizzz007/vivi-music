@@ -1181,6 +1181,17 @@ fun MediaMetadataListItem(
 }
 
 
+@Composable
+private fun albumTypeLabel(item: AlbumItem): String {
+    val database = LocalDatabase.current
+    val dbAlbum by produceState<Album?>(initialValue = null, item.id) {
+        value = null
+        database.album(item.id).collect { value = it }
+    }
+    val isSingle = dbAlbum?.album?.songCount?.takeIf { it > 0 }?.let { it == 1 } ?: item.isSingle
+    return stringResource(if (isSingle) R.string.single_text else R.string.album_label)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YouTubeListItem(
@@ -1223,7 +1234,7 @@ fun YouTubeListItem(
             title = item.title,
             subtitle = when (item) {
                 is SongItem -> joinByBullet(item.artists.joinToString { it.name }, item.album?.name, item.viewCountText, makeTimeString(item.duration?.times(1000L)))
-                is AlbumItem -> joinByBullet(stringResource(R.string.album_label), item.artists?.joinToString { it.name }, item.year?.toString())
+                is AlbumItem -> joinByBullet(albumTypeLabel(item), item.artists?.joinToString { it.name }, item.year?.toString())
                 is ArtistItem -> item.subtext
                 is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
             },
@@ -1306,7 +1317,7 @@ fun YouTubeGridItem(
     subtitle = {
         val subtitle = when (item) {
             is SongItem -> joinByBullet(item.artists.joinToString { it.name }, item.album?.name, item.viewCountText, makeTimeString(item.duration?.times(1000L)))
-            is AlbumItem -> joinByBullet(stringResource(R.string.album_label), item.artists?.joinToString { it.name }, item.year?.toString())
+            is AlbumItem -> joinByBullet(albumTypeLabel(item), item.artists?.joinToString { it.name }, item.year?.toString())
             is ArtistItem -> item.subtext
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         }
