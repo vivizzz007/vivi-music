@@ -325,6 +325,8 @@ import com.music.vivi.constants.SpotifyCanvasEnabledKey
 import com.music.spotify.Spotify
 import com.music.spotify.SpotifyCanvasProvider
 import com.music.vivi.constants.CanvasLoadOnlyWifiKey
+import com.music.vivi.constants.PlayerThumbnailShadowElevationKey
+import com.music.vivi.constants.ShowPlayerThumbnailShadowKey
 import com.music.vivi.extensions.metadata
 import com.music.vivi.extensions.removeWindow
 import timber.log.Timber
@@ -369,6 +371,8 @@ fun BottomSheetPlayer(
     val cropAlbumArt by rememberPreference(CropAlbumArtKey, false)
     val swipeThumbnailPref by rememberPreference(SwipeThumbnailKey, true)
     val thumbnailCornerRadius by rememberPreference(ThumbnailCornerRadiusKey, defaultValue = 3f)
+    val showPlayerThumbnailShadow by rememberPreference(ShowPlayerThumbnailShadowKey, defaultValue = false)
+    val playerThumbnailShadowElevation by rememberPreference(PlayerThumbnailShadowElevationKey, defaultValue = 8f)
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.LIVE_MESH
@@ -2862,6 +2866,11 @@ fun BottomSheetPlayer(
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .aspectRatio(1f)
+                                    .customSoftShadow(
+                                        elevation = playerThumbnailShadowElevation.dp,
+                                        cornerRadius = thumbnailCornerRadius.dp,
+                                        enabled = showPlayerThumbnailShadow && (!showInlineLyrics && !showInlineQueue)
+                                    )
                                     .clip(RoundedCornerShape(thumbnailCornerRadius.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                                     .clickable(enabled = showInlineLyrics || showInlineQueue) {
@@ -3612,6 +3621,11 @@ fun BottomSheetPlayer(
                                 .height(artworkHeight)
                                 .zIndex(1f)
                                 .nestedScroll(state.preUpPostDownNestedScrollConnection)
+                                .customSoftShadow(
+                                    elevation = playerThumbnailShadowElevation.dp,
+                                    cornerRadius = if (isAppleMusic) 0.dp else thumbnailCornerRadius.dp,
+                                    enabled = showPlayerThumbnailShadow && !isAppleMusic && (1f - lyricsProgress) > 0.05f
+                                )
                                 .graphicsLayer {
                                     shape = artworkShape
                                     clip = true
