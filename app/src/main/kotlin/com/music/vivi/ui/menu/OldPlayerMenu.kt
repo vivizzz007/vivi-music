@@ -47,7 +47,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.media3.common.Player
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -59,7 +58,6 @@ import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
 import com.music.vivi.constants.ListItemHeight
-import com.music.vivi.extensions.toggleRepeatMode
 import com.music.vivi.listentogether.RoomRole
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.ExoDownloadService
@@ -109,10 +107,7 @@ fun OldPlayerMenu(
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.NONE)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
-    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
-    val repeatMode by playerConnection.repeatMode.collectAsState()
-    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
     val (saavnEnabled) = rememberPreference(EnableSaavnStreamingKey, defaultValue = false)
 
     val artists = remember(mediaMetadata.artists) {
@@ -304,27 +299,6 @@ fun OldPlayerMenu(
             Material3MenuGroup(
                 expressive = true,
                 items = buildList {
-                    // Shuffle
-                    if (!isListenTogetherGuest) {
-                        add(
-                            Material3MenuItemData(
-                                title = { Text(stringResource(R.string.shuffle)) },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(R.drawable.shuffle),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = if (shuffleModeEnabled) MaterialTheme.colorScheme.primary else androidx.compose.material3.LocalContentColor.current
-                                    )
-                                },
-                                onClick = {
-                                    playerConnection.player.shuffleModeEnabled = !shuffleModeEnabled
-                                    onDismiss()
-                                }
-                            )
-                        )
-                    }
-
                     // Download
                     when (download?.state) {
                         Download.STATE_COMPLETED -> {
@@ -384,26 +358,6 @@ fun OldPlayerMenu(
                         }
                     }
 
-                    // Like
-                    val isLiked = currentSong?.song?.liked == true
-                    add(
-                        Material3MenuItemData(
-                            title = { Text(stringResource(if (isLiked) R.string.liked else R.string.like)) },
-                            icon = {
-                                Icon(
-                                    painter = painterResource(if (isLiked) R.drawable.favorite else R.drawable.favorite_border),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp),
-                                    tint = if (isLiked) MaterialTheme.colorScheme.error else androidx.compose.material3.LocalContentColor.current
-                                )
-                            },
-                            onClick = {
-                                playerConnection.toggleLike()
-                                onDismiss()
-                            }
-                        )
-                    )
-
                     // Comments
                     add(
                         Material3MenuItemData(
@@ -420,32 +374,6 @@ fun OldPlayerMenu(
                             }
                         )
                     )
-
-                    // Repeat
-                    if (!isListenTogetherGuest) {
-                        add(
-                            Material3MenuItemData(
-                                title = { Text(stringResource(R.string.repeat)) },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(
-                                            when (repeatMode) {
-                                                Player.REPEAT_MODE_OFF, Player.REPEAT_MODE_ALL -> R.drawable.repeat
-                                                Player.REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                                else -> R.drawable.repeat
-                                            }
-                                        ),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(24.dp),
-                                        tint = if (repeatMode != Player.REPEAT_MODE_OFF) MaterialTheme.colorScheme.primary else androidx.compose.material3.LocalContentColor.current
-                                    )
-                                },
-                                onClick = {
-                                    playerConnection.player.toggleRepeatMode()
-                                }
-                            )
-                        )
-                    }
                 }
             )
         }
