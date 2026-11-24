@@ -158,8 +158,7 @@ object InnerTubeXPlayer {
                 hl = youtube.locale.hl
             )
 
-            val isHighQualityWanted = audioQuality == AudioQuality.HIGH ||
-                (audioQuality == AudioQuality.AUTO && !connectivityManager.isActiveNetworkMetered)
+            val isHighQualityWanted = audioQuality != AudioQuality.LOW
             val isUserLoggedIn = !youtube.cookie.isNullOrBlank()
             val failedClients = failedStreamClients(videoId)
             val shouldTryPremium = isHighQualityWanted && isUserLoggedIn && "WEB_REMIX" !in failedClients
@@ -186,7 +185,7 @@ object InnerTubeXPlayer {
                             videoId = videoId,
                             hints = premiumHints,
                             excludedClients = failedClients + disabledStreamClients,
-                            audioQuality = audioQuality.toInnerTubeX(connectivityManager),
+                            audioQuality = InnerTubeXAudioQuality.HIGH,
                             clientPlaybackNonce = generateClientPlaybackNonce(),
                         )
                     // Only accept WEB_REMIX if it actually returned a Premium 256+ kbps stream (itag 141 or >= 250kbps)
