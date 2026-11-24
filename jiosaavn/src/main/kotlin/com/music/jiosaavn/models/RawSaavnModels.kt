@@ -44,10 +44,16 @@ data class RawMoreInfo(
     val album: String = "",
     @SerialName("encrypted_media_url") val encryptedMediaUrl: String = "",
     val duration: String = "",
+    /**
+     * Whether a 320kbps rendition exists, as `"true"`/`"false"`.
+     */
+    @SerialName("320kbps") val has320: String = "",
     val artistMap: RawArtistMap = RawArtistMap(),
     /** Pro/rights gating metadata. code=="1" means Pro-Only. */
     val rights: RawRights = RawRights()
-)
+) {
+    val supports320: Boolean get() = has320.equals("true", ignoreCase = true)
+}
 
 @Serializable
 data class RawSongItem(
@@ -60,7 +66,10 @@ data class RawSongItem(
     @SerialName("play_count") val playCount: String = "",
     @SerialName("explicit_content") val explicitContent: String = "",
     @SerialName("more_info") val moreInfo: RawMoreInfo = RawMoreInfo()
-)
+) {
+    val isExplicit: Boolean
+        get() = explicitContent == "1" || explicitContent.equals("true", ignoreCase = true)
+}
 
 @Serializable
 data class RawSearchResponse(
@@ -68,4 +77,3 @@ data class RawSearchResponse(
     val start: Int = 0,
     val results: List<RawSongItem> = emptyList()
 )
-

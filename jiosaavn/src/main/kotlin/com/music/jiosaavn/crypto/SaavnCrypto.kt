@@ -39,6 +39,7 @@ object SaavnCrypto {
 
     /**
      * Decode and build direct CDN download URLs for different audio bitrates.
+     * Uses parameter-safe lookahead regex (?=[?#]|$) so tokens/parameters are preserved.
      */
     fun createDownloadLinks(encryptedUrl: String): List<SaavnDownloadUrl> {
         Log.d(TAG, "createDownloadLinks: starting decryption for URL...")
@@ -54,9 +55,10 @@ object SaavnCrypto {
             Pair("_320", "320kbps")
         )
 
-        val suffixRegex = Regex("_(48|96|160|320)\\.(mp4|aac|mp3)$")
+        // Lookahead pattern (?=[?#]|$) to preserve query parameters and tokens
+        val suffixRegex = Regex("_(48|96|160|320)\\.(mp4|aac|mp3)(?=[?#]|$)", RegexOption.IGNORE_CASE)
         val generatedUrls = qualities.map { (suffix, bitrate) ->
-            val url = if (decryptedUrl.contains(suffixRegex)) {
+            val url = if (suffixRegex.containsMatchIn(decryptedUrl)) {
                 decryptedUrl.replace(suffixRegex) { match ->
                     "${suffix}.${match.groupValues[2]}"
                 }
@@ -84,4 +86,3 @@ object SaavnCrypto {
         }
     }
 }
-

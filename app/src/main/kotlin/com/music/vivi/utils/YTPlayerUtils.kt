@@ -40,6 +40,7 @@ import com.music.innertube.strategy.ContentAwareFallbackStrategy
 import com.music.innertube.strategy.ContentHints
 import com.music.jiosaavn.SaavnService
 import com.music.jiosaavn.cache.SaavnCache
+import com.music.jiosaavn.matcher.SaavnMatcher
 import com.music.vivi.di.DatabaseEntryPoint
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.firstOrNull
@@ -179,67 +180,30 @@ object YTPlayerUtils {
                             val expectedDuration = localSong?.song?.duration
                                 ?: metaDeferred.await()?.videoDetails?.lengthSeconds?.toIntOrNull()
                             val albumName = localSong?.album?.title.orEmpty()
-                            val wantedTitleLower = title.lowercase(java.util.Locale.US).trim()
-                            val wantedArtistsLower = artistNames.map { it.lowercase(java.util.Locale.US).trim() }
-                            val wantedExplicit = localSong?.song?.explicit ?: false
-                            val wantedAlbumLower = albumName.lowercase(java.util.Locale.US).trim()
+                            val wantedExplicit = localSong?.song?.explicit
 
-                            val primaryArtist = artistNames.firstOrNull().orEmpty()
-                            val cleanQuery = "$title $primaryArtist".trim().replace(Regex("\\s+"), " ")
-                            val fallbackQuery = "$title ${artistNames.joinToString(" ")}".trim().replace(Regex("\\s+"), " ")
+                            val target = SaavnMatcher.Target(
+                                title = title,
+                                artist = artistNames.joinToString(", "),
+                                durationSec = expectedDuration,
+                                album = albumName.ifBlank { null },
+                                isExplicit = wantedExplicit,
+                                isVideo = false,
+                            )
 
-                            suspend fun findMatch(searchQuery: String): com.music.jiosaavn.models.SaavnSong? {
-                                if (searchQuery.isBlank()) return null
-                                Timber.tag(TAG).d("Saavn: searching with query: \"$searchQuery\"")
-                                val rawSongs = SaavnService.searchSongs(searchQuery).getOrNull() ?: return null
-                                val songs = rawSongs.sortedWith(
-                                    compareByDescending<com.music.jiosaavn.models.SaavnSong> { candidate ->
-                                        val candidateAlbumName = candidate.album?.name
-                                        if (wantedAlbumLower.isNotBlank() && candidateAlbumName != null) {
-                                            candidateAlbumName.lowercase(java.util.Locale.US) == wantedAlbumLower
-                                        } else {
-                                            false
-                                        }
-                                    }.thenByDescending { candidate ->
-                                        candidate.explicitContent == wantedExplicit
+                            val queries = SaavnMatcher.queries(target)
+                            Timber.tag(TAG).d("Saavn: generated queries for \"$title\": $queries")
+
+                            for (query in queries) {
+                                val rawSongs = SaavnService.searchSongs(query).getOrNull()
+                                if (!rawSongs.isNullOrEmpty()) {
+                                    val matched = SaavnMatcher.best(rawSongs, target)
+                                    if (matched != null) {
+                                        bestSong = matched
+                                        Timber.tag(TAG).d("Saavn: query \"$query\" matched: \"${matched.name}\" by ${matched.artists.primary.joinToString { it.name }} (id=${matched.id})")
+                                        break
                                     }
-                                )
-                                return songs.firstOrNull { candidate ->
-                                    if (candidate.isProOnly) {
-                                        Timber.tag(TAG).d("Saavn: Candidate \"${candidate.name}\" skipped because it is Pro-Only")
-                                        return@firstOrNull false
-                                    }
-
-                                    val candidateTitleLower = candidate.name.lowercase(java.util.Locale.US).trim()
-                                    val candidateArtists = candidate.artists.all.map { it.name.lowercase(java.util.Locale.US).trim() }
-
-                                    val titleMatches = candidateTitleLower == wantedTitleLower
-                                    val artistMatches = candidateArtists.intersect(wantedArtistsLower.toSet()).isNotEmpty()
-
-                                    val candidateAlbumName = candidate.album?.name
-                                    val albumMatches = if (wantedAlbumLower.isNotBlank()) {
-                                        candidateAlbumName?.lowercase(java.util.Locale.US) == wantedAlbumLower
-                                    } else {
-                                        true
-                                    }
-
-                                    val candDuration = candidate.duration
-                                    val durationMatches = if (expectedDuration != null && candDuration != null) {
-                                        java.lang.Math.abs(expectedDuration - candDuration) <= 12
-                                    } else {
-                                        true
-                                    }
-
-                                    val explicitMatches = candidate.explicitContent == wantedExplicit
-
-                                    titleMatches && artistMatches && albumMatches && durationMatches && explicitMatches
                                 }
-                            }
-
-                            bestSong = findMatch(cleanQuery)
-                            if (bestSong == null && cleanQuery != fallbackQuery) {
-                                Timber.tag(TAG).d("Saavn: clean query had no match, trying fallback: \"$fallbackQuery\"")
-                                bestSong = findMatch(fallbackQuery)
                             }
 
                             if (bestSong != null) {

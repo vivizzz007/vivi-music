@@ -33,6 +33,8 @@ import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 
 // Backward-compatibility typealiases so existing consumers can reference these from com.music.jiosaavn
 typealias SaavnSong = com.music.jiosaavn.models.SaavnSong
@@ -191,12 +193,14 @@ object SaavnService {
             }
 
             val responseText = response.bodyAsText()
-            val decodedMap = SaavnClient.json.decodeFromString<Map<String, RawSongItem>>(responseText)
-            Log.d(TAG, "getBestStreamUrl: songs size=${decodedMap.size}")
-
-            val rawSong = decodedMap.values.firstOrNull() ?: throw NoSuchElementException("Song not found")
-            val saavnSong = mapRawToSaavnSong(rawSong)
+            val root = SaavnClient.json.parseToJsonElement(responseText) as? JsonObject
+                ?: throw IllegalStateException("Invalid JSON response from Saavn getDetails")
+            val songElement = (root["songs"] as? JsonArray)?.firstOrNull()
+                ?: root.values.firstOrNull { it is JsonObject }
+                ?: throw NoSuchElementException("Song not found in Saavn getDetails")
+            val rawSong = SaavnClient.json.decodeFromJsonElement(RawSongItem.serializer(), songElement)
             Log.d(TAG, "getBestStreamUrl: raw song details name=${rawSong.title}, encryptedUrl=${rawSong.moreInfo.encryptedMediaUrl}")
+            val saavnSong = mapRawToSaavnSong(rawSong)
 
             val resolvedUrl = selectBestUrl(saavnSong.downloadUrl, quality)
             resolvedUrl?.let { SaavnCache.putStreamUrl(saavnSongId, quality, it) }
