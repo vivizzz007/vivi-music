@@ -116,6 +116,7 @@ import com.music.vivi.Motionartwork.Motionartwork
 import com.music.vivi.Motionartwork.normalizeForComparison
 import com.music.vivi.extensions.metadata
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.utils.isWifiConnected
 import kotlinx.coroutines.Dispatchers
@@ -937,8 +938,8 @@ private fun ThumbnailImage(
         var currentUrl by remember(artworkUri) {
             mutableStateOf(artworkUri)
         }
-        val isYtThumbnail = remember(currentUrl) {
-            currentUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        val isYtLetterboxed = remember(currentUrl) {
+            isLetterboxedYtThumbnail(currentUrl)
         }
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -960,7 +961,7 @@ private fun ThumbnailImage(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    if (cropArtwork && isYtThumbnail) {
+                    if (cropArtwork && isYtLetterboxed) {
                         scaleX = 4f / 3f
                         scaleY = 4f / 3f
                     }

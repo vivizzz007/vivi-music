@@ -278,6 +278,7 @@ import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.theme.PlayerSliderColors
 import com.music.vivi.ui.utils.ShowMediaInfo
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.ui.utils.ShowOffsetDialog
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
@@ -1503,8 +1504,8 @@ fun BottomSheetPlayer(
                                             playerConnection.togglePlayPause()
                                         }
                                 ) {
-                                    val isYtThumbnail = remember(mediaMetadata.thumbnailUrl) {
-                                        mediaMetadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                                    val isYtLetterboxed = remember(mediaMetadata.thumbnailUrl) {
+                                        isLetterboxedYtThumbnail(mediaMetadata.thumbnailUrl)
                                     }
                                     AsyncImage(
                                         model = mediaMetadata.thumbnailUrl,
@@ -1513,7 +1514,7 @@ fun BottomSheetPlayer(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .graphicsLayer {
-                                                if (cropAlbumArt && isYtThumbnail) {
+                                                if (cropAlbumArt && isYtLetterboxed) {
                                                     scaleX = 4f / 3f
                                                     scaleY = 4f / 3f
                                                 }

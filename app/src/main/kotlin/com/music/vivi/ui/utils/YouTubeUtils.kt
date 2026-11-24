@@ -44,6 +44,18 @@ fun String.resize(
 }
 
 /**
+ * Returns true if the thumbnail URL points to a 4:3 letterboxed YouTube image
+ * (hqdefault, sddefault, or default.jpg), which requires 4/3 zoom compensation
+ * to eliminate black letterbox bars when cropped to a square container.
+ * True 16:9 images (maxresdefault, mqdefault) return false and do not need extra zoom.
+ */
+fun isLetterboxedYtThumbnail(url: String?): Boolean {
+    if (url == null) return false
+    val isYt = url.contains("ytimg") || url.contains("/vi/") || url.contains("youtube.com")
+    return isYt && (url.contains("hqdefault") || url.contains("sddefault") || url.contains("/default.jpg"))
+}
+
+/**
  * Rewrites a Google CDN URL to request high resolution dimensions.
  * Uses generic regex to locate parameters, ensuring robustness.
  */
@@ -51,13 +63,13 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
     val w = if (isDataSaverEnabled) {
         (width ?: height ?: 150).coerceAtMost(150)
     } else {
-        // Honour the caller's requested size; fall back to 544 only when no size given
-        width ?: height ?: 544
+        // Enforce 240px minimum on modern high-DPI screens so 48dp list icons are never blurry
+        (width ?: height ?: 544).coerceAtLeast(240)
     }
     val h = if (isDataSaverEnabled) {
         (height ?: width ?: 150).coerceAtMost(150)
     } else {
-        height ?: width ?: 544
+        (height ?: width ?: 544).coerceAtLeast(240)
     }
 
     // Handle wNNN-hNNN path segment style parameters
@@ -71,17 +83,16 @@ private fun String.resizeGoogleCdn(width: Int?, height: Int?, isDataSaverEnabled
 }
 
 /**
- * Rewrites a YouTube thumbnail URL to request the highest **reliably available** quality tier.
+ * Rewrites a YouTube thumbnail URL to request the highest quality tier.
  *
- * Quality ladder (highest → lowest, all guaranteed to exist for every video):
- *   w >= 800  → hqdefault.jpg  (480×360,  ALWAYS available — primary player quality)
- *   w >= 320  → mqdefault.jpg  (320×180,  list items)
- *   w <  320  → default.jpg    (120×90,   small icons / data-saver fallback)
+ * Quality ladder:
+ *   w >= 500  → maxresdefault.jpg (1280×720 HD, native 16:9, crystal clear for player/artwork)
+ *   w >= 250  → hqdefault.jpg    (480×360, medium for cards/grids)
+ *   w <  250  → mqdefault.jpg    (320×180, clean 16:9, sharp for list items/queue)
  *
- * NOTE: WebP variants (vi_webp/hqdefault.webp etc.) are NOT available for all YouTube videos —
- * older uploads and some music videos return 404 for all vi_webp paths.
- * JPEG variants (vi/hqdefault.jpg etc.) are always available and are used here to prevent
- * blank thumbnails for affected videos (e.g. https://music.youtube.com/watch?v=JNJJ-QkZ8cM).
+ * Data Saver:
+ *   w >= 800  → mqdefault.jpg    (320×180, ~11 KB — 85% data saved)
+ *   w <  800  → default.jpg      (120×90,  ~3 KB)
  */
 private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Boolean): String {
     // Extract video ID using regex that matches any standard YouTube thumbnail path
@@ -97,9 +108,9 @@ private fun String.resizeYtimg(width: Int?, height: Int?, isDataSaverEnabled: Bo
 
     val w = width ?: height ?: 1200
     return when {
-        w >= 800  -> "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
-        w >= 320  -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
-        else      -> "https://i.ytimg.com/vi/$videoId/default.jpg"
+        w >= 500  -> "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg"
+        w >= 250  -> "https://i.ytimg.com/vi/$videoId/hqdefault.jpg"
+        else      -> "https://i.ytimg.com/vi/$videoId/mqdefault.jpg"
     }
 }
 

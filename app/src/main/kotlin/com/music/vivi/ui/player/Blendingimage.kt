@@ -33,6 +33,7 @@ import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.max
@@ -199,8 +200,8 @@ fun Blendingimage(
 
     if (!crossfadeEnabled || toCoverUrl.isNullOrBlank() || safeProgress <= 0f) {
         val targetUrl = if (safeProgress >= 1f && !toCoverUrl.isNullOrBlank()) toCoverUrl else (fromCoverUrl ?: toCoverUrl)
-        val isYtThumbnail = remember(targetUrl) {
-            targetUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        val isYtLetterboxed = remember(targetUrl) {
+            isLetterboxedYtThumbnail(targetUrl)
         }
         AsyncImage(
             model = ImageRequest.Builder(context)
@@ -211,7 +212,7 @@ fun Blendingimage(
             modifier = modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    if (cropAlbumArt && isYtThumbnail) {
+                    if (cropAlbumArt && isYtLetterboxed) {
                         scaleX = 4f / 3f
                         scaleY = 4f / 3f
                     }
@@ -237,10 +238,10 @@ fun Blendingimage(
     } else {
         // Smooth continuous cross-dissolve fallback (NO sudden 5/5 jump)
         val isYtA = remember(fromCoverUrl) {
-            fromCoverUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            isLetterboxedYtThumbnail(fromCoverUrl)
         }
         val isYtB = remember(toCoverUrl) {
-            toCoverUrl.contains("ytimg") || toCoverUrl.contains("/vi/") || toCoverUrl.contains("youtube.com")
+            isLetterboxedYtThumbnail(toCoverUrl)
         }
         Box(modifier = modifier.fillMaxSize()) {
             if (!fromCoverUrl.isNullOrBlank()) {

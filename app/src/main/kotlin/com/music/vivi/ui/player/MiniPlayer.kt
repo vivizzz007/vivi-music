@@ -130,6 +130,7 @@ import com.music.vivi.playback.PlayerConnection
 import com.music.vivi.ui.screens.settings.DarkMode
 import com.music.vivi.ui.theme.PlayerColorExtractor
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.utils.rememberEnumPreference
 import com.music.vivi.utils.rememberPreference
 import com.music.vivi.vivimusic.AudioDeviceBottomSheet
@@ -898,8 +899,8 @@ private fun LegacyMiniMediaInfo(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
             )
 
-            val isYtThumbnail = remember(mediaMetadata.thumbnailUrl) {
-                mediaMetadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            val isYtLetterboxed = remember(mediaMetadata.thumbnailUrl) {
+                isLetterboxedYtThumbnail(mediaMetadata.thumbnailUrl)
             }
 
             AsyncImage(
@@ -916,7 +917,7 @@ private fun LegacyMiniMediaInfo(
                     .fillMaxSize()
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .graphicsLayer {
-                        if (cropAlbumArt && isYtThumbnail) {
+                        if (cropAlbumArt && isYtLetterboxed) {
                             scaleX = 4f / 3f
                             scaleY = 4f / 3f
                         }

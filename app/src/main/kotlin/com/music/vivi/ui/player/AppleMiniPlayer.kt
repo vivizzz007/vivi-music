@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.Player
 import androidx.compose.ui.graphics.graphicsLayer
 import coil3.compose.AsyncImage
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.LocalListenTogetherManager
 import com.music.vivi.LocalPlayerConnection
 import com.music.vivi.R
@@ -266,8 +267,8 @@ fun AppleMiniPlayer(
                         .background(color = outlineColor.copy(alpha = 0.2f))
                 ) {
                     mediaMetadata?.let { metadata ->
-                        val isYtThumbnail = remember(metadata.thumbnailUrl) {
-                            metadata.thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+                        val isYtLetterboxed = remember(metadata.thumbnailUrl) {
+                            isLetterboxedYtThumbnail(metadata.thumbnailUrl)
                         }
                         AsyncImage(
                             model = metadata.thumbnailUrl,
@@ -276,7 +277,7 @@ fun AppleMiniPlayer(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .graphicsLayer {
-                                    if (cropAlbumArt && isYtThumbnail) {
+                                    if (cropAlbumArt && isYtLetterboxed) {
                                         scaleX = 4f / 3f
                                         scaleY = 4f / 3f
                                     }

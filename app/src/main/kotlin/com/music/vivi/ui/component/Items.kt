@@ -131,6 +131,7 @@ import com.music.vivi.extensions.toMediaItem
 import com.music.vivi.models.MediaMetadata
 import com.music.vivi.playback.queues.LocalAlbumRadio
 import com.music.vivi.ui.utils.resize
+import com.music.vivi.ui.utils.isLetterboxedYtThumbnail
 import com.music.vivi.utils.joinByBullet
 import com.music.vivi.utils.makeTimeString
 import com.music.vivi.utils.rememberEnumPreference
@@ -1540,8 +1541,8 @@ fun ItemThumbnail(
             .clip(shape)
     ) {
         if (albumIndex == null) {
-            val isYtThumbnail = remember(thumbnailUrl) {
-                thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            val isYtLetterboxed = remember(thumbnailUrl) {
+                isLetterboxedYtThumbnail(thumbnailUrl)
             }
             val targetWidth = remember(thumbnailRatio) {
                 if (thumbnailRatio > 1f) (544 * thumbnailRatio).toInt() else 544
@@ -1558,7 +1559,7 @@ fun ItemThumbnail(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        if (cropAlbumArt && isYtThumbnail && thumbnailRatio == 1f) {
+                        if (cropAlbumArt && isYtLetterboxed && thumbnailRatio == 1f) {
                             scaleX = 4f / 3f
                             scaleY = 4f / 3f
                         }
@@ -1632,8 +1633,8 @@ fun LocalThumbnail(
             .aspectRatio(thumbnailRatio)
             .clip(shape)
     ) {
-        val isYtThumbnail = remember(thumbnailUrl) {
-            thumbnailUrl?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+        val isYtLetterboxed = remember(thumbnailUrl) {
+            isLetterboxedYtThumbnail(thumbnailUrl)
         }
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
@@ -1647,7 +1648,7 @@ fun LocalThumbnail(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    if (cropAlbumArt && isYtThumbnail) {
+                    if (cropAlbumArt && isYtLetterboxed) {
                         scaleX = 4f / 3f
                         scaleY = 4f / 3f
                     }
@@ -1753,8 +1754,8 @@ fun PlaylistThumbnail(
             placeHolder()
         }
         1 -> {
-            val isYtThumbnail = remember(thumbnails) {
-                thumbnails.firstOrNull()?.let { it.contains("ytimg") || it.contains("/vi/") || it.contains("youtube.com") } == true
+            val isYtLetterboxed = remember(thumbnails) {
+                isLetterboxedYtThumbnail(thumbnails.firstOrNull())
             }
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -1772,7 +1773,7 @@ fun PlaylistThumbnail(
                     .size(size)
                     .clip(shape)
                     .graphicsLayer {
-                        if (cropAlbumArt && isYtThumbnail) {
+                        if (cropAlbumArt && isYtLetterboxed) {
                             scaleX = 4f / 3f
                             scaleY = 4f / 3f
                         }
