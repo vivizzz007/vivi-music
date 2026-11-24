@@ -1024,7 +1024,7 @@
     <string name="build_nightly">NIGHTLY</string>
     <string name="jiosaavn_settings">JioSaavn Settings</string>
     <string name="jiosaavn_streaming_disabled">Disabled</string>
-    <string name="jiosaavn_beta_info">This is currently in beta, don\'t report things based on JioSaavn. If JioSaavn is enabled and a song isn\'t available in JioSaavn, it will use YouTube Music as the next source. Downloading at 320 kbps is also supported when using JioSaavn.</string>
+    <string name="jiosaavn_beta_info">JioSaavn streaming is currently in beta. Because songs are matched automatically between YouTube Music and JioSaavn, you may occasionally experience a different version, edit, or release of a song. If a matching track isn\'t available on JioSaavn, playback seamlessly falls back to YouTube Music. High-quality 320 kbps streaming and downloading are supported.</string>
 
     <!-- Spotify Import -->
     <string name="spotify">Spotify</string>
