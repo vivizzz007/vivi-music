@@ -2801,6 +2801,11 @@ class MusicService :
                                 )
                             )
                         }
+                        scope.launch {
+                            if (nextMediaId == player.currentMediaItem?.mediaId) {
+                                setupLoudnessEnhancer()
+                            }
+                        }
                     }
                 }
             } ?: Timber.tag(TAG).d("[Prefetch] Could not resolve stream URL for $nextMediaId — will resolve on demand")
@@ -3787,6 +3792,11 @@ class MusicService :
                             playbackUrl = nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                         )
                     )
+                }
+                scope.launch {
+                    if (mediaId == player.currentMediaItem?.mediaId) {
+                        setupLoudnessEnhancer()
+                    }
                 }
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId, nonNullPlayback) }
 
