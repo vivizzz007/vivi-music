@@ -14,19 +14,19 @@ import com.music.vivi.constants.PreferredLyricsProvider
  */
 object LyricsProviderRegistry {
     private val providerMap = mapOf(
-        "YouLyPlus"       to YouLyPlusLyricsProvider,
-        "Paxsenix"        to PaxSenixLyricsProvider,
-        "BetterLyrics"    to BetterLyricsProvider,
+        "LrcRed"          to LrcRedLyricsProvider,
         "LrcLib"          to LrcLibLyricsProvider,
+        "BetterLyrics"    to BetterLyricsProvider,
         "Kugou"           to KuGouLyricsProvider,
         "Unison"          to UnisonLyricsProvider,
         "BiniLyrics"      to BiniLyricsProvider,
         "Spotify"         to SpotifyLyricsProvider,
-        "LrcRed"          to LrcRedLyricsProvider,
+        "Paxsenix"        to PaxSenixLyricsProvider,
+        "BetterLyricsPortato" to BetterLyricsPortatoLyricsProvider,
         "YouTubeSubtitle" to YouTubeSubtitleLyricsProvider,
         "YouTubeMusic"    to YouTubeLyricsProvider,
-        "BetterLyricsPortato" to BetterLyricsPortatoLyricsProvider,
         "Genius"          to GeniusLyricsProvider,
+        "YouLyPlus"       to YouLyPlusLyricsProvider,
     )
 
     val providerNames = providerMap.keys.toList()
@@ -42,19 +42,19 @@ object LyricsProviderRegistry {
         providers.filter { it in providerNames }.joinToString(",")
 
     fun getDefaultProviderOrder(): List<String> = listOf(
-        "YouLyPlus",
-        "Paxsenix",
-        "BetterLyrics",
+        "LrcRed",
         "LrcLib",
+        "BetterLyrics",
         "Kugou",
         "Unison",
         "BiniLyrics",
         "Spotify",
-        "LrcRed",
+        "Paxsenix",
         "BetterLyricsPortato",
         "YouTubeSubtitle",
         "YouTubeMusic",
         "Genius",
+        "YouLyPlus",
     )
 
     fun getOrderedProviders(orderString: String): List<LyricsProvider> =
