@@ -470,6 +470,7 @@ class MusicService :
     private var silenceSkipJob: Job? = null
     /** Background job that pre-resolves the next track's stream URL into [songUrlCache]. */
     private var prefetchJob: Job? = null
+    private var duckRestoreJob: Job? = null
 
     private data class CachedStream(
         val url: String,
@@ -1381,6 +1382,8 @@ class MusicService :
 
             AudioManager.AUDIOFOCUS_GAIN,
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT -> {
+                duckRestoreJob?.cancel()
+                duckRestoreJob = null
                 hasAudioFocus = true
 
                 if (wasPlayingBeforeAudioFocusLoss && !player.isPlaying && !reentrantFocusGain) {
@@ -1403,6 +1406,8 @@ class MusicService :
             }
 
             AudioManager.AUDIOFOCUS_LOSS -> {
+                duckRestoreJob?.cancel()
+                duckRestoreJob = null
                 hasAudioFocus = false
                 wasPlayingBeforeAudioFocusLoss = player.isPlaying
                 if (player.isPlaying) {
@@ -1413,6 +1418,8 @@ class MusicService :
             }
 
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                duckRestoreJob?.cancel()
+                duckRestoreJob = null
                 hasAudioFocus = false
                 wasPlayingBeforeAudioFocusLoss = player.isPlaying
                 if (player.isPlaying) {
@@ -1428,9 +1435,19 @@ class MusicService :
                     player.volume = if (isMuted.value) 0f else (playerVolume.value * 0.2f)
                 }
                 lastAudioFocusState = focusChange
+                duckRestoreJob?.cancel()
+                duckRestoreJob = scope.launch {
+                    delay(3500)
+                    if (lastAudioFocusState == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK && player.isPlaying) {
+                        player.volume = if (isMuted.value) 0f else playerVolume.value
+                        Timber.tag(TAG).d("Restored ducked volume after timeout")
+                    }
+                }
             }
 
             AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK -> {
+                duckRestoreJob?.cancel()
+                duckRestoreJob = null
                 hasAudioFocus = true
                 player.volume = if (isMuted.value) 0f else playerVolume.value
                 lastAudioFocusState = focusChange
@@ -2418,18 +2435,28 @@ class MusicService :
                         if (loudness != null) {
                             val loudnessDb = loudness.toFloat()
                             val targetGain = (-loudnessDb * 100).toInt()
-                            val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
 
-                            Timber.tag(TAG).d("Calculated raw normalization gain: $targetGain mB (from loudness: $loudnessDb)")
-
-                            try {
-                                enhancer.setTargetGain(clampedGain)
-                                enhancer.enabled = true
-                                Timber.tag(TAG).i("LoudnessEnhancer gain applied: $clampedGain mB")
-                            } catch (e: Exception) {
-                                Timber.tag(TAG).e(e, "Failed to apply loudness enhancement")
-                                reportException(e)
-                                releaseLoudnessEnhancer()
+                            if (targetGain > 0) {
+                                val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
+                                Timber.tag(TAG).d("Calculated normalization gain: $clampedGain mB (from loudness: $loudnessDb)")
+                                try {
+                                    enhancer.setTargetGain(clampedGain)
+                                    enhancer.enabled = true
+                                    Timber.tag(TAG).i("LoudnessEnhancer gain applied: $clampedGain mB")
+                                } catch (e: Exception) {
+                                    Timber.tag(TAG).e(e, "Failed to apply loudness enhancement")
+                                    reportException(e)
+                                    releaseLoudnessEnhancer()
+                                }
+                            } else {
+                                // LoudnessEnhancer only supports amplification (gain >= 0). For tracks already loud, bypass the effect.
+                                try {
+                                    enhancer.setTargetGain(0)
+                                    enhancer.enabled = false
+                                    Timber.tag(TAG).d("Normalization: track already loud ($loudnessDb dB), LoudnessEnhancer bypassed")
+                                } catch (e: Exception) {
+                                    releaseLoudnessEnhancer()
+                                }
                             }
                         } else {
                             enhancer.enabled = false
@@ -2523,16 +2550,25 @@ class MusicService :
                         if (loudness != null) {
                             val loudnessDb = loudness.toFloat()
                             val targetGain = (-loudnessDb * 100).toInt()
-                            val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
 
-                            try {
-                                enhancer.setTargetGain(clampedGain)
-                                enhancer.enabled = true
-                                Timber.tag(TAG).i("Secondary LoudnessEnhancer gain applied: $clampedGain mB")
-                            } catch (e: Exception) {
-                                Timber.tag(TAG).e(e, "Failed to apply secondary loudness enhancement")
-                                reportException(e)
-                                releaseSecondaryLoudnessEnhancer()
+                            if (targetGain > 0) {
+                                val clampedGain = targetGain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
+                                try {
+                                    enhancer.setTargetGain(clampedGain)
+                                    enhancer.enabled = true
+                                    Timber.tag(TAG).i("Secondary LoudnessEnhancer gain applied: $clampedGain mB")
+                                } catch (e: Exception) {
+                                    Timber.tag(TAG).e(e, "Failed to apply secondary loudness enhancement")
+                                    reportException(e)
+                                    releaseSecondaryLoudnessEnhancer()
+                                }
+                            } else {
+                                try {
+                                    enhancer.setTargetGain(0)
+                                    enhancer.enabled = false
+                                } catch (e: Exception) {
+                                    releaseSecondaryLoudnessEnhancer()
+                                }
                             }
                         } else {
                             enhancer.enabled = false
@@ -2615,6 +2651,9 @@ class MusicService :
         currentMediaMetadata.value = player.currentMetadata
 
         lastPlaybackSpeed = -1.0f // force update song
+
+        // Ensure volume is at expected master volume on track transitions
+        player.volume = if (isMuted.value) 0f else playerVolume.value
 
         setupLoudnessEnhancer()
 
@@ -4722,7 +4761,7 @@ class MusicService :
         Timber.tag(TAG).d("finalizeCrossfadeSwap: currentMediaMetadata updated to ${incomingMeta?.title}")
 
         try {
-            player.volume = targetVolume
+            player.volume = if (isMuted.value) 0f else playerVolume.value
             player.pauseAtEndOfMediaItems = false
             player.playWhenReady = true
             player.play()
@@ -4779,7 +4818,7 @@ class MusicService :
             } catch (_: Exception) {}
         }
         secondaryPlayer = null
-        try { player.volume = 1f } catch (_: Exception) {}
+        try { player.volume = if (isMuted.value) 0f else playerVolume.value } catch (_: Exception) {}
     }
 
     companion object {
@@ -4803,7 +4842,7 @@ class MusicService :
         const val MAX_RETRY_COUNT = 10
         // Constants for audio normalization
         private const val MAX_GAIN_MB = 300 // Maximum gain in millibels (3 dB)
-        private const val MIN_GAIN_MB = -1500 // Minimum gain in millibels (-15 dB)
+        private const val MIN_GAIN_MB = 0 // LoudnessEnhancer target gain must be >= 0 mB per Android AOSP spec
 
         private const val TAG = "MusicService"
 
