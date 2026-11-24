@@ -2736,6 +2736,7 @@ fun BottomSheetPlayer(
         val bottomActionSpacer = if (screenHeight < 720.dp) 16.dp else if (screenHeight < 800.dp) 24.dp else 36.dp
 
         if (isOldPlayerPortrait) {
+            val isCompact = !useNewPlayerDesign && (showInlineLyrics || showInlineQueue)
             Column(
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -2748,7 +2749,6 @@ fun BottomSheetPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    val isCompact = !useNewPlayerDesign && (showInlineLyrics || showInlineQueue)
                     if (!isCompact) {
                         trackInfoContent()
                         Spacer(Modifier.height(trackInfoSpacerHeight))
@@ -3201,11 +3201,8 @@ fun BottomSheetPlayer(
                             label = "lyricsProgress"
                         ) { showing -> if (showing) 1f else 0f }
 
-                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp
-                        val minRequiredControlsHeight = if (isCompactHeader) 210.dp else 290.dp
-                        val bottomControlsHeight = maxOf(minRequiredControlsHeight, maxHeight * 0.42f)
-                        val controlsTop = (maxHeight - bottomControlsHeight).coerceAtLeast(normalTopPadding + 100.dp)
-                        val topSectionHeight = controlsTop - normalTopPadding
+                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 8.dp
+                        val topSectionHeight = (maxHeight - normalTopPadding) * (1.25f / 2.25f)
 
                         val expandedArtworkSize = minOf(
                             maxWidth - (PlayerHorizontalPadding * 2),
@@ -3213,6 +3210,8 @@ fun BottomSheetPlayer(
                         ).coerceAtLeast(100.dp)
                         val expandedX = (maxWidth - expandedArtworkSize) / 2f
                         val expandedY = normalTopPadding + (topSectionHeight - expandedArtworkSize) / 2f
+                        val controlsTop = (expandedY + expandedArtworkSize + 34.dp).coerceAtMost(normalTopPadding + topSectionHeight)
+                        val bottomControlsHeight = (maxHeight - controlsTop).coerceAtLeast(120.dp)
 
                         val collapsedArtworkSize = 56.dp
                         val collapsedX = PlayerHorizontalPadding
@@ -3414,9 +3413,9 @@ fun BottomSheetPlayer(
                                 targetOffsetY = { it }
                             ) + fadeOut(tween(durationMillis = 220)),
                             modifier = Modifier
-                                .offset(y = effectiveControlsTop)
+                                .offset(y = if (isCompactHeader) effectiveControlsTop else controlsTop)
                                 .fillMaxWidth()
-                                .height(effectiveControlsHeight)
+                                .height(if (isCompactHeader) effectiveControlsHeight else bottomControlsHeight)
                                 .let {
                                     if (isCompactHeader) {
                                         it.pointerInput(Unit) {
@@ -3598,9 +3597,9 @@ fun BottomSheetPlayer(
 
                         // 4. Artwork: Unified single morphing component matching ViviLite architecture
                         val artworkShape = if (isAppleMusic) {
-                            RoundedCornerShape(dpLerp(0.dp, 8.dp, lyricsProgress))
+                            RoundedCornerShape(0.dp)
                         } else {
-                            RoundedCornerShape(dpLerp(thumbnailCornerRadius.dp, 0.dp, lyricsProgress))
+                            RoundedCornerShape(thumbnailCornerRadius.dp)
                         }
                         val maskAlpha = if (isAppleMusic) (1f - lyricsProgress).coerceIn(0f, 1f) else 0f
                         val showDissolveMask = isAppleMusic && maskAlpha > 0.01f
