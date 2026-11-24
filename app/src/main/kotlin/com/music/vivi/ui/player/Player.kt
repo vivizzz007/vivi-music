@@ -2732,6 +2732,8 @@ fun BottomSheetPlayer(
 
         val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
         val isOldPlayerPortrait = !useNewPlayerDesign && !isLandscape
+        val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+        val bottomActionSpacer = if (screenHeight < 720.dp) 16.dp else if (screenHeight < 800.dp) 24.dp else 36.dp
 
         if (isOldPlayerPortrait) {
             Column(
@@ -2774,7 +2776,7 @@ fun BottomSheetPlayer(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         volumeBarContent()
-                        Spacer(Modifier.height(42.dp))
+                        Spacer(Modifier.height(bottomActionSpacer))
                         oldBottomActionsContent()
                     }
                 }
@@ -2865,6 +2867,11 @@ fun BottomSheetPlayer(
                                         showInlineLyrics = false
                                         showInlineQueue = false
                                     }
+                                    .SwipeGesture(
+                                        enabled = !showInlineLyrics && !showInlineQueue && swipeThumbnailPref && !isListenTogetherGuest,
+                                        onSwipeLeft = { if (canSkipNext) playerConnection.seekToNext() },
+                                        onSwipeRight = { if (canSkipPrevious) playerConnection.seekToPrevious() }
+                                    )
                             ) {
                                 Crossfade(
                                     targetState = mediaMetadata?.id to (mediaMetadata?.thumbnailUrl ?: currentSong?.song?.thumbnailUrl),
@@ -3194,14 +3201,18 @@ fun BottomSheetPlayer(
                             label = "lyricsProgress"
                         ) { showing -> if (showing) 1f else 0f }
 
-                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 24.dp
-                        val topSectionHeight = (maxHeight - normalTopPadding) * (1.25f / 2.25f)
+                        val normalTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp
+                        val minRequiredControlsHeight = if (isCompactHeader) 210.dp else 290.dp
+                        val bottomControlsHeight = maxOf(minRequiredControlsHeight, maxHeight * 0.42f)
+                        val controlsTop = (maxHeight - bottomControlsHeight).coerceAtLeast(normalTopPadding + 100.dp)
+                        val topSectionHeight = controlsTop - normalTopPadding
 
-                        val expandedArtworkSize = minOf(maxWidth - (PlayerHorizontalPadding * 2), topSectionHeight - 16.dp).coerceAtLeast(120.dp)
+                        val expandedArtworkSize = minOf(
+                            maxWidth - (PlayerHorizontalPadding * 2),
+                            topSectionHeight - 16.dp
+                        ).coerceAtLeast(100.dp)
                         val expandedX = (maxWidth - expandedArtworkSize) / 2f
                         val expandedY = normalTopPadding + (topSectionHeight - expandedArtworkSize) / 2f
-                        val controlsTop = (expandedY + expandedArtworkSize + 34.dp).coerceAtMost(normalTopPadding + topSectionHeight)
-                        val bottomControlsHeight = (maxHeight - controlsTop).coerceAtLeast(120.dp)
 
                         val collapsedArtworkSize = 56.dp
                         val collapsedX = PlayerHorizontalPadding
@@ -3685,7 +3696,7 @@ fun BottomSheetPlayer(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .pointerInput(isCompactHeader, swipeThumbnailPref, isListenTogetherGuest) {
+                                    .pointerInput(isCompactHeader, swipeThumbnailPref, isListenTogetherGuest, canSkipNext, canSkipPrevious) {
                                         if (isCompactHeader) {
                                             detectTapGestures(
                                                 onTap = {
@@ -3693,16 +3704,25 @@ fun BottomSheetPlayer(
                                                     showInlineQueue = false
                                                 }
                                             )
-                                        } else {
-                                            detectHorizontalDragGestures { _, dragAmount ->
-                                                if (swipeThumbnailPref && !isListenTogetherGuest) {
-                                                    if (dragAmount < -20f && canSkipNext) {
-                                                        playerConnection.player.seekToNext()
-                                                    } else if (dragAmount > 20f && canSkipPrevious) {
-                                                        playerConnection.player.seekToPreviousMediaItem()
+                                        } else if (swipeThumbnailPref && !isListenTogetherGuest) {
+                                            var totalDrag = 0f
+                                            detectHorizontalDragGestures(
+                                                onDragStart = { totalDrag = 0f },
+                                                onDragCancel = { totalDrag = 0f },
+                                                onDragEnd = {
+                                                    val threshold = 100f
+                                                    if (totalDrag < -threshold && canSkipNext) {
+                                                        playerConnection.seekToNext()
+                                                    } else if (totalDrag > threshold && canSkipPrevious) {
+                                                        playerConnection.seekToPrevious()
                                                     }
+                                                    totalDrag = 0f
+                                                },
+                                                onHorizontalDrag = { change, dragAmount ->
+                                                    change.consume()
+                                                    totalDrag += dragAmount
                                                 }
-                                            }
+                                            )
                                         }
                                     }
                             )
