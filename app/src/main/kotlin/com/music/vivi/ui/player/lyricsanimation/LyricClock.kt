@@ -277,7 +277,14 @@ fun rememberLyricClock(
     var seekCount by remember(trackKey) { mutableIntStateOf(0) }
 
     LaunchedEffect(engine, isPlaying, foreground, trackKey) {
-        if (!isPlaying || !foreground) return@LaunchedEffect
+        if (!isPlaying || !foreground) {
+            // Freeze the clock whenever paused or backgrounded so that on resume
+            // the engine doesn't extrapolate from a stale sampledAt timestamp.
+            val heldNanos = System.nanoTime()
+            engine.hold(positionProvider(), heldNanos / 1_000_000.0)
+            lastSampledAtNanos = heldNanos
+            return@LaunchedEffect
+        }
         while (true) {
             val raw = positionProvider()
             val nowNanos = System.nanoTime()
@@ -295,10 +302,8 @@ fun rememberLyricClock(
     if (!isPlaying) {
         val currentPos = positionProvider()
         LaunchedEffect(engine, currentPos) {
-            engine.hold(currentPos, System.nanoTime() / 1_000_000.0)
             clock.longValue = currentPos
             lastReportedPos = currentPos
-            lastSampledAtNanos = System.nanoTime()
         }
     }
 

@@ -3016,7 +3016,11 @@ private const val SCROLL_LEAD_MAX_MS = 500L
 private fun activeLyricRows(lines: List<LyricsEntry>, positionMs: Long): List<Int> {
     val latest = lines.indexOfLast { it.time <= positionMs }
     if (latest < 0) return emptyList()
-    return (0..latest).filter { index ->
+    // Scan only a small window behind the current line. Scanning from 0 is O(N²) per
+    // frame and can mark multiple past lines active simultaneously (visible as the
+    // wrong line being highlighted). Two lines of lookback covers duet backing vocals.
+    val scanFrom = (latest - 2).coerceAtLeast(0)
+    return (scanFrom..latest).filter { index ->
         val line = lines[index]
         val endMs = if (!line.words.isNullOrEmpty()) {
             (line.words.last().endTime * 1000).toLong()
