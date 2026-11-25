@@ -15,6 +15,7 @@ import com.music.vivi.constants.PreferredLyricsProvider
 object LyricsProviderRegistry {
     private val providerMap = mapOf(
         "LrcRed"          to LrcRedLyricsProvider,
+        "LrcCx"           to LrcCxLyricsProvider,
         "LrcLib"          to LrcLibLyricsProvider,
         "BetterLyrics"    to BetterLyricsProvider,
         "Kugou"           to KuGouLyricsProvider,
@@ -43,6 +44,7 @@ object LyricsProviderRegistry {
 
     fun getDefaultProviderOrder(): List<String> = listOf(
         "LrcRed",
+        "LrcCx",
         "LrcLib",
         "BetterLyrics",
         "Kugou",
@@ -86,6 +88,7 @@ object LyricsProviderRegistry {
         "BiniLyrics"      -> "Bini Lyrics"
         "Spotify"         -> "Spotify"
         "LrcRed"          -> "lrc.red"
+        "LrcCx"           -> "LrcAPI"
         "YouTubeSubtitle" -> "YouTube Subtitle"
         "YouTubeMusic"    -> "YouTube Music"
         "BetterLyricsPortato" -> "Better Lyrics (Portato)"

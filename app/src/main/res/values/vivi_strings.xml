@@ -1262,6 +1262,10 @@
     <string name="enable_youtube_lyrics">YouTube Music</string>
     <string name="enable_youtube_lyrics_desc">Fetch official lyrics from YouTube Music (supports synced lyrics when available)</string>
 
+    <!-- LrcAPI (api.lrc.cx) Lyrics -->
+    <string name="enable_lrccx">LrcAPI</string>
+    <string name="enable_lrccx_desc">Fetch synced lyrics from api.lrc.cx</string>
+
     <!-- Announcements & News -->
     <string name="announcement_tag_news">News</string>
     <string name="announcement_read_more">Tap to read more</string>
