@@ -160,6 +160,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
@@ -3334,6 +3335,7 @@ fun BottomSheetPlayer(
                                 .offset(y = lyricsTop)
                                 .fillMaxWidth()
                                 .height(lyricsHeight)
+                                .clipToBounds()
                                 .bottomControlsMask { lyricsRevealFraction }
                                 .compactPanelGestures(
                                     key1 = showInlineLyrics,
