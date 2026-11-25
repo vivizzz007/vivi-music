@@ -1363,13 +1363,13 @@ fun Lyrics(
                     if (!isSynced) emptyList() else activeLyricRows(displayLines, lyricClock.longValue)
                 }
             }
-            val scrollLine = activeRows.firstOrNull() ?: -1
+            val scrollLine = focusRowFor(displayLines, activeRows)
             val leadLine by remember(displayLines, isSynced) {
                 derivedStateOf {
                     if (!isSynced) -1
                     else {
                         val now = lyricClock.longValue
-                        activeLyricRows(displayLines, now + scrollLead(displayLines, now)).firstOrNull() ?: -1
+                        focusRowFor(displayLines, activeLyricRows(displayLines, now + scrollLead(displayLines, now)))
                     }
                 }
             }
@@ -1391,7 +1391,11 @@ fun Lyrics(
                     isSynced && isAutoScrollEnabled && showLyrics && focusLine >= 0 && focusLine in displayLines.indices
                 ) {
                     val targetIndex = if (isLyricsProviderShown) focusLine + 1 else focusLine
-                    val visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                    var visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                    if (visible == null) {
+                        lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
+                        visible = lazyListState.layoutInfo.visibleItemsInfo.firstOrNull { it.index == targetIndex }
+                    }
                     if (visible != null) {
                         val span = scrollLead(displayLines, lyricClock.longValue).toInt()
                         val distance = if (useNewPlayerDesign) {
@@ -1408,12 +1412,6 @@ fun Lyrics(
                                 value = distance,
                                 animationSpec = tween(durationMillis = span, easing = LYRIC_EASING)
                             )
-                        }
-                    } else {
-                        if (useNewPlayerDesign) {
-                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
-                        } else {
-                            lazyListState.animateScrollToItem(targetIndex, scrollOffset = 0)
                         }
                     }
                 }
@@ -1444,7 +1442,7 @@ fun Lyrics(
                     .asPaddingValues()
             },
             modifier = Modifier
-                .fadingEdge(vertical = 64.dp)
+                .fadingEdge(vertical = 32.dp)
                 .nestedScroll(remember {
                     object : NestedScrollConnection {
                         override fun onPostScroll(
@@ -1694,7 +1692,8 @@ fun Lyrics(
                                 this.scaleY = scale
                                 this.transformOrigin = transformOrigin
                                 this.alpha = animatedAlpha
-                                this.translationY = rowTranslationY
+                                // translationY lives on the outer Box so it doesn't fight
+                                // AnimatedVisibility's expandVertically clip region
                             }
                             .blur(animatedBlur, BlurredEdgeTreatment.Unbounded)
                             .clip(RoundedCornerShape(10.dp))
@@ -1780,7 +1779,8 @@ fun Lyrics(
                         AnimatedVisibility(
                             visible = bgVisible,
                             enter = fadeIn(tween(280)) + expandVertically(tween(320, easing = LYRIC_EASING)),
-                            exit = fadeOut(tween(280)) + shrinkVertically(tween(320, easing = LYRIC_EASING))
+                            exit = fadeOut(tween(280)) + shrinkVertically(tween(320, easing = LYRIC_EASING)),
+                            modifier = Modifier.graphicsLayer { translationY = rowTranslationY }
                         ) {
                             Column(
                                 modifier = itemModifier,
@@ -3029,6 +3029,14 @@ private fun activeLyricRows(lines: List<LyricsEntry>, positionMs: Long): List<In
         }
         index == latest || (!line.isInstrumental && line.time <= positionMs && positionMs < endMs)
     }
+}
+
+private fun focusRowFor(lines: List<LyricsEntry>, active: List<Int>): Int {
+    val latest = active.lastOrNull() ?: return -1
+    val latestTime = lines.getOrNull(latest)?.time ?: return latest
+    // Advance to the newly started line even if an earlier line's endMs overlaps,
+    // while keeping simultaneous duet lines anchored to the first line of that timestamp.
+    return active.firstOrNull { lines.getOrNull(it)?.time == latestTime } ?: latest
 }
 
 private fun scrollLead(lines: List<LyricsEntry>, positionMs: Long): Long {
