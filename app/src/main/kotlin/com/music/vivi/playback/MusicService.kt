@@ -4147,8 +4147,15 @@ class MusicService :
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             MusicWidgetReceiver.ACTION_PLAY_PAUSE -> {
-                if (player.isPlaying) player.pause() else player.play()
-                updateWidgetUI(player.isPlaying)
+                val castHandler = castConnectionHandler
+                if (castHandler?.isCasting?.value == true) {
+                    val wasPlaying = castHandler.castIsPlaying.value
+                    if (wasPlaying) castHandler.pause() else castHandler.play()
+                    updateWidgetUI(!wasPlaying)
+                } else {
+                    if (player.isPlaying) player.pause() else player.play()
+                    updateWidgetUI(player.isPlaying)
+                }
             }
             MusicWidgetReceiver.ACTION_LIKE -> {
                 toggleLike()
@@ -4236,10 +4243,10 @@ class MusicService :
     }
 
     /**
-     * Get the stream URL for a given media ID.
-     * This is used for Google Cast to send the audio URL to Chromecast.
+     * Get the stream URL and MIME type for a given media ID.
+     * This is used for Google Cast to send the audio URL and content type to Chromecast.
      */
-    suspend fun getStreamUrl(mediaId: String): String? {
+    suspend fun getStreamUrl(mediaId: String): Pair<String, String>? {
         return withContext(Dispatchers.IO) {
             try {
                 val playbackData = YTPlayerUtils.playerResponseForPlayback(
@@ -4247,8 +4254,12 @@ class MusicService :
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                     context = this@MusicService,
-                ).getOrNull()
-                playbackData?.streamUrl
+                ).getOrNull() ?: return@withContext null
+                val mimeType = playbackData.format.mimeType
+                    .substringBefore(";")
+                    .trim()
+                    .ifEmpty { "audio/mp4" }
+                playbackData.streamUrl to mimeType
             } catch (e: Exception) {
                 timber.log.Timber.e(e, "Failed to get stream URL for Cast")
                 null

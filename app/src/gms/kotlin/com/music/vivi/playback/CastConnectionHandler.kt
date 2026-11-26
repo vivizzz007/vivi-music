@@ -82,6 +82,7 @@ class CastConnectionHandler(
     val castVolume: StateFlow<Float> = _castVolume.asStateFlow()
     
     private var positionUpdateJob: Job? = null
+    private var loadMediaJob: Job? = null
     private var currentMediaId: String? = null
     private var lastCastItemId: Int = -1
     private var isReloadingQueue: Boolean = false
@@ -247,7 +248,9 @@ class CastConnectionHandler(
                     if (itemsToAdd.isNotEmpty()) {
                         Timber.d("Appending ${itemsToAdd.size} items to Cast queue")
                         withContext(Dispatchers.Main) {
-                            client.queueAppendItem(itemsToAdd.first(), null)
+                            itemsToAdd.forEach { item ->
+                                client.queueAppendItem(item, null)
+                            }
                         }
                     }
                 }
@@ -410,10 +413,12 @@ class CastConnectionHandler(
             _isCasting.value = true
             _isConnecting.value = false
             _castDeviceName.value = session.castDevice?.friendlyName
-            
+            castSession = session
+            _castVolume.value = session.volume.toFloat()
+
             remoteMediaClient = session.remoteMediaClient
             remoteMediaClient?.registerCallback(remoteMediaClientCallback)
-            
+
             startPositionUpdates()
         }
         
@@ -439,6 +444,8 @@ class CastConnectionHandler(
             sessionManager?.currentCastSession?.let { session ->
                 _isCasting.value = true
                 _castDeviceName.value = session.castDevice?.friendlyName
+                castSession = session
+                _castVolume.value = session.volume.toFloat()
                 remoteMediaClient = session.remoteMediaClient
                 remoteMediaClient?.registerCallback(remoteMediaClientCallback)
                 startPositionUpdates()
@@ -486,7 +493,7 @@ class CastConnectionHandler(
      * Build MediaInfo for a single track
      */
     private suspend fun buildMediaInfo(metadata: AppMediaMetadata): MediaInfo? {
-        val streamUrl = musicService.getStreamUrl(metadata.id) ?: return null
+        val (streamUrl, mimeType) = musicService.getStreamUrl(metadata.id) ?: return null
         
         val castMetadata = MediaMetadata(MediaMetadata.MEDIA_TYPE_MUSIC_TRACK).apply {
             putString(MediaMetadata.KEY_TITLE, metadata.title)
@@ -501,7 +508,7 @@ class CastConnectionHandler(
         
         return MediaInfo.Builder(streamUrl)
             .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
-            .setContentType("audio/mp4")
+            .setContentType(mimeType)
             .setMetadata(castMetadata)
             .setCustomData(org.json.JSONObject().put("mediaId", metadata.id))
             .build()
@@ -515,8 +522,9 @@ class CastConnectionHandler(
     private fun loadMediaWithQueue(metadata: AppMediaMetadata) {
         if (!_isCasting.value) return
         
+        loadMediaJob?.cancel()
         isReloadingQueue = true // Prevent sync logic from triggering during load
-        scope.launch {
+        loadMediaJob = scope.launch {
             try {
                 currentMediaId = metadata.id
                 _castIsBuffering.value = true
@@ -585,6 +593,12 @@ class CastConnectionHandler(
                 
                 Timber.d("Loading Cast queue: ${queueItems.size} items, startIndex=$startIndex, shuffle=$shuffleEnabled")
                 
+                val castRepeatMode = when (player.repeatMode) {
+                    Player.REPEAT_MODE_ONE -> MediaStatus.REPEAT_MODE_REPEAT_SINGLE
+                    Player.REPEAT_MODE_ALL -> MediaStatus.REPEAT_MODE_REPEAT_ALL
+                    else -> MediaStatus.REPEAT_MODE_REPEAT_OFF
+                }
+
                 withContext(Dispatchers.Main) {
                     val client = remoteMediaClient ?: return@withContext
                     
@@ -592,7 +606,7 @@ class CastConnectionHandler(
                     client.queueLoad(
                         queueItems.toTypedArray(),
                         startIndex,
-                        MediaStatus.REPEAT_MODE_REPEAT_OFF,
+                        castRepeatMode,
                         startPosition,
                         org.json.JSONObject()
                     )
@@ -602,6 +616,8 @@ class CastConnectionHandler(
                 }
                 
                 Timber.d("Loaded media on Cast: ${metadata.title}")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load media on Cast")
                 _castIsBuffering.value = false
@@ -775,6 +791,7 @@ class CastConnectionHandler(
     }
     
     fun release() {
+        loadMediaJob?.cancel()
         stopPositionUpdates()
         remoteMediaClient?.unregisterCallback(remoteMediaClientCallback)
         sessionManager?.removeSessionManagerListener(sessionManagerListener, CastSession::class.java)
