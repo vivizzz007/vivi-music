@@ -166,6 +166,8 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
@@ -173,7 +175,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.toArgb
 import coil3.size.Size as CoilSize
@@ -2597,9 +2602,18 @@ fun BottomSheetPlayer(
                             }
 
                             val currentBarHeight by animateDpAsState(
-                                targetValue = if (isDragging) 10.dp else 6.dp,
-                                animationSpec = tween(durationMillis = 150),
+                                targetValue = if (isDragging) 12.dp else 7.25.dp,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                                    stiffness = Spring.StiffnessMediumLow
+                                ),
                                 label = "volumeBarHeight"
+                            )
+
+                            val dragHighlightAlpha by animateFloatAsState(
+                                targetValue = if (isDragging) 1f else 0f,
+                                animationSpec = tween(durationMillis = 150),
+                                label = "volumeBarHighlight"
                             )
 
                             val iconColor = TextBackgroundColor.copy(alpha = 0.65f)
@@ -2650,21 +2664,70 @@ fun BottomSheetPlayer(
                                 val topY = (size.height - trackHeightPx) / 2f
                                 val cornerRadius = CornerRadius(trackHeightPx / 2f, trackHeightPx / 2f)
                                 val fraction = (if (isCasting) castVolume else animatedVolume.value).coerceIn(0f, 1f)
-
-                                drawRoundRect(
-                                    color = TextBackgroundColor.copy(alpha = 0.22f),
-                                    topLeft = Offset(0f, topY),
-                                    size = Size(size.width, trackHeightPx),
-                                    cornerRadius = cornerRadius
-                                )
-
-                                if (fraction > 0f) {
-                                    drawRoundRect(
-                                        color = TextBackgroundColor,
-                                        topLeft = Offset(0f, topY),
-                                        size = Size((size.width * fraction).coerceIn(0f, size.width), trackHeightPx),
-                                        cornerRadius = cornerRadius
+                                val filled = (size.width * fraction).coerceIn(0f, size.width)
+                                val pillPath = Path().apply {
+                                    addRoundRect(
+                                        RoundRect(
+                                            rect = Rect(Offset(0f, topY), Size(size.width, trackHeightPx)),
+                                            cornerRadius = cornerRadius
+                                        )
                                     )
+                                }
+                                val useOverlay = TextBackgroundColor.luminance() > 0.5f
+
+                                clipPath(pillPath) {
+                                    if (useOverlay) {
+                                        if (filled < size.width) {
+                                            val inactiveOffset = Offset(filled, topY)
+                                            val inactiveSize = Size(size.width - filled, trackHeightPx)
+                                            drawRect(
+                                                color = Color(0x26FFFFFF),
+                                                topLeft = inactiveOffset,
+                                                size = inactiveSize,
+                                                blendMode = BlendMode.Overlay
+                                            )
+                                            drawRect(
+                                                color = Color(0x33FFFFFF),
+                                                topLeft = inactiveOffset,
+                                                size = inactiveSize
+                                            )
+                                        }
+                                        if (filled > 0f) {
+                                            val activeOffset = Offset(0f, topY)
+                                            val activeSize = Size(filled, trackHeightPx)
+                                            drawRect(
+                                                color = Color(0xBFFFFFFF),
+                                                topLeft = activeOffset,
+                                                size = activeSize,
+                                                blendMode = BlendMode.Overlay
+                                            )
+                                            drawRect(
+                                                color = Color(0x73FFFFFF),
+                                                topLeft = activeOffset,
+                                                size = activeSize
+                                            )
+                                            if (dragHighlightAlpha > 0f) {
+                                                drawRect(
+                                                    color = Color.White.copy(alpha = dragHighlightAlpha),
+                                                    topLeft = activeOffset,
+                                                    size = activeSize
+                                                )
+                                            }
+                                        }
+                                    } else {
+                                        drawRect(
+                                            color = TextBackgroundColor.copy(alpha = 0.22f),
+                                            topLeft = Offset(0f, topY),
+                                            size = Size(size.width, trackHeightPx)
+                                        )
+                                        if (filled > 0f) {
+                                            drawRect(
+                                                color = TextBackgroundColor,
+                                                topLeft = Offset(0f, topY),
+                                                size = Size(filled, trackHeightPx)
+                                            )
+                                        }
+                                    }
                                 }
                             }
 

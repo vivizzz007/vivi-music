@@ -6,7 +6,9 @@ package com.music.vivi.ui.component
 
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -26,15 +28,27 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+private val OverlayInactiveColor = Color(0x26FFFFFF)
+private val OverlayInactiveShadeColor = Color(0x33FFFFFF)
+private val OverlayActiveColor = Color(0xBFFFFFFF)
+private val OverlayActiveShadeColor = Color(0x73FFFFFF)
+
 /**
- * Apple Music style scrubber: a hairline capsule with no thumb knob, which
- * thickens under your finger and settles back when you let go.
+ * Slim capsule scrubber with two-pass overlay blend, drag-to-expand, and no thumb knob.
  */
 @Composable
 fun ThinSlider(
@@ -45,7 +59,7 @@ fun ThinSlider(
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     onValueChangeFinished: (() -> Unit)? = null,
     colors: SliderColors = SliderDefaults.colors(),
-    idleHeight: Dp = 7.dp,
+    idleHeight: Dp = 7.25.dp,
     activeHeight: Dp = 12.dp,
 ) {
     val currentOnValueChange by rememberUpdatedState(onValueChange)
@@ -72,6 +86,12 @@ fun ThinSlider(
             stiffness = Spring.StiffnessMediumLow,
         ),
         label = "thinSliderHeight",
+    )
+
+    val dragHighlightAlpha by animateFloatAsState(
+        targetValue = if (isDragging) 1f else 0f,
+        animationSpec = tween(durationMillis = 150),
+        label = "thinSliderHighlight",
     )
 
     val activeColor = if (enabled) colors.activeTrackColor else colors.disabledActiveTrackColor
@@ -130,25 +150,61 @@ fun ThinSlider(
                 .height(height),
         ) {
             val radius = CornerRadius(size.height / 2f)
-
-            // 1. Inactive background track capsule
-            drawRoundRect(
-                color = inactiveColor,
-                size = size,
-                cornerRadius = radius,
-            )
-
-            // 2. Active progress fill capsule
-            val filled = size.width * fraction
-            if (filled > 0f) {
-                drawRoundRect(
-                    color = activeColor,
-                    size = Size(
-                        width = filled.coerceAtLeast(size.height).coerceAtMost(size.width),
-                        height = size.height,
-                    ),
-                    cornerRadius = radius,
+            val pillPath = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        rect = Rect(Offset.Zero, size),
+                        cornerRadius = radius,
+                    )
                 )
+            }
+            val filled = (size.width * fraction).coerceIn(0f, size.width)
+            val useOverlay = activeColor.luminance() > 0.5f
+
+            clipPath(pillPath) {
+                if (useOverlay) {
+                    if (filled < size.width) {
+                        val inactiveSize = Size(size.width - filled, size.height)
+                        val inactiveOffset = Offset(filled, 0f)
+                        drawRect(
+                            color = OverlayInactiveColor,
+                            topLeft = inactiveOffset,
+                            size = inactiveSize,
+                            blendMode = BlendMode.Overlay,
+                        )
+                        drawRect(
+                            color = OverlayInactiveShadeColor,
+                            topLeft = inactiveOffset,
+                            size = inactiveSize,
+                        )
+                    }
+                    if (filled > 0f) {
+                        val activeSize = Size(filled, size.height)
+                        drawRect(
+                            color = OverlayActiveColor,
+                            topLeft = Offset.Zero,
+                            size = activeSize,
+                            blendMode = BlendMode.Overlay,
+                        )
+                        drawRect(
+                            color = OverlayActiveShadeColor,
+                            topLeft = Offset.Zero,
+                            size = activeSize,
+                        )
+                        if (dragHighlightAlpha > 0f) {
+                            drawRect(
+                                color = Color.White.copy(alpha = dragHighlightAlpha),
+                                topLeft = Offset.Zero,
+                                size = activeSize,
+                            )
+                        }
+                    }
+                } else {
+                    drawRect(color = inactiveColor, size = size)
+                    if (filled > 0f) {
+                        drawRect(color = activeColor, size = Size(filled, size.height))
+                    }
+                }
             }
         }
     }
